@@ -236,6 +236,7 @@
 .auth-success svg { flex: 0 0 auto; margin-top: 2px; }
 .auth-success b { display: block; margin-bottom: 2px; }
 .auth-success span { color: var(--text-2); }
+.auth-dev-link { margin-top: 9px; }
 .auth-next {
   display: grid;
   gap: 8px;

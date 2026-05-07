@@ -152,6 +152,7 @@ export function LoginScreen({ go }) {
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
   const [sentEmail, setSentEmail] = useState("");
+  const [magicLink, setMagicLink] = useState("");
 
   const pending = Boolean(pendingAction);
 
@@ -179,10 +180,12 @@ export function LoginScreen({ go }) {
     setPendingAction("email");
     setError("");
     setSentEmail("");
+    setMagicLink("");
 
     try {
-      await requestEmailMagicLink({ email: normalizedEmail });
+      const result = await requestEmailMagicLink({ email: normalizedEmail });
       setSentEmail(normalizedEmail);
+      setMagicLink(result?.devMagicLink || result?.magicLink || "");
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
     } finally {
@@ -241,6 +244,7 @@ export function LoginScreen({ go }) {
                   setEmail(event.target.value);
                   setError("");
                   setSentEmail("");
+                  setMagicLink("");
                 }}
                 placeholder="you@company.com"
                 disabled={pending}
@@ -263,6 +267,11 @@ export function LoginScreen({ go }) {
                     `我们已向 ${sentEmail} 发送魔法链接。登录后继续授权 GitHub 仓库权限。`
                   )}
                 </span>
+                {magicLink && (
+                  <a className="btn sm auth-dev-link" href={magicLink}>
+                    {T("Open local magic link", "打开本地魔法链接")}
+                  </a>
+                )}
               </div>
             </div>
           )}

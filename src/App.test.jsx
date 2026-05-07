@@ -40,7 +40,9 @@ describe("App", () => {
   });
 
   it("requests a magic link for email login", async () => {
-    requestEmailMagicLink.mockResolvedValueOnce({});
+    requestEmailMagicLink.mockResolvedValueOnce({
+      magicLink: "http://localhost:3000/auth/email/callback?token=dev",
+    });
     const user = userEvent.setup();
 
     render(<LoginScreen go={vi.fn()} />);
@@ -52,6 +54,10 @@ describe("App", () => {
       expect(requestEmailMagicLink).toHaveBeenCalledWith({ email: "taylor@acme.io" });
     });
     expect(await screen.findByRole("status")).toHaveTextContent("Check your email");
+    expect(screen.getByRole("link", { name: /open local magic link/i })).toHaveAttribute(
+      "href",
+      "http://localhost:3000/auth/email/callback?token=dev"
+    );
   });
 
   it("starts GitHub repository authorization with the selected scope", async () => {

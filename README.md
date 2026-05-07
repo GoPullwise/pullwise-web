@@ -57,6 +57,11 @@ Only `VITE_*` variables are exposed to browser code. Do not put GitHub client
 secrets, GitHub App private keys, Stripe secret keys, AI provider keys, or repo
 access credentials in frontend env files.
 
+For local end-to-end auth testing, run the Python API in `F:\pullwise-server`
+and use `.env.local` with `VITE_API_BASE_URL=http://localhost:3000`. The local
+server mocks GitHub login, email magic links, and GitHub repository
+authorization callbacks.
+
 ## Useful Commands
 
 ```bash
