@@ -1,27 +1,9 @@
-// screens/flow.jsx — Repos selection + Scan progress
-
-import { useEffect as useEffectF, useState as useStateF } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
-import { FIXTURES } from "../data.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { useRepositories } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
-
-function normalizeRepo(repo) {
-  const fullName = repo.fullName || repo.full_name || repo.name || "";
-  return {
-    ...repo,
-    id: String(repo.id || fullName),
-    name: fullName || repo.name,
-    fullName,
-    desc: repo.desc || repo.description || "",
-    lang: repo.lang || repo.language || "-",
-    stars: repo.stars ?? repo.stargazers_count ?? "-",
-    branches: repo.branches ?? "-",
-    updated: repo.updated || repo.updated_at || repo.updatedAt || "",
-    private: Boolean(repo.private),
-  };
-}
 
 function repoOwner(repo) {
   const fullName = repo.fullName || repo.name || "";
@@ -30,20 +12,18 @@ function repoOwner(repo) {
 
 export function ReposScreen({ go, setActiveRepo }) {
   useLang();
-  const [q, setQ] = useStateF("");
-  const [selected, setSelected] = useStateF([]);
-  const [remoteRepos, setRemoteRepos] = useStateF(null);
-  const [loadingRepos, setLoadingRepos] = useStateF(true);
-  const [repoError, setRepoError] = useStateF("");
-  const [needsAuthorization, setNeedsAuthorization] = useStateF(false);
-  const fixtureRepos = FIXTURES.REPOS.map(normalizeRepo);
-  const availableRepos = remoteRepos?.length ? remoteRepos : fixtureRepos;
+  const [q, setQ] = useState("");
+  const [selected, setSelected] = useState([]);
+  const { items: availableRepos, loading, error, needsAuthorization, reload } = useRepositories();
   const allLabel = T("All", "所有");
-  const orgs = [
-    allLabel,
-    ...Array.from(new Set(availableRepos.map(repoOwner).filter(Boolean))).map((owner) => `@${owner}`),
-  ];
-  const [org, setOrg] = useStateF(allLabel);
+  const orgs = useMemo(
+    () => [
+      allLabel,
+      ...Array.from(new Set(availableRepos.map(repoOwner).filter(Boolean))).map((owner) => `@${owner}`),
+    ],
+    [allLabel, availableRepos]
+  );
+  const [org, setOrg] = useState(allLabel);
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
   const query = q.trim().toLowerCase();
   const repos = availableRepos.filter((repo) => {
@@ -56,145 +36,150 @@ export function ReposScreen({ go, setActiveRepo }) {
     return matchesOrg && matchesQuery;
   });
 
-  const loadRepositories = async ({ sync = false } = {}) => {
-    setLoadingRepos(true);
-    setRepoError("");
+  useEffect(() => {
+    if (!orgs.includes(org)) setOrg(allLabel);
+  }, [allLabel, org, orgs]);
 
-    try {
-      const payload = sync ? await pullwiseApi.repositories.sync() : await pullwiseApi.repositories.list();
-      const items = (payload?.items || payload?.repositories || []).map(normalizeRepo);
-      setRemoteRepos(items);
-      setNeedsAuthorization(Boolean(payload?.needsAuthorization));
-    } catch (error) {
-      setRepoError(error?.message || T("Unable to load GitHub repositories.", "无法加载 GitHub 仓库。"));
-      setRemoteRepos(null);
-    } finally {
-      setLoadingRepos(false);
-    }
+  useEffect(() => {
+    setSelected((current) => current.filter((id) => availableRepos.some((repo) => repo.id === id)));
+  }, [availableRepos]);
+
+  const toggle = (id) => setSelected((current) => (
+    current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+  ));
+
+  const startScan = () => {
+    const repo = availableRepos.find((item) => item.id === selected[0]);
+    if (!repo) return;
+    setActiveRepo(repo);
+    go("scanning");
   };
-
-  useEffectF(() => {
-    if (!orgs.includes(org)) {
-      setOrg(allLabel);
-    }
-  }, [orgs.join("|"), org, allLabel]);
-
-  useEffectF(() => {
-    loadRepositories();
-  }, []);
-
-  useEffectF(() => {
-    setSelected((current) => {
-      const valid = current.filter((id) => availableRepos.some((repo) => repo.id === id));
-      if (valid.length) return valid;
-      return availableRepos[0] ? [availableRepos[0].id] : [];
-    });
-  }, [availableRepos.map((repo) => repo.id).join("|")]);
-
-  const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
   return (
     <div className="app fade-in">
       <Topbar go={go} breadcrumbs={[
-        { label: "Acme Inc", go: "dashboard" },
-        { label: T("Repositories","仓库") },
+        { label: "Pullwise", go: "dashboard" },
+        { label: T("Repositories", "仓库") },
       ]} />
       <div className="with-side">
         <Sidebar section="repos" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
-        <div className="page-h">
-          <div>
-            <h1>{T("Choose repositories to scan","选择要扫描的仓库")}</h1>
-            <div className="sub">
-              {needsAuthorization
-                ? T(
-                    "GitHub repository access is not connected yet.",
-                    "尚未连接 GitHub 仓库权限。"
-                  )
-                : T(
-                    `${availableRepos.length} accessible repos - pick one or more to start`,
-                    `${availableRepos.length} 个可访问仓库 - 选择一或多个开始`
-                  )}
-            </div>
-          </div>
-          <div className="actions">
-            <button className="btn" disabled={loadingRepos} onClick={() => loadRepositories({ sync: true })}><I.Refresh size={14} /> {T("Sync","同步")}</button>
-            <button className="btn primary" disabled={selected.length === 0} onClick={() => {
-              setActiveRepo(availableRepos.find(r => r.id === selected[0]));
-              go("scanning");
-            }}>
-              <I.Play size={12} /> {T("Start scan","开始扫描")} ({selected.length})
-            </button>
-          </div>
-        </div>
-
-        <div className="repos-toolbar">
-          <div className="repos-search">
-            <I.Search size={14} />
-            <input placeholder={T("Search repositories...","搜索仓库...")} value={q} onChange={e => setQ(e.target.value)} />
-            <span className="kbd">⌘K</span>
-          </div>
-          <div className="repos-orgs">
-            {orgs.map(o => (
-              <button key={o} className={"repos-org" + (org === o ? " active" : "")} onClick={() => setOrg(o)}>{o}</button>
-            ))}
-          </div>
-        </div>
-
-        <div className="repos-list">
-          {needsAuthorization && (
-            <div className="repo-row" onClick={() => go("oauth")}>
-              <div className="repo-icon"><I.Github size={16} /></div>
-              <div className="repo-main">
-                <div className="repo-name"><span>{T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
-                <div className="repo-desc">
-                  {T(
-                    "Install the Pullwise GitHub App before scanning repositories.",
-                    "扫描仓库前需要先安装 Pullwise GitHub App。"
-                  )}
-                </div>
-              </div>
-              <I.ArrowR size={14} />
-            </div>
-          )}
-          {repoError && (
-            <div className="repo-row">
-              <div className="repo-icon"><I.X size={16} /></div>
-              <div className="repo-main">
-                <div className="repo-name"><span>{T("Using demo repositories", "正在使用演示仓库")}</span></div>
-                <div className="repo-desc">{repoError}</div>
+          <div className="page-h">
+            <div>
+              <h1>{T("Choose repositories to scan", "选择要扫描的仓库")}</h1>
+              <div className="sub">
+                {needsAuthorization
+                  ? T("GitHub repository access is not connected yet.", "尚未连接 GitHub 仓库权限。")
+                  : T(
+                      `${availableRepos.length} authorized repos`,
+                      `${availableRepos.length} 个已授权仓库`
+                    )}
               </div>
             </div>
-          )}
-          {repos.map(r => {
-            const on = selected.includes(r.id);
-            return (
-              <div key={r.id} className={"repo-row" + (on ? " on" : "")} onClick={() => toggle(r.id)}>
-                <div className="repo-check">
-                  <span className="repo-check-box">{on && <I.Check size={11} />}</span>
+            <div className="actions">
+              <button className="btn" disabled={loading} onClick={() => reload({ sync: true })}>
+                <I.Refresh size={14} /> {T("Sync", "同步")}
+              </button>
+              <button className="btn primary" disabled={selected.length === 0} onClick={startScan}>
+                <I.Play size={12} /> {T("Start scan", "开始扫描")} ({selected.length})
+              </button>
+            </div>
+          </div>
+
+          <div className="repos-toolbar">
+            <div className="repos-search">
+              <I.Search size={14} />
+              <input
+                placeholder={T("Search repositories...", "搜索仓库...")}
+                value={q}
+                onChange={(event) => setQ(event.target.value)}
+              />
+            </div>
+            <div className="repos-orgs">
+              {orgs.map((item) => (
+                <button
+                  key={item}
+                  className={"repos-org" + (org === item ? " active" : "")}
+                  onClick={() => setOrg(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="repos-list">
+            {needsAuthorization && (
+              <div className="repo-row" onClick={() => go("oauth")}>
+                <div className="repo-icon"><I.Github size={16} /></div>
+                <div className="repo-main">
+                  <div className="repo-name"><span>{T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
+                  <div className="repo-desc">
+                    {T("Install or update the Pullwise GitHub App.", "安装或更新 Pullwise GitHub App。")}
+                  </div>
                 </div>
+                <I.ArrowR size={14} />
+              </div>
+            )}
+            {error && (
+              <div className="repo-row">
+                <div className="repo-icon"><I.X size={16} /></div>
+                <div className="repo-main">
+                  <div className="repo-name"><span>{T("Unable to load repositories", "无法加载仓库")}</span></div>
+                  <div className="repo-desc">{error}</div>
+                </div>
+              </div>
+            )}
+            {loading && (
+              <div className="repo-row">
+                <div className="repo-icon"><span className="spin" style={{ display: "inline-block" }}><I.Refresh size={16} /></span></div>
+                <div className="repo-main">
+                  <div className="repo-name"><span>{T("Loading repositories", "正在加载仓库")}</span></div>
+                  <div className="repo-desc">{T("Reading GitHub App authorization.", "正在读取 GitHub App 授权。")}</div>
+                </div>
+              </div>
+            )}
+            {!loading && !error && !needsAuthorization && repos.length === 0 && (
+              <div className="repo-row">
                 <div className="repo-icon"><I.Folder size={16} /></div>
                 <div className="repo-main">
-                  <div className="repo-name">
-                    <span>{r.name}</span>
-                    {r.private && <span className="tag"><I.Lock size={10} /> private</span>}
-                  </div>
-                  <div className="repo-desc">{r.desc}</div>
-                </div>
-                <div className="repo-meta">
-                  <span><span className="lang-dot" data-lang={r.lang}></span> {r.lang}</span>
-                  <span><I.Star size={12} /> {r.stars}</span>
-                  <span><I.GitBranch size={12} /> {r.branches}</span>
-                  <span><I.Clock size={12} /> {r.updated}</span>
+                  <div className="repo-name"><span>{T("No authorized repositories", "没有已授权仓库")}</span></div>
+                  <div className="repo-desc">{T("Authorize repositories in GitHub, then sync again.", "请先在 GitHub 授权仓库，然后重新同步。")}</div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            )}
+            {repos.map((repo) => {
+              const on = selected.includes(repo.id);
+              return (
+                <div key={repo.id} className={"repo-row" + (on ? " on" : "")} onClick={() => toggle(repo.id)}>
+                  <div className="repo-check">
+                    <span className="repo-check-box">{on && <I.Check size={11} />}</span>
+                  </div>
+                  <div className="repo-icon"><I.Folder size={16} /></div>
+                  <div className="repo-main">
+                    <div className="repo-name">
+                      <span>{repo.fullName || repo.name}</span>
+                      {repo.private && <span className="tag"><I.Lock size={10} /> private</span>}
+                    </div>
+                    <div className="repo-desc">{repo.desc}</div>
+                  </div>
+                  <div className="repo-meta">
+                    <span><span className="lang-dot" data-lang={repo.lang}></span> {repo.lang}</span>
+                    <span><I.Star size={12} /> {repo.stars}</span>
+                    <span><I.GitBranch size={12} /> {repo.branches}</span>
+                    <span><I.Clock size={12} /> {repo.updated}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-        <div className="repos-foot">
-          <span className="muted">{T("Don't see it? ","没看到? ")}<a className="auth-link" onClick={() => go("oauth")}>{T("Configure GitHub App permissions","配置 GitHub App 权限")}</a></span>
-        </div>
+          <div className="repos-foot">
+            <span className="muted">
+              {T("Missing a repository? ", "缺少仓库？")}
+              <a className="auth-link" onClick={() => go("oauth")}>{T("Configure GitHub App permissions", "配置 GitHub App 权限")}</a>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -203,107 +188,114 @@ export function ReposScreen({ go, setActiveRepo }) {
 
 export function ScanningScreen({ go, activeRepo }) {
   useLang();
-  const [pct, setPct] = useStateF(0);
-  const [stepIdx, setStepIdx] = useStateF(0);
-  const [logs, setLogs] = useStateF([]);
-  const [found, setFound] = useStateF({ critical: 0, high: 0, medium: 0, low: 0 });
+  const [scan, setScan] = useState(null);
+  const [error, setError] = useState("");
+  const repoName = activeRepo?.fullName || activeRepo?.name || "";
 
-  const phases = [
-    { k: "clone", t: T("Cloning repository","克隆仓库"), d: T("shallow clone, ~12 MB","浅克隆, ~12 MB") },
-    { k: "index", t: T("Building AST index","构建 AST 索引"), d: T("parsing 1,284 files","解析 1,284 个文件") },
-    { k: "secrets", t: T("Scanning for secrets","扫描密钥泄露"), d: T("regex + entropy scan","正则 + 熵值扫描") },
-    { k: "deps", t: T("Analyzing dependencies","分析依赖"), d: T("287 packages, 12 transitive","287 个包, 12 个传递依赖") },
-    { k: "ai", t: T("AI semantic review","AI 语义 review"), d: T("claude-haiku-4-5 · 6 lenses","claude-haiku-4-5 · 6 种 lens") },
-    { k: "report", t: T("Composing report","生成报告"), d: T("merging signals","合并信号") },
-  ];
-
-  useEffectF(() => {
-    let p = 0;
-    const id = setInterval(() => {
-      p += Math.random() * 4 + 1.5;
-      if (p > 100) p = 100;
-      setPct(p);
-      const s = Math.min(phases.length - 1, Math.floor((p / 100) * phases.length));
-      setStepIdx(s);
-      const sample = [
-        "→ git fetch --depth=1 main",
-        "→ pnpm install --frozen-lockfile",
-        "✓ packages indexed: 1,284 files",
-        "✓ secrets scan: 2 high-entropy strings flagged",
-        "✓ dep scan: 1 CVE matched (axios@0.21.1)",
-        "✓ ast lens: 11 suspect patterns",
-        "✓ ai lens: 6 issues with confidence > 0.8",
-        "✓ merging signals…",
-      ];
-      if (Math.random() > 0.5) {
-        setLogs(L => [...L.slice(-9), sample[Math.floor(Math.random() * sample.length)]]);
+  useEffect(() => {
+    let cancelled = false;
+    const createScan = async () => {
+      if (!repoName) return;
+      setError("");
+      try {
+        const payload = await pullwiseApi.scans.create({
+          repo: repoName,
+          branch: activeRepo?.defaultBranch || "main",
+          commit: "pending",
+        });
+        if (!cancelled) setScan(payload);
+      } catch (requestError) {
+        if (!cancelled) setError(requestError?.message || T("Unable to start scan.", "无法开始扫描。"));
       }
-      if (p > 30) setFound(f => ({ ...f, critical: 2 }));
-      if (p > 50) setFound(f => ({ ...f, high: Math.min(4, Math.floor((p-50)/12)+1) }));
-      if (p > 65) setFound(f => ({ ...f, medium: Math.min(9, Math.floor((p-65)/4)) }));
-      if (p > 80) setFound(f => ({ ...f, low: Math.min(7, Math.floor((p-80)/3)) }));
-      if (p >= 100) {
-        clearInterval(id);
-        setTimeout(() => go("dashboard"), 700);
-      }
-    }, 220);
-    return () => clearInterval(id);
-  }, []);
+    };
+    createScan();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeRepo, repoName]);
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} now={T("Scanning…","扫描进行中")} />
+      <Topbar go={go} breadcrumbs={[
+        { label: "Pullwise", go: "dashboard" },
+        { label: T("Scan", "扫描") },
+      ]} />
       <div className="main narrow" style={{ margin: "0 auto" }}>
         <div className="scanning">
           <div className="scanning-card card">
             <div className="scanning-h">
-              <div className="scanning-icon"><span className="spin" style={{ display: "inline-block" }}><I.Refresh size={18} /></span></div>
-              <div>
-                <div className="scanning-title">{T("Scanning ","扫描 ")}<b>{activeRepo?.name || "yourname/billing-service"}</b></div>
-                <div className="scanning-sub">{T("branch ","分支 ")}<span className="tag">main</span>{T(" · commit "," · commit ")}<span className="tag">a3f9c2</span>{T(" · ~1 min 10 s remaining"," · 预计 1 分 10 秒")}</div>
+              <div className="scanning-icon">
+                {error ? <I.X size={18} /> : <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={18} /></span>}
               </div>
-              <button className="btn ghost" onClick={() => go("repos")}>{T("Cancel","取消")}</button>
+              <div>
+                <div className="scanning-title">
+                  {T("Scan request", "扫描请求")} <b>{repoName || T("No repository selected", "未选择仓库")}</b>
+                </div>
+                <div className="scanning-sub">
+                  {error
+                    ? error
+                    : scan
+                      ? T(`Status: ${scan.status}`, `状态：${scan.status}`)
+                      : T("Submitting scan request...", "正在提交扫描请求...")}
+                </div>
+              </div>
+              <button className="btn ghost" onClick={() => go("repos")}>{T("Back", "返回")}</button>
             </div>
 
             <div className="scanning-bar-wrap">
-              <div className="scanning-bar"><div className="scanning-bar-fill" style={{ width: pct + "%" }}></div></div>
+              <div className="scanning-bar"><div className="scanning-bar-fill" style={{ width: scan ? "18%" : "6%" }}></div></div>
               <div className="scanning-bar-meta">
-                <span>{Math.floor(pct)}%</span>
-                <span>{phases[stepIdx]?.t}</span>
+                <span>{scan ? scan.status : T("Pending", "等待中")}</span>
+                <span>{scan?.id || ""}</span>
               </div>
             </div>
 
             <div className="scanning-phases">
-              {phases.map((p, i) => (
-                <div key={p.k} className={"scanning-phase" + (i < stepIdx ? " done" : i === stepIdx ? " on" : "")}>
+              {[
+                { k: "queued", t: T("Queued", "已入队"), d: T("Stored in Pullwise server.", "已写入 Pullwise server。") },
+                { k: "worker", t: T("Waiting for scan worker", "等待扫描 worker"), d: T("Findings will appear after the backend worker writes results.", "backend worker 写入结果后会显示 findings。") },
+              ].map((phase, index) => (
+                <div key={phase.k} className={"scanning-phase" + (scan && index === 0 ? " done" : index === 1 ? " on" : "")}>
                   <div className="scanning-phase-bullet">
-                    {i < stepIdx ? <I.Check size={11} /> : i === stepIdx ? <span className="pulse" style={{ display: "inline-block", width: 6, height: 6, borderRadius: 999, background: "currentColor" }}></span> : i+1}
+                    {scan && index === 0 ? <I.Check size={11} /> : index + 1}
                   </div>
                   <div>
-                    <div className="scanning-phase-t">{p.t}</div>
-                    <div className="scanning-phase-d">{p.d}</div>
+                    <div className="scanning-phase-t">{phase.t}</div>
+                    <div className="scanning-phase-d">{phase.d}</div>
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="actions" style={{ justifyContent: "flex-end", marginTop: 18 }}>
+              <button className="btn" onClick={() => go("history")}>{T("View history", "查看历史")}</button>
+              <button className="btn primary" onClick={() => go("dashboard")}>{T("Open overview", "打开总览")}</button>
             </div>
           </div>
 
           <div className="scanning-side">
             <div className="card scanning-counts">
-              <div className="scanning-counts-h">{T("Live findings","实时发现")}</div>
+              <div className="scanning-counts-h">{T("Findings", "结果")}</div>
               <div className="scanning-counts-grid">
-                <div><b style={{ color: "var(--sev-critical)" }}>{found.critical}</b><span>Critical</span></div>
-                <div><b style={{ color: "var(--sev-high)" }}>{found.high}</b><span>High</span></div>
-                <div><b style={{ color: "var(--sev-medium)" }}>{found.medium}</b><span>Medium</span></div>
-                <div><b style={{ color: "var(--sev-low)" }}>{found.low}</b><span>Low</span></div>
+                <div><b style={{ color: "var(--sev-critical)" }}>0</b><span>Critical</span></div>
+                <div><b style={{ color: "var(--sev-high)" }}>0</b><span>High</span></div>
+                <div><b style={{ color: "var(--sev-medium)" }}>0</b><span>Medium</span></div>
+                <div><b style={{ color: "var(--sev-low)" }}>0</b><span>Low</span></div>
               </div>
             </div>
 
             <div className="card scanning-log">
-              <div className="scanning-counts-h">Live log</div>
+              <div className="scanning-counts-h">{T("Server record", "服务端记录")}</div>
               <div className="scanning-log-body">
-                {logs.length === 0 && <div className="muted">{T("Waiting for engine…","等待引擎启动…")}</div>}
-                {logs.map((l, i) => (<div key={i} className="scanning-log-line">{l}</div>))}
+                {scan ? (
+                  <>
+                    <div className="scanning-log-line">{T("Scan id", "扫描 ID")}: {scan.id}</div>
+                    <div className="scanning-log-line">{T("Repository", "仓库")}: {scan.repo}</div>
+                    <div className="scanning-log-line">{T("Branch", "分支")}: {scan.branch}</div>
+                  </>
+                ) : (
+                  <div className="muted">{error || T("No server record yet.", "暂无服务端记录。")}</div>
+                )}
               </div>
             </div>
           </div>

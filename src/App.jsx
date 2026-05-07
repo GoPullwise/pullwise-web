@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { FIXTURES } from "./data.jsx";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
@@ -156,7 +155,7 @@ export function App({ prototypeNav = false }) {
       body = <IssuesScreen go={go} setIssue={setIssue} />;
       break;
     case "issue":
-      body = <IssueDetailScreen go={go} issue={issue || FIXTURES.ISSUES[0]} />;
+      body = <IssueDetailScreen go={go} issue={issue} />;
       break;
     case "history":
       body = <HistoryScreen go={go} />;

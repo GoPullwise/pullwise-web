@@ -1,6 +1,6 @@
 # API Layer
 
-This folder is the integration boundary for replacing `src/data.jsx` fixtures.
+This folder is the integration boundary for Pullwise server data.
 
 Expected backend responsibilities:
 
