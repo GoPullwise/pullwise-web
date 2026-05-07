@@ -273,8 +273,18 @@ input, textarea { font: inherit; color: inherit; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .fade-in { animation: fadeIn 240ms ease both; }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin { animation: spin 900ms linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: spin 900ms linear infinite;
+  will-change: transform;
+  line-height: 0;
+}
+.spin > svg { display: block; }
 
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 .pulse { animation: pulse 1.6s ease-in-out infinite; }
