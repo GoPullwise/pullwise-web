@@ -95,8 +95,9 @@ function BellPopover({ close, go }) {
             </button>
           ))}
         </div>
-        <div className="pop-foot">
-          <button className="btn sm ghost" style={{ width: "100%" }} onClick={close}>{T("Mark all as read","全部标为已读")}</button>
+        <div className="pop-foot" style={{ gap: 6 }}>
+          <button className="btn sm ghost" style={{ flex: 1 }} onClick={close}>{T("Mark all as read","全部标为已读")}</button>
+          <button className="btn sm" style={{ flex: 1 }} onClick={() => { close(); go("notifications"); }}>{T("View all","查看全部")} <I.ArrowR size={11} /></button>
         </div>
       </div>
     </>
@@ -205,6 +206,7 @@ export function Sidebar({ section, go }) {
     { k: "issues", label: T("Issues", "问题"), icon: <I.Bug size={15} />, badge: 11 },
     { k: "repos", label: T("Repositories", "仓库"), icon: <I.Folder size={15} />, badge: null },
     { k: "history", label: T("Scan history", "扫描历史"), icon: <I.Clock size={15} />, badge: null },
+    { k: "notifications", label: T("Notifications", "通知"), icon: <I.Bell size={15} />, badge: 3 },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];
   return (

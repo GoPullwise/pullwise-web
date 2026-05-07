@@ -1,20 +1,101 @@
 // screens/flow.jsx — Repos selection + Scan progress
 
 import { useEffect as useEffectF, useState as useStateF } from "react";
+import { pullwiseApi } from "../api/pullwise.js";
 import { FIXTURES } from "../data.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
+function normalizeRepo(repo) {
+  const fullName = repo.fullName || repo.full_name || repo.name || "";
+  return {
+    ...repo,
+    id: String(repo.id || fullName),
+    name: fullName || repo.name,
+    fullName,
+    desc: repo.desc || repo.description || "",
+    lang: repo.lang || repo.language || "-",
+    stars: repo.stars ?? repo.stargazers_count ?? "-",
+    branches: repo.branches ?? "-",
+    updated: repo.updated || repo.updated_at || repo.updatedAt || "",
+    private: Boolean(repo.private),
+  };
+}
+
+function repoOwner(repo) {
+  const fullName = repo.fullName || repo.name || "";
+  return fullName.includes("/") ? fullName.split("/")[0] : "";
+}
+
 export function ReposScreen({ go, setActiveRepo }) {
   useLang();
   const [q, setQ] = useStateF("");
-  const [selected, setSelected] = useStateF(["r6"]);
-  const repos = FIXTURES.REPOS.filter(r =>
-    !q || r.name.toLowerCase().includes(q.toLowerCase()) || r.desc.toLowerCase().includes(q.toLowerCase())
-  );
-  const orgs = [T("All","所有"), "@taylor-dev", "@acme-inc", "@yourname"];
-  const [org, setOrg] = useStateF(orgs[0]);
+  const [selected, setSelected] = useStateF([]);
+  const [remoteRepos, setRemoteRepos] = useStateF(null);
+  const [loadingRepos, setLoadingRepos] = useStateF(true);
+  const [repoError, setRepoError] = useStateF("");
+  const [needsAuthorization, setNeedsAuthorization] = useStateF(false);
+  const fixtureRepos = FIXTURES.REPOS.map(normalizeRepo);
+  const availableRepos = remoteRepos?.length ? remoteRepos : fixtureRepos;
+/*
+  const allLabel = T("All", "所有");
+/*
+  const allLabel = T("All", "所有");
+  const orgs = [
+*/
+  const allLabel = T("All", "\u6240\u6709");
+  const orgs = [
+    allLabel,
+    ...Array.from(new Set(availableRepos.map(repoOwner).filter(Boolean))).map((owner) => `@${owner}`),
+  ];
+  const [org, setOrg] = useStateF(allLabel);
+  const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
+  const query = q.trim().toLowerCase();
+  const repos = availableRepos.filter((repo) => {
+    const matchesOrg = !activeOwner || repoOwner(repo) === activeOwner;
+    const matchesQuery =
+      !query ||
+      repo.name.toLowerCase().includes(query) ||
+      repo.fullName.toLowerCase().includes(query) ||
+      repo.desc.toLowerCase().includes(query);
+    return matchesOrg && matchesQuery;
+  });
+
+  const loadRepositories = async ({ sync = false } = {}) => {
+    setLoadingRepos(true);
+    setRepoError("");
+
+    try {
+      const payload = sync ? await pullwiseApi.repositories.sync() : await pullwiseApi.repositories.list();
+      const items = (payload?.items || payload?.repositories || []).map(normalizeRepo);
+      setRemoteRepos(items);
+      setNeedsAuthorization(Boolean(payload?.needsAuthorization));
+    } catch (error) {
+      setRepoError(error?.message || T("Unable to load GitHub repositories.", "无法加载 GitHub 仓库。"));
+      setRemoteRepos(null);
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
+  useEffectF(() => {
+    if (!orgs.includes(org)) {
+      setOrg(allLabel);
+    }
+  }, [orgs.join("|"), org, allLabel]);
+
+  useEffectF(() => {
+    loadRepositories();
+  }, []);
+
+  useEffectF(() => {
+    setSelected((current) => {
+      const valid = current.filter((id) => availableRepos.some((repo) => repo.id === id));
+      if (valid.length) return valid;
+      return availableRepos[0] ? [availableRepos[0].id] : [];
+    });
+  }, [availableRepos.map((repo) => repo.id).join("|")]);
 
   const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
@@ -30,12 +111,22 @@ export function ReposScreen({ go, setActiveRepo }) {
         <div className="page-h">
           <div>
             <h1>{T("Choose repositories to scan","选择要扫描的仓库")}</h1>
-            <div className="sub">{T("Connected to ","已连接 ")}<b>@taylor-dev</b>{T(" · 24 accessible repos · pick one or more to start"," · 共 24 个可访问仓库 · 选择一或多个开始")}</div>
+            <div className="sub">
+              {needsAuthorization
+                ? T(
+                    "GitHub repository access is not connected yet.",
+                    "尚未连接 GitHub 仓库权限。"
+                  )
+                : T(
+                    `${availableRepos.length} accessible repos - pick one or more to start`,
+                    `${availableRepos.length} 个可访问仓库 - 选择一或多个开始`
+                  )}
+            </div>
           </div>
           <div className="actions">
-            <button className="btn"><I.Refresh size={14} /> {T("Sync","同步")}</button>
+            <button className="btn" disabled={loadingRepos} onClick={() => loadRepositories({ sync: true })}><I.Refresh size={14} /> {T("Sync","同步")}</button>
             <button className="btn primary" disabled={selected.length === 0} onClick={() => {
-              setActiveRepo(FIXTURES.REPOS.find(r => r.id === selected[0]));
+              setActiveRepo(availableRepos.find(r => r.id === selected[0]));
               go("scanning");
             }}>
               <I.Play size={12} /> {T("Start scan","开始扫描")} ({selected.length})
@@ -57,6 +148,30 @@ export function ReposScreen({ go, setActiveRepo }) {
         </div>
 
         <div className="repos-list">
+          {needsAuthorization && (
+            <div className="repo-row" onClick={() => go("oauth")}>
+              <div className="repo-icon"><I.Github size={16} /></div>
+              <div className="repo-main">
+                <div className="repo-name"><span>{T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
+                <div className="repo-desc">
+                  {T(
+                    "Install the Pullwise GitHub App before scanning repositories.",
+                    "扫描仓库前需要先安装 Pullwise GitHub App。"
+                  )}
+                </div>
+              </div>
+              <I.ArrowR size={14} />
+            </div>
+          )}
+          {repoError && (
+            <div className="repo-row">
+              <div className="repo-icon"><I.X size={16} /></div>
+              <div className="repo-main">
+                <div className="repo-name"><span>{T("Using demo repositories", "正在使用演示仓库")}</span></div>
+                <div className="repo-desc">{repoError}</div>
+              </div>
+            </div>
+          )}
           {repos.map(r => {
             const on = selected.includes(r.id);
             return (
@@ -84,7 +199,7 @@ export function ReposScreen({ go, setActiveRepo }) {
         </div>
 
         <div className="repos-foot">
-          <span className="muted">{T("Don't see it? ","没看到? ")}<a className="auth-link">{T("Configure GitHub App permissions","配置 GitHub App 权限")}</a></span>
+          <span className="muted">{T("Don't see it? ","没看到? ")}<a className="auth-link" onClick={() => go("oauth")}>{T("Configure GitHub App permissions","配置 GitHub App 权限")}</a></span>
         </div>
         </div>
       </div>

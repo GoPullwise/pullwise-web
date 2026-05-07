@@ -124,7 +124,10 @@ export function LandingScreen({ go, accent }) {
       <footer className="lp-foot">
         <div>© 2026 Pullwise</div>
         <div style={{ display: "flex", gap: 18 }}>
-          <a>{T("Privacy","隐私")}</a><a>{T("Terms","条款")}</a><a>{T("Security","安全")}</a><a>{T("Status ●","状态 ●")}</a>
+          <a className="legal-foot-l" onClick={() => go("privacy")}>{T("Privacy","隐私")}</a>
+          <a className="legal-foot-l" onClick={() => go("terms")}>{T("Terms","条款")}</a>
+          <a className="legal-foot-l" onClick={() => go("security")}>{T("Security","安全")}</a>
+          <a className="legal-foot-l" onClick={() => go("status")}>{T("Status ●","状态 ●")}</a>
         </div>
       </footer>
     </div>
@@ -698,7 +701,10 @@ export function PricingScreen({ go, accent }) {
       <footer className="lp-foot">
         <div>© 2026 Pullwise</div>
         <div style={{ display: "flex", gap: 18 }}>
-          <a>{T("Privacy","隐私")}</a><a>{T("Terms","条款")}</a><a>{T("Security","安全")}</a><a>{T("Status ●","状态 ●")}</a>
+          <a className="legal-foot-l" onClick={() => go("privacy")}>{T("Privacy","隐私")}</a>
+          <a className="legal-foot-l" onClick={() => go("terms")}>{T("Terms","条款")}</a>
+          <a className="legal-foot-l" onClick={() => go("security")}>{T("Security","安全")}</a>
+          <a className="legal-foot-l" onClick={() => go("status")}>{T("Status ●","状态 ●")}</a>
         </div>
       </footer>
     </div>
@@ -898,7 +904,10 @@ export function DocsScreen({ go, accent }) {
       <footer className="lp-foot">
         <div>© 2026 Pullwise</div>
         <div style={{ display: "flex", gap: 18 }}>
-          <a>{T("Privacy","隐私")}</a><a>{T("Terms","条款")}</a><a>{T("Security","安全")}</a><a>{T("Status ●","状态 ●")}</a>
+          <a className="legal-foot-l" onClick={() => go("privacy")}>{T("Privacy","隐私")}</a>
+          <a className="legal-foot-l" onClick={() => go("terms")}>{T("Terms","条款")}</a>
+          <a className="legal-foot-l" onClick={() => go("security")}>{T("Security","安全")}</a>
+          <a className="legal-foot-l" onClick={() => go("status")}>{T("Status ●","状态 ●")}</a>
         </div>
       </footer>
     </div>

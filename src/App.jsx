@@ -3,6 +3,7 @@ import { FIXTURES } from "./data.jsx";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
+import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
 import {
   HistoryScreen,
@@ -10,6 +11,13 @@ import {
   IssuesScreen,
   SettingsScreen,
 } from "./screens/issues.jsx";
+import {
+  PrivacyScreen,
+  SecurityScreen,
+  StatusScreen,
+  TermsScreen,
+} from "./screens/legal.jsx";
+import { NotificationsScreen } from "./screens/notifications.jsx";
 import {
   DocsScreen,
   LandingScreen,
@@ -33,11 +41,22 @@ const SCREENS = new Set([
   "issue",
   "history",
   "settings",
+  "notifications",
+  "privacy",
+  "terms",
+  "security",
+  "status",
+  "notfound",
 ]);
 
 function getInitialScreen() {
   const requestedScreen = new URLSearchParams(window.location.search).get("screen");
-  return SCREENS.has(requestedScreen) ? requestedScreen : "landing";
+  if (!requestedScreen) return "landing";
+  return SCREENS.has(requestedScreen) ? requestedScreen : "notfound";
+}
+
+function getRequestedScreenParam() {
+  return new URLSearchParams(window.location.search).get("screen") || "";
 }
 
 function PrototypeNav({ go, current }) {
@@ -53,7 +72,13 @@ function PrototypeNav({ go, current }) {
     { k: "issues", t: "Issues" },
     { k: "issue", t: "详情" },
     { k: "history", t: "历史" },
+    { k: "notifications", t: "通知" },
     { k: "settings", t: "设置" },
+    { k: "privacy", t: "隐私" },
+    { k: "terms", t: "条款" },
+    { k: "security", t: "安全" },
+    { k: "status", t: "状态" },
+    { k: "notfound", t: "404" },
   ];
 
   return (
@@ -144,11 +169,29 @@ export function App({ prototypeNav = false }) {
     case "history":
       body = <HistoryScreen go={go} />;
       break;
+    case "notifications":
+      body = <NotificationsScreen go={go} />;
+      break;
     case "settings":
       body = <SettingsScreen go={go} />;
       break;
+    case "privacy":
+      body = <PrivacyScreen go={go} />;
+      break;
+    case "terms":
+      body = <TermsScreen go={go} />;
+      break;
+    case "security":
+      body = <SecurityScreen go={go} />;
+      break;
+    case "status":
+      body = <StatusScreen go={go} />;
+      break;
+    case "notfound":
+      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} />;
+      break;
     default:
-      body = <LandingScreen go={go} accent={ACCENT} />;
+      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} />;
   }
 
   return (
