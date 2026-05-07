@@ -1,6 +1,0 @@
-{
-  "last_turn_at": "2026-05-07T07:24:57.803Z",
-  "turn_count": 1,
-  "last_progress_at": "2026-05-07T07:24:57.803Z",
-  "last_agent_output": "我看过了。结论很明确：现在这个 `pullwise-web` 基本是静态展示原型，不是规范的可生产 web 工程。\n\n没有发现 `package.json`、锁文件、`vite.config`、`ts"
-}
