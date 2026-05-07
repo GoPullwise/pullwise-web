@@ -60,17 +60,18 @@ describe("App", () => {
     );
   });
 
-  it("starts GitHub repository authorization with the selected scope", async () => {
+  it("starts GitHub repository authorization without asking for a scope", async () => {
     startGitHubRepositoryAccess.mockResolvedValueOnce({});
     const user = userEvent.setup();
 
     render(<OAuthScreen go={vi.fn()} />);
 
-    await user.click(screen.getByRole("radio", { name: /only selected repositories/i }));
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
 
     await waitFor(() => {
-      expect(startGitHubRepositoryAccess).toHaveBeenCalledWith("selected");
+      expect(startGitHubRepositoryAccess).toHaveBeenCalledTimes(1);
     });
+    expect(startGitHubRepositoryAccess).toHaveBeenCalledWith();
   });
 });

@@ -312,7 +312,6 @@ export function LoginScreen({ go }) {
 // ── GitHub repository access ────────────────────────────────────────────
 export function OAuthScreen({ go }) {
   useLang();
-  const [scope, setScope] = useState("all");
   const [authing, setAuthing] = useState(false);
   const [error, setError] = useState("");
 
@@ -321,7 +320,7 @@ export function OAuthScreen({ go }) {
     setError("");
 
     try {
-      await startGitHubRepositoryAccess(scope);
+      await startGitHubRepositoryAccess();
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
       setAuthing(false);
@@ -369,30 +368,12 @@ export function OAuthScreen({ go }) {
 
         <div className="oauth-orgs">
           <div className="oauth-perm-h">{T("Repository access","仓库访问范围")}</div>
-          <label className="oauth-org-row">
-            <input
-              type="radio"
-              name="scope"
-              checked={scope === "all"}
-              onChange={() => setScope("all")}
-            />
-            <div>
-              <div className="oauth-org-t">{T("All repositories","所有仓库")}</div>
-              <div className="oauth-org-p">{T("Recommended — including future ones","推荐 — 包括未来新建的仓库")}</div>
-            </div>
-          </label>
-          <label className="oauth-org-row">
-            <input
-              type="radio"
-              name="scope"
-              checked={scope === "selected"}
-              onChange={() => setScope("selected")}
-            />
-            <div>
-              <div className="oauth-org-t">{T("Only selected repositories","仅选定的仓库")}</div>
-              <div className="oauth-org-p">{T("Manually pick which repos can be scanned","手动选择允许扫描的仓库")}</div>
-            </div>
-          </label>
+          <div className="oauth-org-p">
+            {T(
+              "GitHub will ask whether to grant access to all repositories or only selected ones on the next screen.",
+              "下一步 GitHub 会让你选择授予全部仓库还是仅指定仓库。"
+            )}
+          </div>
         </div>
 
         {error && (

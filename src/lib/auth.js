@@ -26,9 +26,8 @@ export async function requestEmailMagicLink({ email, redirectTo } = {}) {
   });
 }
 
-export async function startGitHubRepositoryAccess(scope = "all", { redirectTo } = {}) {
+export async function startGitHubRepositoryAccess({ redirectTo } = {}) {
   const result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
-    scope,
     redirectTo: redirectTo || getScreenRedirectUrl("repos"),
   });
 
