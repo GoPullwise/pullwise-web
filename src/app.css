@@ -1,0 +1,141 @@
+.lang-toggle {
+  position: fixed;
+  right: 66px;
+  bottom: 18px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font: 600 12px/1 var(--font-mono);
+  letter-spacing: .02em;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .10);
+  transition: transform .15s ease, background .15s ease;
+}
+
+.lang-toggle:hover {
+  transform: translateY(-1px);
+  background: var(--bg);
+}
+
+.theme-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .10);
+  transition: transform .15s ease, background .15s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  background: var(--bg);
+}
+
+.theme-toggle svg {
+  display: block;
+}
+
+.proto-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 50;
+  background: rgba(10, 10, 10, .92);
+  backdrop-filter: blur(14px);
+  color: rgba(255, 255, 255, .92);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  padding: 8px 14px 8px 50px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font: 11.5px/1 "Geist", ui-sans-serif, sans-serif;
+}
+
+.proto-nav-l {
+  font-weight: 600;
+  letter-spacing: .04em;
+  opacity: .85;
+  flex: 0 0 auto;
+}
+
+.proto-nav-screens {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.proto-nav-screens::-webkit-scrollbar {
+  display: none;
+}
+
+.proto-nav-i {
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, .6);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font: 11.5px/1 "Geist", ui-sans-serif, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.proto-nav-i:hover {
+  color: white;
+  background: rgba(255, 255, 255, .06);
+}
+
+.proto-nav-i.on {
+  color: white;
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .16);
+}
+
+.proto-nav-n {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  opacity: .55;
+}
+
+.proto-nav-hint {
+  color: rgba(255, 255, 255, .4);
+  font-size: 10.5px;
+  flex: 0 0 auto;
+}
+
+.proto-nav-toggle {
+  position: fixed;
+  left: 8px;
+  top: 6px;
+  z-index: 51;
+  width: 30px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(10, 10, 10, .92);
+  color: white;
+  font-size: 12px;
+}
+
+body.has-proto-nav {
+  padding-top: 42px;
+}

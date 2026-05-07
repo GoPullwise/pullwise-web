@@ -1,6 +1,10 @@
 // screens/issues.jsx — Issues list, Issue detail, History, Settings
 
-const { useState: useStateI, useMemo: useMemoI } = React;
+import React, { useState as useStateI } from "react";
+import { FIXTURES } from "../data.jsx";
+import { I } from "../icons.jsx";
+import { T, useLang } from "../i18n.jsx";
+import { Sidebar, Topbar } from "../shell.jsx";
 
 const SORT_OPTIONS = [
   { k: "severity",   t_en: "Severity",    t_zh: "按严重度",   d_en: "Critical → Low",     d_zh: "Critical → Low" },
@@ -123,9 +127,9 @@ function stockLines(ext, it) {
   ];
 }
 
-function IssuesScreen({ go, setIssue }) {
+export function IssuesScreen({ go, setIssue }) {
   useLang();
-  const all = window.FIXTURES.ISSUES;
+  const all = FIXTURES.ISSUES;
   const [sev, setSev] = useStateI("all");
   const [cat, setCat] = useStateI("all");
   const [status, setStatus] = useStateI("open");
@@ -332,9 +336,9 @@ function IssuesScreen({ go, setIssue }) {
   );
 }
 
-function IssueDetailScreen({ go, issue }) {
+export function IssueDetailScreen({ go, issue }) {
   useLang();
-  const it = issue || window.FIXTURES.ISSUES[0];
+  const it = issue || FIXTURES.ISSUES[0];
   const [tab, setTab] = useStateI("fix");
   const [applied, setApplied] = useStateI(false);
   const [showPR, setShowPR] = useStateI(false);
@@ -568,12 +572,12 @@ function IssueDetailScreen({ go, issue }) {
         </div>
       </div>
 
-      {showPR && <PRModal it={it} close={() => setShowPR(false)} go={go} />}
+      {showPR && <PRModal it={it} close={() => setShowPR(false)} />}
     </div>
   );
 }
 
-function PRModal({ it, close, go }) {
+function PRModal({ it, close }) {
   useLang();
   const [step, setStep] = useStateI(0);
   const [created, setCreated] = useStateI(false);
@@ -582,10 +586,11 @@ function PRModal({ it, close, go }) {
       const id = setTimeout(() => setStep(step + 1), 700);
       return () => clearTimeout(id);
     }
-    if (step === 3 && !created) {
-      setTimeout(() => setCreated(true), 400);
+    if (step === 3) {
+      const id = setTimeout(() => setCreated(true), 400);
+      return () => clearTimeout(id);
     }
-  }, [step]);
+  }, [step, setCreated, setStep]);
 
   return (
     <div className="modal-back" onClick={close}>
@@ -653,9 +658,9 @@ function PRModal({ it, close, go }) {
   );
 }
 
-function HistoryScreen({ go }) {
+export function HistoryScreen({ go }) {
   useLang();
-  const scans = window.FIXTURES.SCANS;
+  const scans = FIXTURES.SCANS;
   const [hStatus, setHStatus] = useStateI("all");
   const [hBy, setHBy] = useStateI("all");
   const [hOpen, setHOpen] = useStateI(false);
@@ -786,7 +791,7 @@ function HistoryScreen({ go }) {
   );
 }
 
-function SettingsScreen({ go }) {
+export function SettingsScreen({ go }) {
   useLang();
   const [tab, setTab] = useStateI("profile");
   return (
@@ -920,8 +925,3 @@ function SettingsScreen({ go }) {
     </div>
   );
 }
-
-window.IssuesScreen = IssuesScreen;
-window.IssueDetailScreen = IssueDetailScreen;
-window.HistoryScreen = HistoryScreen;
-window.SettingsScreen = SettingsScreen;

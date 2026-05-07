@@ -1,12 +1,16 @@
 // screens/flow.jsx — Repos selection + Scan progress
 
-const { useState: useStateF, useEffect: useEffectF } = React;
+import { useEffect as useEffectF, useState as useStateF } from "react";
+import { FIXTURES } from "../data.jsx";
+import { I } from "../icons.jsx";
+import { T, useLang } from "../i18n.jsx";
+import { Topbar } from "../shell.jsx";
 
-function ReposScreen({ go, setActiveRepo }) {
+export function ReposScreen({ go, setActiveRepo }) {
   useLang();
   const [q, setQ] = useStateF("");
   const [selected, setSelected] = useStateF(["r6"]);
-  const repos = window.FIXTURES.REPOS.filter(r =>
+  const repos = FIXTURES.REPOS.filter(r =>
     !q || r.name.toLowerCase().includes(q.toLowerCase()) || r.desc.toLowerCase().includes(q.toLowerCase())
   );
   const orgs = [T("All","所有"), "@taylor-dev", "@acme-inc", "@yourname"];
@@ -26,7 +30,7 @@ function ReposScreen({ go, setActiveRepo }) {
           <div className="actions">
             <button className="btn"><I.Refresh size={14} /> {T("Sync","同步")}</button>
             <button className="btn primary" disabled={selected.length === 0} onClick={() => {
-              setActiveRepo(window.FIXTURES.REPOS.find(r => r.id === selected[0]));
+              setActiveRepo(FIXTURES.REPOS.find(r => r.id === selected[0]));
               go("scanning");
             }}>
               <I.Play size={12} /> {T("Start scan","开始扫描")} ({selected.length})
@@ -82,7 +86,7 @@ function ReposScreen({ go, setActiveRepo }) {
   );
 }
 
-function ScanningScreen({ go, activeRepo }) {
+export function ScanningScreen({ go, activeRepo }) {
   useLang();
   const [pct, setPct] = useStateF(0);
   const [stepIdx, setStepIdx] = useStateF(0);
@@ -193,6 +197,3 @@ function ScanningScreen({ go, activeRepo }) {
     </div>
   );
 }
-
-window.ReposScreen = ReposScreen;
-window.ScanningScreen = ScanningScreen;

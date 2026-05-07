@@ -5,7 +5,7 @@ import { FIXTURES } from "./data.jsx";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 
-export function Topbar({ go, now, breadcrumbs }) {
+export function Topbar({ go, breadcrumbs }) {
   useLang();
   const [bellOpen, setBellOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);

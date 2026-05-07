@@ -1,9 +1,11 @@
 // screens/public.jsx — Landing, Login, OAuth screens
 
-const { useState, useEffect, useRef, useMemo } = React;
+import React, { useState } from "react";
+import { I } from "../icons.jsx";
+import { T, useLang } from "../i18n.jsx";
 
 // ── Landing ─────────────────────────────────────────────────────────────
-function LandingScreen({ go, accent }) {
+export function LandingScreen({ go, accent }) {
   useLang();
   return (
     <div className="landing fade-in">
@@ -125,7 +127,7 @@ function LandingScreen({ go, accent }) {
 }
 
 // ── Login ───────────────────────────────────────────────────────────────
-function LoginScreen({ go }) {
+export function LoginScreen({ go }) {
   useLang();
   return (
     <div className="auth-shell fade-in">
@@ -176,7 +178,7 @@ function LoginScreen({ go }) {
 }
 
 // ── GitHub OAuth ────────────────────────────────────────────────────────
-function OAuthScreen({ go }) {
+export function OAuthScreen({ go }) {
   useLang();
   const [authing, setAuthing] = useState(false);
   return (
@@ -250,7 +252,7 @@ function OAuthScreen({ go }) {
 }
 
 // ── Pricing ─────────────────────────────────────────────────────────────
-function PricingScreen({ go, accent }) {
+export function PricingScreen({ go, accent }) {
   useLang();
   const [annual, setAnnual] = useState(true);
 
@@ -531,7 +533,7 @@ function PricingScreen({ go, accent }) {
 }
 
 // ── Docs ────────────────────────────────────────────
-function DocsScreen({ go, accent }) {
+export function DocsScreen({ go, accent }) {
   useLang();
   const sections = [
     {
@@ -729,9 +731,3 @@ function DocsScreen({ go, accent }) {
     </div>
   );
 }
-
-window.LandingScreen = LandingScreen;
-window.LoginScreen = LoginScreen;
-window.OAuthScreen = OAuthScreen;
-window.PricingScreen = PricingScreen;
-window.DocsScreen = DocsScreen;

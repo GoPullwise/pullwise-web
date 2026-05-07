@@ -1,6 +1,9 @@
 // screens/dashboard.jsx — Overview dashboard with list/grid/kanban layouts
 
-const { useState: useStateD, useMemo: useMemoD } = React;
+import { FIXTURES } from "../data.jsx";
+import { I } from "../icons.jsx";
+import { T, useLang } from "../i18n.jsx";
+import { Sidebar, Topbar } from "../shell.jsx";
 
 function Sparkline({ data, color, w = 120, h = 32 }) {
   const max = Math.max(...data, 1);
@@ -49,15 +52,15 @@ function DonutChart({ data, size = 140 }) {
   );
 }
 
-function DashboardScreen({ go, layout, setIssue, accent }) {
+export function DashboardScreen({ go, layout, setIssue, accent }) {
   useLang();
-  const issues = window.FIXTURES.ISSUES.filter(i => i.status === "open").slice(0, 8);
-  const critical = window.FIXTURES.ISSUES.filter(i => i.severity === "critical" && i.status === "open").length;
-  const high = window.FIXTURES.ISSUES.filter(i => i.severity === "high" && i.status === "open").length;
-  const medium = window.FIXTURES.ISSUES.filter(i => i.severity === "medium" && i.status === "open").length;
-  const low = window.FIXTURES.ISSUES.filter(i => i.severity === "low" && i.status === "open").length;
+  const issues = FIXTURES.ISSUES.filter(i => i.status === "open").slice(0, 8);
+  const critical = FIXTURES.ISSUES.filter(i => i.severity === "critical" && i.status === "open").length;
+  const high = FIXTURES.ISSUES.filter(i => i.severity === "high" && i.status === "open").length;
+  const medium = FIXTURES.ISSUES.filter(i => i.severity === "medium" && i.status === "open").length;
+  const low = FIXTURES.ISSUES.filter(i => i.severity === "low" && i.status === "open").length;
   const open = critical + high + medium + low;
-  const autoFixable = window.FIXTURES.ISSUES.filter(i => i.autoFix && i.status === "open").length;
+  const autoFixable = FIXTURES.ISSUES.filter(i => i.autoFix && i.status === "open").length;
 
   const donut = [
     { value: critical, color: "var(--sev-critical)", label: "Critical" },
@@ -98,7 +101,7 @@ function DashboardScreen({ go, layout, setIssue, accent }) {
                 <span className="kpi-d" style={{ color: "var(--sev-critical)" }}>↑ 3</span>
               </div>
               <div className="kpi-v">{open}</div>
-              <Sparkline data={window.FIXTURES.TREND} color={accent} w={180} h={36} />
+              <Sparkline data={FIXTURES.TREND} color={accent} w={180} h={36} />
             </div>
             <div className="kpi card">
               <div className="kpi-h"><span className="kpi-l">Critical</span></div>
@@ -287,8 +290,3 @@ function KanCard({ it, onClick }) {
     </div>
   );
 }
-
-window.DashboardScreen = DashboardScreen;
-window.IssueRow = IssueRow;
-window.IssueCard = IssueCard;
-window.KanCard = KanCard;

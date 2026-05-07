@@ -1,10 +1,13 @@
 # Pullwise Web
 
-Pullwise Web is currently a preserved static prototype wrapped in a Vite project
-scaffold. The existing pages and styles are intentionally untouched:
+Pullwise Web is a Vite React application that preserves the existing prototype
+screens and visual styling while using normal npm dependencies, ES modules, and
+Vite build/dev tooling.
 
 - `index.html` is the normal prototype entry.
 - `review.html` is the prototype navigator entry.
+- `src/main.jsx` mounts the normal entry.
+- `src/review-main.jsx` mounts the prototype navigator entry.
 - `styles/*` and `src/screens/*` keep the current visual implementation.
 - `src/data.jsx` still provides fixture data until backend APIs are connected.
 - `src/api/*` is the new integration boundary for future real API calls.
@@ -81,14 +84,18 @@ http://localhost:4173/
 http://localhost:4173/review.html
 ```
 
-The Vite config copies the current `src` and `styles` runtime files into `dist`
-so the existing browser-loaded prototype scripts still resolve after build.
+The production build is fully bundled by Vite. There is no React CDN, browser
+Babel, or legacy `type="text/babel"` runtime.
 
 ## Project Structure
 
 ```text
 index.html          Existing public prototype entry
 review.html         Existing prototype navigator entry
+src/main.jsx        Vite entry for index.html
+src/review-main.jsx Vite entry for review.html
+src/App.jsx         Shared screen router and app chrome
+src/app.css         Language/theme/prototype-nav chrome styles
 styles/*            Existing CSS
 src/data.jsx        Existing fixture data
 src/i18n.jsx        Existing language helper
@@ -160,14 +167,8 @@ handling, and AI provider credentials.
 ## Troubleshooting
 
 If the page is blank, check the browser console first. This prototype still loads
-several JSX files through browser Babel, so a syntax error in one file can stop
-later screens from registering.
-
-If the console shows `Cannot use 'import.meta' outside a module`, restart the
-Vite dev server. The project intentionally serves the existing `type="text/babel"`
-prototype files as raw source in dev mode so browser Babel can compile them.
-That dev-server behavior lives in `vite.config.js`, so it only takes effect after
-the server restarts.
+through the Vite React entry, so runtime errors usually point to a specific
+module under `src/`.
 
 If dependencies are missing, rerun:
 
