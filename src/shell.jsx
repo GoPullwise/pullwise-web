@@ -1,6 +1,11 @@
 // shell.jsx — Topbar + Sidebar + AppShell (used across authed screens)
 
-function Topbar({ go, now, breadcrumbs }) {
+import React from "react";
+import { FIXTURES } from "./data.jsx";
+import { I } from "./icons.jsx";
+import { T, useLang } from "./i18n.jsx";
+
+export function Topbar({ go, now, breadcrumbs }) {
   useLang();
   const [bellOpen, setBellOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -102,10 +107,10 @@ function SearchModal({ close, go }) {
   useLang();
   const [q, setQ] = React.useState("");
   const ql = q.trim().toLowerCase();
-  const issues = window.FIXTURES.ISSUES.filter(i =>
+  const issues = FIXTURES.ISSUES.filter(i =>
     !ql || i.title.toLowerCase().includes(ql) || i.id.toLowerCase().includes(ql) || i.file.toLowerCase().includes(ql) || i.category.toLowerCase().includes(ql)
   ).slice(0, 5);
-  const repos = window.FIXTURES.REPOS.filter(r =>
+  const repos = FIXTURES.REPOS.filter(r =>
     !ql || r.name.toLowerCase().includes(ql) || r.desc.toLowerCase().includes(ql)
   ).slice(0, 4);
   const allPages = [
@@ -193,7 +198,7 @@ function SearchModal({ close, go }) {
   );
 }
 
-function Sidebar({ section, go }) {
+export function Sidebar({ section, go }) {
   useLang();
   const items = [
     { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} />, badge: null },
@@ -242,8 +247,3 @@ function Sidebar({ section, go }) {
     </aside>
   );
 }
-
-window.Topbar = Topbar;
-window.Sidebar = Sidebar;
-window.BellPopover = BellPopover;
-window.SearchModal = SearchModal;

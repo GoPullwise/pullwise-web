@@ -1,12 +1,12 @@
 // icons.jsx — small set of stroke icons (Lucide-style)
-const Icon = ({ d, size = 16, sw = 1.6, fill, ...rest }) => (
+export const Icon = ({ d, size = 16, sw = 1.6, fill, ...rest }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill || "none"}
        stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" {...rest}>
     {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
   </svg>
 );
 
-const I = {
+export const I = {
   Github: (p) => <Icon {...p} d={[
     "M9 19c-4.3 1.4-4.3-2.5-6-3",
     "M15 22v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 19 5.77 5.07 5.07 0 0 0 18.91 2S17.73 1.65 15 3.48a13.38 13.38 0 0 0-7 0C5.27 1.65 4.09 2 4.09 2A5.07 5.07 0 0 0 4 5.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 8 19.13V22"
@@ -76,6 +76,3 @@ const I = {
   Database:(p) => <Icon {...p} d={["M12 8c4.97 0 9-1.34 9-3s-4.03-3-9-3-9 1.34-9 3 4.03 3 9 3Z","M21 5v6c0 1.66-4 3-9 3s-9-1.34-9-3V5","M21 11v6c0 1.66-4 3-9 3s-9-1.34-9-3v-6"]} />,
   Package: (p) => <Icon {...p} d={["m7.5 4.5 9 5","M21 16V8l-9-5-9 5v8l9 5Z","m3 7 9 5 9-5","M12 22V12"]} />,
 };
-
-window.I = I;
-window.Icon = Icon;

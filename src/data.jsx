@@ -1,5 +1,5 @@
 // data.jsx — fixture data for the prototype
-const REPOS = [
+export const REPOS = [
   { id: "r1", name: "vercel/next.js", desc: "The React Framework for the Web", lang: "TypeScript", stars: "121k", updated: "2 hours ago", private: false, branches: 24, default: "canary" },
   { id: "r2", name: "linear/desktop", desc: "Linear desktop app — issue tracking and project management", lang: "TypeScript", stars: "—", updated: "yesterday", private: true, branches: 18, default: "main" },
   { id: "r3", name: "supabase/supabase", desc: "The open source Firebase alternative", lang: "TypeScript", stars: "73.4k", updated: "1 day ago", private: false, branches: 12, default: "master" },
@@ -11,7 +11,7 @@ const REPOS = [
 ];
 
 // 6 issues categories — security, quality, performance, deps, tests, docs
-const ISSUES = [
+export const ISSUES = [
   {
     id: "PR-001", severity: "critical", category: "Security",
     title: "硬编码的 API 密钥泄露在前端 bundle",
@@ -182,7 +182,7 @@ const ISSUES = [
 ];
 
 // History
-const SCANS = [
+export const SCANS = [
   { id: "s1", repo: "yourname/billing-service", time: "刚刚", status: "running", branch: "main", commit: "a3f9c2", issues: null, by: "auto" },
   { id: "s2", repo: "yourname/billing-service", time: "今天 09:14", status: "done", branch: "main", commit: "f08d11", issues: { critical: 2, high: 4, medium: 9, low: 7 }, by: "you" },
   { id: "s3", repo: "yourname/portfolio-2025", time: "昨天 16:22", status: "done", branch: "feat/redesign", commit: "1c4e8b", issues: { critical: 0, high: 1, medium: 3, low: 5 }, by: "you" },
@@ -192,6 +192,6 @@ const SCANS = [
 ];
 
 // Sparkline data — issues found over last 14 days
-const TREND = [12, 8, 14, 9, 11, 6, 10, 7, 5, 8, 4, 6, 3, 4];
+export const TREND = [12, 8, 14, 9, 11, 6, 10, 7, 5, 8, 4, 6, 3, 4];
 
-window.FIXTURES = { REPOS, ISSUES, SCANS, TREND };
+export const FIXTURES = { REPOS, ISSUES, SCANS, TREND };

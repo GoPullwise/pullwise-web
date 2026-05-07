@@ -163,6 +163,12 @@ If the page is blank, check the browser console first. This prototype still load
 several JSX files through browser Babel, so a syntax error in one file can stop
 later screens from registering.
 
+If the console shows `Cannot use 'import.meta' outside a module`, restart the
+Vite dev server. The project intentionally serves the existing `type="text/babel"`
+prototype files as raw source in dev mode so browser Babel can compile them.
+That dev-server behavior lives in `vite.config.js`, so it only takes effect after
+the server restarts.
+
 If dependencies are missing, rerun:
 
 ```bash
