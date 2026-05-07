@@ -1,7 +1,10 @@
 import { request } from "./http.js";
 
 function withSearchParams(path, params = {}) {
-  const search = new URLSearchParams(params).toString();
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== "")
+  );
+  const search = new URLSearchParams(cleanParams).toString();
   return search ? `${path}?${search}` : path;
 }
 
@@ -11,8 +14,8 @@ export const pullwiseApi = {
     requestMagicLink: (payload) =>
       request("/auth/email/magic-link", { method: "POST", body: payload }),
     signOut: () => request("/auth/sign-out", { method: "POST" }),
-    getGitHubAuthorizeUrl: (scope) =>
-      request(`/auth/github/authorize?scope=${encodeURIComponent(scope || "all")}`),
+    getGitHubAuthorizeUrl: (params = {}) =>
+      request(withSearchParams("/auth/github/authorize", params)),
   },
 
   repositories: {
@@ -43,6 +46,8 @@ export const pullwiseApi = {
 
   integrations: {
     list: () => request("/integrations"),
+    getGitHubAuthorizeUrl: (params = {}) =>
+      request(withSearchParams("/integrations/github/authorize", params)),
     connect: (provider, payload) =>
       request(`/integrations/${provider}/connect`, { method: "POST", body: payload }),
     disconnect: (provider) => request(`/integrations/${provider}`, { method: "DELETE" }),

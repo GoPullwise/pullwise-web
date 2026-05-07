@@ -3,7 +3,11 @@
 import React, { useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { signInWithEmail, signUpWithEmail } from "../lib/auth.js";
+import {
+  requestEmailMagicLink,
+  startGitHubLogin,
+  startGitHubRepositoryAccess,
+} from "../lib/auth.js";
 
 // ── Landing ─────────────────────────────────────────────────────────────
 export function LandingScreen({ go, accent }) {
@@ -22,7 +26,7 @@ export function LandingScreen({ go, accent }) {
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("register")}>{T("Get started", "开始使用")}</button>
+          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
         </div>
       </header>
 
@@ -127,35 +131,9 @@ export function LandingScreen({ go, accent }) {
   );
 }
 
-// ── Login / Register ───────────────────────────────────────────────────
-const INITIAL_AUTH_FORM = {
-  name: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  workspaceName: "",
-};
-
-function validateAuthForm(mode, form) {
-  const isRegister = mode === "register";
-
-  if (isRegister && !form.name.trim()) {
-    return T("Enter your name.", "请输入姓名。");
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-    return T("Enter a valid email address.", "请输入有效的邮箱地址。");
-  }
-
-  if (form.password.length < 8) {
-    return T("Password must be at least 8 characters.", "密码至少需要 8 个字符。");
-  }
-
-  if (isRegister && form.password !== form.confirmPassword) {
-    return T("Passwords do not match.", "两次输入的密码不一致。");
-  }
-
-  return "";
+// ── Login ───────────────────────────────────────────────────────────────
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
 function getAuthErrorMessage(error) {
@@ -168,57 +146,47 @@ function getAuthErrorMessage(error) {
   );
 }
 
-export function LoginScreen({ go, defaultMode = "sign-in" }) {
+export function LoginScreen({ go }) {
   useLang();
-  const [mode, setMode] = useState(defaultMode);
-  const [form, setForm] = useState(INITIAL_AUTH_FORM);
-  const [pending, setPending] = useState(false);
+  const [email, setEmail] = useState("");
+  const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
+  const [sentEmail, setSentEmail] = useState("");
 
-  const isRegister = mode === "register";
+  const pending = Boolean(pendingAction);
 
-  const updateField = (field) => (event) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+  const handleGitHubLogin = async () => {
+    setPendingAction("github");
     setError("");
-  };
 
-  const switchMode = (nextMode) => {
-    setMode(nextMode);
-    setError("");
+    try {
+      await startGitHubLogin();
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError));
+      setPendingAction("");
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const nextError = validateAuthForm(mode, form);
-    if (nextError) {
-      setError(nextError);
+    const normalizedEmail = email.trim();
+    if (!isValidEmail(normalizedEmail)) {
+      setError(T("Enter a valid email address.", "请输入有效的邮箱地址。"));
       return;
     }
 
-    setPending(true);
+    setPendingAction("email");
     setError("");
+    setSentEmail("");
 
     try {
-      if (isRegister) {
-        await signUpWithEmail({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          password: form.password,
-          workspaceName: form.workspaceName.trim() || undefined,
-        });
-        go("oauth");
-      } else {
-        await signInWithEmail({
-          email: form.email.trim(),
-          password: form.password,
-        });
-        go("dashboard");
-      }
+      await requestEmailMagicLink({ email: normalizedEmail });
+      setSentEmail(normalizedEmail);
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
     } finally {
-      setPending(false);
+      setPendingAction("");
     }
   };
 
@@ -232,72 +200,35 @@ export function LoginScreen({ go, defaultMode = "sign-in" }) {
           <div className="brand-mark">PR</div>
           <span style={{ fontSize: 16 }}>Pullwise</span>
         </div>
-        <div className="auth-tabs" role="tablist" aria-label={T("Authentication mode", "认证方式")}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isRegister}
-            className={!isRegister ? "active" : ""}
-            onClick={() => switchMode("sign-in")}
-          >
-            {T("Sign in", "登录")}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isRegister}
-            className={isRegister ? "active" : ""}
-            onClick={() => switchMode("register")}
-          >
-            {T("Create account", "注册")}
-          </button>
-        </div>
-        <h2 className="auth-title">
-          {isRegister
-            ? T("Create your Pullwise account", "创建 Pullwise 账号")
-            : T("Sign in to your workspace", "登录到你的工作区")}
-        </h2>
+        <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">
-          {isRegister
-            ? T("Start with email, then connect GitHub to scan repositories.", "先用邮箱创建账号，再连接 GitHub 扫描仓库。")
-            : T("Connect GitHub and start scanning your projects", "连接 GitHub 立即开始扫描你的项目")}
+          {T(
+            "Use GitHub or a magic email link. First sign-in creates your account automatically.",
+            "使用 GitHub 或邮箱魔法链接登录。首次登录会自动创建账号。"
+          )}
         </p>
 
-        <button className="btn lg primary auth-gh" onClick={() => go("oauth")}>
-          <I.Github /> {isRegister ? T("Sign up with GitHub", "使用 GitHub 注册") : T("Continue with GitHub","使用 GitHub 继续")}
+        <button
+          className="btn lg primary auth-gh"
+          type="button"
+          disabled={pending}
+          onClick={handleGitHubLogin}
+        >
+          {pendingAction === "github" ? (
+            <>
+              <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
+              {T("Opening GitHub...", "正在打开 GitHub...")}
+            </>
+          ) : (
+            <>
+              <I.Github /> {T("Continue with GitHub", "使用 GitHub 继续")}
+            </>
+          )}
         </button>
 
         <div className="auth-or"><span>{T("or","或")}</span></div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {isRegister && (
-            <>
-              <label className="auth-field">
-                <span>{T("Full name", "姓名")}</span>
-                <div className="auth-input">
-                  <I.User size={14} />
-                  <input
-                    autoComplete="name"
-                    value={form.name}
-                    onChange={updateField("name")}
-                    placeholder={T("Taylor Chen", "陈 Taylor")}
-                  />
-                </div>
-              </label>
-              <label className="auth-field">
-                <span>{T("Workspace name", "工作区名称")}</span>
-                <div className="auth-input">
-                  <I.Folder size={14} />
-                  <input
-                    autoComplete="organization"
-                    value={form.workspaceName}
-                    onChange={updateField("workspaceName")}
-                    placeholder={T("Acme Engineering", "Acme 工程团队")}
-                  />
-                </div>
-              </label>
-            </>
-          )}
           <label className="auth-field">
             <span>{T("Email","邮箱")}</span>
             <div className="auth-input">
@@ -305,89 +236,86 @@ export function LoginScreen({ go, defaultMode = "sign-in" }) {
               <input
                 type="email"
                 autoComplete="email"
-                value={form.email}
-                onChange={updateField("email")}
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setError("");
+                  setSentEmail("");
+                }}
                 placeholder="you@company.com"
+                disabled={pending}
               />
             </div>
           </label>
-          <label className="auth-field">
-            <span>
-              {T("Password","密码")}{" "}
-              {!isRegister && <button type="button" className="auth-link auth-link-btn">{T("Forgot?","忘记?")}</button>}
-            </span>
-            <div className="auth-input">
-              <I.Lock size={14} />
-              <input
-                type="password"
-                autoComplete={isRegister ? "new-password" : "current-password"}
-                value={form.password}
-                onChange={updateField("password")}
-                placeholder="••••••••"
-              />
-            </div>
-          </label>
-          {isRegister && (
-            <label className="auth-field">
-              <span>{T("Confirm password", "确认密码")}</span>
-              <div className="auth-input">
-                <I.Lock size={14} />
-                <input
-                  type="password"
-                  autoComplete="new-password"
-                  value={form.confirmPassword}
-                  onChange={updateField("confirmPassword")}
-                  placeholder="••••••••"
-                />
-              </div>
-            </label>
-          )}
           {error && (
             <div className="auth-error" role="alert">
               <I.X size={13} /> {error}
             </div>
           )}
+          {sentEmail && (
+            <div className="auth-success" role="status">
+              <I.Check size={13} />
+              <div>
+                <b>{T("Check your email", "请查收邮箱")}</b>
+                <span>
+                  {T(
+                    `We sent a magic link to ${sentEmail}. After signing in, continue to GitHub repository authorization.`,
+                    `我们已向 ${sentEmail} 发送魔法链接。登录后继续授权 GitHub 仓库权限。`
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
           <button className="btn lg" type="submit" disabled={pending}>
-            {pending ? (
+            {pendingAction === "email" ? (
               <>
                 <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
-                {isRegister ? T("Creating account...", "正在创建账号...") : T("Signing in...", "正在登录...")}
+                {T("Sending link...", "正在发送链接...")}
               </>
             ) : (
-              isRegister ? T("Create account", "注册") : T("Sign in", "登录")
+              T("Send magic link", "发送魔法链接")
             )}
           </button>
         </form>
 
-        <p className="auth-foot">
-          {isRegister ? T("Already have an account?", "已有账号?") : T("No account?", "没有账号?")}{" "}
-          <button
-            type="button"
-            className="auth-link auth-link-btn"
-            onClick={() => switchMode(isRegister ? "sign-in" : "register")}
-          >
-            {isRegister ? T("Sign in", "登录") : T("Create account", "注册")}
-          </button>
-        </p>
+        <div className="auth-next">
+          <div className="auth-next-i">
+            <span>1</span>
+            <p>{T("Sign in without passwords.", "无需密码登录。")}</p>
+          </div>
+          <div className="auth-next-i">
+            <span>2</span>
+            <p>{T("Then connect GitHub repositories for scanning.", "随后单独连接 GitHub 仓库用于扫描。")}</p>
+          </div>
+        </div>
       </div>
       <div className="auth-legal">
-        {isRegister
-          ? T("By creating an account you agree to our", "注册即代表同意")
-          : T("By signing in you agree to our", "登录即代表同意")}{" "}
+        {T("By signing in you agree to our","登录即代表同意")}{" "}
         <a>{T("Terms of Service","服务条款")}</a> {T("and","与")} <a>{T("Privacy Policy","隐私政策")}</a>{T(".","。")}
       </div>
     </div>
   );
 }
 
-export function RegisterScreen({ go }) {
-  return <LoginScreen go={go} defaultMode="register" />;
-}
-
-// ── GitHub OAuth ────────────────────────────────────────────────────────
+// ── GitHub repository access ────────────────────────────────────────────
 export function OAuthScreen({ go }) {
   useLang();
+  const [scope, setScope] = useState("all");
   const [authing, setAuthing] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleAuthorize = async () => {
+    setAuthing(true);
+    setError("");
+
+    try {
+      await startGitHubRepositoryAccess(scope);
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError));
+      setAuthing(false);
+    }
+  };
+
   return (
     <div className="oauth-shell fade-in">
       <div className="oauth-card">
@@ -399,17 +327,22 @@ export function OAuthScreen({ go }) {
             </div>
             <div className="oauth-logo app">PR</div>
           </div>
-          <h2>{T("Authorize ","授权 ")}<b>Pullwise</b>{T(" to access your GitHub"," 访问你的 GitHub")}</h2>
-          <p className="oauth-org">{T("Signed in as: ","登录身份: ")}<span className="tag" style={{ marginLeft: 4 }}>@taylor-dev</span></p>
+          <h2>{T("Connect GitHub repository access", "连接 GitHub 仓库权限")}</h2>
+          <p className="oauth-org">
+            {T(
+              "Your Pullwise account is signed in. Authorize repositories separately before scanning.",
+              "Pullwise 账号已登录。扫描前需要单独授权仓库访问范围。"
+            )}
+          </p>
         </div>
 
         <div className="oauth-perms">
-          <div className="oauth-perm-h">{T("Will get the following permissions","将获得以下权限")}</div>
+          <div className="oauth-perm-h">{T("Requested GitHub permissions","请求的 GitHub 权限")}</div>
           {[
-            { i: <I.User size={15} />, h: T("Read your profile","读取你的个人资料"), p: T("Username, email, avatar — used for display and notifications.","用户名、邮箱、头像 — 用于显示和通知。") },
-            { i: <I.Folder size={15} />, h: T("Access public and private repos","访问公开和私有仓库"), p: T("Read-only, used to scan code. We do not store repo contents.","只读, 用于扫描代码。我们不存储仓库内容。") },
-            { i: <I.GitPull size={15} />, h: T("Create branches and pull requests","创建分支与 Pull Request"), p: T("With your permission, Pullwise submits fix suggestions.","经你允许后, 由 Pullwise 提交修复建议。") },
-            { i: <I.Bell size={15} />, h: T("Read webhook events","读取 webhook 事件"), p: T("Trigger incremental scans on push / PR.","在 push / PR 时自动触发增量扫描。") },
+            { i: <I.Folder size={15} />, h: T("Repository metadata","仓库元数据"), p: T("List authorized repos, branches, languages, and installation status.","列出已授权仓库、分支、语言和安装状态。") },
+            { i: <I.FileCode size={15} />, h: T("Read repository contents","读取仓库内容"), p: T("Read-only access for scans. Repository contents are not stored in the browser.","仅用于扫描的只读权限。仓库内容不会存储在浏览器中。") },
+            { i: <I.GitPull size={15} />, h: T("Create branches and pull requests","创建分支与 Pull Request"), p: T("Used only when you approve an auto-fix and ask Pullwise to open a PR.","仅在你批准 auto-fix 并要求创建 PR 时使用。") },
+            { i: <I.Bell size={15} />, h: T("Webhook events","Webhook 事件"), p: T("Trigger incremental scans on push and pull request updates.","在 push 和 PR 更新时触发增量扫描。") },
           ].map((p, i) => (
             <div key={i} className="oauth-perm">
               <div className="oauth-perm-i">{p.i}</div>
@@ -425,14 +358,24 @@ export function OAuthScreen({ go }) {
         <div className="oauth-orgs">
           <div className="oauth-perm-h">{T("Repository access","仓库访问范围")}</div>
           <label className="oauth-org-row">
-            <input type="radio" name="scope" defaultChecked />
+            <input
+              type="radio"
+              name="scope"
+              checked={scope === "all"}
+              onChange={() => setScope("all")}
+            />
             <div>
               <div className="oauth-org-t">{T("All repositories","所有仓库")}</div>
               <div className="oauth-org-p">{T("Recommended — including future ones","推荐 — 包括未来新建的仓库")}</div>
             </div>
           </label>
           <label className="oauth-org-row">
-            <input type="radio" name="scope" />
+            <input
+              type="radio"
+              name="scope"
+              checked={scope === "selected"}
+              onChange={() => setScope("selected")}
+            />
             <div>
               <div className="oauth-org-t">{T("Only selected repositories","仅选定的仓库")}</div>
               <div className="oauth-org-p">{T("Manually pick which repos can be scanned","手动选择允许扫描的仓库")}</div>
@@ -440,18 +383,32 @@ export function OAuthScreen({ go }) {
           </label>
         </div>
 
+        {error && (
+          <div className="oauth-error" role="alert">
+            <I.X size={13} /> {error}
+          </div>
+        )}
+
         <div className="oauth-actions">
           <button className="btn lg" onClick={() => go("login")}>{T("Cancel","取消")}</button>
-          <button className={"btn lg primary" + (authing ? " is-loading" : "")} onClick={() => {
-            setAuthing(true);
-            setTimeout(() => go("repos"), 900);
-          }}>
-            {authing ? <><span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span> {T("Authorizing…","授权中…")}</> : <>{T("Authorize and continue","授权并继续")} <I.ArrowR size={14} /></>}
+          <button
+            className={"btn lg primary" + (authing ? " is-loading" : "")}
+            disabled={authing}
+            onClick={handleAuthorize}
+          >
+            {authing ? (
+              <>
+                <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
+                {T("Opening GitHub...", "正在打开 GitHub...")}
+              </>
+            ) : (
+              <>{T("Connect GitHub repositories", "连接 GitHub 仓库")} <I.ArrowR size={14} /></>
+            )}
           </button>
         </div>
 
         <div className="oauth-foot">
-          <I.Lock size={12} /> {T("Tokens are stored only in your workspace and can be revoked anytime.","授权令牌仅存储在你的工作区, 可随时在设置中撤销。")}
+          <I.Lock size={12} /> {T("Login identity and repository authorization are separate, so access can be revoked without deleting your account.","登录身份与仓库授权是分开的，因此你可以撤销仓库权限而不删除账号。")}
         </div>
       </div>
     </div>
@@ -603,7 +560,7 @@ export function PricingScreen({ go, accent }) {
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("register")}>{T("Get started", "开始使用")}</button>
+          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
         </div>
       </header>
 
@@ -661,7 +618,7 @@ export function PricingScreen({ go, accent }) {
             <button
               className={"btn lg " + (t.featured ? "primary" : "")}
               style={{ width: "100%" }}
-              onClick={() => go(t.k === "enterprise" ? "landing" : "register")}
+              onClick={() => go(t.k === "enterprise" ? "landing" : "login")}
             >
               {t.cta}
             </button>
@@ -793,7 +750,7 @@ export function DocsScreen({ go, accent }) {
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("register")}>{T("Get started", "开始使用")}</button>
+          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
         </div>
       </header>
 

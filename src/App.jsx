@@ -16,11 +16,29 @@ import {
   LoginScreen,
   OAuthScreen,
   PricingScreen,
-  RegisterScreen,
 } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
+const SCREENS = new Set([
+  "landing",
+  "pricing",
+  "docs",
+  "login",
+  "oauth",
+  "repos",
+  "scanning",
+  "dashboard",
+  "issues",
+  "issue",
+  "history",
+  "settings",
+]);
+
+function getInitialScreen() {
+  const requestedScreen = new URLSearchParams(window.location.search).get("screen");
+  return SCREENS.has(requestedScreen) ? requestedScreen : "landing";
+}
 
 function PrototypeNav({ go, current }) {
   const screens = [
@@ -28,8 +46,7 @@ function PrototypeNav({ go, current }) {
     { k: "pricing", t: "定价" },
     { k: "docs", t: "文档" },
     { k: "login", t: "登录" },
-    { k: "register", t: "注册" },
-    { k: "oauth", t: "OAuth" },
+    { k: "oauth", t: "GitHub 授权" },
     { k: "repos", t: "选仓库" },
     { k: "scanning", t: "扫描中" },
     { k: "dashboard", t: "Dashboard" },
@@ -64,7 +81,7 @@ function PrototypeNav({ go, current }) {
 export function App({ prototypeNav = false }) {
   const lang = useLang();
   const [theme, setTheme] = useState(() => localStorage.getItem("pw-theme") || "light");
-  const [screen, setScreen] = useState("landing");
+  const [screen, setScreen] = useState(getInitialScreen);
   const [issue, setIssue] = useState(null);
   const [activeRepo, setActiveRepo] = useState(null);
   const [navOpen, setNavOpen] = useState(true);
@@ -105,9 +122,6 @@ export function App({ prototypeNav = false }) {
       break;
     case "login":
       body = <LoginScreen go={go} />;
-      break;
-    case "register":
-      body = <RegisterScreen go={go} />;
       break;
     case "oauth":
       body = <OAuthScreen go={go} />;

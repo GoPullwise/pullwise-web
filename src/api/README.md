@@ -4,7 +4,8 @@ This folder is the integration boundary for replacing `src/data.jsx` fixtures.
 
 Expected backend responsibilities:
 
-- GitHub OAuth and GitHub App installation flow
+- Passwordless identity login: GitHub sign-in and email magic links
+- GitHub repository authorization: GitHub App installation and repo access scope
 - Repository listing and permission sync
 - Scan task creation, cancellation, polling, and live events
 - Issue listing, status changes, fix application, and pull request creation

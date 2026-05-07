@@ -131,7 +131,8 @@ API and server state:
 
 Auth, billing, and SaaS integrations:
 
-- `src/lib/auth.js` starts GitHub login by requesting a backend authorize URL.
+- `src/lib/auth.js` starts GitHub identity login, sends email magic links, and
+  starts the separate GitHub repository authorization flow.
 - `@stripe/stripe-js` loads Stripe with a publishable key for checkout flows.
 - GitHub OAuth secrets, GitHub App private keys, Stripe secret keys, and AI keys
   must stay in the backend, not in frontend dependencies or env files.
@@ -154,7 +155,7 @@ Quality and testing:
 
 These features are still prototype-only and should eventually call backend APIs:
 
-- GitHub login, OAuth authorization, repo permissions, and repo sync
+- GitHub identity login, email magic links, repository authorization, and repo sync
 - Repository listing, branch/commit lookup, and scan creation
 - Scan progress, scan history, issue list, and issue details
 - Apply fix, create branch, push changes, and create pull request

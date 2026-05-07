@@ -1,7 +1,16 @@
 import { pullwiseApi } from "../api/pullwise.js";
 
-export async function startGitHubLogin(scope = "all") {
-  const result = await pullwiseApi.auth.getGitHubAuthorizeUrl(scope);
+function getScreenRedirectUrl(screen) {
+  const redirectUrl = new URL(window.location.href);
+  redirectUrl.searchParams.set("screen", screen);
+  redirectUrl.hash = "";
+  return redirectUrl.toString();
+}
+
+export async function startGitHubLogin({ redirectTo } = {}) {
+  const result = await pullwiseApi.auth.getGitHubAuthorizeUrl({
+    redirectTo: redirectTo || getScreenRedirectUrl("oauth"),
+  });
 
   if (!result?.url) {
     throw new Error("GitHub authorize URL is missing from the auth response.");
@@ -13,8 +22,21 @@ export async function startGitHubLogin(scope = "all") {
 export async function requestEmailMagicLink({ email, redirectTo } = {}) {
   return pullwiseApi.auth.requestMagicLink({
     email,
-    redirectTo: redirectTo || window.location.origin,
+    redirectTo: redirectTo || getScreenRedirectUrl("oauth"),
   });
+}
+
+export async function startGitHubRepositoryAccess(scope = "all", { redirectTo } = {}) {
+  const result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
+    scope,
+    redirectTo: redirectTo || getScreenRedirectUrl("repos"),
+  });
+
+  if (!result?.url) {
+    throw new Error("GitHub repository authorization URL is missing from the integrations response.");
+  }
+
+  window.location.assign(result.url);
 }
 
 export async function signOut() {

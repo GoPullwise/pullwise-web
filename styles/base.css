@@ -73,7 +73,7 @@ html, body {
   min-height: 100vh;
 }
 
-button { font: inherit; color: inherit; cursor: default; }
+button { font: inherit; color: inherit; cursor: default; user-select: none; }
 a { color: inherit; text-decoration: none; }
 input, textarea { font: inherit; color: inherit; }
 
@@ -309,3 +309,12 @@ input, textarea { font: inherit; color: inherit; }
   border-radius: 999px;
 }
 .pill .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+
+/* Non-selectable UI chrome (atoms) */
+.chip, .kbd, .tag, .pill, .sev,
+.topbar, .crumbs,
+.brand, .brand-mark,
+.side, .side-h,
+.page-h .actions {
+  user-select: none;
+}

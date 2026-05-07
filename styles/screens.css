@@ -181,30 +181,6 @@
   border-radius: 14px;
   box-shadow: var(--shadow-2);
 }
-.auth-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 3px;
-  margin-bottom: 18px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-soft);
-}
-.auth-tabs button {
-  height: 30px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-3);
-  font-size: 12.5px;
-  font-weight: 500;
-}
-.auth-tabs button.active {
-  background: var(--bg-elev);
-  color: var(--text);
-  box-shadow: var(--shadow-1);
-}
 .auth-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; text-align: center; margin-bottom: 4px; }
 .auth-sub { color: var(--text-3); font-size: 13.5px; text-align: center; margin-bottom: 24px; }
 .auth-gh { width: 100%; }
@@ -232,14 +208,6 @@
 }
 .auth-link { color: var(--accent); cursor: default; font-size: 12px; }
 .auth-link:hover { text-decoration: underline; }
-.auth-link-btn {
-  display: inline;
-  height: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-}
 .auth-error {
   display: flex;
   align-items: flex-start;
@@ -253,7 +221,47 @@
   line-height: 1.45;
 }
 .auth-error svg { flex: 0 0 auto; margin-top: 1px; }
-.auth-foot { text-align: center; color: var(--text-3); font-size: 12.5px; margin-top: 18px; }
+.auth-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid color-mix(in oklch, #16a34a 28%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in oklch, #16a34a 8%, var(--bg-elev));
+  color: #15803d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.auth-success svg { flex: 0 0 auto; margin-top: 2px; }
+.auth-success b { display: block; margin-bottom: 2px; }
+.auth-success span { color: var(--text-2); }
+.auth-next {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.auth-next-i {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.auth-next-i span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--text-2);
+  font: 600 11px/1 var(--font-mono);
+}
 .auth-legal { color: var(--text-4); font-size: 11.5px; margin-top: 22px; max-width: 360px; text-align: center; }
 
 /* ── OAuth ────────────────────────────────────────────────── */
@@ -319,6 +327,20 @@
 .oauth-org-row input { margin-top: 2px; accent-color: var(--accent); }
 .oauth-org-t { font-size: 13px; font-weight: 500; }
 .oauth-org-p { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.oauth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 24px 14px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in oklch, var(--sev-critical) 30%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--sev-critical) 8%, var(--bg-elev));
+  color: var(--sev-critical);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.oauth-error svg { flex: 0 0 auto; margin-top: 1px; }
 .oauth-actions { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
 .oauth-foot { padding: 12px 24px; background: var(--bg-soft); border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
 
@@ -1326,4 +1348,69 @@
   border-radius: 999px;
   background: var(--accent); color: white;
   font: 600 10.5px/1 var(--font-mono);
+}
+
+/* ── Non-selectable UI chrome ─────────────────────────────── */
+/* Visual chrome — labels, tabs, sidebars, badges, dots, avatars, etc.
+   Body content (titles, paragraphs, code, inputs, message bodies,
+   stat values, file paths, repo/issue names) stays selectable. */
+
+/* Landing */
+.lp-top, .lp-nav, .lp-hero-tag, .lp-meta,
+.lp-preview-bar, .lp-preview-side, .lp-preview-issue-f,
+.lp-feat-i, .lp-foot,
+/* Auth / OAuth */
+.auth-or, .auth-legal,
+.oauth-head, .oauth-perm-h, .oauth-perm-i,
+.oauth-actions, .oauth-foot,
+/* Repos */
+.repos-toolbar, .repos-orgs, .repos-foot,
+.repo-check-box, .repo-meta, .lang-dot,
+/* Scanning */
+.scanning-h, .scanning-icon,
+.scanning-bar-meta, .scanning-phases, .scanning-phase-bullet,
+.scanning-counts-h, .scanning-counts-grid span,
+/* Dashboard */
+.kpi-h, .kpi-l, .kpi-d, .kpi-foot,
+.dash-summary-head, .dash-donut-dot,
+.dash-cat-row, .dash-cat-bar,
+.seg, .seg-i,
+.dash-issues-h,
+/* Issues list / kanban */
+.issue-sev, .issue-id, .issue-effort, .issue-meta,
+.issue-card-foot,
+.kan-col-h, .kan-empty, .kan-card-foot,
+/* Issues table */
+.filters, .filter-l, .filter-pills, .pill-btn,
+.issues-thead, .issues-check, .conf-bar,
+/* Issue detail */
+.tabs, .tab,
+.impact-h, .impact-i,
+.section-h, .step-n,
+.diff-tag, .diff-col-h,
+.applied-i,
+.discuss-av,
+.tl-dot,
+/* Modal / PR form */
+.modal-h, .modal-foot,
+.pr-progress, .pr-step, .pr-check,
+/* History */
+.hist-status, .hist-dot, .hist-stack, .hist-meta,
+/* Settings */
+.set-side, .set-side-i, .set-av,
+.switch, .int-row,
+.usage-bar,
+/* Pricing */
+.pricing-toggle, .pricing-save, .pricing-badge,
+.pricing-billed, .pricing-table-g,
+.pricing-feats svg,
+/* Docs */
+.docs-side, .docs-toc, .docs-crumbs,
+.docs-side-h, .docs-toc-h, .docs-side-i, .docs-foot,
+.pricing-faq-i summary,
+/* Popovers */
+.pop-h, .pop-foot, .pop-section, .pop-i-ic,
+/* Search modal */
+.search-h svg, .search-gh, .search-foot, .search-empty {
+  user-select: none;
 }
