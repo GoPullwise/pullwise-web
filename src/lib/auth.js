@@ -10,8 +10,11 @@ export async function startGitHubLogin(scope = "all") {
   window.location.assign(result.url);
 }
 
-export async function signInWithEmail(credentials) {
-  return pullwiseApi.auth.signInWithEmail(credentials);
+export async function requestEmailMagicLink({ email, redirectTo } = {}) {
+  return pullwiseApi.auth.requestMagicLink({
+    email,
+    redirectTo: redirectTo || window.location.origin,
+  });
 }
 
 export async function signOut() {

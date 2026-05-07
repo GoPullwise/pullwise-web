@@ -92,6 +92,10 @@ input, textarea { font: inherit; color: inherit; }
 }
 .btn:hover { background: var(--bg-soft); }
 .btn:active { transform: translateY(0.5px); }
+.btn:disabled {
+  opacity: .58;
+  pointer-events: none;
+}
 
 .btn.primary {
   background: var(--text);

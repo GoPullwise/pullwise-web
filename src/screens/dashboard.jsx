@@ -77,14 +77,14 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
       ]} />
       <div className="with-side">
         <Sidebar section="dashboard" go={go} />
-        <div className="main">
+        <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
               <h1>Overview</h1>
-              <div className="sub">
-                <span className="tag" style={{ marginRight: 6 }}><I.GitBranch size={10} /> main</span>
-                <span className="tag" style={{ marginRight: 6 }}>commit a3f9c2</span>
-                {T("Last scan: today 09:14 · took 1m 12s","上次扫描: 今天 09:14 · 用时 1分 12秒")}
+              <div className="sub" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span className="tag"><I.GitBranch size={10} /> main</span>
+                <span className="tag">commit a3f9c2</span>
+                <span>{T("Last scan: today 09:14 · took 1m 12s","上次扫描: 今天 09:14 · 用时 1分 12秒")}</span>
               </div>
             </div>
             <div className="actions">

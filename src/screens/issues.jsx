@@ -689,7 +689,7 @@ export function HistoryScreen({ go }) {
       <Topbar go={go} breadcrumbs={[{ label: "Acme Inc", go: "dashboard" }, { label: T("Scan history","扫描历史") }]} />
       <div className="with-side">
         <Sidebar section="history" go={go} />
-        <div className="main">
+        <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
               <h1>{T("Scan history","扫描历史")}</h1>

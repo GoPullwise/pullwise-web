@@ -8,7 +8,8 @@ function withSearchParams(path, params = {}) {
 export const pullwiseApi = {
   auth: {
     getSession: () => request("/auth/session"),
-    signInWithEmail: (payload) => request("/auth/email", { method: "POST", body: payload }),
+    requestMagicLink: (payload) =>
+      request("/auth/email/magic-link", { method: "POST", body: payload }),
     signOut: () => request("/auth/sign-out", { method: "POST" }),
     getGitHubAuthorizeUrl: (scope) =>
       request(`/auth/github/authorize?scope=${encodeURIComponent(scope || "all")}`),

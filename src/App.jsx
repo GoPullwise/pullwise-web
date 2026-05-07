@@ -16,6 +16,7 @@ import {
   LoginScreen,
   OAuthScreen,
   PricingScreen,
+  RegisterScreen,
 } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
@@ -27,6 +28,7 @@ function PrototypeNav({ go, current }) {
     { k: "pricing", t: "定价" },
     { k: "docs", t: "文档" },
     { k: "login", t: "登录" },
+    { k: "register", t: "注册" },
     { k: "oauth", t: "OAuth" },
     { k: "repos", t: "选仓库" },
     { k: "scanning", t: "扫描中" },
@@ -103,6 +105,9 @@ export function App({ prototypeNav = false }) {
       break;
     case "login":
       body = <LoginScreen go={go} />;
+      break;
+    case "register":
+      body = <RegisterScreen go={go} />;
       break;
     case "oauth":
       body = <OAuthScreen go={go} />;

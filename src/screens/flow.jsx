@@ -4,7 +4,7 @@ import { useEffect as useEffectF, useState as useStateF } from "react";
 import { FIXTURES } from "../data.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { Topbar } from "../shell.jsx";
+import { Sidebar, Topbar } from "../shell.jsx";
 
 export function ReposScreen({ go, setActiveRepo }) {
   useLang();
@@ -20,8 +20,13 @@ export function ReposScreen({ go, setActiveRepo }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} now={T("Choose repositories","选择仓库")} />
-      <div className="main narrow" style={{ margin: "0 auto" }}>
+      <Topbar go={go} breadcrumbs={[
+        { label: "Acme Inc", go: "dashboard" },
+        { label: T("Repositories","仓库") },
+      ]} />
+      <div className="with-side">
+        <Sidebar section="repos" go={go} />
+        <div className="main" style={{ maxWidth: "none" }}>
         <div className="page-h">
           <div>
             <h1>{T("Choose repositories to scan","选择要扫描的仓库")}</h1>
@@ -80,6 +85,7 @@ export function ReposScreen({ go, setActiveRepo }) {
 
         <div className="repos-foot">
           <span className="muted">{T("Don't see it? ","没看到? ")}<a className="auth-link">{T("Configure GitHub App permissions","配置 GitHub App 权限")}</a></span>
+        </div>
         </div>
       </div>
     </div>

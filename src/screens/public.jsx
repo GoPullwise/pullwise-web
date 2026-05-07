@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { signInWithEmail, signUpWithEmail } from "../lib/auth.js";
 
 // ── Landing ─────────────────────────────────────────────────────────────
 export function LandingScreen({ go, accent }) {
@@ -21,7 +22,7 @@ export function LandingScreen({ go, accent }) {
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
+          <button className="btn primary sm" onClick={() => go("register")}>{T("Get started", "开始使用")}</button>
         </div>
       </header>
 
@@ -126,9 +127,101 @@ export function LandingScreen({ go, accent }) {
   );
 }
 
-// ── Login ───────────────────────────────────────────────────────────────
-export function LoginScreen({ go }) {
+// ── Login / Register ───────────────────────────────────────────────────
+const INITIAL_AUTH_FORM = {
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  workspaceName: "",
+};
+
+function validateAuthForm(mode, form) {
+  const isRegister = mode === "register";
+
+  if (isRegister && !form.name.trim()) {
+    return T("Enter your name.", "请输入姓名。");
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    return T("Enter a valid email address.", "请输入有效的邮箱地址。");
+  }
+
+  if (form.password.length < 8) {
+    return T("Password must be at least 8 characters.", "密码至少需要 8 个字符。");
+  }
+
+  if (isRegister && form.password !== form.confirmPassword) {
+    return T("Passwords do not match.", "两次输入的密码不一致。");
+  }
+
+  return "";
+}
+
+function getAuthErrorMessage(error) {
+  return (
+    error?.message ||
+    T(
+      "Authentication is unavailable. Check the backend auth service.",
+      "认证服务暂不可用，请检查后端 auth 服务。"
+    )
+  );
+}
+
+export function LoginScreen({ go, defaultMode = "sign-in" }) {
   useLang();
+  const [mode, setMode] = useState(defaultMode);
+  const [form, setForm] = useState(INITIAL_AUTH_FORM);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+
+  const isRegister = mode === "register";
+
+  const updateField = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+    setError("");
+  };
+
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
+    setError("");
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const nextError = validateAuthForm(mode, form);
+    if (nextError) {
+      setError(nextError);
+      return;
+    }
+
+    setPending(true);
+    setError("");
+
+    try {
+      if (isRegister) {
+        await signUpWithEmail({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          workspaceName: form.workspaceName.trim() || undefined,
+        });
+        go("oauth");
+      } else {
+        await signInWithEmail({
+          email: form.email.trim(),
+          password: form.password,
+        });
+        go("dashboard");
+      }
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError));
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
     <div className="auth-shell fade-in">
       <button className="auth-back btn ghost sm" onClick={() => go("landing")}>
@@ -139,42 +232,156 @@ export function LoginScreen({ go }) {
           <div className="brand-mark">PR</div>
           <span style={{ fontSize: 16 }}>Pullwise</span>
         </div>
-        <h2 className="auth-title">{T("Sign in to your workspace","登录到你的工作区")}</h2>
-        <p className="auth-sub">{T("Connect GitHub and start scanning your projects","连接 GitHub 立即开始扫描你的项目")}</p>
+        <div className="auth-tabs" role="tablist" aria-label={T("Authentication mode", "认证方式")}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isRegister}
+            className={!isRegister ? "active" : ""}
+            onClick={() => switchMode("sign-in")}
+          >
+            {T("Sign in", "登录")}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isRegister}
+            className={isRegister ? "active" : ""}
+            onClick={() => switchMode("register")}
+          >
+            {T("Create account", "注册")}
+          </button>
+        </div>
+        <h2 className="auth-title">
+          {isRegister
+            ? T("Create your Pullwise account", "创建 Pullwise 账号")
+            : T("Sign in to your workspace", "登录到你的工作区")}
+        </h2>
+        <p className="auth-sub">
+          {isRegister
+            ? T("Start with email, then connect GitHub to scan repositories.", "先用邮箱创建账号，再连接 GitHub 扫描仓库。")
+            : T("Connect GitHub and start scanning your projects", "连接 GitHub 立即开始扫描你的项目")}
+        </p>
 
         <button className="btn lg primary auth-gh" onClick={() => go("oauth")}>
-          <I.Github /> {T("Continue with GitHub","使用 GitHub 继续")}
+          <I.Github /> {isRegister ? T("Sign up with GitHub", "使用 GitHub 注册") : T("Continue with GitHub","使用 GitHub 继续")}
         </button>
 
         <div className="auth-or"><span>{T("or","或")}</span></div>
 
-        <div className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {isRegister && (
+            <>
+              <label className="auth-field">
+                <span>{T("Full name", "姓名")}</span>
+                <div className="auth-input">
+                  <I.User size={14} />
+                  <input
+                    autoComplete="name"
+                    value={form.name}
+                    onChange={updateField("name")}
+                    placeholder={T("Taylor Chen", "陈 Taylor")}
+                  />
+                </div>
+              </label>
+              <label className="auth-field">
+                <span>{T("Workspace name", "工作区名称")}</span>
+                <div className="auth-input">
+                  <I.Folder size={14} />
+                  <input
+                    autoComplete="organization"
+                    value={form.workspaceName}
+                    onChange={updateField("workspaceName")}
+                    placeholder={T("Acme Engineering", "Acme 工程团队")}
+                  />
+                </div>
+              </label>
+            </>
+          )}
           <label className="auth-field">
             <span>{T("Email","邮箱")}</span>
             <div className="auth-input">
               <I.Mail size={14} />
-              <input placeholder="you@company.com" defaultValue="taylor@acme.io" />
+              <input
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={updateField("email")}
+                placeholder="you@company.com"
+              />
             </div>
           </label>
           <label className="auth-field">
-            <span>{T("Password","密码")} <a className="auth-link">{T("Forgot?","忘记?")}</a></span>
+            <span>
+              {T("Password","密码")}{" "}
+              {!isRegister && <button type="button" className="auth-link auth-link-btn">{T("Forgot?","忘记?")}</button>}
+            </span>
             <div className="auth-input">
               <I.Lock size={14} />
-              <input type="password" placeholder="••••••••" defaultValue="••••••••••" />
+              <input
+                type="password"
+                autoComplete={isRegister ? "new-password" : "current-password"}
+                value={form.password}
+                onChange={updateField("password")}
+                placeholder="••••••••"
+              />
             </div>
           </label>
-          <button className="btn lg" onClick={() => go("dashboard")}>{T("Sign in","登录")}</button>
-        </div>
+          {isRegister && (
+            <label className="auth-field">
+              <span>{T("Confirm password", "确认密码")}</span>
+              <div className="auth-input">
+                <I.Lock size={14} />
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={form.confirmPassword}
+                  onChange={updateField("confirmPassword")}
+                  placeholder="••••••••"
+                />
+              </div>
+            </label>
+          )}
+          {error && (
+            <div className="auth-error" role="alert">
+              <I.X size={13} /> {error}
+            </div>
+          )}
+          <button className="btn lg" type="submit" disabled={pending}>
+            {pending ? (
+              <>
+                <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
+                {isRegister ? T("Creating account...", "正在创建账号...") : T("Signing in...", "正在登录...")}
+              </>
+            ) : (
+              isRegister ? T("Create account", "注册") : T("Sign in", "登录")
+            )}
+          </button>
+        </form>
 
         <p className="auth-foot">
-          {T("No account?","没有账号?")} <a className="auth-link" onClick={() => go("oauth")}>{T("Sign up","注册")}</a>
+          {isRegister ? T("Already have an account?", "已有账号?") : T("No account?", "没有账号?")}{" "}
+          <button
+            type="button"
+            className="auth-link auth-link-btn"
+            onClick={() => switchMode(isRegister ? "sign-in" : "register")}
+          >
+            {isRegister ? T("Sign in", "登录") : T("Create account", "注册")}
+          </button>
         </p>
       </div>
       <div className="auth-legal">
-        {T("By signing in you agree to our","登录即代表同意")} <a>{T("Terms of Service","服务条款")}</a> {T("and","与")} <a>{T("Privacy Policy","隐私政策")}</a>{T(".","。")}
+        {isRegister
+          ? T("By creating an account you agree to our", "注册即代表同意")
+          : T("By signing in you agree to our", "登录即代表同意")}{" "}
+        <a>{T("Terms of Service","服务条款")}</a> {T("and","与")} <a>{T("Privacy Policy","隐私政策")}</a>{T(".","。")}
       </div>
     </div>
   );
+}
+
+export function RegisterScreen({ go }) {
+  return <LoginScreen go={go} defaultMode="register" />;
 }
 
 // ── GitHub OAuth ────────────────────────────────────────────────────────
@@ -396,7 +603,7 @@ export function PricingScreen({ go, accent }) {
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
+          <button className="btn primary sm" onClick={() => go("register")}>{T("Get started", "开始使用")}</button>
         </div>
       </header>
 
@@ -454,7 +661,7 @@ export function PricingScreen({ go, accent }) {
             <button
               className={"btn lg " + (t.featured ? "primary" : "")}
               style={{ width: "100%" }}
-              onClick={() => go(t.k === "enterprise" ? "landing" : "login")}
+              onClick={() => go(t.k === "enterprise" ? "landing" : "register")}
             >
               {t.cta}
             </button>
@@ -586,7 +793,7 @@ export function DocsScreen({ go, accent }) {
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
+          <button className="btn primary sm" onClick={() => go("register")}>{T("Get started", "开始使用")}</button>
         </div>
       </header>
 
