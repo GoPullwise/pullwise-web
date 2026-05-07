@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import {
+  connectGitHubRepositories,
   requestEmailMagicLink,
   startGitHubLogin,
-  startGitHubRepositoryAccess,
 } from "../lib/auth.js";
 
 // ── Landing ─────────────────────────────────────────────────────────────
@@ -320,9 +320,17 @@ export function OAuthScreen({ go }) {
     setError("");
 
     try {
-      await startGitHubRepositoryAccess();
+      await connectGitHubRepositories();
+      go("repos");
     } catch (authError) {
-      setError(getAuthErrorMessage(authError));
+      if (authError?.code === "popup_closed") {
+        setError(T(
+          "GitHub installation was cancelled. Please try again.",
+          "GitHub 安装已取消，请重试。"
+        ));
+      } else {
+        setError(getAuthErrorMessage(authError));
+      }
       setAuthing(false);
     }
   };

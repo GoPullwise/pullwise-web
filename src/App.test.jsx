@@ -2,13 +2,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App.jsx";
-import { requestEmailMagicLink, startGitHubRepositoryAccess } from "./lib/auth.js";
+import { connectGitHubRepositories, requestEmailMagicLink } from "./lib/auth.js";
 import { LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./lib/auth.js", () => ({
   requestEmailMagicLink: vi.fn(),
   startGitHubLogin: vi.fn(),
-  startGitHubRepositoryAccess: vi.fn(),
+  connectGitHubRepositories: vi.fn(),
   signOut: vi.fn(),
 }));
 

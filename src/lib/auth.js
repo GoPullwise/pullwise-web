@@ -1,4 +1,5 @@
 import { pullwiseApi } from "../api/pullwise.js";
+import { openGitHubInstallPopup } from "./install-popup.js";
 
 function getScreenRedirectUrl(screen) {
   const redirectUrl = new URL(window.location.href);
@@ -26,7 +27,7 @@ export async function requestEmailMagicLink({ email, redirectTo } = {}) {
   });
 }
 
-export async function startGitHubRepositoryAccess({ redirectTo } = {}) {
+export async function connectGitHubRepositories({ redirectTo } = {}) {
   const result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
     redirectTo: redirectTo || getScreenRedirectUrl("repos"),
   });
@@ -35,7 +36,12 @@ export async function startGitHubRepositoryAccess({ redirectTo } = {}) {
     throw new Error("GitHub repository authorization URL is missing from the integrations response.");
   }
 
-  window.location.assign(result.url);
+  const completion = openGitHubInstallPopup(result.url);
+  if (!completion) {
+    window.location.assign(result.url);
+    return;
+  }
+  await completion;
 }
 
 export async function signOut() {
