@@ -123,14 +123,6 @@ export function App({ prototypeNav = false }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.style.setProperty("--accent", ACCENT);
-    document.documentElement.style.setProperty(
-      "--font-sans",
-      "'Source Serif 4', ui-serif, Georgia, serif"
-    );
-    document.documentElement.style.setProperty(
-      "--font-display",
-      "'Instrument Serif', 'Source Serif 4', ui-serif, Georgia, serif"
-    );
     localStorage.setItem("pw-theme", theme);
   }, [theme]);
 

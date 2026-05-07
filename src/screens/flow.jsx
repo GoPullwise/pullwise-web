@@ -38,13 +38,7 @@ export function ReposScreen({ go, setActiveRepo }) {
   const [needsAuthorization, setNeedsAuthorization] = useStateF(false);
   const fixtureRepos = FIXTURES.REPOS.map(normalizeRepo);
   const availableRepos = remoteRepos?.length ? remoteRepos : fixtureRepos;
-/*
   const allLabel = T("All", "所有");
-/*
-  const allLabel = T("All", "所有");
-  const orgs = [
-*/
-  const allLabel = T("All", "\u6240\u6709");
   const orgs = [
     allLabel,
     ...Array.from(new Set(availableRepos.map(repoOwner).filter(Boolean))).map((owner) => `@${owner}`),

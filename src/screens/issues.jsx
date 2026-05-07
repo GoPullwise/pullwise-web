@@ -1,6 +1,7 @@
 // screens/issues.jsx — Issues list, Issue detail, History, Settings
 
 import React, { useState as useStateI } from "react";
+import { createPortal } from "react-dom";
 import { FIXTURES } from "../data.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -373,7 +374,7 @@ export function IssueDetailScreen({ go, issue }) {
       ]} />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
-        <div className="main" style={{ maxWidth: 1100 }}>
+        <div className="main" style={{ maxWidth: "none" }}>
           <button className="btn ghost sm" onClick={() => go("issues")} style={{ marginBottom: 12 }}>
             <I.ArrowL size={13} /> {T("Back to list","返回列表")}
           </button>
@@ -417,7 +418,7 @@ export function IssueDetailScreen({ go, issue }) {
 
           {/* Impact band */}
           <div className="impact-band card">
-            <div className="impact-i" style={{ color: "var(--sev-" + it.severity + ")" }}><I.Zap size={18} /></div>
+            <div className="impact-i"><I.Zap size={16} /></div>
             <div>
               <div className="impact-h">{T("Impact","影响")}</div>
               <div className="impact-p">{it.impact}</div>
@@ -592,7 +593,7 @@ function PRModal({ it, close }) {
     }
   }, [step, setCreated, setStep]);
 
-  return (
+  return createPortal(
     <div className="modal-back" onClick={close}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-h">
@@ -654,7 +655,8 @@ function PRModal({ it, close }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
