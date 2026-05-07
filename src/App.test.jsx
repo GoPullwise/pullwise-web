@@ -60,18 +60,35 @@ describe("App", () => {
     );
   });
 
-  it("starts GitHub repository authorization without asking for a scope", async () => {
-    startGitHubRepositoryAccess.mockResolvedValueOnce({});
+  it("opens GitHub install in a popup and navigates to repos on success", async () => {
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
+    const go = vi.fn();
     const user = userEvent.setup();
 
-    render(<OAuthScreen go={vi.fn()} />);
+    render(<OAuthScreen go={go} />);
 
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
 
     await waitFor(() => {
-      expect(startGitHubRepositoryAccess).toHaveBeenCalledTimes(1);
+      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+      expect(go).toHaveBeenCalledWith("repos");
     });
-    expect(startGitHubRepositoryAccess).toHaveBeenCalledWith();
+  });
+
+  it("shows a cancel message when the install popup is closed", async () => {
+    const cancelled = Object.assign(new Error("GitHub installation was cancelled."), {
+      code: "popup_closed",
+    });
+    connectGitHubRepositories.mockRejectedValueOnce(cancelled);
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<OAuthScreen go={go} />);
+
+    await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/cancelled/i);
+    expect(go).not.toHaveBeenCalled();
   });
 });
