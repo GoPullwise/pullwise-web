@@ -63,3 +63,5 @@ Desktop.ini
 
 # Project tooling
 .omx/
+
+.claude/settings.local.json
