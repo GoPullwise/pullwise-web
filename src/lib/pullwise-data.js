@@ -136,3 +136,57 @@ export function useScans() {
 
   return { ...state, reload: load };
 }
+
+const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled"]);
+
+export function isTerminalScan(scan) {
+  return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
+}
+
+// Creates a scan, then polls /scans/{id} every `pollIntervalMs` until the
+// scan reaches a terminal status. Caller drives the lifecycle by passing
+// `repo`; pass an empty string to defer creation.
+export function useScanRun({ repo, branch, commit = "pending", pollIntervalMs = 1500 }) {
+  const [scan, setScan] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!repo) return undefined;
+    let alive = true;
+    setError("");
+    pullwiseApi.scans
+      .create({ repo, branch: branch || "main", commit })
+      .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
+      .catch((err) => { if (alive) setError(err?.message || "Unable to start scan."); });
+    return () => { alive = false; };
+  }, [repo, branch, commit]);
+
+  useEffect(() => {
+    if (!scan?.id || isTerminalScan(scan)) return undefined;
+    let alive = true;
+    const handle = setTimeout(async () => {
+      try {
+        const next = await pullwiseApi.scans.get(scan.id);
+        if (alive) setScan(normalizeScan(next));
+      } catch (err) {
+        if (alive) setError(err?.message || "Polling failed.");
+      }
+    }, pollIntervalMs);
+    return () => {
+      alive = false;
+      clearTimeout(handle);
+    };
+  }, [scan, pollIntervalMs]);
+
+  const cancel = async () => {
+    if (!scan?.id || isTerminalScan(scan)) return;
+    try {
+      const updated = await pullwiseApi.scans.cancel(scan.id);
+      setScan(normalizeScan(updated));
+    } catch (err) {
+      setError(err?.message || "Cancel failed.");
+    }
+  };
+
+  return { scan, error, cancel };
+}

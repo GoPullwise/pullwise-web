@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { useRepositories } from "../lib/pullwise-data.js";
+import { isTerminalScan, useRepositories, useScanRun } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function repoOwner(repo) {
@@ -186,33 +185,67 @@ export function ReposScreen({ go, setActiveRepo }) {
   );
 }
 
+const SCAN_PHASES = [
+  { k: "clone",   t_en: "Cloning repository",     t_zh: "克隆仓库",       d_en: "Preparing working tree",     d_zh: "准备工作树" },
+  { k: "index",   t_en: "Building AST index",     t_zh: "构建 AST 索引",  d_en: "Parsing source files",       d_zh: "解析源代码" },
+  { k: "secrets", t_en: "Scanning for secrets",   t_zh: "扫描密钥泄露",   d_en: "Regex + entropy scan",       d_zh: "正则 + 熵值扫描" },
+  { k: "deps",    t_en: "Analyzing dependencies", t_zh: "分析依赖",       d_en: "Reading lockfile",           d_zh: "读取 lockfile" },
+  { k: "ai",      t_en: "AI semantic review",     t_zh: "AI 语义 review", d_en: "Agent reviewing repository", d_zh: "agent 审查代码" },
+  { k: "report",  t_en: "Composing report",       t_zh: "生成报告",       d_en: "Merging signals",            d_zh: "合并扫描信号" },
+];
+
 export function ScanningScreen({ go, activeRepo }) {
   useLang();
-  const [scan, setScan] = useState(null);
-  const [error, setError] = useState("");
-  const repoName = activeRepo?.fullName || activeRepo?.name || "";
+  const [logs, setLogs] = useState([]);
+  const repoFullName = activeRepo?.fullName || activeRepo?.name || "";
+  const branch = activeRepo?.defaultBranch || "main";
 
+  const { scan, error, cancel } = useScanRun({ repo: repoFullName, branch });
+
+  // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
-    let cancelled = false;
-    const createScan = async () => {
-      if (!repoName) return;
-      setError("");
-      try {
-        const payload = await pullwiseApi.scans.create({
-          repo: repoName,
-          branch: activeRepo?.defaultBranch || "main",
-          commit: "pending",
-        });
-        if (!cancelled) setScan(payload);
-      } catch (requestError) {
-        if (!cancelled) setError(requestError?.message || T("Unable to start scan.", "无法开始扫描。"));
-      }
-    };
-    createScan();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeRepo, repoName]);
+    const phase = scan?.phase;
+    if (!phase) return;
+    const def = SCAN_PHASES.find((p) => p.k === phase);
+    if (!def) return;
+    setLogs((prev) => {
+      const stamp = new Date().toLocaleTimeString();
+      const line = `[${stamp}] ${T(def.t_en, def.t_zh)}`;
+      if (prev.length && prev[prev.length - 1] === line) return prev;
+      return [...prev.slice(-9), line];
+    });
+  }, [scan?.phase]);
+
+  // After a successful scan, drop into the dashboard so the user sees results.
+  useEffect(() => {
+    if (scan?.status !== "done") return undefined;
+    const id = setTimeout(() => go("dashboard"), 700);
+    return () => clearTimeout(id);
+  }, [scan?.status, go]);
+
+  const status = scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
+  const progress = typeof scan?.progress === "number" ? scan.progress : 0;
+  const currentPhase = scan?.phase || (status === "queued" ? null : "clone");
+  const phaseIdx = currentPhase ? SCAN_PHASES.findIndex((p) => p.k === currentPhase) : -1;
+  const found = scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
+  const terminal = isTerminalScan(scan);
+
+  const handleCancel = async () => {
+    if (scan && !terminal) await cancel();
+    go("repos");
+  };
+
+  const headerLabel =
+    status === "done" ? T("Scan complete", "扫描完成") :
+    status === "failed" ? T("Scan failed", "扫描失败") :
+    status === "cancelled" ? T("Scan cancelled", "扫描已取消") :
+    status === "no_repo" ? T("No repository selected", "未选择仓库") :
+    T("Scanning…", "扫描进行中");
+
+  const headerIcon =
+    status === "done" ? <I.Check size={18} /> :
+    status === "failed" || status === "cancelled" ? <I.X size={18} /> :
+    <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={18} /></span>;
 
   return (
     <div className="app fade-in">
@@ -224,78 +257,91 @@ export function ScanningScreen({ go, activeRepo }) {
         <div className="scanning">
           <div className="scanning-card card">
             <div className="scanning-h">
-              <div className="scanning-icon">
-                {error ? <I.X size={18} /> : <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={18} /></span>}
-              </div>
+              <div className="scanning-icon">{headerIcon}</div>
               <div>
                 <div className="scanning-title">
-                  {T("Scan request", "扫描请求")} <b>{repoName || T("No repository selected", "未选择仓库")}</b>
+                  {headerLabel} <b>{scan?.repo || repoFullName || "—"}</b>
                 </div>
                 <div className="scanning-sub">
-                  {error
-                    ? error
-                    : scan
-                      ? T(`Status: ${scan.status}`, `状态：${scan.status}`)
-                      : T("Submitting scan request...", "正在提交扫描请求...")}
+                  {T("branch ", "分支 ")}
+                  <span className="tag">{scan?.branch || branch}</span>
+                  {scan?.commit && scan.commit !== "pending" && scan.commit !== "-" && (
+                    <>{T(" · commit ", " · commit ")}<span className="tag">{scan.commit}</span></>
+                  )}
+                  {scan?.id && <> · <span className="tag">{scan.id}</span></>}
                 </div>
               </div>
-              <button className="btn ghost" onClick={() => go("repos")}>{T("Back", "返回")}</button>
+              <button className="btn ghost" onClick={handleCancel}>
+                {terminal ? T("Back", "返回") : T("Cancel", "取消")}
+              </button>
             </div>
 
+            {error && (
+              <div className="auth-error" role="alert" style={{ margin: "0 0 12px" }}>
+                <I.X size={13} /> {error}
+              </div>
+            )}
+
             <div className="scanning-bar-wrap">
-              <div className="scanning-bar"><div className="scanning-bar-fill" style={{ width: scan ? "18%" : "6%" }}></div></div>
+              <div className="scanning-bar">
+                <div className="scanning-bar-fill" style={{ width: progress + "%" }}></div>
+              </div>
               <div className="scanning-bar-meta">
-                <span>{scan ? scan.status : T("Pending", "等待中")}</span>
-                <span>{scan?.id || ""}</span>
+                <span>{Math.floor(progress)}%</span>
+                <span>
+                  {phaseIdx >= 0
+                    ? T(SCAN_PHASES[phaseIdx].t_en, SCAN_PHASES[phaseIdx].t_zh)
+                    : T("Queued", "队列中")}
+                </span>
               </div>
             </div>
 
             <div className="scanning-phases">
-              {[
-                { k: "queued", t: T("Queued", "已入队"), d: T("Stored in Pullwise server.", "已写入 Pullwise server。") },
-                { k: "worker", t: T("Waiting for scan worker", "等待扫描 worker"), d: T("Findings will appear after the backend worker writes results.", "backend worker 写入结果后会显示 findings。") },
-              ].map((phase, index) => (
-                <div key={phase.k} className={"scanning-phase" + (scan && index === 0 ? " done" : index === 1 ? " on" : "")}>
-                  <div className="scanning-phase-bullet">
-                    {scan && index === 0 ? <I.Check size={11} /> : index + 1}
+              {SCAN_PHASES.map((p, i) => {
+                const isDone = phaseIdx > i || status === "done";
+                const isOn = phaseIdx === i && !terminal;
+                const cls = isDone ? " done" : isOn ? " on" : "";
+                const bullet = isDone ? (
+                  <I.Check size={11} />
+                ) : isOn ? (
+                  <span
+                    className="pulse"
+                    style={{ display: "inline-block", width: 6, height: 6, borderRadius: 999, background: "currentColor" }}
+                  />
+                ) : (
+                  i + 1
+                );
+                return (
+                  <div key={p.k} className={"scanning-phase" + cls}>
+                    <div className="scanning-phase-bullet">{bullet}</div>
+                    <div>
+                      <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
+                      <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="scanning-phase-t">{phase.t}</div>
-                    <div className="scanning-phase-d">{phase.d}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="actions" style={{ justifyContent: "flex-end", marginTop: 18 }}>
-              <button className="btn" onClick={() => go("history")}>{T("View history", "查看历史")}</button>
-              <button className="btn primary" onClick={() => go("dashboard")}>{T("Open overview", "打开总览")}</button>
+                );
+              })}
             </div>
           </div>
 
           <div className="scanning-side">
             <div className="card scanning-counts">
-              <div className="scanning-counts-h">{T("Findings", "结果")}</div>
+              <div className="scanning-counts-h">{T("Live findings", "实时发现")}</div>
               <div className="scanning-counts-grid">
-                <div><b style={{ color: "var(--sev-critical)" }}>0</b><span>Critical</span></div>
-                <div><b style={{ color: "var(--sev-high)" }}>0</b><span>High</span></div>
-                <div><b style={{ color: "var(--sev-medium)" }}>0</b><span>Medium</span></div>
-                <div><b style={{ color: "var(--sev-low)" }}>0</b><span>Low</span></div>
+                <div><b style={{ color: "var(--sev-critical)" }}>{found.critical || 0}</b><span>Critical</span></div>
+                <div><b style={{ color: "var(--sev-high)" }}>{found.high || 0}</b><span>High</span></div>
+                <div><b style={{ color: "var(--sev-medium)" }}>{found.medium || 0}</b><span>Medium</span></div>
+                <div><b style={{ color: "var(--sev-low)" }}>{found.low || 0}</b><span>Low</span></div>
               </div>
             </div>
 
             <div className="card scanning-log">
-              <div className="scanning-counts-h">{T("Server record", "服务端记录")}</div>
+              <div className="scanning-counts-h">Live log</div>
               <div className="scanning-log-body">
-                {scan ? (
-                  <>
-                    <div className="scanning-log-line">{T("Scan id", "扫描 ID")}: {scan.id}</div>
-                    <div className="scanning-log-line">{T("Repository", "仓库")}: {scan.repo}</div>
-                    <div className="scanning-log-line">{T("Branch", "分支")}: {scan.branch}</div>
-                  </>
-                ) : (
-                  <div className="muted">{error || T("No server record yet.", "暂无服务端记录。")}</div>
+                {logs.length === 0 && (
+                  <div className="muted">{T("Waiting for engine…", "等待引擎启动…")}</div>
                 )}
+                {logs.map((l, i) => (<div key={i} className="scanning-log-line">{l}</div>))}
               </div>
             </div>
           </div>
