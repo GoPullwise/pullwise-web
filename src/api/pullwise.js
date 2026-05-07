@@ -1,5 +1,10 @@
 import { request } from "./http.js";
 
+function withSearchParams(path, params = {}) {
+  const search = new URLSearchParams(params).toString();
+  return search ? `${path}?${search}` : path;
+}
+
 export const pullwiseApi = {
   auth: {
     getSession: () => request("/auth/session"),
@@ -10,26 +15,27 @@ export const pullwiseApi = {
   },
 
   repositories: {
-    list: (params = {}) => request(`/repositories?${new URLSearchParams(params)}`),
+    list: (params = {}) => request(withSearchParams("/repositories", params)),
     sync: () => request("/repositories/sync", { method: "POST" }),
   },
 
   scans: {
     create: (payload) => request("/scans", { method: "POST", body: payload }),
     get: (scanId) => request(`/scans/${scanId}`),
-    list: (params = {}) => request(`/scans?${new URLSearchParams(params)}`),
+    list: (params = {}) => request(withSearchParams("/scans", params)),
     cancel: (scanId) => request(`/scans/${scanId}/cancel`, { method: "POST" }),
   },
 
   issues: {
-    list: (params = {}) => request(`/issues?${new URLSearchParams(params)}`),
+    list: (params = {}) => request(withSearchParams("/issues", params)),
     get: (issueId) => request(`/issues/${issueId}`),
     updateStatus: (issueId, payload) =>
       request(`/issues/${issueId}/status`, { method: "PATCH", body: payload }),
   },
 
   fixes: {
-    apply: (issueId, payload) => request(`/issues/${issueId}/fixes/apply`, { method: "POST", body: payload }),
+    apply: (issueId, payload) =>
+      request(`/issues/${issueId}/fixes/apply`, { method: "POST", body: payload }),
     createPullRequest: (issueId, payload) =>
       request(`/issues/${issueId}/pull-requests`, { method: "POST", body: payload }),
   },

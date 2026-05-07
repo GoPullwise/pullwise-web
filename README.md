@@ -44,6 +44,7 @@ copy .env.example .env.local
 Current variables:
 
 ```text
+VITE_APP_URL=http://localhost:5173
 VITE_API_BASE_URL=http://localhost:3000
 VITE_GITHUB_APP_SLUG=pullwise
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_replace_me
@@ -61,7 +62,7 @@ npm run build     # build dist output
 npm run preview   # preview the production build locally
 npm run lint      # run ESLint
 npm run format    # format project files
-npm run check     # lint, then build
+npm run check     # lint, typecheck, test, then build
 ```
 
 ## Production Build Check
@@ -96,10 +97,51 @@ src/shell.jsx       Existing shared shell components
 src/screens/*       Existing prototype screens
 src/api/http.js     Shared HTTP request helper for future API work
 src/api/pullwise.js Future Pullwise backend endpoint wrapper
+src/config/env.js   Frontend env validation with zod
+src/lib/auth.js     GitHub OAuth redirect helpers
+src/lib/stripe.js   Stripe publishable-key loader
+src/lib/query-client.js React Query client defaults
 vite.config.js      Vite dev/build config
+vitest.config.js    Vitest test config
 eslint.config.js    ESLint config
 jsconfig.json       Editor path alias config
+tsconfig.json       TypeScript baseline config for future TS/TSX files
 ```
+
+## Dependency Groups
+
+Runtime and routing:
+
+- `react`, `react-dom`
+- `react-router-dom`
+- `zustand`
+
+API and server state:
+
+- `axios`
+- `@tanstack/react-query`
+- `zod`
+
+Auth, billing, and SaaS integrations:
+
+- `src/lib/auth.js` starts GitHub login by requesting a backend authorize URL.
+- `@stripe/stripe-js` loads Stripe with a publishable key for checkout flows.
+- GitHub OAuth secrets, GitHub App private keys, Stripe secret keys, and AI keys
+  must stay in the backend, not in frontend dependencies or env files.
+
+Forms and UI utilities:
+
+- `react-hook-form`
+- `clsx`
+- `lucide-react`
+- `sonner`
+- `date-fns`
+
+Quality and testing:
+
+- `eslint`, `prettier`, `typescript`
+- `vitest`, `jsdom`
+- `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`
 
 ## What Is Still Mocked
 

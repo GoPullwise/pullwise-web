@@ -1,4 +1,5 @@
-const DEFAULT_API_BASE_URL = "";
+import axios from "axios";
+import { env } from "../config/env.js";
 
 export class ApiError extends Error {
   constructor(message, { status, payload } = {}) {
@@ -9,45 +10,34 @@ export class ApiError extends Error {
   }
 }
 
-function getApiBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL;
-}
-
-function buildUrl(path) {
-  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${baseUrl}${normalizedPath}`;
-}
+export const http = axios.create({
+  baseURL: env.VITE_API_BASE_URL || "",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 export async function request(path, options = {}) {
-  const headers = new Headers(options.headers);
+  try {
+    const response = await http.request({
+      url: path,
+      method: options.method || "GET",
+      data: options.body,
+      params: options.params,
+      headers: options.headers,
+      signal: options.signal,
+    });
 
-  if (options.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new ApiError(error.response?.data?.message || error.message, {
+        status: error.response?.status,
+        payload: error.response?.data,
+      });
+    }
+
+    throw error;
   }
-
-  const response = await fetch(buildUrl(path), {
-    credentials: "include",
-    ...options,
-    headers,
-    body:
-      options.body && typeof options.body !== "string"
-        ? JSON.stringify(options.body)
-        : options.body,
-  });
-
-  const contentType = response.headers.get("Content-Type") || "";
-  const payload = contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
-
-  if (!response.ok) {
-    const message =
-      typeof payload === "object" && payload?.message
-        ? payload.message
-        : `Request failed with ${response.status}`;
-    throw new ApiError(message, { status: response.status, payload });
-  }
-
-  return payload;
 }

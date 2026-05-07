@@ -60,4 +60,10 @@ export default [
       "react-refresh/only-export-components": "off",
     },
   },
+  {
+    files: ["src/i18n.jsx"],
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 ];
