@@ -5,7 +5,6 @@ import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 
 export function Topbar({ go, breadcrumbs }) {
   useLang();
-  const [bellOpen, setBellOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -15,7 +14,6 @@ export function Topbar({ go, breadcrumbs }) {
         setSearchOpen(true);
       } else if (event.key === "Escape") {
         setSearchOpen(false);
-        setBellOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -46,40 +44,11 @@ export function Topbar({ go, breadcrumbs }) {
         <button className="btn ghost sm" onClick={() => setSearchOpen(true)}>
           <I.Search size={14} /> <span style={{ color: "var(--text-3)" }}>{T("Search...", "搜索...")}</span> <span className="kbd" style={{ marginLeft: 6 }}>⌘K</span>
         </button>
-        <span style={{ position: "relative" }}>
-          <button className="btn ghost sm" onClick={() => setBellOpen((open) => !open)} aria-haspopup="menu" aria-expanded={bellOpen}>
-            <I.Bell size={14} />
-          </button>
-          {bellOpen && <BellPopover close={() => setBellOpen(false)} go={go} />}
-        </span>
         <button className="btn ghost sm" onClick={() => go("settings")}><I.User size={14} /></button>
       </div>
 
       {searchOpen && <SearchModal close={() => setSearchOpen(false)} go={go} />}
     </header>
-  );
-}
-
-function BellPopover({ close, go }) {
-  useLang();
-  return (
-    <>
-      <div className="pop-back" onClick={close} />
-      <div className="pop pop-bell" role="menu">
-        <div className="pop-h">
-          <span><I.Bell size={12} /> {T("Notifications", "通知")}</span>
-          <a className="auth-link" onClick={() => { close(); go("settings"); }}>{T("Preferences", "偏好")}</a>
-        </div>
-        <div className="pop-body">
-          <div className="muted" style={{ padding: 16, fontSize: 13 }}>{T("No notifications yet.", "暂无通知。")}</div>
-        </div>
-        <div className="pop-foot" style={{ gap: 6 }}>
-          <button className="btn sm" style={{ flex: 1 }} onClick={() => { close(); go("notifications"); }}>
-            {T("View all", "查看全部")} <I.ArrowR size={11} />
-          </button>
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -101,8 +70,6 @@ function SearchModal({ close, go }) {
     { k: "repos", t: T("Repositories", "仓库"), i: <I.Folder size={14} /> },
     { k: "history", t: T("Scan history", "扫描历史"), i: <I.Clock size={14} /> },
     { k: "settings", t: T("Settings", "设置"), i: <I.Settings size={14} /> },
-    { k: "pricing", t: T("Pricing", "定价"), i: <I.Tag size={14} /> },
-    { k: "docs", t: T("Docs", "文档"), i: <I.FileCode size={14} /> },
   ];
   const pages = allPages.filter((page) => !query || page.t.toLowerCase().includes(query) || page.k.includes(query));
   const empty = issueResults.length === 0 && repoResults.length === 0 && pages.length === 0;
@@ -185,7 +152,6 @@ export function Sidebar({ section, go }) {
     { k: "issues", label: T("Issues", "问题"), icon: <I.Bug size={15} />, badge: openIssueCount || null },
     { k: "repos", label: T("Repositories", "仓库"), icon: <I.Folder size={15} />, badge: null },
     { k: "history", label: T("Scan history", "扫描历史"), icon: <I.Clock size={15} />, badge: null },
-    { k: "notifications", label: T("Notifications", "通知"), icon: <I.Bell size={15} />, badge: null },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];
   return (
@@ -220,13 +186,6 @@ export function Sidebar({ section, go }) {
         </button>
       )}
 
-      <div style={{ marginTop: "auto", padding: "12px 6px 0" }}>
-        <div className="card" style={{ padding: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{T("Free plan", "免费计划")}</div>
-          <div style={{ fontSize: 11.5, color: "var(--text-3)", marginBottom: 8 }}>{T("Real GitHub data", "真实 GitHub 数据")}</div>
-          <button className="btn sm primary" style={{ width: "100%" }} onClick={() => go("pricing")}>{T("Upgrade", "升级")}</button>
-        </div>
-      </div>
     </aside>
   );
 }

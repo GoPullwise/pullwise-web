@@ -68,9 +68,6 @@ export function IssuesScreen({ go, setIssue }) {
               <button className="btn" onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}>
                 <I.Sort size={14} /> {sortBy === "severity" ? T("Severity", "严重度") : T("Confidence", "置信度")}
               </button>
-              <button className="btn primary" disabled={filtered.filter((issue) => issue.autoFix).length === 0}>
-                <I.Sparkle size={14} /> {T("Auto-fix all", "全部自动修复")}
-              </button>
             </div>
           </div>
 
@@ -136,7 +133,7 @@ export function IssuesScreen({ go, setIssue }) {
                 <div><span className="tag">{issue.status}</span></div>
                 <div style={{ display: "flex", gap: 6 }}>
                   {issue.status === "open" && <button className="btn sm" onClick={() => updateStatus(issue, "snoozed")}>{T("Snooze", "推迟")}</button>}
-                  {issue.status !== "fixed" && <button className="btn sm primary" onClick={() => updateStatus(issue, "fixed")}>{T("Fix", "修复")}</button>}
+                  {issue.status !== "fixed" && <button className="btn sm primary" onClick={() => updateStatus(issue, "fixed")}>{T("Mark fixed", "标记已修复")}</button>}
                   <button className="btn sm" onClick={() => { setIssue(issue); go("issue"); }}><I.ArrowR size={11} /></button>
                 </div>
               </div>
@@ -150,7 +147,6 @@ export function IssuesScreen({ go, setIssue }) {
 
 export function IssueDetailScreen({ go, issue }) {
   useLang();
-  const [message, setMessage] = useState("");
 
   if (!issue) {
     return (
@@ -166,16 +162,6 @@ export function IssueDetailScreen({ go, issue }) {
       </div>
     );
   }
-
-  const applyFix = async () => {
-    const payload = await pullwiseApi.fixes.apply(issue.id, {});
-    setMessage(T(`Branch created: ${payload.branch}`, `已创建分支：${payload.branch}`));
-  };
-
-  const createPr = async () => {
-    const payload = await pullwiseApi.fixes.createPullRequest(issue.id, {});
-    setMessage(payload.url || T("Pull request created.", "Pull request 已创建。"));
-  };
 
   return (
     <div className="app fade-in">
@@ -205,12 +191,7 @@ export function IssueDetailScreen({ go, issue }) {
                 <span><I.Sparkle size={12} /> {Math.round(issue.confidence * 100)}% {T("confidence", "置信度")}</span>
               </div>
             </div>
-            <div className="actions" style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-              {issue.autoFix && <button className="btn lg primary" onClick={applyFix}><I.Sparkle size={14} /> {T("Apply fix", "应用修复")}</button>}
-              <button className="btn lg accent" onClick={createPr}><I.GitPull size={14} /> {T("Create PR", "创建 PR")}</button>
-            </div>
           </div>
-          {message && <div className="card section muted" style={{ marginTop: 12 }}>{message}</div>}
         </div>
       </div>
     </div>
@@ -289,19 +270,16 @@ export function SettingsScreen({ go }) {
   const [tab, setTab] = useState("profile");
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
-  const [settings, setSettings] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
       pullwiseApi.auth.getSession(),
       pullwiseApi.integrations.list(),
-      pullwiseApi.settings.get(),
-    ]).then(([sessionPayload, integrationsPayload, settingsPayload]) => {
+    ]).then(([sessionPayload, integrationsPayload]) => {
       if (cancelled) return;
       setSession(sessionPayload);
       setIntegrations(integrationsPayload);
-      setSettings(settingsPayload);
     }).catch(() => {
       if (!cancelled) {
         setSession(null);
@@ -325,7 +303,7 @@ export function SettingsScreen({ go }) {
           <div className="page-h">
             <div>
               <h1>{T("Settings", "设置")}</h1>
-              <div className="sub">{T("Account, integrations, and scan preferences", "账号、集成与扫描偏好")}</div>
+              <div className="sub">{T("Account and integrations", "账号与集成")}</div>
             </div>
           </div>
           <div className="set-shell">
@@ -333,7 +311,6 @@ export function SettingsScreen({ go }) {
               {[
                 { k: "profile", t: T("Profile", "个人资料"), i: <I.User size={14} /> },
                 { k: "integrations", t: T("Integrations", "集成"), i: <I.Github size={14} /> },
-                { k: "scan", t: T("Scan preferences", "扫描偏好"), i: <I.Sparkle size={14} /> },
               ].map((item) => (
                 <button key={item.k} className={"set-side-i" + (tab === item.k ? " active" : "")} onClick={() => setTab(item.k)}>
                   {item.i}<span>{item.t}</span>
@@ -370,17 +347,6 @@ export function SettingsScreen({ go }) {
                       <span className="dot"></span> {github?.connected ? T("Connected", "已连接") : T("Disconnected", "未连接")}
                     </span>
                     <button className="btn sm" onClick={() => go("oauth")}>{T("Configure", "配置")}</button>
-                  </div>
-                </div>
-              )}
-              {tab === "scan" && (
-                <div className="card section">
-                  <div className="section-h"><h3>{T("Scan preferences", "扫描偏好")}</h3></div>
-                  <div className="set-pref">
-                    <div><b>{T("Default branch", "默认分支")}</b><div className="muted">{settings?.scan?.defaultBranch || "main"}</div></div>
-                  </div>
-                  <div className="set-pref">
-                    <div><b>{T("Auto scan", "自动扫描")}</b><div className="muted">{settings?.scan?.autoScan ? T("Enabled", "已启用") : T("Disabled", "未启用")}</div></div>
                   </div>
                 </div>
               )}

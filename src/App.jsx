@@ -16,21 +16,16 @@ import {
   StatusScreen,
   TermsScreen,
 } from "./screens/legal.jsx";
-import { NotificationsScreen } from "./screens/notifications.jsx";
 import {
-  DocsScreen,
   LandingScreen,
   LoginScreen,
   OAuthScreen,
-  PricingScreen,
 } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
 const SCREENS = new Set([
   "landing",
-  "pricing",
-  "docs",
   "login",
   "oauth",
   "repos",
@@ -40,7 +35,6 @@ const SCREENS = new Set([
   "issue",
   "history",
   "settings",
-  "notifications",
   "privacy",
   "terms",
   "security",
@@ -61,8 +55,6 @@ function getRequestedScreenParam() {
 function PrototypeNav({ go, current }) {
   const screens = [
     { k: "landing", t: "Landing" },
-    { k: "pricing", t: "定价" },
-    { k: "docs", t: "文档" },
     { k: "login", t: "登录" },
     { k: "oauth", t: "GitHub 授权" },
     { k: "repos", t: "选仓库" },
@@ -71,7 +63,6 @@ function PrototypeNav({ go, current }) {
     { k: "issues", t: "Issues" },
     { k: "issue", t: "详情" },
     { k: "history", t: "历史" },
-    { k: "notifications", t: "通知" },
     { k: "settings", t: "设置" },
     { k: "privacy", t: "隐私" },
     { k: "terms", t: "条款" },
@@ -130,12 +121,6 @@ export function App({ prototypeNav = false }) {
     case "landing":
       body = <LandingScreen go={go} accent={ACCENT} />;
       break;
-    case "pricing":
-      body = <PricingScreen go={go} accent={ACCENT} />;
-      break;
-    case "docs":
-      body = <DocsScreen go={go} accent={ACCENT} />;
-      break;
     case "login":
       body = <LoginScreen go={go} />;
       break;
@@ -159,9 +144,6 @@ export function App({ prototypeNav = false }) {
       break;
     case "history":
       body = <HistoryScreen go={go} />;
-      break;
-    case "notifications":
-      body = <NotificationsScreen go={go} />;
       break;
     case "settings":
       body = <SettingsScreen go={go} />;

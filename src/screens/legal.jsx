@@ -14,8 +14,6 @@ function LegalChrome({ go, current, children }) {
         </div>
         <nav className="lp-nav">
           <button className="btn ghost sm" onClick={() => go("landing")}>{T("Product", "产品")}</button>
-          <button className="btn ghost sm" onClick={() => go("pricing")}>{T("Pricing", "定价")}</button>
-          <button className="btn ghost sm" onClick={() => go("docs")}>{T("Docs", "文档")}</button>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
@@ -335,7 +333,6 @@ export function SecurityScreen({ go }) {
         </p>
         <div className="lp-cta">
           <button className="btn primary lg"><I.FileCode /> {T("Download SOC 2 report", "下载 SOC 2 报告")}</button>
-          <button className="btn lg" onClick={() => go("docs")}>{T("Read security docs", "查看安全文档")} <I.ArrowR size={14} /></button>
         </div>
       </section>
 

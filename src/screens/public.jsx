@@ -5,7 +5,6 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import {
   connectGitHubRepositories,
-  requestEmailMagicLink,
   startGitHubLogin,
 } from "../lib/auth.js";
 
@@ -21,8 +20,6 @@ export function LandingScreen({ go, accent }) {
         </div>
         <nav className="lp-nav">
           <button className="btn ghost sm">{T("Product", "产品")}</button>
-          <button className="btn ghost sm" onClick={() => go("pricing")}>{T("Pricing", "定价")}</button>
-          <button className="btn ghost sm" onClick={() => go("docs")}>{T("Docs", "文档")}</button>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
@@ -42,16 +39,13 @@ export function LandingScreen({ go, accent }) {
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise quietly reviews your GitHub repos for security holes, performance bottlenecks, dependency risks and architectural smells — and ships click-to-apply fixes. So you can ship without second-guessing.",
-            "Pullwise 安静地为你的 GitHub 仓库 review 代码,识别安全漏洞、性能瓶颈、依赖隐患和架构异味,并给出可点击应用的修复方案 — 让每次发布都不用再三犹豫。"
+            "Pullwise reviews your authorized GitHub repositories for security holes, performance bottlenecks, dependency risks and architectural smells, then stores the findings for triage.",
+            "Pullwise 会检查已授权的 GitHub 仓库，识别安全漏洞、性能瓶颈、依赖隐患和架构异味，并保存 findings 供后续处理。"
           )}
         </p>
         <div className="lp-cta">
           <button className="btn primary lg" onClick={() => go("login")}>
             <I.Github /> {T("Sign in with GitHub", "用 GitHub 登录")}
-          </button>
-          <button className="btn lg" onClick={() => go("dashboard")}>
-            {T("View example dashboard", "查看示例 Dashboard")} <I.ArrowR size={14} />
           </button>
         </div>
         <div className="lp-meta">
@@ -75,24 +69,17 @@ export function LandingScreen({ go, accent }) {
             </div>
             <div className="lp-preview-main">
               <div className="lp-preview-row">
-                <div className="lp-preview-stat"><b>27</b><span>{T("Open issues","未解决")}</span></div>
-                <div className="lp-preview-stat"><b style={{ color: "var(--sev-critical)" }}>2</b><span>Critical</span></div>
-                <div className="lp-preview-stat"><b style={{ color: accent }}>89%</b><span>Auto-fixable</span></div>
-                <div className="lp-preview-stat"><b>3.4s</b><span>{T("Last scan","最近扫描")}</span></div>
+                <div className="lp-preview-stat"><b><I.Github size={18} /></b><span>{T("Connect", "连接")}</span></div>
+                <div className="lp-preview-stat"><b><I.Refresh size={18} /></b><span>{T("Scan", "扫描")}</span></div>
+                <div className="lp-preview-stat"><b style={{ color: accent }}><I.Bug size={18} /></b><span>{T("Review", "Review")}</span></div>
+                <div className="lp-preview-stat"><b><I.Check size={18} /></b><span>{T("Triage", "分诊")}</span></div>
               </div>
               <div className="lp-preview-issues">
-                {[
-                  { s: "critical", t: T("Hardcoded API key leaked into frontend bundle", "硬编码的 API 密钥泄露在前端 bundle"), f: "lib/payments.ts:14" },
-                  { s: "critical", t: T("SQL string concatenation enables injection", "SQL 字符串拼接导致注入风险"), f: "routes/search.ts:42" },
-                  { s: "high", t: T("Dashboard triggers N+1 data fetch", "Dashboard 触发 N+1 数据获取"), f: "(dashboard)/page.tsx:88" },
-                  { s: "high", t: T("axios@0.21.1 SSRF vulnerability", "axios@0.21.1 SSRF 漏洞"), f: "package.json:28" },
-                ].map((r,i) => (
-                  <div key={i} className="lp-preview-issue">
-                    <span className={"sev sev-"+r.s}><span className="dot" style={{ background: "currentColor" }}></span>{r.s}</span>
-                    <div className="lp-preview-issue-t">{r.t}</div>
-                    <span className="lp-preview-issue-f">{r.f}</span>
-                  </div>
-                ))}
+                <div className="lp-preview-issue">
+                  <span className="sev sev-info"><span className="dot" style={{ background: "currentColor" }}></span>ready</span>
+                  <div className="lp-preview-issue-t">{T("Connect GitHub to load repository findings.", "连接 GitHub 后加载仓库 findings。")}</div>
+                  <span className="lp-preview-issue-f">{T("No sample findings", "无示例 finding")}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -102,10 +89,10 @@ export function LandingScreen({ go, accent }) {
       <section className="lp-features">
         {[
           { i: <I.Github />, h: T("One-click GitHub","一键连接 GitHub"), p: T("OAuth in, scan public and private repos instantly. No webhook or CI setup.","OAuth 授权后立刻扫描公开和私有仓库, 无需配置 webhook 或 CI。") },
-          { i: <I.Sparkle />, h: T("AI applies fixes","AI 给出可应用修复"), p: T("Reviewer doesn't just flag — it writes the patch. You skim, you merge.","不只是指出问题, Reviewer 会写好 patch — 你审一眼即可合入。") },
+          { i: <I.Sparkle />, h: T("Agent-written findings","Agent 写入 findings"), p: T("The scan worker writes structured findings with severity, confidence, evidence, and suggested next steps.","扫描 worker 会写入带严重度、置信度、证据和处理步骤的结构化 finding。") },
           { i: <I.Shield />, h: T("Six issue categories","覆盖 6 大类问题"), p: T("Security, performance, dependencies, tests, docs, architecture — one scan, every angle.","Security、性能、依赖、测试、文档、架构 — 一份扫描看清所有维度。") },
-          { i: <I.GitPull />, h: T("Auto-open PRs","自动开 PR"), p: T("Pick a fix, click Create PR. We push the branch with a full description.","选择修复后, 点击 Create PR, 我们会推送 branch 并附上完整说明。") },
-          { i: <I.Activity />, h: T("Trends & regression alerts","趋势与回归告警"), p: T("Track key metrics. When critical issues spike, get an email or Slack ping.","持续追踪关键指标, 当 critical 数量上升立刻通过邮件 / Slack 提醒。") },
+          { i: <I.GitPull />, h: T("Manual triage workflow","手动分诊流程"), p: T("Review each finding, mark it fixed, or snooze it while the underlying code changes happen in GitHub.","逐条 review finding，在 GitHub 中完成代码变更后标记 fixed 或暂时 snooze。") },
+          { i: <I.Activity />, h: T("Scan history","扫描历史"), p: T("Track queued, running, completed, failed, and cancelled scans from the server state.","从 server 状态中查看 queued、running、completed、failed 和 cancelled 扫描。") },
           { i: <I.Lock />, h: T("Self-host friendly","私有部署友好"), p: T("Code never persisted, analyzed in memory. SSO, SAML, self-hosted runners.","代码不留存, 仅在内存中分析。支持 SSO、SAML、自托管 Runner。") },
         ].map((f, i) => (
           <div key={i} className="lp-feat">
@@ -134,11 +121,6 @@ export function LandingScreen({ go, accent }) {
   );
 }
 
-// ── Login ───────────────────────────────────────────────────────────────
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
-
 function getAuthErrorMessage(error) {
   return (
     error?.message ||
@@ -151,11 +133,8 @@ function getAuthErrorMessage(error) {
 
 export function LoginScreen({ go }) {
   useLang();
-  const [email, setEmail] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
-  const [sentEmail, setSentEmail] = useState("");
-  const [magicLink, setMagicLink] = useState("");
 
   const pending = Boolean(pendingAction);
 
@@ -167,31 +146,6 @@ export function LoginScreen({ go }) {
       await startGitHubLogin();
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
-      setPendingAction("");
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const normalizedEmail = email.trim();
-    if (!isValidEmail(normalizedEmail)) {
-      setError(T("Enter a valid email address.", "请输入有效的邮箱地址。"));
-      return;
-    }
-
-    setPendingAction("email");
-    setError("");
-    setSentEmail("");
-    setMagicLink("");
-
-    try {
-      const result = await requestEmailMagicLink({ email: normalizedEmail });
-      setSentEmail(normalizedEmail);
-      setMagicLink(result?.devMagicLink || result?.magicLink || "");
-    } catch (authError) {
-      setError(getAuthErrorMessage(authError));
-    } finally {
       setPendingAction("");
     }
   };
@@ -209,8 +163,8 @@ export function LoginScreen({ go }) {
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Use GitHub or a magic email link. First sign-in creates your account automatically.",
-            "使用 GitHub 或邮箱魔法链接登录。首次登录会自动创建账号。"
+            "Use GitHub to sign in. First sign-in creates your account automatically.",
+            "使用 GitHub 登录。首次登录会自动创建账号。"
           )}
         </p>
 
@@ -232,68 +186,16 @@ export function LoginScreen({ go }) {
           )}
         </button>
 
-        <div className="auth-or"><span>{T("or","或")}</span></div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-field">
-            <span>{T("Email","邮箱")}</span>
-            <div className="auth-input">
-              <I.Mail size={14} />
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  setError("");
-                  setSentEmail("");
-                  setMagicLink("");
-                }}
-                placeholder="you@company.com"
-                disabled={pending}
-              />
-            </div>
-          </label>
-          {error && (
-            <div className="auth-error" role="alert">
-              <I.X size={13} /> {error}
-            </div>
-          )}
-          {sentEmail && (
-            <div className="auth-success" role="status">
-              <I.Check size={13} />
-              <div>
-                <b>{T("Check your email", "请查收邮箱")}</b>
-                <span>
-                  {T(
-                    `We sent a magic link to ${sentEmail}. After signing in, continue to GitHub repository authorization.`,
-                    `我们已向 ${sentEmail} 发送魔法链接。登录后继续授权 GitHub 仓库权限。`
-                  )}
-                </span>
-                {magicLink && (
-                  <a className="btn sm auth-dev-link" href={magicLink}>
-                    {T("Open local magic link", "打开本地魔法链接")}
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-          <button className="btn lg" type="submit" disabled={pending}>
-            {pendingAction === "email" ? (
-              <>
-                <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
-                {T("Sending link...", "正在发送链接...")}
-              </>
-            ) : (
-              T("Send magic link", "发送魔法链接")
-            )}
-          </button>
-        </form>
+        {error && (
+          <div className="auth-error" role="alert">
+            <I.X size={13} /> {error}
+          </div>
+        )}
 
         <div className="auth-next">
           <div className="auth-next-i">
             <span>1</span>
-            <p>{T("Sign in without passwords.", "无需密码登录。")}</p>
+            <p>{T("Sign in with your GitHub identity.", "使用 GitHub 身份登录。")}</p>
           </div>
           <div className="auth-next-i">
             <span>2</span>
@@ -360,8 +262,6 @@ export function OAuthScreen({ go }) {
           {[
             { i: <I.Folder size={15} />, h: T("Repository metadata","仓库元数据"), p: T("List authorized repos, branches, languages, and installation status.","列出已授权仓库、分支、语言和安装状态。") },
             { i: <I.FileCode size={15} />, h: T("Read repository contents","读取仓库内容"), p: T("Read-only access for scans. Repository contents are not stored in the browser.","仅用于扫描的只读权限。仓库内容不会存储在浏览器中。") },
-            { i: <I.GitPull size={15} />, h: T("Create branches and pull requests","创建分支与 Pull Request"), p: T("Used only when you approve an auto-fix and ask Pullwise to open a PR.","仅在你批准 auto-fix 并要求创建 PR 时使用。") },
-            { i: <I.Bell size={15} />, h: T("Webhook events","Webhook 事件"), p: T("Trigger incremental scans on push and pull request updates.","在 push 和 PR 更新时触发增量扫描。") },
           ].map((p, i) => (
             <div key={i} className="oauth-perm">
               <div className="oauth-perm-i">{p.i}</div>

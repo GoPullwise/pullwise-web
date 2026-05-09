@@ -11,8 +11,6 @@ function withSearchParams(path, params = {}) {
 export const pullwiseApi = {
   auth: {
     getSession: () => request("/auth/session"),
-    requestMagicLink: (payload) =>
-      request("/auth/email/magic-link", { method: "POST", body: payload }),
     signOut: () => request("/auth/sign-out", { method: "POST" }),
     getGitHubAuthorizeUrl: (params = {}) =>
       request(withSearchParams("/auth/github/authorize", params)),
@@ -37,19 +35,10 @@ export const pullwiseApi = {
       request(`/issues/${issueId}/status`, { method: "PATCH", body: payload }),
   },
 
-  fixes: {
-    apply: (issueId, payload) =>
-      request(`/issues/${issueId}/fixes/apply`, { method: "POST", body: payload }),
-    createPullRequest: (issueId, payload) =>
-      request(`/issues/${issueId}/pull-requests`, { method: "POST", body: payload }),
-  },
-
   integrations: {
     list: () => request("/integrations"),
     getGitHubAuthorizeUrl: (params = {}) =>
       request(withSearchParams("/integrations/github/authorize", params)),
-    connect: (provider, payload) =>
-      request(`/integrations/${provider}/connect`, { method: "POST", body: payload }),
     disconnect: (provider) => request(`/integrations/${provider}`, { method: "DELETE" }),
   },
 
@@ -58,10 +47,4 @@ export const pullwiseApi = {
     update: (payload) => request("/settings", { method: "PATCH", body: payload }),
   },
 
-  billing: {
-    getPlan: () => request("/billing/plan"),
-    createCheckoutSession: (payload) =>
-      request("/billing/checkout-sessions", { method: "POST", body: payload }),
-    createPortalSession: () => request("/billing/portal-sessions", { method: "POST" }),
-  },
 };

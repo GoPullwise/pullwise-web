@@ -8,7 +8,6 @@ export function NotFoundScreen({ go, requested }) {
   const suggestions = [
     { k: "dashboard", t: T("Dashboard", "Dashboard"), d: T("Workspace overview", "工作区总览"), i: <I.Layout size={14} /> },
     { k: "issues",    t: T("Issues", "问题列表"),     d: T("All findings across repos", "所有仓库的扫描结果"), i: <I.Bug size={14} /> },
-    { k: "docs",      t: T("Docs", "文档"),           d: T("Guides and API reference", "指南与 API 参考"), i: <I.FileCode size={14} /> },
     { k: "landing",   t: T("Home", "首页"),           d: T("Back to the Pullwise landing page", "回到 Pullwise 主页"), i: <I.ArrowL size={14} /> },
   ];
 
@@ -40,8 +39,6 @@ export function NotFoundScreen({ go, requested }) {
           ))}
         </div>
         <div className="notfound-foot">
-          <a className="auth-link" onClick={() => go("docs")}>{T("Open docs", "打开文档")}</a>
-          <span className="muted">·</span>
           <a className="auth-link">support@pullwise.dev</a>
         </div>
       </div>

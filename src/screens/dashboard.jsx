@@ -51,7 +51,6 @@ function IssueRow({ issue, onClick }) {
         <div className="issue-meta">
           <span><I.FileCode size={11} /> {issue.file || issue.repo}{issue.line ? ":" + issue.line : ""}</span>
           <span className="tag">{issue.category}</span>
-          {issue.autoFix && <span className="chip" style={{ color: "var(--accent)" }}><I.Sparkle size={10} /> Auto-fix</span>}
           <span style={{ color: "var(--text-3)" }}>· {Math.round(issue.confidence * 100)}% {T("confidence", "置信度")}</span>
         </div>
       </div>
@@ -68,7 +67,6 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
   const { items: repositories, loading: reposLoading, needsAuthorization } = useRepositories();
   const openIssues = issues.filter((issue) => issue.status === "open");
   const counts = issueCounts(openIssues);
-  const autoFixable = openIssues.filter((issue) => issue.autoFix).length;
   const latestScan = scans[0];
   const trend = scans.slice(0, 14).reverse().map(scanIssueTotal);
   const activeRepo = latestScan?.repo || repositories[0]?.fullName || repositories[0]?.name || "Pullwise";
@@ -99,9 +97,6 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
             </div>
             <div className="actions">
               <button className="btn" onClick={() => go("repos")}><I.Refresh size={14} /> {T("New scan", "新扫描")}</button>
-              <button className="btn primary" disabled={autoFixable === 0} onClick={() => go("issues")}>
-                <I.GitPull size={14} /> {T(`Auto-fix ${autoFixable} items`, `自动修复 ${autoFixable} 项`)}
-              </button>
             </div>
           </div>
 
