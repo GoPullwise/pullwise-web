@@ -50,7 +50,11 @@ export function notifyOpenerAndClose() {
 export function openGitHubInstallPopup(url) {
   const popup = window.open(url, POPUP_NAME, POPUP_FEATURES);
   if (!popup) return null;
-  try { popup.focus(); } catch {}
+  try {
+    popup.focus();
+  } catch {
+    // Focus can be blocked by browser popup policies.
+  }
 
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -66,7 +70,11 @@ export function openGitHubInstallPopup(url) {
 
     const interval = window.setInterval(async () => {
       let closed = true;
-      try { closed = popup.closed; } catch {}
+      try {
+        closed = popup.closed;
+      } catch {
+        // Cross-origin popup access can throw; treat it as closed.
+      }
       if (!closed) return;
       finish();
       try {
@@ -83,7 +91,11 @@ export function openGitHubInstallPopup(url) {
       settled = true;
       window.removeEventListener("message", onMessage);
       window.clearInterval(interval);
-      try { popup.close(); } catch {}
+      try {
+        popup.close();
+      } catch {
+        // Popup may already be closed.
+      }
     }
 
     window.addEventListener("message", onMessage);

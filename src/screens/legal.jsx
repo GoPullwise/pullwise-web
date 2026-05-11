@@ -128,10 +128,6 @@ export function PrivacyScreen({ go }) {
           <b>{T("Telemetry", "遥测数据")}</b>
           <span>{T("Anonymized usage events (button clicks, scan duration). Never code content.", "匿名使用事件 (按钮点击、扫描耗时)。绝不包含代码内容。")}</span>
         </div>
-        <div className="legal-table-r">
-          <b>{T("Billing", "计费信息")}</b>
-          <span>{T("Handled by Stripe. We never see full card numbers.", "由 Stripe 处理。我们从不接触完整的卡号。")}</span>
-        </div>
       </div>
 
       <h2 className="legal-h2" id="use">{T("How we use data", "数据使用方式")}</h2>
@@ -167,9 +163,7 @@ export function PrivacyScreen({ go }) {
       <div className="legal-table">
         <div className="legal-table-r"><b>Anthropic</b><span>{T("LLM provider (haiku-4-5). Training opted out.", "LLM 服务商 (haiku-4-5),已 opt-out 训练。")}</span></div>
         <div className="legal-table-r"><b>AWS / Cloudflare</b><span>{T("Compute and edge delivery.", "计算与边缘分发。")}</span></div>
-        <div className="legal-table-r"><b>Stripe</b><span>{T("Payment processing.", "支付处理。")}</span></div>
         <div className="legal-table-r"><b>PostHog</b><span>{T("Product analytics (self-hosted, EU region).", "产品分析 (自托管,EU 区域)。")}</span></div>
-        <div className="legal-table-r"><b>Postmark</b><span>{T("Transactional email.", "事务邮件。")}</span></div>
       </div>
 
       <h2 className="legal-h2" id="retention">{T("Retention", "数据保留")}</h2>
@@ -208,7 +202,6 @@ export function TermsScreen({ go }) {
     { id: "account", t: T("Your account", "你的账号") },
     { id: "use-rules", t: T("Acceptable use", "可接受的使用") },
     { id: "ip", t: T("Intellectual property", "知识产权") },
-    { id: "billing", t: T("Billing & cancellation", "计费与取消") },
     { id: "warranty", t: T("Disclaimers", "免责声明") },
     { id: "liability", t: T("Limitation of liability", "责任限制") },
     { id: "law", t: T("Governing law", "适用法律") },
@@ -229,7 +222,7 @@ export function TermsScreen({ go }) {
       <p>{T("By creating an account or using Pullwise (the \"Service\") you agree to these Terms and to our Privacy Policy. If you do not agree, do not use the Service.", "创建账号或使用 Pullwise (\"本服务\") 即表示同意本条款与隐私政策。若不同意,请勿使用本服务。")}</p>
 
       <h2 className="legal-h2" id="service">{T("The service", "服务说明")}</h2>
-      <p>{T("Pullwise provides automated code review and remediation for GitHub repositories. We may update, improve, deprecate, or remove features at any time, with reasonable notice for paid plans.", "Pullwise 为 GitHub 仓库提供自动代码 review 与修复。我们可能随时更新、改进、弃用或下线功能,对付费方案会提前合理通知。")}</p>
+      <p>{T("Pullwise provides automated code review for GitHub repositories. We may update, improve, deprecate, or remove features at any time.", "Pullwise 为 GitHub 仓库提供自动代码 review。我们可能随时更新、改进、弃用或下线功能。")}</p>
 
       <h2 className="legal-h2" id="account">{T("Your account", "你的账号")}</h2>
       <ul className="legal-list-flat">
@@ -248,18 +241,10 @@ export function TermsScreen({ go }) {
       </ul>
 
       <h2 className="legal-h2" id="ip">{T("Intellectual property", "知识产权")}</h2>
-      <p>{T("You retain all rights to your code. We retain all rights to the Service. Generated patches are derivative works of your code and remain your property; you grant us a limited license to process them as needed to deliver the Service.", "你保留对代码的全部权利。我们保留对本服务的全部权利。生成的 patch 属于你代码的衍生作品,仍归你所有;你授予我们处理它们以提供服务所需的有限许可。")}</p>
-
-      <h2 className="legal-h2" id="billing">{T("Billing & cancellation", "计费与取消")}</h2>
-      <ul className="legal-list-flat">
-        <li>{T("Paid plans bill monthly or annually in advance.", "付费方案按月或按年预先扣费。")}</li>
-        <li>{T("Upgrades take effect immediately and are pro-rated.", "升级立即生效并按比例计费。")}</li>
-        <li>{T("Downgrades take effect at the end of the current billing period.", "降级在当前账单周期结束时生效。")}</li>
-        <li>{T("You can cancel any time. We do not offer refunds for partial periods.", "你可以随时取消订阅。我们不为不完整的周期退款。")}</li>
-      </ul>
+      <p>{T("You retain all rights to your code. We retain all rights to the Service. Findings are suggestions and do not transfer ownership of your code or repository metadata.", "你保留对代码的全部权利。我们保留对本服务的全部权利。Findings 仅为建议，不会转移你的代码或仓库元数据所有权。")}</p>
 
       <h2 className="legal-h2" id="warranty">{T("Disclaimers", "免责声明")}</h2>
-      <p>{T("The Service is provided \"as is\". Findings and patches are suggestions — you remain responsible for reviewing and accepting changes before merging. We make no guarantees that the Service is bug-free or that it will catch every issue.", "本服务按\"现状\"提供。Finding 与 patch 仅为建议,你仍需在合并前自行 review 并确认变更。我们不保证服务无 bug,也不保证能识别所有问题。")}</p>
+      <p>{T("The Service is provided \"as is\". Findings are suggestions; you remain responsible for reviewing code and deciding what to change. We make no guarantees that the Service is bug-free or that it will catch every issue.", "本服务按\"现状\"提供。Findings 仅为建议；你仍需自行 review 代码并决定如何修改。我们不保证服务无 bug，也不保证能识别所有问题。")}</p>
 
       <h2 className="legal-h2" id="liability">{T("Limitation of liability", "责任限制")}</h2>
       <p>{T("To the maximum extent permitted by law, our total liability for any claim is limited to the fees you paid us in the 12 months before the claim arose. We are not liable for indirect, incidental, or consequential damages.", "在法律允许的最大范围内,我们就任何索赔的累计责任以索赔发生前 12 个月内你向我们支付的费用为限。我们不对间接、附带或后果性损害承担责任。")}</p>
@@ -420,7 +405,6 @@ const STATUS_COMPONENTS = [
   { k: "github", t_en: "GitHub integration", t_zh: "GitHub 集成", region: "Webhooks + App" },
   { k: "web", t_en: "Web app", t_zh: "Web 应用", region: "pullwise.dev" },
   { k: "auth", t_en: "Authentication", t_zh: "认证服务", region: "OAuth + magic links" },
-  { k: "billing", t_en: "Billing", t_zh: "计费", region: "Stripe upstream" },
 ];
 
 function generateUptimeSeries(seed, rareDip = 0.03) {
