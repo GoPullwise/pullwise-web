@@ -30,8 +30,6 @@ export default [
         Topbar: "readonly",
         Sidebar: "readonly",
         LandingScreen: "readonly",
-        PricingScreen: "readonly",
-        DocsScreen: "readonly",
         LoginScreen: "readonly",
         OAuthScreen: "readonly",
         ReposScreen: "readonly",
