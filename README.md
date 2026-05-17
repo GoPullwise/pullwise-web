@@ -169,6 +169,27 @@ PULLWISE_TRUST_PROXY_HEADERS=true
 
 Only enable that flag behind a trusted proxy.
 
+### Direct API Option
+
+You can skip the Pages proxy and call the backend directly:
+
+```text
+VITE_API_BASE_URL=https://api.your-domain.com
+```
+
+Then set the backend callback URLs to the API domain:
+
+```text
+PULLWISE_APP_URL=https://app.your-domain.com
+PULLWISE_ALLOWED_ORIGINS=https://app.your-domain.com
+PULLWISE_API_BASE_URL=https://api.your-domain.com
+```
+
+Use custom domains that are same-site, such as `app.your-domain.com` and
+`api.your-domain.com`, so the default `SameSite=Lax` session cookie works with
+credentialed API requests. If the frontend is on `*.pages.dev` and the backend
+is on an unrelated domain, prefer the `/api` proxy topology.
+
 ### External Provider Callback URLs
 
 Use the Pages `/api` URLs when configuring browser-returning providers:
