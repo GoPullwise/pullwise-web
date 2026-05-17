@@ -17,7 +17,7 @@ function billingReturnUrl(kind) {
   return url.toString();
 }
 
-export function BillingScreen({ go }) {
+export function BillingScreen({ go, navigate = (url) => window.location.assign(url) }) {
   useLang();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState("");
@@ -49,7 +49,7 @@ export function BillingScreen({ go }) {
         cancelUrl: billingReturnUrl("cancel"),
       });
       if (!session?.url) throw new Error("Billing provider did not return a checkout URL.");
-      window.location.assign(session.url);
+      navigate(session.url);
     } catch (err) {
       setError(err?.message || "Unable to start checkout.");
       setPendingAction("");
@@ -64,7 +64,7 @@ export function BillingScreen({ go }) {
         returnUrl: billingReturnUrl("return"),
       });
       if (!session?.url) throw new Error("Billing provider did not return a portal URL.");
-      window.location.assign(session.url);
+      navigate(session.url);
     } catch (err) {
       setError(err?.message || "Unable to open billing portal.");
       setPendingAction("");
