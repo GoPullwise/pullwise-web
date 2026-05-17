@@ -16,4 +16,8 @@ describe("parseEnv", () => {
   it("rejects non-root-relative API paths", () => {
     expect(() => parseEnv({ VITE_API_BASE_URL: "api" })).toThrow();
   });
+
+  it("rejects non-http API URL schemes", () => {
+    expect(() => parseEnv({ VITE_API_BASE_URL: "javascript:alert(1)" })).toThrow();
+  });
 });

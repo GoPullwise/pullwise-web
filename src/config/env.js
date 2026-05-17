@@ -6,8 +6,8 @@ const absoluteUrlOrRootRelativePath = z.string().refine((value) => {
   }
 
   try {
-    new URL(value);
-    return true;
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
