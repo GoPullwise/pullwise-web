@@ -8,6 +8,9 @@ export async function onRequest(context) {
   const targetUrl = new URL(incomingUrl.pathname.replace(/^\/api/, "") + incomingUrl.search, origin);
   const headers = new Headers(context.request.headers);
   headers.delete("host");
+  headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
+  headers.set("X-Forwarded-Host", incomingUrl.host);
+  headers.set("X-Forwarded-Prefix", "/api");
 
   const response = await fetch(targetUrl, {
     method: context.request.method,
