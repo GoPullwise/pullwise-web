@@ -29,18 +29,17 @@ describe("BillingScreen", () => {
       provider: "stripe",
       url: "https://checkout.stripe.com/cs/test",
     });
-    const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+    const navigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<BillingScreen go={vi.fn()} />);
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
 
     expect(await screen.findByText("Stripe")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /start checkout/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(1);
-      expect(assign).toHaveBeenCalledWith("https://checkout.stripe.com/cs/test");
+      expect(navigate).toHaveBeenCalledWith("https://checkout.stripe.com/cs/test");
     });
-    assign.mockRestore();
   });
 });
