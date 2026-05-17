@@ -6,28 +6,58 @@ export async function onRequest(context) {
 
   const incomingUrl = new URL(context.request.url);
   const targetUrl = new URL(incomingUrl.pathname.replace(/^\/api/, "") + incomingUrl.search, origin);
-  const headers = new Headers(context.request.headers);
+  const headers = withoutHopByHopHeaders(context.request.headers);
   headers.delete("host");
   headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
   headers.set("X-Forwarded-Host", incomingUrl.host);
   headers.set("X-Forwarded-Prefix", "/api");
+  const methodHasBody = hasBody(context.request.method);
 
   const response = await fetch(targetUrl, {
     method: context.request.method,
     headers,
-    body: hasBody(context.request.method) ? context.request.body : undefined,
+    body: methodHasBody ? context.request.body : undefined,
+    duplex: methodHasBody ? "half" : undefined,
     redirect: "manual",
   });
 
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers: response.headers,
+    headers: withoutHopByHopHeaders(response.headers),
   });
 }
 
 function hasBody(method) {
   return !["GET", "HEAD"].includes(method.toUpperCase());
+}
+
+const HOP_BY_HOP_HEADERS = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+]);
+
+function withoutHopByHopHeaders(sourceHeaders) {
+  const headers = new Headers(sourceHeaders);
+  const connectionTokens = headers
+    .get("connection")
+    ?.split(",")
+    .map((token) => token.trim().toLowerCase())
+    .filter(Boolean);
+
+  for (const name of HOP_BY_HOP_HEADERS) {
+    headers.delete(name);
+  }
+  for (const name of connectionTokens || []) {
+    headers.delete(name);
+  }
+  return headers;
 }
 
 function json(payload, status) {
