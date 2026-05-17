@@ -49,6 +49,14 @@ export const pullwiseApi = {
     update: (payload) => request("/settings", { method: "PATCH", body: payload }),
   },
 
+  billing: {
+    getPlan: () => request("/billing/plan"),
+    createCheckoutSession: (payload = {}) =>
+      request("/billing/checkout-sessions", { method: "POST", body: payload }),
+    createPortalSession: (payload = {}) =>
+      request("/billing/portal-sessions", { method: "POST", body: payload }),
+  },
+
   system: {
     health: () => request("/health"),
   },
