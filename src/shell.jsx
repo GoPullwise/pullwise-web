@@ -69,6 +69,7 @@ function SearchModal({ close, go }) {
     { k: "issues", t: T("Issues", "问题"), i: <I.Bug size={14} /> },
     { k: "repos", t: T("Repositories", "仓库"), i: <I.Folder size={14} /> },
     { k: "history", t: T("Scan history", "扫描历史"), i: <I.Clock size={14} /> },
+    { k: "billing", t: T("Billing", "支付"), i: <I.Package size={14} /> },
     { k: "settings", t: T("Settings", "设置"), i: <I.Settings size={14} /> },
   ];
   const pages = allPages.filter((page) => !query || page.t.toLowerCase().includes(query) || page.k.includes(query));
