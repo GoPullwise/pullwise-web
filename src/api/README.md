@@ -11,10 +11,10 @@ Currently wired backend responsibilities:
 - Scan creation, polling, cancellation, and history
 - Issue listing and manual status changes
 - Account session and GitHub integration state
+- Billing plan, checkout sessions, and customer portal sessions
 
 Not wired because the backend does not implement them yet:
 
-- Billing plan, checkout, or portal sessions
 - Notifications
 - Applying fixes, creating branches, pushing changes, or opening pull requests
 - Slack and Linear integration authorization

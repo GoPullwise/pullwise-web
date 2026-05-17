@@ -10,6 +10,8 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 - Scan creation, polling, cancellation, and history
 - Issue listing plus manual status changes
 - Account and GitHub integration settings
+- Stripe or Creem billing through backend-created checkout and portal sessions
+- Legal, privacy, security, and live status pages for payment review
 
 The frontend intentionally does not expose notifications, auto-fix application,
 or pull request creation because those backend capabilities are not implemented.
@@ -94,4 +96,17 @@ eslint.config.js    ESLint config
 
 Secret-bearing and privileged operations stay server-side: GitHub OAuth client
 secrets, GitHub App private keys, repository cloning, scan workers, AI provider
-credentials, webhook handling, and future PR creation credentials.
+credentials, payment provider keys, webhook handling, and future PR creation
+credentials.
+
+## Cloudflare Pages
+
+This app is suitable for Cloudflare Pages as a static Vite build:
+
+```bash
+npm run build
+```
+
+Deploy `dist/` and set `VITE_API_BASE_URL` to the production backend. The Python
+scan backend is not a normal Cloudflare Worker because it needs Git, subprocess
+execution, persistent state, and the Codex CLI.
