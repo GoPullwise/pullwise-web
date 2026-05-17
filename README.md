@@ -110,3 +110,13 @@ npm run build
 Deploy `dist/` and set `VITE_API_BASE_URL` to the production backend. The Python
 scan backend is not a normal Cloudflare Worker because it needs Git, subprocess
 execution, persistent state, and the Codex CLI.
+
+If you want a same-origin Cloudflare route, set:
+
+```text
+VITE_API_BASE_URL=/api
+PULLWISE_API_ORIGIN=https://api.your-domain.com
+```
+
+The included Pages Function at `functions/api/[[path]].js` proxies `/api/*` to
+the real backend. It is a proxy, not the scan backend itself.
