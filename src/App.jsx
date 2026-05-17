@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
+import { BillingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
 import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
@@ -35,6 +36,7 @@ const SCREENS = new Set([
   "issue",
   "history",
   "settings",
+  "billing",
   "privacy",
   "terms",
   "security",
@@ -147,6 +149,9 @@ export function App({ prototypeNav = false }) {
       break;
     case "settings":
       body = <SettingsScreen go={go} />;
+      break;
+    case "billing":
+      body = <BillingScreen go={go} />;
       break;
     case "privacy":
       body = <PrivacyScreen go={go} />;
