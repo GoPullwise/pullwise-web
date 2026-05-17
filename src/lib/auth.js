@@ -20,6 +20,13 @@ export async function startGitHubLogin({ redirectTo } = {}) {
   window.location.assign(result.url);
 }
 
+export async function requestMagicLink({ email, redirectTo } = {}) {
+  return pullwiseApi.auth.requestMagicLink({
+    email,
+    redirectTo: redirectTo || getScreenRedirectUrl("oauth"),
+  });
+}
+
 export async function connectGitHubRepositories({ redirectTo } = {}) {
   const result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
     redirectTo: redirectTo || getScreenRedirectUrl("repos"),

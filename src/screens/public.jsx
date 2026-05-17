@@ -3,6 +3,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import {
   connectGitHubRepositories,
+  requestMagicLink,
   startGitHubLogin,
 } from "../lib/auth.js";
 
@@ -159,18 +160,40 @@ export function LandingScreen({ go, accent }) {
 
 export function LoginScreen() {
   useLang();
+  const [email, setEmail] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const pending = Boolean(pendingAction);
 
   const handleGitHubLogin = async () => {
     setPendingAction("github");
     setError("");
+    setNotice("");
 
     try {
       await startGitHubLogin();
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
+      setPendingAction("");
+    }
+  };
+
+  const handleMagicLink = async (event) => {
+    event.preventDefault();
+    setPendingAction("email");
+    setError("");
+    setNotice("");
+
+    try {
+      await requestMagicLink({ email });
+      setNotice(T(
+        "Check your email for a Pullwise sign-in link.",
+        "请检查邮箱中的 Pullwise 登录链接。"
+      ));
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError));
+    } finally {
       setPendingAction("");
     }
   };
@@ -185,8 +208,8 @@ export function LoginScreen() {
         <h2 className="auth-title">{T("Sign in to Pullwise", "Sign in to Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Use GitHub to sign in. First sign-in creates your account automatically.",
-            "Use GitHub to sign in. First sign-in creates your account automatically."
+            "Use GitHub or an email magic link. First sign-in creates your account automatically.",
+            "使用 GitHub 或邮箱 Magic Link 登录。首次登录会自动创建账号。"
           )}
         </p>
 
@@ -208,9 +231,59 @@ export function LoginScreen() {
           )}
         </button>
 
+        <div className="auth-next" style={{ marginTop: 12, marginBottom: 12 }}>
+          <div className="muted" style={{ textAlign: "center", width: "100%" }}>
+            {T("or", "或")}
+          </div>
+        </div>
+
+        <form onSubmit={handleMagicLink}>
+          <label className="auth-field">
+            <span>{T("Email", "邮箱")}</span>
+            <div className="auth-input">
+              <I.Mail size={13} />
+              <input
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                disabled={pending}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+          </label>
+          <button
+            className="btn lg"
+            type="submit"
+            disabled={pending}
+            style={{ width: "100%", marginTop: 10 }}
+          >
+            {pendingAction === "email" ? (
+              <>
+                <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
+                {T("Sending link...", "正在发送链接...")}
+              </>
+            ) : (
+              <>
+                <I.Mail /> {T("Email me a magic link", "发送邮箱 Magic Link")}
+              </>
+            )}
+          </button>
+        </form>
+
         {error && (
           <div className="auth-error" role="alert">
             <I.X size={13} /> {error}
+          </div>
+        )}
+
+        {notice && (
+          <div
+            className="auth-error"
+            role="status"
+            style={{ borderColor: "color-mix(in oklch, #16a34a 35%, var(--border))", color: "#16a34a" }}
+          >
+            <I.Check size={13} /> {notice}
           </div>
         )}
 

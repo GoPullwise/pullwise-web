@@ -4,15 +4,15 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 `F:\pullwise-server`. The active app surfaces only server-backed flows:
 
 - GitHub identity login through the backend OAuth endpoint
+- Email magic-link login through the backend email endpoint
 - GitHub App repository authorization
 - Repository listing and sync
 - Scan creation, polling, cancellation, and history
 - Issue listing plus manual status changes
 - Account and GitHub integration settings
 
-The frontend intentionally does not expose billing, notifications, local email
-magic links, auto-fix application, or pull request creation because those
-backend capabilities are not implemented.
+The frontend intentionally does not expose notifications, auto-fix application,
+or pull request creation because those backend capabilities are not implemented.
 
 ## Local Development
 
@@ -52,9 +52,9 @@ Only `VITE_*` variables are exposed to browser code. Do not put GitHub client
 secrets, GitHub App private keys, AI provider keys, or repository credentials in
 frontend env files.
 
-The Python API now requires real GitHub OAuth/App configuration by default. If
-you explicitly need local auth mocks, enable them in `F:\pullwise-server`; they
-are not enabled by the frontend.
+The Python API now requires real GitHub OAuth/App and SMTP configuration for
+production login flows. Explicit local auth/dev magic-link switches live in
+`F:\pullwise-server`; they are not enabled by the frontend.
 
 ## Useful Commands
 

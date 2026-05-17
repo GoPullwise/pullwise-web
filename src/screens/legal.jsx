@@ -1,6 +1,7 @@
 // screens/legal.jsx — Privacy, Terms, Security, Status
 
 import { useEffect, useState } from "react";
+import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 
@@ -470,7 +471,7 @@ function StatusBar({ series }) {
   );
 }
 
-export function StatusScreen({ go }) {
+function LegacyStatusScreen({ go }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
 
@@ -571,6 +572,127 @@ export function StatusScreen({ go }) {
               </ol>
             </article>
           ))}
+        </div>
+      </section>
+    </LegalChrome>
+  );
+}
+
+const STATUS_REFRESH_MS = 30_000;
+
+function statusClass(ok, error) {
+  if (ok) return "operational";
+  return error ? "incident" : "degraded";
+}
+
+function StatusRow({ icon, title, status, detail }) {
+  return (
+    <div className="status-row">
+      <div className="status-row-meta">
+        <div className="status-row-t">
+          <span className={"status-dot " + status}></span>
+          <b>{title}</b>
+        </div>
+        <div className="status-row-region">{detail}</div>
+      </div>
+      <div className="status-row-pct" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {icon}
+        <span>{status}</span>
+      </div>
+    </div>
+  );
+}
+
+export function StatusScreen({ go }) {
+  useLang();
+  const [now, setNow] = useState(() => new Date());
+  const [health, setHealth] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHealth() {
+      setNow(new Date());
+      try {
+        const payload = await pullwiseApi.system.health();
+        if (cancelled) return;
+        setHealth(payload);
+        setError("");
+      } catch (healthError) {
+        if (cancelled) return;
+        setHealth(null);
+        setError(healthError?.message || "Unable to reach the Pullwise API.");
+      }
+    }
+
+    loadHealth();
+    const id = setInterval(loadHealth, STATUS_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  const apiStatus = statusClass(Boolean(health?.ok), error);
+  const overallTitle = health?.ok
+    ? T("API reachable", "API reachable")
+    : error
+      ? T("API unreachable", "API unreachable")
+      : T("Checking API", "Checking API");
+  const apiDetail = health?.service
+    ? `${health.service} / ${health.mode || "unknown mode"}`
+    : error || "GET /health";
+  const databaseDetail = health?.database?.type
+    ? `${health.database.type}: ${health.database.path || "configured backend path"}`
+    : "Waiting for backend health.";
+
+  return (
+    <LegalChrome go={go} current="status">
+      <section className="status-hero">
+        <div className={"status-overall " + apiStatus}>
+          <span className="status-dot"></span>
+          <h1>{overallTitle}</h1>
+        </div>
+        <p className="status-sub">
+          {T("Last checked", "Last checked")} {now.toLocaleTimeString()} · {T("Reads live /health data every 30s", "Reads live /health data every 30s")}
+        </p>
+        <div className="status-cta">
+          <button className="btn" onClick={() => window.location.reload()}>
+            <I.Refresh size={13} /> {T("Refresh", "Refresh")}
+          </button>
+        </div>
+      </section>
+
+      <section className="status-section">
+        <div className="status-card card">
+          <div className="status-card-h">
+            <h2>{T("Live components", "Live components")}</h2>
+            <span className="muted">{T("No generated uptime or incident history", "No generated uptime or incident history")}</span>
+          </div>
+          <StatusRow
+            icon={<I.Code size={14} />}
+            title={T("Web app", "Web app")}
+            status="operational"
+            detail={window.location.host || "local browser"}
+          />
+          <StatusRow
+            icon={<I.Activity size={14} />}
+            title={T("REST API", "REST API")}
+            status={apiStatus}
+            detail={apiDetail}
+          />
+          <StatusRow
+            icon={<I.Database size={14} />}
+            title={T("State database", "State database")}
+            status={health?.database ? "operational" : apiStatus}
+            detail={databaseDetail}
+          />
+          {error && (
+            <div className="auth-error" role="alert" style={{ marginTop: 14 }}>
+              <I.X size={13} /> {error}
+            </div>
+          )}
         </div>
       </section>
     </LegalChrome>

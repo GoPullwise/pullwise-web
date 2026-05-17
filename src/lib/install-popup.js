@@ -79,7 +79,7 @@ export function openGitHubInstallPopup(url) {
       finish();
       try {
         const session = await pullwiseApi.auth.getSession();
-        if (session?.user?.githubRepositoryAccess) resolve();
+        if (session?.github?.repositoriesConnected) resolve();
         else reject(new GitHubInstallCancelled());
       } catch {
         reject(new GitHubInstallCancelled());

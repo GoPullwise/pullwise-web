@@ -14,6 +14,8 @@ export const pullwiseApi = {
     signOut: () => request("/auth/sign-out", { method: "POST" }),
     getGitHubAuthorizeUrl: (params = {}) =>
       request(withSearchParams("/auth/github/authorize", params)),
+    requestMagicLink: (payload) =>
+      request("/auth/email/magic-link", { method: "POST", body: payload }),
   },
 
   repositories: {
@@ -45,6 +47,10 @@ export const pullwiseApi = {
   settings: {
     get: () => request("/settings"),
     update: (payload) => request("/settings", { method: "PATCH", body: payload }),
+  },
+
+  system: {
+    health: () => request("/health"),
   },
 
 };
