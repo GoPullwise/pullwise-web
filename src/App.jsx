@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { pullwiseApi } from "./api/pullwise.js";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { BillingScreen } from "./screens/billing.jsx";
@@ -43,6 +44,7 @@ const SCREENS = new Set([
   "status",
   "notfound",
 ]);
+const PUBLIC_SCREENS = new Set(["landing", "login", "privacy", "terms", "security", "status", "notfound"]);
 
 function getInitialScreen() {
   const requestedScreen = new URLSearchParams(window.location.search).get("screen");
@@ -111,6 +113,33 @@ export function App({ prototypeNav = false }) {
   useEffect(() => {
     document.body.classList.toggle("has-proto-nav", prototypeNav && navOpen);
   }, [prototypeNav, navOpen]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    pullwiseApi.auth.getSession()
+      .then((payload) => {
+        if (cancelled) return;
+        const authenticated = Boolean(payload?.authenticated);
+        setScreen((current) => {
+          if (authenticated && (current === "landing" || current === "login")) {
+            return "dashboard";
+          }
+          if (!authenticated && !PUBLIC_SCREENS.has(current)) {
+            return "login";
+          }
+          return current;
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

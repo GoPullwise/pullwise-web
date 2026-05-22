@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { signOut } from "../lib/auth.js";
 import { SettingsScreen } from "./issues.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -13,6 +14,10 @@ vi.mock("../api/pullwise.js", () => ({
       list: vi.fn(),
     },
   },
+}));
+
+vi.mock("../lib/auth.js", () => ({
+  signOut: vi.fn(),
 }));
 
 describe("SettingsScreen", () => {
@@ -65,5 +70,23 @@ describe("SettingsScreen", () => {
 
     expect(await screen.findByText(/read-only repository contents/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /connect repositories/i })).toBeInTheDocument();
+  });
+
+  it("exposes active sign out from the profile session settings", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: false,
+        repositories: [],
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    expect(await screen.findByText(/stay signed in for 7 days/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /sign out/i }));
+
+    expect(signOut).toHaveBeenCalledTimes(1);
   });
 });

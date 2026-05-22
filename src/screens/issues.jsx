@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { signOut } from "../lib/auth.js";
 import { useIssues, useScans } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
@@ -331,6 +332,13 @@ export function SettingsScreen({ go }) {
                     </div>
                   </div>
                   <label className="auth-field"><span>{T("Email", "邮箱")}</span><div className="auth-input"><I.Mail size={13} /><input value={user?.email || ""} readOnly /></div></label>
+                  <div className="set-pref">
+                    <div>
+                      <b>{T("Session", "会话")}</b>
+                      <div className="muted">{T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天。")}</div>
+                    </div>
+                    <button className="btn sm" onClick={signOut}>{T("Sign out", "退出登录")}</button>
+                  </div>
                 </div>
               )}
               {tab === "integrations" && (

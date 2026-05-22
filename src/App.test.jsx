@@ -1,9 +1,27 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
 import { connectGitHubRepositories, requestMagicLink, startGitHubLogin } from "./lib/auth.js";
 import { LoginScreen, OAuthScreen } from "./screens/public.jsx";
+
+vi.mock("./api/pullwise.js", () => ({
+  pullwiseApi: {
+    auth: {
+      getSession: vi.fn(),
+    },
+    repositories: {
+      list: vi.fn(),
+    },
+    scans: {
+      list: vi.fn(),
+    },
+    issues: {
+      list: vi.fn(),
+    },
+  },
+}));
 
 vi.mock("./lib/auth.js", () => ({
   startGitHubLogin: vi.fn(),
@@ -16,6 +34,10 @@ describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.history.replaceState({}, "", "/");
+    pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [] });
+    pullwiseApi.scans.list.mockResolvedValue({ items: [] });
+    pullwiseApi.issues.list.mockResolvedValue({ items: [] });
   });
 
   it("renders the normal entry", () => {
@@ -28,6 +50,30 @@ describe("App", () => {
     render(<App prototypeNav />);
 
     expect(screen.getByText("PR · Prototype")).toBeInTheDocument();
+  });
+
+  it("restores a valid session and skips login on app entry", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+    });
+  });
+
+  it("sends expired sessions back to login on private screens", async () => {
+    window.history.replaceState({}, "", "/?screen=dashboard");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({ authenticated: false });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="login"]')).toBeInTheDocument();
+    });
   });
 
   it("renders GitHub login and email magic-link UI", () => {
