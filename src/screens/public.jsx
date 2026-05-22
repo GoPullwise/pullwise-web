@@ -17,6 +17,29 @@ function getAuthErrorMessage(error) {
   );
 }
 
+function getRepositoryAuthErrorMessage(error) {
+  const message = String(error?.message || "");
+  if (error?.status === 409 || message.includes("private or not publicly visible")) {
+    return T(
+      "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.",
+      "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again."
+    );
+  }
+  if (error?.status === 503 || message.includes("Unable to verify GitHub App")) {
+    return T(
+      "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.",
+      "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available."
+    );
+  }
+  if (message.includes("Contents: read")) {
+    return T(
+      "The GitHub App must use Contents: read-only permission. Write access is not accepted.",
+      "The GitHub App must use Contents: read-only permission. Write access is not accepted."
+    );
+  }
+  return getAuthErrorMessage(error);
+}
+
 export function LandingScreen({ go, accent }) {
   useLang();
   return (
@@ -325,7 +348,7 @@ export function OAuthScreen({ go }) {
           "GitHub installation was cancelled. Please try again."
         ));
       } else {
-        setError(getAuthErrorMessage(authError));
+        setError(getRepositoryAuthErrorMessage(authError));
       }
       setAuthing(false);
     }
@@ -345,8 +368,8 @@ export function OAuthScreen({ go }) {
           <h2>{T("Connect GitHub repository access", "Connect GitHub repository access")}</h2>
           <p className="oauth-org">
             {T(
-              "Authorize repositories separately before scanning.",
-              "Authorize repositories separately before scanning."
+              "Install Pullwise on your GitHub account or organization, then choose the repositories to scan.",
+              "Install Pullwise on your GitHub account or organization, then choose the repositories to scan."
             )}
           </p>
         </div>
@@ -379,8 +402,8 @@ export function OAuthScreen({ go }) {
           <div className="oauth-perm-h">{T("Repository access", "Repository access")}</div>
           <div className="oauth-org-p">
             {T(
-              "GitHub will ask whether to grant access to all repositories or only selected ones on the next screen.",
-              "GitHub will ask whether to grant access to all repositories or only selected ones on the next screen."
+              "On GitHub, choose your personal account or organization, then grant access to all repositories or selected public/private repositories.",
+              "On GitHub, choose your personal account or organization, then grant access to all repositories or selected public/private repositories."
             )}
           </div>
         </div>

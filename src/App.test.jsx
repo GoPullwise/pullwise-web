@@ -86,4 +86,36 @@ describe("App", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/cancelled/i);
     expect(go).not.toHaveBeenCalled();
   });
+
+  it("explains owner-only GitHub App repository authorization errors", async () => {
+    const ownerOnly = Object.assign(
+      new Error("GitHub App 'gopullwise' is private or not publicly visible."),
+      { status: 409 }
+    );
+    connectGitHubRepositories.mockRejectedValueOnce(ownerOnly);
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<OAuthScreen go={go} />);
+
+    await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/public \/ any account/i);
+    expect(go).not.toHaveBeenCalled();
+  });
+
+  it("explains missing GitHub App read-only contents permission for private repositories", async () => {
+    connectGitHubRepositories.mockRejectedValueOnce(
+      new Error("GitHub App installation must grant Contents: read-only access so Pullwise can scan private repositories without write permission.")
+    );
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<OAuthScreen go={go} />);
+
+    await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/read-only permission/i);
+    expect(go).not.toHaveBeenCalled();
+  });
 });
