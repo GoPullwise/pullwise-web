@@ -65,7 +65,11 @@ export function openGitHubInstallPopup(url) {
       if (!data || data.type !== MESSAGE_TYPE) return;
       finish();
       if (data.ok) resolve();
-      else reject(new Error(data.error || "GitHub installation did not complete."));
+      else {
+        const error = new Error(data.error || "GitHub installation did not complete.");
+        error.code = data.error || "github_installation_failed";
+        reject(error);
+      }
     };
 
     const interval = window.setInterval(async () => {

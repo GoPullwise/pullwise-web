@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App.jsx";
-import { connectGitHubRepositories, requestMagicLink } from "./lib/auth.js";
+import { connectGitHubRepositories, requestMagicLink, startGitHubLogin } from "./lib/auth.js";
 import { LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./lib/auth.js", () => ({
@@ -53,6 +53,20 @@ describe("App", () => {
       expect(requestMagicLink).toHaveBeenCalledWith({ email: "dev@example.com" });
     });
     expect(screen.getByRole("status")).toHaveTextContent(/check your email/i);
+  });
+
+  it("starts GitHub login without requesting repository authorization", async () => {
+    startGitHubLogin.mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+
+    render(<LoginScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /continue with github/i }));
+
+    await waitFor(() => {
+      expect(startGitHubLogin).toHaveBeenCalledTimes(1);
+    });
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
   });
 
   it("opens GitHub install in a popup and navigates to repos on success", async () => {
@@ -116,6 +130,38 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/read-only permission/i);
+    expect(go).not.toHaveBeenCalled();
+  });
+
+  it("explains GitHub App install requests that need organization owner approval", async () => {
+    const requested = Object.assign(new Error("github_app_installation_not_completed"), {
+      code: "github_app_installation_not_completed",
+    });
+    connectGitHubRepositories.mockRejectedValueOnce(requested);
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<OAuthScreen go={go} />);
+
+    await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/organization owner/i);
+    expect(go).not.toHaveBeenCalled();
+  });
+
+  it("explains GitHub App callbacks missing installation ids", async () => {
+    const missing = Object.assign(new Error("missing_installation_id"), {
+      code: "missing_installation_id",
+    });
+    connectGitHubRepositories.mockRejectedValueOnce(missing);
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<OAuthScreen go={go} />);
+
+    await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/setup url/i);
     expect(go).not.toHaveBeenCalled();
   });
 });

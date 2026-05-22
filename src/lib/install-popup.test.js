@@ -39,4 +39,30 @@ describe("openGitHubInstallPopup", () => {
 
     await expect(completion).resolves.toBeUndefined();
   });
+
+  it("preserves backend github_error codes from popup returns", async () => {
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      focus: vi.fn(),
+    };
+    window.open.mockReturnValueOnce(popup);
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new");
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        data: {
+          type: "pullwise:github-install",
+          ok: false,
+          error: "missing_installation_id",
+        },
+      })
+    );
+
+    await expect(completion).rejects.toMatchObject({
+      code: "missing_installation_id",
+      message: "missing_installation_id",
+    });
+  });
 });

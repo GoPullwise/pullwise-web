@@ -10,7 +10,7 @@ function getScreenRedirectUrl(screen) {
 
 export async function startGitHubLogin({ redirectTo } = {}) {
   const result = await pullwiseApi.auth.getGitHubAuthorizeUrl({
-    redirectTo: redirectTo || getScreenRedirectUrl("oauth"),
+    redirectTo: redirectTo || getScreenRedirectUrl("dashboard"),
   });
 
   if (!result?.url) {
@@ -23,7 +23,7 @@ export async function startGitHubLogin({ redirectTo } = {}) {
 export async function requestMagicLink({ email, redirectTo } = {}) {
   return pullwiseApi.auth.requestMagicLink({
     email,
-    redirectTo: redirectTo || getScreenRedirectUrl("oauth"),
+    redirectTo: redirectTo || getScreenRedirectUrl("dashboard"),
   });
 }
 

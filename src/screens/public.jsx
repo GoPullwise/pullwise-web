@@ -19,6 +19,7 @@ function getAuthErrorMessage(error) {
 
 function getRepositoryAuthErrorMessage(error) {
   const message = String(error?.message || "");
+  const code = String(error?.code || "");
   if (error?.status === 409 || message.includes("private or not publicly visible")) {
     return T(
       "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.",
@@ -29,6 +30,18 @@ function getRepositoryAuthErrorMessage(error) {
     return T(
       "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.",
       "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available."
+    );
+  }
+  if (code === "github_app_installation_not_completed" || message.includes("github_app_installation_not_completed")) {
+    return T(
+      "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected.",
+      "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected."
+    );
+  }
+  if (code === "missing_installation_id" || message.includes("missing_installation_id")) {
+    return T(
+      "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again.",
+      "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again."
     );
   }
   if (message.includes("Contents: read")) {
@@ -164,7 +177,7 @@ export function LandingScreen({ go, accent }) {
       </section>
 
       <section className="lp-cta-band">
-        <h2>{T("Start with GitHub authorization.", "Start with GitHub authorization.")}</h2>
+        <h2>{T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}</h2>
         <button className="btn primary lg" onClick={() => go("login")}><I.Github /> {T("Sign in with GitHub", "Sign in with GitHub")}</button>
       </section>
 
@@ -231,8 +244,8 @@ export function LoginScreen() {
         <h2 className="auth-title">{T("Sign in to Pullwise", "Sign in to Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Use GitHub or an email magic link. First sign-in creates your account automatically.",
-            "使用 GitHub 或邮箱 Magic Link 登录。首次登录会自动创建账号。"
+            "Use GitHub or an email magic link. Repository access is requested later, when you start a scan.",
+            "使用 GitHub 或邮箱 Magic Link 登录。仓库权限会在开始扫描时再请求。"
           )}
         </p>
 
@@ -317,7 +330,7 @@ export function LoginScreen() {
           </div>
           <div className="auth-next-i">
             <span>2</span>
-            <p>{T("Then connect GitHub repositories for scanning.", "Then connect GitHub repositories for scanning.")}</p>
+            <p>{T("Connect repositories only when you start a scan.", "Connect repositories only when you start a scan.")}</p>
           </div>
         </div>
       </div>

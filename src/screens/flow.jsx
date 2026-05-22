@@ -114,7 +114,7 @@ export function ReposScreen({ go, setActiveRepo }) {
                 <div className="repo-main">
                   <div className="repo-name"><span>{T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
                   <div className="repo-desc">
-                    {T("Install or update the Pullwise GitHub App.", "安装或更新 Pullwise GitHub App。")}
+                    {T("Choose the repositories Pullwise can read for this scan.", "选择 Pullwise 可只读访问并扫描的仓库。")}
                   </div>
                 </div>
                 <I.ArrowR size={14} />
@@ -176,7 +176,7 @@ export function ReposScreen({ go, setActiveRepo }) {
           <div className="repos-foot">
             <span className="muted">
               {T("Missing a repository? ", "缺少仓库？")}
-              <a className="auth-link" onClick={() => go("oauth")}>{T("Configure GitHub App permissions", "配置 GitHub App 权限")}</a>
+              <a className="auth-link" onClick={() => go("oauth")}>{T("Manage GitHub repository access", "管理 GitHub 仓库访问权限")}</a>
             </span>
           </div>
         </div>

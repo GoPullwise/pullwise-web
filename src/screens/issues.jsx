@@ -293,6 +293,9 @@ export function SettingsScreen({ go }) {
 
   const github = integrations?.github;
   const user = session?.user;
+  const githubRepoCount = github?.repositories?.length || 0;
+  const githubAccount = github?.installationAccount ? ` on ${github.installationAccount}` : "";
+  const githubAccountZh = github?.installationAccount ? `（${github.installationAccount}）` : "";
 
   return (
     <div className="app fade-in">
@@ -332,21 +335,31 @@ export function SettingsScreen({ go }) {
               )}
               {tab === "integrations" && (
                 <div className="card section">
-                  <div className="section-h"><h3>{T("Connected integrations", "已连接集成")}</h3></div>
+                  <div className="section-h"><h3>{T("Personal authorizations", "个人授权")}</h3></div>
                   <div className="int-row">
                     <I.Github size={20} />
                     <div style={{ flex: 1 }}>
-                      <b>GitHub</b>
+                      <b>{T("GitHub repository authorization", "GitHub 仓库授权")}</b>
                       <div className="muted">
                         {github?.connected
-                          ? T(`${github.repositories?.length || 0} repositories authorized`, `${github.repositories?.length || 0} 个仓库已授权`)
-                          : T("Not connected", "未连接")}
+                          ? T(
+                              `${githubRepoCount} repositories authorized${githubAccount}`,
+                              `${githubRepoCount} 个仓库已授权${githubAccountZh}`
+                            )
+                          : T(
+                              "Connect repositories when you are ready to scan. Pullwise only requests read-only repository contents.",
+                              "准备扫描时再连接仓库。Pullwise 只请求仓库内容只读权限。"
+                            )}
                       </div>
                     </div>
                     <span className="pill sev-bg-low" style={{ background: "color-mix(in oklch, #16a34a 14%, transparent)", color: "#16a34a" }}>
                       <span className="dot"></span> {github?.connected ? T("Connected", "已连接") : T("Disconnected", "未连接")}
                     </span>
-                    <button className="btn sm" onClick={() => go("oauth")}>{T("Configure", "配置")}</button>
+                    <button className="btn sm" onClick={() => go("oauth")}>
+                      {github?.connected
+                        ? T("Manage repository access", "管理仓库访问")
+                        : T("Connect repositories", "连接仓库")}
+                    </button>
                   </div>
                 </div>
               )}
