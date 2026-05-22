@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
 import { connectGitHubRepositories, requestMagicLink, startGitHubLogin } from "./lib/auth.js";
-import { LoginScreen, OAuthScreen } from "./screens/public.jsx";
+import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({
   pullwiseApi: {
@@ -74,6 +74,14 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="login"]')).toBeInTheDocument();
     });
+  });
+
+  it("shows workspace actions on the landing page for signed-in users", () => {
+    render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: true }} />);
+
+    expect(screen.getAllByRole("button", { name: /dashboard/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /settings/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
   it("renders GitHub login and email magic-link UI", () => {

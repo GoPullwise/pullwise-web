@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { signOut } from "../lib/auth.js";
 
-function LegalChrome({ go, current, children }) {
+function LegalChrome({ go, current, children, auth }) {
   useLang();
+  const signedIn = Boolean(auth?.authenticated);
   return (
     <div className="landing fade-in">
       <header className="lp-top">
@@ -18,8 +20,17 @@ function LegalChrome({ go, current, children }) {
           <button className="btn ghost sm" onClick={() => go("status")}>{T("Status", "状态")}</button>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
-          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
+          {signedIn ? (
+            <>
+              <button className="btn sm" onClick={signOut}>{T("Sign out", "退出登录")}</button>
+              <button className="btn primary sm" onClick={() => go("dashboard")}>{T("Dashboard", "工作台")}</button>
+            </>
+          ) : (
+            <>
+              <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "登录")}</button>
+              <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "开始使用")}</button>
+            </>
+          )}
         </div>
       </header>
 
@@ -49,9 +60,9 @@ function LegalChrome({ go, current, children }) {
   );
 }
 
-function LegalDocLayout({ go, current, sections, title, subtitle, children }) {
+function LegalDocLayout({ go, current, sections, title, subtitle, children, auth }) {
   return (
-    <LegalChrome go={go} current={current}>
+    <LegalChrome go={go} current={current} auth={auth}>
       <div className="legal-shell">
         <aside className="legal-side">
           <div className="legal-side-h">{T("On this page", "本页内容")}</div>
@@ -90,7 +101,7 @@ function Section({ id, title, children }) {
   );
 }
 
-export function PrivacyScreen({ go }) {
+export function PrivacyScreen({ go, auth }) {
   useLang();
   const sections = [
     { id: "data", title: T("Data we collect", "收集的数据") },
@@ -103,6 +114,7 @@ export function PrivacyScreen({ go }) {
   return (
     <LegalDocLayout
       go={go}
+      auth={auth}
       current="privacy"
       sections={sections}
       title={T("Privacy Policy", "隐私政策")}
@@ -130,7 +142,7 @@ export function PrivacyScreen({ go }) {
   );
 }
 
-export function TermsScreen({ go }) {
+export function TermsScreen({ go, auth }) {
   useLang();
   const sections = [
     { id: "service", title: T("Service", "服务") },
@@ -143,6 +155,7 @@ export function TermsScreen({ go }) {
   return (
     <LegalDocLayout
       go={go}
+      auth={auth}
       current="terms"
       sections={sections}
       title={T("Terms of Service", "服务条款")}
@@ -167,7 +180,7 @@ export function TermsScreen({ go }) {
   );
 }
 
-export function SecurityScreen({ go }) {
+export function SecurityScreen({ go, auth }) {
   useLang();
   const controls = [
     {
@@ -193,7 +206,7 @@ export function SecurityScreen({ go }) {
   ];
 
   return (
-    <LegalChrome go={go} current="security">
+    <LegalChrome go={go} current="security" auth={auth}>
       <section className="security-hero">
         <div className="lp-hero-tag">
           <span className="dot" style={{ background: "var(--accent)" }} />
@@ -257,7 +270,7 @@ function StatusRow({ icon, title, status, detail }) {
   );
 }
 
-export function StatusScreen({ go }) {
+export function StatusScreen({ go, auth }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
   const [health, setHealth] = useState(null);
@@ -304,7 +317,7 @@ export function StatusScreen({ go }) {
     : T("Waiting for backend health.", "等待后端健康检查。");
 
   return (
-    <LegalChrome go={go} current="status">
+    <LegalChrome go={go} current="status" auth={auth}>
       <section className="status-hero">
         <div className={"status-overall " + apiStatus}>
           <span className="status-dot" />

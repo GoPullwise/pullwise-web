@@ -101,6 +101,7 @@ export function App({ prototypeNav = false }) {
   const lang = useLang();
   const [theme, setTheme] = useState(() => localStorage.getItem("pw-theme") || "light");
   const [screen, setScreen] = useState(getInitialScreen);
+  const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
   const [activeRepo, setActiveRepo] = useState(null);
   const [navOpen, setNavOpen] = useState(true);
@@ -121,6 +122,7 @@ export function App({ prototypeNav = false }) {
       .then((payload) => {
         if (cancelled) return;
         const authenticated = Boolean(payload?.authenticated);
+        setAuth({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
           if (authenticated && (current === "landing" || current === "login")) {
             return "dashboard";
@@ -133,6 +135,7 @@ export function App({ prototypeNav = false }) {
       })
       .catch(() => {
         if (cancelled) return;
+        setAuth({ status: "ready", authenticated: false, session: null });
         setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
       });
 
@@ -148,9 +151,22 @@ export function App({ prototypeNav = false }) {
   }, [theme]);
 
   let body;
-  switch (screen) {
+  if (auth.status === "checking" && !PUBLIC_SCREENS.has(screen)) {
+    body = (
+      <div className="auth-wrap fade-in">
+        <div className="auth-card">
+          <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
+            <div className="brand-mark">PR</div>
+            <span style={{ fontSize: 16 }}>Pullwise</span>
+          </div>
+          <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
+          <p className="auth-sub">{T("Restoring your workspace if this browser is still signed in.", "如果此浏览器仍保持登录，将恢复工作区。")}</p>
+        </div>
+      </div>
+    );
+  } else switch (screen) {
     case "landing":
-      body = <LandingScreen go={go} accent={ACCENT} />;
+      body = <LandingScreen go={go} accent={ACCENT} auth={auth} />;
       break;
     case "login":
       body = <LoginScreen go={go} />;
@@ -183,22 +199,22 @@ export function App({ prototypeNav = false }) {
       body = <BillingScreen go={go} />;
       break;
     case "privacy":
-      body = <PrivacyScreen go={go} />;
+      body = <PrivacyScreen go={go} auth={auth} />;
       break;
     case "terms":
-      body = <TermsScreen go={go} />;
+      body = <TermsScreen go={go} auth={auth} />;
       break;
     case "security":
-      body = <SecurityScreen go={go} />;
+      body = <SecurityScreen go={go} auth={auth} />;
       break;
     case "status":
-      body = <StatusScreen go={go} />;
+      body = <StatusScreen go={go} auth={auth} />;
       break;
     case "notfound":
-      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} />;
+      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
       break;
     default:
-      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} />;
+      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
   }
 
   return (

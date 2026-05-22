@@ -10,4 +10,12 @@ describe("legal pages", () => {
     expect(screen.queryByText(/ISO 27001/i)).not.toBeInTheDocument();
     expect(screen.getByText(/GitHub App permissions/i)).toBeInTheDocument();
   });
+
+  it("shows dashboard actions instead of sign-in actions for signed-in users", () => {
+    render(<SecurityScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(screen.getByRole("button", { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^sign in$/i })).not.toBeInTheDocument();
+  });
 });

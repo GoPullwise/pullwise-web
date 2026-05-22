@@ -4,6 +4,7 @@ import { T, useLang } from "../i18n.jsx";
 import {
   connectGitHubRepositories,
   requestMagicLink,
+  signOut,
   startGitHubLogin,
 } from "../lib/auth.js";
 
@@ -53,8 +54,9 @@ function getRepositoryAuthErrorMessage(error) {
   return getAuthErrorMessage(error);
 }
 
-export function LandingScreen({ go, accent }) {
+export function LandingScreen({ go, accent, auth }) {
   useLang();
+  const signedIn = Boolean(auth?.authenticated);
   return (
     <div className="landing fade-in">
       <header className="lp-top">
@@ -66,8 +68,17 @@ export function LandingScreen({ go, accent }) {
           <button className="btn ghost sm">{T("Product", "Product")}</button>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "Sign in")}</button>
-          <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "Get started")}</button>
+          {signedIn ? (
+            <>
+              <button className="btn sm" onClick={() => go("settings")}>{T("Settings", "Settings")}</button>
+              <button className="btn primary sm" onClick={() => go("dashboard")}>{T("Dashboard", "Dashboard")}</button>
+            </>
+          ) : (
+            <>
+              <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "Sign in")}</button>
+              <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "Get started")}</button>
+            </>
+          )}
         </div>
       </header>
 
@@ -88,9 +99,14 @@ export function LandingScreen({ go, accent }) {
           )}
         </p>
         <div className="lp-cta">
-          <button className="btn primary lg" onClick={() => go("login")}>
-            <I.Github /> {T("Sign in with GitHub", "Sign in with GitHub")}
+          <button className="btn primary lg" onClick={() => go(signedIn ? "dashboard" : "login")}>
+            {signedIn ? <I.Layout /> : <I.Github />} {signedIn ? T("Open dashboard", "Open dashboard") : T("Sign in with GitHub", "Sign in with GitHub")}
           </button>
+          {signedIn && (
+            <button className="btn lg" onClick={signOut}>
+              <I.ArrowL /> {T("Sign out", "Sign out")}
+            </button>
+          )}
         </div>
         <div className="lp-meta">
           <span><I.Check size={12} /> {T("GitHub OAuth", "GitHub OAuth")}</span>
@@ -177,8 +193,10 @@ export function LandingScreen({ go, accent }) {
       </section>
 
       <section className="lp-cta-band">
-        <h2>{T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}</h2>
-        <button className="btn primary lg" onClick={() => go("login")}><I.Github /> {T("Sign in with GitHub", "Sign in with GitHub")}</button>
+        <h2>{signedIn ? T("Continue from your workspace.", "Continue from your workspace.") : T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}</h2>
+        <button className="btn primary lg" onClick={() => go(signedIn ? "dashboard" : "login")}>
+          {signedIn ? <I.Layout /> : <I.Github />} {signedIn ? T("Open dashboard", "Open dashboard") : T("Sign in with GitHub", "Sign in with GitHub")}
+        </button>
       </section>
 
       <footer className="lp-foot">

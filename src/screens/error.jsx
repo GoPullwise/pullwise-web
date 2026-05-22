@@ -3,13 +3,20 @@
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 
-export function NotFoundScreen({ go, requested }) {
+export function NotFoundScreen({ go, requested, auth }) {
   useLang();
-  const suggestions = [
-    { k: "dashboard", t: T("Dashboard", "Dashboard"), d: T("Workspace overview", "工作区总览"), i: <I.Layout size={14} /> },
-    { k: "issues",    t: T("Issues", "问题列表"),     d: T("All findings across repos", "所有仓库的扫描结果"), i: <I.Bug size={14} /> },
-    { k: "landing",   t: T("Home", "首页"),           d: T("Back to the Pullwise landing page", "回到 Pullwise 主页"), i: <I.ArrowL size={14} /> },
-  ];
+  const signedIn = Boolean(auth?.authenticated);
+  const suggestions = signedIn
+    ? [
+        { k: "dashboard", t: T("Dashboard", "Dashboard"), d: T("Workspace overview", "工作区总览"), i: <I.Layout size={14} /> },
+        { k: "issues",    t: T("Issues", "问题列表"),     d: T("All findings across repos", "所有仓库的扫描结果"), i: <I.Bug size={14} /> },
+        { k: "landing",   t: T("Home", "首页"),           d: T("Back to the Pullwise landing page", "回到 Pullwise 主页"), i: <I.ArrowL size={14} /> },
+      ]
+    : [
+        { k: "landing", t: T("Home", "首页"), d: T("Back to the Pullwise landing page", "回到 Pullwise 主页"), i: <I.ArrowL size={14} /> },
+        { k: "login",   t: T("Sign in", "登录"), d: T("Restore your workspace session", "恢复你的工作区会话"), i: <I.User size={14} /> },
+        { k: "status",  t: T("Status", "状态"), d: T("Check backend availability", "检查后端可用性"), i: <I.Activity size={14} /> },
+      ];
 
   return (
     <div className="notfound-shell fade-in">
