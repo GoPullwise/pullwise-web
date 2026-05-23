@@ -211,7 +211,7 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
           <div className="repos-foot">
             <span className="muted">
               {T("Missing a repository? ", "缺少仓库？")}
-              <a className="auth-link" onClick={() => connectRepositories({ add: true })}>{T("Add GitHub account or organization", "添加 GitHub 账号或组织")}</a>
+              <button type="button" className="auth-link" onClick={() => connectRepositories({ add: true })}>{T("Add GitHub account or organization", "添加 GitHub 账号或组织")}</button>
             </span>
           </div>
         </div>
