@@ -20,6 +20,33 @@ vi.mock("../lib/pullwise-data.js", () => ({
 import { useScanRun } from "../lib/pullwise-data.js";
 
 describe("ScanningScreen queue state", () => {
+  it("passes the active repository scan request id to the scan runner", () => {
+    useScanRun.mockReturnValue({
+      scan: null,
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+          scanRequestId: "scan_req_1",
+        }}
+      />
+    );
+
+    expect(useScanRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "octocat/private-repo",
+        branch: "main",
+        requestId: "scan_req_1",
+      })
+    );
+  });
+
   it("explains queued scans with queue position and capacity limits", () => {
     useScanRun.mockReturnValue({
       scan: {
