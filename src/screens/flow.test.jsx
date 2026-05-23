@@ -148,6 +148,35 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("history");
   });
 
+  it("groups scan header actions in one aligned control row", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        progress: 35,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const back = screen.getByRole("button", { name: /back/i });
+    const cancel = screen.getByRole("button", { name: /cancel/i });
+    const actionGroup = back.closest(".scanning-actions");
+
+    expect(actionGroup).not.toBeNull();
+    expect(cancel.closest(".scanning-actions")).toBe(actionGroup);
+  });
+
   it("explains queued scans with queue position and capacity limits", () => {
     useScanRun.mockReturnValue({
       scan: {

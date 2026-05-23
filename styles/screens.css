@@ -435,6 +435,8 @@
 .scanning { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
 .scanning-card { padding: 24px; }
 .scanning-h { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.scanning-copy { min-width: 0; flex: 1 1 auto; }
+.scanning-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 0 0 auto; margin-left: auto; }
 .scanning-icon {
   width: 40px; height: 40px;
   border-radius: 10px;
@@ -1424,8 +1426,13 @@
 @media (max-width: 900px) {
   .scanning { grid-template-columns: minmax(0, 1fr); }
   .scanning-h { align-items: flex-start; flex-wrap: wrap; }
-  .scanning-h > div:nth-child(2) { min-width: 0; flex: 1 1 220px; }
-  .scanning-h .btn { margin-left: 54px; }
+  .scanning-copy { flex: 1 1 calc(100% - 54px); }
+  .scanning-actions {
+    flex: 0 0 calc(100% - 54px);
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-left: 54px;
+  }
   .diff-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -1740,9 +1747,14 @@
     gap: 4px;
   }
 
-  .scanning-h .btn {
+  .scanning-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .scanning-actions .btn {
+    justify-content: flex-start;
     width: 100%;
-    margin-left: 54px;
   }
 
   .status-overall,

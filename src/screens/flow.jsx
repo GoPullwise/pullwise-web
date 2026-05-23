@@ -314,7 +314,7 @@ export function ScanningScreen({ go, activeRepo }) {
           <div className="scanning-card card">
             <div className="scanning-h">
               <div className="scanning-icon">{headerIcon}</div>
-              <div>
+              <div className="scanning-copy">
                 <div className="scanning-title">
                   {status === "queued" ? T("Scan queued", "Scan queued") : headerLabel} <b>{scan?.repo || repoFullName || "—"}</b>
                 </div>
@@ -327,13 +327,13 @@ export function ScanningScreen({ go, activeRepo }) {
                   {scan?.id && <> · <span className="tag">{scan.id}</span></>}
                 </div>
               </div>
-              <div className="actions">
+              <div className="scanning-actions">
                 <button className="btn ghost" onClick={handleBack}>
                   <I.ArrowL size={13} /> {T("Back", "返回")}
                 </button>
                 {!terminal && scan && (
                   <button className="btn ghost" onClick={handleCancel}>
-                    {T("Cancel", "取消")}
+                    <I.X size={13} /> {T("Cancel", "取消")}
                   </button>
                 )}
               </div>
