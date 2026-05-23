@@ -52,7 +52,7 @@ describe("App", () => {
     expect(screen.getByText("PR · Prototype")).toBeInTheDocument();
   });
 
-  it("restores a valid session and skips login on app entry", async () => {
+  it("restores a valid session without leaving the landing page", async () => {
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -61,7 +61,21 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+      expect(document.querySelector('[data-screen-label="landing"]')).toBeInTheDocument();
+    });
+  });
+
+  it("sends authenticated users on the login screen back to the landing page", async () => {
+    window.history.replaceState({}, "", "/?screen=login");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="landing"]')).toBeInTheDocument();
     });
   });
 
@@ -136,6 +150,23 @@ describe("App", () => {
     await waitFor(() => {
       expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
       expect(go).toHaveBeenCalledWith("repos");
+    });
+  });
+
+  it("returns authenticated users from repository authorization back to repositories", async () => {
+    window.history.replaceState({}, "", "/?screen=oauth");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /back/i }));
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="repos"]')).toBeInTheDocument();
     });
   });
 
@@ -217,5 +248,35 @@ describe("App", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/setup url/i);
     expect(go).not.toHaveBeenCalled();
+  });
+
+  it("explains when the backend cannot sync GitHub App repositories", async () => {
+    const unavailable = Object.assign(new Error("github_app_api_unconfigured"), {
+      code: "github_app_api_unconfigured",
+    });
+    connectGitHubRepositories.mockRejectedValueOnce(unavailable);
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<OAuthScreen go={go} />);
+
+    await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/private key/i);
+    expect(go).not.toHaveBeenCalled();
+  });
+
+  it("uses the full-width repository row layout for the GitHub connection prompt", async () => {
+    window.history.replaceState({}, "", "/?screen=repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+
+    render(<App />);
+
+    const title = await screen.findByText("Connect GitHub repositories");
+    expect(title.closest(".repo-row")).toHaveClass("repo-row-status");
   });
 });

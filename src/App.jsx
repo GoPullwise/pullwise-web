@@ -124,8 +124,8 @@ export function App({ prototypeNav = false }) {
         const authenticated = Boolean(payload?.authenticated);
         setAuth({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
-          if (authenticated && (current === "landing" || current === "login")) {
-            return "dashboard";
+          if (authenticated && current === "login") {
+            return "landing";
           }
           if (!authenticated && !PUBLIC_SCREENS.has(current)) {
             return "login";
@@ -172,7 +172,7 @@ export function App({ prototypeNav = false }) {
       body = <LoginScreen go={go} />;
       break;
     case "oauth":
-      body = <OAuthScreen go={go} />;
+      body = <OAuthScreen go={go} auth={auth} />;
       break;
     case "repos":
       body = <ReposScreen go={go} setActiveRepo={setActiveRepo} />;
