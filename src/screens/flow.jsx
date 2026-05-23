@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { isTerminalScan, useRepositories, useScanRun } from "../lib/pullwise-data.js";
+import { isTerminalScan, scanQueueSummary, useRepositories, useScanRun } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function repoOwner(repo) {
@@ -109,7 +109,7 @@ export function ReposScreen({ go, setActiveRepo }) {
 
           <div className="repos-list">
             {needsAuthorization && (
-              <div className="repo-row" onClick={() => go("oauth")}>
+              <div className="repo-row repo-row-status" onClick={() => go("oauth")}>
                 <div className="repo-icon"><I.Github size={16} /></div>
                 <div className="repo-main">
                   <div className="repo-name"><span>{T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
@@ -121,7 +121,7 @@ export function ReposScreen({ go, setActiveRepo }) {
               </div>
             )}
             {error && (
-              <div className="repo-row">
+              <div className="repo-row repo-row-status">
                 <div className="repo-icon"><I.X size={16} /></div>
                 <div className="repo-main">
                   <div className="repo-name"><span>{T("Unable to load repositories", "无法加载仓库")}</span></div>
@@ -130,7 +130,7 @@ export function ReposScreen({ go, setActiveRepo }) {
               </div>
             )}
             {loading && (
-              <div className="repo-row">
+              <div className="repo-row repo-row-status">
                 <div className="repo-icon"><span className="spin" style={{ display: "inline-block" }}><I.Refresh size={16} /></span></div>
                 <div className="repo-main">
                   <div className="repo-name"><span>{T("Loading repositories", "正在加载仓库")}</span></div>
@@ -139,7 +139,7 @@ export function ReposScreen({ go, setActiveRepo }) {
               </div>
             )}
             {!loading && !error && !needsAuthorization && repos.length === 0 && (
-              <div className="repo-row">
+              <div className="repo-row repo-row-status">
                 <div className="repo-icon"><I.Folder size={16} /></div>
                 <div className="repo-main">
                   <div className="repo-name"><span>{T("No authorized repositories", "没有已授权仓库")}</span></div>
@@ -229,6 +229,7 @@ export function ScanningScreen({ go, activeRepo }) {
   const phaseIdx = currentPhase ? SCAN_PHASES.findIndex((p) => p.k === currentPhase) : -1;
   const found = scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
   const terminal = isTerminalScan(scan);
+  const queueSummary = scanQueueSummary(scan);
 
   const handleCancel = async () => {
     if (scan && !terminal) await cancel();
@@ -260,7 +261,7 @@ export function ScanningScreen({ go, activeRepo }) {
               <div className="scanning-icon">{headerIcon}</div>
               <div>
                 <div className="scanning-title">
-                  {headerLabel} <b>{scan?.repo || repoFullName || "—"}</b>
+                  {status === "queued" ? T("Scan queued", "Scan queued") : headerLabel} <b>{scan?.repo || repoFullName || "—"}</b>
                 </div>
                 <div className="scanning-sub">
                   {T("branch ", "分支 ")}
@@ -295,6 +296,15 @@ export function ScanningScreen({ go, activeRepo }) {
                 </span>
               </div>
             </div>
+
+            {status === "queued" && queueSummary && (
+              <div className="scanning-queue">
+                {queueSummary.message && <div className="scanning-queue-message">{queueSummary.message}</div>}
+                <div className="scanning-queue-meta">
+                  {queueSummary.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}
+                </div>
+              </div>
+            )}
 
             <div className="scanning-phases">
               {SCAN_PHASES.map((p, i) => {

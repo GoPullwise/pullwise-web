@@ -3,7 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { signOut } from "../lib/auth.js";
-import { useIssues, useScans } from "../lib/pullwise-data.js";
+import { scanQueueSummary, useIssues, useScans } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
@@ -22,6 +22,16 @@ function sortIssues(items, key) {
 function issueTotal(scan) {
   if (!scan?.issues) return 0;
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
+}
+
+function scanHistorySummary(scan) {
+  const queueSummary = scanQueueSummary(scan);
+  if (scan.status === "queued" && queueSummary) {
+    const queueTags = queueSummary.tags.filter((tag) => !tag.startsWith("Global") && !tag.startsWith("Per user"));
+    return ["queued", ...queueTags].join(" - ");
+  }
+  if (scan.issues) return T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} issues`);
+  return scan.status;
 }
 
 export function IssuesScreen({ go, setIssue }) {
@@ -248,9 +258,14 @@ export function HistoryScreen({ go }) {
                     <span className="tag"><I.GitBranch size={10} /> {scan.branch}</span>
                     <span className="tag">{scan.commit}</span>
                   </div>
-                  <div className="muted">
+                  {scan.status === "queued" && scanQueueSummary(scan) && (
+                    <div className="muted">{scanHistorySummary(scan)}</div>
+                  )}
+                  {!(scan.status === "queued" && scanQueueSummary(scan)) && (
+                    <div className="muted">
                     {scan.issues ? T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} 个问题`) : scan.status}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 <div className="hist-meta">
                   <div>{scan.time}</div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 
 function itemsFrom(payload, ...keys) {
@@ -117,22 +117,63 @@ export function useIssues() {
   return { ...state, reload: load };
 }
 
-export function useScans() {
+const ACTIVE_SCAN_STATUSES = new Set(["queued", "running"]);
+
+export function isActiveScan(scan) {
+  return Boolean(scan && ACTIVE_SCAN_STATUSES.has(scan.status));
+}
+
+function scanCountLabel(count) {
+  return `${count} scan${count === 1 ? "" : "s"}`;
+}
+
+export function scanQueueSummary(scan) {
+  const queue = scan?.queue;
+  if (!queue) return null;
+
+  const tags = [];
+  if (queue.position) tags.push(`Position ${queue.position}`);
+  if (typeof queue.ahead === "number") {
+    tags.push(`${scanCountLabel(queue.ahead)} ahead`);
+  }
+  if (queue.limits?.global) tags.push(`Global ${queue.limits.global}`);
+  if (queue.limits?.perUser) tags.push(`Per user ${queue.limits.perUser}`);
+
+  return {
+    message: queue.message || "",
+    tags,
+  };
+}
+
+export function useScans({ pollIntervalMs = 1500 } = {}) {
   const [state, setState] = useState({ items: [], loading: true, error: "" });
 
-  const load = async () => {
-    setState((current) => ({ ...current, loading: true, error: "" }));
+  const load = useCallback(async ({ quiet = false } = {}) => {
+    setState((current) => ({ ...current, loading: quiet ? current.loading : true, error: "" }));
     try {
       const payload = await pullwiseApi.scans.list();
       setState({ items: itemsFrom(payload, "items", "scans").map(normalizeScan), loading: false, error: "" });
     } catch (error) {
-      setState({ items: [], loading: false, error: error?.message || "Unable to load scans." });
+      const message = error?.message || "Unable to load scans.";
+      setState((current) => ({
+        items: quiet ? current.items : [],
+        loading: false,
+        error: message,
+      }));
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
+
+  useEffect(() => {
+    if (!state.items.some(isActiveScan)) return undefined;
+    const handle = setTimeout(() => {
+      load({ quiet: true });
+    }, pollIntervalMs);
+    return () => clearTimeout(handle);
+  }, [state.items, load, pollIntervalMs]);
 
   return { ...state, reload: load };
 }
