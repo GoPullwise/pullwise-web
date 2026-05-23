@@ -4,7 +4,6 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 `F:\pullwise-server`. The active app surfaces only server-backed flows:
 
 - GitHub identity login through the backend OAuth endpoint
-- Email magic-link login through the backend email endpoint
 - GitHub App repository authorization
 - Repository listing and sync
 - Scan creation, polling, cancellation, and history
@@ -54,9 +53,9 @@ Only `VITE_*` variables are exposed to browser code. Do not put GitHub client
 secrets, GitHub App private keys, AI provider keys, or repository credentials in
 frontend env files.
 
-The Python API now requires real GitHub OAuth/App and SMTP configuration for
-production login flows. Explicit local auth/dev magic-link switches live in
-`F:\pullwise-server`; they are not enabled by the frontend.
+The Python API now requires real GitHub OAuth/App configuration for production
+login flows. Explicit local auth switches live in `F:\pullwise-server`; they are
+not enabled by the frontend.
 
 ## Useful Commands
 
@@ -107,9 +106,9 @@ The recommended production topology is:
 - `pullwise-server` runs on a separate VM/container/server platform.
 - The Pages Function proxies same-origin browser requests from `/api/*` to the backend origin.
 
-This keeps browser API calls, session cookies, GitHub OAuth callbacks, and email
-magic-link callbacks on the frontend domain. The Pages Function is only a proxy;
-it does not run repository scans, Git, SQLite, or Codex.
+This keeps browser API calls, session cookies, and GitHub OAuth callbacks on the
+frontend domain. The Pages Function is only a proxy; it does not run repository
+scans, Git, SQLite, or Codex.
 
 Cloudflare references:
 
@@ -155,9 +154,9 @@ PULLWISE_ALLOWED_ORIGINS=https://app.your-domain.com
 PULLWISE_API_BASE_URL=https://app.your-domain.com/api
 ```
 
-`PULLWISE_API_BASE_URL` is important: GitHub OAuth, GitHub App setup callbacks,
-and email magic links must return through `/api` so the browser receives the
-session cookie on `app.your-domain.com`.
+`PULLWISE_API_BASE_URL` is important: GitHub OAuth and GitHub App setup
+callbacks must return through `/api` so the browser receives the session cookie
+on `app.your-domain.com`.
 
 If you cannot set a fixed public API base URL, the Pages Function sends
 `X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-Prefix: /api`. In that
@@ -229,5 +228,5 @@ https://app.your-domain.com/api/health
 ```
 
 The health response should come from `pullwise-server`. Then test GitHub login,
-email magic-link login, GitHub repository authorization, checkout creation, and
-the billing portal using the production URLs above.
+GitHub repository authorization, checkout creation, and the billing portal using
+the production URLs above.

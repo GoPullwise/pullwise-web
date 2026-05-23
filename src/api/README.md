@@ -5,7 +5,6 @@ This folder is the browser-side integration boundary for the Pullwise server.
 Currently wired backend responsibilities:
 
 - GitHub identity login
-- Email magic-link login
 - GitHub repository authorization through the GitHub App flow
 - Repository listing and sync
 - Scan creation, polling, cancellation, and history
