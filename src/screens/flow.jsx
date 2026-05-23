@@ -12,6 +12,13 @@ function repoOwner(repo) {
   return fullName.includes("/") ? fullName.split("/")[0] : "";
 }
 
+function makeScanRequestId() {
+  if (globalThis.crypto?.randomUUID) {
+    return `scan_req_${globalThis.crypto.randomUUID()}`;
+  }
+  return `scan_req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
 export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearAuthorizationError = () => {} }) {
   useLang();
   const [q, setQ] = useState("");
@@ -72,7 +79,7 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
   const startScan = () => {
     const repo = availableRepos.find((item) => item.id === selected[0]);
     if (!repo) return;
-    setActiveRepo(repo);
+    setActiveRepo({ ...repo, scanRequestId: makeScanRequestId() });
     go("scanning");
   };
 
@@ -240,8 +247,9 @@ export function ScanningScreen({ go, activeRepo }) {
   const [logs, setLogs] = useState([]);
   const repoFullName = activeRepo?.fullName || activeRepo?.name || "";
   const branch = activeRepo?.defaultBranch || "main";
+  const requestId = activeRepo?.scanRequestId || "";
 
-  const { scan, error, cancel } = useScanRun({ repo: repoFullName, branch });
+  const { scan, error, cancel } = useScanRun({ repo: repoFullName, branch, requestId });
 
   // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
