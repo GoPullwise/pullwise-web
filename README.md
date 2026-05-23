@@ -45,7 +45,7 @@ Create `.env.local`:
 
 ```text
 VITE_APP_URL=http://localhost:5173
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:8080
 VITE_GITHUB_APP_SLUG=pullwise
 ```
 

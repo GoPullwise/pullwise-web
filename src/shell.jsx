@@ -172,35 +172,41 @@ export function Sidebar({ section, go }) {
   ];
   return (
     <aside className="side">
-      <div className="side-h">{T("Workspace", "工作区")}</div>
-      <button className="side-i">
-        <div style={{ width: 18, height: 18, borderRadius: 4, background: "linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, #000))", display: "grid", placeItems: "center", color: "#fff", fontSize: 9, fontWeight: 700 }}>P</div>
-        <span>Pullwise</span>
-        <I.ChevD size={13} style={{ marginLeft: "auto", opacity: 0.6 }} />
-      </button>
+      <div className="side-group side-workspace">
+        <div className="side-h">{T("Workspace", "工作区")}</div>
+        <button className="side-i side-workspace-i">
+          <div style={{ width: 18, height: 18, borderRadius: 4, background: "linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, #000))", display: "grid", placeItems: "center", color: "#fff", fontSize: 9, fontWeight: 700 }}>P</div>
+          <span>Pullwise</span>
+          <I.ChevD size={13} style={{ marginLeft: "auto", opacity: 0.6 }} />
+        </button>
+      </div>
 
-      <div className="side-h" style={{ marginTop: 6 }}>{T("Navigation", "导航")}</div>
-      {items.map((item) => (
-        <button key={item.k} className={"side-i" + (section === item.k ? " active" : "")} onClick={() => go(item.k)}>
-          <div className="ic">{item.icon}</div>
-          <span>{item.label}</span>
-          {item.badge != null && <span className="badge">{item.badge}</span>}
-        </button>
-      ))}
+      <div className="side-group side-nav" aria-label={T("Navigation", "导航")}>
+        <div className="side-h" style={{ marginTop: 6 }}>{T("Navigation", "导航")}</div>
+        {items.map((item) => (
+          <button key={item.k} className={"side-i" + (section === item.k ? " active" : "")} onClick={() => go(item.k)}>
+            <div className="ic">{item.icon}</div>
+            <span>{item.label}</span>
+            {item.badge != null && <span className="badge">{item.badge}</span>}
+          </button>
+        ))}
+      </div>
 
-      <div className="side-h" style={{ marginTop: 6 }}>{T("Authorized repos", "已授权仓库")}</div>
-      {repos.slice(0, 3).map((repo) => (
-        <button key={repo.id} className="side-i" onClick={() => go("repos")}>
-          <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--accent)", marginLeft: 4, marginRight: 4 }}></span>
-          <span style={{ fontSize: 12.5 }}>{repo.name}</span>
-        </button>
-      ))}
-      {repos.length === 0 && (
-        <button className="side-i" onClick={connectRepositories} disabled={connecting}>
-          {connecting ? <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span> : <I.Github size={14} />}
-          <span style={{ fontSize: 12.5 }}>{connecting ? T("Opening GitHub...", "Opening GitHub...") : T("Connect GitHub", "连接 GitHub")}</span>
-        </button>
-      )}
+      <div className="side-group side-repos">
+        <div className="side-h" style={{ marginTop: 6 }}>{T("Authorized repos", "已授权仓库")}</div>
+        {repos.slice(0, 3).map((repo) => (
+          <button key={repo.id} className="side-i side-repo-i" onClick={() => go("repos")}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--accent)", marginLeft: 4, marginRight: 4 }}></span>
+            <span style={{ fontSize: 12.5 }}>{repo.name}</span>
+          </button>
+        ))}
+        {repos.length === 0 && (
+          <button className="side-i side-repo-i" onClick={connectRepositories} disabled={connecting}>
+            {connecting ? <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span> : <I.Github size={14} />}
+            <span style={{ fontSize: 12.5 }}>{connecting ? T("Opening GitHub...", "Opening GitHub...") : T("Connect GitHub", "连接 GitHub")}</span>
+          </button>
+        )}
+      </div>
 
     </aside>
   );

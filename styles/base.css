@@ -242,6 +242,7 @@ input, textarea { font: inherit; color: inherit; }
   display: flex; flex-direction: column; gap: 2px;
   background: var(--bg);
 }
+.side-group { display: contents; }
 .side-h { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; color: var(--text-3); text-transform: uppercase; padding: 12px 10px 6px; }
 .side-i {
   display: flex; align-items: center; gap: 10px;
@@ -386,10 +387,17 @@ input, textarea { font: inherit; color: inherit; }
     overflow-y: hidden;
   }
 
-  .side-h,
-  .side > .side-i:first-of-type,
-  .side > .side-i:nth-of-type(n+8) {
+  .side-workspace,
+  .side-repos,
+  .side-h {
     display: none;
+  }
+
+  .side-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
   }
 
   .side-i {
