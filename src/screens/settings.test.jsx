@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { signOut } from "../lib/auth.js";
+import { connectGitHubRepositories, signOut } from "../lib/auth.js";
 import { SettingsScreen } from "./issues.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -17,6 +17,7 @@ vi.mock("../api/pullwise.js", () => ({
 }));
 
 vi.mock("../lib/auth.js", () => ({
+  connectGitHubRepositories: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -37,6 +38,7 @@ describe("SettingsScreen", () => {
         repositories: ["octocat/private-repo"],
       },
     });
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
     const go = vi.fn();
     const user = userEvent.setup();
 
@@ -51,8 +53,9 @@ describe("SettingsScreen", () => {
     await user.click(screen.getByRole("button", { name: /manage repository access/i }));
 
     await waitFor(() => {
-      expect(go).toHaveBeenCalledWith("oauth");
+      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
     });
+    expect(go).not.toHaveBeenCalledWith("oauth");
   });
 
   it("explains that repository contents are read-only before connecting GitHub", async () => {
