@@ -59,6 +59,23 @@ describe("SettingsScreen", () => {
     expect(go).not.toHaveBeenCalledWith("oauth");
   });
 
+  it("summarizes multiple GitHub App installation accounts", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: true,
+        installationAccounts: ["octocat", "acme"],
+        repositories: ["octocat/private-repo", "acme/service"],
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /integrations/i }));
+
+    expect(await screen.findByText(/2 repositories authorized on octocat, acme/i)).toBeInTheDocument();
+  });
+
   it("explains that repository contents are read-only before connecting GitHub", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {

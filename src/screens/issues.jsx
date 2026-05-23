@@ -311,7 +311,11 @@ export function SettingsScreen({ go }) {
   const github = integrations?.github;
   const user = session?.user;
   const githubRepoCount = github?.repositories?.length || 0;
-  const githubAccount = github?.installationAccount ? ` on ${github.installationAccount}` : "";
+  const githubAccountNames = Array.from(new Set([
+    ...(Array.isArray(github?.installationAccounts) ? github.installationAccounts : []),
+    github?.installationAccount,
+  ].filter(Boolean)));
+  const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
   const authorizeRepositories = async () => {
     setIntegrationError("");
     try {
@@ -321,7 +325,7 @@ export function SettingsScreen({ go }) {
       setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
     }
   };
-  const githubAccountZh = github?.installationAccount ? `（${github.installationAccount}）` : "";
+  const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
 
   return (
     <div className="app fade-in">
