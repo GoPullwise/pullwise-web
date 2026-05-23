@@ -23,9 +23,9 @@ describe("api proxy", () => {
 
     await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
-      request: new Request("https://app.pullwise.dev/api/auth/email/magic-link", {
+      request: new Request("https://app.pullwise.dev/api/auth/github/authorize", {
         method: "POST",
-        body: JSON.stringify({ email: "dev@example.com" }),
+        body: JSON.stringify({ ok: true }),
         headers: { "Content-Type": "application/json" },
       }),
     });

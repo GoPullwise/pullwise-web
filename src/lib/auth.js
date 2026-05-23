@@ -56,13 +56,6 @@ export async function startGitHubLogin({ redirectTo } = {}) {
   window.location.assign(result.url);
 }
 
-export async function requestMagicLink({ email, redirectTo } = {}) {
-  return pullwiseApi.auth.requestMagicLink({
-    email,
-    redirectTo: redirectTo || getScreenRedirectUrl("landing"),
-  });
-}
-
 export async function connectGitHubRepositories({ redirectTo, manage = false } = {}) {
   const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
   let result;

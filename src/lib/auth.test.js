@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
   connectGitHubRepositories,
-  requestMagicLink,
   startGitHubLogin,
 } from "./auth.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
@@ -11,7 +10,6 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     auth: {
       getGitHubAuthorizeUrl: vi.fn(),
-      requestMagicLink: vi.fn(),
       signOut: vi.fn(),
     },
     integrations: {
@@ -49,14 +47,6 @@ describe("auth redirects", () => {
     await expect(startGitHubLogin()).rejects.toThrow("stop");
 
     expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("landing");
-  });
-
-  it("returns from email magic links to the landing page", async () => {
-    pullwiseApi.auth.requestMagicLink.mockResolvedValueOnce({ ok: true });
-
-    await requestMagicLink({ email: "dev@example.com" });
-
-    expect(redirectScreen(pullwiseApi.auth.requestMagicLink.mock.calls[0])).toBe("landing");
   });
 
   it("keeps repository authorization scoped to the repositories flow", async () => {

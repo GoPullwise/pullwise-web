@@ -14,8 +14,6 @@ export const pullwiseApi = {
     signOut: () => request("/auth/sign-out", { method: "POST" }),
     getGitHubAuthorizeUrl: (params = {}) =>
       request(withSearchParams("/auth/github/authorize", params)),
-    requestMagicLink: (payload) =>
-      request("/auth/email/magic-link", { method: "POST", body: payload }),
   },
 
   repositories: {

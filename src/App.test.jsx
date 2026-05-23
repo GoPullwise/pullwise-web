@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
-import { connectGitHubRepositories, requestMagicLink, startGitHubLogin } from "./lib/auth.js";
+import { connectGitHubRepositories, startGitHubLogin } from "./lib/auth.js";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({
@@ -27,7 +27,6 @@ vi.mock("./api/pullwise.js", () => ({
 vi.mock("./lib/auth.js", () => ({
   startGitHubLogin: vi.fn(),
   connectGitHubRepositories: vi.fn(),
-  requestMagicLink: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -100,29 +99,14 @@ describe("App", () => {
     expect(screen.queryByRole("button", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
-  it("renders GitHub login and email magic-link UI", () => {
+  it("renders GitHub-only login UI", () => {
     render(<LoginScreen go={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: /continue with github/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /email me a magic link/i })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("you@company.com")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /email me a magic link/i })).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("you@company.com")).not.toBeInTheDocument();
     expect(screen.queryByText("Password")).not.toBeInTheDocument();
     expect(screen.queryByText("Create account")).not.toBeInTheDocument();
-  });
-
-  it("requests an email magic link", async () => {
-    requestMagicLink.mockResolvedValueOnce({ ok: true, sent: true });
-    const user = userEvent.setup();
-
-    render(<LoginScreen go={vi.fn()} />);
-
-    await user.type(screen.getByPlaceholderText("you@company.com"), "dev@example.com");
-    await user.click(screen.getByRole("button", { name: /email me a magic link/i }));
-
-    await waitFor(() => {
-      expect(requestMagicLink).toHaveBeenCalledWith({ email: "dev@example.com" });
-    });
-    expect(screen.getByRole("status")).toHaveTextContent(/check your email/i);
   });
 
   it("starts GitHub login without requesting repository authorization", async () => {
