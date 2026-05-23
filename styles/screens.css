@@ -775,6 +775,23 @@
 .bill-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-soft); border-radius: 8px; }
 .usage-bar { height: 6px; background: var(--bg-soft); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
 .usage-bar > div { height: 100%; background: var(--accent); border-radius: 999px; }
+.billing-summary { gap: 18px; align-items: center; }
+.billing-summary-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.billing-summary-main b { font-size: 13.5px; }
+.billing-summary-main .muted { font-size: 12px; margin-top: 3px; }
+.billing-summary-meter { display: grid; grid-template-columns: minmax(120px, 220px) auto; align-items: center; gap: 10px; }
+.billing-pricing.pricing-tiers {
+  max-width: none;
+  padding: 4px 0 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.billing-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.billing-actions .btn { flex: 1 1 auto; justify-content: center; }
+@media (max-width: 720px) {
+  .billing-pricing.pricing-tiers { grid-template-columns: 1fr; }
+  .billing-summary { flex-direction: column; align-items: stretch; }
+  .billing-summary-meter { grid-template-columns: 1fr auto; }
+}
 
 /* ── Pricing ──────────────────────────────────────────────── */
 .pricing-hero {

@@ -59,4 +59,31 @@ describe("useScans", () => {
       });
     });
   });
+
+  it("monitors an existing scan by id without creating a new scan", async () => {
+    pullwiseApi.scans.get.mockResolvedValue({
+      id: "sc_running",
+      repo: "owner/repo",
+      branch: "main",
+      status: "done",
+    });
+
+    renderHook(() =>
+      useScanRun({
+        scanId: "sc_running",
+        initialScan: {
+          id: "sc_running",
+          repo: "owner/repo",
+          branch: "main",
+          status: "queued",
+        },
+        pollIntervalMs: 25,
+      })
+    );
+
+    await waitFor(() => {
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_running");
+    });
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -17,9 +17,45 @@ function billingReturnUrl(kind) {
   return url.toString();
 }
 
+function planById(payload, id) {
+  return (payload?.plans || []).find((plan) => plan.id === id) || null;
+}
+
+function priceFor(plan, interval) {
+  return plan?.prices?.[interval] || plan?.prices?.month || null;
+}
+
+function priceLabel(price) {
+  if (!price) return T("Configured in provider", "Configured in provider");
+  const amount = String(price.amount ?? "");
+  if (amount === "0") return "$0";
+  return `${currencySymbol(price.currency)}${amount}`;
+}
+
+function currencySymbol(currency) {
+  return String(currency || "USD").toUpperCase() === "USD" ? "$" : `${currency || "USD"} `;
+}
+
+function isActiveStatus(status) {
+  return ["active", "trialing", "canceling"].includes(String(status || "").toLowerCase());
+}
+
+function usagePercent(usage) {
+  const limit = Number(usage?.limit || 0);
+  if (!limit) return 0;
+  return Math.min(100, Math.max(0, (Number(usage?.used || 0) / limit) * 100));
+}
+
+function usageText(usage) {
+  const used = Number(usage?.used || 0);
+  const limit = Number(usage?.limit || 0);
+  return `${used} / ${limit} reviews used`;
+}
+
 export function BillingScreen({ go, navigate = (url) => window.location.assign(url) }) {
   useLang();
   const [plan, setPlan] = useState(null);
+  const [interval, setInterval] = useState("month");
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState("");
 
@@ -27,10 +63,10 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     let cancelled = false;
     pullwiseApi.billing.getPlan()
       .then((payload) => {
-        if (!cancelled) {
-          setPlan(payload);
-          setError("");
-        }
+        if (cancelled) return;
+        setPlan(payload);
+        if ((payload?.account?.interval || "") === "year") setInterval("year");
+        setError("");
       })
       .catch((err) => {
         if (!cancelled) setError(err?.message || "Unable to load billing.");
@@ -40,11 +76,47 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     };
   }, []);
 
+  const freePlan = useMemo(() => planById(plan, "free") || {
+    id: "free",
+    name: "Free",
+    description: "Try Pullwise with a small monthly review allowance.",
+    reviewLimit: 5,
+    prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
+  }, [plan]);
+  const proPlan = useMemo(() => planById(plan, "pro") || {
+    id: "pro",
+    name: plan?.name || "Pullwise Pro",
+    description: plan?.description || "Repository review for production teams.",
+    reviewLimit: 100,
+    prices: {
+      month: { amount: plan?.amount || "29", currency: plan?.currency || "USD", interval: "month", configured: plan?.enabled },
+      year: { amount: "290", currency: plan?.currency || "USD", interval: "year", configured: plan?.enabled },
+    },
+  }, [plan]);
+
+  const account = plan?.account || { status: "none", plan: "free" };
+  const accountStatus = account.status || "none";
+  const active = isActiveStatus(accountStatus);
+  const activePro = active && account.plan === "pro";
+  const proInterval = account.interval || "month";
+  const usage = account.usage || {
+    used: 0,
+    limit: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
+    remaining: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
+    period: "",
+  };
+  const selectedProPrice = priceFor(proPlan, interval);
+  const provider = providerLabel(plan?.provider);
+  const billingEnabled = Boolean(plan?.enabled);
+  const proConfigured = Boolean(selectedProPrice?.configured);
+
   const startCheckout = async () => {
     setPendingAction("checkout");
     setError("");
     try {
       const session = await pullwiseApi.billing.createCheckoutSession({
+        plan: "pro",
+        interval,
         successUrl: billingReturnUrl("success"),
         cancelUrl: billingReturnUrl("cancel"),
       });
@@ -71,24 +143,53 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     }
   };
 
-  const provider = providerLabel(plan?.provider);
-  const accountStatus = plan?.account?.status || "none";
-  const active = accountStatus === "active" || accountStatus === "trialing";
-  const price = plan?.amount ? `${plan.currency || "USD"} ${plan.amount}` : T("Configured in provider", "在支付平台配置");
+  const switchToYearly = async () => {
+    setPendingAction("switch-yearly");
+    setError("");
+    try {
+      const result = await pullwiseApi.billing.changeSubscriptionInterval({
+        interval: "year",
+        returnUrl: billingReturnUrl("return"),
+      });
+      if (result?.url) {
+        navigate(result.url);
+        return;
+      }
+      setPlan((current) => ({
+        ...current,
+        account: { ...(current?.account || {}), plan: "pro", interval: "year", status: result?.status || accountStatus },
+      }));
+      setPendingAction("");
+    } catch (err) {
+      setError(err?.message || "Unable to switch billing interval.");
+      setPendingAction("");
+    }
+  };
 
   return (
     <div className="app fade-in">
       <Topbar go={go} breadcrumbs={[
         { label: "Pullwise", go: "dashboard" },
-        { label: T("Billing", "支付") },
+        { label: T("Billing", "Billing") },
       ]} />
       <div className="with-side">
         <Sidebar section="billing" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
-              <h1>{T("Billing", "支付")}</h1>
-              <div className="sub">{T("Subscriptions are created by the backend billing provider.", "订阅由后端支付服务创建。")}</div>
+              <h1>{T("Billing", "Billing")}</h1>
+              <div className="sub">{T("Choose Free or Pro. Pro includes a monthly review allowance that does not roll over.", "Choose Free or Pro. Pro includes a monthly review allowance that does not roll over.")}</div>
+            </div>
+            <div className="actions">
+              <span className="tag">{provider}</span>
+              <div className="seg" role="group" aria-label="Billing interval">
+                <button className={"seg-i" + (interval === "month" ? " active" : "")} onClick={() => setInterval("month")}>
+                  <I.Clock size={12} /> Monthly
+                </button>
+                <button className={"seg-i" + (interval === "year" ? " active" : "")} onClick={() => setInterval("year")}>
+                  <I.Package size={12} /> Yearly
+                </button>
+              </div>
             </div>
           </div>
 
@@ -100,55 +201,105 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
 
           <div className="set-shell">
             <aside className="set-side">
-              <button className="set-side-i active"><I.Package size={14} /><span>{T("Plan", "套餐")}</span></button>
-              <button className="set-side-i" onClick={() => go("terms")}><I.FileCode size={14} /><span>{T("Terms", "条款")}</span></button>
-              <button className="set-side-i" onClick={() => go("privacy")}><I.Lock size={14} /><span>{T("Privacy", "隐私")}</span></button>
+              <button className="set-side-i active"><I.Package size={14} /><span>{T("Plan", "Plan")}</span></button>
+              <button className="set-side-i" onClick={() => go("terms")}><I.FileCode size={14} /><span>{T("Terms", "Terms")}</span></button>
+              <button className="set-side-i" onClick={() => go("privacy")}><I.Lock size={14} /><span>{T("Privacy", "Privacy")}</span></button>
             </aside>
 
             <div className="set-body">
-              <div className="card section">
-                <div className="section-h">
-                  <h3>{plan?.name || T("Loading plan", "正在加载套餐")}</h3>
-                  <span className="tag">{provider}</span>
-                </div>
-                <div className="int-row">
-                  <I.Package size={20} />
-                  <div style={{ flex: 1 }}>
-                    <b>{plan?.name || "Pullwise Pro"}</b>
-                    <div className="muted">{plan?.description || T("Real repository review with GitHub and Codex.", "通过 GitHub 与 Codex 审核真实仓库。")}</div>
+              <div className="bill-card billing-summary">
+                <div className="billing-summary-main">
+                  <I.Activity size={18} />
+                  <div>
+                    <b>{activePro ? "Pro usage" : "Free usage"}</b>
+                    <div className="muted">{usageText(usage)}</div>
                   </div>
-                  <span className="pricing-num" style={{ fontSize: 24 }}>{price}</span>
-                  <span className="pricing-per">/{plan?.interval || "month"}</span>
                 </div>
-                <div className="int-row">
-                  <I.Activity size={20} />
-                  <div style={{ flex: 1 }}>
-                    <b>{T("Account status", "账户状态")}</b>
-                    <div className="muted">{active ? T("Your subscription is active.", "订阅已激活。") : T("No active subscription yet.", "尚无有效订阅。")}</div>
-                  </div>
+                <div className="billing-summary-meter">
+                  <div className="usage-bar"><div style={{ width: `${usagePercent(usage)}%` }} /></div>
                   <span className="tag">{accountStatus}</span>
-                  {active ? (
-                    <button className="btn primary" disabled={Boolean(pendingAction)} onClick={openPortal}>
-                      {pendingAction === "portal" && <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>}
-                      {T("Manage billing", "管理支付")}
-                    </button>
-                  ) : (
-                    <button className="btn primary" disabled={!plan?.enabled || Boolean(pendingAction)} onClick={startCheckout}>
-                      {pendingAction === "checkout" && <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>}
-                      {T("Start checkout", "开始支付")}
-                    </button>
-                  )}
                 </div>
-                {!plan?.enabled && !error && (
-                  <div className="muted" style={{ marginTop: 12 }}>
-                    {T("Billing is not configured on the backend yet.", "后端尚未配置支付。")}
-                  </div>
-                )}
               </div>
+
+              <div className="billing-pricing pricing-tiers">
+                <PlanCard
+                  plan={freePlan}
+                  price={priceFor(freePlan, "month")}
+                  interval="month"
+                  active={account.plan === "free" || !activePro}
+                  featured={false}
+                  cta={<button className="btn" disabled><I.Check size={14} /> Current plan</button>}
+                />
+
+                <PlanCard
+                  plan={proPlan}
+                  price={selectedProPrice}
+                  interval={interval}
+                  active={activePro}
+                  featured
+                  cta={
+                    <div className="billing-actions">
+                      {activePro ? (
+                        <>
+                          {proInterval === "month" && (
+                            <button className="btn primary" disabled={Boolean(pendingAction)} onClick={switchToYearly}>
+                              {pendingAction === "switch-yearly" && <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>}
+                              <I.Trend size={14} /> Switch to yearly
+                            </button>
+                          )}
+                          <button className="btn" disabled={Boolean(pendingAction)} onClick={openPortal}>
+                            {pendingAction === "portal" && <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>}
+                            <I.Settings size={14} /> Manage billing
+                          </button>
+                        </>
+                      ) : (
+                        <button className="btn primary" disabled={!billingEnabled || !proConfigured || Boolean(pendingAction)} onClick={startCheckout}>
+                          {pendingAction === "checkout" && <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>}
+                          <I.Package size={14} /> Start Pro
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
+              </div>
+
+              {!billingEnabled && !error && (
+                <div className="muted">
+                  {T("Billing is not configured on the backend yet.", "Billing is not configured on the backend yet.")}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PlanCard({ plan, price, interval, active, featured, cta }) {
+  const reviewLimit = Number(plan?.reviewLimit || 0);
+  return (
+    <div className={"pricing-card" + (featured ? " featured" : "")}>
+      {featured && <div className="pricing-badge">PRO</div>}
+      <div className="pricing-card-h">
+        <h3>{plan?.name || "Plan"}</h3>
+        <div className="pricing-tag">{plan?.description || ""}</div>
+      </div>
+      <div className="pricing-price">
+        <div className="pricing-num">
+          <span>{priceLabel(price)}</span>
+          <span className="pricing-per">/{interval}</span>
+        </div>
+        {plan?.id === "pro" && interval === "year" && <div className="pricing-billed">2 months free</div>}
+        {active && <div className="pricing-billed">Current account plan</div>}
+      </div>
+      <ul className="pricing-feats">
+        <li><I.Check size={13} /> {reviewLimit} reviews / month</li>
+        <li><I.Check size={13} /> Monthly quota does not roll over</li>
+        <li><I.Check size={13} /> GitHub repository review history</li>
+        {plan?.id === "pro" && <li><I.Check size={13} /> Cancel from the billing portal</li>}
+      </ul>
+      {cta}
     </div>
   );
 }

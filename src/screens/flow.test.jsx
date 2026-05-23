@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ScanningScreen } from "./flow.jsx";
 
@@ -45,6 +46,106 @@ describe("ScanningScreen queue state", () => {
         requestId: "scan_req_1",
       })
     );
+  });
+
+  it("passes an active history scan id to the scan runner", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        progress: 45,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    const activeScan = {
+      id: "sc_running",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "pending",
+      status: "running",
+    };
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_running",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+          initialScan: activeScan,
+        }}
+      />
+    );
+
+    expect(useScanRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scanId: "sc_running",
+        initialScan: activeScan,
+      })
+    );
+  });
+
+  it("returns terminal scans to scan history", async () => {
+    const go = vi.fn();
+    const user = userEvent.setup();
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        progress: 100,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={go}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /back/i }));
+
+    expect(go).toHaveBeenCalledWith("history");
+  });
+
+  it("returns active scans to history without cancelling them", async () => {
+    const go = vi.fn();
+    const cancel = vi.fn();
+    const user = userEvent.setup();
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        progress: 35,
+      },
+      error: "",
+      cancel,
+    });
+
+    render(
+      <ScanningScreen
+        go={go}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /back/i }));
+
+    expect(cancel).not.toHaveBeenCalled();
+    expect(go).toHaveBeenCalledWith("history");
   });
 
   it("explains queued scans with queue position and capacity limits", () => {

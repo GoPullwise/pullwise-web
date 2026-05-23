@@ -245,11 +245,14 @@ const SCAN_PHASES = [
 export function ScanningScreen({ go, activeRepo }) {
   useLang();
   const [logs, setLogs] = useState([]);
-  const repoFullName = activeRepo?.fullName || activeRepo?.name || "";
-  const branch = activeRepo?.defaultBranch || "main";
+  const initialScan = activeRepo?.initialScan || null;
+  const scanId = activeRepo?.scanId || "";
+  const repoFullName = activeRepo?.fullName || activeRepo?.name || initialScan?.repo || "";
+  const branch = activeRepo?.defaultBranch || activeRepo?.branch || initialScan?.branch || "main";
+  const commit = activeRepo?.commit || initialScan?.commit || "pending";
   const requestId = activeRepo?.scanRequestId || "";
 
-  const { scan, error, cancel } = useScanRun({ repo: repoFullName, branch, requestId });
+  const { scan, error, cancel } = useScanRun({ repo: repoFullName, branch, commit, requestId, scanId, initialScan });
 
   // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
@@ -282,7 +285,10 @@ export function ScanningScreen({ go, activeRepo }) {
 
   const handleCancel = async () => {
     if (scan && !terminal) await cancel();
-    go("repos");
+    go("history");
+  };
+  const handleBack = () => {
+    go("history");
   };
 
   const headerLabel =
@@ -321,9 +327,16 @@ export function ScanningScreen({ go, activeRepo }) {
                   {scan?.id && <> · <span className="tag">{scan.id}</span></>}
                 </div>
               </div>
-              <button className="btn ghost" onClick={handleCancel}>
-                {terminal ? T("Back", "返回") : T("Cancel", "取消")}
-              </button>
+              <div className="actions">
+                <button className="btn ghost" onClick={handleBack}>
+                  <I.ArrowL size={13} /> {T("Back", "返回")}
+                </button>
+                {!terminal && scan && (
+                  <button className="btn ghost" onClick={handleCancel}>
+                    {T("Cancel", "取消")}
+                  </button>
+                )}
+              </div>
             </div>
 
             {error && (

@@ -125,6 +125,18 @@ export function App({ prototypeNav = false }) {
     window.scrollTo({ top: 0 });
   };
 
+  const openScan = (scan) => {
+    setActiveRepo({
+      scanId: scan.id,
+      fullName: scan.repo,
+      name: scan.repo,
+      defaultBranch: scan.branch || "main",
+      commit: scan.commit || "pending",
+      initialScan: scan,
+    });
+    go("scanning");
+  };
+
   useEffect(() => {
     document.body.classList.toggle("has-proto-nav", prototypeNav && navOpen);
   }, [prototypeNav, navOpen]);
@@ -221,7 +233,7 @@ export function App({ prototypeNav = false }) {
       body = <IssueDetailScreen go={go} issue={issue} />;
       break;
     case "history":
-      body = <HistoryScreen go={go} />;
+      body = <HistoryScreen go={go} openScan={openScan} />;
       break;
     case "settings":
       body = <SettingsScreen go={go} />;

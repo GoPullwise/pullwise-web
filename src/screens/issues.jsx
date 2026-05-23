@@ -5,7 +5,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
-import { scanQueueSummary, useIssues, useScans } from "../lib/pullwise-data.js";
+import { isActiveScan, scanQueueSummary, useIssues, useScans } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
@@ -211,11 +211,18 @@ export function IssueDetailScreen({ go, issue }) {
   );
 }
 
-export function HistoryScreen({ go }) {
+export function HistoryScreen({ go, openScan = null }) {
   useLang();
   const { items: scans, loading, error } = useScans();
   const [status, setStatus] = useState("all");
   const filtered = scans.filter((scan) => status === "all" || scan.status === status);
+  const viewScan = (scan) => {
+    if (isActiveScan(scan) && openScan) {
+      openScan(scan);
+      return;
+    }
+    go("dashboard");
+  };
 
   return (
     <div className="app fade-in">
@@ -273,7 +280,7 @@ export function HistoryScreen({ go }) {
                   <div>{scan.time}</div>
                   <div className="muted">{T("Triggered by ", "触发：")}{scan.by}</div>
                 </div>
-                <button className="btn sm" onClick={() => go("dashboard")}>{T("View", "查看")} <I.ArrowR size={11} /></button>
+                <button className="btn sm" onClick={() => viewScan(scan)}>{T("View", "查看")} <I.ArrowR size={11} /></button>
               </div>
             ))}
           </div>

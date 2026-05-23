@@ -53,6 +53,8 @@ export const pullwiseApi = {
       request("/billing/checkout-sessions", { method: "POST", body: payload }),
     createPortalSession: (payload = {}) =>
       request("/billing/portal-sessions", { method: "POST", body: payload }),
+    changeSubscriptionInterval: (payload = {}) =>
+      request("/billing/change-interval", { method: "POST", body: payload }),
   },
 
   system: {

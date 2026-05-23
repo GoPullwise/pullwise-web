@@ -200,14 +200,27 @@ export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
 }
 
-// Creates a scan, then polls /scans/{id} every `pollIntervalMs` until the
-// scan reaches a terminal status. Caller drives the lifecycle by passing
-// `repo`; pass an empty string to defer creation.
-export function useScanRun({ repo, branch, commit = "pending", requestId = "", pollIntervalMs = 1500 }) {
+// Creates or resumes a scan, then polls /scans/{id} every `pollIntervalMs`
+// until the scan reaches a terminal status.
+export function useScanRun({
+  repo,
+  branch,
+  commit = "pending",
+  requestId = "",
+  scanId = "",
+  initialScan = null,
+  pollIntervalMs = 1500,
+}) {
   const [scan, setScan] = useState(null);
   const [error, setError] = useState("");
+  const initialScanRef = useRef(initialScan);
 
   useEffect(() => {
+    initialScanRef.current = initialScan;
+  }, [initialScan]);
+
+  useEffect(() => {
+    if (scanId) return undefined;
     if (!repo) return undefined;
     let alive = true;
     setError("");
@@ -218,7 +231,20 @@ export function useScanRun({ repo, branch, commit = "pending", requestId = "", p
       .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
       .catch((err) => { if (alive) setError(err?.message || "Unable to start scan."); });
     return () => { alive = false; };
-  }, [repo, branch, commit, requestId]);
+  }, [scanId, repo, branch, commit, requestId]);
+
+  useEffect(() => {
+    if (!scanId) return undefined;
+    let alive = true;
+    const seedScan = initialScanRef.current;
+    setError("");
+    setScan(seedScan?.id === scanId ? normalizeScan(seedScan) : null);
+    pullwiseApi.scans
+      .get(scanId)
+      .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
+      .catch((err) => { if (alive) setError(err?.message || "Unable to load scan."); });
+    return () => { alive = false; };
+  }, [scanId]);
 
   useEffect(() => {
     if (!scan?.id || isTerminalScan(scan)) return undefined;

@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { HistoryScreen } from "./issues.jsx";
 
 vi.mock("../lib/pullwise-data.js", () => ({
+  isActiveScan: (scan) => ["queued", "running"].includes(scan?.status),
   scanQueueSummary: (scan) => scan?.queue ? {
     message: scan.queue.message || "",
     tags: [
@@ -45,5 +47,32 @@ describe("HistoryScreen queue state", () => {
 
     expect(screen.getByText(/position 4/i)).toBeInTheDocument();
     expect(screen.getByText(/3 scans ahead/i)).toBeInTheDocument();
+  });
+
+  it("opens queued or running scan instances from history", async () => {
+    const openScan = vi.fn();
+    const go = vi.fn();
+    const user = userEvent.setup();
+    const scan = {
+      id: "sc_running",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "pending",
+      status: "running",
+      time: "now",
+      by: "you",
+    };
+    useScans.mockReturnValue({
+      items: [scan],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={go} openScan={openScan} />);
+
+    await user.click(screen.getByRole("button", { name: /^view\b/i }));
+
+    expect(openScan).toHaveBeenCalledWith(scan);
+    expect(go).not.toHaveBeenCalledWith("dashboard");
   });
 });
