@@ -72,4 +72,24 @@ describe("api proxy", () => {
     expect(response.headers.get("X-Backend-Hop")).toBeNull();
     expect(response.headers.get("X-Request-Id")).toBe("req_1");
   });
+
+  it("keeps malformed api-prefixed absolute URLs on the configured backend origin", async () => {
+    let forwardedUrl;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) => {
+        forwardedUrl = String(url);
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      })
+    );
+
+    await onRequest({
+      env: { PULLWISE_API_ORIGIN: "https://api.internal" },
+      request: new Request("https://app.pullwise.dev/apihttps://evil.example/steal?x=1"),
+    });
+
+    expect(forwardedUrl).toBe("https://api.internal/https://evil.example/steal?x=1");
+  });
 });

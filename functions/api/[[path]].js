@@ -5,7 +5,7 @@ export async function onRequest(context) {
   }
 
   const incomingUrl = new URL(context.request.url);
-  const targetUrl = new URL(incomingUrl.pathname.replace(/^\/api/, "") + incomingUrl.search, origin);
+  const targetUrl = new URL(backendPath(incomingUrl) + incomingUrl.search, origin);
   const headers = withoutHopByHopHeaders(context.request.headers);
   headers.delete("host");
   headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
@@ -28,6 +28,11 @@ export async function onRequest(context) {
   });
 }
 
+function backendPath(incomingUrl) {
+  const stripped = incomingUrl.pathname.replace(/^\/api/, "");
+  if (!stripped || stripped === "/") return "/";
+  return `/${stripped.replace(/^\/+/, "")}`;
+}
 function hasBody(method) {
   return !["GET", "HEAD"].includes(method.toUpperCase());
 }

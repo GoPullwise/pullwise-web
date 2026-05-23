@@ -107,6 +107,25 @@ describe("auth redirects", () => {
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
 
+  it("opens the GitHub install URL when adding another account or organization", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      mode: "github-app-add",
+      url: "https://github.com/apps/pullwise/installations/new?state=abc",
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+      needsAuthorization: false,
+      items: [{ fullName: "acme/service" }],
+    });
+
+    await expect(connectGitHubRepositories({ add: true })).resolves.toBeUndefined();
+
+    expect(pullwiseApi.integrations.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ add: "1", manage: undefined })
+    );
+    expect(openGitHubInstallPopup).toHaveBeenCalledWith("https://github.com/apps/pullwise/installations/new?state=abc");
+  });
+
   it("does not treat connected responses as successful until repositories are actually available", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,

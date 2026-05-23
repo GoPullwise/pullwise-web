@@ -30,7 +30,7 @@ describe("SettingsScreen", () => {
     });
   });
 
-  it("lets users manage GitHub repository authorization from personal authorizations", async () => {
+  it("lets users add another GitHub account or organization from personal authorizations", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {
         connected: true,
@@ -50,12 +50,12 @@ describe("SettingsScreen", () => {
     expect(screen.getByText("GitHub repository authorization")).toBeInTheDocument();
     expect(screen.getByText(/1 repositories authorized on octocat/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /manage repository access/i }));
+    await user.click(screen.getByRole("button", { name: /add account or organization/i }));
 
     await waitFor(() => {
       expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
     });
-    expect(connectGitHubRepositories).toHaveBeenCalledWith({ manage: true });
+    expect(connectGitHubRepositories).toHaveBeenCalledWith({ add: true });
     expect(go).not.toHaveBeenCalledWith("oauth");
   });
 
@@ -74,6 +74,55 @@ describe("SettingsScreen", () => {
     await user.click(screen.getByRole("button", { name: /integrations/i }));
 
     expect(await screen.findByText(/2 repositories authorized on octocat, acme/i)).toBeInTheDocument();
+  });
+
+  it("lists each GitHub App installation with its management link", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: true,
+        installationAccounts: ["GoPullwise", "GoTagma"],
+        repositories: [
+          "GoPullwise/pullwise-server",
+          "GoTagma/tagma-web",
+          "GoTagma/tagma-cli",
+          "GoTagma/tagma-mono",
+          "GoTagma/tagma-desktop",
+        ],
+        installations: [
+          {
+            installationId: "130258770",
+            installationAccount: "GoPullwise",
+            installationTargetType: "Organization",
+            installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+            repositorySelection: "selected",
+            repositoryCount: 1,
+          },
+          {
+            installationId: "134816087",
+            installationAccount: "GoTagma",
+            installationTargetType: "Organization",
+            installationHtmlUrl: "https://github.com/organizations/GoTagma/settings/installations/134816087",
+            repositorySelection: "all",
+            repositoryCount: 4,
+          },
+        ],
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /integrations/i }));
+
+    expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
+    expect(screen.getByText("GoPullwise")).toBeInTheDocument();
+    expect(screen.getByText(/Organization .* selected .* 1 repository/i)).toBeInTheDocument();
+    expect(screen.getByText("GoTagma")).toBeInTheDocument();
+    expect(screen.getByText(/Organization .* all repositories .* 4 repositories/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /manage gopullwise/i })).toHaveAttribute(
+      "href",
+      "https://github.com/organizations/GoPullwise/settings/installations/130258770"
+    );
   });
 
   it("explains that repository contents are read-only before connecting GitHub", async () => {

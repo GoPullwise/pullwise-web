@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut } from "../lib/auth.js";
@@ -319,7 +320,7 @@ export function SettingsScreen({ go }) {
   const authorizeRepositories = async () => {
     setIntegrationError("");
     try {
-      await connectGitHubRepositories({ manage: Boolean(github?.connected) });
+      await connectGitHubRepositories(github?.connected ? { add: true } : {});
       setIntegrations(await pullwiseApi.integrations.list());
     } catch (error) {
       setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
@@ -394,10 +395,11 @@ export function SettingsScreen({ go }) {
                     </span>
                     <button className="btn sm" onClick={authorizeRepositories}>
                       {github?.connected
-                        ? T("Manage repository access", "管理仓库访问")
+                        ? T("Add account or organization", "添加账号或组织")
                         : T("Connect repositories", "连接仓库")}
                     </button>
                   </div>
+                  {github?.connected && <GitHubInstallationsList installations={github?.installations} />}
                   {integrationError && <div className="auth-error" role="alert"><I.X size={13} /> {integrationError}</div>}
                 </div>
               )}

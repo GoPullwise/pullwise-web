@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories } from "../lib/auth.js";
@@ -16,15 +17,26 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
   const [selected, setSelected] = useState([]);
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState("");
-  const { items: availableRepos, loading, error, needsAuthorization, reload } = useRepositories();
+  const {
+    items: availableRepos,
+    installations,
+    installationAccounts,
+    loading,
+    error,
+    needsAuthorization,
+    reload,
+  } = useRepositories();
   const displayError = error || connectError || authorizationError;
   const allLabel = T("All", "所有");
   const orgs = useMemo(
     () => [
       allLabel,
-      ...Array.from(new Set(availableRepos.map(repoOwner).filter(Boolean))).map((owner) => `@${owner}`),
+      ...Array.from(new Set([
+        ...availableRepos.map(repoOwner),
+        ...(installationAccounts || []),
+      ].filter(Boolean))).map((owner) => `@${owner}`),
     ],
-    [allLabel, availableRepos]
+    [allLabel, availableRepos, installationAccounts]
   );
   const [org, setOrg] = useState(allLabel);
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
@@ -103,6 +115,8 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
               </button>
             </div>
           </div>
+
+          {!needsAuthorization && <GitHubInstallationsList installations={installations} />}
 
           <div className="repos-toolbar">
             <div className="repos-search">
@@ -197,7 +211,7 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
           <div className="repos-foot">
             <span className="muted">
               {T("Missing a repository? ", "缺少仓库？")}
-              <a className="auth-link" onClick={() => connectRepositories({ manage: true })}>{T("Manage GitHub repository access", "管理 GitHub 仓库访问权限")}</a>
+              <a className="auth-link" onClick={() => connectRepositories({ add: true })}>{T("Add GitHub account or organization", "添加 GitHub 账号或组织")}</a>
             </span>
           </div>
         </div>

@@ -56,13 +56,14 @@ export async function startGitHubLogin({ redirectTo } = {}) {
   window.location.assign(result.url);
 }
 
-export async function connectGitHubRepositories({ redirectTo, manage = false } = {}) {
+export async function connectGitHubRepositories({ redirectTo, manage = false, add = false } = {}) {
   const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
   let result;
   try {
     result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
       redirectTo: repositoryRedirect,
-      manage: manage ? "1" : undefined,
+      manage: manage && !add ? "1" : undefined,
+      add: add ? "1" : undefined,
     });
   } catch (error) {
     if (needsGitHubIdentity(error)) {

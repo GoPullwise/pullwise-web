@@ -68,7 +68,14 @@ export function normalizeScan(scan) {
 }
 
 export function useRepositories() {
-  const [state, setState] = useState({ items: [], loading: true, error: "", needsAuthorization: false });
+  const [state, setState] = useState({
+    items: [],
+    installations: [],
+    installationAccounts: [],
+    loading: true,
+    error: "",
+    needsAuthorization: false,
+  });
 
   const load = async ({ sync = false } = {}) => {
     setState((current) => ({ ...current, loading: true, error: "" }));
@@ -76,6 +83,8 @@ export function useRepositories() {
       const payload = sync ? await pullwiseApi.repositories.sync() : await pullwiseApi.repositories.list();
       setState({
         items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
+        installations: itemsFrom(payload, "installations"),
+        installationAccounts: itemsFrom(payload, "installationAccounts"),
         loading: false,
         error: "",
         needsAuthorization: Boolean(payload?.needsAuthorization),
@@ -83,6 +92,8 @@ export function useRepositories() {
     } catch (error) {
       setState({
         items: [],
+        installations: [],
+        installationAccounts: [],
         loading: false,
         error: error?.message || "Unable to load repositories.",
         needsAuthorization: false,

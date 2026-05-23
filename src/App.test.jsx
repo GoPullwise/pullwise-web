@@ -286,7 +286,7 @@ describe("App", () => {
     });
   });
 
-  it("starts GitHub repository management from the repositories footer", async () => {
+  it("starts adding another GitHub account or organization from the repositories footer", async () => {
     window.history.replaceState({}, "", "/?screen=repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
@@ -308,11 +308,60 @@ describe("App", () => {
 
     render(<App />);
 
-    await user.click(await screen.findByText(/manage github repository access/i));
+    await user.click(await screen.findByText(/add github account or organization/i));
 
     await waitFor(() => {
-      expect(connectGitHubRepositories).toHaveBeenCalledWith({ manage: true });
+      expect(connectGitHubRepositories).toHaveBeenCalledWith({ add: true });
     });
+  });
+
+  it("shows each authorized GitHub App installation on the repositories screen", async () => {
+    window.history.replaceState({}, "", "/?screen=repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [
+        {
+          id: "repo_pullwise_server",
+          name: "pullwise-server",
+          fullName: "GoPullwise/pullwise-server",
+          desc: "",
+        },
+      ],
+      needsAuthorization: false,
+      installations: [
+        {
+          installationId: "130258770",
+          installationAccount: "GoPullwise",
+          installationTargetType: "Organization",
+          installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+          repositorySelection: "selected",
+          repositoryCount: 1,
+        },
+        {
+          installationId: "134816087",
+          installationAccount: "GoTagma",
+          installationTargetType: "Organization",
+          installationHtmlUrl: "https://github.com/organizations/GoTagma/settings/installations/134816087",
+          repositorySelection: "all",
+          repositoryCount: 4,
+        },
+      ],
+    });
+
+    render(<App />);
+
+    expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
+    expect(screen.getByText("GoPullwise")).toBeInTheDocument();
+    expect(screen.getByText(/Organization .* selected .* 1 repository/i)).toBeInTheDocument();
+    expect(screen.getByText("GoTagma")).toBeInTheDocument();
+    expect(screen.getByText(/Organization .* all repositories .* 4 repositories/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /manage gopullwise/i })).toHaveAttribute(
+      "href",
+      "https://github.com/organizations/GoPullwise/settings/installations/130258770"
+    );
   });
 
   it("starts GitHub repository authorization from the dashboard sidebar", async () => {
