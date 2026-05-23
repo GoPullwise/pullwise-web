@@ -1,6 +1,7 @@
 import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
+import { connectGitHubRepositories } from "./lib/auth.js";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 
 export function Topbar({ go, breadcrumbs }) {
@@ -147,7 +148,20 @@ export function Sidebar({ section, go }) {
   useLang();
   const { items: repos } = useRepositories();
   const { items: issues } = useIssues();
+  const [connecting, setConnecting] = React.useState(false);
   const openIssueCount = issues.filter((issue) => issue.status === "open").length;
+  const connectRepositories = async () => {
+    if (connecting) return;
+    setConnecting(true);
+    try {
+      await connectGitHubRepositories();
+    } catch {
+      // Repositories screen owns the retry/error UI for repository authorization.
+    } finally {
+      go("repos");
+      setConnecting(false);
+    }
+  };
   const items = [
     { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} />, badge: null },
     { k: "issues", label: T("Issues", "问题"), icon: <I.Bug size={15} />, badge: openIssueCount || null },
@@ -182,9 +196,9 @@ export function Sidebar({ section, go }) {
         </button>
       ))}
       {repos.length === 0 && (
-        <button className="side-i" onClick={() => go("oauth")}>
-          <I.Github size={14} />
-          <span style={{ fontSize: 12.5 }}>{T("Connect GitHub", "连接 GitHub")}</span>
+        <button className="side-i" onClick={connectRepositories} disabled={connecting}>
+          {connecting ? <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span> : <I.Github size={14} />}
+          <span style={{ fontSize: 12.5 }}>{connecting ? T("Opening GitHub...", "Opening GitHub...") : T("Connect GitHub", "连接 GitHub")}</span>
         </button>
       )}
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { signOut } from "../lib/auth.js";
+import { connectGitHubRepositories, signOut } from "../lib/auth.js";
 import { scanQueueSummary, useIssues, useScans } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
@@ -286,6 +286,7 @@ export function SettingsScreen({ go }) {
   const [tab, setTab] = useState("profile");
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
+  const [integrationError, setIntegrationError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -311,6 +312,15 @@ export function SettingsScreen({ go }) {
   const user = session?.user;
   const githubRepoCount = github?.repositories?.length || 0;
   const githubAccount = github?.installationAccount ? ` on ${github.installationAccount}` : "";
+  const authorizeRepositories = async () => {
+    setIntegrationError("");
+    try {
+      await connectGitHubRepositories();
+      setIntegrations(await pullwiseApi.integrations.list());
+    } catch (error) {
+      setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
+    }
+  };
   const githubAccountZh = github?.installationAccount ? `（${github.installationAccount}）` : "";
 
   return (
@@ -378,12 +388,13 @@ export function SettingsScreen({ go }) {
                     <span className="pill sev-bg-low" style={{ background: "color-mix(in oklch, #16a34a 14%, transparent)", color: "#16a34a" }}>
                       <span className="dot"></span> {github?.connected ? T("Connected", "已连接") : T("Disconnected", "未连接")}
                     </span>
-                    <button className="btn sm" onClick={() => go("oauth")}>
+                    <button className="btn sm" onClick={authorizeRepositories}>
                       {github?.connected
                         ? T("Manage repository access", "管理仓库访问")
                         : T("Connect repositories", "连接仓库")}
                     </button>
                   </div>
+                  {integrationError && <div className="auth-error" role="alert"><I.X size={13} /> {integrationError}</div>}
                 </div>
               )}
             </div>

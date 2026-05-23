@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { connectGitHubRepositories } from "../lib/auth.js";
 import { isTerminalScan, scanQueueSummary, useRepositories, useScanRun } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
@@ -9,11 +10,14 @@ function repoOwner(repo) {
   return fullName.includes("/") ? fullName.split("/")[0] : "";
 }
 
-export function ReposScreen({ go, setActiveRepo }) {
+export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearAuthorizationError = () => {} }) {
   useLang();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState([]);
+  const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState("");
   const { items: availableRepos, loading, error, needsAuthorization, reload } = useRepositories();
+  const displayError = error || connectError || authorizationError;
   const allLabel = T("All", "所有");
   const orgs = useMemo(
     () => [
@@ -52,6 +56,21 @@ export function ReposScreen({ go, setActiveRepo }) {
     if (!repo) return;
     setActiveRepo(repo);
     go("scanning");
+  };
+
+  const connectRepositories = async () => {
+    if (connecting) return;
+    setConnecting(true);
+    setConnectError("");
+    clearAuthorizationError();
+    try {
+      await connectGitHubRepositories();
+      await reload({ sync: true });
+    } catch (authError) {
+      setConnectError(authError?.message || "Unable to connect GitHub repository access.");
+    } finally {
+      setConnecting(false);
+    }
   };
 
   return (
@@ -109,10 +128,12 @@ export function ReposScreen({ go, setActiveRepo }) {
 
           <div className="repos-list">
             {needsAuthorization && (
-              <div className="repo-row repo-row-status" onClick={() => go("oauth")}>
-                <div className="repo-icon"><I.Github size={16} /></div>
+              <div className="repo-row repo-row-status" role="button" tabIndex={0} onClick={connectRepositories}>
+                <div className="repo-icon">
+                  {connecting ? <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={16} /></span> : <I.Github size={16} />}
+                </div>
                 <div className="repo-main">
-                  <div className="repo-name"><span>{T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
+                  <div className="repo-name"><span>{connecting ? T("Opening GitHub...", "Opening GitHub...") : T("Connect GitHub repositories", "连接 GitHub 仓库")}</span></div>
                   <div className="repo-desc">
                     {T("Choose the repositories Pullwise can read for this scan.", "选择 Pullwise 可只读访问并扫描的仓库。")}
                   </div>
@@ -120,12 +141,12 @@ export function ReposScreen({ go, setActiveRepo }) {
                 <I.ArrowR size={14} />
               </div>
             )}
-            {error && (
+            {displayError && (
               <div className="repo-row repo-row-status">
                 <div className="repo-icon"><I.X size={16} /></div>
                 <div className="repo-main">
                   <div className="repo-name"><span>{T("Unable to load repositories", "无法加载仓库")}</span></div>
-                  <div className="repo-desc">{error}</div>
+                  <div className="repo-desc">{displayError}</div>
                 </div>
               </div>
             )}
@@ -176,7 +197,7 @@ export function ReposScreen({ go, setActiveRepo }) {
           <div className="repos-foot">
             <span className="muted">
               {T("Missing a repository? ", "缺少仓库？")}
-              <a className="auth-link" onClick={() => go("oauth")}>{T("Manage GitHub repository access", "管理 GitHub 仓库访问权限")}</a>
+              <a className="auth-link" onClick={connectRepositories}>{T("Manage GitHub repository access", "管理 GitHub 仓库访问权限")}</a>
             </span>
           </div>
         </div>
