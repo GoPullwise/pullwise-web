@@ -1,5 +1,6 @@
 import { I } from "../icons.jsx";
 import { T } from "../i18n.jsx";
+import { markGitHubRepositoryAccessRefreshNeeded } from "../lib/github-repository-access-refresh.js";
 
 function installationId(installation) {
   return String(installation?.installationId || installation?.id || "");
@@ -79,6 +80,7 @@ export function GitHubInstallationsList({ installations }) {
                 href={installation.htmlUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={markGitHubRepositoryAccessRefreshNeeded}
                 aria-label={`Manage ${installation.account || installation.id} GitHub App installation`}
               >
                 <I.Settings size={13} /> {T("Manage", "管理")}

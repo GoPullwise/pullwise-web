@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -32,7 +32,7 @@ vi.mock("./lib/auth.js", () => ({
 
 describe("App", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     window.history.replaceState({}, "", "/");
     pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
     pullwiseApi.repositories.list.mockResolvedValue({ items: [] });
@@ -362,6 +362,81 @@ describe("App", () => {
       "href",
       "https://github.com/organizations/GoPullwise/settings/installations/130258770"
     );
+  });
+
+  it("syncs repositories after returning from GitHub installation management", async () => {
+    window.history.replaceState({}, "", "/?screen=repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [
+        {
+          id: "repo_pullwise_server",
+          name: "pullwise-server",
+          fullName: "GoPullwise/pullwise-server",
+          desc: "",
+        },
+      ],
+      needsAuthorization: false,
+      installationAccounts: ["GoPullwise"],
+      installations: [
+        {
+          installationId: "130258770",
+          installationAccount: "GoPullwise",
+          installationTargetType: "Organization",
+          installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+          repositorySelection: "selected",
+          repositoryCount: 1,
+        },
+      ],
+    });
+    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+      items: [
+        {
+          id: "repo_pullwise_server",
+          name: "pullwise-server",
+          fullName: "GoPullwise/pullwise-server",
+          desc: "",
+        },
+        {
+          id: "repo_pullwise_web",
+          name: "pullwise-web",
+          fullName: "GoPullwise/pullwise-web",
+          desc: "",
+        },
+      ],
+      needsAuthorization: false,
+      installationAccounts: ["GoPullwise"],
+      installations: [
+        {
+          installationId: "130258770",
+          installationAccount: "GoPullwise",
+          installationTargetType: "Organization",
+          installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+          repositorySelection: "selected",
+          repositoryCount: 2,
+        },
+      ],
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    expect(await screen.findByText("GoPullwise/pullwise-server")).toBeInTheDocument();
+    expect(screen.queryByText("GoPullwise/pullwise-web")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("link", { name: /manage gopullwise/i }));
+    act(() => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    await waitFor(() => {
+      expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
   });
 
   it("starts GitHub repository authorization from the dashboard sidebar", async () => {

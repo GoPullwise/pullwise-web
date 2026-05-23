@@ -1,4 +1,8 @@
 import { pullwiseApi } from "../api/pullwise.js";
+import {
+  clearGitHubRepositoryAccessRefreshNeeded,
+  markGitHubRepositoryAccessRefreshNeeded,
+} from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 
 function getScreenRedirectUrl(screen) {
@@ -76,18 +80,26 @@ export async function connectGitHubRepositories({ redirectTo, manage = false, ad
   if (!result?.url) {
     if (result?.connected) {
       await verifyConnectedRepositories();
+      clearGitHubRepositoryAccessRefreshNeeded();
       return;
     }
     throw new Error("GitHub repository authorization URL is missing from the integrations response.");
   }
 
+  markGitHubRepositoryAccessRefreshNeeded();
   const completion = openGitHubInstallPopup(result.url);
   if (!completion) {
     window.location.assign(result.url);
     return;
   }
-  await completion;
-  await verifyConnectedRepositories();
+  try {
+    await completion;
+    await verifyConnectedRepositories();
+    clearGitHubRepositoryAccessRefreshNeeded();
+  } catch (error) {
+    clearGitHubRepositoryAccessRefreshNeeded();
+    throw error;
+  }
 }
 
 export async function signOut() {

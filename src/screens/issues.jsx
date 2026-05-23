@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut } from "../lib/auth.js";
+import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { scanQueueSummary, useIssues, useScans } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
@@ -288,26 +289,47 @@ export function SettingsScreen({ go }) {
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
   const [integrationError, setIntegrationError] = useState("");
+  const integrationRequestIdRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
+    const requestId = integrationRequestIdRef.current + 1;
+    integrationRequestIdRef.current = requestId;
     Promise.all([
       pullwiseApi.auth.getSession(),
       pullwiseApi.integrations.list(),
     ]).then(([sessionPayload, integrationsPayload]) => {
       if (cancelled) return;
       setSession(sessionPayload);
-      setIntegrations(integrationsPayload);
+      if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
     }).catch(() => {
       if (!cancelled) {
         setSession(null);
-        setIntegrations(null);
+        if (requestId === integrationRequestIdRef.current) setIntegrations(null);
       }
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const refreshGitHubRepositoryAccess = useCallback(async () => {
+    const requestId = integrationRequestIdRef.current + 1;
+    integrationRequestIdRef.current = requestId;
+    setIntegrationError("");
+    try {
+      await pullwiseApi.repositories.sync();
+      const integrationsPayload = await pullwiseApi.integrations.list();
+      if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
+    } catch (error) {
+      if (requestId === integrationRequestIdRef.current) {
+        setIntegrationError(error?.message || "Unable to refresh GitHub repository access.");
+      }
+      throw error;
+    }
+  }, []);
+
+  useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
 
   const github = integrations?.github;
   const user = session?.user;
@@ -318,12 +340,17 @@ export function SettingsScreen({ go }) {
   ].filter(Boolean)));
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
   const authorizeRepositories = async () => {
+    const requestId = integrationRequestIdRef.current + 1;
+    integrationRequestIdRef.current = requestId;
     setIntegrationError("");
     try {
       await connectGitHubRepositories(github?.connected ? { add: true } : {});
-      setIntegrations(await pullwiseApi.integrations.list());
+      const integrationsPayload = await pullwiseApi.integrations.list();
+      if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
     } catch (error) {
-      setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
+      if (requestId === integrationRequestIdRef.current) {
+        setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
+      }
     }
   };
   const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";

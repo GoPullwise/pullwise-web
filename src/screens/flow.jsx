@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories } from "../lib/auth.js";
+import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { isTerminalScan, scanQueueSummary, useRepositories, useScanRun } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
@@ -41,6 +42,9 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
   const [org, setOrg] = useState(allLabel);
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
   const query = q.trim().toLowerCase();
+  const refreshGitHubRepositoryAccess = useCallback(async () => {
+    await reload({ sync: true });
+  }, [reload]);
   const repos = availableRepos.filter((repo) => {
     const matchesOrg = !activeOwner || repoOwner(repo) === activeOwner;
     const matchesQuery =
@@ -58,6 +62,8 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
   useEffect(() => {
     setSelected((current) => current.filter((id) => availableRepos.some((repo) => repo.id === id)));
   }, [availableRepos]);
+
+  useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
 
   const toggle = (id) => setSelected((current) => (
     current.includes(id) ? current.filter((item) => item !== id) : [...current, id]

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 
 function itemsFrom(payload, ...keys) {
@@ -68,6 +68,7 @@ export function normalizeScan(scan) {
 }
 
 export function useRepositories() {
+  const requestIdRef = useRef(0);
   const [state, setState] = useState({
     items: [],
     installations: [],
@@ -77,10 +78,13 @@ export function useRepositories() {
     needsAuthorization: false,
   });
 
-  const load = async ({ sync = false } = {}) => {
+  const load = useCallback(async ({ sync = false } = {}) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
       const payload = sync ? await pullwiseApi.repositories.sync() : await pullwiseApi.repositories.list();
+      if (requestId !== requestIdRef.current) return;
       setState({
         items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
         installations: itemsFrom(payload, "installations"),
@@ -90,6 +94,7 @@ export function useRepositories() {
         needsAuthorization: Boolean(payload?.needsAuthorization),
       });
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       setState({
         items: [],
         installations: [],
@@ -99,11 +104,11 @@ export function useRepositories() {
         needsAuthorization: false,
       });
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   return { ...state, reload: load };
 }
