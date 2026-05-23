@@ -8,6 +8,18 @@ function getScreenRedirectUrl(screen) {
   return redirectUrl.toString();
 }
 
+function getRepositoryRedirectUrl(redirectTo) {
+  const redirectUrl = new URL(redirectTo || getScreenRedirectUrl("repos"));
+  redirectUrl.searchParams.set("screen", "repos");
+  return redirectUrl.toString();
+}
+
+function getContinueRepositoryRedirectUrl(redirectTo) {
+  const redirectUrl = new URL(getRepositoryRedirectUrl(redirectTo));
+  redirectUrl.searchParams.set("repoAuth", "1");
+  return redirectUrl.toString();
+}
+
 function repositoryItemsFrom(payload) {
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.repositories)) return payload.repositories;
@@ -26,6 +38,10 @@ async function verifyConnectedRepositories() {
   const payload = await pullwiseApi.repositories.sync();
   if (!payload?.needsAuthorization && repositoryItemsFrom(payload).length > 0) return;
   throw repositoryAuthorizationError(payload);
+}
+
+function needsGitHubIdentity(error) {
+  return error?.status === 401 && String(error?.message || "").includes("Sign in with GitHub");
 }
 
 export async function startGitHubLogin({ redirectTo } = {}) {
@@ -48,9 +64,19 @@ export async function requestMagicLink({ email, redirectTo } = {}) {
 }
 
 export async function connectGitHubRepositories({ redirectTo } = {}) {
-  const result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
-    redirectTo: redirectTo || getScreenRedirectUrl("repos"),
-  });
+  const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
+  let result;
+  try {
+    result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
+      redirectTo: repositoryRedirect,
+    });
+  } catch (error) {
+    if (needsGitHubIdentity(error)) {
+      await startGitHubLogin({ redirectTo: getContinueRepositoryRedirectUrl(repositoryRedirect) });
+      return;
+    }
+    throw error;
+  }
 
   if (!result?.url) {
     if (result?.connected) {
@@ -66,6 +92,7 @@ export async function connectGitHubRepositories({ redirectTo } = {}) {
     return;
   }
   await completion;
+  await verifyConnectedRepositories();
 }
 
 export async function signOut() {

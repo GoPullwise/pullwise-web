@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
+import { connectGitHubRepositories } from "./lib/auth.js";
 import { BillingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
 import { NotFoundScreen } from "./screens/error.jsx";
@@ -56,6 +57,16 @@ function getRequestedScreenParam() {
   return new URLSearchParams(window.location.search).get("screen") || "";
 }
 
+function repositoryAuthorizationRequested() {
+  return new URLSearchParams(window.location.search).get("repoAuth") === "1";
+}
+
+function clearRepositoryAuthorizationRequest() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("repoAuth");
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
 function PrototypeNav({ go, current }) {
   const screens = [
     { k: "landing", t: "Landing" },
@@ -105,6 +116,8 @@ export function App({ prototypeNav = false }) {
   const [issue, setIssue] = useState(null);
   const [activeRepo, setActiveRepo] = useState(null);
   const [navOpen, setNavOpen] = useState(true);
+  const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
+  const continuedRepositoryAuthorization = useRef(false);
 
   const go = (nextScreen) => {
     setScreen(nextScreen);
@@ -150,6 +163,16 @@ export function App({ prototypeNav = false }) {
     localStorage.setItem("pw-theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (auth.status !== "ready" || !auth.authenticated || screen !== "repos") return;
+    if (continuedRepositoryAuthorization.current || !repositoryAuthorizationRequested()) return;
+    continuedRepositoryAuthorization.current = true;
+    clearRepositoryAuthorizationRequest();
+    connectGitHubRepositories().catch((error) => {
+      setRepositoryAuthorizationError(error?.message || "Unable to connect GitHub repository access.");
+    });
+  }, [auth.status, auth.authenticated, screen]);
+
   let body;
   if (auth.status === "checking" && !PUBLIC_SCREENS.has(screen)) {
     body = (
@@ -175,7 +198,14 @@ export function App({ prototypeNav = false }) {
       body = <OAuthScreen go={go} auth={auth} />;
       break;
     case "repos":
-      body = <ReposScreen go={go} setActiveRepo={setActiveRepo} />;
+      body = (
+        <ReposScreen
+          go={go}
+          setActiveRepo={setActiveRepo}
+          authorizationError={repositoryAuthorizationError}
+          clearAuthorizationError={() => setRepositoryAuthorizationError("")}
+        />
+      );
       break;
     case "scanning":
       body = <ScanningScreen go={go} activeRepo={activeRepo} />;

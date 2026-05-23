@@ -32,6 +32,11 @@ function redirectScreen(call) {
   return new URL(redirectTo).searchParams.get("screen");
 }
 
+function redirectParam(call, name) {
+  const redirectTo = call[0].redirectTo;
+  return new URL(redirectTo).searchParams.get(name);
+}
+
 describe("auth redirects", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -62,6 +67,19 @@ describe("auth redirects", () => {
     expect(redirectScreen(pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0])).toBe("repos");
   });
 
+  it("starts GitHub login first when repository authorization requires a GitHub identity", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockRejectedValueOnce(
+      Object.assign(new Error("Sign in with GitHub before authorizing repositories."), { status: 401 })
+    );
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("login-started"));
+
+    await expect(connectGitHubRepositories()).rejects.toThrow("login-started");
+
+    expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("repos");
+    expect(redirectParam(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0], "repoAuth")).toBe("1");
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
   it("does not open the GitHub install popup when an existing app installation is connected", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,
@@ -75,6 +93,24 @@ describe("auth redirects", () => {
     await expect(connectGitHubRepositories()).resolves.toBeUndefined();
 
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens GitHub installation settings and syncs repositories for connected app installations", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      connected: true,
+      mode: "github-app-existing",
+      url: "https://github.com/settings/installations/999",
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+      needsAuthorization: false,
+      items: [{ fullName: "octocat/private-repo" }],
+    });
+
+    await expect(connectGitHubRepositories()).resolves.toBeUndefined();
+
+    expect(openGitHubInstallPopup).toHaveBeenCalledWith("https://github.com/settings/installations/999");
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
 

@@ -13,6 +13,7 @@ vi.mock("./api/pullwise.js", () => ({
     },
     repositories: {
       list: vi.fn(),
+      sync: vi.fn(),
     },
     scans: {
       list: vi.fn(),
@@ -36,6 +37,7 @@ describe("App", () => {
     window.history.replaceState({}, "", "/");
     pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
     pullwiseApi.repositories.list.mockResolvedValue({ items: [] });
+    pullwiseApi.repositories.sync.mockResolvedValue({ items: [] });
     pullwiseApi.scans.list.mockResolvedValue({ items: [] });
     pullwiseApi.issues.list.mockResolvedValue({ items: [] });
   });
@@ -278,5 +280,96 @@ describe("App", () => {
 
     const title = await screen.findByText("Connect GitHub repositories");
     expect(title.closest(".repo-row")).toHaveClass("repo-row-status");
+  });
+
+  it("starts GitHub repository authorization from the repositories empty state", async () => {
+    window.history.replaceState({}, "", "/?screen=repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    const title = await screen.findByText("Connect GitHub repositories");
+    await user.click(title.closest(".repo-row"));
+
+    await waitFor(() => {
+      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("starts GitHub repository authorization from the dashboard sidebar", async () => {
+    window.history.replaceState({}, "", "/?screen=dashboard");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /connect github/i }));
+
+    await waitFor(() => {
+      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("keeps failed dashboard sidebar repository authorization in the repositories flow", async () => {
+    window.history.replaceState({}, "", "/?screen=dashboard");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    connectGitHubRepositories.mockRejectedValueOnce(new Error("authorization failed"));
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /connect github/i }));
+
+    await waitFor(() => {
+      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+      expect(document.querySelector('[data-screen-label="repos"]')).toBeInTheDocument();
+    });
+  });
+
+  it("continues repository authorization after returning from GitHub login", async () => {
+    window.history.replaceState({}, "", "/?screen=repos&repoAuth=1");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+    });
+    expect(new URLSearchParams(window.location.search).get("repoAuth")).toBeNull();
+  });
+
+  it("shows repository authorization errors after automatic continuation fails", async () => {
+    window.history.replaceState({}, "", "/?screen=repos&repoAuth=1");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    connectGitHubRepositories.mockRejectedValueOnce(new Error("GitHub App install URL is unavailable"));
+
+    render(<App />);
+
+    expect(await screen.findByText("GitHub App install URL is unavailable")).toBeInTheDocument();
+    expect(new URLSearchParams(window.location.search).get("repoAuth")).toBeNull();
   });
 });
