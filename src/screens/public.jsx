@@ -45,6 +45,12 @@ function getRepositoryAuthErrorMessage(error) {
       "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again."
     );
   }
+  if (code === "github_app_api_unconfigured" || message.includes("GitHub App API is not configured")) {
+    return T(
+      "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.",
+      "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend."
+    );
+  }
   if (message.includes("Contents: read")) {
     return T(
       "The GitHub App must use Contents: read-only permission. Write access is not accepted.",
@@ -360,10 +366,11 @@ export function LoginScreen() {
   );
 }
 
-export function OAuthScreen({ go }) {
+export function OAuthScreen({ go, auth }) {
   useLang();
   const [authing, setAuthing] = useState(false);
   const [error, setError] = useState("");
+  const backTarget = auth?.authenticated ? "repos" : "login";
 
   const handleAuthorize = async () => {
     setAuthing(true);
@@ -446,7 +453,7 @@ export function OAuthScreen({ go }) {
         )}
 
         <div className="oauth-actions">
-          <button className="btn lg" onClick={() => go("login")} disabled={authing}>
+          <button className="btn lg" onClick={() => go(backTarget)} disabled={authing}>
             <I.ArrowL size={14} /> {T("Back", "Back")}
           </button>
           <button

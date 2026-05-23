@@ -7,6 +7,9 @@ vi.mock("../api/pullwise.js", () => ({
     auth: {
       getSession: vi.fn(),
     },
+    repositories: {
+      sync: vi.fn(),
+    },
   },
 }));
 
@@ -38,6 +41,51 @@ describe("openGitHubInstallPopup", () => {
     await vi.advanceTimersByTimeAsync(400);
 
     await expect(completion).resolves.toBeUndefined();
+  });
+
+  it("syncs repositories after a closed popup so GitHub configure pages can bind existing installations", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      authenticated: true,
+      github: {
+        repositoriesConnected: false,
+      },
+    });
+    pullwiseApi.repositories.sync.mockResolvedValue({
+      needsAuthorization: false,
+      items: [{ id: "repo_1", fullName: "octocat/private-repo" }],
+    });
+
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new");
+
+    await vi.advanceTimersByTimeAsync(400);
+
+    await expect(completion).resolves.toBeUndefined();
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves repository sync issue codes after a closed popup", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      authenticated: true,
+      github: {
+        repositoriesConnected: false,
+      },
+    });
+    pullwiseApi.repositories.sync.mockResolvedValue({
+      needsAuthorization: true,
+      repositoriesNeedSync: true,
+      authorizationIssue: "github_app_api_unconfigured",
+      message: "GitHub App API is not configured.",
+    });
+
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new");
+    const expectation = expect(completion).rejects.toMatchObject({
+      code: "github_app_api_unconfigured",
+      message: "GitHub App API is not configured.",
+    });
+
+    await vi.advanceTimersByTimeAsync(400);
+
+    await expectation;
   });
 
   it("preserves backend github_error codes from popup returns", async () => {

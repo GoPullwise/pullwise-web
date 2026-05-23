@@ -83,8 +83,24 @@ export function openGitHubInstallPopup(url) {
       finish();
       try {
         const session = await pullwiseApi.auth.getSession();
-        if (session?.github?.repositoriesConnected) resolve();
-        else reject(new GitHubInstallCancelled());
+        if (session?.github?.repositoriesConnected) {
+          resolve();
+          return;
+        }
+
+        const repositories = await pullwiseApi.repositories.sync();
+        if (repositories?.authorizationIssue) {
+          const error = new Error(repositories.message || repositories.authorizationIssue);
+          error.code = repositories.authorizationIssue;
+          reject(error);
+          return;
+        }
+        if (!repositories?.needsAuthorization) {
+          resolve();
+          return;
+        }
+
+        reject(new GitHubInstallCancelled());
       } catch {
         reject(new GitHubInstallCancelled());
       }
