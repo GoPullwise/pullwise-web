@@ -302,6 +302,35 @@ describe("App", () => {
     });
   });
 
+  it("starts GitHub repository management from the repositories footer", async () => {
+    window.history.replaceState({}, "", "/?screen=repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [
+        {
+          id: "repo_1",
+          name: "private-repo",
+          fullName: "octocat/private-repo",
+          desc: "",
+        },
+      ],
+      needsAuthorization: false,
+    });
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByText(/manage github repository access/i));
+
+    await waitFor(() => {
+      expect(connectGitHubRepositories).toHaveBeenCalledWith({ manage: true });
+    });
+  });
+
   it("starts GitHub repository authorization from the dashboard sidebar", async () => {
     window.history.replaceState({}, "", "/?screen=dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({

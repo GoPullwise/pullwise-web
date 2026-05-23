@@ -315,7 +315,7 @@ export function SettingsScreen({ go }) {
   const authorizeRepositories = async () => {
     setIntegrationError("");
     try {
-      await connectGitHubRepositories();
+      await connectGitHubRepositories({ manage: Boolean(github?.connected) });
       setIntegrations(await pullwiseApi.integrations.list());
     } catch (error) {
       setIntegrationError(error?.message || "Unable to connect GitHub repository access.");

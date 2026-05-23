@@ -55,6 +55,7 @@ describe("SettingsScreen", () => {
     await waitFor(() => {
       expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
     });
+    expect(connectGitHubRepositories).toHaveBeenCalledWith({ manage: true });
     expect(go).not.toHaveBeenCalledWith("oauth");
   });
 

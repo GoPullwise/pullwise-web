@@ -63,12 +63,13 @@ export async function requestMagicLink({ email, redirectTo } = {}) {
   });
 }
 
-export async function connectGitHubRepositories({ redirectTo } = {}) {
+export async function connectGitHubRepositories({ redirectTo, manage = false } = {}) {
   const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
   let result;
   try {
     result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
       redirectTo: repositoryRedirect,
+      manage: manage ? "1" : undefined,
     });
   } catch (error) {
     if (needsGitHubIdentity(error)) {

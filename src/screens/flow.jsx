@@ -58,13 +58,13 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
     go("scanning");
   };
 
-  const connectRepositories = async () => {
+  const connectRepositories = async (options = {}) => {
     if (connecting) return;
     setConnecting(true);
     setConnectError("");
     clearAuthorizationError();
     try {
-      await connectGitHubRepositories();
+      await connectGitHubRepositories(options);
       await reload({ sync: true });
     } catch (authError) {
       setConnectError(authError?.message || "Unable to connect GitHub repository access.");
@@ -128,7 +128,7 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
 
           <div className="repos-list">
             {needsAuthorization && (
-              <div className="repo-row repo-row-status" role="button" tabIndex={0} onClick={connectRepositories}>
+              <div className="repo-row repo-row-status" role="button" tabIndex={0} onClick={() => connectRepositories()}>
                 <div className="repo-icon">
                   {connecting ? <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={16} /></span> : <I.Github size={16} />}
                 </div>
@@ -197,7 +197,7 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
           <div className="repos-foot">
             <span className="muted">
               {T("Missing a repository? ", "缺少仓库？")}
-              <a className="auth-link" onClick={connectRepositories}>{T("Manage GitHub repository access", "管理 GitHub 仓库访问权限")}</a>
+              <a className="auth-link" onClick={() => connectRepositories({ manage: true })}>{T("Manage GitHub repository access", "管理 GitHub 仓库访问权限")}</a>
             </span>
           </div>
         </div>

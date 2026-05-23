@@ -96,7 +96,7 @@ describe("auth redirects", () => {
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
 
-  it("opens GitHub installation settings and syncs repositories for connected app installations", async () => {
+  it("opens GitHub installation settings and syncs repositories when managing connected app installations", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,
       mode: "github-app-existing",
@@ -108,8 +108,11 @@ describe("auth redirects", () => {
       items: [{ fullName: "octocat/private-repo" }],
     });
 
-    await expect(connectGitHubRepositories()).resolves.toBeUndefined();
+    await expect(connectGitHubRepositories({ manage: true })).resolves.toBeUndefined();
 
+    expect(pullwiseApi.integrations.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ manage: "1" })
+    );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith("https://github.com/settings/installations/999");
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
