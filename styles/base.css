@@ -69,7 +69,7 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   min-height: 100vh;
 }
 
@@ -86,7 +86,7 @@ input, textarea { font: inherit; color: inherit; }
   background: var(--bg-elev);
   color: var(--text);
   font-size: 13px; font-weight: 500;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   transition: background 80ms ease, border-color 80ms ease, transform 80ms ease;
   white-space: nowrap;
 }
@@ -211,7 +211,7 @@ input, textarea { font: inherit; color: inherit; }
   position: sticky; top: 0; z-index: 10;
   backdrop-filter: blur(8px);
 }
-.topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; }
+.topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: 0; }
 .topbar .brand-mark {
   flex: 0 0 auto;
   width: 22px; height: 22px; border-radius: 6px;
@@ -229,8 +229,9 @@ input, textarea { font: inherit; color: inherit; }
 .topbar nav button:hover { color: var(--text); background: var(--bg-soft); }
 .topbar nav button.active { color: var(--text); background: var(--bg-soft); }
 
-.crumbs { display: flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 13px; }
+.crumbs { display: flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 13px; min-width: 0; overflow: hidden; }
 .crumbs .sep { color: var(--text-4); }
+.crumbs span:not(.sep) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crumbs .now { color: var(--text); font-weight: 500; }
 
 /* Sidebar layout */
@@ -248,7 +249,9 @@ input, textarea { font: inherit; color: inherit; }
   border-radius: var(--r-2);
   font-size: 13px; color: var(--text-2);
   border: 0; background: transparent; text-align: left;
+  min-width: 0;
 }
+.side-i > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-i:hover { background: var(--bg-soft); color: var(--text); }
 .side-i.active { background: var(--bg-soft); color: var(--text); font-weight: 500; }
 .side-i .ic { width: 15px; height: 15px; flex: 0 0 auto; opacity: .8; }
@@ -265,9 +268,9 @@ input, textarea { font: inherit; color: inherit; }
 .main.narrow { max-width: 920px; }
 
 .page-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-.page-h h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.page-h h1 { font-size: 22px; font-weight: 600; letter-spacing: 0; }
 .page-h .sub { color: var(--text-3); font-size: 13px; margin-top: 4px; }
-.page-h .actions { display: flex; gap: 8px; align-items: center; }
+.page-h .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 /* Animation utilities */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -327,4 +330,93 @@ input, textarea { font: inherit; color: inherit; }
 .side, .side-h,
 .page-h .actions {
   user-select: none;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    min-height: 52px;
+    height: auto;
+    gap: 12px;
+    padding: 10px 14px;
+  }
+
+  .topbar > div {
+    min-width: 0;
+  }
+
+  .topbar > div:first-child {
+    flex: 1 1 auto;
+  }
+
+  .topbar > div:last-child {
+    flex: 0 0 auto;
+  }
+
+  .topbar .brand span {
+    display: none;
+  }
+
+  .topbar .btn.ghost.sm span:not(.ic),
+  .topbar .btn.ghost.sm .kbd {
+    display: none;
+  }
+
+  .topbar .btn.ghost.sm {
+    width: 32px;
+    padding: 0;
+  }
+
+  .with-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    position: sticky;
+    top: 52px;
+    z-index: 9;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .side-h,
+  .side > .side-i:first-of-type,
+  .side > .side-i:nth-of-type(n+8) {
+    display: none;
+  }
+
+  .side-i {
+    flex: 0 0 auto;
+    height: 32px;
+    padding: 0 10px;
+  }
+
+  .side-i .badge {
+    margin-left: 2px;
+  }
+
+  .main {
+    max-width: none;
+    padding: 20px 16px 48px;
+  }
+
+  .page-h {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .page-h .actions {
+    align-items: stretch;
+  }
+
+  .page-h .actions .btn,
+  .page-h .actions .seg {
+    flex: 1 1 auto;
+  }
 }

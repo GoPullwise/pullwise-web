@@ -196,7 +196,7 @@ export function IssueDetailScreen({ go, issue }) {
                 <span className="issue-id">{issue.id}</span>
                 <span className="tag">{issue.category}</span>
               </div>
-              <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{issue.title}</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>{issue.title}</h1>
               <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>{issue.summary}</div>
               <div className="sub" style={{ display: "flex", gap: 14, fontSize: 12.5, marginTop: 6 }}>
                 <span><I.Folder size={12} /> {issue.repo}</span>

@@ -79,6 +79,7 @@ function PrototypeNav({ go, current }) {
     { k: "issue", t: "详情" },
     { k: "history", t: "历史" },
     { k: "settings", t: "设置" },
+    { k: "billing", t: "Billing" },
     { k: "privacy", t: "隐私" },
     { k: "terms", t: "条款" },
     { k: "security", t: "安全" },
