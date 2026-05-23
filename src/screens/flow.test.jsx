@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
-import { ScanningScreen } from "./flow.jsx";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ReposScreen, ScanningScreen } from "./flow.jsx";
 
 vi.mock("../lib/pullwise-data.js", () => ({
   isTerminalScan: (scan) => ["done", "failed", "cancelled"].includes(scan?.status),
@@ -14,13 +14,124 @@ vi.mock("../lib/pullwise-data.js", () => ({
       scan.queue.limits?.perUser ? `Per user ${scan.queue.limits.perUser}` : null,
     ].filter(Boolean),
   } : null,
+  useIssues: vi.fn(() => ({ items: [], loading: false, error: "" })),
   useRepositories: vi.fn(),
+  useScanBatchRun: vi.fn(),
   useScanRun: vi.fn(),
 }));
 
-import { useScanRun } from "../lib/pullwise-data.js";
+import { useRepositories, useScanBatchRun, useScanRun } from "../lib/pullwise-data.js";
+
+const repoAlpha = {
+  id: "repo_alpha",
+  name: "alpha",
+  fullName: "octocat/alpha",
+  desc: "Alpha service",
+  lang: "JavaScript",
+  stars: 1,
+  branches: 2,
+  updated: "Today",
+  defaultBranch: "main",
+};
+
+const repoBeta = {
+  id: "repo_beta",
+  name: "beta",
+  fullName: "octocat/beta",
+  desc: "Beta service",
+  lang: "TypeScript",
+  stars: 3,
+  branches: 4,
+  updated: "Yesterday",
+  defaultBranch: "develop",
+};
+
+beforeEach(() => {
+  useRepositories.mockReset();
+  useScanBatchRun.mockReset();
+  useScanBatchRun.mockReturnValue({ scans: [], error: "", cancel: vi.fn() });
+  useScanRun.mockReset();
+});
+
+describe("ReposScreen scan selection", () => {
+  it("hands every selected repository to the scanning screen", async () => {
+    const go = vi.fn();
+    const setActiveRepo = vi.fn();
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [repoAlpha, repoBeta],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
+
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    const activeRepo = setActiveRepo.mock.calls[0][0];
+    expect(activeRepo.selectedRepos).toHaveLength(2);
+    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual([
+      "octocat/alpha",
+      "octocat/beta",
+    ]);
+    expect(activeRepo.selectedRepos[0].scanRequestId).toMatch(/^scan_req_/);
+    expect(activeRepo.selectedRepos[1].scanRequestId).toMatch(/^scan_req_/);
+    expect(activeRepo.selectedRepos[1].scanRequestId).not.toBe(activeRepo.selectedRepos[0].scanRequestId);
+    expect(go).toHaveBeenCalledWith("scanning");
+  });
+});
 
 describe("ScanningScreen queue state", () => {
+  it("passes every selected repository to the batch scan runner", () => {
+    useScanRun.mockReturnValue({
+      scan: null,
+      error: "",
+      cancel: vi.fn(),
+    });
+    useScanBatchRun.mockReturnValue({
+      scans: [],
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          selectedRepos: [
+            { ...repoAlpha, scanRequestId: "scan_req_alpha" },
+            { ...repoBeta, scanRequestId: "scan_req_beta" },
+          ],
+        }}
+      />
+    );
+
+    expect(useScanBatchRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repositories: [
+          {
+            repo: "octocat/alpha",
+            branch: "main",
+            commit: "pending",
+            requestId: "scan_req_alpha",
+          },
+          {
+            repo: "octocat/beta",
+            branch: "develop",
+            commit: "pending",
+            requestId: "scan_req_beta",
+          },
+        ],
+      })
+    );
+  });
+
   it("passes the active repository scan request id to the scan runner", () => {
     useScanRun.mockReturnValue({
       scan: null,

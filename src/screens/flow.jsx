@@ -4,7 +4,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
-import { isTerminalScan, scanQueueSummary, useRepositories, useScanRun } from "../lib/pullwise-data.js";
+import { isTerminalScan, scanQueueSummary, useRepositories, useScanBatchRun, useScanRun } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function repoOwner(repo) {
@@ -17,6 +17,40 @@ function makeScanRequestId() {
     return `scan_req_${globalThis.crypto.randomUUID()}`;
   }
   return `scan_req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
+function scanInputFromRepo(repo) {
+  return {
+    repo: repo?.fullName || repo?.name || repo?.repo || "",
+    branch: repo?.defaultBranch || repo?.branch || "main",
+    commit: repo?.commit || "pending",
+    requestId: repo?.scanRequestId || "",
+  };
+}
+
+function batchScanStatus(scans, expectedCount, hasError) {
+  if (!expectedCount) return "no_repo";
+  if (hasError && scans.length === 0) return "failed";
+  if (scans.length < expectedCount) return "queued";
+  if (scans.some((scan) => scan.status === "running")) return "running";
+  if (scans.some((scan) => scan.status === "queued")) return "queued";
+  if (scans.every((scan) => scan.status === "done")) return "done";
+  if (scans.every((scan) => scan.status === "cancelled")) return "cancelled";
+  if (scans.some((scan) => scan.status === "failed")) return "failed";
+  if (hasError) return "failed";
+  return "queued";
+}
+
+function scanIssueTotals(scans) {
+  return scans.reduce((totals, scan) => {
+    const issues = scan?.issues || {};
+    return {
+      critical: totals.critical + Number(issues.critical || 0),
+      high: totals.high + Number(issues.high || 0),
+      medium: totals.medium + Number(issues.medium || 0),
+      low: totals.low + Number(issues.low || 0),
+    };
+  }, { critical: 0, high: 0, medium: 0, low: 0 });
 }
 
 export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearAuthorizationError = () => {} }) {
@@ -77,9 +111,16 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
   ));
 
   const startScan = () => {
-    const repo = availableRepos.find((item) => item.id === selected[0]);
-    if (!repo) return;
-    setActiveRepo({ ...repo, scanRequestId: makeScanRequestId() });
+    const reposToScan = selected
+      .map((id) => availableRepos.find((item) => item.id === id))
+      .filter(Boolean);
+    if (reposToScan.length === 0) return;
+
+    const selectedRepos = reposToScan.map((repo) => ({
+      ...repo,
+      scanRequestId: makeScanRequestId(),
+    }));
+    setActiveRepo({ ...selectedRepos[0], selectedRepos });
     go("scanning");
   };
 
@@ -245,14 +286,37 @@ const SCAN_PHASES = [
 export function ScanningScreen({ go, activeRepo }) {
   useLang();
   const [logs, setLogs] = useState([]);
-  const initialScan = activeRepo?.initialScan || null;
-  const scanId = activeRepo?.scanId || "";
-  const repoFullName = activeRepo?.fullName || activeRepo?.name || initialScan?.repo || "";
-  const branch = activeRepo?.defaultBranch || activeRepo?.branch || initialScan?.branch || "main";
-  const commit = activeRepo?.commit || initialScan?.commit || "pending";
-  const requestId = activeRepo?.scanRequestId || "";
+  const selectedRepos = useMemo(
+    () => (Array.isArray(activeRepo?.selectedRepos) ? activeRepo.selectedRepos : []),
+    [activeRepo?.selectedRepos]
+  );
+  const batchMode = selectedRepos.length > 1;
+  const singleRepo = selectedRepos.length === 1 ? selectedRepos[0] : activeRepo;
+  const initialScan = singleRepo?.initialScan || null;
+  const scanId = singleRepo?.scanId || "";
+  const singleScanInput = scanInputFromRepo(singleRepo);
+  const repoFullName = singleScanInput.repo || initialScan?.repo || "";
+  const branch = singleScanInput.branch || initialScan?.branch || "main";
+  const commit = singleScanInput.commit || initialScan?.commit || "pending";
+  const requestId = singleScanInput.requestId || "";
+  const batchRepositories = useMemo(() => {
+    if (!batchMode) return [];
+    return selectedRepos.map(scanInputFromRepo).filter((request) => request.repo);
+  }, [batchMode, selectedRepos]);
 
-  const { scan, error, cancel } = useScanRun({ repo: repoFullName, branch, commit, requestId, scanId, initialScan });
+  const singleRun = useScanRun({
+    repo: batchMode ? "" : repoFullName,
+    branch,
+    commit,
+    requestId,
+    scanId: batchMode ? "" : scanId,
+    initialScan: batchMode ? null : initialScan,
+  });
+  const batchRun = useScanBatchRun({ repositories: batchRepositories });
+  const scans = batchMode ? batchRun.scans : singleRun.scan ? [singleRun.scan] : [];
+  const scan = batchMode ? scans.find((item) => !isTerminalScan(item)) || scans[0] || null : singleRun.scan;
+  const error = batchMode ? batchRun.error : singleRun.error;
+  const cancel = batchMode ? batchRun.cancel : singleRun.cancel;
 
   // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
@@ -268,23 +332,31 @@ export function ScanningScreen({ go, activeRepo }) {
     });
   }, [scan?.phase]);
 
-  // After a successful scan, drop into the dashboard so the user sees results.
-  useEffect(() => {
-    if (scan?.status !== "done") return undefined;
-    const id = setTimeout(() => go("dashboard"), 700);
-    return () => clearTimeout(id);
-  }, [scan?.status, go]);
-
-  const status = scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
-  const progress = typeof scan?.progress === "number" ? scan.progress : 0;
+  const expectedBatchCount = batchRepositories.length;
+  const status = batchMode
+    ? batchScanStatus(scans, expectedBatchCount, Boolean(error))
+    : scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
+  const progress = batchMode
+    ? (expectedBatchCount ? scans.reduce((sum, item) => sum + Number(item?.progress || 0), 0) / expectedBatchCount : 0)
+    : typeof scan?.progress === "number" ? scan.progress : 0;
   const currentPhase = scan?.phase || (status === "queued" ? null : "clone");
   const phaseIdx = currentPhase ? SCAN_PHASES.findIndex((p) => p.k === currentPhase) : -1;
-  const found = scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
-  const terminal = isTerminalScan(scan);
+  const found = batchMode ? scanIssueTotals(scans) : scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
+  const terminal = batchMode
+    ? expectedBatchCount > 0 && scans.length === expectedBatchCount && scans.every(isTerminalScan)
+    : isTerminalScan(scan);
   const queueSummary = scanQueueSummary(scan);
+  const canCancel = batchMode ? scans.some((item) => item?.id && !isTerminalScan(item)) : Boolean(scan && !terminal);
+
+  // After a successful scan, drop into the dashboard so the user sees results.
+  useEffect(() => {
+    if (status !== "done") return undefined;
+    const id = setTimeout(() => go("dashboard"), 700);
+    return () => clearTimeout(id);
+  }, [status, go]);
 
   const handleCancel = async () => {
-    if (scan && !terminal) await cancel();
+    if (canCancel) await cancel();
     go("history");
   };
   const handleBack = () => {
@@ -292,11 +364,11 @@ export function ScanningScreen({ go, activeRepo }) {
   };
 
   const headerLabel =
-    status === "done" ? T("Scan complete", "扫描完成") :
-    status === "failed" ? T("Scan failed", "扫描失败") :
-    status === "cancelled" ? T("Scan cancelled", "扫描已取消") :
+    status === "done" ? (batchMode ? T("Scan batch complete", "批量扫描完成") : T("Scan complete", "扫描完成")) :
+    status === "failed" ? (batchMode ? T("Scan batch failed", "批量扫描失败") : T("Scan failed", "扫描失败")) :
+    status === "cancelled" ? (batchMode ? T("Scan batch cancelled", "批量扫描已取消") : T("Scan cancelled", "扫描已取消")) :
     status === "no_repo" ? T("No repository selected", "未选择仓库") :
-    T("Scanning…", "扫描进行中");
+    batchMode ? T("Scanning repositories", "正在扫描仓库") : T("Scanning…", "扫描进行中");
 
   const headerIcon =
     status === "done" ? <I.Check size={18} /> :
@@ -316,22 +388,28 @@ export function ScanningScreen({ go, activeRepo }) {
               <div className="scanning-icon">{headerIcon}</div>
               <div className="scanning-copy">
                 <div className="scanning-title">
-                  {status === "queued" ? T("Scan queued", "Scan queued") : headerLabel} <b>{scan?.repo || repoFullName || "—"}</b>
+                  {status === "queued" ? (batchMode ? T("Scan batch queued", "批量扫描排队中") : T("Scan queued", "Scan queued")) : headerLabel} <b>{batchMode ? T(`${expectedBatchCount} repositories`, `${expectedBatchCount} 个仓库`) : scan?.repo || repoFullName || "—"}</b>
                 </div>
                 <div className="scanning-sub">
-                  {T("branch ", "分支 ")}
-                  <span className="tag">{scan?.branch || branch}</span>
-                  {scan?.commit && scan.commit !== "pending" && scan.commit !== "-" && (
-                    <>{T(" · commit ", " · commit ")}<span className="tag">{scan.commit}</span></>
+                  {batchMode ? (
+                    <span className="tag">{T(`${scans.length}/${expectedBatchCount} scans created`, `${scans.length}/${expectedBatchCount} 个扫描已创建`)}</span>
+                  ) : (
+                    <>
+                      {T("branch ", "分支 ")}
+                      <span className="tag">{scan?.branch || branch}</span>
+                      {scan?.commit && scan.commit !== "pending" && scan.commit !== "-" && (
+                        <>{T(" · commit ", " · commit ")}<span className="tag">{scan.commit}</span></>
+                      )}
+                      {scan?.id && <> · <span className="tag">{scan.id}</span></>}
+                    </>
                   )}
-                  {scan?.id && <> · <span className="tag">{scan.id}</span></>}
                 </div>
               </div>
               <div className="scanning-actions">
                 <button className="btn ghost" onClick={handleBack}>
                   <I.ArrowL size={13} /> {T("Back", "返回")}
                 </button>
-                {!terminal && scan && (
+                {canCancel && (
                   <button className="btn ghost" onClick={handleCancel}>
                     <I.X size={13} /> {T("Cancel", "取消")}
                   </button>

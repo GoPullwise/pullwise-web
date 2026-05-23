@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { useScanRun, useScans } from "./pullwise-data.js";
+import { useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -57,6 +57,58 @@ describe("useScans", () => {
         commit: "pending",
         requestId: "scan_req_1",
       });
+    });
+  });
+
+  it("creates a scan for each repository in a batch", async () => {
+    pullwiseApi.scans.create
+      .mockResolvedValueOnce({
+        id: "sc_1",
+        repo: "owner/alpha",
+        branch: "main",
+        status: "queued",
+      })
+      .mockResolvedValueOnce({
+        id: "sc_2",
+        repo: "owner/beta",
+        branch: "develop",
+        status: "queued",
+      });
+
+    renderHook(() =>
+      useScanBatchRun({
+        repositories: [
+          {
+            repo: "owner/alpha",
+            branch: "main",
+            commit: "pending",
+            requestId: "scan_req_alpha",
+          },
+          {
+            repo: "owner/beta",
+            branch: "develop",
+            commit: "pending",
+            requestId: "scan_req_beta",
+          },
+        ],
+        pollIntervalMs: 25,
+      })
+    );
+
+    await waitFor(() => {
+      expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2);
+    });
+    expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(1, {
+      repo: "owner/alpha",
+      branch: "main",
+      commit: "pending",
+      requestId: "scan_req_alpha",
+    });
+    expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(2, {
+      repo: "owner/beta",
+      branch: "develop",
+      commit: "pending",
+      requestId: "scan_req_beta",
     });
   });
 

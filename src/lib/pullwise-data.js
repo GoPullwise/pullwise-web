@@ -200,6 +200,12 @@ export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
 }
 
+function scanCreatePayload({ repo, branch, commit = "pending", requestId = "" }) {
+  const payload = { repo, branch: branch || "main", commit: commit || "pending" };
+  if (requestId) payload.requestId = requestId;
+  return payload;
+}
+
 // Creates or resumes a scan, then polls /scans/{id} every `pollIntervalMs`
 // until the scan reaches a terminal status.
 export function useScanRun({
@@ -224,10 +230,8 @@ export function useScanRun({
     if (!repo) return undefined;
     let alive = true;
     setError("");
-    const payload = { repo, branch: branch || "main", commit };
-    if (requestId) payload.requestId = requestId;
     pullwiseApi.scans
-      .create(payload)
+      .create(scanCreatePayload({ repo, branch, commit, requestId }))
       .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
       .catch((err) => { if (alive) setError(err?.message || "Unable to start scan."); });
     return () => { alive = false; };
@@ -274,4 +278,99 @@ export function useScanRun({
   };
 
   return { scan, error, cancel };
+}
+
+function scanRequestKey(request) {
+  return [
+    request.repo,
+    request.branch || "main",
+    request.commit || "pending",
+    request.requestId || "",
+  ].join("\u001f");
+}
+
+function normalizeScanRequest(request) {
+  return {
+    repo: request?.repo || "",
+    branch: request?.branch || "main",
+    commit: request?.commit || "pending",
+    requestId: request?.requestId || "",
+  };
+}
+
+export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {}) {
+  const [scans, setScans] = useState([]);
+  const [error, setError] = useState("");
+  const requests = repositories.map(normalizeScanRequest).filter((request) => request.repo);
+  const requestKey = requests.map(scanRequestKey).join("\u001e");
+  const requestsRef = useRef(requests);
+  requestsRef.current = requests;
+
+  useEffect(() => {
+    const nextRequests = requestsRef.current;
+    if (!requestKey) {
+      setScans((current) => (current.length ? [] : current));
+      setError((current) => (current ? "" : current));
+      return undefined;
+    }
+
+    let alive = true;
+    setScans((current) => (current.length ? [] : current));
+    setError((current) => (current ? "" : current));
+
+    Promise.allSettled(
+      nextRequests.map((request) => pullwiseApi.scans.create(scanCreatePayload(request)))
+    ).then((results) => {
+      if (!alive) return;
+      const createdScans = results
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => normalizeScan(result.value));
+      const failed = results.find((result) => result.status === "rejected");
+      setScans(createdScans);
+      if (failed) {
+        setError(failed.reason?.message || "Unable to start one or more scans.");
+      }
+    });
+
+    return () => {
+      alive = false;
+    };
+  }, [requestKey]);
+
+  useEffect(() => {
+    const activeScans = scans.filter((scan) => scan?.id && !isTerminalScan(scan));
+    if (!activeScans.length) return undefined;
+
+    let alive = true;
+    const handle = setTimeout(async () => {
+      try {
+        const updates = await Promise.all(activeScans.map((scan) => pullwiseApi.scans.get(scan.id)));
+        if (!alive) return;
+        const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
+        setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
+      } catch (err) {
+        if (alive) setError(err?.message || "Polling failed.");
+      }
+    }, pollIntervalMs);
+
+    return () => {
+      alive = false;
+      clearTimeout(handle);
+    };
+  }, [scans, pollIntervalMs]);
+
+  const cancel = async () => {
+    const activeScans = scans.filter((scan) => scan?.id && !isTerminalScan(scan));
+    if (!activeScans.length) return;
+
+    try {
+      const updates = await Promise.all(activeScans.map((scan) => pullwiseApi.scans.cancel(scan.id)));
+      const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
+      setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
+    } catch (err) {
+      setError(err?.message || "Cancel failed.");
+    }
+  };
+
+  return { scans, error, cancel };
 }
