@@ -203,7 +203,7 @@ export function isTerminalScan(scan) {
 // Creates a scan, then polls /scans/{id} every `pollIntervalMs` until the
 // scan reaches a terminal status. Caller drives the lifecycle by passing
 // `repo`; pass an empty string to defer creation.
-export function useScanRun({ repo, branch, commit = "pending", pollIntervalMs = 1500 }) {
+export function useScanRun({ repo, branch, commit = "pending", requestId = "", pollIntervalMs = 1500 }) {
   const [scan, setScan] = useState(null);
   const [error, setError] = useState("");
 
@@ -211,12 +211,14 @@ export function useScanRun({ repo, branch, commit = "pending", pollIntervalMs = 
     if (!repo) return undefined;
     let alive = true;
     setError("");
+    const payload = { repo, branch: branch || "main", commit };
+    if (requestId) payload.requestId = requestId;
     pullwiseApi.scans
-      .create({ repo, branch: branch || "main", commit })
+      .create(payload)
       .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
       .catch((err) => { if (alive) setError(err?.message || "Unable to start scan."); });
     return () => { alive = false; };
-  }, [repo, branch, commit]);
+  }, [repo, branch, commit, requestId]);
 
   useEffect(() => {
     if (!scan?.id || isTerminalScan(scan)) return undefined;
