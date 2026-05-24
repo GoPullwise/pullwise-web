@@ -173,6 +173,28 @@ describe("normalizeIssue", () => {
     expect(() => [repo.name, repo.fullName, repo.desc].some((value) => value.toLowerCase().includes("123"))).not.toThrow();
   });
 
+  it("normalizes repository count metadata for display-safe rendering", () => {
+    expect(normalizeRepo({
+      name: "octocat/repo",
+      stars: { value: 10 },
+      stargazers_count: "7.9",
+      branches: "3.5",
+    })).toMatchObject({
+      stars: 7,
+      branches: 3,
+    });
+
+    expect(normalizeRepo({ name: "octocat/repo", stars: "bad", branches: {} })).toMatchObject({
+      stars: "-",
+      branches: "-",
+    });
+
+    expect(normalizeRepo({ name: "octocat/repo", stars: -2, branches: -3 })).toMatchObject({
+      stars: 0,
+      branches: 0,
+    });
+  });
+
   it("normalizes boolean-like payload fields without treating false strings as true", () => {
     expect(normalizeRepo({ name: "octocat/public-repo", private: "false" }).private).toBe(false);
     expect(normalizeRepo({ name: "octocat/private-repo", private: "true" }).private).toBe(true);

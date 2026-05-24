@@ -68,6 +68,16 @@ function normalizeQueueCount(value, { positive = false } = {}) {
   return normalized;
 }
 
+function normalizeDisplayCount(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const count = Number(value);
+    if (!Number.isFinite(count)) continue;
+    return Math.max(0, Math.trunc(count));
+  }
+  return "-";
+}
+
 function textValue(...values) {
   for (const value of values) {
     if (value !== undefined && value !== null && value !== "") return String(value);
@@ -150,8 +160,8 @@ export function normalizeRepo(repo = {}) {
     fullName,
     desc: textValue(repo.desc, repo.description),
     lang: textValue(repo.lang, repo.language) || "-",
-    stars: repo.stars ?? repo.stargazers_count ?? "-",
-    branches: repo.branches ?? "-",
+    stars: normalizeDisplayCount(repo.stars, repo.stargazers_count),
+    branches: normalizeDisplayCount(repo.branches),
     updated: textValue(repo.updated, repo.updated_at, repo.updatedAt),
     private: normalizeBoolean(repo.private),
   };
