@@ -2,6 +2,11 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
+> **Historical note:** This Stage 1 plan describes the product state before the
+> later Stage 2 fix/PR workflow. Current README files are authoritative for
+> implemented behavior; Stage 2 now includes deterministic fix preview and
+> GitHub pull request creation.
+
 **Goal:** Make Pullwise Stage 1 stable, usable, and honest for production trials before building Stage 2 automation.
 
 **Architecture:** Keep the current split between `pullwise-web` and `pullwise-server`. Harden the existing GitHub authorization, scan, issue, billing, and settings flows; expose backend state clearly; and render existing structured finding data in the frontend instead of adding fixture-only behavior.

@@ -1,5 +1,9 @@
 # Pullwise Production Readiness Design
 
+> **Historical note:** This Stage 1 design records the pre-Stage 2 product
+> state. Current README files are authoritative for implemented behavior; Stage
+> 2 now includes deterministic fix preview and GitHub pull request creation.
+
 ## Context
 
 Pullwise is a GitHub code-review product. The current product surface includes
