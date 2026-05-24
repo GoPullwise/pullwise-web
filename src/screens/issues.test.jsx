@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
-import { HistoryScreen, IssueDetailScreen } from "./issues.jsx";
+import { HistoryScreen, IssueDetailScreen, IssuesScreen } from "./issues.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -30,7 +30,33 @@ vi.mock("../lib/pullwise-data.js", () => ({
 }));
 
 import { pullwiseApi } from "../api/pullwise.js";
-import { useScans } from "../lib/pullwise-data.js";
+import { useIssues, useScans } from "../lib/pullwise-data.js";
+
+describe("IssuesScreen list resilience", () => {
+  it("does not leak NaN when issue confidence is missing", () => {
+    useIssues.mockReturnValue({
+      items: [
+        {
+          id: "f_123",
+          repo: "acme/api",
+          severity: "high",
+          category: "Security",
+          title: "Validate redirect targets",
+          file: "src/auth.py",
+          status: "open",
+        },
+      ],
+      loading: false,
+      error: "",
+      reload: vi.fn(),
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    expect(document.body).not.toHaveTextContent("NaN%");
+    expect(screen.getByText("--")).toBeInTheDocument();
+  });
+});
 
 describe("HistoryScreen queue state", () => {
   it("shows queued scan position and scans ahead in history", () => {

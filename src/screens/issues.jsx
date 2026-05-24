@@ -10,12 +10,20 @@ import { Sidebar, Topbar } from "../shell.jsx";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 
+function issueConfidence(issue) {
+  const confidence = Number(issue?.confidence);
+  if (!Number.isFinite(confidence)) return null;
+  return Math.max(0, Math.min(1, confidence));
+}
+
 function sortIssues(items, key) {
   const sorted = items.slice();
   if (key === "severity") {
-    sorted.sort((a, b) => (SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity]) || (b.confidence - a.confidence));
+    sorted.sort((a, b) => (
+      (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0)
+    ) || ((issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1)));
   }
-  if (key === "confidence") sorted.sort((a, b) => b.confidence - a.confidence);
+  if (key === "confidence") sorted.sort((a, b) => (issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1));
   if (key === "newest") sorted.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (key === "file") sorted.sort((a, b) => (a.file || "").localeCompare(b.file || ""));
   return sorted;
@@ -156,7 +164,10 @@ export function IssuesScreen({ go, setIssue }) {
                 {T("No findings are available yet.", "暂无 findings。")}
               </div>
             )}
-            {filtered.map((issue) => (
+            {filtered.map((issue) => {
+              const confidence = issueConfidence(issue);
+              const confidenceLabel = confidence == null ? "--" : `${Math.round(confidence * 100)}%`;
+              return (
               <div key={issue.id} className="issues-trow">
                 <div></div>
                 <div className="issues-title-c" onClick={() => { setIssue(issue); go("issue"); }}>
@@ -170,8 +181,8 @@ export function IssuesScreen({ go, setIssue }) {
                 <div className="issues-file">{issue.file}{issue.line ? ":" + issue.line : ""}</div>
                 <div><span className="tag">{issue.category}</span></div>
                 <div>
-                  <div className="conf-bar"><div style={{ width: `${issue.confidence * 100}%` }}></div></div>
-                  <span style={{ fontSize: 11, color: "var(--text-3)", fontVariantNumeric: "tabular-nums" }}>{Math.round(issue.confidence * 100)}%</span>
+                  <div className="conf-bar"><div style={{ width: `${(confidence ?? 0) * 100}%` }}></div></div>
+                  <span style={{ fontSize: 11, color: "var(--text-3)", fontVariantNumeric: "tabular-nums" }}>{confidenceLabel}</span>
                 </div>
                 <div><span className="tag">{issue.status}</span></div>
                 <div style={{ display: "flex", gap: 6 }}>
@@ -180,7 +191,8 @@ export function IssuesScreen({ go, setIssue }) {
                   <button className="btn sm" onClick={() => { setIssue(issue); go("issue"); }}><I.ArrowR size={11} /></button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
