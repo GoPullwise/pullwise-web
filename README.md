@@ -1,19 +1,25 @@
 # Pullwise Web
 
 Pullwise Web is a Vite React app for the Pullwise backend in
-`F:\pullwise-server`. The active app surfaces only server-backed flows:
+`F:\pullwise-server`. The Stage 1 product surfaces only server-backed flows:
 
 - GitHub identity login through the backend OAuth endpoint
 - GitHub App repository authorization
 - Repository listing and sync
 - Scan creation, polling, cancellation, and history
-- Issue listing plus manual status changes
+- Rich issue review plus manual triage/status changes
 - Account and GitHub integration settings
 - Stripe or Creem billing through backend-created checkout and portal sessions
-- Legal, privacy, security, and live status pages for payment review
+- Legal, privacy, security, and live status/readiness pages
 
-The frontend intentionally does not expose notifications, auto-fix application,
-or pull request creation because those backend capabilities are not implemented.
+Stage 2 automation is intentionally unavailable in this build:
+
+- Applying fixes
+- Creating branches or pull requests
+- Notifications
+- Slack or Linear writes
+
+Disabled UI actions must stay honest until those backend workflows exist.
 
 ## Local Development
 
@@ -53,6 +59,9 @@ Only `VITE_*` variables are exposed to browser code. Do not put GitHub client
 secrets, GitHub App private keys, AI provider keys, or repository credentials in
 frontend env files.
 
+If real GitHub OAuth secrets or GitHub App private keys were ever committed or
+shared outside the local machine, rotate them in GitHub before production use.
+
 The Python API now requires real GitHub OAuth/App configuration for production
 login flows. Explicit local auth switches live in `F:\pullwise-server`; they are
 not enabled by the frontend.
@@ -69,7 +78,7 @@ npm run build     # build dist output
 npm run preview   # preview production build locally
 npm run lint      # run ESLint
 npm run test      # run Vitest
-npm run check     # lint, typecheck, test, then build
+npm run check     # lint, test, then build
 ```
 
 ## Project Structure
