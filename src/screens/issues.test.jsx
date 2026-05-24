@@ -1,5 +1,7 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { HistoryScreen, IssueDetailScreen } from "./issues.jsx";
 
@@ -210,6 +212,54 @@ describe("IssueDetailScreen review detail", () => {
 
     expect(screen.queryByText("validated")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
+  });
+
+  it("does not expose a valid preview during a synchronous issue rerender", async () => {
+    const issueA = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      status: "open",
+      autoFix: true,
+      file: "src/auth.py",
+    };
+    const issueB = {
+      ...issueA,
+      id: "f_456",
+      title: "Escape shell arguments",
+      file: "src/shell.py",
+    };
+    pullwiseApi.issues.previewFix.mockResolvedValueOnce({
+      valid: true,
+      file: "src/auth.py",
+      diff: "--- a/src/auth.py\n+++ b/src/auth.py\n-return redirect(next_url)\n+return redirect(safe_redirect(next_url))\n",
+    });
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+
+    try {
+      flushSync(() => {
+        root.render(<IssueDetailScreen go={vi.fn()} issue={issueA} />);
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /preview fix/i }));
+      });
+      expect(await screen.findByText("validated")).toBeInTheDocument();
+
+      flushSync(() => {
+        root.render(<IssueDetailScreen go={vi.fn()} issue={issueB} />);
+      });
+
+      expect(screen.queryByText("validated")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
+    } finally {
+      root.unmount();
+      host.remove();
+    }
   });
 
   it("clears a previous valid preview when re-previewing fails", async () => {

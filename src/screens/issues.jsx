@@ -193,7 +193,9 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const [currentStatus, setCurrentStatus] = useState(issue?.status || "open");
   const [actionError, setActionError] = useState("");
   const [fixPreview, setFixPreview] = useState(null);
-  const [pullRequest, setPullRequest] = useState(issue?.pullRequest || null);
+  const [pullRequest, setPullRequest] = useState(
+    issue?.pullRequest ? { issueId: issue.id, value: issue.pullRequest } : null
+  );
   const [fixLoading, setFixLoading] = useState("");
   const fixRequestRef = useRef(0);
 
@@ -202,7 +204,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     setCurrentStatus(issue?.status || "open");
     setActionError("");
     setFixPreview(null);
-    setPullRequest(issue?.pullRequest || null);
+    setPullRequest(issue?.pullRequest ? { issueId: issue.id, value: issue.pullRequest } : null);
     setFixLoading("");
     return () => {
       fixRequestRef.current += 1;
@@ -235,6 +237,8 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   };
   const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
   const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
+  const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
+  const activePullRequest = pullRequest?.issueId === issue.id ? pullRequest.value : issue.pullRequest || null;
   const beginFixRequest = () => {
     const requestId = fixRequestRef.current + 1;
     fixRequestRef.current = requestId;
@@ -245,12 +249,12 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     const requestId = beginFixRequest();
     setActionError("");
     setFixPreview(null);
-    setPullRequest(issue?.pullRequest || null);
+    setPullRequest(issue?.pullRequest ? { issueId: issue.id, value: issue.pullRequest } : null);
     setFixLoading("preview");
     try {
       const preview = await pullwiseApi.issues.previewFix(issue.id);
       if (!isCurrentFixRequest(requestId)) return;
-      setFixPreview(preview);
+      setFixPreview({ issueId: issue.id, value: preview });
     } catch (error) {
       if (!isCurrentFixRequest(requestId)) return;
       setActionError(error?.message || "Unable to preview fix.");
@@ -265,7 +269,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     try {
       const result = await pullwiseApi.issues.createPullRequest(issue.id);
       if (!isCurrentFixRequest(requestId)) return;
-      setPullRequest(result);
+      setPullRequest({ issueId: issue.id, value: result });
     } catch (error) {
       if (!isCurrentFixRequest(requestId)) return;
       setActionError(error?.message || "Unable to open pull request.");
@@ -363,23 +367,23 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
               <button className="btn sm" disabled={!autoFixable || Boolean(fixLoading)} onClick={previewFix}>
                 <I.Sparkle size={13} /> {fixLoading === "preview" ? "Previewing..." : "Preview fix"}
               </button>
-              <button className="btn sm" disabled={!fixPreview?.valid || Boolean(fixLoading)} onClick={openPullRequest}>
+              <button className="btn sm" disabled={!activeFixPreview?.valid || Boolean(fixLoading)} onClick={openPullRequest}>
                 <I.GitBranch size={13} /> {fixLoading === "pr" ? "Opening..." : "Open PR"}
               </button>
               {!autoFixable && <div className="muted" style={{ fontSize: 12 }}>This issue is not auto-fixable.</div>}
-              {fixPreview && (
+              {activeFixPreview && (
                 <div className="fix-preview">
                   <div className="fix-preview-h">
-                    <b>{fixPreview.file}</b>
-                    <span className="tag">{fixPreview.valid ? "validated" : "blocked"}</span>
+                    <b>{activeFixPreview.file}</b>
+                    <span className="tag">{activeFixPreview.valid ? "validated" : "blocked"}</span>
                   </div>
-                  {fixPreview.message && <div className="muted">{fixPreview.message}</div>}
-                  {fixPreview.diff && <pre className="diff-block">{fixPreview.diff}</pre>}
+                  {activeFixPreview.message && <div className="muted">{activeFixPreview.message}</div>}
+                  {activeFixPreview.diff && <pre className="diff-block">{activeFixPreview.diff}</pre>}
                 </div>
               )}
-              {pullRequest?.url && (
-                <a className="auth-link" href={pullRequest.url} target="_blank" rel="noreferrer">
-                  Pull request #{pullRequest.number}
+              {activePullRequest?.url && (
+                <a className="auth-link" href={activePullRequest.url} target="_blank" rel="noreferrer">
+                  Pull request #{activePullRequest.number}
                 </a>
               )}
             </div>
