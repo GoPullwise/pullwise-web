@@ -1,25 +1,32 @@
 # Pullwise Web
 
 Pullwise Web is a Vite React app for the Pullwise backend in
-`F:\pullwise-server`. The Stage 1 product surfaces only server-backed flows:
+`F:\pullwise-server`. The current product surfaces only server-backed flows:
 
 - GitHub identity login through the backend OAuth endpoint
 - GitHub App repository authorization
 - Repository listing and sync
 - Scan creation, polling, cancellation, and history
 - Rich issue review plus manual triage/status changes
+- Deterministic fix preview and GitHub pull request creation for auto-fixable issues
 - Account and GitHub integration settings
 - Stripe or Creem billing through backend-created checkout and portal sessions
 - Legal, privacy, security, and live status/readiness pages
 
-Stage 2 automation is intentionally unavailable in this build:
+Stage 2 remediation is intentionally narrow in this build. The browser can ask
+the backend to preview deterministic fix diffs and open GitHub pull requests for
+auto-fixable findings. Still unavailable:
 
-- Applying fixes
-- Creating branches or pull requests
+- Direct in-place fix application
+- Batch fixes
+- Auto-merge
 - Notifications
 - Slack or Linear writes
+- AI-generated replacement patches beyond the finding payload
 
-Disabled UI actions must stay honest until those backend workflows exist.
+Secret-bearing Git and GitHub App work stays on the backend. The GitHub App
+installation must grant `Contents: write` and `Pull requests: write` for branch
+push and pull request creation.
 
 ## Local Development
 
@@ -108,8 +115,8 @@ eslint.config.js    ESLint config
 
 Secret-bearing and privileged operations stay server-side: GitHub OAuth client
 secrets, GitHub App private keys, repository cloning, scan workers, AI provider
-credentials, payment provider keys, webhook handling, and future PR creation
-credentials.
+credentials, payment provider keys, webhook handling, fix branch pushes, and
+pull request creation credentials.
 
 ## Cloudflare Pages Deployment
 
