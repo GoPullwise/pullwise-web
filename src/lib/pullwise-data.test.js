@@ -216,6 +216,13 @@ describe("normalizeIssue", () => {
       .some((value) => value.toLowerCase().includes("18"))).not.toThrow();
   });
 
+  it("normalizes issue line numbers for display-safe file labels", () => {
+    expect(normalizeIssue({ id: "f_line", line: "42" }).line).toBe("42");
+    expect(normalizeIssue({ id: "f_float_line", line: 42.8 }).line).toBe("42");
+    expect(normalizeIssue({ id: "f_bad_line", line: { value: 42 } }).line).toBeNull();
+    expect(normalizeIssue({ id: "f_negative_line", line: -1 }).line).toBeNull();
+  });
+
   it("normalizes issue rich detail arrays for safe rendering", () => {
     const issue = normalizeIssue({
       id: "f_rich",

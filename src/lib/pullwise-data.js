@@ -52,6 +52,13 @@ function normalizeBoolean(value) {
   return false;
 }
 
+function normalizeLineNumber(value) {
+  const line = Number(value);
+  if (!Number.isFinite(line)) return null;
+  const normalized = Math.trunc(line);
+  return normalized > 0 ? String(normalized) : null;
+}
+
 function textValue(...values) {
   for (const value of values) {
     if (value !== undefined && value !== null && value !== "") return String(value);
@@ -157,7 +164,7 @@ export function normalizeIssue(issue = {}) {
     category: textValue(issue.category) || "General",
     status: normalizeIssueStatus(issue.status),
     file: textValue(issue.file),
-    line: issue.line || null,
+    line: normalizeLineNumber(issue.line),
     confidence: normalizeConfidence(issue.confidence),
     effort: textValue(issue.effort) || "-",
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
