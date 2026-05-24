@@ -203,6 +203,36 @@ describe("normalizeIssue", () => {
       .some((value) => value.toLowerCase().includes("18"))).not.toThrow();
   });
 
+  it("normalizes issue rich detail arrays for safe rendering", () => {
+    const issue = normalizeIssue({
+      id: "f_rich",
+      steps: ["Review input validation", 42, null, { text: "bad shape" }],
+      badCode: [
+        null,
+        { ln: 7, code: 123, t: "add" },
+        { ln: "x", code: { nested: true }, t: "weird" },
+      ],
+      goodCode: ["return ok", { ln: 9, code: "return safe", t: "del" }],
+      references: [
+        null,
+        { label: 42, url: "https://example.com/a" },
+        { url: 123 },
+        "https://example.com/raw",
+      ],
+    });
+
+    expect(issue.steps).toEqual(["Review input validation", "42"]);
+    expect(issue.badCode).toEqual([{ ln: "7", code: "123", t: "add" }]);
+    expect(issue.goodCode).toEqual([
+      { ln: "", code: "return ok", t: "" },
+      { ln: "9", code: "return safe", t: "del" },
+    ]);
+    expect(issue.references).toEqual([
+      { label: "42", url: "https://example.com/a" },
+      { label: "https://example.com/raw", url: "https://example.com/raw" },
+    ]);
+  });
+
   it("normalizes scan issue counts into finite non-negative integers", () => {
     expect(normalizeScan({
       id: "sc_1",

@@ -58,6 +58,56 @@ function normalizeIssueStatus(value) {
   return ["open", "fixed", "snoozed"].includes(status) ? status : "open";
 }
 
+function scalarText(value) {
+  if (value === undefined || value === null || value === "") return "";
+  if (["string", "number", "boolean"].includes(typeof value)) return String(value);
+  return "";
+}
+
+function normalizeTextList(values) {
+  if (!Array.isArray(values)) return [];
+  return values.map(scalarText).filter(Boolean);
+}
+
+function normalizeCodeLines(lines) {
+  if (!Array.isArray(lines)) return [];
+  return lines
+    .map((line) => {
+      if (["string", "number", "boolean"].includes(typeof line)) {
+        return { ln: "", code: String(line), t: "" };
+      }
+      if (!line || typeof line !== "object" || Array.isArray(line)) return null;
+      const code = scalarText(line.code);
+      if (!code) return null;
+      const type = ["add", "del"].includes(line.t) ? line.t : "";
+      return {
+        ln: scalarText(line.ln),
+        code,
+        t: type,
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeReferences(references) {
+  if (!Array.isArray(references)) return [];
+  return references
+    .map((reference) => {
+      if (["string", "number", "boolean"].includes(typeof reference)) {
+        const url = String(reference);
+        return /^https?:\/\//i.test(url) ? { label: url, url } : null;
+      }
+      if (!reference || typeof reference !== "object" || Array.isArray(reference)) return null;
+      const url = scalarText(reference.url);
+      if (!/^https?:\/\//i.test(url)) return null;
+      return {
+        label: scalarText(reference.label) || url,
+        url,
+      };
+    })
+    .filter(Boolean);
+}
+
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
   const fullName = textValue(repo.fullName, repo.full_name, repo.name);
@@ -95,10 +145,10 @@ export function normalizeIssue(issue = {}) {
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
     autoFix: Boolean(issue.autoFix ?? issue.autoFixable),
     autoFixable: Boolean(issue.autoFixable ?? issue.autoFix),
-    steps: Array.isArray(issue.steps) ? issue.steps : [],
-    badCode: Array.isArray(issue.badCode) ? issue.badCode : [],
-    goodCode: Array.isArray(issue.goodCode) ? issue.goodCode : [],
-    references: Array.isArray(issue.references) ? issue.references : [],
+    steps: normalizeTextList(issue.steps),
+    badCode: normalizeCodeLines(issue.badCode),
+    goodCode: normalizeCodeLines(issue.goodCode),
+    references: normalizeReferences(issue.references),
     tags: Array.isArray(issue.tags) ? issue.tags : [],
   };
 }
