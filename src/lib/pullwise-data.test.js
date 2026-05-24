@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { normalizeIssue, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
+import { normalizeIssue, normalizeRepo, normalizeScan, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -141,6 +141,18 @@ describe("useScans", () => {
 });
 
 describe("normalizeIssue", () => {
+  it("handles null payload records without throwing", () => {
+    expect(normalizeRepo(null)).toMatchObject({ id: "", name: "", fullName: "" });
+    expect(normalizeIssue(null)).toMatchObject({
+      id: "",
+      severity: "info",
+      category: "General",
+      status: "open",
+      confidence: 0,
+    });
+    expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
+  });
+
   it("normalizes confidence into a finite display-safe range", () => {
     expect(normalizeIssue({ id: "f_invalid", confidence: "not-a-number" }).confidence).toBe(0);
     expect(normalizeIssue({ id: "f_high", confidence: 1.6 }).confidence).toBe(1);

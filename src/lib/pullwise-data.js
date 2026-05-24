@@ -22,7 +22,8 @@ function normalizeConfidence(value) {
   return Math.max(0, Math.min(1, confidence));
 }
 
-export function normalizeRepo(repo) {
+export function normalizeRepo(repo = {}) {
+  repo = repo || {};
   const fullName = repo.fullName || repo.full_name || repo.name || "";
   return {
     ...repo,
@@ -38,7 +39,8 @@ export function normalizeRepo(repo) {
   };
 }
 
-export function normalizeIssue(issue) {
+export function normalizeIssue(issue = {}) {
+  issue = issue || {};
   return {
     ...issue,
     id: String(issue.id || ""),
@@ -65,7 +67,8 @@ export function normalizeIssue(issue) {
   };
 }
 
-export function normalizeScan(scan) {
+export function normalizeScan(scan = {}) {
+  scan = scan || {};
   return {
     ...scan,
     id: String(scan.id || ""),
