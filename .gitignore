@@ -63,6 +63,7 @@ Desktop.ini
 
 # Project tooling
 .omx/
+.worktrees/
 
 .claude/settings.local.json
 .tmp-chrome-profile/
