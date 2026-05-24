@@ -2,27 +2,36 @@ import { I } from "../icons.jsx";
 import { T } from "../i18n.jsx";
 import { markGitHubRepositoryAccessRefreshNeeded } from "../lib/github-repository-access-refresh.js";
 
+function scalarText(value) {
+  if (value === undefined || value === null || value === "") return "";
+  if (["string", "number", "boolean"].includes(typeof value)) return String(value);
+  return "";
+}
+
 function installationId(installation) {
-  return String(installation?.installationId || installation?.id || "");
+  return scalarText(installation?.installationId) || scalarText(installation?.id);
 }
 
 function installationAccount(installation) {
-  return String(
-    installation?.installationAccount ||
-    installation?.account?.login ||
-    installation?.account ||
-    ""
+  return (
+    scalarText(installation?.installationAccount) ||
+    scalarText(installation?.account?.login) ||
+    scalarText(installation?.account)
   );
 }
 
 function installationTargetType(installation) {
-  const raw = String(installation?.installationTargetType || installation?.targetType || installation?.target_type || "");
+  const raw = scalarText(installation?.installationTargetType) ||
+    scalarText(installation?.targetType) ||
+    scalarText(installation?.target_type);
   if (!raw) return T("Account", "账号");
   return raw.toLowerCase() === "organization" ? T("Organization", "组织") : T("User", "用户");
 }
 
 function installationSelection(installation) {
-  const raw = String(installation?.repositorySelection || installation?.repository_selection || installation?.scope || "");
+  const raw = scalarText(installation?.repositorySelection) ||
+    scalarText(installation?.repository_selection) ||
+    scalarText(installation?.scope);
   return raw === "all" ? T("all repositories", "全部仓库") : T("selected", "已选择仓库");
 }
 
@@ -44,7 +53,10 @@ function installationRepositoryCount(installation) {
 }
 
 function installationHtmlUrl(installation) {
-  return String(installation?.installationHtmlUrl || installation?.htmlUrl || installation?.html_url || "");
+  const url = scalarText(installation?.installationHtmlUrl) ||
+    scalarText(installation?.htmlUrl) ||
+    scalarText(installation?.html_url);
+  return /^https?:\/\//i.test(url) ? url : "";
 }
 
 function normalizedInstallations(installations) {

@@ -1,0 +1,34 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { GitHubInstallationsList } from "./github-installations.jsx";
+
+describe("GitHubInstallationsList", () => {
+  it("sanitizes malformed installation labels and management links", () => {
+    render(
+      <GitHubInstallationsList
+        installations={[
+          {
+            installationId: { value: "bad" },
+            installationAccount: { value: "bad" },
+            repositoryCount: { value: 2 },
+            installationHtmlUrl: { value: "https://example.com" },
+          },
+          {
+            installationId: "130258770",
+            installationAccount: { value: "GoPullwise" },
+            installationTargetType: { value: "Organization" },
+            repositorySelection: { value: "all" },
+            repositoryCount: "2.8",
+            installationHtmlUrl: "javascript:alert(1)",
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("Authorized GitHub installations")).toBeInTheDocument();
+    expect(screen.getByText("130258770")).toBeInTheDocument();
+    expect(screen.getByText(/Account .* selected .* 2 repositories/i)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("[object Object]");
+    expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
+  });
+});
