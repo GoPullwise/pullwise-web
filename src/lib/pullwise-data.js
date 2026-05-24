@@ -41,6 +41,17 @@ function normalizeProgress(value) {
   return Math.min(100, Math.max(0, progress));
 }
 
+function normalizeBoolean(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes", "on"].includes(normalized)) return true;
+    if (["false", "0", "no", "off", ""].includes(normalized)) return false;
+  }
+  return false;
+}
+
 function textValue(...values) {
   for (const value of values) {
     if (value !== undefined && value !== null && value !== "") return String(value);
@@ -126,12 +137,14 @@ export function normalizeRepo(repo = {}) {
     stars: repo.stars ?? repo.stargazers_count ?? "-",
     branches: repo.branches ?? "-",
     updated: textValue(repo.updated, repo.updated_at, repo.updatedAt),
-    private: Boolean(repo.private),
+    private: normalizeBoolean(repo.private),
   };
 }
 
 export function normalizeIssue(issue = {}) {
   issue = issue || {};
+  const autoFix = normalizeBoolean(issue.autoFix ?? issue.autoFixable);
+  const autoFixable = normalizeBoolean(issue.autoFixable ?? issue.autoFix);
   return {
     ...issue,
     id: String(issue.id || ""),
@@ -148,8 +161,8 @@ export function normalizeIssue(issue = {}) {
     confidence: normalizeConfidence(issue.confidence),
     effort: textValue(issue.effort) || "-",
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
-    autoFix: Boolean(issue.autoFix ?? issue.autoFixable),
-    autoFixable: Boolean(issue.autoFixable ?? issue.autoFix),
+    autoFix,
+    autoFixable,
     steps: normalizeTextList(issue.steps),
     badCode: normalizeCodeLines(issue.badCode),
     goodCode: normalizeCodeLines(issue.goodCode),

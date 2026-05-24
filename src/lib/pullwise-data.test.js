@@ -173,6 +173,19 @@ describe("normalizeIssue", () => {
     expect(() => [repo.name, repo.fullName, repo.desc].some((value) => value.toLowerCase().includes("123"))).not.toThrow();
   });
 
+  it("normalizes boolean-like payload fields without treating false strings as true", () => {
+    expect(normalizeRepo({ name: "octocat/public-repo", private: "false" }).private).toBe(false);
+    expect(normalizeRepo({ name: "octocat/private-repo", private: "true" }).private).toBe(true);
+    expect(normalizeIssue({ id: "f_manual", autoFix: "false", autoFixable: "false" })).toMatchObject({
+      autoFix: false,
+      autoFixable: false,
+    });
+    expect(normalizeIssue({ id: "f_auto", autoFix: "true" })).toMatchObject({
+      autoFix: true,
+      autoFixable: true,
+    });
+  });
+
   it("normalizes issue text fields for search-safe rendering", () => {
     const issue = normalizeIssue({
       id: 123,
