@@ -270,6 +270,14 @@ function StatusRow({ icon, title, status, detail }) {
   );
 }
 
+function configuredLabel(value, configured, missing) {
+  return value ? configured : missing;
+}
+
+function readinessAvailable(health) {
+  return Boolean(health?.reviewProvider || health?.github || health?.billing || health?.limits);
+}
+
 export function StatusScreen({ go, auth }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
@@ -312,6 +320,21 @@ export function StatusScreen({ go, auth }) {
   const apiDetail = health?.service
     ? `${health.service} / ${health.mode || "unknown mode"}`
     : error || "GET /health";
+  const github = health?.github || null;
+  const billing = health?.billing || null;
+  const limits = health?.limits || null;
+  const githubReady = Boolean(github?.oauthConfigured && github?.appInstallConfigured && github?.appApiConfigured);
+  const githubDetail = github ? [
+    configuredLabel(github.oauthConfigured, "OAuth configured", "OAuth missing"),
+    configuredLabel(github.appInstallConfigured, "App install configured", "App install missing"),
+    configuredLabel(github.appApiConfigured, "App API configured", "App API missing"),
+    github.appVisibilityCheck ? "Visibility check on" : "Visibility check off",
+  ].join(" / ") : "";
+  const billingDetail = billing ? `${billing.provider || "unknown"} (${billing.enabled ? "enabled" : "not enabled"})` : "";
+  const limitsDetail = limits ? [
+    `${limits.maxConcurrentScans ?? "-"} global / ${limits.maxConcurrentScansPerUser ?? "-"} per user`,
+    `Rate limiting ${limits.rateLimitEnabled ? "enabled" : "disabled"}`,
+  ].join(" - ") : "";
   const databaseDetail = health?.database?.type
     ? `${health.database.type}: ${health.database.path || "configured backend path"}`
     : T("Waiting for backend health.", "等待后端健康检查。");
@@ -343,6 +366,45 @@ export function StatusScreen({ go, auth }) {
             </div>
           )}
         </div>
+
+        {readinessAvailable(health) && (
+          <div className="status-card card" style={{ marginTop: 14 }}>
+            <div className="status-card-h">
+              <h2>Backend readiness</h2>
+              <span className="muted">Configuration visible from safe /health fields</span>
+            </div>
+            <StatusRow
+              icon={<I.Terminal size={14} />}
+              title="Review provider"
+              status={health?.reviewProvider && health.reviewProvider !== "disabled" ? "operational" : "degraded"}
+              detail={health?.reviewProvider || "disabled"}
+            />
+            {github && (
+              <StatusRow
+                icon={<I.Github size={14} />}
+                title="GitHub integration"
+                status={githubReady ? "operational" : "degraded"}
+                detail={githubDetail}
+              />
+            )}
+            {billing && (
+              <StatusRow
+                icon={<I.Package size={14} />}
+                title="Billing provider"
+                status={billing.enabled ? "operational" : "degraded"}
+                detail={billingDetail}
+              />
+            )}
+            {limits && (
+              <StatusRow
+                icon={<I.Activity size={14} />}
+                title="Runtime limits"
+                status={limits.maxConcurrentScans ? "operational" : "degraded"}
+                detail={limitsDetail}
+              />
+            )}
+          </div>
+        )}
       </section>
     </LegalChrome>
   );
