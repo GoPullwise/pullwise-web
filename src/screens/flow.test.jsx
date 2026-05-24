@@ -53,6 +53,24 @@ beforeEach(() => {
   useScanRun.mockReset();
 });
 
+function renderScanError(error) {
+  const go = vi.fn();
+  useScanRun.mockReturnValue({
+    scan: null,
+    error,
+    cancel: vi.fn(),
+  });
+
+  render(
+    <ScanningScreen
+      go={go}
+      activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+    />
+  );
+
+  return { go };
+}
+
 describe("ReposScreen scan selection", () => {
   it("hands every selected repository to the scanning screen", async () => {
     const go = vi.fn();
@@ -323,5 +341,45 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getAllByText(/3 scans ahead/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/global 3/i)).toBeInTheDocument();
     expect(screen.getByText(/per user 1/i)).toBeInTheDocument();
+  });
+
+  it("routes disabled review provider errors to settings", async () => {
+    const user = userEvent.setup();
+    const { go } = renderScanError("Review provider is disabled. Configure a provider before scanning.");
+
+    await user.click(screen.getByRole("button", { name: /open settings/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/review provider is disabled/i);
+    expect(go).toHaveBeenCalledWith("settings");
+  });
+
+  it("routes GitHub repository sync errors to repositories", async () => {
+    const user = userEvent.setup();
+    const { go } = renderScanError("Sync GitHub repositories before starting a scan.");
+
+    await user.click(screen.getByRole("button", { name: /sync repositories/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/sync github repositories/i);
+    expect(go).toHaveBeenCalledWith("repos");
+  });
+
+  it("routes monthly review quota errors to billing", async () => {
+    const user = userEvent.setup();
+    const { go } = renderScanError("Monthly review limit exceeded for this workspace.");
+
+    await user.click(screen.getByRole("button", { name: /open billing/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/monthly review limit/i);
+    expect(go).toHaveBeenCalledWith("billing");
+  });
+
+  it("routes missing CLI provider errors to settings", async () => {
+    const user = userEvent.setup();
+    const { go } = renderScanError("Codex CLI is missing or not authenticated.");
+
+    await user.click(screen.getByRole("button", { name: /open settings/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/cli is missing/i);
+    expect(go).toHaveBeenCalledWith("settings");
   });
 });

@@ -41,6 +41,20 @@ function batchScanStatus(scans, expectedCount, hasError) {
   return "queued";
 }
 
+function scanErrorAction(errorMessage) {
+  const text = String(errorMessage || "").toLowerCase();
+  if (text.includes("review provider") || text.includes("cli") || text.includes("not authenticated")) {
+    return { label: "Open settings", screen: "settings" };
+  }
+  if (text.includes("sync github repositories")) {
+    return { label: "Sync repositories", screen: "repos" };
+  }
+  if (text.includes("monthly review limit")) {
+    return { label: "Open billing", screen: "billing" };
+  }
+  return { label: "Retry", screen: "repos" };
+}
+
 function scanIssueTotals(scans) {
   return scans.reduce((totals, scan) => {
     const issues = scan?.issues || {};
@@ -347,6 +361,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     : isTerminalScan(scan);
   const queueSummary = scanQueueSummary(scan);
   const canCancel = batchMode ? scans.some((item) => item?.id && !isTerminalScan(item)) : Boolean(scan && !terminal);
+  const errorAction = error ? scanErrorAction(error) : null;
 
   // After a successful scan, drop into the dashboard so the user sees results.
   useEffect(() => {
@@ -418,8 +433,14 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
             </div>
 
             {error && (
-              <div className="auth-error" role="alert" style={{ margin: "0 0 12px" }}>
-                <I.X size={13} /> {error}
+              <div className="auth-error" role="alert" style={{ margin: "0 0 12px", alignItems: "center" }}>
+                <I.X size={13} />
+                <span style={{ flex: 1 }}>{error}</span>
+                {errorAction && (
+                  <button className="btn sm" onClick={() => go(errorAction.screen)}>
+                    {errorAction.label} <I.ArrowR size={11} />
+                  </button>
+                )}
               </div>
             )}
 
