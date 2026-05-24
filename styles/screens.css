@@ -655,6 +655,21 @@
 .diff-tag { font: 500 10px/1 var(--font-mono); padding: 3px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
 .diff-tag.bad { background: color-mix(in oklch, #dc2626 12%, transparent); color: #dc2626; }
 .diff-tag.good { background: color-mix(in oklch, #16a34a 12%, transparent); color: #16a34a; }
+.fix-preview { display: grid; gap: 8px; min-width: 0; padding-top: 10px; border-top: 1px solid var(--border); }
+.fix-preview-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; font-size: 12.5px; }
+.fix-preview-h b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diff-block {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-soft);
+  font: 11px/1.55 var(--font-mono);
+  color: var(--text-2);
+  white-space: pre;
+}
 
 .refs { display: flex; flex-direction: column; gap: 4px; }
 .ref-item { display: grid; grid-template-columns: 16px 1fr 14px; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 8px; }

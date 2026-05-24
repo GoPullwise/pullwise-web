@@ -3,6 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { HistoryScreen, IssueDetailScreen } from "./issues.jsx";
 
+vi.mock("../api/pullwise.js", () => ({
+  pullwiseApi: {
+    issues: {
+      updateStatus: vi.fn(),
+      previewFix: vi.fn(),
+      createPullRequest: vi.fn(),
+    },
+  },
+}));
+
 vi.mock("../lib/pullwise-data.js", () => ({
   isActiveScan: (scan) => ["queued", "running"].includes(scan?.status),
   scanQueueSummary: (scan) => scan?.queue ? {
@@ -17,6 +27,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
   useScans: vi.fn(),
 }));
 
+import { pullwiseApi } from "../api/pullwise.js";
 import { useScans } from "../lib/pullwise-data.js";
 
 describe("HistoryScreen queue state", () => {
@@ -78,7 +89,7 @@ describe("HistoryScreen queue state", () => {
 });
 
 describe("IssueDetailScreen review detail", () => {
-  it("renders impact, remediation, evidence, references, and honest Stage 2 actions", () => {
+  it("renders impact, remediation, evidence, references, and fix actions", () => {
     const issue = {
       id: "f_123",
       scanId: "sc_1",
@@ -92,6 +103,7 @@ describe("IssueDetailScreen review detail", () => {
       line: 42,
       confidence: 0.91,
       status: "open",
+      autoFix: true,
       steps: [
         "Allow only same-origin redirect targets.",
         "Add tests for rejected external URLs.",
@@ -116,7 +128,59 @@ describe("IssueDetailScreen review detail", () => {
     );
     expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /snooze/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /apply fix/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /preview fix/i })).toBeEnabled();
     expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
+  });
+
+  it("previews an auto-fix and then opens a pull request", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      status: "open",
+      autoFix: true,
+      file: "src/auth.py",
+      badCode: [{ ln: 42, code: "return redirect(next_url)", t: "del" }],
+      goodCode: [{ ln: 42, code: "return redirect(safe_redirect(next_url))", t: "add" }],
+    };
+    pullwiseApi.issues.previewFix.mockResolvedValueOnce({
+      valid: true,
+      file: "src/auth.py",
+      diff: "--- a/src/auth.py\n+++ b/src/auth.py\n-return redirect(next_url)\n+return redirect(safe_redirect(next_url))\n",
+    });
+    pullwiseApi.issues.createPullRequest.mockResolvedValueOnce({
+      url: "https://github.com/acme/api/pull/42",
+      number: 42,
+      branch: "pullwise/fix-f_123-a1b2c3",
+      title: "Fix: Validate redirect targets",
+    });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
+
+    await user.click(screen.getByRole("button", { name: /preview fix/i }));
+    expect(await screen.findByText("validated")).toBeInTheDocument();
+    expect(screen.getByText(/\+return redirect\(safe_redirect\(next_url\)\)/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /open pr/i }));
+    expect(await screen.findByRole("link", { name: /pull request #42/i })).toHaveAttribute(
+      "href",
+      "https://github.com/acme/api/pull/42"
+    );
+  });
+
+  it("keeps non-auto-fixable issues honest", () => {
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{ id: "f_123", title: "Manual issue", status: "open", autoFix: false }}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: /preview fix/i })).toBeDisabled();
+    expect(screen.getByText(/not auto-fixable/i)).toBeInTheDocument();
   });
 });

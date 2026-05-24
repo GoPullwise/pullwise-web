@@ -192,10 +192,16 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   useLang();
   const [currentStatus, setCurrentStatus] = useState(issue?.status || "open");
   const [actionError, setActionError] = useState("");
+  const [fixPreview, setFixPreview] = useState(null);
+  const [pullRequest, setPullRequest] = useState(issue?.pullRequest || null);
+  const [fixLoading, setFixLoading] = useState("");
 
   useEffect(() => {
     setCurrentStatus(issue?.status || "open");
     setActionError("");
+    setFixPreview(null);
+    setPullRequest(issue?.pullRequest || null);
+    setFixLoading("");
   }, [issue]);
 
   if (!issue) {
@@ -223,6 +229,31 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     }
   };
   const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
+  const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
+  const previewFix = async () => {
+    setActionError("");
+    setFixLoading("preview");
+    try {
+      const preview = await pullwiseApi.issues.previewFix(issue.id);
+      setFixPreview(preview);
+    } catch (error) {
+      setActionError(error?.message || "Unable to preview fix.");
+    } finally {
+      setFixLoading("");
+    }
+  };
+  const openPullRequest = async () => {
+    setActionError("");
+    setFixLoading("pr");
+    try {
+      const result = await pullwiseApi.issues.createPullRequest(issue.id);
+      setPullRequest(result);
+    } catch (error) {
+      setActionError(error?.message || "Unable to open pull request.");
+    } finally {
+      setFixLoading("");
+    }
+  };
 
   return (
     <div className="app fade-in">
@@ -310,15 +341,28 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                 <button className="btn sm" onClick={() => updateStatus("open")}><I.Refresh size={13} /> Reopen</button>
               )}
               <div className="divider" />
-              <button className="btn sm" disabled title="Backend support is not implemented yet">
-                <I.Sparkle size={13} /> Apply fix
+              <button className="btn sm" disabled={!autoFixable || Boolean(fixLoading)} onClick={previewFix}>
+                <I.Sparkle size={13} /> {fixLoading === "preview" ? "Previewing..." : "Preview fix"}
               </button>
-              <button className="btn sm" disabled title="Pull request creation is not implemented yet">
-                <I.GitBranch size={13} /> Open PR
+              <button className="btn sm" disabled={!fixPreview?.valid || Boolean(fixLoading)} onClick={openPullRequest}>
+                <I.GitBranch size={13} /> {fixLoading === "pr" ? "Opening..." : "Open PR"}
               </button>
-              <div className="muted" style={{ fontSize: 12 }}>
-                {T("Automation is intentionally disabled until the backend implements fix and pull request workflows.", "Automation is intentionally disabled until the backend implements fix and pull request workflows.")}
-              </div>
+              {!autoFixable && <div className="muted" style={{ fontSize: 12 }}>This issue is not auto-fixable.</div>}
+              {fixPreview && (
+                <div className="fix-preview">
+                  <div className="fix-preview-h">
+                    <b>{fixPreview.file}</b>
+                    <span className="tag">{fixPreview.valid ? "validated" : "blocked"}</span>
+                  </div>
+                  {fixPreview.message && <div className="muted">{fixPreview.message}</div>}
+                  {fixPreview.diff && <pre className="diff-block">{fixPreview.diff}</pre>}
+                </div>
+              )}
+              {pullRequest?.url && (
+                <a className="auth-link" href={pullRequest.url} target="_blank" rel="noreferrer">
+                  Pull request #{pullRequest.number}
+                </a>
+              )}
             </div>
           </div>
         </div>
