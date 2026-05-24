@@ -52,7 +52,7 @@ function usageText(usage) {
   return `${used} / ${limit} reviews used`;
 }
 
-export function BillingScreen({ go, navigate = (url) => window.location.assign(url) }) {
+export function BillingScreen({ go, setIssue = null, navigate = (url) => window.location.assign(url) }) {
   useLang();
   const [plan, setPlan] = useState(null);
   const [interval, setInterval] = useState("month");
@@ -171,7 +171,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
       <Topbar go={go} breadcrumbs={[
         { label: "Pullwise", go: "dashboard" },
         { label: T("Billing", "Billing") },
-      ]} />
+      ]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="billing" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>

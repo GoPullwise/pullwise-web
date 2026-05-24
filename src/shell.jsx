@@ -4,7 +4,7 @@ import { T, useLang } from "./i18n.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 
-export function Topbar({ go, breadcrumbs }) {
+export function Topbar({ go, breadcrumbs, setIssue = null }) {
   useLang();
   const [searchOpen, setSearchOpen] = React.useState(false);
 
@@ -48,12 +48,12 @@ export function Topbar({ go, breadcrumbs }) {
         <button className="btn ghost sm" onClick={() => go("settings")}><I.User size={14} /></button>
       </div>
 
-      {searchOpen && <SearchModal close={() => setSearchOpen(false)} go={go} />}
+      {searchOpen && <SearchModal close={() => setSearchOpen(false)} go={go} setIssue={setIssue} />}
     </header>
   );
 }
 
-function SearchModal({ close, go }) {
+function SearchModal({ close, go, setIssue }) {
   useLang();
   const [q, setQ] = React.useState("");
   const { items: issues } = useIssues();
@@ -75,6 +75,16 @@ function SearchModal({ close, go }) {
   ];
   const pages = allPages.filter((page) => !query || page.t.toLowerCase().includes(query) || page.k.includes(query));
   const empty = issueResults.length === 0 && repoResults.length === 0 && pages.length === 0;
+  const openIssue = (issue) => {
+    if (typeof setIssue === "function") {
+      setIssue(issue);
+      close();
+      go("issue");
+      return;
+    }
+    close();
+    go("issues");
+  };
 
   return (
     <div className="modal-back" onClick={close}>
@@ -94,7 +104,7 @@ function SearchModal({ close, go }) {
             <div className="search-g">
               <div className="search-gh">{T("Issues", "问题")} · {issueResults.length}</div>
               {issueResults.map((issue) => (
-                <button key={issue.id} className="search-i" onClick={() => { close(); go("issues"); }}>
+                <button key={issue.id} className="search-i" onClick={() => openIssue(issue)}>
                   <span className={"sev sev-" + issue.severity} style={{ flex: "0 0 auto" }}>
                     <span className="dot" style={{ background: "currentColor" }} />{issue.severity}
                   </span>

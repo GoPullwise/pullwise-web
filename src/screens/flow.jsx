@@ -53,7 +53,7 @@ function scanIssueTotals(scans) {
   }, { critical: 0, high: 0, medium: 0, low: 0 });
 }
 
-export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearAuthorizationError = () => {} }) {
+export function ReposScreen({ go, setActiveRepo, setIssue = null, authorizationError = "", clearAuthorizationError = () => {} }) {
   useLang();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState([]);
@@ -144,7 +144,7 @@ export function ReposScreen({ go, setActiveRepo, authorizationError = "", clearA
       <Topbar go={go} breadcrumbs={[
         { label: "Pullwise", go: "dashboard" },
         { label: T("Repositories", "仓库") },
-      ]} />
+      ]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="repos" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
@@ -283,7 +283,7 @@ const SCAN_PHASES = [
   { k: "report",  t_en: "Composing report",       t_zh: "生成报告",       d_en: "Merging signals",            d_zh: "合并扫描信号" },
 ];
 
-export function ScanningScreen({ go, activeRepo }) {
+export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
   const selectedRepos = useMemo(
@@ -380,7 +380,7 @@ export function ScanningScreen({ go, activeRepo }) {
       <Topbar go={go} breadcrumbs={[
         { label: "Pullwise", go: "dashboard" },
         { label: T("Scan", "扫描") },
-      ]} />
+      ]} setIssue={setIssue} />
       <div className="main narrow" style={{ margin: "0 auto" }}>
         <div className="scanning">
           <div className="scanning-card card">

@@ -76,7 +76,7 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
       <Topbar go={go} breadcrumbs={[
         { label: "Pullwise", go: "dashboard" },
         { label: activeRepo },
-      ]} />
+      ]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="dashboard" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>

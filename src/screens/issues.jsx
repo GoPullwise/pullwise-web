@@ -96,7 +96,7 @@ export function IssuesScreen({ go, setIssue }) {
       <Topbar go={go} breadcrumbs={[
         { label: "Pullwise", go: "dashboard" },
         { label: T("Issues", "问题") },
-      ]} />
+      ]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
@@ -188,7 +188,7 @@ export function IssuesScreen({ go, setIssue }) {
   );
 }
 
-export function IssueDetailScreen({ go, issue }) {
+export function IssueDetailScreen({ go, issue, setIssue = null }) {
   useLang();
   const [currentStatus, setCurrentStatus] = useState(issue?.status || "open");
   const [actionError, setActionError] = useState("");
@@ -201,7 +201,7 @@ export function IssueDetailScreen({ go, issue }) {
   if (!issue) {
     return (
       <div className="app fade-in">
-        <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issue", "问题") }]} />
+        <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issue", "问题") }]} setIssue={setIssue} />
         <div className="with-side">
           <Sidebar section="issues" go={go} />
           <div className="main">
@@ -230,7 +230,7 @@ export function IssueDetailScreen({ go, issue }) {
         { label: "Pullwise", go: "dashboard" },
         { label: T("Issues", "问题"), go: "issues" },
         { label: issue.id },
-      ]} />
+      ]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
@@ -327,7 +327,7 @@ export function IssueDetailScreen({ go, issue }) {
   );
 }
 
-export function HistoryScreen({ go, openScan = null }) {
+export function HistoryScreen({ go, openScan = null, setIssue = null }) {
   useLang();
   const { items: scans, loading, error } = useScans();
   const [status, setStatus] = useState("all");
@@ -342,7 +342,7 @@ export function HistoryScreen({ go, openScan = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Scan history", "扫描历史") }]} />
+      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Scan history", "扫描历史") }]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="history" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
@@ -406,7 +406,7 @@ export function HistoryScreen({ go, openScan = null }) {
   );
 }
 
-export function SettingsScreen({ go }) {
+export function SettingsScreen({ go, setIssue = null }) {
   useLang();
   const [tab, setTab] = useState("profile");
   const [session, setSession] = useState(null);
@@ -480,7 +480,7 @@ export function SettingsScreen({ go }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Settings", "设置") }]} />
+      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Settings", "设置") }]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="settings" go={go} />
         <div className="main">

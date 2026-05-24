@@ -458,6 +458,45 @@ describe("App", () => {
     });
   });
 
+  it("opens issue search results directly in the issue detail view", async () => {
+    window.history.replaceState({}, "", "/?screen=dashboard");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.issues.list.mockResolvedValue({
+      items: [
+        {
+          id: "f_redirect",
+          scanId: "sc_1",
+          repo: "octocat/private-repo",
+          title: "Unsafe redirect target",
+          summary: "Redirects accept attacker-controlled URLs.",
+          impact: "Attackers can redirect users to phishing domains.",
+          severity: "high",
+          category: "Security",
+          status: "open",
+          file: "src/auth.js",
+          line: 42,
+          confidence: 0.94,
+          effort: "S",
+        },
+      ],
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /search/i }));
+    await user.click(await screen.findByRole("button", { name: /unsafe redirect target/i }));
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
+    });
+    expect(screen.getByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
+    expect(screen.getByText("Attackers can redirect users to phishing domains.")).toBeInTheDocument();
+  });
+
   it("keeps failed dashboard sidebar repository authorization in the repositories flow", async () => {
     window.history.replaceState({}, "", "/?screen=dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({

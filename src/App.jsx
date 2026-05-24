@@ -214,6 +214,7 @@ export function App({ prototypeNav = false }) {
       body = (
         <ReposScreen
           go={go}
+          setIssue={setIssue}
           setActiveRepo={setActiveRepo}
           authorizationError={repositoryAuthorizationError}
           clearAuthorizationError={() => setRepositoryAuthorizationError("")}
@@ -221,7 +222,7 @@ export function App({ prototypeNav = false }) {
       );
       break;
     case "scanning":
-      body = <ScanningScreen go={go} activeRepo={activeRepo} />;
+      body = <ScanningScreen go={go} activeRepo={activeRepo} setIssue={setIssue} />;
       break;
     case "dashboard":
       body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} accent={ACCENT} />;
@@ -230,16 +231,16 @@ export function App({ prototypeNav = false }) {
       body = <IssuesScreen go={go} setIssue={setIssue} />;
       break;
     case "issue":
-      body = <IssueDetailScreen go={go} issue={issue} />;
+      body = <IssueDetailScreen go={go} issue={issue} setIssue={setIssue} />;
       break;
     case "history":
-      body = <HistoryScreen go={go} openScan={openScan} />;
+      body = <HistoryScreen go={go} openScan={openScan} setIssue={setIssue} />;
       break;
     case "settings":
-      body = <SettingsScreen go={go} />;
+      body = <SettingsScreen go={go} setIssue={setIssue} />;
       break;
     case "billing":
-      body = <BillingScreen go={go} />;
+      body = <BillingScreen go={go} setIssue={setIssue} />;
       break;
     case "privacy":
       body = <PrivacyScreen go={go} auth={auth} />;
