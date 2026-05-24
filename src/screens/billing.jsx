@@ -40,15 +40,21 @@ function isActiveStatus(status) {
   return ["active", "trialing", "canceling"].includes(String(status || "").toLowerCase());
 }
 
+function nonNegativeInteger(value) {
+  const number = Number(value ?? 0);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.trunc(number));
+}
+
 function usagePercent(usage) {
-  const limit = Number(usage?.limit || 0);
+  const limit = nonNegativeInteger(usage?.limit);
   if (!limit) return 0;
-  return Math.min(100, Math.max(0, (Number(usage?.used || 0) / limit) * 100));
+  return Math.min(100, (nonNegativeInteger(usage?.used) / limit) * 100);
 }
 
 function usageText(usage) {
-  const used = Number(usage?.used || 0);
-  const limit = Number(usage?.limit || 0);
+  const used = nonNegativeInteger(usage?.used);
+  const limit = nonNegativeInteger(usage?.limit);
   return `${used} / ${limit} reviews used`;
 }
 
@@ -277,7 +283,7 @@ export function BillingScreen({ go, setIssue = null, navigate = (url) => window.
 }
 
 function PlanCard({ plan, price, interval, active, featured, cta }) {
-  const reviewLimit = Number(plan?.reviewLimit || 0);
+  const reviewLimit = nonNegativeInteger(plan?.reviewLimit);
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
       {featured && <div className="pricing-badge">PRO</div>}

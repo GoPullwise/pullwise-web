@@ -98,6 +98,28 @@ describe("BillingScreen", () => {
     expect(screen.getByText(/2 months free/i)).toBeInTheDocument();
   });
 
+  it("does not leak NaN when billing usage numbers are malformed", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        { ...billingCatalog.plans[0], reviewLimit: "not-a-number" },
+        { ...billingCatalog.plans[1], reviewLimit: "not-a-number" },
+      ],
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: "not-a-number", limit: "not-a-number", remaining: -3 },
+      },
+    });
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findByText("0 / 0 reviews used")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("NaN");
+    expect(screen.getAllByText("0 reviews / month").length).toBeGreaterThan(0);
+  });
+
   it("starts yearly checkout when yearly billing is selected", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
