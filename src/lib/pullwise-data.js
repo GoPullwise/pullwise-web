@@ -35,6 +35,12 @@ function normalizeIssueCounts(issues) {
   );
 }
 
+function normalizeProgress(value) {
+  const progress = Number(value ?? 0);
+  if (!Number.isFinite(progress)) return 0;
+  return Math.min(100, Math.max(0, progress));
+}
+
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
   const fullName = repo.fullName || repo.full_name || repo.name || "";
@@ -92,6 +98,7 @@ export function normalizeScan(scan = {}) {
     createdAt: scan.createdAt,
     time: scan.time || formatTime(scan.createdAt),
     by: scan.by || "you",
+    progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
   };
 }

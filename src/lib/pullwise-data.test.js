@@ -170,6 +170,13 @@ describe("normalizeIssue", () => {
     });
   });
 
+  it("normalizes scan progress into a finite percentage range", () => {
+    expect(normalizeScan({ id: "sc_invalid", progress: "not-a-number" }).progress).toBe(0);
+    expect(normalizeScan({ id: "sc_low", progress: -12 }).progress).toBe(0);
+    expect(normalizeScan({ id: "sc_high", progress: 140 }).progress).toBe(100);
+    expect(normalizeScan({ id: "sc_ok", progress: "42.5" }).progress).toBe(42.5);
+  });
+
   it("normalizes confidence into a finite display-safe range", () => {
     expect(normalizeIssue({ id: "f_invalid", confidence: "not-a-number" }).confidence).toBe(0);
     expect(normalizeIssue({ id: "f_high", confidence: 1.6 }).confidence).toBe(1);
