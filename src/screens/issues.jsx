@@ -237,6 +237,9 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   };
   const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
   const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
+  const severity = issue.severity || "info";
+  const confidence = Number(issue.confidence);
+  const hasConfidence = Number.isFinite(confidence);
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
   const activePullRequest = pullRequest?.issueId === issue.id ? pullRequest.value : issue.pullRequest || null;
   const beginFixRequest = () => {
@@ -294,17 +297,17 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
           <div className="issue-detail-h">
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                <span className={"sev sev-" + issue.severity}><span className="dot" style={{ background: "currentColor", width: 8, height: 8 }}></span>{issue.severity}</span>
+                <span className={"sev sev-" + severity}><span className="dot" style={{ background: "currentColor", width: 8, height: 8 }}></span>{severity}</span>
                 <span className="issue-id">{issue.id}</span>
-                <span className="tag">{issue.category}</span>
+                {issue.category && <span className="tag">{issue.category}</span>}
                 <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>{issue.title}</h1>
-              <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>{issue.summary}</div>
+              {issue.summary && <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>{issue.summary}</div>}
               <div className="sub" style={{ display: "flex", gap: 10, fontSize: 12.5, marginTop: 6, flexWrap: "wrap" }}>
-                <span><I.Folder size={12} /> {issue.repo}</span>
-                <span><I.FileCode size={12} /> {issue.file}{issue.line ? ":" + issue.line : ""}</span>
-                <span><I.Sparkle size={12} /> {Math.round(issue.confidence * 100)}% {T("confidence", "置信度")}</span>
+                <span><I.Folder size={12} /> {issue.repo || "Repository unknown"}</span>
+                <span><I.FileCode size={12} /> {issue.file || "File unknown"}{issue.file && issue.line ? ":" + issue.line : ""}</span>
+                {hasConfidence && <span><I.Sparkle size={12} /> {Math.round(confidence * 100)}% {T("confidence", "置信度")}</span>}
                 {issue.scanId && <span><I.Activity size={12} /> {issue.scanId}</span>}
               </div>
             </div>

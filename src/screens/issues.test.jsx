@@ -306,4 +306,19 @@ describe("IssueDetailScreen review detail", () => {
     expect(screen.getByRole("button", { name: /preview fix/i })).toBeDisabled();
     expect(screen.getByText(/not auto-fixable/i)).toBeInTheDocument();
   });
+
+  it("does not leak undefined or NaN when optional issue metadata is missing", () => {
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{ id: "f_123", title: "Manual issue", status: "open", autoFix: false }}
+      />
+    );
+
+    expect(document.body).not.toHaveTextContent("undefined");
+    expect(document.body).not.toHaveTextContent("NaN%");
+    expect(screen.getByText("Repository unknown")).toBeInTheDocument();
+    expect(screen.getByText("File unknown")).toBeInTheDocument();
+    expect(screen.queryByText(/confidence/i)).not.toBeInTheDocument();
+  });
 });
