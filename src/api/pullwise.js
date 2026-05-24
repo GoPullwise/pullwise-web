@@ -33,6 +33,8 @@ export const pullwiseApi = {
     get: (issueId) => request(`/issues/${issueId}`),
     updateStatus: (issueId, payload) =>
       request(`/issues/${issueId}/status`, { method: "PATCH", body: payload }),
+    previewFix: (issueId) => request(`/issues/${issueId}/fixes/preview`, { method: "POST" }),
+    createPullRequest: (issueId) => request(`/issues/${issueId}/pull-requests`, { method: "POST" }),
   },
 
   integrations: {
