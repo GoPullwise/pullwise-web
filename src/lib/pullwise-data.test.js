@@ -322,6 +322,51 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_running", status: "running" }).status).toBe("running");
   });
 
+  it("does not stringify object-shaped text fields into user-visible labels", () => {
+    expect(normalizeRepo({
+      id: { value: 1 },
+      name: { value: "repo" },
+      description: { value: "desc" },
+      language: { value: "js" },
+      updatedAt: { value: "now" },
+    })).toMatchObject({
+      id: "",
+      name: "",
+      fullName: "",
+      desc: "",
+      lang: "-",
+      updated: "",
+    });
+
+    expect(normalizeIssue({
+      id: { value: "f_1" },
+      title: { value: "Bad label" },
+      description: { value: "summary" },
+      createdAt: { value: "now" },
+    })).toMatchObject({
+      id: "",
+      title: "",
+      summary: "",
+      age: "",
+    });
+
+    expect(normalizeScan({
+      id: { value: "sc_1" },
+      repository: { value: "repo" },
+      branch: { value: "main" },
+      commit: { value: "sha" },
+      time: { value: "now" },
+      by: { value: "user" },
+    })).toMatchObject({
+      id: "",
+      repo: "",
+      branch: "main",
+      commit: "-",
+      time: "",
+      by: "you",
+    });
+  });
+
   it("normalizes scan queue summaries for safe rendering", () => {
     expect(scanQueueSummary({
       queue: {

@@ -13,7 +13,7 @@ function formatTime(value) {
   if (typeof value === "number") {
     return new Date(value * 1000).toLocaleString();
   }
-  return String(value);
+  return scalarText(value);
 }
 
 function normalizeConfidence(value) {
@@ -80,7 +80,8 @@ function normalizeDisplayCount(...values) {
 
 function textValue(...values) {
   for (const value of values) {
-    if (value !== undefined && value !== null && value !== "") return String(value);
+    const text = scalarText(value);
+    if (text) return text;
   }
   return "";
 }
@@ -173,7 +174,7 @@ export function normalizeIssue(issue = {}) {
   const autoFixable = normalizeBoolean(issue.autoFixable ?? issue.autoFix);
   return {
     ...issue,
-    id: String(issue.id || ""),
+    id: textValue(issue.id),
     scanId: textValue(issue.scanId, issue.scan_id),
     repo: textValue(issue.repo, issue.repository),
     title: textValue(issue.title),
