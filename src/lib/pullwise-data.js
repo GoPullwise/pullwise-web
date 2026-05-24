@@ -48,6 +48,16 @@ function textValue(...values) {
   return "";
 }
 
+function normalizeSeverity(value) {
+  const severity = textValue(value);
+  return ["critical", "high", "medium", "low", "info"].includes(severity) ? severity : "info";
+}
+
+function normalizeIssueStatus(value) {
+  const status = textValue(value);
+  return ["open", "fixed", "snoozed"].includes(status) ? status : "open";
+}
+
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
   const fullName = textValue(repo.fullName, repo.full_name, repo.name);
@@ -70,18 +80,18 @@ export function normalizeIssue(issue = {}) {
   return {
     ...issue,
     id: String(issue.id || ""),
-    scanId: issue.scanId || issue.scan_id || "",
-    repo: issue.repo || issue.repository || "",
-    title: issue.title || "",
-    summary: issue.summary || issue.description || "",
-    impact: issue.impact || "",
-    severity: issue.severity || "info",
-    category: issue.category || "General",
-    status: issue.status || "open",
-    file: issue.file || "",
+    scanId: textValue(issue.scanId, issue.scan_id),
+    repo: textValue(issue.repo, issue.repository),
+    title: textValue(issue.title),
+    summary: textValue(issue.summary, issue.description),
+    impact: textValue(issue.impact),
+    severity: normalizeSeverity(issue.severity),
+    category: textValue(issue.category) || "General",
+    status: normalizeIssueStatus(issue.status),
+    file: textValue(issue.file),
     line: issue.line || null,
     confidence: normalizeConfidence(issue.confidence),
-    effort: issue.effort || "-",
+    effort: textValue(issue.effort) || "-",
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
     autoFix: Boolean(issue.autoFix ?? issue.autoFixable),
     autoFixable: Boolean(issue.autoFixable ?? issue.autoFix),

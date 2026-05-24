@@ -173,6 +173,36 @@ describe("normalizeIssue", () => {
     expect(() => [repo.name, repo.fullName, repo.desc].some((value) => value.toLowerCase().includes("123"))).not.toThrow();
   });
 
+  it("normalizes issue text fields for search-safe rendering", () => {
+    const issue = normalizeIssue({
+      id: 123,
+      scan_id: 456,
+      repo: 789,
+      title: 1011,
+      description: 1213,
+      severity: 14,
+      category: 1516,
+      status: 17,
+      file: 1819,
+      effort: 2021,
+    });
+
+    expect(issue).toMatchObject({
+      id: "123",
+      scanId: "456",
+      repo: "789",
+      title: "1011",
+      summary: "1213",
+      severity: "info",
+      category: "1516",
+      status: "open",
+      file: "1819",
+      effort: "2021",
+    });
+    expect(() => [issue.title, issue.file, issue.repo, issue.category, issue.id]
+      .some((value) => value.toLowerCase().includes("18"))).not.toThrow();
+  });
+
   it("normalizes scan issue counts into finite non-negative integers", () => {
     expect(normalizeScan({
       id: "sc_1",
