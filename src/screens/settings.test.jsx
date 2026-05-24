@@ -128,6 +128,33 @@ describe("SettingsScreen", () => {
     );
   });
 
+  it("does not render negative installation repository counts", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: true,
+        installationAccounts: ["GoPullwise"],
+        repositories: [],
+        installations: [
+          {
+            installationId: "130258770",
+            installationAccount: "GoPullwise",
+            repositorySelection: "selected",
+            repositoryCount: -2,
+          },
+        ],
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /integrations/i }));
+
+    expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("-2 repositories");
+    expect(screen.getByText(/Account .* selected .* 0 repositories/i)).toBeInTheDocument();
+  });
+
   it("syncs and refreshes installation repository counts after returning from GitHub management", async () => {
     pullwiseApi.integrations.list
       .mockResolvedValueOnce({

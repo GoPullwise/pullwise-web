@@ -27,12 +27,18 @@ function installationSelection(installation) {
 }
 
 function repositoryCountLabel(count) {
-  const value = Number(count || 0);
+  const value = normalizedRepositoryCount(count);
   return value === 1 ? "1 repository" : `${value} repositories`;
 }
 
+function normalizedRepositoryCount(count) {
+  const value = Number(count);
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.trunc(value));
+}
+
 function installationRepositoryCount(installation) {
-  if (typeof installation?.repositoryCount === "number") return installation.repositoryCount;
+  if (installation?.repositoryCount !== undefined) return normalizedRepositoryCount(installation.repositoryCount);
   if (Array.isArray(installation?.repositories)) return installation.repositories.length;
   return 0;
 }
