@@ -59,6 +59,10 @@ not enabled by the frontend.
 
 ## Useful Commands
 
+Run `npm install` before these commands. If `node_modules` is missing,
+verification failures such as `eslint` or Vitest packages not being found mean
+the local setup is incomplete, not that the product build is broken.
+
 ```bash
 npm run dev       # run local dev server
 npm run build     # build dist output
