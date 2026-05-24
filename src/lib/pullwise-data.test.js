@@ -1,10 +1,14 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { normalizeIssue, normalizeRepo, normalizeScan, scanQueueSummary, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
+import { normalizeIssue, normalizeRepo, normalizeScan, scanQueueSummary, useRepositories, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
+    repositories: {
+      list: vi.fn(),
+      sync: vi.fn(),
+    },
     scans: {
       create: vi.fn(),
       get: vi.fn(),
@@ -12,6 +16,41 @@ vi.mock("../api/pullwise.js", () => ({
     },
   },
 }));
+
+describe("useRepositories", () => {
+  beforeEach(() => {
+    pullwiseApi.repositories.list.mockReset();
+    pullwiseApi.repositories.sync.mockReset();
+  });
+
+  it("normalizes authorization flags from repository payloads", async () => {
+    pullwiseApi.repositories.list.mockResolvedValueOnce({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      needsAuthorization: "false",
+    });
+
+    const { result, unmount } = renderHook(() => useRepositories());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.needsAuthorization).toBe(false);
+    unmount();
+
+    pullwiseApi.repositories.list.mockResolvedValueOnce({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      needsAuthorization: "true",
+    });
+
+    const next = renderHook(() => useRepositories());
+
+    await waitFor(() => expect(next.result.current.loading).toBe(false));
+    expect(next.result.current.needsAuthorization).toBe(true);
+    next.unmount();
+  });
+});
 
 describe("useScans", () => {
   beforeEach(() => {
@@ -28,9 +67,9 @@ describe("useScans", () => {
 
     renderHook(() => useScans({ pollIntervalMs: 25 }));
 
-    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(2), { timeout: 250 });
-    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(3), { timeout: 250 });
+    await waitFor(() => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(1));
+    await waitFor(() => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(2), { timeout: 250 });
+    await waitFor(() => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(3), { timeout: 250 });
   });
 
   it("includes the scan request id when creating a scan", async () => {

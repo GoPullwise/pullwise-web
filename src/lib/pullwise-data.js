@@ -239,7 +239,7 @@ export function useRepositories() {
         installationAccounts: itemsFrom(payload, "installationAccounts"),
         loading: false,
         error: "",
-        needsAuthorization: Boolean(payload?.needsAuthorization),
+        needsAuthorization: normalizeBoolean(payload?.needsAuthorization),
       });
     } catch (error) {
       if (requestId !== requestIdRef.current) return;
