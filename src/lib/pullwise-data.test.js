@@ -153,6 +153,26 @@ describe("normalizeIssue", () => {
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
   });
 
+  it("normalizes repository text fields for search-safe rendering", () => {
+    const repo = normalizeRepo({
+      id: 42,
+      name: 12345,
+      description: 987,
+      language: 99,
+      updatedAt: 1700000000,
+    });
+
+    expect(repo).toMatchObject({
+      id: "42",
+      name: "12345",
+      fullName: "12345",
+      desc: "987",
+      lang: "99",
+      updated: "1700000000",
+    });
+    expect(() => [repo.name, repo.fullName, repo.desc].some((value) => value.toLowerCase().includes("123"))).not.toThrow();
+  });
+
   it("normalizes scan issue counts into finite non-negative integers", () => {
     expect(normalizeScan({
       id: "sc_1",

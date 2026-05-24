@@ -41,19 +41,26 @@ function normalizeProgress(value) {
   return Math.min(100, Math.max(0, progress));
 }
 
+function textValue(...values) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== "") return String(value);
+  }
+  return "";
+}
+
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
-  const fullName = repo.fullName || repo.full_name || repo.name || "";
+  const fullName = textValue(repo.fullName, repo.full_name, repo.name);
   return {
     ...repo,
-    id: String(repo.id || fullName),
-    name: repo.name || fullName,
+    id: textValue(repo.id, fullName),
+    name: textValue(repo.name, fullName),
     fullName,
-    desc: repo.desc || repo.description || "",
-    lang: repo.lang || repo.language || "-",
+    desc: textValue(repo.desc, repo.description),
+    lang: textValue(repo.lang, repo.language) || "-",
     stars: repo.stars ?? repo.stargazers_count ?? "-",
     branches: repo.branches ?? "-",
-    updated: repo.updated || repo.updated_at || repo.updatedAt || "",
+    updated: textValue(repo.updated, repo.updated_at, repo.updatedAt),
     private: Boolean(repo.private),
   };
 }
