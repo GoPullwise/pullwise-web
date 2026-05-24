@@ -153,6 +153,23 @@ describe("normalizeIssue", () => {
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
   });
 
+  it("normalizes scan issue counts into finite non-negative integers", () => {
+    expect(normalizeScan({
+      id: "sc_1",
+      issues: {
+        critical: -1,
+        high: "not-a-number",
+        medium: 2.8,
+        low: "3",
+      },
+    }).issues).toEqual({
+      critical: 0,
+      high: 0,
+      medium: 2,
+      low: 3,
+    });
+  });
+
   it("normalizes confidence into a finite display-safe range", () => {
     expect(normalizeIssue({ id: "f_invalid", confidence: "not-a-number" }).confidence).toBe(0);
     expect(normalizeIssue({ id: "f_high", confidence: 1.6 }).confidence).toBe(1);

@@ -22,6 +22,19 @@ function normalizeConfidence(value) {
   return Math.max(0, Math.min(1, confidence));
 }
 
+function normalizeCount(value) {
+  const count = Number(value ?? 0);
+  if (!Number.isFinite(count)) return 0;
+  return Math.max(0, Math.trunc(count));
+}
+
+function normalizeIssueCounts(issues) {
+  if (!issues || typeof issues !== "object" || Array.isArray(issues)) return null;
+  return Object.fromEntries(
+    Object.entries(issues).map(([key, value]) => [key, normalizeCount(value)])
+  );
+}
+
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
   const fullName = repo.fullName || repo.full_name || repo.name || "";
@@ -79,7 +92,7 @@ export function normalizeScan(scan = {}) {
     createdAt: scan.createdAt,
     time: scan.time || formatTime(scan.createdAt),
     by: scan.by || "you",
-    issues: scan.issues || null,
+    issues: normalizeIssueCounts(scan.issues),
   };
 }
 
