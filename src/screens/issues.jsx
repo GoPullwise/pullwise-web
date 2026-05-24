@@ -195,13 +195,18 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const [fixPreview, setFixPreview] = useState(null);
   const [pullRequest, setPullRequest] = useState(issue?.pullRequest || null);
   const [fixLoading, setFixLoading] = useState("");
+  const fixRequestRef = useRef(0);
 
   useEffect(() => {
+    fixRequestRef.current += 1;
     setCurrentStatus(issue?.status || "open");
     setActionError("");
     setFixPreview(null);
     setPullRequest(issue?.pullRequest || null);
     setFixLoading("");
+    return () => {
+      fixRequestRef.current += 1;
+    };
   }, [issue]);
 
   if (!issue) {
@@ -230,28 +235,42 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   };
   const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
   const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
+  const beginFixRequest = () => {
+    const requestId = fixRequestRef.current + 1;
+    fixRequestRef.current = requestId;
+    return requestId;
+  };
+  const isCurrentFixRequest = (requestId) => fixRequestRef.current === requestId;
   const previewFix = async () => {
+    const requestId = beginFixRequest();
     setActionError("");
+    setFixPreview(null);
+    setPullRequest(issue?.pullRequest || null);
     setFixLoading("preview");
     try {
       const preview = await pullwiseApi.issues.previewFix(issue.id);
+      if (!isCurrentFixRequest(requestId)) return;
       setFixPreview(preview);
     } catch (error) {
+      if (!isCurrentFixRequest(requestId)) return;
       setActionError(error?.message || "Unable to preview fix.");
     } finally {
-      setFixLoading("");
+      if (isCurrentFixRequest(requestId)) setFixLoading("");
     }
   };
   const openPullRequest = async () => {
+    const requestId = beginFixRequest();
     setActionError("");
     setFixLoading("pr");
     try {
       const result = await pullwiseApi.issues.createPullRequest(issue.id);
+      if (!isCurrentFixRequest(requestId)) return;
       setPullRequest(result);
     } catch (error) {
+      if (!isCurrentFixRequest(requestId)) return;
       setActionError(error?.message || "Unable to open pull request.");
     } finally {
-      setFixLoading("");
+      if (isCurrentFixRequest(requestId)) setFixLoading("");
     }
   };
 

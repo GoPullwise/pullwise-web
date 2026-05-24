@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { HistoryScreen, IssueDetailScreen } from "./issues.jsx";
@@ -170,6 +170,79 @@ describe("IssueDetailScreen review detail", () => {
       "href",
       "https://github.com/acme/api/pull/42"
     );
+  });
+
+  it("ignores preview responses from a previous issue", async () => {
+    const user = userEvent.setup();
+    const issueA = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      status: "open",
+      autoFix: true,
+      file: "src/auth.py",
+    };
+    const issueB = {
+      ...issueA,
+      id: "f_456",
+      title: "Escape shell arguments",
+      file: "src/shell.py",
+    };
+    let resolvePreview;
+    pullwiseApi.issues.previewFix.mockReturnValueOnce(new Promise((resolve) => {
+      resolvePreview = resolve;
+    }));
+
+    const { rerender } = render(<IssueDetailScreen go={vi.fn()} issue={issueA} />);
+
+    await user.click(screen.getByRole("button", { name: /preview fix/i }));
+    rerender(<IssueDetailScreen go={vi.fn()} issue={issueB} />);
+    await act(async () => {
+      resolvePreview({
+        valid: true,
+        file: "src/auth.py",
+        diff: "--- a/src/auth.py\n+++ b/src/auth.py\n-return redirect(next_url)\n+return redirect(safe_redirect(next_url))\n",
+      });
+    });
+
+    expect(screen.queryByText("validated")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
+  });
+
+  it("clears a previous valid preview when re-previewing fails", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      status: "open",
+      autoFix: true,
+      file: "src/auth.py",
+    };
+    pullwiseApi.issues.previewFix
+      .mockResolvedValueOnce({
+        valid: true,
+        file: "src/auth.py",
+        diff: "--- a/src/auth.py\n+++ b/src/auth.py\n-return redirect(next_url)\n+return redirect(safe_redirect(next_url))\n",
+      })
+      .mockRejectedValueOnce(new Error("Preview failed"));
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
+
+    await user.click(screen.getByRole("button", { name: /preview fix/i }));
+    expect(await screen.findByText("validated")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /preview fix/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Preview failed");
+    expect(screen.queryByText("validated")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
   });
 
   it("keeps non-auto-fixable issues honest", () => {
