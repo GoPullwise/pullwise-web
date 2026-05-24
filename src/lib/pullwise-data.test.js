@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { normalizeIssue, normalizeRepo, normalizeScan, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
+import { normalizeIssue, normalizeRepo, normalizeScan, scanQueueSummary, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -298,6 +298,35 @@ describe("normalizeIssue", () => {
 
     expect(normalizeScan({ id: "sc_done", status: "done" }).status).toBe("done");
     expect(normalizeScan({ id: "sc_running", status: "running" }).status).toBe("running");
+  });
+
+  it("normalizes scan queue summaries for safe rendering", () => {
+    expect(scanQueueSummary({
+      queue: {
+        message: 123,
+        position: "2.8",
+        ahead: "3",
+        limits: {
+          global: "4",
+          perUser: { value: 1 },
+        },
+      },
+    })).toEqual({
+      message: "123",
+      tags: ["Position 2", "3 scans ahead", "Global 4"],
+    });
+
+    expect(scanQueueSummary({
+      queue: {
+        message: { text: "bad shape" },
+        position: { value: 2 },
+        ahead: -1,
+        limits: {
+          global: {},
+          perUser: -2,
+        },
+      },
+    })).toEqual({ message: "", tags: [] });
   });
 
   it("normalizes confidence into a finite display-safe range", () => {

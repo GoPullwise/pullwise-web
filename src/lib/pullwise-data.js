@@ -59,6 +59,15 @@ function normalizeLineNumber(value) {
   return normalized > 0 ? String(normalized) : null;
 }
 
+function normalizeQueueCount(value, { positive = false } = {}) {
+  const count = Number(value);
+  if (!Number.isFinite(count)) return null;
+  const normalized = Math.trunc(count);
+  if (normalized < 0) return null;
+  if (positive && normalized === 0) return null;
+  return normalized;
+}
+
 function textValue(...values) {
   for (const value of values) {
     if (value !== undefined && value !== null && value !== "") return String(value);
@@ -273,18 +282,20 @@ function scanCountLabel(count) {
 
 export function scanQueueSummary(scan) {
   const queue = scan?.queue;
-  if (!queue) return null;
+  if (!queue || typeof queue !== "object" || Array.isArray(queue)) return null;
 
   const tags = [];
-  if (queue.position) tags.push(`Position ${queue.position}`);
-  if (typeof queue.ahead === "number") {
-    tags.push(`${scanCountLabel(queue.ahead)} ahead`);
-  }
-  if (queue.limits?.global) tags.push(`Global ${queue.limits.global}`);
-  if (queue.limits?.perUser) tags.push(`Per user ${queue.limits.perUser}`);
+  const position = normalizeQueueCount(queue.position, { positive: true });
+  const ahead = normalizeQueueCount(queue.ahead);
+  const globalLimit = normalizeQueueCount(queue.limits?.global, { positive: true });
+  const perUserLimit = normalizeQueueCount(queue.limits?.perUser, { positive: true });
+  if (position !== null) tags.push(`Position ${position}`);
+  if (ahead !== null) tags.push(`${scanCountLabel(ahead)} ahead`);
+  if (globalLimit !== null) tags.push(`Global ${globalLimit}`);
+  if (perUserLimit !== null) tags.push(`Per user ${perUserLimit}`);
 
   return {
-    message: queue.message || "",
+    message: scalarText(queue.message),
     tags,
   };
 }
