@@ -36,9 +36,11 @@ export function normalizeIssue(issue) {
   return {
     ...issue,
     id: String(issue.id || ""),
+    scanId: issue.scanId || issue.scan_id || "",
     repo: issue.repo || issue.repository || "",
     title: issue.title || "",
     summary: issue.summary || issue.description || "",
+    impact: issue.impact || "",
     severity: issue.severity || "info",
     category: issue.category || "General",
     status: issue.status || "open",
@@ -49,6 +51,11 @@ export function normalizeIssue(issue) {
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
     autoFix: Boolean(issue.autoFix ?? issue.autoFixable),
     autoFixable: Boolean(issue.autoFixable ?? issue.autoFix),
+    steps: Array.isArray(issue.steps) ? issue.steps : [],
+    badCode: Array.isArray(issue.badCode) ? issue.badCode : [],
+    goodCode: Array.isArray(issue.goodCode) ? issue.goodCode : [],
+    references: Array.isArray(issue.references) ? issue.references : [],
+    tags: Array.isArray(issue.tags) ? issue.tags : [],
   };
 }
 

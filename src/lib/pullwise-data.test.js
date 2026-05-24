@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
+import { normalizeIssue, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -137,5 +137,25 @@ describe("useScans", () => {
       expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_running");
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("normalizeIssue", () => {
+  it("preserves rich review fields and supplies stable empty arrays", () => {
+    expect(normalizeIssue({
+      id: "f_123",
+      scan_id: "sc_1",
+      impact: "Production impact.",
+      references: [{ label: "Docs", url: "https://example.com" }],
+    })).toMatchObject({
+      id: "f_123",
+      scanId: "sc_1",
+      impact: "Production impact.",
+      steps: [],
+      badCode: [],
+      goodCode: [],
+      references: [{ label: "Docs", url: "https://example.com" }],
+      tags: [],
+    });
   });
 });

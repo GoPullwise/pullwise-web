@@ -36,6 +36,36 @@ function scanHistorySummary(scan) {
   return scan.status;
 }
 
+function DetailSection({ title, children, empty = "" }) {
+  if (!children && !empty) return null;
+  return (
+    <div className="card section">
+      <div className="section-h"><h3>{title}</h3></div>
+      {children || <div className="muted">{empty}</div>}
+    </div>
+  );
+}
+
+function CodeEvidence({ title, lines }) {
+  if (!lines?.length) return null;
+  return (
+    <div className="code" style={{ marginTop: 10 }}>
+      <div className="code-head">{title}</div>
+      <div className="code-body">
+        <pre>
+          {lines.map((line, index) => (
+            <div key={`${title}-${line.ln || index}-${line.code}`} className={"code-line " + (line.t || "")}>
+              <span className="ln">{line.ln || ""}</span>
+              <span className="marker">{line.t === "add" ? "+" : line.t === "del" ? "-" : " "}</span>
+              <code>{line.code}</code>
+            </div>
+          ))}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 export function IssuesScreen({ go, setIssue }) {
   useLang();
   const { items: all, loading, error, reload } = useIssues();
@@ -160,6 +190,13 @@ export function IssuesScreen({ go, setIssue }) {
 
 export function IssueDetailScreen({ go, issue }) {
   useLang();
+  const [currentStatus, setCurrentStatus] = useState(issue?.status || "open");
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    setCurrentStatus(issue?.status || "open");
+    setActionError("");
+  }, [issue]);
 
   if (!issue) {
     return (
@@ -175,6 +212,17 @@ export function IssueDetailScreen({ go, issue }) {
       </div>
     );
   }
+
+  const updateStatus = async (nextStatus) => {
+    setActionError("");
+    try {
+      const updated = await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
+      setCurrentStatus(updated?.status || nextStatus);
+    } catch (error) {
+      setActionError(error?.message || "Unable to update issue status.");
+    }
+  };
+  const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
 
   return (
     <div className="app fade-in">
@@ -195,13 +243,81 @@ export function IssueDetailScreen({ go, issue }) {
                 <span className={"sev sev-" + issue.severity}><span className="dot" style={{ background: "currentColor", width: 8, height: 8 }}></span>{issue.severity}</span>
                 <span className="issue-id">{issue.id}</span>
                 <span className="tag">{issue.category}</span>
+                <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>{issue.title}</h1>
               <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>{issue.summary}</div>
-              <div className="sub" style={{ display: "flex", gap: 14, fontSize: 12.5, marginTop: 6 }}>
+              <div className="sub" style={{ display: "flex", gap: 10, fontSize: 12.5, marginTop: 6, flexWrap: "wrap" }}>
                 <span><I.Folder size={12} /> {issue.repo}</span>
                 <span><I.FileCode size={12} /> {issue.file}{issue.line ? ":" + issue.line : ""}</span>
                 <span><I.Sparkle size={12} /> {Math.round(issue.confidence * 100)}% {T("confidence", "置信度")}</span>
+                {issue.scanId && <span><I.Activity size={12} /> {issue.scanId}</span>}
+              </div>
+            </div>
+          </div>
+          <div className="issue-detail-grid">
+            <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+              <DetailSection title="Impact" empty="No impact statement was provided.">
+                {issue.impact && <p className="muted" style={{ color: "var(--text-2)" }}>{issue.impact}</p>}
+              </DetailSection>
+
+              <DetailSection title="Remediation" empty="No remediation steps were provided.">
+                {issue.steps?.length > 0 && (
+                  <ol className="legal-list-flat" style={{ marginBottom: 0 }}>
+                    {issue.steps.map((step, index) => <li key={`${index}-${step}`}>{step}</li>)}
+                  </ol>
+                )}
+              </DetailSection>
+
+              <DetailSection title="Evidence" empty="No code evidence was provided.">
+                {hasEvidence && (
+                  <>
+                    <CodeEvidence title="Current code" lines={issue.badCode || []} />
+                    <CodeEvidence title="Suggested code" lines={issue.goodCode || []} />
+                  </>
+                )}
+              </DetailSection>
+
+              {issue.references?.length > 0 && (
+                <DetailSection title="References">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {issue.references.map((reference) => (
+                      <a
+                        key={`${reference.label}-${reference.url}`}
+                        className="auth-link"
+                        href={reference.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: 13 }}
+                      >
+                        {reference.label || reference.url}
+                      </a>
+                    ))}
+                  </div>
+                </DetailSection>
+              )}
+            </div>
+
+            <div className="card section" style={{ display: "grid", gap: 10 }}>
+              <div className="section-h"><h3>Actions</h3></div>
+              {actionError && <div className="auth-error" role="alert"><I.X size={13} /> {actionError}</div>}
+              {currentStatus === "open" ? (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button className="btn sm primary" onClick={() => updateStatus("fixed")}><I.Check size={13} /> Mark fixed</button>
+                  <button className="btn sm" onClick={() => updateStatus("snoozed")}><I.Clock size={13} /> Snooze</button>
+                </div>
+              ) : (
+                <button className="btn sm" onClick={() => updateStatus("open")}><I.Refresh size={13} /> Reopen</button>
+              )}
+              <div className="divider" />
+              <button className="btn sm" disabled title="Backend support is not implemented yet">
+                <I.Sparkle size={13} /> Apply fix
+              </button>
+              <button className="btn sm" disabled title="Pull request creation is not implemented yet">
+                <I.GitBranch size={13} /> Open PR
+              </button>
+              <div className="muted" style={{ fontSize: 12 }}>
+                {T("Automation is intentionally disabled until the backend implements fix and pull request workflows.", "Automation is intentionally disabled until the backend implements fix and pull request workflows.")}
               </div>
             </div>
           </div>
