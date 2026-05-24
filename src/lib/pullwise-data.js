@@ -16,6 +16,12 @@ function formatTime(value) {
   return String(value);
 }
 
+function normalizeConfidence(value) {
+  const confidence = Number(value ?? 0);
+  if (!Number.isFinite(confidence)) return 0;
+  return Math.max(0, Math.min(1, confidence));
+}
+
 export function normalizeRepo(repo) {
   const fullName = repo.fullName || repo.full_name || repo.name || "";
   return {
@@ -46,7 +52,7 @@ export function normalizeIssue(issue) {
     status: issue.status || "open",
     file: issue.file || "",
     line: issue.line || null,
-    confidence: Number(issue.confidence ?? 0),
+    confidence: normalizeConfidence(issue.confidence),
     effort: issue.effort || "-",
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
     autoFix: Boolean(issue.autoFix ?? issue.autoFixable),

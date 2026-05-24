@@ -141,6 +141,12 @@ describe("useScans", () => {
 });
 
 describe("normalizeIssue", () => {
+  it("normalizes confidence into a finite display-safe range", () => {
+    expect(normalizeIssue({ id: "f_invalid", confidence: "not-a-number" }).confidence).toBe(0);
+    expect(normalizeIssue({ id: "f_high", confidence: 1.6 }).confidence).toBe(1);
+    expect(normalizeIssue({ id: "f_low", confidence: -0.4 }).confidence).toBe(0);
+  });
+
   it("preserves rich review fields and supplies stable empty arrays", () => {
     expect(normalizeIssue({
       id: "f_123",
