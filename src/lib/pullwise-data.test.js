@@ -257,6 +257,29 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_ok", progress: "42.5" }).progress).toBe(42.5);
   });
 
+  it("normalizes scan text fields and status for safe rendering", () => {
+    expect(normalizeScan({
+      id: 123,
+      repository: 456,
+      branch: 789,
+      commit: 1011,
+      status: 12,
+      by: 1314,
+      time: 1516,
+    })).toMatchObject({
+      id: "123",
+      repo: "456",
+      branch: "789",
+      commit: "1011",
+      status: "queued",
+      by: "1314",
+      time: "1516",
+    });
+
+    expect(normalizeScan({ id: "sc_done", status: "done" }).status).toBe("done");
+    expect(normalizeScan({ id: "sc_running", status: "running" }).status).toBe("running");
+  });
+
   it("normalizes confidence into a finite display-safe range", () => {
     expect(normalizeIssue({ id: "f_invalid", confidence: "not-a-number" }).confidence).toBe(0);
     expect(normalizeIssue({ id: "f_high", confidence: 1.6 }).confidence).toBe(1);

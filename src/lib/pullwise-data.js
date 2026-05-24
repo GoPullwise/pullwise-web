@@ -58,6 +58,11 @@ function normalizeIssueStatus(value) {
   return ["open", "fixed", "snoozed"].includes(status) ? status : "open";
 }
 
+function normalizeScanStatus(value) {
+  const status = textValue(value);
+  return ["queued", "running", "done", "failed", "cancelled"].includes(status) ? status : "queued";
+}
+
 function scalarText(value) {
   if (value === undefined || value === null || value === "") return "";
   if (["string", "number", "boolean"].includes(typeof value)) return String(value);
@@ -157,14 +162,14 @@ export function normalizeScan(scan = {}) {
   scan = scan || {};
   return {
     ...scan,
-    id: String(scan.id || ""),
-    repo: scan.repo || scan.repository || "",
-    branch: scan.branch || "main",
-    commit: scan.commit || "-",
-    status: scan.status || "queued",
+    id: textValue(scan.id),
+    repo: textValue(scan.repo, scan.repository),
+    branch: textValue(scan.branch) || "main",
+    commit: textValue(scan.commit) || "-",
+    status: normalizeScanStatus(scan.status),
     createdAt: scan.createdAt,
-    time: scan.time || formatTime(scan.createdAt),
-    by: scan.by || "you",
+    time: textValue(scan.time) || formatTime(scan.createdAt),
+    by: textValue(scan.by) || "you",
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
   };
