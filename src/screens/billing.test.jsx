@@ -120,6 +120,32 @@ describe("BillingScreen", () => {
     expect(screen.getAllByText("0 reviews / month").length).toBeGreaterThan(0);
   });
 
+  it("does not leak malformed billing price amounts", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        {
+          ...billingCatalog.plans[0],
+          prices: { month: { amount: "-5", currency: "USD", interval: "month", configured: true } },
+        },
+        {
+          ...billingCatalog.plans[1],
+          prices: {
+            month: { amount: "not-a-number", currency: "USD", interval: "month", configured: true },
+            year: { amount: "Infinity", currency: "USD", interval: "year", configured: true },
+          },
+        },
+      ],
+      account: { status: "none", plan: "free", usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" } },
+    });
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findAllByText("Configured in provider")).toHaveLength(2);
+    expect(document.body).not.toHaveTextContent("$-5");
+    expect(document.body).not.toHaveTextContent("$not-a-number");
+  });
+
   it("starts yearly checkout when yearly billing is selected", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

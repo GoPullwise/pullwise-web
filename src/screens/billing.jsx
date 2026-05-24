@@ -27,13 +27,20 @@ function priceFor(plan, interval) {
 
 function priceLabel(price) {
   if (!price) return T("Configured in provider", "Configured in provider");
-  const amount = String(price.amount ?? "");
-  if (amount === "0") return "$0";
+  const amount = priceAmount(price.amount);
+  if (amount == null) return T("Configured in provider", "Configured in provider");
+  if (amount === 0) return "$0";
   return `${currencySymbol(price.currency)}${amount}`;
 }
 
 function currencySymbol(currency) {
   return String(currency || "USD").toUpperCase() === "USD" ? "$" : `${currency || "USD"} `;
+}
+
+function priceAmount(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount < 0) return null;
+  return amount;
 }
 
 function isActiveStatus(status) {
