@@ -48,8 +48,20 @@ function scanIssueTotal(scan) {
 }
 
 function IssueRow({ issue, onClick }) {
+  const activateIssue = (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    onClick();
+  };
   return (
-    <div className="issue-row" onClick={onClick}>
+    <div
+      className="issue-row"
+      role="button"
+      tabIndex={0}
+      aria-label={`Open issue ${issue.id}`}
+      onClick={onClick}
+      onKeyDown={activateIssue}
+    >
       <div className={"issue-sev sev-bg-" + issue.severity}>
         <span className="dot" style={{ background: "currentColor" }}></span>
         {issue.severity}
