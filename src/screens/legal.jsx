@@ -4,16 +4,35 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { signOut } from "../lib/auth.js";
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 function LegalChrome({ go, current, children, auth }) {
   useLang();
   const signedIn = Boolean(auth?.authenticated);
   return (
     <div className="landing fade-in">
       <header className="lp-top">
-        <div className="brand" onClick={() => go("landing")} style={{ cursor: "pointer" }}>
+        <a
+          className="brand"
+          aria-label="Go to Pullwise home"
+          {...screenLinkProps(go, "landing")}
+        >
           <div className="brand-mark">PR</div>
           <span>Pullwise</span>
-        </div>
+        </a>
         <nav className="lp-nav">
           <button className="btn ghost sm" onClick={() => go("landing")}>
             {T("Product", "产品")}
@@ -62,7 +81,7 @@ function LegalChrome({ go, current, children, auth }) {
             <a
               key={key}
               className="legal-foot-l"
-              onClick={() => go(key)}
+              {...screenLinkProps(go, key)}
               style={{ color: current === key ? "var(--text)" : undefined }}
             >
               {label}
@@ -92,9 +111,9 @@ function LegalDocLayout({ go, current, sections, title, subtitle, children, auth
         </aside>
         <main className="legal-main">
           <div className="legal-crumbs">
-            <span onClick={() => go("landing")} style={{ cursor: "pointer" }}>
+            <a {...screenLinkProps(go, "landing")}>
               Pullwise
-            </span>
+            </a>
             <span className="sep">/</span>
             <span className="now">{title}</span>
           </div>

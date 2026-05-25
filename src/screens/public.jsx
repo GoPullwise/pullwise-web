@@ -61,6 +61,21 @@ function getRepositoryAuthErrorMessage(error) {
   return getAuthErrorMessage(error);
 }
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 export function LandingScreen({ go, accent, auth }) {
   useLang();
   const checkingSession = auth?.status === "checking";
@@ -318,16 +333,16 @@ export function LandingScreen({ go, accent, auth }) {
       <footer className="lp-foot">
         <div>Copyright 2026 Pullwise</div>
         <div style={{ display: "flex", gap: 18 }}>
-          <a className="legal-foot-l" onClick={() => go("privacy")}>
+          <a className="legal-foot-l" {...screenLinkProps(go, "privacy")}>
             {T("Privacy", "Privacy")}
           </a>
-          <a className="legal-foot-l" onClick={() => go("terms")}>
+          <a className="legal-foot-l" {...screenLinkProps(go, "terms")}>
             {T("Terms", "Terms")}
           </a>
-          <a className="legal-foot-l" onClick={() => go("security")}>
+          <a className="legal-foot-l" {...screenLinkProps(go, "security")}>
             {T("Security", "Security")}
           </a>
-          <a className="legal-foot-l" onClick={() => go("status")}>
+          <a className="legal-foot-l" {...screenLinkProps(go, "status")}>
             {T("Status", "Status")}
           </a>
         </div>
@@ -336,7 +351,7 @@ export function LandingScreen({ go, accent, auth }) {
   );
 }
 
-export function LoginScreen() {
+export function LoginScreen({ go } = {}) {
   useLang();
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
@@ -413,8 +428,9 @@ export function LoginScreen() {
       </div>
       <div className="auth-legal">
         {T("By signing in you agree to our", "By signing in you agree to our")}{" "}
-        <a>{T("Terms of Service", "Terms of Service")}</a> {T("and", "and")}{" "}
-        <a>{T("Privacy Policy", "Privacy Policy")}</a>.
+        <a {...screenLinkProps(go, "terms")}>{T("Terms of Service", "Terms of Service")}</a>{" "}
+        {T("and", "and")}{" "}
+        <a {...screenLinkProps(go, "privacy")}>{T("Privacy Policy", "Privacy Policy")}</a>.
       </div>
     </div>
   );
