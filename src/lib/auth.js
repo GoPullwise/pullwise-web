@@ -32,7 +32,9 @@ function repositoryItemsFrom(payload) {
 
 function repositoryAuthorizationError(payload) {
   const code = payload?.authorizationIssue || "no_authorized_repositories";
-  const message = payload?.message || "No authorized repositories are available. Manage GitHub repository access and choose at least one repository.";
+  const message =
+    payload?.message ||
+    "No authorized repositories are available. Manage GitHub repository access and choose at least one repository.";
   const error = new Error(message);
   error.code = code;
   return error;
@@ -83,7 +85,9 @@ export async function connectGitHubRepositories({ redirectTo, manage = false, ad
       clearGitHubRepositoryAccessRefreshNeeded();
       return;
     }
-    throw new Error("GitHub repository authorization URL is missing from the integrations response.");
+    throw new Error(
+      "GitHub repository authorization URL is missing from the integrations response."
+    );
   }
 
   markGitHubRepositoryAccessRefreshNeeded();

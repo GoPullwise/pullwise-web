@@ -231,7 +231,9 @@ export function useRepositories() {
     requestIdRef.current = requestId;
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const payload = sync ? await pullwiseApi.repositories.sync() : await pullwiseApi.repositories.list();
+      const payload = sync
+        ? await pullwiseApi.repositories.sync()
+        : await pullwiseApi.repositories.list();
       if (requestId !== requestIdRef.current) return;
       setState({
         items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
@@ -268,7 +270,11 @@ export function useIssues() {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
       const payload = await pullwiseApi.issues.list();
-      setState({ items: itemsFrom(payload, "items", "issues").map(normalizeIssue), loading: false, error: "" });
+      setState({
+        items: itemsFrom(payload, "items", "issues").map(normalizeIssue),
+        loading: false,
+        error: "",
+      });
     } catch (error) {
       setState({ items: [], loading: false, error: error?.message || "Unable to load issues." });
     }
@@ -318,7 +324,11 @@ export function useScans({ pollIntervalMs = 1500 } = {}) {
     setState((current) => ({ ...current, loading: quiet ? current.loading : true, error: "" }));
     try {
       const payload = await pullwiseApi.scans.list();
-      setState({ items: itemsFrom(payload, "items", "scans").map(normalizeScan), loading: false, error: "" });
+      setState({
+        items: itemsFrom(payload, "items", "scans").map(normalizeScan),
+        loading: false,
+        error: "",
+      });
     } catch (error) {
       const message = error?.message || "Unable to load scans.";
       setState((current) => ({
@@ -382,9 +392,15 @@ export function useScanRun({
     setError("");
     pullwiseApi.scans
       .create(scanCreatePayload({ repo, branch, commit, requestId }))
-      .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
-      .catch((err) => { if (alive) setError(err?.message || "Unable to start scan."); });
-    return () => { alive = false; };
+      .then((payload) => {
+        if (alive) setScan(normalizeScan(payload));
+      })
+      .catch((err) => {
+        if (alive) setError(err?.message || "Unable to start scan.");
+      });
+    return () => {
+      alive = false;
+    };
   }, [scanId, repo, branch, commit, requestId]);
 
   useEffect(() => {
@@ -395,9 +411,15 @@ export function useScanRun({
     setScan(seedScan?.id === scanId ? normalizeScan(seedScan) : null);
     pullwiseApi.scans
       .get(scanId)
-      .then((payload) => { if (alive) setScan(normalizeScan(payload)); })
-      .catch((err) => { if (alive) setError(err?.message || "Unable to load scan."); });
-    return () => { alive = false; };
+      .then((payload) => {
+        if (alive) setScan(normalizeScan(payload));
+      })
+      .catch((err) => {
+        if (alive) setError(err?.message || "Unable to load scan.");
+      });
+    return () => {
+      alive = false;
+    };
   }, [scanId]);
 
   useEffect(() => {
@@ -494,7 +516,9 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     let alive = true;
     const handle = setTimeout(async () => {
       try {
-        const updates = await Promise.all(activeScans.map((scan) => pullwiseApi.scans.get(scan.id)));
+        const updates = await Promise.all(
+          activeScans.map((scan) => pullwiseApi.scans.get(scan.id))
+        );
         if (!alive) return;
         const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
         setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
@@ -514,7 +538,9 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     if (!activeScans.length) return;
 
     try {
-      const updates = await Promise.all(activeScans.map((scan) => pullwiseApi.scans.cancel(scan.id)));
+      const updates = await Promise.all(
+        activeScans.map((scan) => pullwiseApi.scans.cancel(scan.id))
+      );
       const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
       setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
     } catch (err) {

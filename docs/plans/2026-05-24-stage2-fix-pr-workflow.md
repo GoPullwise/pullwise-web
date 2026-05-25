@@ -27,6 +27,7 @@
 ### Task 1: Backend Deterministic Fix Preview
 
 **Files:**
+
 - Create: `server/tests/test_fix_workflow.py`
 - Create: `server/pullwise_server/fix_workflow.py`
 
@@ -271,6 +272,7 @@ git commit -m "feat: preview deterministic issue fixes"
 ### Task 2: Backend Fix Preview Route
 
 **Files:**
+
 - Modify: `server/tests/test_security_contracts.py`
 - Modify: `server/pullwise_server/app.py`
 
@@ -397,6 +399,7 @@ git commit -m "feat: add issue fix preview route"
 ### Task 3: Backend Pull Request Workflow
 
 **Files:**
+
 - Create: `server/tests/test_pull_request_workflow.py`
 - Modify: `server/pullwise_server/fix_workflow.py`
 - Modify: `server/pullwise_server/github_auth.py`
@@ -601,6 +604,7 @@ git commit -m "feat: create pull requests for issue fixes"
 ### Task 4: Frontend API Contract
 
 **Files:**
+
 - Modify: `web/src/api/pullwise.js`
 
 **Step 1: Write failing API contract test**
@@ -669,6 +673,7 @@ git commit -m "feat: add issue fix api methods"
 ### Task 5: Frontend Issue Detail Fix Workflow
 
 **Files:**
+
 - Modify: `web/src/screens/issues.test.jsx`
 - Modify: `web/src/screens/issues.jsx`
 - Modify: `web/styles/screens.css`
@@ -739,7 +744,12 @@ it("previews an auto-fix and then opens a pull request", async () => {
 });
 
 it("keeps non-auto-fixable issues honest", () => {
-  render(<IssueDetailScreen go={vi.fn()} issue={{ id: "f_123", title: "Manual issue", status: "open", autoFix: false }} />);
+  render(
+    <IssueDetailScreen
+      go={vi.fn()}
+      issue={{ id: "f_123", title: "Manual issue", status: "open", autoFix: false }}
+    />
+  );
 
   expect(screen.getByRole("button", { name: /preview fix/i })).toBeDisabled();
   expect(screen.getByText(/not auto-fixable/i)).toBeInTheDocument();
@@ -813,21 +823,25 @@ const openPullRequest = async () => {
 - Add preview panel:
 
 ```jsx
-{fixPreview && (
-  <div className="fix-preview">
-    <div className="fix-preview-h">
-      <b>{fixPreview.file}</b>
-      <span className="tag">{fixPreview.valid ? "validated" : "blocked"}</span>
+{
+  fixPreview && (
+    <div className="fix-preview">
+      <div className="fix-preview-h">
+        <b>{fixPreview.file}</b>
+        <span className="tag">{fixPreview.valid ? "validated" : "blocked"}</span>
+      </div>
+      {fixPreview.message && <div className="muted">{fixPreview.message}</div>}
+      {fixPreview.diff && <pre className="diff-block">{fixPreview.diff}</pre>}
     </div>
-    {fixPreview.message && <div className="muted">{fixPreview.message}</div>}
-    {fixPreview.diff && <pre className="diff-block">{fixPreview.diff}</pre>}
-  </div>
-)}
-{pullRequest?.url && (
-  <a className="auth-link" href={pullRequest.url} target="_blank" rel="noreferrer">
-    Pull request #{pullRequest.number}
-  </a>
-)}
+  );
+}
+{
+  pullRequest?.url && (
+    <a className="auth-link" href={pullRequest.url} target="_blank" rel="noreferrer">
+      Pull request #{pullRequest.number}
+    </a>
+  );
+}
 ```
 
 Add compact CSS in `styles/screens.css` for `.fix-preview` and `.diff-block`.
@@ -854,6 +868,7 @@ git commit -m "feat: add issue fix pull request workflow"
 ### Task 6: Documentation And Final Verification
 
 **Files:**
+
 - Modify: `web/README.md`
 - Modify: `web/src/api/README.md`
 - Modify: `server/README.md`

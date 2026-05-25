@@ -17,13 +17,16 @@ vi.mock("../api/pullwise.js", () => ({
 
 vi.mock("../lib/pullwise-data.js", () => ({
   isActiveScan: (scan) => ["queued", "running"].includes(scan?.status),
-  scanQueueSummary: (scan) => scan?.queue ? {
-    message: scan.queue.message || "",
-    tags: [
-      scan.queue.position ? `Position ${scan.queue.position}` : null,
-      typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
-    ].filter(Boolean),
-  } : null,
+  scanQueueSummary: (scan) =>
+    scan?.queue
+      ? {
+          message: scan.queue.message || "",
+          tags: [
+            scan.queue.position ? `Position ${scan.queue.position}` : null,
+            typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
+          ].filter(Boolean),
+        }
+      : null,
   useIssues: vi.fn(() => ({ items: [] })),
   useRepositories: vi.fn(() => ({ items: [] })),
   useScans: vi.fn(),
@@ -132,10 +135,7 @@ describe("IssueDetailScreen review detail", () => {
       confidence: 0.91,
       status: "open",
       autoFix: true,
-      steps: [
-        "Allow only same-origin redirect targets.",
-        "Add tests for rejected external URLs.",
-      ],
+      steps: ["Allow only same-origin redirect targets.", "Add tests for rejected external URLs."],
       badCode: [{ ln: 42, code: "return redirect(next_url)", t: "del" }],
       goodCode: [{ ln: 42, code: "return redirect(safe_redirect(next_url))", t: "add" }],
       references: [{ label: "OWASP redirects", url: "https://cheatsheetseries.owasp.org/" }],
@@ -220,9 +220,11 @@ describe("IssueDetailScreen review detail", () => {
       file: "src/shell.py",
     };
     let resolvePreview;
-    pullwiseApi.issues.previewFix.mockReturnValueOnce(new Promise((resolve) => {
-      resolvePreview = resolve;
-    }));
+    pullwiseApi.issues.previewFix.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolvePreview = resolve;
+      })
+    );
 
     const { rerender } = render(<IssueDetailScreen go={vi.fn()} issue={issueA} />);
 

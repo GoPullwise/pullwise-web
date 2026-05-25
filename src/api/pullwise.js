@@ -2,7 +2,9 @@ import { request } from "./http.js";
 
 function withSearchParams(path, params = {}) {
   const cleanParams = Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== "")
+    Object.entries(params).filter(
+      ([, value]) => value !== undefined && value !== null && value !== ""
+    )
   );
   const search = new URLSearchParams(cleanParams).toString();
   return search ? `${path}?${search}` : path;
@@ -62,5 +64,4 @@ export const pullwiseApi = {
   system: {
     health: () => request("/health"),
   },
-
 };

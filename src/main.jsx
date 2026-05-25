@@ -34,9 +34,7 @@ function InstallPopupReturn() {
       }}
     >
       <div>
-        <p style={{ fontSize: 15, margin: 0 }}>
-          GitHub installation complete · GitHub 安装完成
-        </p>
+        <p style={{ fontSize: 15, margin: 0 }}>GitHub installation complete · GitHub 安装完成</p>
         <p style={{ fontSize: 13, marginTop: 8, color: "#6b7280" }}>
           You can close this window. 你可以关闭此窗口。
         </p>

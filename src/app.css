@@ -13,9 +13,11 @@
   place-items: center;
   cursor: pointer;
   font: 600 12px/1 var(--font-mono);
-  letter-spacing: .02em;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, .10);
-  transition: transform .15s ease, background .15s ease;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
 .lang-toggle:hover {
@@ -37,8 +39,10 @@
   display: grid;
   place-items: center;
   cursor: pointer;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, .10);
-  transition: transform .15s ease, background .15s ease;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
 .theme-toggle:hover {
@@ -56,21 +60,24 @@
   right: 0;
   top: 0;
   z-index: 50;
-  background: rgba(10, 10, 10, .92);
+  background: rgba(10, 10, 10, 0.92);
   backdrop-filter: blur(14px);
-  color: rgba(255, 255, 255, .92);
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 8px 14px 8px 50px;
   display: flex;
   align-items: center;
   gap: 18px;
-  font: 11.5px/1 "Geist", ui-sans-serif, sans-serif;
+  font:
+    11.5px/1 "Geist",
+    ui-sans-serif,
+    sans-serif;
 }
 
 .proto-nav-l {
   font-weight: 600;
-  letter-spacing: .04em;
-  opacity: .85;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
   flex: 0 0 auto;
 }
 
@@ -89,10 +96,13 @@
 .proto-nav-i {
   background: transparent;
   border: 1px solid transparent;
-  color: rgba(255, 255, 255, .6);
+  color: rgba(255, 255, 255, 0.6);
   padding: 6px 10px;
   border-radius: 6px;
-  font: 11.5px/1 "Geist", ui-sans-serif, sans-serif;
+  font:
+    11.5px/1 "Geist",
+    ui-sans-serif,
+    sans-serif;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -101,23 +111,23 @@
 
 .proto-nav-i:hover {
   color: white;
-  background: rgba(255, 255, 255, .06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .proto-nav-i.on {
   color: white;
-  background: rgba(255, 255, 255, .12);
-  border-color: rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .proto-nav-n {
   font-family: "Geist Mono", ui-monospace, monospace;
   font-size: 10px;
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .proto-nav-hint {
-  color: rgba(255, 255, 255, .4);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 10.5px;
   flex: 0 0 auto;
 }
@@ -130,8 +140,8 @@
   width: 30px;
   height: 26px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, .16);
-  background: rgba(10, 10, 10, .92);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(10, 10, 10, 0.92);
   color: white;
   font-size: 12px;
 }

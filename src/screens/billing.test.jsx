@@ -66,10 +66,12 @@ describe("BillingScreen", () => {
 
     await waitFor(() => {
       expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(1);
-      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(expect.objectContaining({
-        plan: "pro",
-        interval: "month",
-      }));
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: "pro",
+          interval: "month",
+        })
+      );
       expect(navigate).toHaveBeenCalledWith("https://checkout.stripe.com/cs/test");
     });
   });
@@ -136,7 +138,11 @@ describe("BillingScreen", () => {
           },
         },
       ],
-      account: { status: "none", plan: "free", usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" } },
+      account: {
+        status: "none",
+        plan: "free",
+        usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" },
+      },
     });
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
@@ -149,7 +155,11 @@ describe("BillingScreen", () => {
   it("starts yearly checkout when yearly billing is selected", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none", plan: "free", usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" } },
+      account: {
+        status: "none",
+        plan: "free",
+        usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" },
+      },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "stripe",
@@ -164,10 +174,12 @@ describe("BillingScreen", () => {
     await user.click(screen.getByRole("button", { name: /start pro/i }));
 
     await waitFor(() => {
-      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(expect.objectContaining({
-        plan: "pro",
-        interval: "year",
-      }));
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: "pro",
+          interval: "year",
+        })
+      );
       expect(navigate).toHaveBeenCalledWith("https://checkout.stripe.com/cs/yearly");
     });
   });
@@ -195,9 +207,11 @@ describe("BillingScreen", () => {
     await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
 
     await waitFor(() => {
-      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(expect.objectContaining({
-        interval: "year",
-      }));
+      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interval: "year",
+        })
+      );
       expect(navigate).toHaveBeenCalledWith("https://billing.stripe.com/session");
     });
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();

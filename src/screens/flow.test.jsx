@@ -5,15 +5,18 @@ import { ReposScreen, ScanningScreen } from "./flow.jsx";
 
 vi.mock("../lib/pullwise-data.js", () => ({
   isTerminalScan: (scan) => ["done", "failed", "cancelled"].includes(scan?.status),
-  scanQueueSummary: (scan) => scan?.queue ? {
-    message: scan.queue.message || "",
-    tags: [
-      scan.queue.position ? `Position ${scan.queue.position}` : null,
-      typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
-      scan.queue.limits?.global ? `Global ${scan.queue.limits.global}` : null,
-      scan.queue.limits?.perUser ? `Per user ${scan.queue.limits.perUser}` : null,
-    ].filter(Boolean),
-  } : null,
+  scanQueueSummary: (scan) =>
+    scan?.queue
+      ? {
+          message: scan.queue.message || "",
+          tags: [
+            scan.queue.position ? `Position ${scan.queue.position}` : null,
+            typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
+            scan.queue.limits?.global ? `Global ${scan.queue.limits.global}` : null,
+            scan.queue.limits?.perUser ? `Per user ${scan.queue.limits.perUser}` : null,
+          ].filter(Boolean),
+        }
+      : null,
   useIssues: vi.fn(() => ({ items: [], loading: false, error: "" })),
   useRepositories: vi.fn(),
   useScanBatchRun: vi.fn(),
@@ -100,7 +103,9 @@ describe("ReposScreen scan selection", () => {
     ]);
     expect(activeRepo.selectedRepos[0].scanRequestId).toMatch(/^scan_req_/);
     expect(activeRepo.selectedRepos[1].scanRequestId).toMatch(/^scan_req_/);
-    expect(activeRepo.selectedRepos[1].scanRequestId).not.toBe(activeRepo.selectedRepos[0].scanRequestId);
+    expect(activeRepo.selectedRepos[1].scanRequestId).not.toBe(
+      activeRepo.selectedRepos[0].scanRequestId
+    );
     expect(go).toHaveBeenCalledWith("scanning");
   });
 });
@@ -345,7 +350,9 @@ describe("ScanningScreen queue state", () => {
 
   it("routes disabled review provider errors to settings", async () => {
     const user = userEvent.setup();
-    const { go } = renderScanError("Review provider is disabled. Configure a provider before scanning.");
+    const { go } = renderScanError(
+      "Review provider is disabled. Configure a provider before scanning."
+    );
 
     await user.click(screen.getByRole("button", { name: /open settings/i }));
 

@@ -13,17 +13,8 @@ import {
   IssuesScreen,
   SettingsScreen,
 } from "./screens/issues.jsx";
-import {
-  PrivacyScreen,
-  SecurityScreen,
-  StatusScreen,
-  TermsScreen,
-} from "./screens/legal.jsx";
-import {
-  LandingScreen,
-  LoginScreen,
-  OAuthScreen,
-} from "./screens/public.jsx";
+import { PrivacyScreen, SecurityScreen, StatusScreen, TermsScreen } from "./screens/legal.jsx";
+import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
@@ -45,7 +36,15 @@ const SCREENS = new Set([
   "status",
   "notfound",
 ]);
-const PUBLIC_SCREENS = new Set(["landing", "login", "privacy", "terms", "security", "status", "notfound"]);
+const PUBLIC_SCREENS = new Set([
+  "landing",
+  "login",
+  "privacy",
+  "terms",
+  "security",
+  "status",
+  "notfound",
+]);
 
 function getInitialScreen() {
   const requestedScreen = new URLSearchParams(window.location.search).get("screen");
@@ -144,7 +143,8 @@ export function App({ prototypeNav = false }) {
   useEffect(() => {
     let cancelled = false;
 
-    pullwiseApi.auth.getSession()
+    pullwiseApi.auth
+      .getSession()
       .then((payload) => {
         if (cancelled) return;
         const authenticated = Boolean(payload?.authenticated);
@@ -182,7 +182,9 @@ export function App({ prototypeNav = false }) {
     continuedRepositoryAuthorization.current = true;
     clearRepositoryAuthorizationRequest();
     connectGitHubRepositories().catch((error) => {
-      setRepositoryAuthorizationError(error?.message || "Unable to connect GitHub repository access.");
+      setRepositoryAuthorizationError(
+        error?.message || "Unable to connect GitHub repository access."
+      );
     });
   }, [auth.status, auth.authenticated, screen]);
 
@@ -196,70 +198,76 @@ export function App({ prototypeNav = false }) {
             <span style={{ fontSize: 16 }}>Pullwise</span>
           </div>
           <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
-          <p className="auth-sub">{T("Restoring your workspace if this browser is still signed in.", "如果此浏览器仍保持登录，将恢复工作区。")}</p>
+          <p className="auth-sub">
+            {T(
+              "Restoring your workspace if this browser is still signed in.",
+              "如果此浏览器仍保持登录，将恢复工作区。"
+            )}
+          </p>
         </div>
       </div>
     );
-  } else switch (screen) {
-    case "landing":
-      body = <LandingScreen go={go} accent={ACCENT} auth={auth} />;
-      break;
-    case "login":
-      body = <LoginScreen go={go} />;
-      break;
-    case "oauth":
-      body = <OAuthScreen go={go} auth={auth} />;
-      break;
-    case "repos":
-      body = (
-        <ReposScreen
-          go={go}
-          setIssue={setIssue}
-          setActiveRepo={setActiveRepo}
-          authorizationError={repositoryAuthorizationError}
-          clearAuthorizationError={() => setRepositoryAuthorizationError("")}
-        />
-      );
-      break;
-    case "scanning":
-      body = <ScanningScreen go={go} activeRepo={activeRepo} setIssue={setIssue} />;
-      break;
-    case "dashboard":
-      body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} accent={ACCENT} />;
-      break;
-    case "issues":
-      body = <IssuesScreen go={go} setIssue={setIssue} />;
-      break;
-    case "issue":
-      body = <IssueDetailScreen go={go} issue={issue} setIssue={setIssue} />;
-      break;
-    case "history":
-      body = <HistoryScreen go={go} openScan={openScan} setIssue={setIssue} />;
-      break;
-    case "settings":
-      body = <SettingsScreen go={go} setIssue={setIssue} />;
-      break;
-    case "billing":
-      body = <BillingScreen go={go} setIssue={setIssue} />;
-      break;
-    case "privacy":
-      body = <PrivacyScreen go={go} auth={auth} />;
-      break;
-    case "terms":
-      body = <TermsScreen go={go} auth={auth} />;
-      break;
-    case "security":
-      body = <SecurityScreen go={go} auth={auth} />;
-      break;
-    case "status":
-      body = <StatusScreen go={go} auth={auth} />;
-      break;
-    case "notfound":
-      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
-      break;
-    default:
-      body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
-  }
+  } else
+    switch (screen) {
+      case "landing":
+        body = <LandingScreen go={go} accent={ACCENT} auth={auth} />;
+        break;
+      case "login":
+        body = <LoginScreen go={go} />;
+        break;
+      case "oauth":
+        body = <OAuthScreen go={go} auth={auth} />;
+        break;
+      case "repos":
+        body = (
+          <ReposScreen
+            go={go}
+            setIssue={setIssue}
+            setActiveRepo={setActiveRepo}
+            authorizationError={repositoryAuthorizationError}
+            clearAuthorizationError={() => setRepositoryAuthorizationError("")}
+          />
+        );
+        break;
+      case "scanning":
+        body = <ScanningScreen go={go} activeRepo={activeRepo} setIssue={setIssue} />;
+        break;
+      case "dashboard":
+        body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} accent={ACCENT} />;
+        break;
+      case "issues":
+        body = <IssuesScreen go={go} setIssue={setIssue} />;
+        break;
+      case "issue":
+        body = <IssueDetailScreen go={go} issue={issue} setIssue={setIssue} />;
+        break;
+      case "history":
+        body = <HistoryScreen go={go} openScan={openScan} setIssue={setIssue} />;
+        break;
+      case "settings":
+        body = <SettingsScreen go={go} setIssue={setIssue} />;
+        break;
+      case "billing":
+        body = <BillingScreen go={go} setIssue={setIssue} />;
+        break;
+      case "privacy":
+        body = <PrivacyScreen go={go} auth={auth} />;
+        break;
+      case "terms":
+        body = <TermsScreen go={go} auth={auth} />;
+        break;
+      case "security":
+        body = <SecurityScreen go={go} auth={auth} />;
+        break;
+      case "status":
+        body = <StatusScreen go={go} auth={auth} />;
+        break;
+      case "notfound":
+        body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
+        break;
+      default:
+        body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
+    }
 
   return (
     <>
@@ -287,7 +295,9 @@ export function App({ prototypeNav = false }) {
       <button
         className="theme-toggle"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        title={theme === "light" ? T("Switch to dark", "切换到暗色") : T("Switch to light", "切换到亮色")}
+        title={
+          theme === "light" ? T("Switch to dark", "切换到暗色") : T("Switch to light", "切换到亮色")
+        }
         aria-label={T("Toggle theme", "切换主题")}
       >
         {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}

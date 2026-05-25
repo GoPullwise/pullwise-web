@@ -1,7 +1,16 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { normalizeIssue, normalizeRepo, normalizeScan, scanQueueSummary, useRepositories, useScanBatchRun, useScanRun, useScans } from "./pullwise-data.js";
+import {
+  normalizeIssue,
+  normalizeRepo,
+  normalizeScan,
+  scanQueueSummary,
+  useRepositories,
+  useScanBatchRun,
+  useScanRun,
+  useScans,
+} from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -68,8 +77,14 @@ describe("useScans", () => {
     renderHook(() => useScans({ pollIntervalMs: 25 }));
 
     await waitFor(() => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(1));
-    await waitFor(() => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(2), { timeout: 250 });
-    await waitFor(() => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(3), { timeout: 250 });
+    await waitFor(
+      () => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(2),
+      { timeout: 250 }
+    );
+    await waitFor(
+      () => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(3),
+      { timeout: 250 }
+    );
   });
 
   it("includes the scan request id when creating a scan", async () => {
@@ -209,16 +224,20 @@ describe("normalizeIssue", () => {
       lang: "99",
       updated: "1700000000",
     });
-    expect(() => [repo.name, repo.fullName, repo.desc].some((value) => value.toLowerCase().includes("123"))).not.toThrow();
+    expect(() =>
+      [repo.name, repo.fullName, repo.desc].some((value) => value.toLowerCase().includes("123"))
+    ).not.toThrow();
   });
 
   it("normalizes repository count metadata for display-safe rendering", () => {
-    expect(normalizeRepo({
-      name: "octocat/repo",
-      stars: { value: 10 },
-      stargazers_count: "7.9",
-      branches: "3.5",
-    })).toMatchObject({
+    expect(
+      normalizeRepo({
+        name: "octocat/repo",
+        stars: { value: 10 },
+        stargazers_count: "7.9",
+        branches: "3.5",
+      })
+    ).toMatchObject({
       stars: 7,
       branches: 3,
     });
@@ -237,7 +256,9 @@ describe("normalizeIssue", () => {
   it("normalizes boolean-like payload fields without treating false strings as true", () => {
     expect(normalizeRepo({ name: "octocat/public-repo", private: "false" }).private).toBe(false);
     expect(normalizeRepo({ name: "octocat/private-repo", private: "true" }).private).toBe(true);
-    expect(normalizeIssue({ id: "f_manual", autoFix: "false", autoFixable: "false" })).toMatchObject({
+    expect(
+      normalizeIssue({ id: "f_manual", autoFix: "false", autoFixable: "false" })
+    ).toMatchObject({
       autoFix: false,
       autoFixable: false,
     });
@@ -273,8 +294,11 @@ describe("normalizeIssue", () => {
       file: "1819",
       effort: "2021",
     });
-    expect(() => [issue.title, issue.file, issue.repo, issue.category, issue.id]
-      .some((value) => value.toLowerCase().includes("18"))).not.toThrow();
+    expect(() =>
+      [issue.title, issue.file, issue.repo, issue.category, issue.id].some((value) =>
+        value.toLowerCase().includes("18")
+      )
+    ).not.toThrow();
   });
 
   it("normalizes issue line numbers for display-safe file labels", () => {
@@ -315,15 +339,17 @@ describe("normalizeIssue", () => {
   });
 
   it("normalizes scan issue counts into finite non-negative integers", () => {
-    expect(normalizeScan({
-      id: "sc_1",
-      issues: {
-        critical: -1,
-        high: "not-a-number",
-        medium: 2.8,
-        low: "3",
-      },
-    }).issues).toEqual({
+    expect(
+      normalizeScan({
+        id: "sc_1",
+        issues: {
+          critical: -1,
+          high: "not-a-number",
+          medium: 2.8,
+          low: "3",
+        },
+      }).issues
+    ).toEqual({
       critical: 0,
       high: 0,
       medium: 2,
@@ -339,15 +365,17 @@ describe("normalizeIssue", () => {
   });
 
   it("normalizes scan text fields and status for safe rendering", () => {
-    expect(normalizeScan({
-      id: 123,
-      repository: 456,
-      branch: 789,
-      commit: 1011,
-      status: 12,
-      by: 1314,
-      time: 1516,
-    })).toMatchObject({
+    expect(
+      normalizeScan({
+        id: 123,
+        repository: 456,
+        branch: 789,
+        commit: 1011,
+        status: 12,
+        by: 1314,
+        time: 1516,
+      })
+    ).toMatchObject({
       id: "123",
       repo: "456",
       branch: "789",
@@ -362,13 +390,15 @@ describe("normalizeIssue", () => {
   });
 
   it("does not stringify object-shaped text fields into user-visible labels", () => {
-    expect(normalizeRepo({
-      id: { value: 1 },
-      name: { value: "repo" },
-      description: { value: "desc" },
-      language: { value: "js" },
-      updatedAt: { value: "now" },
-    })).toMatchObject({
+    expect(
+      normalizeRepo({
+        id: { value: 1 },
+        name: { value: "repo" },
+        description: { value: "desc" },
+        language: { value: "js" },
+        updatedAt: { value: "now" },
+      })
+    ).toMatchObject({
       id: "",
       name: "",
       fullName: "",
@@ -377,26 +407,30 @@ describe("normalizeIssue", () => {
       updated: "",
     });
 
-    expect(normalizeIssue({
-      id: { value: "f_1" },
-      title: { value: "Bad label" },
-      description: { value: "summary" },
-      createdAt: { value: "now" },
-    })).toMatchObject({
+    expect(
+      normalizeIssue({
+        id: { value: "f_1" },
+        title: { value: "Bad label" },
+        description: { value: "summary" },
+        createdAt: { value: "now" },
+      })
+    ).toMatchObject({
       id: "",
       title: "",
       summary: "",
       age: "",
     });
 
-    expect(normalizeScan({
-      id: { value: "sc_1" },
-      repository: { value: "repo" },
-      branch: { value: "main" },
-      commit: { value: "sha" },
-      time: { value: "now" },
-      by: { value: "user" },
-    })).toMatchObject({
+    expect(
+      normalizeScan({
+        id: { value: "sc_1" },
+        repository: { value: "repo" },
+        branch: { value: "main" },
+        commit: { value: "sha" },
+        time: { value: "now" },
+        by: { value: "user" },
+      })
+    ).toMatchObject({
       id: "",
       repo: "",
       branch: "main",
@@ -407,32 +441,36 @@ describe("normalizeIssue", () => {
   });
 
   it("normalizes scan queue summaries for safe rendering", () => {
-    expect(scanQueueSummary({
-      queue: {
-        message: 123,
-        position: "2.8",
-        ahead: "3",
-        limits: {
-          global: "4",
-          perUser: { value: 1 },
+    expect(
+      scanQueueSummary({
+        queue: {
+          message: 123,
+          position: "2.8",
+          ahead: "3",
+          limits: {
+            global: "4",
+            perUser: { value: 1 },
+          },
         },
-      },
-    })).toEqual({
+      })
+    ).toEqual({
       message: "123",
       tags: ["Position 2", "3 scans ahead", "Global 4"],
     });
 
-    expect(scanQueueSummary({
-      queue: {
-        message: { text: "bad shape" },
-        position: { value: 2 },
-        ahead: -1,
-        limits: {
-          global: {},
-          perUser: -2,
+    expect(
+      scanQueueSummary({
+        queue: {
+          message: { text: "bad shape" },
+          position: { value: 2 },
+          ahead: -1,
+          limits: {
+            global: {},
+            perUser: -2,
+          },
         },
-      },
-    })).toEqual({ message: "", tags: [] });
+      })
+    ).toEqual({ message: "", tags: [] });
   });
 
   it("normalizes confidence into a finite display-safe range", () => {
@@ -442,12 +480,14 @@ describe("normalizeIssue", () => {
   });
 
   it("preserves rich review fields and supplies stable empty arrays", () => {
-    expect(normalizeIssue({
-      id: "f_123",
-      scan_id: "sc_1",
-      impact: "Production impact.",
-      references: [{ label: "Docs", url: "https://example.com" }],
-    })).toMatchObject({
+    expect(
+      normalizeIssue({
+        id: "f_123",
+        scan_id: "sc_1",
+        impact: "Production impact.",
+        references: [{ label: "Docs", url: "https://example.com" }],
+      })
+    ).toMatchObject({
       id: "f_123",
       scanId: "sc_1",
       impact: "Production impact.",

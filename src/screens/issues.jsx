@@ -19,12 +19,16 @@ function issueConfidence(issue) {
 function sortIssues(items, key) {
   const sorted = items.slice();
   if (key === "severity") {
-    sorted.sort((a, b) => (
-      (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0)
-    ) || ((issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1)));
+    sorted.sort(
+      (a, b) =>
+        (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0) ||
+        (issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1)
+    );
   }
-  if (key === "confidence") sorted.sort((a, b) => (issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1));
-  if (key === "newest") sorted.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  if (key === "confidence")
+    sorted.sort((a, b) => (issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1));
+  if (key === "newest")
+    sorted.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (key === "file") sorted.sort((a, b) => (a.file || "").localeCompare(b.file || ""));
   return sorted;
 }
@@ -37,7 +41,9 @@ function issueTotal(scan) {
 function scanHistorySummary(scan) {
   const queueSummary = scanQueueSummary(scan);
   if (scan.status === "queued" && queueSummary) {
-    const queueTags = queueSummary.tags.filter((tag) => !tag.startsWith("Global") && !tag.startsWith("Per user"));
+    const queueTags = queueSummary.tags.filter(
+      (tag) => !tag.startsWith("Global") && !tag.startsWith("Per user")
+    );
     return ["queued", ...queueTags].join(" - ");
   }
   if (scan.issues) return T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} issues`);
@@ -48,7 +54,9 @@ function DetailSection({ title, children, empty = "" }) {
   if (!children && !empty) return null;
   return (
     <div className="card section">
-      <div className="section-h"><h3>{title}</h3></div>
+      <div className="section-h">
+        <h3>{title}</h3>
+      </div>
       {children || <div className="muted">{empty}</div>}
     </div>
   );
@@ -62,9 +70,14 @@ function CodeEvidence({ title, lines }) {
       <div className="code-body">
         <pre>
           {lines.map((line, index) => (
-            <div key={`${title}-${line.ln || index}-${line.code}`} className={"code-line " + (line.t || "")}>
+            <div
+              key={`${title}-${line.ln || index}-${line.code}`}
+              className={"code-line " + (line.t || "")}
+            >
               <span className="ln">{line.ln || ""}</span>
-              <span className="marker">{line.t === "add" ? "+" : line.t === "del" ? "-" : " "}</span>
+              <span className="marker">
+                {line.t === "add" ? "+" : line.t === "del" ? "-" : " "}
+              </span>
               <code>{line.code}</code>
             </div>
           ))}
@@ -101,10 +114,11 @@ export function IssuesScreen({ go, setIssue }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[
-        { label: "Pullwise", go: "dashboard" },
-        { label: T("Issues", "问题") },
-      ]} setIssue={setIssue} />
+      <Topbar
+        go={go}
+        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issues", "问题") }]}
+        setIssue={setIssue}
+      />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
@@ -112,12 +126,18 @@ export function IssuesScreen({ go, setIssue }) {
             <div>
               <h1>{T("Issues", "问题")}</h1>
               <div className="sub">
-                {loading ? T("Loading findings", "正在加载 findings") : T(`${filtered.length} items`, `${filtered.length} 项`)}
+                {loading
+                  ? T("Loading findings", "正在加载 findings")
+                  : T(`${filtered.length} items`, `${filtered.length} 项`)}
               </div>
             </div>
             <div className="actions">
-              <button className="btn" onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}>
-                <I.Sort size={14} /> {sortBy === "severity" ? T("Severity", "严重度") : T("Confidence", "置信度")}
+              <button
+                className="btn"
+                onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}
+              >
+                <I.Sort size={14} />{" "}
+                {sortBy === "severity" ? T("Severity", "严重度") : T("Confidence", "置信度")}
               </button>
             </div>
           </div>
@@ -126,11 +146,19 @@ export function IssuesScreen({ go, setIssue }) {
             <div className="filters-row">
               <div className="repos-search" style={{ flex: 1 }}>
                 <I.Search size={14} />
-                <input placeholder={T("Search by title, repo, or file...", "按标题、仓库或文件搜索...")} value={q} onChange={(event) => setQ(event.target.value)} />
+                <input
+                  placeholder={T("Search by title, repo, or file...", "按标题、仓库或文件搜索...")}
+                  value={q}
+                  onChange={(event) => setQ(event.target.value)}
+                />
               </div>
               <div className="seg">
                 {["open", "fixed", "snoozed", "all"].map((item) => (
-                  <button key={item} className={"seg-i" + (status === item ? " active" : "")} onClick={() => setStatus(item)}>
+                  <button
+                    key={item}
+                    className={"seg-i" + (status === item ? " active" : "")}
+                    onClick={() => setStatus(item)}
+                  >
                     {item === "all" ? T("All", "全部") : item}
                   </button>
                 ))}
@@ -140,8 +168,19 @@ export function IssuesScreen({ go, setIssue }) {
               <div className="filter-pills">
                 <span className="filter-l">Severity</span>
                 {["all", "critical", "high", "medium", "low", "info"].map((item) => (
-                  <button key={item} className={"pill-btn" + (sev === item ? " active" : "")} onClick={() => setSev(item)}>
-                    {item === "all" ? T("All", "全部") : <><span className="dot" style={{ background: `var(--sev-${item})` }}></span>{item}</>}
+                  <button
+                    key={item}
+                    className={"pill-btn" + (sev === item ? " active" : "")}
+                    onClick={() => setSev(item)}
+                  >
+                    {item === "all" ? (
+                      T("All", "全部")
+                    ) : (
+                      <>
+                        <span className="dot" style={{ background: `var(--sev-${item})` }}></span>
+                        {item}
+                      </>
+                    )}
                   </button>
                 ))}
               </div>
@@ -158,7 +197,11 @@ export function IssuesScreen({ go, setIssue }) {
               <div>Status</div>
               <div></div>
             </div>
-            {error && <div className="muted" style={{ padding: 18 }}>{error}</div>}
+            {error && (
+              <div className="muted" style={{ padding: 18 }}>
+                {error}
+              </div>
+            )}
             {!loading && !error && filtered.length === 0 && (
               <div className="muted" style={{ padding: 24, textAlign: "center" }}>
                 {T("No findings are available yet.", "暂无 findings。")}
@@ -166,31 +209,77 @@ export function IssuesScreen({ go, setIssue }) {
             )}
             {filtered.map((issue) => {
               const confidence = issueConfidence(issue);
-              const confidenceLabel = confidence == null ? "--" : `${Math.round(confidence * 100)}%`;
+              const confidenceLabel =
+                confidence == null ? "--" : `${Math.round(confidence * 100)}%`;
               return (
-              <div key={issue.id} className="issues-trow">
-                <div></div>
-                <div className="issues-title-c" onClick={() => { setIssue(issue); go("issue"); }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                    <span className={"sev sev-" + issue.severity}><span className="dot" style={{ background: "currentColor" }}></span>{issue.severity}</span>
-                    <span className="issue-id">{issue.id}</span>
+                <div key={issue.id} className="issues-trow">
+                  <div></div>
+                  <div
+                    className="issues-title-c"
+                    onClick={() => {
+                      setIssue(issue);
+                      go("issue");
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                      <span className={"sev sev-" + issue.severity}>
+                        <span className="dot" style={{ background: "currentColor" }}></span>
+                        {issue.severity}
+                      </span>
+                      <span className="issue-id">{issue.id}</span>
+                    </div>
+                    <div className="issue-t">{issue.title}</div>
+                    <div className="muted">{issue.repo}</div>
                   </div>
-                  <div className="issue-t">{issue.title}</div>
-                  <div className="muted">{issue.repo}</div>
+                  <div className="issues-file">
+                    {issue.file}
+                    {issue.line ? ":" + issue.line : ""}
+                  </div>
+                  <div>
+                    <span className="tag">{issue.category}</span>
+                  </div>
+                  <div>
+                    <div className="conf-bar">
+                      <div style={{ width: `${(confidence ?? 0) * 100}%` }}></div>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "var(--text-3)",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {confidenceLabel}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="tag">{issue.status}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {issue.status === "open" && (
+                      <button className="btn sm" onClick={() => updateStatus(issue, "snoozed")}>
+                        {T("Snooze", "推迟")}
+                      </button>
+                    )}
+                    {issue.status !== "fixed" && (
+                      <button
+                        className="btn sm primary"
+                        onClick={() => updateStatus(issue, "fixed")}
+                      >
+                        {T("Mark fixed", "标记已修复")}
+                      </button>
+                    )}
+                    <button
+                      className="btn sm"
+                      onClick={() => {
+                        setIssue(issue);
+                        go("issue");
+                      }}
+                    >
+                      <I.ArrowR size={11} />
+                    </button>
+                  </div>
                 </div>
-                <div className="issues-file">{issue.file}{issue.line ? ":" + issue.line : ""}</div>
-                <div><span className="tag">{issue.category}</span></div>
-                <div>
-                  <div className="conf-bar"><div style={{ width: `${(confidence ?? 0) * 100}%` }}></div></div>
-                  <span style={{ fontSize: 11, color: "var(--text-3)", fontVariantNumeric: "tabular-nums" }}>{confidenceLabel}</span>
-                </div>
-                <div><span className="tag">{issue.status}</span></div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  {issue.status === "open" && <button className="btn sm" onClick={() => updateStatus(issue, "snoozed")}>{T("Snooze", "推迟")}</button>}
-                  {issue.status !== "fixed" && <button className="btn sm primary" onClick={() => updateStatus(issue, "fixed")}>{T("Mark fixed", "标记已修复")}</button>}
-                  <button className="btn sm" onClick={() => { setIssue(issue); go("issue"); }}><I.ArrowR size={11} /></button>
-                </div>
-              </div>
               );
             })}
           </div>
@@ -226,12 +315,20 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   if (!issue) {
     return (
       <div className="app fade-in">
-        <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issue", "问题") }]} setIssue={setIssue} />
+        <Topbar
+          go={go}
+          breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issue", "问题") }]}
+          setIssue={setIssue}
+        />
         <div className="with-side">
           <Sidebar section="issues" go={go} />
           <div className="main">
-            <div className="card section muted">{T("Select an issue from the list first.", "请先从列表选择一个问题。")}</div>
-            <button className="btn" onClick={() => go("issues")} style={{ marginTop: 12 }}><I.ArrowL size={13} /> {T("Back to issues", "返回问题列表")}</button>
+            <div className="card section muted">
+              {T("Select an issue from the list first.", "请先从列表选择一个问题。")}
+            </div>
+            <button className="btn" onClick={() => go("issues")} style={{ marginTop: 12 }}>
+              <I.ArrowL size={13} /> {T("Back to issues", "返回问题列表")}
+            </button>
           </div>
         </div>
       </div>
@@ -253,7 +350,8 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const confidence = Number(issue.confidence);
   const hasConfidence = Number.isFinite(confidence);
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
-  const activePullRequest = pullRequest?.issueId === issue.id ? pullRequest.value : issue.pullRequest || null;
+  const activePullRequest =
+    pullRequest?.issueId === issue.id ? pullRequest.value : issue.pullRequest || null;
   const beginFixRequest = () => {
     const requestId = fixRequestRef.current + 1;
     fixRequestRef.current = requestId;
@@ -295,45 +393,88 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[
-        { label: "Pullwise", go: "dashboard" },
-        { label: T("Issues", "问题"), go: "issues" },
-        { label: issue.id },
-      ]} setIssue={setIssue} />
+      <Topbar
+        go={go}
+        breadcrumbs={[
+          { label: "Pullwise", go: "dashboard" },
+          { label: T("Issues", "问题"), go: "issues" },
+          { label: issue.id },
+        ]}
+        setIssue={setIssue}
+      />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
-          <button className="btn ghost sm" onClick={() => go("issues")} style={{ marginBottom: 12 }}>
+          <button
+            className="btn ghost sm"
+            onClick={() => go("issues")}
+            style={{ marginBottom: 12 }}
+          >
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
           </button>
           <div className="issue-detail-h">
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                <span className={"sev sev-" + severity}><span className="dot" style={{ background: "currentColor", width: 8, height: 8 }}></span>{severity}</span>
+                <span className={"sev sev-" + severity}>
+                  <span
+                    className="dot"
+                    style={{ background: "currentColor", width: 8, height: 8 }}
+                  ></span>
+                  {severity}
+                </span>
                 <span className="issue-id">{issue.id}</span>
                 {issue.category && <span className="tag">{issue.category}</span>}
                 <span className="tag">{currentStatus}</span>
               </div>
-              <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>{issue.title}</h1>
-              {issue.summary && <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>{issue.summary}</div>}
-              <div className="sub" style={{ display: "flex", gap: 10, fontSize: 12.5, marginTop: 6, flexWrap: "wrap" }}>
-                <span><I.Folder size={12} /> {issue.repo || "Repository unknown"}</span>
-                <span><I.FileCode size={12} /> {issue.file || "File unknown"}{issue.file && issue.line ? ":" + issue.line : ""}</span>
-                {hasConfidence && <span><I.Sparkle size={12} /> {Math.round(confidence * 100)}% {T("confidence", "置信度")}</span>}
-                {issue.scanId && <span><I.Activity size={12} /> {issue.scanId}</span>}
+              <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
+                {issue.title}
+              </h1>
+              {issue.summary && (
+                <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>
+                  {issue.summary}
+                </div>
+              )}
+              <div
+                className="sub"
+                style={{ display: "flex", gap: 10, fontSize: 12.5, marginTop: 6, flexWrap: "wrap" }}
+              >
+                <span>
+                  <I.Folder size={12} /> {issue.repo || "Repository unknown"}
+                </span>
+                <span>
+                  <I.FileCode size={12} /> {issue.file || "File unknown"}
+                  {issue.file && issue.line ? ":" + issue.line : ""}
+                </span>
+                {hasConfidence && (
+                  <span>
+                    <I.Sparkle size={12} /> {Math.round(confidence * 100)}%{" "}
+                    {T("confidence", "置信度")}
+                  </span>
+                )}
+                {issue.scanId && (
+                  <span>
+                    <I.Activity size={12} /> {issue.scanId}
+                  </span>
+                )}
               </div>
             </div>
           </div>
           <div className="issue-detail-grid">
             <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
               <DetailSection title="Impact" empty="No impact statement was provided.">
-                {issue.impact && <p className="muted" style={{ color: "var(--text-2)" }}>{issue.impact}</p>}
+                {issue.impact && (
+                  <p className="muted" style={{ color: "var(--text-2)" }}>
+                    {issue.impact}
+                  </p>
+                )}
               </DetailSection>
 
               <DetailSection title="Remediation" empty="No remediation steps were provided.">
                 {issue.steps?.length > 0 && (
                   <ol className="legal-list-flat" style={{ marginBottom: 0 }}>
-                    {issue.steps.map((step, index) => <li key={`${index}-${step}`}>{step}</li>)}
+                    {issue.steps.map((step, index) => (
+                      <li key={`${index}-${step}`}>{step}</li>
+                    ))}
                   </ol>
                 )}
               </DetailSection>
@@ -368,36 +509,69 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
             </div>
 
             <div className="card section" style={{ display: "grid", gap: 10 }}>
-              <div className="section-h"><h3>Actions</h3></div>
-              {actionError && <div className="auth-error" role="alert"><I.X size={13} /> {actionError}</div>}
+              <div className="section-h">
+                <h3>Actions</h3>
+              </div>
+              {actionError && (
+                <div className="auth-error" role="alert">
+                  <I.X size={13} /> {actionError}
+                </div>
+              )}
               {currentStatus === "open" ? (
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button className="btn sm primary" onClick={() => updateStatus("fixed")}><I.Check size={13} /> Mark fixed</button>
-                  <button className="btn sm" onClick={() => updateStatus("snoozed")}><I.Clock size={13} /> Snooze</button>
+                  <button className="btn sm primary" onClick={() => updateStatus("fixed")}>
+                    <I.Check size={13} /> Mark fixed
+                  </button>
+                  <button className="btn sm" onClick={() => updateStatus("snoozed")}>
+                    <I.Clock size={13} /> Snooze
+                  </button>
                 </div>
               ) : (
-                <button className="btn sm" onClick={() => updateStatus("open")}><I.Refresh size={13} /> Reopen</button>
+                <button className="btn sm" onClick={() => updateStatus("open")}>
+                  <I.Refresh size={13} /> Reopen
+                </button>
               )}
               <div className="divider" />
-              <button className="btn sm" disabled={!autoFixable || Boolean(fixLoading)} onClick={previewFix}>
+              <button
+                className="btn sm"
+                disabled={!autoFixable || Boolean(fixLoading)}
+                onClick={previewFix}
+              >
                 <I.Sparkle size={13} /> {fixLoading === "preview" ? "Previewing..." : "Preview fix"}
               </button>
-              <button className="btn sm" disabled={!activeFixPreview?.valid || Boolean(fixLoading)} onClick={openPullRequest}>
+              <button
+                className="btn sm"
+                disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
+                onClick={openPullRequest}
+              >
                 <I.GitBranch size={13} /> {fixLoading === "pr" ? "Opening..." : "Open PR"}
               </button>
-              {!autoFixable && <div className="muted" style={{ fontSize: 12 }}>This issue is not auto-fixable.</div>}
+              {!autoFixable && (
+                <div className="muted" style={{ fontSize: 12 }}>
+                  This issue is not auto-fixable.
+                </div>
+              )}
               {activeFixPreview && (
                 <div className="fix-preview">
                   <div className="fix-preview-h">
                     <b>{activeFixPreview.file}</b>
                     <span className="tag">{activeFixPreview.valid ? "validated" : "blocked"}</span>
                   </div>
-                  {activeFixPreview.message && <div className="muted">{activeFixPreview.message}</div>}
-                  {activeFixPreview.diff && <pre className="diff-block">{activeFixPreview.diff}</pre>}
+                  {activeFixPreview.message && (
+                    <div className="muted">{activeFixPreview.message}</div>
+                  )}
+                  {activeFixPreview.diff && (
+                    <pre className="diff-block">{activeFixPreview.diff}</pre>
+                  )}
                 </div>
               )}
               {activePullRequest?.url && (
-                <a className="auth-link" href={activePullRequest.url} target="_blank" rel="noreferrer">
+                <a
+                  className="auth-link"
+                  href={activePullRequest.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   Pull request #{activePullRequest.number}
                 </a>
               )}
@@ -424,45 +598,86 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Scan history", "扫描历史") }]} setIssue={setIssue} />
+      <Topbar
+        go={go}
+        breadcrumbs={[
+          { label: "Pullwise", go: "dashboard" },
+          { label: T("Scan history", "扫描历史") },
+        ]}
+        setIssue={setIssue}
+      />
       <div className="with-side">
         <Sidebar section="history" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
               <h1>{T("Scan history", "扫描历史")}</h1>
-              <div className="sub">{loading ? T("Loading scans", "正在加载扫描") : T(`${filtered.length} scans`, `${filtered.length} 次扫描`)}</div>
+              <div className="sub">
+                {loading
+                  ? T("Loading scans", "正在加载扫描")
+                  : T(`${filtered.length} scans`, `${filtered.length} 次扫描`)}
+              </div>
             </div>
             <div className="actions">
               <div className="seg">
                 {["all", "queued", "running", "done", "failed", "cancelled"].map((item) => (
-                  <button key={item} className={"seg-i" + (status === item ? " active" : "")} onClick={() => setStatus(item)}>
+                  <button
+                    key={item}
+                    className={"seg-i" + (status === item ? " active" : "")}
+                    onClick={() => setStatus(item)}
+                  >
                     {item === "all" ? T("All", "全部") : item}
                   </button>
                 ))}
               </div>
-              <button className="btn primary" onClick={() => go("repos")}><I.Play size={11} /> {T("New scan", "新扫描")}</button>
+              <button className="btn primary" onClick={() => go("repos")}>
+                <I.Play size={11} /> {T("New scan", "新扫描")}
+              </button>
             </div>
           </div>
 
           <div className="hist-list card">
-            {error && <div className="muted" style={{ padding: 18 }}>{error}</div>}
+            {error && (
+              <div className="muted" style={{ padding: 18 }}>
+                {error}
+              </div>
+            )}
             {!loading && !error && filtered.length === 0 && (
-              <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>
+              <div
+                style={{
+                  padding: "32px 16px",
+                  textAlign: "center",
+                  color: "var(--text-3)",
+                  fontSize: 13,
+                }}
+              >
                 {T("No scans yet.", "暂无扫描。")}
               </div>
             )}
             {filtered.map((scan) => (
               <div key={scan.id} className="hist-row">
                 <div className="hist-status">
-                  {scan.status === "done" && <span className="hist-dot" style={{ background: "#16a34a" }}></span>}
-                  {["queued", "running"].includes(scan.status) && <span className="spin" style={{ display: "inline-block", color: "var(--accent)" }}><I.Refresh size={12} /></span>}
-                  {["failed", "cancelled"].includes(scan.status) && <span className="hist-dot" style={{ background: "var(--sev-critical)" }}></span>}
+                  {scan.status === "done" && (
+                    <span className="hist-dot" style={{ background: "#16a34a" }}></span>
+                  )}
+                  {["queued", "running"].includes(scan.status) && (
+                    <span
+                      className="spin"
+                      style={{ display: "inline-block", color: "var(--accent)" }}
+                    >
+                      <I.Refresh size={12} />
+                    </span>
+                  )}
+                  {["failed", "cancelled"].includes(scan.status) && (
+                    <span className="hist-dot" style={{ background: "var(--sev-critical)" }}></span>
+                  )}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 2 }}>
                     <b style={{ fontSize: 13.5 }}>{scan.repo}</b>
-                    <span className="tag"><I.GitBranch size={10} /> {scan.branch}</span>
+                    <span className="tag">
+                      <I.GitBranch size={10} /> {scan.branch}
+                    </span>
                     <span className="tag">{scan.commit}</span>
                   </div>
                   {scan.status === "queued" && scanQueueSummary(scan) && (
@@ -470,15 +685,22 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                   )}
                   {!(scan.status === "queued" && scanQueueSummary(scan)) && (
                     <div className="muted">
-                    {scan.issues ? T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} 个问题`) : scan.status}
+                      {scan.issues
+                        ? T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} 个问题`)
+                        : scan.status}
                     </div>
                   )}
                 </div>
                 <div className="hist-meta">
                   <div>{scan.time}</div>
-                  <div className="muted">{T("Triggered by ", "触发：")}{scan.by}</div>
+                  <div className="muted">
+                    {T("Triggered by ", "触发：")}
+                    {scan.by}
+                  </div>
                 </div>
-                <button className="btn sm" onClick={() => viewScan(scan)}>{T("View", "查看")} <I.ArrowR size={11} /></button>
+                <button className="btn sm" onClick={() => viewScan(scan)}>
+                  {T("View", "查看")} <I.ArrowR size={11} />
+                </button>
               </div>
             ))}
           </div>
@@ -500,19 +722,18 @@ export function SettingsScreen({ go, setIssue = null }) {
     let cancelled = false;
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
-    Promise.all([
-      pullwiseApi.auth.getSession(),
-      pullwiseApi.integrations.list(),
-    ]).then(([sessionPayload, integrationsPayload]) => {
-      if (cancelled) return;
-      setSession(sessionPayload);
-      if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
-    }).catch(() => {
-      if (!cancelled) {
-        setSession(null);
-        if (requestId === integrationRequestIdRef.current) setIntegrations(null);
-      }
-    });
+    Promise.all([pullwiseApi.auth.getSession(), pullwiseApi.integrations.list()])
+      .then(([sessionPayload, integrationsPayload]) => {
+        if (cancelled) return;
+        setSession(sessionPayload);
+        if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSession(null);
+          if (requestId === integrationRequestIdRef.current) setIntegrations(null);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -539,10 +760,14 @@ export function SettingsScreen({ go, setIssue = null }) {
   const github = integrations?.github;
   const user = session?.user;
   const githubRepoCount = github?.repositories?.length || 0;
-  const githubAccountNames = Array.from(new Set([
-    ...(Array.isArray(github?.installationAccounts) ? github.installationAccounts : []),
-    github?.installationAccount,
-  ].filter(Boolean)));
+  const githubAccountNames = Array.from(
+    new Set(
+      [
+        ...(Array.isArray(github?.installationAccounts) ? github.installationAccounts : []),
+        github?.installationAccount,
+      ].filter(Boolean)
+    )
+  );
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
   const authorizeRepositories = async () => {
     const requestId = integrationRequestIdRef.current + 1;
@@ -562,7 +787,11 @@ export function SettingsScreen({ go, setIssue = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Settings", "设置") }]} setIssue={setIssue} />
+      <Topbar
+        go={go}
+        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Settings", "设置") }]}
+        setIssue={setIssue}
+      />
       <div className="with-side">
         <Sidebar section="settings" go={go} />
         <div className="main">
@@ -578,34 +807,60 @@ export function SettingsScreen({ go, setIssue = null }) {
                 { k: "profile", t: T("Profile", "个人资料"), i: <I.User size={14} /> },
                 { k: "integrations", t: T("Integrations", "集成"), i: <I.Github size={14} /> },
               ].map((item) => (
-                <button key={item.k} className={"set-side-i" + (tab === item.k ? " active" : "")} onClick={() => setTab(item.k)}>
-                  {item.i}<span>{item.t}</span>
+                <button
+                  key={item.k}
+                  className={"set-side-i" + (tab === item.k ? " active" : "")}
+                  onClick={() => setTab(item.k)}
+                >
+                  {item.i}
+                  <span>{item.t}</span>
                 </button>
               ))}
             </aside>
             <div className="set-body">
               {tab === "profile" && (
                 <div className="card section">
-                  <div className="section-h"><h3>{T("Profile", "个人资料")}</h3></div>
+                  <div className="section-h">
+                    <h3>{T("Profile", "个人资料")}</h3>
+                  </div>
                   <div className="set-row">
-                    <div className="set-av" style={{ background: "var(--accent)" }}>{(user?.name || "?").slice(0, 1).toUpperCase()}</div>
+                    <div className="set-av" style={{ background: "var(--accent)" }}>
+                      {(user?.name || "?").slice(0, 1).toUpperCase()}
+                    </div>
                     <div style={{ flex: 1 }}>
-                      <label className="auth-field"><span>{T("Name", "姓名")}</span><div className="auth-input"><input value={user?.name || ""} readOnly /></div></label>
+                      <label className="auth-field">
+                        <span>{T("Name", "姓名")}</span>
+                        <div className="auth-input">
+                          <input value={user?.name || ""} readOnly />
+                        </div>
+                      </label>
                     </div>
                   </div>
-                  <label className="auth-field"><span>{T("Email", "邮箱")}</span><div className="auth-input"><I.Mail size={13} /><input value={user?.email || ""} readOnly /></div></label>
+                  <label className="auth-field">
+                    <span>{T("Email", "邮箱")}</span>
+                    <div className="auth-input">
+                      <I.Mail size={13} />
+                      <input value={user?.email || ""} readOnly />
+                    </div>
+                  </label>
                   <div className="set-pref">
                     <div>
                       <b>{T("Session", "会话")}</b>
-                      <div className="muted">{T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天。")}</div>
+                      <div className="muted">
+                        {T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天。")}
+                      </div>
                     </div>
-                    <button className="btn sm" onClick={signOut}>{T("Sign out", "退出登录")}</button>
+                    <button className="btn sm" onClick={signOut}>
+                      {T("Sign out", "退出登录")}
+                    </button>
                   </div>
                 </div>
               )}
               {tab === "integrations" && (
                 <div className="card section">
-                  <div className="section-h"><h3>{T("Personal authorizations", "个人授权")}</h3></div>
+                  <div className="section-h">
+                    <h3>{T("Personal authorizations", "个人授权")}</h3>
+                  </div>
                   <div className="int-row">
                     <I.Github size={20} />
                     <div style={{ flex: 1 }}>
@@ -622,8 +877,15 @@ export function SettingsScreen({ go, setIssue = null }) {
                             )}
                       </div>
                     </div>
-                    <span className="pill sev-bg-low" style={{ background: "color-mix(in oklch, #16a34a 14%, transparent)", color: "#16a34a" }}>
-                      <span className="dot"></span> {github?.connected ? T("Connected", "已连接") : T("Disconnected", "未连接")}
+                    <span
+                      className="pill sev-bg-low"
+                      style={{
+                        background: "color-mix(in oklch, #16a34a 14%, transparent)",
+                        color: "#16a34a",
+                      }}
+                    >
+                      <span className="dot"></span>{" "}
+                      {github?.connected ? T("Connected", "已连接") : T("Disconnected", "未连接")}
                     </span>
                     <button className="btn sm" onClick={authorizeRepositories}>
                       {github?.connected
@@ -631,8 +893,14 @@ export function SettingsScreen({ go, setIssue = null }) {
                         : T("Connect repositories", "连接仓库")}
                     </button>
                   </div>
-                  {github?.connected && <GitHubInstallationsList installations={github?.installations} />}
-                  {integrationError && <div className="auth-error" role="alert"><I.X size={13} /> {integrationError}</div>}
+                  {github?.connected && (
+                    <GitHubInstallationsList installations={github?.installations} />
+                  )}
+                  {integrationError && (
+                    <div className="auth-error" role="alert">
+                      <I.X size={13} /> {integrationError}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

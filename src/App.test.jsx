@@ -103,7 +103,9 @@ describe("App", () => {
     render(<LoginScreen go={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: /continue with github/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /email me a magic link/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /email me a magic link/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText("you@company.com")).not.toBeInTheDocument();
     expect(screen.queryByText("Password")).not.toBeInTheDocument();
     expect(screen.queryByText("Create account")).not.toBeInTheDocument();
@@ -191,7 +193,9 @@ describe("App", () => {
 
   it("explains missing GitHub App read-only contents permission for private repositories", async () => {
     connectGitHubRepositories.mockRejectedValueOnce(
-      new Error("GitHub App installation must grant Contents: read-only access so Pullwise can scan private repositories without write permission.")
+      new Error(
+        "GitHub App installation must grant Contents: read-only access so Pullwise can scan private repositories without write permission."
+      )
     );
     const go = vi.fn();
     const user = userEvent.setup();
@@ -336,7 +340,8 @@ describe("App", () => {
           installationId: "130258770",
           installationAccount: "GoPullwise",
           installationTargetType: "Organization",
-          installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+          installationHtmlUrl:
+            "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 1,
         },
@@ -344,7 +349,8 @@ describe("App", () => {
           installationId: "134816087",
           installationAccount: "GoTagma",
           installationTargetType: "Organization",
-          installationHtmlUrl: "https://github.com/organizations/GoTagma/settings/installations/134816087",
+          installationHtmlUrl:
+            "https://github.com/organizations/GoTagma/settings/installations/134816087",
           repositorySelection: "all",
           repositoryCount: 4,
         },
@@ -357,7 +363,9 @@ describe("App", () => {
     expect(screen.getByText("GoPullwise")).toBeInTheDocument();
     expect(screen.getByText(/Organization .* selected .* 1 repository/i)).toBeInTheDocument();
     expect(screen.getByText("GoTagma")).toBeInTheDocument();
-    expect(screen.getByText(/Organization .* all repositories .* 4 repositories/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Organization .* all repositories .* 4 repositories/i)
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /manage gopullwise/i })).toHaveAttribute(
       "href",
       "https://github.com/organizations/GoPullwise/settings/installations/130258770"
@@ -386,7 +394,8 @@ describe("App", () => {
           installationId: "130258770",
           installationAccount: "GoPullwise",
           installationTargetType: "Organization",
-          installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+          installationHtmlUrl:
+            "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 1,
         },
@@ -414,7 +423,8 @@ describe("App", () => {
           installationId: "130258770",
           installationAccount: "GoPullwise",
           installationTargetType: "Organization",
-          installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+          installationHtmlUrl:
+            "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 2,
         },
@@ -494,7 +504,9 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
     });
     expect(screen.getByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
-    expect(screen.getByText("Attackers can redirect users to phishing domains.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Attackers can redirect users to phishing domains.")
+    ).toBeInTheDocument();
   });
 
   it("keeps failed dashboard sidebar repository authorization in the repositories flow", async () => {
@@ -541,7 +553,9 @@ describe("App", () => {
       user: { name: "Dev", email: "dev@example.com" },
     });
     pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
-    connectGitHubRepositories.mockRejectedValueOnce(new Error("GitHub App install URL is unavailable"));
+    connectGitHubRepositories.mockRejectedValueOnce(
+      new Error("GitHub App install URL is unavailable")
+    );
 
     render(<App />);
 

@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import {
-  connectGitHubRepositories,
-  startGitHubLogin,
-} from "./auth.js";
+import { connectGitHubRepositories, startGitHubLogin } from "./auth.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -54,19 +51,25 @@ describe("auth redirects", () => {
 
     await expect(connectGitHubRepositories()).rejects.toThrow("stop");
 
-    expect(redirectScreen(pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0])).toBe("repos");
+    expect(redirectScreen(pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0])).toBe(
+      "repos"
+    );
   });
 
   it("starts GitHub login first when repository authorization requires a GitHub identity", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockRejectedValueOnce(
-      Object.assign(new Error("Sign in with GitHub before authorizing repositories."), { status: 401 })
+      Object.assign(new Error("Sign in with GitHub before authorizing repositories."), {
+        status: 401,
+      })
     );
     pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("login-started"));
 
     await expect(connectGitHubRepositories()).rejects.toThrow("login-started");
 
     expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("repos");
-    expect(redirectParam(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0], "repoAuth")).toBe("1");
+    expect(redirectParam(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0], "repoAuth")).toBe(
+      "1"
+    );
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 
@@ -103,7 +106,9 @@ describe("auth redirects", () => {
     expect(pullwiseApi.integrations.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
       expect.objectContaining({ manage: "1" })
     );
-    expect(openGitHubInstallPopup).toHaveBeenCalledWith("https://github.com/settings/installations/999");
+    expect(openGitHubInstallPopup).toHaveBeenCalledWith(
+      "https://github.com/settings/installations/999"
+    );
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
 
@@ -123,7 +128,9 @@ describe("auth redirects", () => {
     expect(pullwiseApi.integrations.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
       expect.objectContaining({ add: "1", manage: undefined })
     );
-    expect(openGitHubInstallPopup).toHaveBeenCalledWith("https://github.com/apps/pullwise/installations/new?state=abc");
+    expect(openGitHubInstallPopup).toHaveBeenCalledWith(
+      "https://github.com/apps/pullwise/installations/new?state=abc"
+    );
   });
 
   it("does not treat connected responses as successful until repositories are actually available", async () => {

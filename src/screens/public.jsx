@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import {
-  connectGitHubRepositories,
-  signOut,
-  startGitHubLogin,
-} from "../lib/auth.js";
+import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/auth.js";
 
 function getAuthErrorMessage(error) {
   return (
@@ -32,7 +28,10 @@ function getRepositoryAuthErrorMessage(error) {
       "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available."
     );
   }
-  if (code === "github_app_installation_not_completed" || message.includes("github_app_installation_not_completed")) {
+  if (
+    code === "github_app_installation_not_completed" ||
+    message.includes("github_app_installation_not_completed")
+  ) {
     return T(
       "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected.",
       "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected."
@@ -44,7 +43,10 @@ function getRepositoryAuthErrorMessage(error) {
       "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again."
     );
   }
-  if (code === "github_app_api_unconfigured" || message.includes("GitHub App API is not configured")) {
+  if (
+    code === "github_app_api_unconfigured" ||
+    message.includes("GitHub App API is not configured")
+  ) {
     return T(
       "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.",
       "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend."
@@ -75,13 +77,21 @@ export function LandingScreen({ go, accent, auth }) {
         <div style={{ display: "flex", gap: 8 }}>
           {signedIn ? (
             <>
-              <button className="btn sm" onClick={() => go("settings")}>{T("Settings", "Settings")}</button>
-              <button className="btn primary sm" onClick={() => go("dashboard")}>{T("Dashboard", "Dashboard")}</button>
+              <button className="btn sm" onClick={() => go("settings")}>
+                {T("Settings", "Settings")}
+              </button>
+              <button className="btn primary sm" onClick={() => go("dashboard")}>
+                {T("Dashboard", "Dashboard")}
+              </button>
             </>
           ) : (
             <>
-              <button className="btn sm" onClick={() => go("login")}>{T("Sign in", "Sign in")}</button>
-              <button className="btn primary sm" onClick={() => go("login")}>{T("Get started", "Get started")}</button>
+              <button className="btn sm" onClick={() => go("login")}>
+                {T("Sign in", "Sign in")}
+              </button>
+              <button className="btn primary sm" onClick={() => go("login")}>
+                {T("Get started", "Get started")}
+              </button>
             </>
           )}
         </div>
@@ -94,7 +104,8 @@ export function LandingScreen({ go, accent, auth }) {
           <I.ArrowR size={12} />
         </div>
         <h1 className="lp-title">
-          {T("Review real repos", "Review real repos")}<br />
+          {T("Review real repos", "Review real repos")}
+          <br />
           <span className="lp-title-em">{T("without sample data.", "without sample data.")}</span>
         </h1>
         <p className="lp-sub">
@@ -105,7 +116,10 @@ export function LandingScreen({ go, accent, auth }) {
         </p>
         <div className="lp-cta">
           <button className="btn primary lg" onClick={() => go(signedIn ? "dashboard" : "login")}>
-            {signedIn ? <I.Layout /> : <I.Github />} {signedIn ? T("Open dashboard", "Open dashboard") : T("Sign in with GitHub", "Sign in with GitHub")}
+            {signedIn ? <I.Layout /> : <I.Github />}{" "}
+            {signedIn
+              ? T("Open dashboard", "Open dashboard")
+              : T("Sign in with GitHub", "Sign in with GitHub")}
           </button>
           {signedIn && (
             <button className="btn lg" onClick={signOut}>
@@ -114,16 +128,25 @@ export function LandingScreen({ go, accent, auth }) {
           )}
         </div>
         <div className="lp-meta">
-          <span><I.Check size={12} /> {T("GitHub OAuth", "GitHub OAuth")}</span>
-          <span><I.Check size={12} /> {T("GitHub App repository access", "GitHub App repository access")}</span>
-          <span><I.Check size={12} /> {T("Server-backed scans", "Server-backed scans")}</span>
+          <span>
+            <I.Check size={12} /> {T("GitHub OAuth", "GitHub OAuth")}
+          </span>
+          <span>
+            <I.Check size={12} />{" "}
+            {T("GitHub App repository access", "GitHub App repository access")}
+          </span>
+          <span>
+            <I.Check size={12} /> {T("Server-backed scans", "Server-backed scans")}
+          </span>
         </div>
       </section>
 
       <section className="lp-preview">
         <div className="lp-preview-card">
           <div className="lp-preview-bar">
-            <span /><span /><span />
+            <span />
+            <span />
+            <span />
             <div className="lp-preview-url">pullwise.dev / dashboard</div>
           </div>
           <div className="lp-preview-body">
@@ -134,21 +157,53 @@ export function LandingScreen({ go, accent, auth }) {
                 T("History", "History"),
                 T("Settings", "Settings"),
               ].map((item, index) => (
-                <div key={item} className={"lp-preview-side-i" + (index === 1 ? " active" : "")}>{item}</div>
+                <div key={item} className={"lp-preview-side-i" + (index === 1 ? " active" : "")}>
+                  {item}
+                </div>
               ))}
             </div>
             <div className="lp-preview-main">
               <div className="lp-preview-row">
-                <div className="lp-preview-stat"><b><I.Github size={18} /></b><span>{T("Connect", "Connect")}</span></div>
-                <div className="lp-preview-stat"><b><I.Refresh size={18} /></b><span>{T("Scan", "Scan")}</span></div>
-                <div className="lp-preview-stat"><b style={{ color: accent }}><I.Bug size={18} /></b><span>{T("Review", "Review")}</span></div>
-                <div className="lp-preview-stat"><b><I.Check size={18} /></b><span>{T("Triage", "Triage")}</span></div>
+                <div className="lp-preview-stat">
+                  <b>
+                    <I.Github size={18} />
+                  </b>
+                  <span>{T("Connect", "Connect")}</span>
+                </div>
+                <div className="lp-preview-stat">
+                  <b>
+                    <I.Refresh size={18} />
+                  </b>
+                  <span>{T("Scan", "Scan")}</span>
+                </div>
+                <div className="lp-preview-stat">
+                  <b style={{ color: accent }}>
+                    <I.Bug size={18} />
+                  </b>
+                  <span>{T("Review", "Review")}</span>
+                </div>
+                <div className="lp-preview-stat">
+                  <b>
+                    <I.Check size={18} />
+                  </b>
+                  <span>{T("Triage", "Triage")}</span>
+                </div>
               </div>
               <div className="lp-preview-issues">
                 <div className="lp-preview-issue">
-                  <span className="sev sev-info"><span className="dot" style={{ background: "currentColor" }} />ready</span>
-                  <div className="lp-preview-issue-t">{T("Connect GitHub to load repository findings.", "Connect GitHub to load repository findings.")}</div>
-                  <span className="lp-preview-issue-f">{T("No sample findings", "No sample findings")}</span>
+                  <span className="sev sev-info">
+                    <span className="dot" style={{ background: "currentColor" }} />
+                    ready
+                  </span>
+                  <div className="lp-preview-issue-t">
+                    {T(
+                      "Connect GitHub to load repository findings.",
+                      "Connect GitHub to load repository findings."
+                    )}
+                  </div>
+                  <span className="lp-preview-issue-f">
+                    {T("No sample findings", "No sample findings")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -161,36 +216,56 @@ export function LandingScreen({ go, accent, auth }) {
           {
             i: <I.Github />,
             h: T("GitHub identity", "GitHub identity"),
-            p: T("Sign in with GitHub OAuth instead of a local demo account.", "Sign in with GitHub OAuth instead of a local demo account."),
+            p: T(
+              "Sign in with GitHub OAuth instead of a local demo account.",
+              "Sign in with GitHub OAuth instead of a local demo account."
+            ),
           },
           {
             i: <I.Folder />,
             h: T("Repository authorization", "Repository authorization"),
-            p: T("Authorize repositories through the GitHub App before scanning.", "Authorize repositories through the GitHub App before scanning."),
+            p: T(
+              "Authorize repositories through the GitHub App before scanning.",
+              "Authorize repositories through the GitHub App before scanning."
+            ),
           },
           {
             i: <I.Bug />,
             h: T("Stored findings", "Stored findings"),
-            p: T("Issues are loaded from backend scan results, not frontend fixtures.", "Issues are loaded from backend scan results, not frontend fixtures."),
+            p: T(
+              "Issues are loaded from backend scan results, not frontend fixtures.",
+              "Issues are loaded from backend scan results, not frontend fixtures."
+            ),
           },
           {
             i: <I.Check />,
             h: T("Manual triage", "Manual triage"),
-            p: T("Mark findings fixed or snoozed after reviewing the underlying code.", "Mark findings fixed or snoozed after reviewing the underlying code."),
+            p: T(
+              "Mark findings fixed or snoozed after reviewing the underlying code.",
+              "Mark findings fixed or snoozed after reviewing the underlying code."
+            ),
           },
           {
             i: <I.Activity />,
             h: T("Scan history", "Scan history"),
-            p: T("Track queued, running, done, failed, and cancelled scans from server state.", "Track queued, running, done, failed, and cancelled scans from server state."),
+            p: T(
+              "Track queued, running, done, failed, and cancelled scans from server state.",
+              "Track queued, running, done, failed, and cancelled scans from server state."
+            ),
           },
           {
             i: <I.Lock />,
             h: T("No browser-side repo storage", "No browser-side repo storage"),
-            p: T("The frontend reads repository metadata and findings through the API.", "The frontend reads repository metadata and findings through the API."),
+            p: T(
+              "The frontend reads repository metadata and findings through the API.",
+              "The frontend reads repository metadata and findings through the API."
+            ),
           },
         ].map((feature, index) => (
           <div key={index} className="lp-feat">
-            <div className="lp-feat-i" style={{ color: accent }}>{feature.i}</div>
+            <div className="lp-feat-i" style={{ color: accent }}>
+              {feature.i}
+            </div>
             <h3>{feature.h}</h3>
             <p>{feature.p}</p>
           </div>
@@ -198,19 +273,34 @@ export function LandingScreen({ go, accent, auth }) {
       </section>
 
       <section className="lp-cta-band">
-        <h2>{signedIn ? T("Continue from your workspace.", "Continue from your workspace.") : T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}</h2>
+        <h2>
+          {signedIn
+            ? T("Continue from your workspace.", "Continue from your workspace.")
+            : T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}
+        </h2>
         <button className="btn primary lg" onClick={() => go(signedIn ? "dashboard" : "login")}>
-          {signedIn ? <I.Layout /> : <I.Github />} {signedIn ? T("Open dashboard", "Open dashboard") : T("Sign in with GitHub", "Sign in with GitHub")}
+          {signedIn ? <I.Layout /> : <I.Github />}{" "}
+          {signedIn
+            ? T("Open dashboard", "Open dashboard")
+            : T("Sign in with GitHub", "Sign in with GitHub")}
         </button>
       </section>
 
       <footer className="lp-foot">
         <div>Copyright 2026 Pullwise</div>
         <div style={{ display: "flex", gap: 18 }}>
-          <a className="legal-foot-l" onClick={() => go("privacy")}>{T("Privacy", "Privacy")}</a>
-          <a className="legal-foot-l" onClick={() => go("terms")}>{T("Terms", "Terms")}</a>
-          <a className="legal-foot-l" onClick={() => go("security")}>{T("Security", "Security")}</a>
-          <a className="legal-foot-l" onClick={() => go("status")}>{T("Status", "Status")}</a>
+          <a className="legal-foot-l" onClick={() => go("privacy")}>
+            {T("Privacy", "Privacy")}
+          </a>
+          <a className="legal-foot-l" onClick={() => go("terms")}>
+            {T("Terms", "Terms")}
+          </a>
+          <a className="legal-foot-l" onClick={() => go("security")}>
+            {T("Security", "Security")}
+          </a>
+          <a className="legal-foot-l" onClick={() => go("status")}>
+            {T("Status", "Status")}
+          </a>
         </div>
       </footer>
     </div>
@@ -258,7 +348,9 @@ export function LoginScreen() {
         >
           {pendingAction === "github" ? (
             <>
-              <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
+              <span className="spin" style={{ display: "inline-block" }}>
+                <I.Refresh size={14} />
+              </span>
               {T("Opening GitHub...", "Opening GitHub...")}
             </>
           ) : (
@@ -281,13 +373,19 @@ export function LoginScreen() {
           </div>
           <div className="auth-next-i">
             <span>2</span>
-            <p>{T("Connect repositories only when you start a scan.", "Connect repositories only when you start a scan.")}</p>
+            <p>
+              {T(
+                "Connect repositories only when you start a scan.",
+                "Connect repositories only when you start a scan."
+              )}
+            </p>
           </div>
         </div>
       </div>
       <div className="auth-legal">
-        {T("By signing in you agree to our", "By signing in you agree to our")} {" "}
-        <a>{T("Terms of Service", "Terms of Service")}</a> {T("and", "and")} <a>{T("Privacy Policy", "Privacy Policy")}</a>.
+        {T("By signing in you agree to our", "By signing in you agree to our")}{" "}
+        <a>{T("Terms of Service", "Terms of Service")}</a> {T("and", "and")}{" "}
+        <a>{T("Privacy Policy", "Privacy Policy")}</a>.
       </div>
     </div>
   );
@@ -307,10 +405,12 @@ export function OAuthScreen({ go, auth }) {
       go("repos");
     } catch (authError) {
       if (authError?.code === "popup_closed") {
-        setError(T(
-          "GitHub installation was cancelled. Please try again.",
-          "GitHub installation was cancelled. Please try again."
-        ));
+        setError(
+          T(
+            "GitHub installation was cancelled. Please try again.",
+            "GitHub installation was cancelled. Please try again."
+          )
+        );
       } else {
         setError(getRepositoryAuthErrorMessage(authError));
       }
@@ -323,9 +423,13 @@ export function OAuthScreen({ go, auth }) {
       <div className="oauth-card">
         <div className="oauth-head">
           <div className="oauth-logos">
-            <div className="oauth-logo gh"><I.Github size={26} /></div>
+            <div className="oauth-logo gh">
+              <I.Github size={26} />
+            </div>
             <div className="oauth-dots">
-              <span /><span /><span />
+              <span />
+              <span />
+              <span />
             </div>
             <div className="oauth-logo app">PR</div>
           </div>
@@ -339,17 +443,25 @@ export function OAuthScreen({ go, auth }) {
         </div>
 
         <div className="oauth-perms">
-          <div className="oauth-perm-h">{T("Requested GitHub permissions", "Requested GitHub permissions")}</div>
+          <div className="oauth-perm-h">
+            {T("Requested GitHub permissions", "Requested GitHub permissions")}
+          </div>
           {[
             {
               i: <I.Folder size={15} />,
               h: T("Repository metadata", "Repository metadata"),
-              p: T("List authorized repositories, branches, languages, and installation status.", "List authorized repositories, branches, languages, and installation status."),
+              p: T(
+                "List authorized repositories, branches, languages, and installation status.",
+                "List authorized repositories, branches, languages, and installation status."
+              ),
             },
             {
               i: <I.FileCode size={15} />,
               h: T("Read repository contents", "Read repository contents"),
-              p: T("Read-only access for scan checkout and review.", "Read-only access for scan checkout and review."),
+              p: T(
+                "Read-only access for scan checkout and review.",
+                "Read-only access for scan checkout and review."
+              ),
             },
           ].map((permission, index) => (
             <div key={index} className="oauth-perm">
@@ -389,17 +501,26 @@ export function OAuthScreen({ go, auth }) {
           >
             {authing ? (
               <>
-                <span className="spin" style={{ display: "inline-block" }}><I.Refresh size={14} /></span>
+                <span className="spin" style={{ display: "inline-block" }}>
+                  <I.Refresh size={14} />
+                </span>
                 {T("Opening GitHub...", "Opening GitHub...")}
               </>
             ) : (
-              <>{T("Connect GitHub repositories", "Connect GitHub repositories")} <I.ArrowR size={14} /></>
+              <>
+                {T("Connect GitHub repositories", "Connect GitHub repositories")}{" "}
+                <I.ArrowR size={14} />
+              </>
             )}
           </button>
         </div>
 
         <div className="oauth-foot">
-          <I.Lock size={12} /> {T("Login identity and repository authorization are separate.", "Login identity and repository authorization are separate.")}
+          <I.Lock size={12} />{" "}
+          {T(
+            "Login identity and repository authorization are separate.",
+            "Login identity and repository authorization are separate."
+          )}
         </div>
       </div>
     </div>

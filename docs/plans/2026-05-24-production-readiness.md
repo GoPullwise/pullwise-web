@@ -25,6 +25,7 @@
 ### Task 1: Render Complete Issue Detail
 
 **Files:**
+
 - Modify: `web/src/screens/issues.test.jsx`
 - Modify: `web/src/screens/issues.jsx`
 - Modify: `web/src/lib/pullwise-data.js`
@@ -126,6 +127,7 @@ git commit -m "feat: render complete issue details"
 ### Task 2: Wire Issue Search To Detail
 
 **Files:**
+
 - Modify: `web/src/App.jsx`
 - Modify: `web/src/shell.jsx`
 - Modify: `web/src/App.test.jsx`
@@ -189,6 +191,7 @@ git commit -m "fix: open issue details from search"
 ### Task 3: Make Scan Failure States Actionable
 
 **Files:**
+
 - Modify: `web/src/screens/flow.test.jsx`
 - Modify: `web/src/screens/flow.jsx`
 - Modify: `web/src/screens/billing.jsx` if quota navigation is needed
@@ -222,8 +225,10 @@ Add a small helper in `flow.jsx`:
 ```js
 function scanErrorAction(errorMessage) {
   const text = String(errorMessage || "").toLowerCase();
-  if (text.includes("review provider") || text.includes("cli")) return { label: "Open settings", screen: "settings" };
-  if (text.includes("sync github repositories")) return { label: "Sync repositories", screen: "repos" };
+  if (text.includes("review provider") || text.includes("cli"))
+    return { label: "Open settings", screen: "settings" };
+  if (text.includes("sync github repositories"))
+    return { label: "Sync repositories", screen: "repos" };
   if (text.includes("monthly review limit")) return { label: "Open billing", screen: "billing" };
   return { label: "Retry", screen: "repos" };
 }
@@ -253,6 +258,7 @@ git commit -m "fix: add actionable scan errors"
 ### Task 4: Recover Interrupted Server Scans
 
 **Files:**
+
 - Create: `server/tests/test_scan_recovery.py`
 - Modify: `server/pullwise_server/app.py`
 
@@ -339,6 +345,7 @@ git commit -m "fix: recover interrupted scans on startup"
 ### Task 5: Add Safe Readiness Details
 
 **Files:**
+
 - Modify: `server/tests/test_configuration_contracts.py`
 - Modify: `server/pullwise_server/app.py`
 - Modify: `web/src/screens/status.test.jsx`
@@ -425,6 +432,7 @@ git commit -m "feat: show backend readiness status"
 ### Task 6: Make Local Verification Repeatable
 
 **Files:**
+
 - Modify: `server/tests/test_launcher_contracts.py`
 - Modify: `server/README.md`
 - Modify: `web/README.md`
@@ -515,6 +523,7 @@ git commit -m "docs: clarify frontend verification setup"
 ### Task 7: Production Documentation Cleanup
 
 **Files:**
+
 - Modify: `server/README.md`
 - Modify: `web/README.md`
 - Modify: `web/src/api/README.md`
@@ -586,6 +595,7 @@ git commit -m "docs: align server production scope"
 ### Task 8: Final Verification And Product Smoke Test
 
 **Files:**
+
 - No code files unless verification exposes a bug.
 
 **Step 1: Install dependencies if missing**

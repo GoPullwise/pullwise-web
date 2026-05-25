@@ -21,7 +21,8 @@ function installationAccount(installation) {
 }
 
 function installationTargetType(installation) {
-  const raw = scalarText(installation?.installationTargetType) ||
+  const raw =
+    scalarText(installation?.installationTargetType) ||
     scalarText(installation?.targetType) ||
     scalarText(installation?.target_type);
   if (!raw) return T("Account", "账号");
@@ -29,7 +30,8 @@ function installationTargetType(installation) {
 }
 
 function installationSelection(installation) {
-  const raw = scalarText(installation?.repositorySelection) ||
+  const raw =
+    scalarText(installation?.repositorySelection) ||
     scalarText(installation?.repository_selection) ||
     scalarText(installation?.scope);
   return raw === "all" ? T("all repositories", "全部仓库") : T("selected", "已选择仓库");
@@ -47,13 +49,15 @@ function normalizedRepositoryCount(count) {
 }
 
 function installationRepositoryCount(installation) {
-  if (installation?.repositoryCount !== undefined) return normalizedRepositoryCount(installation.repositoryCount);
+  if (installation?.repositoryCount !== undefined)
+    return normalizedRepositoryCount(installation.repositoryCount);
   if (Array.isArray(installation?.repositories)) return installation.repositories.length;
   return 0;
 }
 
 function installationHtmlUrl(installation) {
-  const url = scalarText(installation?.installationHtmlUrl) ||
+  const url =
+    scalarText(installation?.installationHtmlUrl) ||
     scalarText(installation?.htmlUrl) ||
     scalarText(installation?.html_url);
   return /^https?:\/\//i.test(url) ? url : "";
@@ -85,11 +89,14 @@ export function GitHubInstallationsList({ installations }) {
       <div className="gh-install-list">
         {rows.map((installation) => (
           <div className="gh-install-row" key={installation.id || installation.account}>
-            <div className="gh-install-icon"><I.Github size={14} /></div>
+            <div className="gh-install-icon">
+              <I.Github size={14} />
+            </div>
             <div className="gh-install-main">
               <div className="gh-install-account">{installation.account || installation.id}</div>
               <div className="gh-install-meta">
-                {installation.targetType} / {installation.selection} / {repositoryCountLabel(installation.repositoryCount)}
+                {installation.targetType} / {installation.selection} /{" "}
+                {repositoryCountLabel(installation.repositoryCount)}
               </div>
             </div>
             {installation.htmlUrl && (

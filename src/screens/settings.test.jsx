@@ -76,7 +76,9 @@ describe("SettingsScreen", () => {
 
     await user.click(screen.getByRole("button", { name: /integrations/i }));
 
-    expect(await screen.findByText(/2 repositories authorized on octocat, acme/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/2 repositories authorized on octocat, acme/i)
+    ).toBeInTheDocument();
   });
 
   it("lists each GitHub App installation with its management link", async () => {
@@ -96,7 +98,8 @@ describe("SettingsScreen", () => {
             installationId: "130258770",
             installationAccount: "GoPullwise",
             installationTargetType: "Organization",
-            installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+            installationHtmlUrl:
+              "https://github.com/organizations/GoPullwise/settings/installations/130258770",
             repositorySelection: "selected",
             repositoryCount: 1,
           },
@@ -104,7 +107,8 @@ describe("SettingsScreen", () => {
             installationId: "134816087",
             installationAccount: "GoTagma",
             installationTargetType: "Organization",
-            installationHtmlUrl: "https://github.com/organizations/GoTagma/settings/installations/134816087",
+            installationHtmlUrl:
+              "https://github.com/organizations/GoTagma/settings/installations/134816087",
             repositorySelection: "all",
             repositoryCount: 4,
           },
@@ -121,7 +125,9 @@ describe("SettingsScreen", () => {
     expect(screen.getByText("GoPullwise")).toBeInTheDocument();
     expect(screen.getByText(/Organization .* selected .* 1 repository/i)).toBeInTheDocument();
     expect(screen.getByText("GoTagma")).toBeInTheDocument();
-    expect(screen.getByText(/Organization .* all repositories .* 4 repositories/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Organization .* all repositories .* 4 repositories/i)
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /manage gopullwise/i })).toHaveAttribute(
       "href",
       "https://github.com/organizations/GoPullwise/settings/installations/130258770"
@@ -167,7 +173,8 @@ describe("SettingsScreen", () => {
               installationId: "130258770",
               installationAccount: "GoPullwise",
               installationTargetType: "Organization",
-              installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+              installationHtmlUrl:
+                "https://github.com/organizations/GoPullwise/settings/installations/130258770",
               repositorySelection: "selected",
               repositoryCount: 1,
             },
@@ -184,7 +191,8 @@ describe("SettingsScreen", () => {
               installationId: "130258770",
               installationAccount: "GoPullwise",
               installationTargetType: "Organization",
-              installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/130258770",
+              installationHtmlUrl:
+                "https://github.com/organizations/GoPullwise/settings/installations/130258770",
               repositorySelection: "selected",
               repositoryCount: 2,
             },
@@ -193,10 +201,7 @@ describe("SettingsScreen", () => {
       });
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: false,
-      items: [
-        { fullName: "GoPullwise/pullwise-server" },
-        { fullName: "GoPullwise/pullwise-web" },
-      ],
+      items: [{ fullName: "GoPullwise/pullwise-server" }, { fullName: "GoPullwise/pullwise-web" }],
     });
     const user = userEvent.setup();
 
