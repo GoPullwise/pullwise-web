@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { LandingScreen, LoginScreen } from "./public.jsx";
+import { LandingScreen, LoginScreen, OAuthScreen } from "./public.jsx";
 
 describe("public navigation links", () => {
   it("exposes landing header actions as real screen links", async () => {
@@ -75,5 +75,28 @@ describe("public navigation links", () => {
     await user.click(terms);
 
     expect(go).toHaveBeenCalledWith("terms");
+  });
+
+  it("exposes repository authorization back navigation as a real link when signed out", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+
+    render(<OAuthScreen go={go} auth={{ authenticated: false }} />);
+
+    const back = screen.getByRole("link", { name: /^back$/i });
+    expect(back).toHaveAttribute("href", expect.stringContaining("screen=login"));
+
+    await user.click(back);
+
+    expect(go).toHaveBeenCalledWith("login");
+  });
+
+  it("exposes repository authorization back navigation as a real link when signed in", () => {
+    render(<OAuthScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(screen.getByRole("link", { name: /^back$/i })).toHaveAttribute(
+      "href",
+      expect.stringContaining("screen=repos")
+    );
   });
 });

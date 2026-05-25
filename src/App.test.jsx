@@ -179,7 +179,10 @@ describe("App", () => {
 
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: /back/i }));
+    const back = await screen.findByRole("link", { name: /back/i });
+    expect(back).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+
+    await user.click(back);
 
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="repos"]')).toBeInTheDocument();

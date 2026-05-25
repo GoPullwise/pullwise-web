@@ -544,9 +544,15 @@ export function OAuthScreen({ go, auth }) {
         )}
 
         <div className="oauth-actions">
-          <button className="btn lg" onClick={() => go(backTarget)} disabled={authing}>
-            <I.ArrowL size={14} /> {T("Back", "Back")}
-          </button>
+          {authing ? (
+            <button className="btn lg" type="button" disabled>
+              <I.ArrowL size={14} /> {T("Back", "Back")}
+            </button>
+          ) : (
+            <a className="btn lg" {...screenLinkProps(go, backTarget)}>
+              <I.ArrowL size={14} /> {T("Back", "Back")}
+            </a>
+          )}
           <button
             className={"btn lg primary" + (authing ? " is-loading" : "")}
             disabled={authing}
