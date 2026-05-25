@@ -324,6 +324,7 @@ describe("normalizeIssue", () => {
         { url: 123 },
         "https://example.com/raw",
       ],
+      tags: ["security", 42, true, "", null, { label: "bad" }],
     });
 
     expect(issue.steps).toEqual(["Review input validation", "42"]);
@@ -336,6 +337,7 @@ describe("normalizeIssue", () => {
       { label: "42", url: "https://example.com/a" },
       { label: "https://example.com/raw", url: "https://example.com/raw" },
     ]);
+    expect(issue.tags).toEqual(["security", "42", "true"]);
   });
 
   it("normalizes scan issue counts into finite non-negative integers", () => {

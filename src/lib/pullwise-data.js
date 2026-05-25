@@ -194,7 +194,7 @@ export function normalizeIssue(issue = {}) {
     badCode: normalizeCodeLines(issue.badCode),
     goodCode: normalizeCodeLines(issue.goodCode),
     references: normalizeReferences(issue.references),
-    tags: Array.isArray(issue.tags) ? issue.tags : [],
+    tags: normalizeTextList(issue.tags),
   };
 }
 
