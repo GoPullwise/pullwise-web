@@ -39,12 +39,12 @@ describe("auth redirects", () => {
     window.history.replaceState({}, "", "/?screen=login#ignored");
   });
 
-  it("returns from GitHub login to the landing page, not the dashboard", async () => {
+  it("returns from GitHub login to the dashboard so slow session checks show a neutral restore state", async () => {
     pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("stop"));
 
     await expect(startGitHubLogin()).rejects.toThrow("stop");
 
-    expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("landing");
+    expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("dashboard");
   });
 
   it("keeps repository authorization scoped to the repositories flow", async () => {

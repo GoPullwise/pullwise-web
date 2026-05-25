@@ -101,7 +101,7 @@ function needsGitHubIdentity(error) {
 
 export async function startGitHubLogin({ redirectTo } = {}) {
   const result = await pullwiseApi.auth.getGitHubAuthorizeUrl({
-    redirectTo: redirectTo || getScreenRedirectUrl("landing"),
+    redirectTo: redirectTo || getScreenRedirectUrl("dashboard"),
   });
 
   if (!result?.url) {
@@ -156,7 +156,10 @@ export async function connectGitHubRepositories({ redirectTo, manage = false, ad
   }
 }
 
-export async function manageGitHubInstallation(installationId, { githubIdentityId, redirectTo } = {}) {
+export async function manageGitHubInstallation(
+  installationId,
+  { githubIdentityId, redirectTo } = {}
+) {
   const cleanInstallationId = installationIdFrom(installationId);
   const cleanIdentityId = identityIdFrom(githubIdentityId);
   const result = await pullwiseApi.integrations.createGitHubInstallationManageSession(

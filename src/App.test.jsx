@@ -3,7 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
-import { connectGitHubRepositories, manageGitHubInstallation, startGitHubLogin } from "./lib/auth.js";
+import {
+  connectGitHubRepositories,
+  manageGitHubInstallation,
+  startGitHubLogin,
+} from "./lib/auth.js";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({
@@ -65,6 +69,26 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="landing"]')).toBeInTheDocument();
     });
+  });
+
+  it("does not show signed-out landing actions while the session check is pending", () => {
+    pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));
+
+    render(<App />);
+
+    expect(screen.getAllByRole("button", { name: /checking session/i }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /^sign in$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /sign in with github/i })).not.toBeInTheDocument();
+  });
+
+  it("shows session restoration instead of the login form while the login route is checking", () => {
+    window.history.replaceState({}, "", "/?screen=login");
+    pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));
+
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: /checking session/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /continue with github/i })).not.toBeInTheDocument();
   });
 
   it("sends authenticated users on the login screen back to the landing page", async () => {
@@ -399,8 +423,8 @@ describe("App", () => {
             "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 1,
-          },
-        ],
+        },
+      ],
     };
     const updatedPayload = {
       items: [
@@ -428,8 +452,8 @@ describe("App", () => {
             "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 2,
-          },
-        ],
+        },
+      ],
     };
     pullwiseApi.repositories.list.mockResolvedValue(initialPayload);
     manageGitHubInstallation.mockImplementationOnce(async () => {

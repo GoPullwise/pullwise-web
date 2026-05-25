@@ -66,6 +66,10 @@ function clearRepositoryAuthorizationRequest() {
   window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
+function shouldShowSessionCheck(screen) {
+  return screen === "login" || !PUBLIC_SCREENS.has(screen);
+}
+
 function PrototypeNav({ go, current }) {
   const screens = [
     { k: "landing", t: "Landing" },
@@ -189,7 +193,7 @@ export function App({ prototypeNav = false }) {
   }, [auth.status, auth.authenticated, screen]);
 
   let body;
-  if (auth.status === "checking" && !PUBLIC_SCREENS.has(screen)) {
+  if (auth.status === "checking" && shouldShowSessionCheck(screen)) {
     body = (
       <div className="auth-wrap fade-in">
         <div className="auth-card">
