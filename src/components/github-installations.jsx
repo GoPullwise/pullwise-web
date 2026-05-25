@@ -60,7 +60,14 @@ function installationHtmlUrl(installation) {
     scalarText(installation?.installationHtmlUrl) ||
     scalarText(installation?.htmlUrl) ||
     scalarText(installation?.html_url);
-  return /^https?:\/\//i.test(url) ? url : "";
+  const raw = url.trim();
+  if (!raw || /[\r\n]/.test(raw)) return "";
+  try {
+    const parsed = new URL(raw);
+    return ["http:", "https:"].includes(parsed.protocol) && parsed.hostname ? raw : "";
+  } catch {
+    return "";
+  }
 }
 
 function normalizedInstallations(installations) {

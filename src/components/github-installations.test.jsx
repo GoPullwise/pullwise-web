@@ -31,4 +31,22 @@ describe("GitHubInstallationsList", () => {
     expect(document.body).not.toHaveTextContent("[object Object]");
     expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
   });
+
+  it("rejects installation management links with control characters", () => {
+    render(
+      <GitHubInstallationsList
+        installations={[
+          {
+            installationId: "130258770",
+            installationAccount: "GoPullwise",
+            installationHtmlUrl:
+              "https://github.com/settings/installations/130258770\r\nX-Injected: bad",
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("GoPullwise")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
+  });
 });
