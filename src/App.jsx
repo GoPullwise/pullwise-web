@@ -3,6 +3,7 @@ import { pullwiseApi } from "./api/pullwise.js";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
+import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
 import { ApiDocsScreen, ApiKeysScreen, WorkspacesScreen } from "./screens/api.jsx";
 import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
@@ -125,7 +126,7 @@ function PrototypeNav({ go, current }) {
 
 export function App({ prototypeNav = false }) {
   const lang = useLang();
-  const [theme, setTheme] = useState(() => localStorage.getItem("pw-theme") || "light");
+  const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
   const [screen, setScreen] = useState(getInitialScreen);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
@@ -188,7 +189,7 @@ export function App({ prototypeNav = false }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.style.setProperty("--accent", ACCENT);
-    localStorage.setItem("pw-theme", theme);
+    localStorageSet("pw-theme", theme);
   }, [theme]);
 
   useEffect(() => {

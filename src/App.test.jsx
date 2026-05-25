@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
 import {
@@ -35,6 +35,17 @@ vi.mock("./lib/auth.js", () => ({
   signOut: vi.fn(),
 }));
 
+function blockedStorage() {
+  return {
+    getItem: vi.fn(() => {
+      throw new Error("storage blocked");
+    }),
+    setItem: vi.fn(() => {
+      throw new Error("storage blocked");
+    }),
+  };
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -46,7 +57,19 @@ describe("App", () => {
     pullwiseApi.issues.list.mockResolvedValue({ items: [] });
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("renders the normal entry", () => {
+    render(<App />);
+
+    expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
+  });
+
+  it("renders when browser storage is unavailable", () => {
+    vi.stubGlobal("localStorage", blockedStorage());
+
     render(<App />);
 
     expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
