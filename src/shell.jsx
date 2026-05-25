@@ -24,24 +24,37 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
   return (
     <header className="topbar">
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <div className="brand" onClick={() => go("landing")} style={{ cursor: "default" }}>
+        <button
+          type="button"
+          className="brand topbar-brand-button"
+          onClick={() => go("landing")}
+          aria-label="Go to Pullwise home"
+        >
           <div className="brand-mark">PR</div>
           <span>Pullwise</span>
-        </div>
+        </button>
         {breadcrumbs && (
-          <div className="crumbs">
+          <nav className="crumbs" aria-label="Breadcrumbs">
             {breadcrumbs.map((crumb, index) => (
               <React.Fragment key={`${crumb.label}-${index}`}>
                 {index > 0 && <span className="sep">/</span>}
-                <span
-                  className={index === breadcrumbs.length - 1 ? "now" : ""}
-                  onClick={() => crumb.go && go(crumb.go)}
-                >
-                  {crumb.label}
-                </span>
+                {crumb.go && index !== breadcrumbs.length - 1 ? (
+                  <button
+                    type="button"
+                    className="crumb-button"
+                    onClick={() => go(crumb.go)}
+                    aria-label={`Go to ${crumb.label}`}
+                  >
+                    {crumb.label}
+                  </button>
+                ) : (
+                  <span className="crumb-label now" aria-current="page">
+                    {crumb.label}
+                  </span>
+                )}
               </React.Fragment>
             ))}
-          </div>
+          </nav>
         )}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -52,7 +65,11 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
             ⌘K
           </span>
         </button>
-        <button className="btn ghost sm" onClick={() => go("settings")}>
+        <button
+          className="btn ghost sm"
+          onClick={() => go("settings")}
+          aria-label="Open account settings"
+        >
           <I.User size={14} />
         </button>
       </div>
