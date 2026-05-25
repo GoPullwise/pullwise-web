@@ -340,6 +340,73 @@ describe("normalizeIssue", () => {
     expect(issue.tags).toEqual(["security", "42", "true"]);
   });
 
+  it("normalizes issue pull request metadata for safe rendering", () => {
+    const issue = normalizeIssue({
+      id: "f_123",
+      title: "Validate redirect targets",
+      pullRequest: {
+        issueId: { value: "f_123" },
+        branch: "pullwise/fix-f_123-existing\r\nX-Injected: bad",
+        url: "javascript:alert(1)",
+        number: { value: 42 },
+        title: "Fix Validate redirect targets\r\nX-Injected: bad",
+      },
+      pullRequestPending: {
+        issueId: { value: "f_123" },
+        branch: "pullwise/fix-f_123-existing\r\nX-Injected: bad",
+        startedAt: { value: 1700000000 },
+        lastError: "GitHub failed\r\nX-Injected: bad",
+        failedAt: { value: 1700000001 },
+      },
+    });
+
+    expect(issue.pullRequest).toEqual({
+      issueId: "f_123",
+      branch: "",
+      url: null,
+      number: null,
+      title: "Fix Validate redirect targets",
+    });
+    expect(issue.pullRequestPending).toEqual({
+      issueId: "f_123",
+      branch: "",
+      startedAt: 0,
+      lastError: "GitHub failed",
+    });
+
+    const validIssue = normalizeIssue({
+      id: "f_456",
+      pullRequest: {
+        issueId: "ignored",
+        branch: "pullwise/fix-f_456-a1b2c3",
+        url: "https://github.com/acme/api/pull/42",
+        number: 42,
+        title: "Fix escape shell arguments",
+      },
+      pullRequestPending: {
+        branch: "pullwise/fix-f_456-a1b2c3",
+        startedAt: "1700000000",
+        lastError: "Still running",
+        failedAt: "1700000001",
+      },
+    });
+
+    expect(validIssue.pullRequest).toEqual({
+      issueId: "f_456",
+      branch: "pullwise/fix-f_456-a1b2c3",
+      url: "https://github.com/acme/api/pull/42",
+      number: 42,
+      title: "Fix escape shell arguments",
+    });
+    expect(validIssue.pullRequestPending).toEqual({
+      issueId: "f_456",
+      branch: "pullwise/fix-f_456-a1b2c3",
+      startedAt: 1700000000,
+      lastError: "Still running",
+      failedAt: 1700000001,
+    });
+  });
+
   it("normalizes scan issue counts into finite non-negative integers", () => {
     expect(
       normalizeScan({

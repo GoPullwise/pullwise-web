@@ -112,6 +112,10 @@ function normalizeTextList(values) {
   return values.map(scalarText).filter(Boolean);
 }
 
+function objectRecord(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
 function normalizeCodeLines(lines) {
   if (!Array.isArray(lines)) return [];
   return lines
@@ -151,6 +155,94 @@ function normalizeReferences(references) {
     .filter(Boolean);
 }
 
+function cleanPullRequestText(value) {
+  if (typeof value !== "string") return "";
+  if (value.includes("\r") || value.includes("\n") || value.includes("\x00")) return "";
+  return value.trim();
+}
+
+function cleanPullRequestFirstLine(value, fallback = "") {
+  if (typeof value !== "string") return fallback;
+  const text = value
+    .replaceAll("\x00", "")
+    .split(/\r?\n|\r/)[0]
+    .trim();
+  return text || fallback;
+}
+
+function normalizePullRequestBranch(value) {
+  const branch = typeof value === "string" ? value.trim() : "";
+  if (!branch.startsWith("pullwise/fix-")) return "";
+  if (
+    branch.endsWith("/") ||
+    branch.endsWith(".") ||
+    branch.includes("..") ||
+    branch.includes("//") ||
+    branch.includes(" ")
+  ) {
+    return "";
+  }
+  if (!/^[A-Za-z0-9._/-]+$/.test(branch)) return "";
+  const parts = branch.split("/");
+  if (parts.some((part) => !part || part.startsWith(".") || part.toLowerCase().endsWith(".lock"))) {
+    return "";
+  }
+  return branch;
+}
+
+function normalizePullRequestUrl(value) {
+  const url = cleanPullRequestText(value);
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return ["http:", "https:"].includes(parsed.protocol) && parsed.hostname ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePullRequestNumber(value) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) return null;
+  return value;
+}
+
+function normalizeTimestamp(value) {
+  if (typeof value === "boolean") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? Math.trunc(value) : null;
+  if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
+  return null;
+}
+
+function fallbackPullRequestTitle(issueId, title) {
+  return `Fix ${cleanPullRequestText(title) || cleanPullRequestText(issueId) || "issue"}`;
+}
+
+function normalizePullRequest(value, { issueId, title } = {}) {
+  if (!objectRecord(value)) return undefined;
+  return {
+    issueId,
+    branch: normalizePullRequestBranch(value.branch),
+    url: normalizePullRequestUrl(value.url),
+    number: normalizePullRequestNumber(value.number),
+    title: cleanPullRequestText(value.title) || fallbackPullRequestTitle(issueId, title),
+  };
+}
+
+function normalizePendingPullRequest(value, { issueId } = {}) {
+  if (!objectRecord(value)) return undefined;
+  const pending = {
+    issueId,
+    branch: normalizePullRequestBranch(value.branch),
+    startedAt: normalizeTimestamp(value.startedAt) ?? 0,
+  };
+  if (Object.prototype.hasOwnProperty.call(value, "lastError")) {
+    pending.lastError = cleanPullRequestFirstLine(value.lastError, "Pull request creation failed.");
+  }
+  const failedAt = normalizeTimestamp(value.failedAt);
+  if (failedAt !== null) pending.failedAt = failedAt;
+  return pending;
+}
+
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
   const fullName = textValue(repo.fullName, repo.full_name, repo.name);
@@ -170,14 +262,16 @@ export function normalizeRepo(repo = {}) {
 
 export function normalizeIssue(issue = {}) {
   issue = issue || {};
+  const id = textValue(issue.id);
+  const title = textValue(issue.title);
   const autoFix = normalizeBoolean(issue.autoFix ?? issue.autoFixable);
   const autoFixable = normalizeBoolean(issue.autoFixable ?? issue.autoFix);
-  return {
+  const normalized = {
     ...issue,
-    id: textValue(issue.id),
+    id,
     scanId: textValue(issue.scanId, issue.scan_id),
     repo: textValue(issue.repo, issue.repository),
-    title: textValue(issue.title),
+    title,
     summary: textValue(issue.summary, issue.description),
     impact: textValue(issue.impact),
     severity: normalizeSeverity(issue.severity),
@@ -196,6 +290,13 @@ export function normalizeIssue(issue = {}) {
     references: normalizeReferences(issue.references),
     tags: normalizeTextList(issue.tags),
   };
+  const pullRequest = normalizePullRequest(issue.pullRequest, { issueId: id, title });
+  if (pullRequest) normalized.pullRequest = pullRequest;
+  else delete normalized.pullRequest;
+  const pendingPullRequest = normalizePendingPullRequest(issue.pullRequestPending, { issueId: id });
+  if (pendingPullRequest) normalized.pullRequestPending = pendingPullRequest;
+  else delete normalized.pullRequestPending;
+  return normalized;
 }
 
 export function normalizeScan(scan = {}) {
