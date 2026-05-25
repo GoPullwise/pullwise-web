@@ -182,7 +182,7 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Workspace usage")).toBeInTheDocument();
-    expect(screen.getByText(/acme/)).toHaveTextContent("7 / 100 reviews used");
+    expect(screen.getByText(/acme/)).toHaveTextContent("acme - 7 / 100 reviews used");
     expect(screen.getByText("Current workspace plan")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("Current account plan");
   });

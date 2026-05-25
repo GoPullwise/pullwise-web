@@ -298,7 +298,7 @@ export function BillingScreen({
                   <I.Activity size={18} />
                   <div>
                     <b>Workspace usage</b>
-                    <div className="muted">{workspaceName} ? {usageText(usage)}</div>
+                    <div className="muted">{workspaceName} - {usageText(usage)}</div>
                   </div>
                 </div>
                 <div className="billing-summary-meter">
