@@ -4,6 +4,21 @@ import { T, useLang } from "./i18n.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 export function Topbar({ go, breadcrumbs, setIssue = null }) {
   useLang();
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -24,29 +39,27 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
   return (
     <header className="topbar">
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <button
-          type="button"
+        <a
           className="brand topbar-brand-button"
-          onClick={() => go("landing")}
           aria-label="Go to Pullwise home"
+          {...screenLinkProps(go, "landing")}
         >
           <div className="brand-mark">PR</div>
           <span>Pullwise</span>
-        </button>
+        </a>
         {breadcrumbs && (
           <nav className="crumbs" aria-label="Breadcrumbs">
             {breadcrumbs.map((crumb, index) => (
               <React.Fragment key={`${crumb.label}-${index}`}>
                 {index > 0 && <span className="sep">/</span>}
                 {crumb.go && index !== breadcrumbs.length - 1 ? (
-                  <button
-                    type="button"
+                  <a
                     className="crumb-button"
-                    onClick={() => go(crumb.go)}
                     aria-label={`Go to ${crumb.label}`}
+                    {...screenLinkProps(go, crumb.go)}
                   >
                     {crumb.label}
-                  </button>
+                  </a>
                 ) : (
                   <span className="crumb-label now" aria-current="page">
                     {crumb.label}
@@ -65,13 +78,13 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
             ⌘K
           </span>
         </button>
-        <button
+        <a
           className="btn ghost sm"
-          onClick={() => go("settings")}
           aria-label="Open account settings"
+          {...screenLinkProps(go, "settings")}
         >
           <I.User size={14} />
-        </button>
+        </a>
       </div>
 
       {searchOpen && <SearchModal close={() => setSearchOpen(false)} go={go} setIssue={setIssue} />}
@@ -299,15 +312,15 @@ export function Sidebar({ section, go }) {
           {T("Navigation", "导航")}
         </div>
         {items.map((item) => (
-          <button
+          <a
             key={item.k}
             className={"side-i" + (section === item.k ? " active" : "")}
-            onClick={() => go(item.k)}
+            {...screenLinkProps(go, item.k)}
           >
             <div className="ic">{item.icon}</div>
             <span>{item.label}</span>
             {item.badge != null && <span className="badge">{item.badge}</span>}
-          </button>
+          </a>
         ))}
       </div>
 
@@ -316,7 +329,7 @@ export function Sidebar({ section, go }) {
           {T("Authorized repos", "已授权仓库")}
         </div>
         {repos.slice(0, 3).map((repo) => (
-          <button key={repo.id} className="side-i side-repo-i" onClick={() => go("repos")}>
+          <a key={repo.id} className="side-i side-repo-i" {...screenLinkProps(go, "repos")}>
             <span
               style={{
                 width: 6,
@@ -328,7 +341,7 @@ export function Sidebar({ section, go }) {
               }}
             ></span>
             <span style={{ fontSize: 12.5 }}>{repo.name}</span>
-          </button>
+          </a>
         ))}
         {repos.length === 0 && (
           <button
