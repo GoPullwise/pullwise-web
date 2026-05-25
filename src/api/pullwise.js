@@ -10,6 +10,10 @@ function withSearchParams(path, params = {}) {
   return search ? `${path}?${search}` : path;
 }
 
+function pathSegment(value) {
+  return encodeURIComponent(String(value ?? ""));
+}
+
 export const pullwiseApi = {
   auth: {
     getSession: () => request("/auth/session"),
@@ -25,25 +29,28 @@ export const pullwiseApi = {
 
   scans: {
     create: (payload) => request("/scans", { method: "POST", body: payload }),
-    get: (scanId) => request(`/scans/${scanId}`),
+    get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
     list: (params = {}) => request(withSearchParams("/scans", params)),
-    cancel: (scanId) => request(`/scans/${scanId}/cancel`, { method: "POST" }),
+    cancel: (scanId) => request(`/scans/${pathSegment(scanId)}/cancel`, { method: "POST" }),
   },
 
   issues: {
     list: (params = {}) => request(withSearchParams("/issues", params)),
-    get: (issueId) => request(`/issues/${issueId}`),
+    get: (issueId) => request(`/issues/${pathSegment(issueId)}`),
     updateStatus: (issueId, payload) =>
-      request(`/issues/${issueId}/status`, { method: "PATCH", body: payload }),
-    previewFix: (issueId) => request(`/issues/${issueId}/fixes/preview`, { method: "POST" }),
-    createPullRequest: (issueId) => request(`/issues/${issueId}/pull-requests`, { method: "POST" }),
+      request(`/issues/${pathSegment(issueId)}/status`, { method: "PATCH", body: payload }),
+    previewFix: (issueId) =>
+      request(`/issues/${pathSegment(issueId)}/fixes/preview`, { method: "POST" }),
+    createPullRequest: (issueId) =>
+      request(`/issues/${pathSegment(issueId)}/pull-requests`, { method: "POST" }),
   },
 
   integrations: {
     list: () => request("/integrations"),
     getGitHubAuthorizeUrl: (params = {}) =>
       request(withSearchParams("/integrations/github/authorize", params)),
-    disconnect: (provider) => request(`/integrations/${provider}`, { method: "DELETE" }),
+    disconnect: (provider) =>
+      request(`/integrations/${pathSegment(provider)}`, { method: "DELETE" }),
   },
 
   settings: {
