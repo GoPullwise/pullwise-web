@@ -182,14 +182,15 @@ function normalizeCodeLines(lines) {
   return lines
     .map((line) => {
       if (["string", "number", "boolean"].includes(typeof line)) {
-        return { ln: "", code: String(line), t: "" };
+        const code = firstLineText(line);
+        return code ? { ln: "", code, t: "" } : null;
       }
       if (!line || typeof line !== "object" || Array.isArray(line)) return null;
-      const code = scalarText(line.code);
+      const code = firstLineText(line.code);
       if (!code) return null;
       const type = ["add", "del"].includes(line.t) ? line.t : "";
       return {
-        ln: scalarText(line.ln),
+        ln: firstLineText(line.ln),
         code,
         t: type,
       };

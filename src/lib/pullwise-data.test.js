@@ -418,7 +418,7 @@ describe("normalizeIssue", () => {
       ],
       badCode: [
         null,
-        { ln: 7, code: 123, t: "add" },
+        { ln: "7\r\nX-Injected: bad\x00", code: "return ok\r\nX-Injected: bad\x00", t: "add" },
         { ln: "x", code: { nested: true }, t: "weird" },
       ],
       goodCode: ["return ok", { ln: 9, code: "return safe", t: "del" }],
@@ -435,7 +435,7 @@ describe("normalizeIssue", () => {
     });
 
     expect(issue.steps).toEqual(["Review input validation", "Block unsafe redirects", "42"]);
-    expect(issue.badCode).toEqual([{ ln: "7", code: "123", t: "add" }]);
+    expect(issue.badCode).toEqual([{ ln: "7", code: "return ok", t: "add" }]);
     expect(issue.goodCode).toEqual([
       { ln: "", code: "return ok", t: "" },
       { ln: "9", code: "return safe", t: "del" },
