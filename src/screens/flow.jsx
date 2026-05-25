@@ -223,6 +223,12 @@ export function ReposScreen({
     }
   };
 
+  const activateConnectRepositories = (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    connectRepositories();
+  };
+
   return (
     <div className="app fade-in">
       <Topbar
@@ -295,6 +301,7 @@ export function ReposScreen({
                 role="button"
                 tabIndex={0}
                 onClick={() => connectRepositories()}
+                onKeyDown={activateConnectRepositories}
               >
                 <div className="repo-icon">
                   {connecting ? (
