@@ -364,7 +364,9 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const hasConfidence = Number.isFinite(confidence);
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
   const activePullRequest =
-    pullRequest?.issueId === issue.id ? pullRequest.value : issue.pullRequest || null;
+    pullRequest?.issueId === issue.id
+      ? pullRequest.value
+      : issuePullRequestState(issue)?.value || null;
   const beginFixRequest = () => {
     const requestId = fixRequestRef.current + 1;
     fixRequestRef.current = requestId;

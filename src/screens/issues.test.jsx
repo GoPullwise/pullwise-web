@@ -240,6 +240,62 @@ describe("IssueDetailScreen review detail", () => {
     expect(document.body).not.toContainHTML("javascript:alert");
   });
 
+  it("does not expose unsafe pull request metadata during a synchronous issue rerender", () => {
+    const issueA = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      status: "open",
+      autoFix: true,
+      pullRequest: {
+        url: "https://github.com/acme/api/pull/42",
+        number: 42,
+        branch: "pullwise/fix-f_123-a1b2c3",
+        title: "Fix Validate redirect targets",
+      },
+    };
+    const issueB = {
+      id: "f_456",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Escape shell arguments",
+      status: "open",
+      autoFix: true,
+      pullRequest: {
+        url: "javascript:alert(1)",
+        number: 43,
+        branch: "pullwise/fix-f_456-bad\r\nX-Injected: bad",
+        title: "Fix Escape shell arguments\r\nX-Injected: bad",
+      },
+    };
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+
+    try {
+      flushSync(() => {
+        root.render(<IssueDetailScreen go={vi.fn()} issue={issueA} />);
+      });
+      expect(screen.getByRole("link", { name: /pull request #42/i })).toHaveAttribute(
+        "href",
+        "https://github.com/acme/api/pull/42"
+      );
+
+      flushSync(() => {
+        root.render(<IssueDetailScreen go={vi.fn()} issue={issueB} />);
+      });
+
+      expect(screen.queryByRole("link", { name: /pull request/i })).not.toBeInTheDocument();
+      expect(document.body).not.toContainHTML("javascript:alert");
+    } finally {
+      root.unmount();
+      host.remove();
+    }
+  });
+
   it("ignores preview responses from a previous issue", async () => {
     const user = userEvent.setup();
     const issueA = {
