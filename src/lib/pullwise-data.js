@@ -499,7 +499,7 @@ export function scanQueueSummary(scan) {
   if (perUserLimit !== null) tags.push(`Per user ${perUserLimit}`);
 
   return {
-    message: scalarText(queue.message),
+    message: firstLineText(queue.message),
     tags,
   };
 }

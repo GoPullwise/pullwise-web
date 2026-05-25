@@ -642,7 +642,7 @@ describe("normalizeIssue", () => {
     expect(
       scanQueueSummary({
         queue: {
-          message: 123,
+          message: "Waiting for capacity\r\nX-Injected: bad\x00",
           position: "2.8",
           ahead: "3",
           limits: {
@@ -652,7 +652,7 @@ describe("normalizeIssue", () => {
         },
       })
     ).toEqual({
-      message: "123",
+      message: "Waiting for capacity",
       tags: ["Position 2", "3 scans ahead", "Global 4"],
     });
 
