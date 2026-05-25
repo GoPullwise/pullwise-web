@@ -126,6 +126,15 @@ export function IssuesScreen({ go, setIssue }) {
     await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
     await reload();
   };
+  const openIssue = (issue) => {
+    setIssue(issue);
+    go("issue");
+  };
+  const activateIssue = (event, issue) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openIssue(issue);
+  };
 
   return (
     <div className="app fade-in">
@@ -231,10 +240,11 @@ export function IssuesScreen({ go, setIssue }) {
                   <div></div>
                   <div
                     className="issues-title-c"
-                    onClick={() => {
-                      setIssue(issue);
-                      go("issue");
-                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open issue ${issue.id}`}
+                    onClick={() => openIssue(issue)}
+                    onKeyDown={(event) => activateIssue(event, issue)}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
                       <span className={"sev sev-" + issue.severity}>
@@ -287,8 +297,7 @@ export function IssuesScreen({ go, setIssue }) {
                     <button
                       className="btn sm"
                       onClick={() => {
-                        setIssue(issue);
-                        go("issue");
+                        openIssue(issue);
                       }}
                     >
                       <I.ArrowR size={11} />

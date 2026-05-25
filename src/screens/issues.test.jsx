@@ -63,6 +63,43 @@ describe("IssuesScreen list resilience", () => {
     expect(document.body).not.toHaveTextContent("NaN%");
     expect(screen.getByText("--")).toBeInTheDocument();
   });
+
+  it("opens an issue from the list with keyboard activation", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+    const setIssue = vi.fn();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      status: "open",
+    };
+    useIssues.mockReturnValue({
+      items: [issue],
+      loading: false,
+      error: "",
+      reload: vi.fn(),
+    });
+
+    render(<IssuesScreen go={go} setIssue={setIssue} />);
+
+    const openIssue = screen.getByRole("button", { name: /open issue f_123/i });
+    openIssue.focus();
+    await user.keyboard("{Enter}");
+
+    expect(setIssue).toHaveBeenCalledWith(issue);
+    expect(go).toHaveBeenCalledWith("issue");
+
+    setIssue.mockClear();
+    go.mockClear();
+    await user.keyboard(" ");
+
+    expect(setIssue).toHaveBeenCalledWith(issue);
+    expect(go).toHaveBeenCalledWith("issue");
+  });
 });
 
 describe("HistoryScreen queue state", () => {
