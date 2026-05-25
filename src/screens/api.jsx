@@ -144,16 +144,16 @@ export function ApiDocsScreen({ go, auth }) {
               </a>
             ))}
           </div>
-          <button className="btn" type="button" onClick={() => go("apiKeys")}>
+          <a className="btn" {...screenLinkProps(go, "apiKeys")}>
             <I.Code size={14} /> API Keys
-          </button>
+          </a>
         </aside>
 
         <main className="docs-main">
           <div className="docs-crumbs">
-            <button className="auth-link" onClick={() => go("landing")}>
+            <a className="auth-link" {...screenLinkProps(go, "landing")}>
               Pullwise
-            </button>
+            </a>
             <span className="sep">/</span>
             <span className="now">API</span>
           </div>
@@ -228,12 +228,12 @@ curl https://api.pullwise.dev/api/v1/repositories/repo_123/scans/current \\
           <div className="docs-foot">
             <span className="muted">API routes are versioned under /api/v1.</span>
             <div className="docs-foot-actions">
-              <button className="btn" onClick={() => go("pricing")}>
+              <a className="btn" {...screenLinkProps(go, "pricing")}>
                 Pricing
-              </button>
-              <button className="btn primary" onClick={() => go("apiKeys")}>
+              </a>
+              <a className="btn primary" {...screenLinkProps(go, "apiKeys")}>
                 API Keys
-              </button>
+              </a>
             </div>
           </div>
         </main>
@@ -334,9 +334,9 @@ export function ApiKeysScreen({ go, setIssue = null }) {
               </div>
             </div>
             <div className="actions">
-              <button className="btn" onClick={() => go("api")}>
+              <a className="btn" {...screenLinkProps(go, "api")}>
                 <I.FileCode size={14} /> API docs
-              </button>
+              </a>
             </div>
           </div>
 
@@ -370,10 +370,10 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                 <I.Code size={14} />
                 <span>Keys</span>
               </button>
-              <button className="set-side-i" onClick={() => go("api")}>
+              <a className="set-side-i" {...screenLinkProps(go, "api")}>
                 <I.FileCode size={14} />
                 <span>Docs</span>
-              </button>
+              </a>
             </aside>
 
             <div className="set-body">
@@ -548,10 +548,10 @@ export function WorkspacesScreen({ go, setIssue = null }) {
                 <I.Layers size={14} />
                 <span>Workspaces</span>
               </button>
-              <button className="set-side-i" onClick={() => go("repos")}>
+              <a className="set-side-i" {...screenLinkProps(go, "repos")}>
                 <I.Folder size={14} />
                 <span>Repositories</span>
-              </button>
+              </a>
             </aside>
 
             <div className="set-body">
@@ -597,9 +597,9 @@ export function WorkspacesScreen({ go, setIssue = null }) {
                         )}
                       </div>
                     </div>
-                    <button className="btn sm" onClick={() => go("repos")}>
+                    <a className="btn sm" {...screenLinkProps(go, "repos")}>
                       <I.Folder size={13} /> Repos
-                    </button>
+                    </a>
                   </div>
                 ))}
                 {!loading && sortedWorkspaces.length === 0 && (

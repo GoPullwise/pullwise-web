@@ -22,6 +22,21 @@ function issueConfidence(issue) {
   return Math.max(0, Math.min(1, confidence));
 }
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 function sortIssues(items, key) {
   const sorted = items.slice();
   if (key === "severity") {
@@ -348,9 +363,9 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
             <div className="card section muted">
               {T("Select an issue from the list first.", "请先从列表选择一个问题。")}
             </div>
-            <button className="btn" onClick={() => go("issues")} style={{ marginTop: 12 }}>
+            <a className="btn" style={{ marginTop: 12 }} {...screenLinkProps(go, "issues")}>
               <I.ArrowL size={13} /> {T("Back to issues", "返回问题列表")}
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -432,13 +447,13 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
       <div className="with-side">
         <Sidebar section="issues" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
-          <button
+          <a
             className="btn ghost sm"
-            onClick={() => go("issues")}
             style={{ marginBottom: 12 }}
+            {...screenLinkProps(go, "issues")}
           >
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
-          </button>
+          </a>
           <div className="issue-detail-h">
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
@@ -657,9 +672,9 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                   </button>
                 ))}
               </div>
-              <button className="btn primary" onClick={() => go("repos")}>
+              <a className="btn primary" {...screenLinkProps(go, "repos")}>
                 <I.Play size={11} /> {T("New scan", "新扫描")}
-              </button>
+              </a>
             </div>
           </div>
 

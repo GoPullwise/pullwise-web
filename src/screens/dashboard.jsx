@@ -47,6 +47,21 @@ function scanIssueTotal(scan) {
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 function IssueRow({ issue, onClick }) {
   const activateIssue = (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -141,9 +156,9 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
               </div>
             </div>
             <div className="actions">
-              <button className="btn" onClick={() => go("repos")}>
+              <a className="btn" {...screenLinkProps(go, "repos")}>
                 <I.Refresh size={14} /> {T("New scan", "新扫描")}
-              </button>
+              </a>
             </div>
           </div>
 
@@ -190,9 +205,9 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
             <div className="card dash-summary">
               <div className="dash-summary-head">
                 <h3>{T("Issue distribution", "问题分布")}</h3>
-                <button className="btn sm" onClick={() => go("issues")}>
+                <a className="btn sm" {...screenLinkProps(go, "issues")}>
                   {T("All issues", "所有问题")} <I.ArrowR size={12} />
-                </button>
+                </a>
               </div>
               <div className="dash-donut-legend" style={{ marginTop: 12 }}>
                 {[
@@ -213,17 +228,16 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
             <div className="card dash-cats">
               <div className="dash-summary-head">
                 <h3>{T("Repository access", "Repository access")}</h3>
-                <button className="btn sm" onClick={() => go("repos")}>
+                <a className="btn sm" {...screenLinkProps(go, "repos")}>
                   {T("Manage", "Manage")} <I.ArrowR size={12} />
-                </button>
+                </a>
               </div>
               {repositories.slice(0, 7).map((repo) => (
-                <button
+                <a
                   key={repo.id}
-                  type="button"
                   className="dash-cat-row"
-                  onClick={() => go("repos")}
                   aria-label={`Open repository ${repo.fullName || repo.name}`}
+                  {...screenLinkProps(go, "repos")}
                 >
                   <span
                     style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}
@@ -236,7 +250,7 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
                   <b style={{ minWidth: 18, textAlign: "right" }}>
                     {repo.private ? <I.Lock size={12} /> : <I.ChevR size={12} />}
                   </b>
-                </button>
+                </a>
               ))}
               {!reposLoading && repositories.length === 0 && (
                 <div className="muted" style={{ padding: "16px 0" }}>
@@ -255,9 +269,9 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
                   : T(`${openIssues.length} open issues`, `${openIssues.length} 个未解决问题`)}
               </div>
             </div>
-            <button className="btn sm" onClick={() => go("issues")}>
+            <a className="btn sm" {...screenLinkProps(go, "issues")}>
               {T("All issues", "所有问题")} <I.ArrowR size={12} />
-            </button>
+            </a>
           </div>
 
           {issuesError && <div className="card section muted">{issuesError}</div>}

@@ -103,6 +103,25 @@ describe("IssuesScreen list resilience", () => {
 });
 
 describe("HistoryScreen queue state", () => {
+  it("exposes the history new scan action as a real screen link", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+    useScans.mockReturnValue({
+      items: [],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={go} />);
+
+    const newScan = screen.getByRole("link", { name: /new scan/i });
+    expect(newScan).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+
+    await user.click(newScan);
+
+    expect(go).toHaveBeenCalledWith("repos");
+  });
+
   it("shows queued scan position and scans ahead in history", () => {
     useScans.mockReturnValue({
       items: [
@@ -161,6 +180,35 @@ describe("HistoryScreen queue state", () => {
 });
 
 describe("IssueDetailScreen review detail", () => {
+  it("exposes issue detail recovery navigation as real screen links", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      status: "open",
+    };
+    const { rerender } = render(<IssueDetailScreen go={go} issue={null} />);
+
+    const backToIssues = screen.getByRole("link", { name: /back to issues/i });
+    expect(backToIssues).toHaveAttribute("href", expect.stringContaining("screen=issues"));
+
+    await user.click(backToIssues);
+    expect(go).toHaveBeenCalledWith("issues");
+
+    go.mockClear();
+    rerender(<IssueDetailScreen go={go} issue={issue} />);
+
+    const backToList = screen.getByRole("link", { name: /back to list/i });
+    expect(backToList).toHaveAttribute("href", expect.stringContaining("screen=issues"));
+
+    await user.click(backToList);
+    expect(go).toHaveBeenCalledWith("issues");
+  });
+
   it("renders impact, remediation, evidence, references, and fix actions", () => {
     const issue = {
       id: "f_123",

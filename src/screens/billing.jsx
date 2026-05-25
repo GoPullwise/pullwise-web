@@ -246,9 +246,9 @@ export function BillingScreen({
             </div>
             <div className="actions">
               <span className="tag">{provider}</span>
-              <button className="btn" type="button" onClick={() => go("pricing")}>
+              <a className="btn" {...screenLinkProps(go, "pricing")}>
                 <I.Trend size={14} /> View pricing
-              </button>
+              </a>
             </div>
           </div>
 
@@ -306,9 +306,9 @@ export function BillingScreen({
                 </div>
                 <div className="billing-actions">
                   {!activePro && (
-                    <button className="btn primary" type="button" onClick={() => go("pricing")}>
+                    <a className="btn primary" {...screenLinkProps(go, "pricing")}>
                       <I.Trend size={14} /> View pricing
-                    </button>
+                    </a>
                   )}
                   {activePro && proInterval === "month" && (
                     <button

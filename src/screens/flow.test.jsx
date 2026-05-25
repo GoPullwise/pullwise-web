@@ -491,7 +491,10 @@ describe("ScanningScreen queue state", () => {
       "Review provider is disabled. Configure a provider before scanning."
     );
 
-    await user.click(screen.getByRole("button", { name: /open settings/i }));
+    const action = screen.getByRole("link", { name: /open settings/i });
+    expect(action).toHaveAttribute("href", expect.stringContaining("screen=settings"));
+
+    await user.click(action);
 
     expect(screen.getByRole("alert")).toHaveTextContent(/review provider is disabled/i);
     expect(go).toHaveBeenCalledWith("settings");
@@ -501,7 +504,10 @@ describe("ScanningScreen queue state", () => {
     const user = userEvent.setup();
     const { go } = renderScanError("Sync GitHub repositories before starting a scan.");
 
-    await user.click(screen.getByRole("button", { name: /sync repositories/i }));
+    const action = screen.getByRole("link", { name: /sync repositories/i });
+    expect(action).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+
+    await user.click(action);
 
     expect(screen.getByRole("alert")).toHaveTextContent(/sync github repositories/i);
     expect(go).toHaveBeenCalledWith("repos");
@@ -511,7 +517,10 @@ describe("ScanningScreen queue state", () => {
     const user = userEvent.setup();
     const { go } = renderScanError("Monthly review limit exceeded for this workspace.");
 
-    await user.click(screen.getByRole("button", { name: /open billing/i }));
+    const action = screen.getByRole("link", { name: /open billing/i });
+    expect(action).toHaveAttribute("href", expect.stringContaining("screen=billing"));
+
+    await user.click(action);
 
     expect(screen.getByRole("alert")).toHaveTextContent(/monthly review limit/i);
     expect(go).toHaveBeenCalledWith("billing");
@@ -521,7 +530,10 @@ describe("ScanningScreen queue state", () => {
     const user = userEvent.setup();
     const { go } = renderScanError("Repository quota exhausted.", "QUOTA_EXCEEDED_REPOSITORY");
 
-    await user.click(screen.getByRole("button", { name: /open billing/i }));
+    const action = screen.getByRole("link", { name: /open billing/i });
+    expect(action).toHaveAttribute("href", expect.stringContaining("screen=billing"));
+
+    await user.click(action);
 
     expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
     expect(go).toHaveBeenCalledWith("billing");
@@ -531,7 +543,10 @@ describe("ScanningScreen queue state", () => {
     const user = userEvent.setup();
     const { go } = renderScanError("Codex CLI is missing or not authenticated.");
 
-    await user.click(screen.getByRole("button", { name: /open settings/i }));
+    const action = screen.getByRole("link", { name: /open settings/i });
+    expect(action).toHaveAttribute("href", expect.stringContaining("screen=settings"));
+
+    await user.click(action);
 
     expect(screen.getByRole("alert")).toHaveTextContent(/cli is missing/i);
     expect(go).toHaveBeenCalledWith("settings");

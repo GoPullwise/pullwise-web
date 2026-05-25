@@ -108,7 +108,11 @@ describe("BillingScreen", () => {
 
     render(<BillingScreen go={go} navigate={vi.fn()} />);
 
-    const pricingButtons = await screen.findAllByRole("button", { name: /view pricing/i });
+    const pricingButtons = await screen.findAllByRole("link", { name: /view pricing/i });
+    pricingButtons.forEach((link) => {
+      expect(link).toHaveAttribute("href", expect.stringContaining("screen=pricing"));
+    });
+
     await user.click(pricingButtons[0]);
 
     expect(go).toHaveBeenCalledWith("pricing");

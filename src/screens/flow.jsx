@@ -35,6 +35,21 @@ function workspaceLabel(repo) {
   return repo?.workspaceName || repo?.workspace?.name || repo?.workspaceId || "";
 }
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 function repoOwner(repo) {
   const fullName = repo.fullName || repo.name || "";
   return fullName.includes("/") ? fullName.split("/")[0] : "";
@@ -707,9 +722,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 <I.X size={13} />
                 <span style={{ flex: 1 }}>{error}</span>
                 {errorAction && (
-                  <button className="btn sm" onClick={() => go(errorAction.screen)}>
+                  <a className="btn sm" {...screenLinkProps(go, errorAction.screen)}>
                     {errorAction.label} <I.ArrowR size={11} />
-                  </button>
+                  </a>
                 )}
               </div>
             )}

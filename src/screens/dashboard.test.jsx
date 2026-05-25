@@ -12,7 +12,8 @@ vi.mock("../lib/pullwise-data.js", () => ({
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 
 describe("DashboardScreen issue list", () => {
-  it("labels the dashboard as a workspace overview instead of a specific repo", async () => {
+  it("labels the dashboard as a workspace overview with real page-jump links", async () => {
+    const user = userEvent.setup();
     const go = vi.fn();
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({
@@ -31,9 +32,27 @@ describe("DashboardScreen issue list", () => {
     expect(screen.getByRole("heading", { name: /overview/i })).toBeInTheDocument();
     expect(screen.getByText(/workspace-wide view for acme/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /repository access/i })).toBeInTheDocument();
-    await userEvent.setup().click(screen.getByRole("button", { name: /manage/i }));
-    expect(go).toHaveBeenCalledWith("repos");
     expect(screen.getByLabelText(/breadcrumbs/i)).not.toHaveTextContent("acme/api");
+
+    const newScan = screen.getByRole("link", { name: /new scan/i });
+    const manage = screen.getByRole("link", { name: /manage/i });
+    const repository = screen.getByRole("link", { name: /open repository acme\/api/i });
+    const allIssues = screen.getAllByRole("link", { name: /all issues/i });
+
+    expect(newScan).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(manage).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(repository).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(allIssues).toHaveLength(2);
+    allIssues.forEach((link) => {
+      expect(link).toHaveAttribute("href", expect.stringContaining("screen=issues"));
+    });
+
+    await user.click(newScan);
+    expect(go).toHaveBeenCalledWith("repos");
+
+    go.mockClear();
+    await user.click(allIssues[0]);
+    expect(go).toHaveBeenCalledWith("issues");
   });
 
   it("opens a dashboard issue row with keyboard activation", async () => {

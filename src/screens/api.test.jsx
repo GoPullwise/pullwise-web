@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -43,6 +43,50 @@ describe("API screens", () => {
     expect(screen.getByText("GET /api/v1/repositories")).toBeInTheDocument();
     expect(screen.getByText("POST /api/v1/repositories/{repoId}/scans")).toBeInTheDocument();
     expect(screen.getByText("GET /api/v1/repositories/{repoId}/quota")).toBeInTheDocument();
+  });
+
+  it("exposes API docs navigation destinations as real screen links", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+
+    render(<ApiDocsScreen go={go} auth={{ authenticated: true }} />);
+
+    const docsSide = within(document.querySelector(".docs-side"));
+    const docsFoot = within(document.querySelector(".docs-foot-actions"));
+    const apiKeysSide = docsSide.getByRole("link", { name: /api keys/i });
+    const pricing = docsFoot.getByRole("link", { name: /pricing/i });
+    const apiKeysFoot = docsFoot.getByRole("link", { name: /api keys/i });
+    const home = within(document.querySelector(".docs-crumbs")).getByRole("link", {
+      name: /pullwise/i,
+    });
+
+    expect(apiKeysSide).toHaveAttribute("href", expect.stringContaining("screen=apiKeys"));
+    expect(apiKeysFoot).toHaveAttribute("href", expect.stringContaining("screen=apiKeys"));
+    expect(pricing).toHaveAttribute("href", expect.stringContaining("screen=pricing"));
+    expect(home).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+
+    await user.click(apiKeysSide);
+    expect(go).toHaveBeenCalledWith("apiKeys");
+  });
+
+  it("exposes API key management docs navigation as real screen links", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    const user = userEvent.setup();
+    const go = vi.fn();
+
+    render(<ApiKeysScreen go={go} />);
+
+    expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
+    const pageAction = screen.getByRole("link", { name: /api docs/i });
+    const docsSide = within(document.querySelector(".set-side")).getByRole("link", {
+      name: /^docs$/i,
+    });
+
+    expect(pageAction).toHaveAttribute("href", expect.stringContaining("screen=api"));
+    expect(docsSide).toHaveAttribute("href", expect.stringContaining("screen=api"));
+
+    await user.click(pageAction);
+    expect(go).toHaveBeenCalledWith("api");
   });
 
   it("creates and revokes workspace-scoped API keys", async () => {
@@ -96,5 +140,27 @@ describe("API screens", () => {
       expect(pullwiseApi.workspaces.create).toHaveBeenCalledWith({ name: "Platform" });
     });
     expect(await screen.findByText("Platform")).toBeInTheDocument();
+  });
+
+  it("exposes workspace repository navigation as real screen links", async () => {
+    pullwiseApi.workspaces.list.mockResolvedValue({
+      currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
+      workspaces: [{ id: "ws_1", name: "Acme", role: "owner" }],
+    });
+    const user = userEvent.setup();
+    const go = vi.fn();
+
+    render(<WorkspacesScreen go={go} />);
+
+    expect(await screen.findByText("Acme")).toBeInTheDocument();
+    const settingsNav = within(document.querySelector(".set-side"));
+    const repositories = settingsNav.getByRole("link", { name: /repositories/i });
+    const repoRow = screen.getByRole("link", { name: /^repos$/i });
+
+    expect(repositories).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(repoRow).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+
+    await user.click(repoRow);
+    expect(go).toHaveBeenCalledWith("repos");
   });
 });
