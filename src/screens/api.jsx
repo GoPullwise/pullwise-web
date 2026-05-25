@@ -22,6 +22,10 @@ function textValue(...values) {
   return "";
 }
 
+function objectRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
 function formatDate(value) {
   if (!value) return "Never";
   const date = new Date(typeof value === "number" ? value * 1000 : value);
@@ -45,17 +49,36 @@ function screenLinkProps(go, screen) {
 }
 
 function normalizeApiKey(key = {}) {
-  const scopes = Array.isArray(key.scopes) ? key.scopes.map(textValue).filter(Boolean) : [];
+  const record = objectRecord(key) ? key : {};
+  const scopes = Array.isArray(record.scopes)
+    ? record.scopes.map(textValue).filter(Boolean)
+    : [];
   return {
-    ...key,
-    id: textValue(key.id, key.keyId, key.key_id),
-    name: textValue(key.name) || "API key",
-    prefix: textValue(key.prefix),
+    ...record,
+    id: textValue(record.id, record.keyId, record.key_id),
+    name: textValue(record.name) || "API key",
+    prefix: textValue(record.prefix),
     scopes,
-    workspaceName: textValue(key.workspaceName, key.workspace_name, key.workspace?.name),
-    createdAt: key.createdAt || key.created_at,
-    lastUsedAt: key.lastUsedAt || key.last_used_at,
+    workspaceName: textValue(record.workspaceName, record.workspace_name, record.workspace?.name),
+    createdAt: record.createdAt || record.created_at,
+    lastUsedAt: record.lastUsedAt || record.last_used_at,
   };
+}
+
+function createdApiKeyRecord(payload) {
+  if (objectRecord(payload?.apiKey)) return payload.apiKey;
+  if (objectRecord(payload?.key)) return payload.key;
+  return payload;
+}
+
+function createdApiKeyToken(payload) {
+  return textValue(
+    payload?.token,
+    payload?.apiKey?.token,
+    payload?.apiKey?.key,
+    typeof payload?.key === "string" ? payload.key : payload?.key?.token,
+    payload?.key?.key
+  );
 }
 
 function normalizeWorkspace(workspace = {}) {
@@ -285,8 +308,8 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     setCreatedToken("");
     try {
       const payload = await pullwiseApi.apiKeys.create({ name: name.trim() || "API key" });
-      const key = normalizeApiKey(payload?.apiKey || payload?.key || payload);
-      const token = textValue(payload?.token, payload?.apiKey?.token, payload?.key?.token);
+      const key = normalizeApiKey(createdApiKeyRecord(payload));
+      const token = createdApiKeyToken(payload);
       setCreatedToken(token);
       setKeys((current) => [key, ...current.filter((item) => item.id !== key.id)]);
       setName("Workspace automation");

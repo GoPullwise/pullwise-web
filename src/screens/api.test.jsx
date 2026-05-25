@@ -94,8 +94,11 @@ describe("API screens", () => {
       apiKeys: [{ id: "key_1", name: "Old key", prefix: "pwk_old", workspaceName: "Acme" }],
     });
     pullwiseApi.apiKeys.create.mockResolvedValue({
-      apiKey: { id: "key_2", name: "CI scanner", prefix: "pwk_new", workspaceName: "Acme" },
-      token: "pwk_live_secret",
+      id: "key_2",
+      name: "CI scanner",
+      prefix: "pwk_new",
+      workspaceName: "Acme",
+      key: "pwk_live_secret",
     });
     pullwiseApi.apiKeys.revoke.mockResolvedValue({});
     const user = userEvent.setup();
