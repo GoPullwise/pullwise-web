@@ -94,6 +94,19 @@ describe("auth redirects", () => {
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 
+  it("rejects repository authorization URLs with control characters before opening a popup", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      url: "https://github.com/apps/pullwise/installations/new\r\nX-Injected: bad",
+      mode: "github-app-install",
+    });
+
+    await expect(connectGitHubRepositories()).rejects.toThrow(
+      /safe GitHub repository authorization URL/i
+    );
+
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
   it("does not open the GitHub install popup when an existing app installation is connected", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,

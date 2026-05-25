@@ -27,6 +27,9 @@ function getContinueRepositoryRedirectUrl(redirectTo) {
 function safeHttpUrl(value, label) {
   if (typeof value !== "string") throw new Error(`A safe ${label} is required.`);
   const url = value.trim();
+  if ([...url].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
+    throw new Error(`A safe ${label} is required.`);
+  }
   try {
     const parsed = new URL(url);
     if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
