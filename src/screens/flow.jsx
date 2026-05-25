@@ -4,6 +4,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
+import { screenLinkProps } from "../lib/navigation.js";
 import {
   isTerminalScan,
   scanQueueSummary,
@@ -33,21 +34,6 @@ function repoQuotaLabel(quota) {
 
 function workspaceLabel(repo) {
   return repo?.workspaceName || repo?.workspace?.name || repo?.workspaceId || "";
-}
-
-function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
-}
-
-function screenLinkProps(go, screen) {
-  return {
-    href: screenHref(screen),
-    onClick: (event) => {
-      if (typeof go !== "function") return;
-      event.preventDefault();
-      go(screen);
-    },
-  };
 }
 
 function repoOwner(repo) {

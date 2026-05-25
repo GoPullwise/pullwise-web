@@ -1,5 +1,6 @@
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { screenLinkProps } from "../lib/navigation.js";
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
@@ -45,21 +46,6 @@ function issueCounts(issues) {
 function scanIssueTotal(scan) {
   if (!scan?.issues) return 0;
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
-}
-
-function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
-}
-
-function screenLinkProps(go, screen) {
-  return {
-    href: screenHref(screen),
-    onClick: (event) => {
-      if (typeof go !== "function") return;
-      event.preventDefault();
-      go(screen);
-    },
-  };
 }
 
 function IssueRow({ issue, onClick }) {

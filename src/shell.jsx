@@ -2,22 +2,8 @@ import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
+import { screenLinkProps } from "./lib/navigation.js";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
-
-function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
-}
-
-function screenLinkProps(go, screen) {
-  return {
-    href: screenHref(screen),
-    onClick: (event) => {
-      if (typeof go !== "function") return;
-      event.preventDefault();
-      go(screen);
-    },
-  };
-}
 
 export function Topbar({ go, breadcrumbs, setIssue = null }) {
   useLang();

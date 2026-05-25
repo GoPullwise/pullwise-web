@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { screenLinkProps } from "../lib/navigation.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function itemsFrom(payload, ...keys) {
@@ -31,21 +32,6 @@ function formatDate(value) {
   const date = new Date(typeof value === "number" ? value * 1000 : value);
   if (Number.isNaN(date.getTime())) return textValue(value);
   return date.toLocaleString();
-}
-
-function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
-}
-
-function screenLinkProps(go, screen) {
-  return {
-    href: screenHref(screen),
-    onClick: (event) => {
-      if (typeof go !== "function") return;
-      event.preventDefault();
-      go(screen);
-    },
-  };
 }
 
 function normalizeApiKey(key = {}) {

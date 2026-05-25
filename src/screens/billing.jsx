@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
+import { screenLinkProps } from "../lib/navigation.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function providerLabel(provider) {
@@ -15,21 +16,6 @@ function billingReturnUrl(kind, screen = "billing") {
   url.searchParams.set("screen", screen);
   url.searchParams.set("billing", kind);
   return url.toString();
-}
-
-function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
-}
-
-function screenLinkProps(go, screen) {
-  return {
-    href: screenHref(screen),
-    onClick: (event) => {
-      if (typeof go !== "function") return;
-      event.preventDefault();
-      go(screen);
-    },
-  };
 }
 
 function safeBillingUrl(value, label) {

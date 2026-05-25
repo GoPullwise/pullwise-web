@@ -5,6 +5,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
+import { screenLinkProps } from "../lib/navigation.js";
 import {
   isActiveScan,
   normalizeIssuePullRequest,
@@ -20,21 +21,6 @@ function issueConfidence(issue) {
   const confidence = Number(issue?.confidence);
   if (!Number.isFinite(confidence)) return null;
   return Math.max(0, Math.min(1, confidence));
-}
-
-function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
-}
-
-function screenLinkProps(go, screen) {
-  return {
-    href: screenHref(screen),
-    onClick: (event) => {
-      if (typeof go !== "function") return;
-      event.preventDefault();
-      go(screen);
-    },
-  };
 }
 
 function sortIssues(items, key) {
