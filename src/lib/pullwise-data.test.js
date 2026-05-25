@@ -320,9 +320,12 @@ describe("normalizeIssue", () => {
       goodCode: ["return ok", { ln: 9, code: "return safe", t: "del" }],
       references: [
         null,
+        { label: "Docs\r\nX-Injected: bad", url: "https://example.com/docs" },
         { label: 42, url: "https://example.com/a" },
+        { label: "Unsafe", url: "https://example.com/unsafe\r\nX-Injected: bad" },
         { url: 123 },
         "https://example.com/raw",
+        "https://example.com/raw-unsafe\r\nX-Injected: bad",
       ],
       tags: ["security", 42, true, "", null, { label: "bad" }],
     });
@@ -334,6 +337,7 @@ describe("normalizeIssue", () => {
       { ln: "9", code: "return safe", t: "del" },
     ]);
     expect(issue.references).toEqual([
+      { label: "Docs", url: "https://example.com/docs" },
       { label: "42", url: "https://example.com/a" },
       { label: "https://example.com/raw", url: "https://example.com/raw" },
     ]);

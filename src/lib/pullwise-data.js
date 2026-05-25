@@ -107,6 +107,24 @@ function scalarText(value) {
   return "";
 }
 
+function firstLineText(value) {
+  return scalarText(value)
+    .replaceAll("\x00", "")
+    .split(/\r?\n|\r/, 1)[0]
+    .trim();
+}
+
+function normalizeReferenceUrl(value) {
+  const raw = scalarText(value).trim();
+  if (!raw || raw.includes("\x00") || /[\r\n]/.test(raw)) return null;
+  try {
+    const parsed = new URL(raw);
+    return ["http:", "https:"].includes(parsed.protocol) && parsed.hostname ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeTextList(values) {
   if (!Array.isArray(values)) return [];
   return values.map(scalarText).filter(Boolean);
@@ -141,14 +159,14 @@ function normalizeReferences(references) {
   return references
     .map((reference) => {
       if (["string", "number", "boolean"].includes(typeof reference)) {
-        const url = String(reference);
-        return /^https?:\/\//i.test(url) ? { label: url, url } : null;
+        const url = normalizeReferenceUrl(reference);
+        return url ? { label: url, url } : null;
       }
       if (!reference || typeof reference !== "object" || Array.isArray(reference)) return null;
-      const url = scalarText(reference.url);
-      if (!/^https?:\/\//i.test(url)) return null;
+      const url = normalizeReferenceUrl(reference.url);
+      if (!url) return null;
       return {
-        label: scalarText(reference.label) || url,
+        label: firstLineText(reference.label) || url,
         url,
       };
     })
