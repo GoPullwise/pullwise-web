@@ -321,8 +321,17 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   };
 
   const copyToken = async () => {
-    if (!createdToken || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(createdToken);
+    if (!createdToken) return;
+    setError("");
+    if (!navigator.clipboard) {
+      setError("Unable to copy API key. Select and copy the token manually.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(createdToken);
+    } catch {
+      setError("Unable to copy API key. Select and copy the token manually.");
+    }
   };
 
   return (

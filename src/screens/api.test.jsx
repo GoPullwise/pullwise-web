@@ -122,6 +122,36 @@ describe("API screens", () => {
     });
   });
 
+  it("shows feedback when copying a newly created API key fails", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_2",
+      name: "CI scanner",
+      prefix: "pwk_new",
+      workspaceName: "Acme",
+      key: "pwk_live_secret",
+    });
+    const user = userEvent.setup();
+    const writeText = vi
+      .spyOn(navigator.clipboard, "writeText")
+      .mockRejectedValue(new Error("Clipboard denied"));
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/key name/i));
+    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
+    await user.click(screen.getByRole("button", { name: /create key/i }));
+    expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /copy/i }));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith("pwk_live_secret");
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent(/unable to copy api key/i);
+  });
+
   it("creates workspaces from the dashboard workspace page", async () => {
     pullwiseApi.workspaces.list.mockResolvedValue({
       currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
