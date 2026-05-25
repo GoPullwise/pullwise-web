@@ -51,4 +51,16 @@ describe("pullwiseApi issue fix endpoints", () => {
       method: "DELETE",
     });
   });
+
+  it("rejects empty dynamic path segments before making a request", () => {
+    expect(() => pullwiseApi.scans.get("")).toThrow(/path segment/i);
+    expect(() => pullwiseApi.scans.cancel(null)).toThrow(/path segment/i);
+    expect(() => pullwiseApi.issues.get(undefined)).toThrow(/path segment/i);
+    expect(() => pullwiseApi.issues.updateStatus("", { status: "fixed" })).toThrow(/path segment/i);
+    expect(() => pullwiseApi.issues.previewFix("")).toThrow(/path segment/i);
+    expect(() => pullwiseApi.issues.createPullRequest("")).toThrow(/path segment/i);
+    expect(() => pullwiseApi.integrations.disconnect("")).toThrow(/path segment/i);
+
+    expect(request).not.toHaveBeenCalled();
+  });
 });

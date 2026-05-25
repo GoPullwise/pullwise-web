@@ -11,7 +11,9 @@ function withSearchParams(path, params = {}) {
 }
 
 function pathSegment(value) {
-  return encodeURIComponent(String(value ?? ""));
+  const text = String(value ?? "");
+  if (!text) throw new Error("API path segment is required.");
+  return encodeURIComponent(text);
 }
 
 export const pullwiseApi = {
