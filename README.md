@@ -9,8 +9,8 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 - Scan creation, polling, cancellation, and history
 - Rich issue review plus manual triage/status changes
 - Deterministic fix preview and GitHub pull request creation for auto-fixable issues
-- Account and GitHub integration settings
-- Stripe or Creem billing through backend-created checkout and portal sessions
+- Workspace-aware GitHub integration settings
+- Stripe or Creem workspace billing through backend-created checkout and portal sessions
 - Legal, privacy, security, and live status/readiness pages
 
 Stage 2 remediation is intentionally narrow in this build. The browser can ask
@@ -72,6 +72,11 @@ shared outside the local machine, rotate them in GitHub before production use.
 The Python API now requires real GitHub OAuth/App configuration for production
 login flows. Explicit local auth switches live in `F:\pullwise-server`; they are
 not enabled by the frontend.
+
+Billing and free scan limits are resource-scoped. The frontend prefers the
+backend `workspace` billing payload and displays repository quota from
+`/repositories`; the deprecated `account` billing payload is only a migration
+fallback.
 
 ## Useful Commands
 

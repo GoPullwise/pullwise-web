@@ -1,6 +1,5 @@
 import { I } from "../icons.jsx";
 import { T } from "../i18n.jsx";
-import { markGitHubRepositoryAccessRefreshNeeded } from "../lib/github-repository-access-refresh.js";
 
 function scalarText(value) {
   if (value === undefined || value === null || value === "") return "";
@@ -55,28 +54,53 @@ function installationRepositoryCount(installation) {
   return 0;
 }
 
-function installationHtmlUrl(installation) {
-  const url =
-    scalarText(installation?.installationHtmlUrl) ||
-    scalarText(installation?.htmlUrl) ||
-    scalarText(installation?.html_url);
-  return /^https?:\/\//i.test(url) ? url : "";
+function installationManage(installation) {
+  const manage = installation?.manage && typeof installation.manage === "object" ? installation.manage : {};
+  return {
+    mode: scalarText(manage.mode) || "needs_identity",
+    githubIdentityId: scalarText(manage.githubIdentityId),
+    githubLogin: scalarText(manage.githubLogin),
+    lastVerifiedAt: manage.lastVerifiedAt,
+  };
+}
+
+function installationStatusLabel(manage, account) {
+  if (manage.mode === "verified_identity" && manage.githubLogin) {
+    return T(`Last verified by @${manage.githubLogin}`, `Last verified by @${manage.githubLogin}`);
+  }
+  if (manage.mode === "needs_reauth") return T("GitHub account needs reconnect", "GitHub account needs reconnect");
+  if (manage.mode === "needs_identity") {
+    return T(
+      `Needs a GitHub account with access to ${account || "this installation"}`,
+      `Needs a GitHub account with access to ${account || "this installation"}`
+    );
+  }
+  return T("GitHub manage access is unknown", "GitHub manage access is unknown");
 }
 
 function normalizedInstallations(installations) {
   return (Array.isArray(installations) ? installations : [])
-    .map((installation) => ({
-      id: installationId(installation),
-      account: installationAccount(installation),
-      targetType: installationTargetType(installation),
-      selection: installationSelection(installation),
-      repositoryCount: installationRepositoryCount(installation),
-      htmlUrl: installationHtmlUrl(installation),
-    }))
+    .map((installation) => {
+      const account = installationAccount(installation);
+      const manage = installationManage(installation);
+      return {
+        id: installationId(installation),
+        account,
+        targetType: installationTargetType(installation),
+        selection: installationSelection(installation),
+        repositoryCount: installationRepositoryCount(installation),
+        workspace:
+          scalarText(installation.workspaceName) ||
+          scalarText(installation.workspace?.name) ||
+          scalarText(installation.workspaceId),
+        manage,
+        status: installationStatusLabel(manage, account),
+      };
+    })
     .filter((installation) => installation.id || installation.account);
 }
 
-export function GitHubInstallationsList({ installations }) {
+export function GitHubInstallationsList({ installations, onManage, managingInstallationId = "" }) {
   const rows = normalizedInstallations(installations);
   if (!rows.length) return null;
 
@@ -97,19 +121,29 @@ export function GitHubInstallationsList({ installations }) {
               <div className="gh-install-meta">
                 {installation.targetType} / {installation.selection} /{" "}
                 {repositoryCountLabel(installation.repositoryCount)}
+                {installation.workspace && (
+                  <span className="tag">Workspace {installation.workspace}</span>
+                )}
               </div>
+              <div className="gh-install-status">{installation.status}</div>
             </div>
-            {installation.htmlUrl && (
-              <a
+            {installation.id && onManage && (
+              <button
+                type="button"
                 className="btn sm ghost"
-                href={installation.htmlUrl}
-                target="_blank"
-                rel="noreferrer"
-                onClick={markGitHubRepositoryAccessRefreshNeeded}
+                disabled={managingInstallationId === installation.id}
+                onClick={() => onManage(installation)}
                 aria-label={`Manage ${installation.account || installation.id} GitHub App installation`}
               >
-                <I.Settings size={13} /> {T("Manage", "管理")}
-              </a>
+                {managingInstallationId === installation.id ? (
+                  <span className="spin" style={{ display: "inline-block" }}>
+                    <I.Refresh size={13} />
+                  </span>
+                ) : (
+                  <I.Settings size={13} />
+                )}{" "}
+                {T("Manage", "管理")}
+              </button>
             )}
           </div>
         ))}

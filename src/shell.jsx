@@ -215,9 +215,11 @@ function SearchModal({ close, go, setIssue }) {
 
 export function Sidebar({ section, go }) {
   useLang();
-  const { items: repos } = useRepositories();
+  const { items: repos, workspace } = useRepositories();
   const { items: issues } = useIssues();
   const [connecting, setConnecting] = React.useState(false);
+  const workspaceName = workspace?.name || workspace?.githubOwnerLogin || "Pullwise";
+  const workspaceInitial = (workspaceName.trim().slice(0, 1) || "P").toUpperCase();
   const openIssueCount = issues.filter((issue) => issue.status === "open").length;
   const connectRepositories = async () => {
     if (connecting) return;
@@ -268,9 +270,9 @@ export function Sidebar({ section, go }) {
               fontWeight: 700,
             }}
           >
-            P
+            {workspaceInitial}
           </div>
-          <span>Pullwise</span>
+          <span>{workspaceName}</span>
           <I.ChevD size={13} style={{ marginLeft: "auto", opacity: 0.6 }} />
         </button>
       </div>

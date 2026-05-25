@@ -26,7 +26,7 @@ export const pullwiseApi = {
 
   repositories: {
     list: (params = {}) => request(withSearchParams("/repositories", params)),
-    sync: () => request("/repositories/sync", { method: "POST" }),
+    sync: (payload) => request("/repositories/sync", { method: "POST", body: payload }),
   },
 
   scans: {
@@ -51,6 +51,11 @@ export const pullwiseApi = {
     list: () => request("/integrations"),
     getGitHubAuthorizeUrl: (params = {}) =>
       request(withSearchParams("/integrations/github/authorize", params)),
+    createGitHubInstallationManageSession: (installationId, payload = {}) =>
+      request(`/integrations/github/installations/${pathSegment(installationId)}/manage-sessions`, {
+        method: "POST",
+        body: payload,
+      }),
     disconnect: (provider) =>
       request(`/integrations/${pathSegment(provider)}`, { method: "DELETE" }),
   },

@@ -56,11 +56,12 @@ beforeEach(() => {
   useScanRun.mockReset();
 });
 
-function renderScanError(error) {
+function renderScanError(error, errorCode = "") {
   const go = vi.fn();
   useScanRun.mockReturnValue({
     scan: null,
     error,
+    errorCode,
     cancel: vi.fn(),
   });
 
@@ -107,6 +108,31 @@ describe("ReposScreen scan selection", () => {
       activeRepo.selectedRepos[0].scanRequestId
     );
     expect(go).toHaveBeenCalledWith("scanning");
+  });
+
+  it("shows repository quota and workspace ownership before scanning", async () => {
+    useRepositories.mockReturnValue({
+      items: [
+        {
+          ...repoAlpha,
+          repoId: "repo_123",
+          workspaceName: "acme",
+          quota: { scope: "repository", used: 1, limit: 3, remaining: 2 },
+        },
+      ],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
+    expect(screen.getByText("acme")).toBeInTheDocument();
+    expect(screen.getByText(/2 of 3 repo scans left/i)).toBeInTheDocument();
   });
 });
 
@@ -179,6 +205,30 @@ describe("ScanningScreen queue state", () => {
         branch: "main",
         requestId: "scan_req_1",
       })
+    );
+  });
+
+  it("passes stable repoId to the scan runner when present", () => {
+    useScanRun.mockReturnValue({
+      scan: null,
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          repoId: "repo_123",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+          scanRequestId: "scan_req_1",
+        }}
+      />
+    );
+
+    expect(useScanRun).toHaveBeenCalledWith(
+      expect.objectContaining({ repoId: "repo_123", repo: "octocat/private-repo" })
     );
   });
 
@@ -377,6 +427,16 @@ describe("ScanningScreen queue state", () => {
     await user.click(screen.getByRole("button", { name: /open billing/i }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(/monthly review limit/i);
+    expect(go).toHaveBeenCalledWith("billing");
+  });
+
+  it("routes structured quota errors to billing", async () => {
+    const user = userEvent.setup();
+    const { go } = renderScanError("Repository quota exhausted.", "QUOTA_EXCEEDED_REPOSITORY");
+
+    await user.click(screen.getByRole("button", { name: /open billing/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
     expect(go).toHaveBeenCalledWith("billing");
   });
 

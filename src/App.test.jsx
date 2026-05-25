@@ -1,9 +1,9 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
-import { connectGitHubRepositories, startGitHubLogin } from "./lib/auth.js";
+import { connectGitHubRepositories, manageGitHubInstallation, startGitHubLogin } from "./lib/auth.js";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({
@@ -27,6 +27,7 @@ vi.mock("./api/pullwise.js", () => ({
 vi.mock("./lib/auth.js", () => ({
   startGitHubLogin: vi.fn(),
   connectGitHubRepositories: vi.fn(),
+  manageGitHubInstallation: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -366,10 +367,10 @@ describe("App", () => {
     expect(
       screen.getByText(/Organization .* all repositories .* 4 repositories/i)
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /manage gopullwise/i })).toHaveAttribute(
-      "href",
-      "https://github.com/organizations/GoPullwise/settings/installations/130258770"
-    );
+    expect(screen.queryByRole("link", { name: /manage gopullwise/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /manage gopullwise github app installation/i })
+    ).toBeInTheDocument();
   });
 
   it("syncs repositories after returning from GitHub installation management", async () => {
@@ -378,7 +379,7 @@ describe("App", () => {
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
     });
-    pullwiseApi.repositories.list.mockResolvedValue({
+    const initialPayload = {
       items: [
         {
           id: "repo_pullwise_server",
@@ -398,10 +399,10 @@ describe("App", () => {
             "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 1,
-        },
-      ],
-    });
-    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+          },
+        ],
+    };
+    const updatedPayload = {
       items: [
         {
           id: "repo_pullwise_server",
@@ -427,8 +428,12 @@ describe("App", () => {
             "https://github.com/organizations/GoPullwise/settings/installations/130258770",
           repositorySelection: "selected",
           repositoryCount: 2,
-        },
-      ],
+          },
+        ],
+    };
+    pullwiseApi.repositories.list.mockResolvedValue(initialPayload);
+    manageGitHubInstallation.mockImplementationOnce(async () => {
+      pullwiseApi.repositories.list.mockResolvedValue(updatedPayload);
     });
     const user = userEvent.setup();
 
@@ -437,16 +442,33 @@ describe("App", () => {
     expect(await screen.findByText("GoPullwise/pullwise-server")).toBeInTheDocument();
     expect(screen.queryByText("GoPullwise/pullwise-web")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("link", { name: /manage gopullwise/i }));
-    act(() => {
-      window.dispatchEvent(new Event("focus"));
-    });
+    await user.click(
+      screen.getByRole("button", { name: /manage gopullwise github app installation/i })
+    );
 
     await waitFor(() => {
-      expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+      expect(manageGitHubInstallation).toHaveBeenCalledWith("130258770", {
+        githubIdentityId: undefined,
+      });
       expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
     });
     expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
+  });
+
+  it("shows the current workspace name in the sidebar", async () => {
+    window.history.replaceState({}, "", "/?screen=dashboard");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [],
+      workspace: { id: "ws_1", name: "acme" },
+    });
+
+    render(<App />);
+
+    expect(await screen.findByText("acme")).toBeInTheDocument();
   });
 
   it("starts GitHub repository authorization from the dashboard sidebar", async () => {

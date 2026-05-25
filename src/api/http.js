@@ -7,6 +7,7 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
     this.payload = payload;
+    this.code = typeof payload?.code === "string" ? payload.code : "";
   }
 }
 

@@ -52,10 +52,44 @@ function repositoryAuthorizationError(payload) {
   return error;
 }
 
+const GITHUB_MANAGE_ERROR_MESSAGES = {
+  github_account_mismatch:
+    "GitHub account mismatch. Choose a GitHub account with access to this installation, then try again.",
+  github_installation_not_visible:
+    "This GitHub account cannot access that installation. Choose the right GitHub account or an organization admin account.",
+  github_org_admin_required:
+    "Use a GitHub organization owner or admin account to manage this installation.",
+  github_identity_reauth_required:
+    "Reconnect this GitHub account before managing the installation.",
+  github_installation_deleted:
+    "This GitHub App installation is no longer available. Reinstall it or remove it from Pullwise.",
+  github_app_installation_not_completed:
+    "GitHub installation was not completed. Open the installation flow again to continue.",
+};
+
+function normalizeGitHubPopupError(error) {
+  const code = error?.code || "";
+  if (!GITHUB_MANAGE_ERROR_MESSAGES[code]) return error;
+  const normalized = new Error(GITHUB_MANAGE_ERROR_MESSAGES[code]);
+  normalized.code = code;
+  return normalized;
+}
+
 async function verifyConnectedRepositories() {
   const payload = await pullwiseApi.repositories.sync();
   if (!payload?.needsAuthorization && repositoryItemsFrom(payload).length > 0) return;
   throw repositoryAuthorizationError(payload);
+}
+
+function installationIdFrom(value) {
+  const id = String(value ?? "").trim();
+  if (!id) throw new Error("A GitHub App installation id is required.");
+  return id;
+}
+
+function identityIdFrom(value) {
+  const id = String(value ?? "").trim();
+  return id || undefined;
 }
 
 function needsGitHubIdentity(error) {
@@ -115,7 +149,38 @@ export async function connectGitHubRepositories({ redirectTo, manage = false, ad
     clearGitHubRepositoryAccessRefreshNeeded();
   } catch (error) {
     clearGitHubRepositoryAccessRefreshNeeded();
-    throw error;
+    throw normalizeGitHubPopupError(error);
+  }
+}
+
+export async function manageGitHubInstallation(installationId, { githubIdentityId, redirectTo } = {}) {
+  const cleanInstallationId = installationIdFrom(installationId);
+  const cleanIdentityId = identityIdFrom(githubIdentityId);
+  const result = await pullwiseApi.integrations.createGitHubInstallationManageSession(
+    cleanInstallationId,
+    {
+      githubIdentityId: cleanIdentityId,
+      returnUrl: getRepositoryRedirectUrl(redirectTo),
+    }
+  );
+  const manageUrl = safeHttpUrl(result?.url, "GitHub installation manage URL");
+  markGitHubRepositoryAccessRefreshNeeded();
+  const syncPayload = {
+    installationId: cleanInstallationId,
+    githubIdentityId: cleanIdentityId,
+  };
+  const completion = openGitHubInstallPopup(manageUrl, syncPayload);
+  if (!completion) {
+    window.location.assign(manageUrl);
+    return;
+  }
+  try {
+    await completion;
+    await pullwiseApi.repositories.sync(syncPayload);
+    clearGitHubRepositoryAccessRefreshNeeded();
+  } catch (error) {
+    clearGitHubRepositoryAccessRefreshNeeded();
+    throw normalizeGitHubPopupError(error);
   }
 }
 

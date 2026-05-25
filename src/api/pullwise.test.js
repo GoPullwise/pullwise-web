@@ -31,6 +31,9 @@ describe("pullwiseApi issue fix endpoints", () => {
     await pullwiseApi.issues.previewFix("issue/with spaces#1");
     await pullwiseApi.issues.createPullRequest("issue/with spaces#1");
     await pullwiseApi.integrations.disconnect("slack/custom");
+    await pullwiseApi.integrations.createGitHubInstallationManageSession("install/999", {
+      githubIdentityId: "ghi_1",
+    });
 
     expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231");
     expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/cancel", {
@@ -50,6 +53,14 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(7, "/integrations/slack%2Fcustom", {
       method: "DELETE",
     });
+    expect(request).toHaveBeenNthCalledWith(
+      8,
+      "/integrations/github/installations/install%2F999/manage-sessions",
+      {
+        method: "POST",
+        body: { githubIdentityId: "ghi_1" },
+      }
+    );
   });
 
   it("rejects empty dynamic path segments before making a request", () => {
@@ -60,6 +71,9 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(() => pullwiseApi.issues.previewFix("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.issues.createPullRequest("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.integrations.disconnect("")).toThrow(/path segment/i);
+    expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(
+      /path segment/i
+    );
 
     expect(request).not.toHaveBeenCalled();
   });

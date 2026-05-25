@@ -116,6 +116,49 @@ function objectRecord(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
+function normalizeQuotaCount(value, fallback = 0) {
+  if (value === undefined || value === null || value === "") return fallback;
+  const count = Number(value);
+  if (!Number.isFinite(count)) return fallback;
+  return Math.max(0, Math.trunc(count));
+}
+
+export function normalizeQuotaUsage(value) {
+  if (!objectRecord(value)) return null;
+  const used = normalizeQuotaCount(value.used);
+  const limit = normalizeQuotaCount(value.limit);
+  const remaining = Object.prototype.hasOwnProperty.call(value, "remaining")
+    ? normalizeQuotaCount(value.remaining)
+    : Math.max(0, limit - used);
+  return {
+    ...value,
+    scope: textValue(value.scope, value.scopeType, value.scope_type),
+    period: textValue(value.period),
+    plan: textValue(value.plan),
+    used,
+    limit,
+    remaining,
+    resetAt: textValue(value.resetAt, value.reset_at),
+  };
+}
+
+export function normalizeWorkspace(workspace = {}) {
+  if (!objectRecord(workspace)) return null;
+  const githubOwnerLogin = textValue(workspace.githubOwnerLogin, workspace.github_owner_login);
+  return {
+    ...workspace,
+    id: textValue(workspace.id, workspace.workspaceId, workspace.workspace_id),
+    name: textValue(workspace.name, githubOwnerLogin) || "Workspace",
+    githubOwnerLogin,
+    githubOwnerType: textValue(workspace.githubOwnerType, workspace.github_owner_type),
+    githubAppInstallationId: textValue(
+      workspace.githubAppInstallationId,
+      workspace.github_app_installation_id
+    ),
+    role: textValue(workspace.role),
+  };
+}
+
 function normalizeCodeLines(lines) {
   if (!Array.isArray(lines)) return [];
   return lines
@@ -246,17 +289,27 @@ function normalizePendingPullRequest(value, { issueId } = {}) {
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
   const fullName = textValue(repo.fullName, repo.full_name, repo.name);
+  const rawRepoId = textValue(repo.repoId, repo.repositoryId, repo.repository_id);
+  const normalizedId = textValue(repo.id, rawRepoId, fullName);
+  const workspace = normalizeWorkspace(repo.workspace);
   return {
     ...repo,
-    id: textValue(repo.id, fullName),
+    id: normalizedId,
+    repoId: rawRepoId || (normalizedId.startsWith("repo_") ? normalizedId : ""),
+    githubRepoId: textValue(repo.githubRepoId, repo.github_repo_id),
+    githubNodeId: textValue(repo.githubNodeId, repo.github_node_id),
+    workspaceId: textValue(repo.workspaceId, repo.workspace_id, workspace?.id),
+    workspaceName: textValue(repo.workspaceName, repo.workspace_name, workspace?.name),
     name: textValue(repo.name, fullName),
     fullName,
     desc: textValue(repo.desc, repo.description),
     lang: textValue(repo.lang, repo.language) || "-",
+    defaultBranch: textValue(repo.defaultBranch, repo.default_branch, repo.branch),
     stars: normalizeDisplayCount(repo.stars, repo.stargazers_count),
     branches: normalizeDisplayCount(repo.branches),
     updated: textValue(repo.updated, repo.updated_at, repo.updatedAt),
     private: normalizeBoolean(repo.private),
+    quota: normalizeQuotaUsage(repo.quota),
   };
 }
 
@@ -301,6 +354,9 @@ export function normalizeIssue(issue = {}) {
 
 export function normalizeScan(scan = {}) {
   scan = scan || {};
+  const billingUsage = normalizeQuotaUsage(scan.billingUsage || scan.billing_usage);
+  const repoUsage = normalizeQuotaUsage(scan.repoUsage || scan.repo_usage);
+  const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   return {
     ...scan,
     id: textValue(scan.id),
@@ -313,6 +369,12 @@ export function normalizeScan(scan = {}) {
     by: textValue(scan.by) || "you",
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
+    workspaceId: textValue(scan.workspaceId, scan.workspace_id),
+    repoId: textValue(scan.repoId, scan.repositoryId, scan.repository_id),
+    githubRepoId: textValue(scan.githubRepoId, scan.github_repo_id),
+    quotaBucketIds,
+    billingUsage,
+    repoUsage,
   };
 }
 
@@ -322,6 +384,8 @@ export function useRepositories() {
     items: [],
     installations: [],
     installationAccounts: [],
+    workspaces: [],
+    workspace: null,
     loading: true,
     error: "",
     needsAuthorization: false,
@@ -340,6 +404,8 @@ export function useRepositories() {
         items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
         installations: itemsFrom(payload, "installations"),
         installationAccounts: itemsFrom(payload, "installationAccounts"),
+        workspaces: itemsFrom(payload, "workspaces").map(normalizeWorkspace).filter(Boolean),
+        workspace: normalizeWorkspace(payload?.currentWorkspace || payload?.workspace),
         loading: false,
         error: "",
         needsAuthorization: normalizeBoolean(payload?.needsAuthorization),
@@ -350,6 +416,8 @@ export function useRepositories() {
         items: [],
         installations: [],
         installationAccounts: [],
+        workspaces: [],
+        workspace: null,
         loading: false,
         error: error?.message || "Unable to load repositories.",
         needsAuthorization: false,
@@ -461,8 +529,10 @@ export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
 }
 
-function scanCreatePayload({ repo, branch, commit = "pending", requestId = "" }) {
-  const payload = { repo, branch: branch || "main", commit: commit || "pending" };
+function scanCreatePayload({ repoId = "", repo, branch, commit = "pending", requestId = "" }) {
+  const payload = { branch: branch || "main", commit: commit || "pending" };
+  if (repoId) payload.repoId = repoId;
+  if (repo) payload.repo = repo;
   if (requestId) payload.requestId = requestId;
   return payload;
 }
@@ -470,6 +540,7 @@ function scanCreatePayload({ repo, branch, commit = "pending", requestId = "" })
 // Creates or resumes a scan, then polls /scans/{id} every `pollIntervalMs`
 // until the scan reaches a terminal status.
 export function useScanRun({
+  repoId = "",
   repo,
   branch,
   commit = "pending",
@@ -480,6 +551,7 @@ export function useScanRun({
 }) {
   const [scan, setScan] = useState(null);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
   const initialScanRef = useRef(initialScan);
 
   useEffect(() => {
@@ -488,27 +560,32 @@ export function useScanRun({
 
   useEffect(() => {
     if (scanId) return undefined;
-    if (!repo) return undefined;
+    if (!repo && !repoId) return undefined;
     let alive = true;
     setError("");
+    setErrorCode("");
     pullwiseApi.scans
-      .create(scanCreatePayload({ repo, branch, commit, requestId }))
+      .create(scanCreatePayload({ repoId, repo, branch, commit, requestId }))
       .then((payload) => {
         if (alive) setScan(normalizeScan(payload));
       })
       .catch((err) => {
-        if (alive) setError(err?.message || "Unable to start scan.");
+        if (alive) {
+          setError(err?.message || "Unable to start scan.");
+          setErrorCode(textValue(err?.code, err?.payload?.code));
+        }
       });
     return () => {
       alive = false;
     };
-  }, [scanId, repo, branch, commit, requestId]);
+  }, [scanId, repoId, repo, branch, commit, requestId]);
 
   useEffect(() => {
     if (!scanId) return undefined;
     let alive = true;
     const seedScan = initialScanRef.current;
     setError("");
+    setErrorCode("");
     setScan(seedScan?.id === scanId ? normalizeScan(seedScan) : null);
     pullwiseApi.scans
       .get(scanId)
@@ -516,7 +593,10 @@ export function useScanRun({
         if (alive) setScan(normalizeScan(payload));
       })
       .catch((err) => {
-        if (alive) setError(err?.message || "Unable to load scan.");
+        if (alive) {
+          setError(err?.message || "Unable to load scan.");
+          setErrorCode(textValue(err?.code, err?.payload?.code));
+        }
       });
     return () => {
       alive = false;
@@ -531,7 +611,10 @@ export function useScanRun({
         const next = await pullwiseApi.scans.get(scan.id);
         if (alive) setScan(normalizeScan(next));
       } catch (err) {
-        if (alive) setError(err?.message || "Polling failed.");
+        if (alive) {
+          setError(err?.message || "Polling failed.");
+          setErrorCode(textValue(err?.code, err?.payload?.code));
+        }
       }
     }, pollIntervalMs);
     return () => {
@@ -547,14 +630,16 @@ export function useScanRun({
       setScan(normalizeScan(updated));
     } catch (err) {
       setError(err?.message || "Cancel failed.");
+      setErrorCode(textValue(err?.code, err?.payload?.code));
     }
   };
 
-  return { scan, error, cancel };
+  return { scan, error, errorCode, cancel };
 }
 
 function scanRequestKey(request) {
   return [
+    request.repoId || "",
     request.repo,
     request.branch || "main",
     request.commit || "pending",
@@ -564,6 +649,7 @@ function scanRequestKey(request) {
 
 function normalizeScanRequest(request) {
   return {
+    repoId: textValue(request?.repoId),
     repo: request?.repo || "",
     branch: request?.branch || "main",
     commit: request?.commit || "pending",
@@ -574,7 +660,8 @@ function normalizeScanRequest(request) {
 export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {}) {
   const [scans, setScans] = useState([]);
   const [error, setError] = useState("");
-  const requests = repositories.map(normalizeScanRequest).filter((request) => request.repo);
+  const [errorCode, setErrorCode] = useState("");
+  const requests = repositories.map(normalizeScanRequest).filter((request) => request.repo || request.repoId);
   const requestKey = requests.map(scanRequestKey).join("\u001e");
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
@@ -584,12 +671,14 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     if (!requestKey) {
       setScans((current) => (current.length ? [] : current));
       setError((current) => (current ? "" : current));
+      setErrorCode((current) => (current ? "" : current));
       return undefined;
     }
 
     let alive = true;
     setScans((current) => (current.length ? [] : current));
     setError((current) => (current ? "" : current));
+    setErrorCode((current) => (current ? "" : current));
 
     Promise.allSettled(
       nextRequests.map((request) => pullwiseApi.scans.create(scanCreatePayload(request)))
@@ -602,6 +691,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       setScans(createdScans);
       if (failed) {
         setError(failed.reason?.message || "Unable to start one or more scans.");
+        setErrorCode(textValue(failed.reason?.code, failed.reason?.payload?.code));
       }
     });
 
@@ -624,7 +714,10 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
         setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
       } catch (err) {
-        if (alive) setError(err?.message || "Polling failed.");
+        if (alive) {
+          setError(err?.message || "Polling failed.");
+          setErrorCode(textValue(err?.code, err?.payload?.code));
+        }
       }
     }, pollIntervalMs);
 
@@ -646,8 +739,9 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
     } catch (err) {
       setError(err?.message || "Cancel failed.");
+      setErrorCode(textValue(err?.code, err?.payload?.code));
     }
   };
 
-  return { scans, error, cancel };
+  return { scans, error, errorCode, cancel };
 }

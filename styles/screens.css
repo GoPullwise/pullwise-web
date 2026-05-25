@@ -809,6 +809,12 @@
   background: #3178c6;
   display: inline-block;
 }
+.repo-quota.empty {
+  color: var(--sev-critical);
+}
+.repo-workspace {
+  max-width: 180px;
+}
 .lang-dot[data-lang="Go"] {
   background: #00add8;
 }
@@ -880,6 +886,17 @@
   font-size: 12px;
   margin-top: 2px;
   flex-wrap: wrap;
+}
+.gh-install-status {
+  color: var(--text-3);
+  font-size: 12px;
+  margin-top: 3px;
+}
+.gh-identities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 12px;
 }
 
 /* ── Scanning ─────────────────────────────────────────────── */
@@ -3515,7 +3532,7 @@
 /* Repos */
 .repos-toolbar, .repos-orgs, .repos-foot,
 .repo-check-box, .repo-meta, .lang-dot,
-.gh-installs-h, .gh-install-icon, .gh-install-meta,
+.gh-installs-h, .gh-install-icon, .gh-install-meta, .gh-install-status,
 /* Scanning */
 .scanning-h, .scanning-icon,
 .scanning-bar-meta, .scanning-phases, .scanning-phase-bullet,

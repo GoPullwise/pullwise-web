@@ -47,7 +47,7 @@ export function notifyOpenerAndClose() {
   }
 }
 
-export function openGitHubInstallPopup(url) {
+export function openGitHubInstallPopup(url, syncPayload) {
   const popup = window.open(url, POPUP_NAME, POPUP_FEATURES);
   if (!popup) return null;
   try {
@@ -88,7 +88,7 @@ export function openGitHubInstallPopup(url) {
           return;
         }
 
-        const repositories = await pullwiseApi.repositories.sync();
+        const repositories = await pullwiseApi.repositories.sync(syncPayload);
         if (repositories?.authorizationIssue) {
           const error = new Error(repositories.message || repositories.authorizationIssue);
           error.code = repositories.authorizationIssue;

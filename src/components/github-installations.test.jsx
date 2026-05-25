@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { GitHubInstallationsList } from "./github-installations.jsx";
 
 describe("GitHubInstallationsList", () => {
@@ -30,5 +30,46 @@ describe("GitHubInstallationsList", () => {
     expect(screen.getByText(/Account .* selected .* 2 repositories/i)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("[object Object]");
     expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
+  });
+
+  it("uses a controlled manage button instead of a raw GitHub settings link", () => {
+    const onManage = vi.fn();
+    render(
+      <GitHubInstallationsList
+        onManage={onManage}
+        installations={[
+          {
+            installationId: "999",
+            installationAccount: "GoPullwise",
+            installationTargetType: "Organization",
+            repositorySelection: "selected",
+            repositoryCount: 2,
+            installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/999",
+            workspaceId: "ws_1",
+            workspaceName: "GoPullwise",
+            manage: {
+              mode: "verified_identity",
+              githubIdentityId: "ghi_1",
+              githubLogin: "alice",
+              lastVerifiedAt: 1779670000,
+            },
+          },
+        ]}
+      />
+    );
+
+    expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
+    expect(screen.getByText("Last verified by @alice")).toBeInTheDocument();
+    expect(screen.getByText("Workspace GoPullwise")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /manage gopullwise/i }));
+
+    expect(onManage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "999",
+        account: "GoPullwise",
+        manage: expect.objectContaining({ githubIdentityId: "ghi_1" }),
+      })
+    );
   });
 });

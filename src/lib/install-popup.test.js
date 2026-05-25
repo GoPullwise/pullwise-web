@@ -36,7 +36,10 @@ describe("openGitHubInstallPopup", () => {
       },
     });
 
-    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new");
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new", {
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+    });
 
     await vi.advanceTimersByTimeAsync(400);
 
@@ -55,12 +58,18 @@ describe("openGitHubInstallPopup", () => {
       items: [{ id: "repo_1", fullName: "octocat/private-repo" }],
     });
 
-    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new");
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new", {
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+    });
 
     await vi.advanceTimersByTimeAsync(400);
 
     await expect(completion).resolves.toBeUndefined();
-    expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith({
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+    });
   });
 
   it("preserves repository sync issue codes after a closed popup", async () => {

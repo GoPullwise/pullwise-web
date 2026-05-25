@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { connectGitHubRepositories } from "../lib/auth.js";
+import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import {
   isTerminalScan,
@@ -12,6 +12,28 @@ import {
   useScanRun,
 } from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
+
+function quotaNumber(value, fallback = 0) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(0, Math.trunc(number));
+}
+
+function repoQuotaLabel(quota) {
+  if (!quota) return "";
+  const limit = quotaNumber(quota.limit);
+  const used = quotaNumber(quota.used);
+  const remaining = Object.prototype.hasOwnProperty.call(quota, "remaining")
+    ? quotaNumber(quota.remaining)
+    : Math.max(0, limit - used);
+  const scope = quota.scope === "workspace" ? "workspace" : "repo";
+  if (!limit) return `${scope} quota unavailable`;
+  return `${remaining} of ${limit} ${scope} scans left`;
+}
+
+function workspaceLabel(repo) {
+  return repo?.workspaceName || repo?.workspace?.name || repo?.workspaceId || "";
+}
 
 function repoOwner(repo) {
   const fullName = repo.fullName || repo.name || "";
@@ -26,12 +48,14 @@ function makeScanRequestId() {
 }
 
 function scanInputFromRepo(repo) {
-  return {
+  const request = {
     repo: repo?.fullName || repo?.name || repo?.repo || "",
     branch: repo?.defaultBranch || repo?.branch || "main",
     commit: repo?.commit || "pending",
     requestId: repo?.scanRequestId || "",
   };
+  if (repo?.repoId) request.repoId = repo.repoId;
+  return request;
 }
 
 function batchScanStatus(scans, expectedCount, hasError) {
@@ -47,8 +71,13 @@ function batchScanStatus(scans, expectedCount, hasError) {
   return "queued";
 }
 
-function scanErrorAction(errorMessage) {
-  const text = String(errorMessage || "").toLowerCase();
+function scanErrorAction(error) {
+  const code = typeof error === "object" && error ? String(error.code || "") : "";
+  const message = typeof error === "object" && error ? error.message : error;
+  const text = `${code} ${String(message || "")}`.toLowerCase();
+  if (["QUOTA_EXCEEDED_WORKSPACE", "QUOTA_EXCEEDED_REPOSITORY"].includes(code)) {
+    return { label: "Open billing", screen: "billing" };
+  }
   if (
     text.includes("review provider") ||
     text.includes("cli") ||
@@ -56,7 +85,10 @@ function scanErrorAction(errorMessage) {
   ) {
     return { label: "Open settings", screen: "settings" };
   }
-  if (text.includes("sync github repositories")) {
+  if (
+    text.includes("sync github repositories") ||
+    ["REPOSITORY_SYNC_REQUIRED", "REPOSITORY_NOT_AUTHORIZED", "WORKSPACE_MEMBERSHIP_REQUIRED"].includes(code)
+  ) {
     return { label: "Sync repositories", screen: "repos" };
   }
   if (text.includes("monthly review limit")) {
@@ -91,6 +123,7 @@ export function ReposScreen({
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState([]);
   const [connecting, setConnecting] = useState(false);
+  const [managingInstallationId, setManagingInstallationId] = useState("");
   const [connectError, setConnectError] = useState("");
   const {
     items: availableRepos,
@@ -172,6 +205,24 @@ export function ReposScreen({
     }
   };
 
+  const manageInstallation = async (installation) => {
+    if (managingInstallationId) return;
+    const targetInstallationId = installation?.id || installation?.installationId;
+    setManagingInstallationId(targetInstallationId || "");
+    setConnectError("");
+    clearAuthorizationError();
+    try {
+      await manageGitHubInstallation(targetInstallationId, {
+        githubIdentityId: installation?.manage?.githubIdentityId || undefined,
+      });
+      await reload();
+    } catch (authError) {
+      setConnectError(authError?.message || "Unable to manage GitHub installation.");
+    } finally {
+      setManagingInstallationId("");
+    }
+  };
+
   return (
     <div className="app fade-in">
       <Topbar
@@ -207,7 +258,13 @@ export function ReposScreen({
             </div>
           </div>
 
-          {!needsAuthorization && <GitHubInstallationsList installations={installations} />}
+          {!needsAuthorization && (
+            <GitHubInstallationsList
+              installations={installations}
+              onManage={manageInstallation}
+              managingInstallationId={managingInstallationId}
+            />
+          )}
 
           <div className="repos-toolbar">
             <div className="repos-search">
@@ -316,6 +373,9 @@ export function ReposScreen({
             )}
             {repos.map((repo) => {
               const on = selected.includes(repo.id);
+              const quotaLabel = repoQuotaLabel(repo.quota);
+              const workspace = workspaceLabel(repo);
+              const quotaEmpty = repo.quota && quotaNumber(repo.quota.remaining) <= 0;
               return (
                 <div
                   key={repo.id}
@@ -352,6 +412,16 @@ export function ReposScreen({
                     <span>
                       <I.Clock size={12} /> {repo.updated}
                     </span>
+                    {workspace && (
+                      <span className="repo-workspace">
+                        <I.Package size={12} /> {workspace}
+                      </span>
+                    )}
+                    {quotaLabel && (
+                      <span className={"repo-quota" + (quotaEmpty ? " empty" : "")}>
+                        <I.Activity size={12} /> {quotaLabel}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -433,16 +503,18 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   const initialScan = singleRepo?.initialScan || null;
   const scanId = singleRepo?.scanId || "";
   const singleScanInput = scanInputFromRepo(singleRepo);
+  const repoId = singleScanInput.repoId || initialScan?.repoId || "";
   const repoFullName = singleScanInput.repo || initialScan?.repo || "";
   const branch = singleScanInput.branch || initialScan?.branch || "main";
   const commit = singleScanInput.commit || initialScan?.commit || "pending";
   const requestId = singleScanInput.requestId || "";
   const batchRepositories = useMemo(() => {
     if (!batchMode) return [];
-    return selectedRepos.map(scanInputFromRepo).filter((request) => request.repo);
+    return selectedRepos.map(scanInputFromRepo).filter((request) => request.repo || request.repoId);
   }, [batchMode, selectedRepos]);
 
   const singleRun = useScanRun({
+    repoId: batchMode ? "" : repoId,
     repo: batchMode ? "" : repoFullName,
     branch,
     commit,
@@ -456,6 +528,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scans.find((item) => !isTerminalScan(item)) || scans[0] || null
     : singleRun.scan;
   const error = batchMode ? batchRun.error : singleRun.error;
+  const errorCode = batchMode ? batchRun.errorCode : singleRun.errorCode;
   const cancel = batchMode ? batchRun.cancel : singleRun.cancel;
 
   // Append a log line whenever the worker advances to a new phase.
@@ -495,7 +568,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   const canCancel = batchMode
     ? scans.some((item) => item?.id && !isTerminalScan(item))
     : Boolean(scan && !terminal);
-  const errorAction = error ? scanErrorAction(error) : null;
+  const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
 
   // After a successful scan, drop into the dashboard so the user sees results.
   useEffect(() => {

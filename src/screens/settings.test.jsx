@@ -1,8 +1,8 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { connectGitHubRepositories, signOut } from "../lib/auth.js";
+import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { SettingsScreen } from "./issues.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -21,6 +21,7 @@ vi.mock("../api/pullwise.js", () => ({
 
 vi.mock("../lib/auth.js", () => ({
   connectGitHubRepositories: vi.fn(),
+  manageGitHubInstallation: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -81,7 +82,7 @@ describe("SettingsScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists each GitHub App installation with its management link", async () => {
+  it("lists each GitHub App installation with a controlled management button", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {
         connected: true,
@@ -102,6 +103,12 @@ describe("SettingsScreen", () => {
               "https://github.com/organizations/GoPullwise/settings/installations/130258770",
             repositorySelection: "selected",
             repositoryCount: 1,
+            manage: {
+              mode: "verified_identity",
+              githubIdentityId: "ghi_1",
+              githubLogin: "alice",
+              lastVerifiedAt: 1779670000,
+            },
           },
           {
             installationId: "134816087",
@@ -128,10 +135,36 @@ describe("SettingsScreen", () => {
     expect(
       screen.getByText(/Organization .* all repositories .* 4 repositories/i)
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /manage gopullwise/i })).toHaveAttribute(
-      "href",
-      "https://github.com/organizations/GoPullwise/settings/installations/130258770"
-    );
+    expect(screen.queryByRole("link", { name: /manage gopullwise/i })).not.toBeInTheDocument();
+    expect(screen.getByText("Last verified by @alice")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /manage gopullwise/i })).toBeInTheDocument();
+  });
+
+  it("shows the workspace that owns subscription and scan quota", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Taylor", email: "taylor@example.com" },
+      currentWorkspace: {
+        id: "ws_1",
+        name: "acme",
+        githubAppInstallationId: "130258770",
+      },
+    });
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: true,
+        installationAccounts: ["acme"],
+        repositories: ["acme/service"],
+        installations: [],
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /integrations/i }));
+    expect(screen.getByText(/subscription and scan quota belong to acme/i)).toBeInTheDocument();
+    expect(screen.getByText("130258770")).toBeInTheDocument();
   });
 
   it("does not render negative installation repository counts", async () => {
@@ -199,10 +232,7 @@ describe("SettingsScreen", () => {
           ],
         },
       });
-    pullwiseApi.repositories.sync.mockResolvedValueOnce({
-      needsAuthorization: false,
-      items: [{ fullName: "GoPullwise/pullwise-server" }, { fullName: "GoPullwise/pullwise-web" }],
-    });
+    manageGitHubInstallation.mockResolvedValueOnce(undefined);
     const user = userEvent.setup();
 
     render(<SettingsScreen go={vi.fn()} />);
@@ -210,13 +240,13 @@ describe("SettingsScreen", () => {
     await user.click(screen.getByRole("button", { name: /integrations/i }));
     expect(await screen.findByText(/1 repository/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("link", { name: /manage gopullwise/i }));
-    act(() => {
-      window.dispatchEvent(new Event("focus"));
-    });
+    await user.click(screen.getByRole("button", { name: /manage gopullwise/i }));
 
     await waitFor(() => {
-      expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+      expect(manageGitHubInstallation).toHaveBeenCalledWith("130258770", {
+        githubIdentityId: undefined,
+        redirectTo: expect.any(String),
+      });
       expect(screen.getByText(/2 repositories authorized on GoPullwise/i)).toBeInTheDocument();
     });
     expect(screen.getAllByText(/2 repositories/i).length).toBeGreaterThan(0);

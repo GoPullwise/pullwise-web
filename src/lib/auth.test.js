@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { connectGitHubRepositories, startGitHubLogin } from "./auth.js";
+import { connectGitHubRepositories, manageGitHubInstallation, startGitHubLogin } from "./auth.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -11,6 +11,7 @@ vi.mock("../api/pullwise.js", () => ({
     },
     integrations: {
       getGitHubAuthorizeUrl: vi.fn(),
+      createGitHubInstallationManageSession: vi.fn(),
     },
     repositories: {
       sync: vi.fn(),
@@ -110,11 +111,12 @@ describe("auth redirects", () => {
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
 
-  it("opens GitHub installation settings and syncs repositories when managing connected app installations", async () => {
+  it("opens the controlled manage popup and syncs repositories when managing connected app installations", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,
-      mode: "github-app-existing",
-      url: "https://github.com/settings/installations/999",
+      mode: "github-installation-manage",
+      url: "https://api.pullwise.dev/integrations/github/manage/start?state=abc",
+      installationId: "999",
     });
     openGitHubInstallPopup.mockResolvedValueOnce(undefined);
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
@@ -128,9 +130,52 @@ describe("auth redirects", () => {
       expect.objectContaining({ manage: "1" })
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
-      "https://github.com/settings/installations/999"
+      "https://api.pullwise.dev/integrations/github/manage/start?state=abc"
     );
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates a manage session for a specific installation and syncs only that installation", async () => {
+    pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+      mode: "github-installation-manage",
+      url: "https://api.pullwise.dev/integrations/github/manage/start?state=abc",
+      installationId: "999",
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+      needsAuthorization: false,
+      items: [{ fullName: "octocat/private-repo" }],
+    });
+
+    await expect(
+      manageGitHubInstallation("999", { githubIdentityId: "ghi_1" })
+    ).resolves.toBeUndefined();
+
+    expect(pullwiseApi.integrations.createGitHubInstallationManageSession).toHaveBeenCalledWith(
+      "999",
+      expect.objectContaining({ githubIdentityId: "ghi_1" })
+    );
+    expect(openGitHubInstallPopup).toHaveBeenCalledWith(
+      "https://api.pullwise.dev/integrations/github/manage/start?state=abc",
+      { installationId: "999", githubIdentityId: "ghi_1" }
+    );
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith({
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+    });
+  });
+
+  it("maps manage account mismatch errors to a readable message", async () => {
+    pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+      url: "https://api.pullwise.dev/integrations/github/manage/start?state=abc",
+    });
+    openGitHubInstallPopup.mockRejectedValueOnce(
+      Object.assign(new Error("github_account_mismatch"), {
+        code: "github_account_mismatch",
+      })
+    );
+
+    await expect(manageGitHubInstallation("999")).rejects.toThrow(/account mismatch/i);
   });
 
   it("opens the GitHub install URL when adding another account or organization", async () => {

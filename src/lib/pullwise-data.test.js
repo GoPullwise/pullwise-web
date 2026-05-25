@@ -114,6 +114,36 @@ describe("useScans", () => {
     });
   });
 
+  it("prefers stable repository ids when creating a scan", async () => {
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_1",
+      repo: "owner/repo",
+      repoId: "repo_123",
+      branch: "main",
+      status: "done",
+    });
+
+    renderHook(() =>
+      useScanRun({
+        repoId: "repo_123",
+        repo: "owner/repo",
+        branch: "main",
+        requestId: "scan_req_repo_id",
+        pollIntervalMs: 25,
+      })
+    );
+
+    await waitFor(() => {
+      expect(pullwiseApi.scans.create).toHaveBeenCalledWith({
+        repoId: "repo_123",
+        repo: "owner/repo",
+        branch: "main",
+        commit: "pending",
+        requestId: "scan_req_repo_id",
+      });
+    });
+  });
+
   it("creates a scan for each repository in a batch", async () => {
     pullwiseApi.scans.create
       .mockResolvedValueOnce({
@@ -265,6 +295,33 @@ describe("normalizeIssue", () => {
     expect(normalizeIssue({ id: "f_auto", autoFix: "true" })).toMatchObject({
       autoFix: true,
       autoFixable: true,
+    });
+  });
+
+  it("preserves repository workspace and quota fields", () => {
+    expect(
+      normalizeRepo({
+        id: "repo_123",
+        fullName: "octocat/repo",
+        githubRepoId: 123,
+        githubNodeId: "R_123",
+        workspace: { id: "ws_1", name: "octocat" },
+        quota: { scope: "repository", period: "2026-05", used: "1.8", limit: "3", remaining: "2" },
+      })
+    ).toMatchObject({
+      id: "repo_123",
+      repoId: "repo_123",
+      githubRepoId: "123",
+      githubNodeId: "R_123",
+      workspaceId: "ws_1",
+      workspaceName: "octocat",
+      quota: {
+        scope: "repository",
+        period: "2026-05",
+        used: 1,
+        limit: 3,
+        remaining: 2,
+      },
     });
   });
 
@@ -456,6 +513,27 @@ describe("normalizeIssue", () => {
 
     expect(normalizeScan({ id: "sc_done", status: "done" }).status).toBe("done");
     expect(normalizeScan({ id: "sc_running", status: "running" }).status).toBe("running");
+  });
+
+  it("preserves scan workspace, repository, and quota summaries", () => {
+    expect(
+      normalizeScan({
+        id: "sc_1",
+        repoId: "repo_123",
+        githubRepoId: 123,
+        workspaceId: "ws_1",
+        quotaBucketIds: { workspace: "qb_ws", repository: "qb_repo" },
+        billingUsage: { scope: "workspace", used: 2, limit: 10, remaining: 8 },
+        repoUsage: { scope: "repository", used: 1, limit: 3, remaining: 2 },
+      })
+    ).toMatchObject({
+      repoId: "repo_123",
+      githubRepoId: "123",
+      workspaceId: "ws_1",
+      quotaBucketIds: { workspace: "qb_ws", repository: "qb_repo" },
+      billingUsage: { scope: "workspace", used: 2, limit: 10, remaining: 8 },
+      repoUsage: { scope: "repository", used: 1, limit: 3, remaining: 2 },
+    });
   });
 
   it("does not stringify object-shaped text fields into user-visible labels", () => {

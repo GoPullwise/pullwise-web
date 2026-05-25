@@ -3,7 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { connectGitHubRepositories, signOut } from "../lib/auth.js";
+import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import {
   isActiveScan,
@@ -734,6 +734,7 @@ export function SettingsScreen({ go, setIssue = null }) {
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
   const [integrationError, setIntegrationError] = useState("");
+  const [managingInstallationId, setManagingInstallationId] = useState("");
   const integrationRequestIdRef = useRef(0);
 
   useEffect(() => {
@@ -787,6 +788,7 @@ export function SettingsScreen({ go, setIssue = null }) {
     )
   );
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
+  const currentWorkspace = session?.currentWorkspace || session?.workspace || integrations?.workspace || null;
   const authorizeRepositories = async () => {
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
@@ -799,6 +801,28 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) {
         setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
       }
+    }
+  };
+  const manageInstallation = async (installation) => {
+    if (managingInstallationId) return;
+    const targetInstallationId = installation?.id || installation?.installationId;
+    const requestId = integrationRequestIdRef.current + 1;
+    integrationRequestIdRef.current = requestId;
+    setManagingInstallationId(targetInstallationId || "");
+    setIntegrationError("");
+    try {
+      await manageGitHubInstallation(targetInstallationId, {
+        githubIdentityId: installation?.manage?.githubIdentityId || undefined,
+        redirectTo: window.location.href,
+      });
+      const integrationsPayload = await pullwiseApi.integrations.list();
+      if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
+    } catch (error) {
+      if (requestId === integrationRequestIdRef.current) {
+        setIntegrationError(error?.message || "Unable to manage GitHub installation.");
+      }
+    } finally {
+      if (requestId === integrationRequestIdRef.current) setManagingInstallationId("");
     }
   };
   const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
@@ -911,8 +935,39 @@ export function SettingsScreen({ go, setIssue = null }) {
                         : T("Connect repositories", "连接仓库")}
                     </button>
                   </div>
+                  {currentWorkspace && (
+                    <div className="set-pref">
+                      <div>
+                        <b>{T("Workspace", "Workspace")}</b>
+                        <div className="muted">
+                          {T(
+                            `Subscription and scan quota belong to ${currentWorkspace.name || currentWorkspace.id || "this workspace"}.`,
+                            `Subscription and scan quota belong to ${currentWorkspace.name || currentWorkspace.id || "this workspace"}.`
+                          )}
+                        </div>
+                      </div>
+                      {(currentWorkspace.githubAppInstallationId || currentWorkspace.id) && (
+                        <span className="tag">
+                          <I.Package size={10} /> {currentWorkspace.githubAppInstallationId || currentWorkspace.id}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {Array.isArray(github?.identities) && github.identities.length > 0 && (
+                    <div className="gh-identities">
+                      {github.identities.map((identity) => (
+                        <span className="tag" key={identity.id || identity.login}>
+                          <I.User size={10} /> @{identity.login}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {github?.connected && (
-                    <GitHubInstallationsList installations={github?.installations} />
+                    <GitHubInstallationsList
+                      installations={github?.installations}
+                      onManage={manageInstallation}
+                      managingInstallationId={managingInstallationId}
+                    />
                   )}
                   {integrationError && (
                     <div className="auth-error" role="alert">

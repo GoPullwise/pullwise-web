@@ -77,6 +77,12 @@ function usageText(usage) {
   return `${used} / ${limit} reviews used`;
 }
 
+function billingWorkspace(plan) {
+  if (plan?.workspace && typeof plan.workspace === "object") return plan.workspace;
+  if (plan?.account && typeof plan.account === "object") return plan.account;
+  return { status: "none", plan: "free" };
+}
+
 export function BillingScreen({
   go,
   setIssue = null,
@@ -95,7 +101,8 @@ export function BillingScreen({
       .then((payload) => {
         if (cancelled) return;
         setPlan(payload);
-        if ((payload?.account?.interval || "") === "year") setInterval("year");
+        const billingInterval = payload?.workspace?.interval || payload?.account?.interval || "";
+        if (billingInterval === "year") setInterval("year");
         setError("");
       })
       .catch((err) => {
@@ -111,8 +118,8 @@ export function BillingScreen({
       planById(plan, "free") || {
         id: "free",
         name: "Free",
-        description: "Try Pullwise with a small monthly review allowance.",
-        reviewLimit: 5,
+        description: "Try Pullwise with shared workspace and repository quota.",
+        reviewLimit: 10,
         prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
       },
     [plan]
@@ -142,12 +149,13 @@ export function BillingScreen({
     [plan]
   );
 
-  const account = plan?.account || { status: "none", plan: "free" };
-  const accountStatus = account.status || "none";
-  const active = isActiveStatus(accountStatus);
-  const activePro = active && account.plan === "pro";
-  const proInterval = account.interval || "month";
-  const usage = account.usage || {
+  const workspace = billingWorkspace(plan);
+  const workspaceStatus = workspace.status || "none";
+  const workspaceName = workspace.name || "Workspace";
+  const active = isActiveStatus(workspaceStatus);
+  const activePro = active && workspace.plan === "pro";
+  const proInterval = workspace.interval || "month";
+  const usage = workspace.usage || {
     used: 0,
     limit: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
     remaining: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
@@ -205,12 +213,13 @@ export function BillingScreen({
       }
       setPlan((current) => ({
         ...current,
-        account: {
-          ...(current?.account || {}),
+        workspace: {
+          ...(billingWorkspace(current) || {}),
           plan: "pro",
           interval: "year",
-          status: result?.status || accountStatus,
+          status: result?.status || workspaceStatus,
         },
+        account: current?.account ? { ...current.account, deprecated: true } : current?.account,
       }));
       setPendingAction("");
     } catch (err) {
@@ -234,8 +243,8 @@ export function BillingScreen({
               <h1>{T("Billing", "Billing")}</h1>
               <div className="sub">
                 {T(
-                  "Choose Free or Pro. Pro includes a monthly review allowance that does not roll over.",
-                  "Choose Free or Pro. Pro includes a monthly review allowance that does not roll over."
+                  "Choose Free or Pro. Quota is shared by workspace and by GitHub repository.",
+                  "Choose Free or Pro. Quota is shared by workspace and by GitHub repository."
                 )}
               </div>
             </div>
@@ -285,15 +294,15 @@ export function BillingScreen({
                 <div className="billing-summary-main">
                   <I.Activity size={18} />
                   <div>
-                    <b>{activePro ? "Pro usage" : "Free usage"}</b>
-                    <div className="muted">{usageText(usage)}</div>
+                    <b>Workspace usage</b>
+                    <div className="muted">{workspaceName} ? {usageText(usage)}</div>
                   </div>
                 </div>
                 <div className="billing-summary-meter">
                   <div className="usage-bar">
                     <div style={{ width: `${usagePercent(usage)}%` }} />
                   </div>
-                  <span className="tag">{accountStatus}</span>
+                  <span className="tag">{workspaceStatus}</span>
                 </div>
               </div>
 
@@ -302,7 +311,7 @@ export function BillingScreen({
                   plan={freePlan}
                   price={priceFor(freePlan, "month")}
                   interval="month"
-                  active={account.plan === "free" || !activePro}
+                  active={workspace.plan === "free" || !activePro}
                   featured={false}
                   cta={
                     <button className="btn" disabled>
@@ -400,14 +409,14 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         {plan?.id === "pro" && interval === "year" && (
           <div className="pricing-billed">2 months free</div>
         )}
-        {active && <div className="pricing-billed">Current account plan</div>}
+        {active && <div className="pricing-billed">Current workspace plan</div>}
       </div>
       <ul className="pricing-feats">
         <li>
-          <I.Check size={13} /> {reviewLimit} reviews / month
+          <I.Check size={13} /> {reviewLimit} shared workspace reviews / month
         </li>
         <li>
-          <I.Check size={13} /> Monthly quota does not roll over
+          <I.Check size={13} /> Repository quota is shared by GitHub repo ID
         </li>
         <li>
           <I.Check size={13} /> GitHub repository review history
