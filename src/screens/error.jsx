@@ -3,6 +3,21 @@
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 export function NotFoundScreen({ go, requested, auth }) {
   useLang();
   const signedIn = Boolean(auth?.authenticated);
@@ -68,14 +83,14 @@ export function NotFoundScreen({ go, requested, auth }) {
         <div className="notfound-suggest">
           <div className="notfound-suggest-h">{T("Try one of these instead", "试试这些页面")}</div>
           {suggestions.map((s) => (
-            <button key={s.k} className="notfound-suggest-i" onClick={() => go(s.k)}>
+            <a key={s.k} className="notfound-suggest-i" {...screenLinkProps(go, s.k)}>
               <span className="notfound-suggest-ic">{s.i}</span>
               <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
                 <div className="notfound-suggest-t">{s.t}</div>
                 <div className="notfound-suggest-d">{s.d}</div>
               </div>
               <I.ArrowR size={12} style={{ color: "var(--text-4)" }} />
-            </button>
+            </a>
           ))}
         </div>
         <div className="notfound-foot">
