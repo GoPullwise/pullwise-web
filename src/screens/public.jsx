@@ -110,6 +110,12 @@ export function LandingScreen({ go, accent, auth }) {
           <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
             {T("Product", "Product")}
           </a>
+          <a className="btn ghost sm" {...screenLinkProps(go, "pricing")}>
+            {T("Pricing", "Pricing")}
+          </a>
+          <a className="btn ghost sm" {...screenLinkProps(go, "api")}>
+            {T("API", "API")}
+          </a>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           {checkingSession ? (
@@ -349,6 +355,12 @@ export function LandingScreen({ go, accent, auth }) {
           </a>
           <a className="legal-foot-l" {...screenLinkProps(go, "security")}>
             {T("Security", "Security")}
+          </a>
+          <a className="legal-foot-l" {...screenLinkProps(go, "pricing")}>
+            {T("Pricing", "Pricing")}
+          </a>
+          <a className="legal-foot-l" {...screenLinkProps(go, "api")}>
+            {T("API", "API")}
           </a>
           <a className="legal-foot-l" {...screenLinkProps(go, "status")}>
             {T("Status", "Status")}

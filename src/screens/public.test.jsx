@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./public.jsx";
@@ -10,12 +10,17 @@ describe("public navigation links", () => {
 
     render(<LandingScreen go={go} accent="#6366f1" auth={{ authenticated: false }} />);
 
-    const product = screen.getByRole("link", { name: /^product$/i });
+    const headerNav = screen.getByRole("navigation");
+    const product = within(headerNav).getByRole("link", { name: /^product$/i });
+    const pricing = within(headerNav).getByRole("link", { name: /^pricing$/i });
+    const api = within(headerNav).getByRole("link", { name: /^api$/i });
     const signIn = screen.getByRole("link", { name: /^sign in$/i });
     const getStarted = screen.getByRole("link", { name: /^get started$/i });
     const primaryActions = screen.getAllByRole("link", { name: /sign in with github/i });
 
     expect(product).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+    expect(pricing).toHaveAttribute("href", expect.stringContaining("screen=pricing"));
+    expect(api).toHaveAttribute("href", expect.stringContaining("screen=api"));
     expect(signIn).toHaveAttribute("href", expect.stringContaining("screen=login"));
     expect(getStarted).toHaveAttribute("href", expect.stringContaining("screen=login"));
     expect(primaryActions).toHaveLength(2);
@@ -24,8 +29,12 @@ describe("public navigation links", () => {
     }
 
     await user.click(getStarted);
+    await user.click(pricing);
+    await user.click(api);
 
     expect(go).toHaveBeenCalledWith("login");
+    expect(go).toHaveBeenCalledWith("pricing");
+    expect(go).toHaveBeenCalledWith("api");
   });
 
   it("exposes signed-in landing header actions as real screen links", () => {

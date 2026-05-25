@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { BillingScreen } from "./billing.jsx";
+import { BillingScreen, PricingScreen } from "./billing.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -59,7 +59,7 @@ describe("BillingScreen", () => {
     const navigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
     expect(await screen.findByText("Stripe")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /start pro/i }));
@@ -98,6 +98,24 @@ describe("BillingScreen", () => {
     expect(go).toHaveBeenCalledWith("terms");
   });
 
+  it("keeps new subscriptions on Pricing instead of starting checkout from Billing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none", plan: "free" },
+    });
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={go} navigate={vi.fn()} />);
+
+    const pricingButtons = await screen.findAllByRole("button", { name: /view pricing/i });
+    await user.click(pricingButtons[0]);
+
+    expect(go).toHaveBeenCalledWith("pricing");
+    expect(pullwiseApi.billing.createCheckoutSession).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /start pro/i })).not.toBeInTheDocument();
+  });
+
   it("rejects unsafe checkout URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -110,7 +128,7 @@ describe("BillingScreen", () => {
     const navigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
     await user.click(await screen.findByRole("button", { name: /start pro/i }));
 
@@ -130,7 +148,7 @@ describe("BillingScreen", () => {
     const navigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
     await user.click(await screen.findByRole("button", { name: /start pro/i }));
 
@@ -150,13 +168,12 @@ describe("BillingScreen", () => {
     });
     const user = userEvent.setup();
 
-    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Free")).toBeInTheDocument();
     expect(screen.getByText("5 shared workspace reviews / month")).toBeInTheDocument();
-    expect(screen.getByText(/42 \/ 100 reviews used/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /^yearly$/i }));
+    await user.click(screen.getByRole("button", { name: /yearly/i }));
 
     expect(screen.getByText("$290")).toBeInTheDocument();
     expect(screen.getByText(/2 months free/i)).toBeInTheDocument();
@@ -181,7 +198,6 @@ describe("BillingScreen", () => {
 
     expect(await screen.findByText(/0 \/ 0 reviews used/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("NaN");
-    expect(screen.getAllByText("0 shared workspace reviews / month").length).toBeGreaterThan(0);
   });
 
   it("prefers workspace usage over the deprecated account payload", async () => {
@@ -205,7 +221,7 @@ describe("BillingScreen", () => {
 
     expect(await screen.findByText("Workspace usage")).toBeInTheDocument();
     expect(screen.getByText(/acme/)).toHaveTextContent("acme - 7 / 100 reviews used");
-    expect(screen.getByText("Current workspace plan")).toBeInTheDocument();
+    expect(screen.getByText("Pullwise Pro")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("Current account plan");
   });
 
@@ -232,7 +248,7 @@ describe("BillingScreen", () => {
       },
     });
 
-    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findAllByText("Configured in provider")).toHaveLength(2);
     expect(document.body).not.toHaveTextContent("$-5");
@@ -255,9 +271,9 @@ describe("BillingScreen", () => {
     const navigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
-    await user.click(await screen.findByRole("button", { name: /^yearly$/i }));
+    await user.click(await screen.findByRole("button", { name: /yearly/i }));
     await user.click(screen.getByRole("button", { name: /start pro/i }));
 
     await waitFor(() => {

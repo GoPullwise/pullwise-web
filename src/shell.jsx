@@ -121,7 +121,11 @@ function SearchModal({ close, go, setIssue }) {
     { k: "issues", t: T("Issues", "问题"), i: <I.Bug size={14} /> },
     { k: "repos", t: T("Repositories", "仓库"), i: <I.Folder size={14} /> },
     { k: "history", t: T("Scan history", "扫描历史"), i: <I.Clock size={14} /> },
+    { k: "apiKeys", t: T("API Keys", "API Keys"), i: <I.Code size={14} /> },
+    { k: "workspaces", t: T("Workspaces", "Workspaces"), i: <I.Layers size={14} /> },
     { k: "billing", t: T("Billing", "支付"), i: <I.Package size={14} /> },
+    { k: "pricing", t: T("Pricing", "Pricing"), i: <I.Trend size={14} /> },
+    { k: "api", t: T("API docs", "API docs"), i: <I.FileCode size={14} /> },
     { k: "settings", t: T("Settings", "设置"), i: <I.Settings size={14} /> },
   ];
   const pages = allPages.filter(
@@ -278,6 +282,13 @@ export function Sidebar({ section, go }) {
       icon: <I.Clock size={15} />,
       badge: null,
     },
+    { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} />, badge: null },
+    {
+      k: "workspaces",
+      label: T("Workspaces", "Workspaces"),
+      icon: <I.Layers size={15} />,
+      badge: null,
+    },
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} />, badge: null },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];
@@ -285,7 +296,11 @@ export function Sidebar({ section, go }) {
     <aside className="side">
       <div className="side-group side-workspace">
         <div className="side-h">{T("Workspace", "工作区")}</div>
-        <button className="side-i side-workspace-i">
+        <a
+          className={"side-i side-workspace-i" + (section === "workspaces" ? " active" : "")}
+          aria-label="Open workspaces"
+          {...screenLinkProps(go, "workspaces")}
+        >
           <div
             style={{
               width: 18,
@@ -304,7 +319,7 @@ export function Sidebar({ section, go }) {
           </div>
           <span>{workspaceName}</span>
           <I.ChevD size={13} style={{ marginLeft: "auto", opacity: 0.6 }} />
-        </button>
+        </a>
       </div>
 
       <div className="side-group side-nav" aria-label={T("Navigation", "导航")}>
@@ -326,24 +341,16 @@ export function Sidebar({ section, go }) {
 
       <div className="side-group side-repos">
         <div className="side-h" style={{ marginTop: 6 }}>
-          {T("Authorized repos", "已授权仓库")}
+          {T("Repository access", "Repository access")}
         </div>
-        {repos.slice(0, 3).map((repo) => (
-          <a key={repo.id} className="side-i side-repo-i" {...screenLinkProps(go, "repos")}>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 999,
-                background: "var(--accent)",
-                marginLeft: 4,
-                marginRight: 4,
-              }}
-            ></span>
-            <span style={{ fontSize: 12.5 }}>{repo.name}</span>
+        {repos.length > 0 ? (
+          <a className="side-i side-repo-i" {...screenLinkProps(go, "repos")}>
+            <I.Folder size={14} />
+            <span style={{ fontSize: 12.5 }}>
+              {T(`${repos.length} repositories`, `${repos.length} repositories`)}
+            </span>
           </a>
-        ))}
-        {repos.length === 0 && (
+        ) : (
           <button
             className="side-i side-repo-i"
             onClick={connectRepositories}

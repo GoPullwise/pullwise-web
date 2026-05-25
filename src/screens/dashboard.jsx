@@ -90,19 +90,23 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
   useLang();
   const { items: issues, loading: issuesLoading, error: issuesError } = useIssues();
   const { items: scans, loading: scansLoading } = useScans();
-  const { items: repositories, loading: reposLoading, needsAuthorization } = useRepositories();
+  const {
+    items: repositories,
+    loading: reposLoading,
+    needsAuthorization,
+    workspace,
+  } = useRepositories();
   const openIssues = issues.filter((issue) => issue.status === "open");
   const counts = issueCounts(openIssues);
   const latestScan = scans[0];
   const trend = scans.slice(0, 14).reverse().map(scanIssueTotal);
-  const activeRepo =
-    latestScan?.repo || repositories[0]?.fullName || repositories[0]?.name || "Pullwise";
+  const workspaceName = workspace?.name || workspace?.githubOwnerLogin || "Pullwise";
 
   return (
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: activeRepo }]}
+        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Overview", "总览") }]}
         setIssue={setIssue}
       />
       <div className="with-side">
@@ -115,6 +119,12 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
                 className="sub"
                 style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}
               >
+                <span>
+                  {T(
+                    `Workspace-wide view for ${workspaceName}`,
+                    `Workspace-wide view for ${workspaceName}`
+                  )}
+                </span>
                 {latestScan ? (
                   <>
                     <span className="tag">
@@ -156,13 +166,13 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
             </div>
             <div className="kpi card">
               <div className="kpi-h">
-                <span className="kpi-l">{T("Authorized repos", "已授权仓库")}</span>
+                <span className="kpi-l">{T("Repositories", "仓库")}</span>
               </div>
               <div className="kpi-v">{reposLoading ? "-" : repositories.length}</div>
               <div className="kpi-foot">
                 {needsAuthorization
                   ? T("GitHub authorization required", "需要 GitHub 授权")
-                  : T("GitHub App access", "GitHub App 权限")}
+                  : T("Authorized for this workspace", "Authorized for this workspace")}
               </div>
             </div>
             <div className="kpi card">
@@ -202,22 +212,31 @@ export function DashboardScreen({ go, layout, setIssue, accent }) {
 
             <div className="card dash-cats">
               <div className="dash-summary-head">
-                <h3>{T("Repositories", "仓库")}</h3>
+                <h3>{T("Repository access", "Repository access")}</h3>
+                <button className="btn sm" onClick={() => go("repos")}>
+                  {T("Manage", "Manage")} <I.ArrowR size={12} />
+                </button>
               </div>
               {repositories.slice(0, 7).map((repo) => (
-                <div key={repo.id} className="dash-cat-row">
+                <button
+                  key={repo.id}
+                  type="button"
+                  className="dash-cat-row"
+                  onClick={() => go("repos")}
+                  aria-label={`Open repository ${repo.fullName || repo.name}`}
+                >
                   <span
-                    style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 180 }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}
                   >
                     <I.Folder size={13} /> {repo.fullName || repo.name}
                   </span>
-                  <div className="dash-cat-bar">
-                    <div style={{ width: "100%", background: "var(--accent)" }}></div>
-                  </div>
+                  <span className="muted" style={{ fontSize: 12, minWidth: 0 }}>
+                    {repo.repoId ? `repo id ${repo.repoId}` : repo.private ? "private" : "public"}
+                  </span>
                   <b style={{ minWidth: 18, textAlign: "right" }}>
-                    {repo.private ? <I.Lock size={12} /> : ""}
+                    {repo.private ? <I.Lock size={12} /> : <I.ChevR size={12} />}
                   </b>
-                </div>
+                </button>
               ))}
               {!reposLoading && repositories.length === 0 && (
                 <div className="muted" style={{ padding: "16px 0" }}>

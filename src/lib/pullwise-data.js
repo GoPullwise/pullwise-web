@@ -339,6 +339,8 @@ export function normalizeRepo(repo = {}) {
     updated: textValue(repo.updated, repo.updated_at, repo.updatedAt),
     private: normalizeBoolean(repo.private),
     quota: normalizeQuotaUsage(repo.quota),
+    href: textValue(repo.href),
+    scanAction: objectRecord(repo.scanAction) ? { ...repo.scanAction } : null,
   };
 }
 
@@ -690,7 +692,9 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
   const [scans, setScans] = useState([]);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
-  const requests = repositories.map(normalizeScanRequest).filter((request) => request.repo || request.repoId);
+  const requests = repositories
+    .map(normalizeScanRequest)
+    .filter((request) => request.repo || request.repoId);
   const requestKey = requests.map(scanRequestKey).join("\u001e");
   const requestsRef = useRef(requests);
   requestsRef.current = requests;

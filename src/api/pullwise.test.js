@@ -34,6 +34,7 @@ describe("pullwiseApi issue fix endpoints", () => {
     await pullwiseApi.integrations.createGitHubInstallationManageSession("install/999", {
       githubIdentityId: "ghi_1",
     });
+    await pullwiseApi.apiKeys.revoke("key/with spaces#1");
 
     expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231");
     expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/cancel", {
@@ -61,6 +62,29 @@ describe("pullwiseApi issue fix endpoints", () => {
         body: { githubIdentityId: "ghi_1" },
       }
     );
+    expect(request).toHaveBeenNthCalledWith(9, "/api-keys/key%2Fwith%20spaces%231", {
+      method: "DELETE",
+    });
+  });
+
+  it("calls API key and workspace collection endpoints", async () => {
+    request.mockResolvedValue({});
+
+    await pullwiseApi.apiKeys.list({ workspaceId: "ws_1" });
+    await pullwiseApi.apiKeys.create({ name: "CI" });
+    await pullwiseApi.workspaces.list();
+    await pullwiseApi.workspaces.create({ name: "Acme" });
+
+    expect(request).toHaveBeenNthCalledWith(1, "/api-keys?workspaceId=ws_1");
+    expect(request).toHaveBeenNthCalledWith(2, "/api-keys", {
+      method: "POST",
+      body: { name: "CI" },
+    });
+    expect(request).toHaveBeenNthCalledWith(3, "/workspaces");
+    expect(request).toHaveBeenNthCalledWith(4, "/workspaces", {
+      method: "POST",
+      body: { name: "Acme" },
+    });
   });
 
   it("rejects empty dynamic path segments before making a request", () => {
@@ -74,6 +98,7 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(
       /path segment/i
     );
+    expect(() => pullwiseApi.apiKeys.revoke("")).toThrow(/path segment/i);
 
     expect(request).not.toHaveBeenCalled();
   });

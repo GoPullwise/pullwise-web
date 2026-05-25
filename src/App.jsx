@@ -3,7 +3,8 @@ import { pullwiseApi } from "./api/pullwise.js";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
-import { BillingScreen } from "./screens/billing.jsx";
+import { ApiDocsScreen, ApiKeysScreen, WorkspacesScreen } from "./screens/api.jsx";
+import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
 import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
@@ -28,8 +29,12 @@ const SCREENS = new Set([
   "issues",
   "issue",
   "history",
+  "apiKeys",
+  "workspaces",
   "settings",
   "billing",
+  "pricing",
+  "api",
   "privacy",
   "terms",
   "security",
@@ -39,6 +44,8 @@ const SCREENS = new Set([
 const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
+  "pricing",
+  "api",
   "privacy",
   "terms",
   "security",
@@ -81,8 +88,12 @@ function PrototypeNav({ go, current }) {
     { k: "issues", t: "Issues" },
     { k: "issue", t: "详情" },
     { k: "history", t: "历史" },
+    { k: "apiKeys", t: "API Keys" },
+    { k: "workspaces", t: "Workspaces" },
     { k: "settings", t: "设置" },
     { k: "billing", t: "Billing" },
+    { k: "pricing", t: "Pricing" },
+    { k: "api", t: "API" },
     { k: "privacy", t: "隐私" },
     { k: "terms", t: "条款" },
     { k: "security", t: "安全" },
@@ -248,11 +259,23 @@ export function App({ prototypeNav = false }) {
       case "history":
         body = <HistoryScreen go={go} openScan={openScan} setIssue={setIssue} />;
         break;
+      case "apiKeys":
+        body = <ApiKeysScreen go={go} setIssue={setIssue} />;
+        break;
+      case "workspaces":
+        body = <WorkspacesScreen go={go} setIssue={setIssue} />;
+        break;
       case "settings":
         body = <SettingsScreen go={go} setIssue={setIssue} />;
         break;
       case "billing":
         body = <BillingScreen go={go} setIssue={setIssue} />;
+        break;
+      case "pricing":
+        body = <PricingScreen go={go} auth={auth} />;
+        break;
+      case "api":
+        body = <ApiDocsScreen go={go} auth={auth} />;
         break;
       case "privacy":
         body = <PrivacyScreen go={go} auth={auth} />;

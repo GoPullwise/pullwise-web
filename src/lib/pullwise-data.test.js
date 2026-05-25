@@ -308,6 +308,8 @@ describe("normalizeIssue", () => {
         githubNodeId: "R_123",
         workspace: { id: "ws_1", name: "octocat" },
         quota: { scope: "repository", period: "2026-05", used: "1.8", limit: "3", remaining: "2" },
+        href: "/repositories/repo_123",
+        scanAction: { href: "/scans", method: "POST" },
       })
     ).toMatchObject({
       id: "repo_123",
@@ -316,6 +318,8 @@ describe("normalizeIssue", () => {
       githubNodeId: "R_123",
       workspaceId: "ws_1",
       workspaceName: "octocat",
+      href: "/repositories/repo_123",
+      scanAction: { href: "/scans", method: "POST" },
       quota: {
         scope: "repository",
         period: "2026-05",

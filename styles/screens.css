@@ -19,8 +19,16 @@
   justify-self: end;
 }
 .lp-top .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 600;
   font-size: 15px;
+}
+.lp-top .topbar-brand-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 .lp-top .brand-mark {
   flex: 0 0 auto;
@@ -1213,11 +1221,22 @@
 
 .dash-cat-row {
   display: grid;
-  grid-template-columns: 130px 1fr 24px;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
   gap: 10px;
   align-items: center;
-  padding: 7px 0;
+  padding: 7px 6px;
   font-size: 12.5px;
+  border-radius: 6px;
+}
+button.dash-cat-row {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+button.dash-cat-row:hover {
+  background: var(--bg-soft);
 }
 .dash-cat-row > span:first-child {
   min-width: 0 !important;
