@@ -6,7 +6,15 @@ import reactRefresh from "eslint-plugin-react-refresh";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**"],
+    ignores: [
+      ".worktrees/**",
+      "build/**",
+      "coverage/**",
+      "dist/**",
+      "dist-ssr/**",
+      "node_modules/**",
+      "out/**",
+    ],
   },
   {
     files: ["**/*.{js,jsx}"],
