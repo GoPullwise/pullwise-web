@@ -17,6 +17,18 @@ function billingReturnUrl(kind) {
   return url.toString();
 }
 
+function safeBillingUrl(value, label) {
+  if (typeof value !== "string") throw new Error(`A safe ${label} is required.`);
+  const url = value.trim();
+  try {
+    const parsed = new URL(url);
+    if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
+  } catch {
+    // handled by the common error below
+  }
+  throw new Error(`A safe ${label} is required.`);
+}
+
 function planById(payload, id) {
   return (payload?.plans || []).find((plan) => plan.id === id) || null;
 }
@@ -157,7 +169,7 @@ export function BillingScreen({
         cancelUrl: billingReturnUrl("cancel"),
       });
       if (!session?.url) throw new Error("Billing provider did not return a checkout URL.");
-      navigate(session.url);
+      navigate(safeBillingUrl(session.url, "billing checkout URL"));
     } catch (err) {
       setError(err?.message || "Unable to start checkout.");
       setPendingAction("");
@@ -172,7 +184,7 @@ export function BillingScreen({
         returnUrl: billingReturnUrl("return"),
       });
       if (!session?.url) throw new Error("Billing provider did not return a portal URL.");
-      navigate(session.url);
+      navigate(safeBillingUrl(session.url, "billing portal URL"));
     } catch (err) {
       setError(err?.message || "Unable to open billing portal.");
       setPendingAction("");
@@ -188,7 +200,7 @@ export function BillingScreen({
         returnUrl: billingReturnUrl("return"),
       });
       if (result?.url) {
-        navigate(result.url);
+        navigate(safeBillingUrl(result.url, "billing interval URL"));
         return;
       }
       setPlan((current) => ({

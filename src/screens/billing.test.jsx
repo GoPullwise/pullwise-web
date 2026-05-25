@@ -76,6 +76,26 @@ describe("BillingScreen", () => {
     });
   });
 
+  it("rejects unsafe checkout URLs before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "stripe",
+      url: "javascript:alert(1)",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /start pro/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing checkout URL/i);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("shows free and pro monthly limits with yearly pricing toggle", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -215,5 +235,56 @@ describe("BillingScreen", () => {
       expect(navigate).toHaveBeenCalledWith("https://billing.stripe.com/session");
     });
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();
+  });
+
+  it("rejects unsafe billing portal URLs before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "year",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.createPortalSession.mockResolvedValue({
+      provider: "stripe",
+      url: "javascript:alert(1)",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /manage billing/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing portal URL/i);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsafe interval-change URLs before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      provider: "stripe",
+      interval: "year",
+      url: "javascript:alert(1)",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing interval URL/i);
+    expect(navigate).not.toHaveBeenCalled();
   });
 });
