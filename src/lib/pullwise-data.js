@@ -257,7 +257,14 @@ function normalizePullRequestUrl(value) {
   if (!url) return null;
   try {
     const parsed = new URL(url);
-    return ["http:", "https:"].includes(parsed.protocol) && parsed.hostname ? url : null;
+    const pathParts = parsed.pathname.split("/").filter(Boolean);
+    const isGitHubPullRequest =
+      parsed.protocol === "https:" &&
+      parsed.hostname === "github.com" &&
+      pathParts.length === 4 &&
+      pathParts[2] === "pull" &&
+      /^\d+$/.test(pathParts[3]);
+    return isGitHubPullRequest ? url : null;
   } catch {
     return null;
   }

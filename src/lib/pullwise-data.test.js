@@ -482,6 +482,21 @@ describe("normalizeIssue", () => {
       lastError: "GitHub failed",
     });
 
+    expect(
+      normalizeIssue({
+        id: "f_external_pr",
+        title: "Validate redirect targets",
+        pullRequest: {
+          branch: "pullwise/fix-f_external_pr-a1b2c3",
+          url: "https://example.com/acme/api/pull/42",
+          number: 42,
+          title: "Fix Validate redirect targets",
+        },
+      }).pullRequest
+    ).toMatchObject({
+      url: null,
+    });
+
     const validIssue = normalizeIssue({
       id: "f_456",
       pullRequest: {
