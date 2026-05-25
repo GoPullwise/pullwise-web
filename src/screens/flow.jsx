@@ -76,9 +76,9 @@ function scanInputFromRepo(repo) {
 function batchScanStatus(scans, expectedCount, hasError) {
   if (!expectedCount) return "no_repo";
   if (hasError && scans.length === 0) return "failed";
-  if (scans.length < expectedCount) return "queued";
   if (scans.some((scan) => scan.status === "running")) return "running";
   if (scans.some((scan) => scan.status === "queued")) return "queued";
+  if (scans.length < expectedCount) return hasError ? "failed" : "queued";
   if (scans.every((scan) => scan.status === "done")) return "done";
   if (scans.every((scan) => scan.status === "cancelled")) return "cancelled";
   if (scans.some((scan) => scan.status === "failed")) return "failed";

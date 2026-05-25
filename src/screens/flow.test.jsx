@@ -361,6 +361,45 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
+  it("marks a partial batch startup failure as failed after created scans finish", () => {
+    useScanRun.mockReturnValue({
+      scan: null,
+      error: "",
+      cancel: vi.fn(),
+    });
+    useScanBatchRun.mockReturnValue({
+      scans: [
+        {
+          id: "sc_done",
+          repo: "octocat/alpha",
+          branch: "main",
+          commit: "pending",
+          status: "done",
+          progress: 100,
+        },
+      ],
+      error: "Repository quota exhausted.",
+      errorCode: "QUOTA_EXCEEDED_REPOSITORY",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          selectedRepos: [
+            { ...repoAlpha, scanRequestId: "scan_req_alpha" },
+            { ...repoBeta, scanRequestId: "scan_req_beta" },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText(/scan batch failed/i)).toBeInTheDocument();
+    expect(screen.queryByText(/scan batch queued/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
+  });
+
   it("returns terminal scans to scan history", async () => {
     const go = vi.fn();
     const user = userEvent.setup();
