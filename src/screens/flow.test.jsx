@@ -1,7 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setLang } from "../i18n.jsx";
 import { ReposScreen, ScanningScreen } from "./flow.jsx";
+
+vi.mock("../lib/auth.js", () => ({
+  connectGitHubRepositories: vi.fn(),
+  manageGitHubInstallation: vi.fn(),
+}));
 
 vi.mock("../lib/pullwise-data.js", () => ({
   isTerminalScan: (scan) => ["done", "failed", "cancelled"].includes(scan?.status),
@@ -24,6 +30,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
 }));
 
 import { useRepositories, useScanBatchRun, useScanRun } from "../lib/pullwise-data.js";
+import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
 
 const repoAlpha = {
   id: "repo_alpha",
@@ -50,6 +57,11 @@ const repoBeta = {
 };
 
 beforeEach(() => {
+  setLang("en");
+  connectGitHubRepositories.mockReset();
+  connectGitHubRepositories.mockResolvedValue(undefined);
+  manageGitHubInstallation.mockReset();
+  manageGitHubInstallation.mockResolvedValue(undefined);
   useRepositories.mockReset();
   useScanBatchRun.mockReset();
   useScanBatchRun.mockReturnValue({ scans: [], error: "", cancel: vi.fn() });
@@ -133,6 +145,49 @@ describe("ReposScreen scan selection", () => {
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText("acme")).toBeInTheDocument();
     expect(screen.getByText(/2 of 3 repo scans left/i)).toBeInTheDocument();
+  });
+
+  it("renders repository onboarding copy in readable Chinese", async () => {
+    setLang("zh");
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(await screen.findByText("选择要扫描的仓库")).toBeInTheDocument();
+    expect(screen.getByText("1 个已授权仓库")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /同步/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /开始扫描/i })).toBeInTheDocument();
+  });
+
+  it("starts GitHub repository connection from the keyboard", async () => {
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: true,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    const connectRow = await screen.findByRole("button", {
+      name: /connect github repositories/i,
+    });
+    connectRow.focus();
+    await user.keyboard("{Enter}");
+
+    expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
   });
 });
 
