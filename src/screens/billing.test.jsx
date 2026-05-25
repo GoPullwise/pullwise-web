@@ -96,6 +96,26 @@ describe("BillingScreen", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("rejects checkout URLs with control characters before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "stripe",
+      url: "https://checkout.stripe.com/cs/test\r\nX-Injected: bad",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /start pro/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing checkout URL/i);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("shows free and pro monthly limits with yearly pricing toggle", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
