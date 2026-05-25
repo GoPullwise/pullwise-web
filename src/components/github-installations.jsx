@@ -7,32 +7,39 @@ function scalarText(value) {
   return "";
 }
 
+function displayText(value) {
+  return scalarText(value)
+    .trim()
+    .split(/[\r\n]/, 1)[0]
+    .trim();
+}
+
 function installationId(installation) {
-  return scalarText(installation?.installationId) || scalarText(installation?.id);
+  return displayText(installation?.installationId) || displayText(installation?.id);
 }
 
 function installationAccount(installation) {
   return (
-    scalarText(installation?.installationAccount) ||
-    scalarText(installation?.account?.login) ||
-    scalarText(installation?.account)
+    displayText(installation?.installationAccount) ||
+    displayText(installation?.account?.login) ||
+    displayText(installation?.account)
   );
 }
 
 function installationTargetType(installation) {
   const raw =
-    scalarText(installation?.installationTargetType) ||
-    scalarText(installation?.targetType) ||
-    scalarText(installation?.target_type);
+    displayText(installation?.installationTargetType) ||
+    displayText(installation?.targetType) ||
+    displayText(installation?.target_type);
   if (!raw) return T("Account", "账号");
   return raw.toLowerCase() === "organization" ? T("Organization", "组织") : T("User", "用户");
 }
 
 function installationSelection(installation) {
   const raw =
-    scalarText(installation?.repositorySelection) ||
-    scalarText(installation?.repository_selection) ||
-    scalarText(installation?.scope);
+    displayText(installation?.repositorySelection) ||
+    displayText(installation?.repository_selection) ||
+    displayText(installation?.scope);
   return raw === "all" ? T("all repositories", "全部仓库") : T("selected", "已选择仓库");
 }
 

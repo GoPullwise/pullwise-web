@@ -5,6 +5,22 @@ const MESSAGE_TYPE = "pullwise:github-install";
 const POPUP_FEATURES = "popup=1,width=920,height=820,resizable=1,scrollbars=1";
 const POLL_INTERVAL_MS = 400;
 
+function safePopupUrl(value) {
+  if (typeof value !== "string")
+    throw new Error("A safe GitHub installation popup URL is required.");
+  const url = value.trim();
+  if ([...url].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
+    throw new Error("A safe GitHub installation popup URL is required.");
+  }
+  try {
+    const parsed = new URL(url);
+    if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
+  } catch {
+    // handled by the common error below
+  }
+  throw new Error("A safe GitHub installation popup URL is required.");
+}
+
 export class GitHubInstallCancelled extends Error {
   constructor() {
     super("GitHub installation was cancelled.");
@@ -48,7 +64,8 @@ export function notifyOpenerAndClose() {
 }
 
 export function openGitHubInstallPopup(url, syncPayload) {
-  const popup = window.open(url, POPUP_NAME, POPUP_FEATURES);
+  const popupUrl = safePopupUrl(url);
+  const popup = window.open(popupUrl, POPUP_NAME, POPUP_FEATURES);
   if (!popup) return null;
   try {
     popup.focus();

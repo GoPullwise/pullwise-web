@@ -122,4 +122,12 @@ describe("openGitHubInstallPopup", () => {
       message: "missing_installation_id",
     });
   });
+
+  it("rejects unsafe popup URLs before opening a browser window", () => {
+    expect(() => openGitHubInstallPopup("javascript:alert(1)")).toThrow(
+      /safe GitHub installation popup URL/i
+    );
+
+    expect(window.open).not.toHaveBeenCalled();
+  });
 });

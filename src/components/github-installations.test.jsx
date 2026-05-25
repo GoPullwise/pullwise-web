@@ -72,4 +72,46 @@ describe("GitHubInstallationsList", () => {
       })
     );
   });
+
+  it("rejects installation management links with control characters", () => {
+    render(
+      <GitHubInstallationsList
+        installations={[
+          {
+            installationId: "130258770",
+            installationAccount: "GoPullwise",
+            installationHtmlUrl:
+              "https://github.com/settings/installations/130258770\r\nX-Injected: bad",
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("GoPullwise")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
+  });
+
+  it("uses display-safe installation text fields", () => {
+    render(
+      <GitHubInstallationsList
+        installations={[
+          {
+            installationId: "130258770\r\nX-Injected: bad",
+            installationAccount: "GoPullwise\r\nX-Injected: bad",
+            installationTargetType: "Organization\r\nX-Injected: bad",
+            repositorySelection: "all\r\nX-Injected: bad",
+            repositoryCount: "2",
+            installationHtmlUrl: "https://github.com/settings/installations/130258770",
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("GoPullwise")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Organization .* all repositories .* 2 repositories/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("X-Injected");
+  });
 });

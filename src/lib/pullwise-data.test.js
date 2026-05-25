@@ -368,7 +368,13 @@ describe("normalizeIssue", () => {
   it("normalizes issue rich detail arrays for safe rendering", () => {
     const issue = normalizeIssue({
       id: "f_rich",
-      steps: ["Review input validation", 42, null, { text: "bad shape" }],
+      steps: [
+        "Review input validation",
+        "Block unsafe redirects\r\nX-Injected: bad",
+        42,
+        null,
+        { text: "bad shape" },
+      ],
       badCode: [
         null,
         { ln: 7, code: 123, t: "add" },
@@ -377,20 +383,24 @@ describe("normalizeIssue", () => {
       goodCode: ["return ok", { ln: 9, code: "return safe", t: "del" }],
       references: [
         null,
+        { label: "Docs\r\nX-Injected: bad", url: "https://example.com/docs" },
         { label: 42, url: "https://example.com/a" },
+        { label: "Unsafe", url: "https://example.com/unsafe\r\nX-Injected: bad" },
         { url: 123 },
         "https://example.com/raw",
+        "https://example.com/raw-unsafe\r\nX-Injected: bad",
       ],
-      tags: ["security", 42, true, "", null, { label: "bad" }],
+      tags: ["security\r\nX-Injected: bad", 42, true, "", null, { label: "bad" }],
     });
 
-    expect(issue.steps).toEqual(["Review input validation", "42"]);
+    expect(issue.steps).toEqual(["Review input validation", "Block unsafe redirects", "42"]);
     expect(issue.badCode).toEqual([{ ln: "7", code: "123", t: "add" }]);
     expect(issue.goodCode).toEqual([
       { ln: "", code: "return ok", t: "" },
       { ln: "9", code: "return safe", t: "del" },
     ]);
     expect(issue.references).toEqual([
+      { label: "Docs", url: "https://example.com/docs" },
       { label: "42", url: "https://example.com/a" },
       { label: "https://example.com/raw", url: "https://example.com/raw" },
     ]);
