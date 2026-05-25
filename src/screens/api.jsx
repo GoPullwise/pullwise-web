@@ -68,6 +68,7 @@ function createdApiKeyToken(payload) {
 }
 
 function normalizeWorkspace(workspace = {}) {
+  if (!objectRecord(workspace)) return null;
   return {
     ...workspace,
     id: textValue(workspace.id, workspace.workspaceId, workspace.workspace_id),
@@ -497,7 +498,9 @@ export function WorkspacesScreen({ go, setIssue = null }) {
     setError("");
     try {
       const payload = await pullwiseApi.workspaces.list();
-      setWorkspaces(itemsFrom(payload, "workspaces", "items").map(normalizeWorkspace));
+      setWorkspaces(
+        itemsFrom(payload, "workspaces", "items").map(normalizeWorkspace).filter(Boolean)
+      );
       setCurrentWorkspace(
         normalizeWorkspace(payload?.currentWorkspace || payload?.workspace || {})
       );
@@ -522,6 +525,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
     try {
       const payload = await pullwiseApi.workspaces.create({ name: name.trim() || "Workspace" });
       const workspace = normalizeWorkspace(payload?.workspace || payload);
+      if (!workspace) throw new Error("Workspace response was malformed.");
       setWorkspaces((current) => [
         workspace,
         ...current.filter((item) => item.id !== workspace.id),
