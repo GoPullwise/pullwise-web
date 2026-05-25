@@ -35,13 +35,16 @@ function formatDate(value) {
 }
 
 function normalizeApiKey(key = {}) {
-  const record = objectRecord(key) ? key : {};
+  if (!objectRecord(key)) return null;
+  const record = key;
+  const id = textValue(record.id, record.keyId, record.key_id);
+  if (!id) return null;
   const scopes = Array.isArray(record.scopes)
     ? record.scopes.map(textValue).filter(Boolean)
     : [];
   return {
     ...record,
-    id: textValue(record.id, record.keyId, record.key_id),
+    id,
     name: textValue(record.name) || "API key",
     prefix: textValue(record.prefix),
     scopes,
@@ -274,7 +277,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     setError("");
     try {
       const payload = await pullwiseApi.apiKeys.list();
-      setKeys(itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey));
+      setKeys(itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey).filter(Boolean));
     } catch (err) {
       setError(err?.message || "Unable to load API keys.");
       setKeys([]);
@@ -297,6 +300,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       const payload = await pullwiseApi.apiKeys.create({ name: name.trim() || "API key" });
       const key = normalizeApiKey(createdApiKeyRecord(payload));
       const token = createdApiKeyToken(payload);
+      if (!key) throw new Error("API key response was malformed.");
       setCreatedToken(token);
       setKeys((current) => [key, ...current.filter((item) => item.id !== key.id)]);
       setName("Workspace automation");

@@ -152,6 +152,39 @@ describe("API screens", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/unable to copy api key/i);
   });
 
+  it("keeps valid API keys visible when the API returns malformed key rows", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [
+        null,
+        "bad key",
+        { id: "key_1", name: "Old key", prefix: "pwk_old", workspaceName: "Acme" },
+      ],
+    });
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(await screen.findByText("Old key")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /revoke/i })).toHaveLength(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows an error when API key creation returns malformed data", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue(null);
+    const user = userEvent.setup();
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/key name/i));
+    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
+    await user.click(screen.getByRole("button", { name: /create key/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/api key response was malformed/i);
+    expect(screen.queryByText("New key created")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /revoke/i })).not.toBeInTheDocument();
+  });
+
   it("creates workspaces from the dashboard workspace page", async () => {
     pullwiseApi.workspaces.list.mockResolvedValue({
       currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
