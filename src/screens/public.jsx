@@ -98,12 +98,18 @@ export function LandingScreen({ go, accent, auth }) {
   return (
     <div className="landing fade-in">
       <header className="lp-top">
-        <div className="brand">
+        <a
+          className="brand"
+          aria-label="Go to Pullwise home"
+          {...screenLinkProps(go, "landing")}
+        >
           <div className="brand-mark">PR</div>
           <span>Pullwise</span>
-        </div>
+        </a>
         <nav className="lp-nav">
-          <button className="btn ghost sm">{T("Product", "Product")}</button>
+          <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
+            {T("Product", "Product")}
+          </a>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           {checkingSession ? (
@@ -115,21 +121,21 @@ export function LandingScreen({ go, accent, auth }) {
             </button>
           ) : signedIn ? (
             <>
-              <button className="btn sm" onClick={() => go("settings")}>
+              <a className="btn sm" {...screenLinkProps(go, "settings")}>
                 {T("Settings", "Settings")}
-              </button>
-              <button className="btn primary sm" onClick={() => go("dashboard")}>
+              </a>
+              <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
                 {T("Dashboard", "Dashboard")}
-              </button>
+              </a>
             </>
           ) : (
             <>
-              <button className="btn sm" onClick={() => go("login")}>
+              <a className="btn sm" {...screenLinkProps(go, "login")}>
                 {T("Sign in", "Sign in")}
-              </button>
-              <button className="btn primary sm" onClick={() => go("login")}>
+              </a>
+              <a className="btn primary sm" {...screenLinkProps(go, "login")}>
                 {T("Get started", "Get started")}
-              </button>
+              </a>
             </>
           )}
         </div>
@@ -153,14 +159,15 @@ export function LandingScreen({ go, accent, auth }) {
           )}
         </p>
         <div className="lp-cta">
-          <button
-            className="btn primary lg"
-            type="button"
-            disabled={checkingSession}
-            onClick={() => go(primaryActionTarget)}
-          >
-            {primaryActionIcon} {primaryActionLabel}
-          </button>
+          {checkingSession ? (
+            <button className="btn primary lg" type="button" disabled>
+              {primaryActionIcon} {primaryActionLabel}
+            </button>
+          ) : (
+            <a className="btn primary lg" {...screenLinkProps(go, primaryActionTarget)}>
+              {primaryActionIcon} {primaryActionLabel}
+            </a>
+          )}
           {signedIn && (
             <button className="btn lg" onClick={signOut}>
               <I.ArrowL /> {T("Sign out", "Sign out")}
@@ -320,14 +327,15 @@ export function LandingScreen({ go, accent, auth }) {
               ? T("Continue from your workspace.", "Continue from your workspace.")
               : T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}
         </h2>
-        <button
-          className="btn primary lg"
-          type="button"
-          disabled={checkingSession}
-          onClick={() => go(primaryActionTarget)}
-        >
-          {primaryActionIcon} {primaryActionLabel}
-        </button>
+        {checkingSession ? (
+          <button className="btn primary lg" type="button" disabled>
+            {primaryActionIcon} {primaryActionLabel}
+          </button>
+        ) : (
+          <a className="btn primary lg" {...screenLinkProps(go, primaryActionTarget)}>
+            {primaryActionIcon} {primaryActionLabel}
+          </a>
+        )}
       </section>
 
       <footer className="lp-foot">

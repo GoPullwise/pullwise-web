@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PrivacyScreen, SecurityScreen } from "./legal.jsx";
@@ -15,9 +15,12 @@ describe("legal pages", () => {
   it("shows dashboard actions instead of sign-in actions for signed-in users", () => {
     render(<SecurityScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(screen.getByRole("button", { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
+      "href",
+      expect.stringContaining("screen=dashboard")
+    );
     expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^sign in$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
   it("exposes legal chrome navigation as keyboard-accessible links", async () => {
@@ -27,9 +30,20 @@ describe("legal pages", () => {
     render(<SecurityScreen go={go} />);
 
     const home = screen.getByRole("link", { name: /go to pullwise home/i });
+    const chromeNav = within(screen.getByRole("navigation"));
+    const product = chromeNav.getByRole("link", { name: /^product$/i });
+    const security = chromeNav.getByRole("link", { name: /^security$/i });
+    const status = chromeNav.getByRole("link", { name: /^status$/i });
+    const signIn = screen.getByRole("link", { name: /^sign in$/i });
+    const getStarted = screen.getByRole("link", { name: /^get started$/i });
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
 
     expect(home).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+    expect(product).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+    expect(security).toHaveAttribute("href", expect.stringContaining("screen=security"));
+    expect(status).toHaveAttribute("href", expect.stringContaining("screen=status"));
+    expect(signIn).toHaveAttribute("href", expect.stringContaining("screen=login"));
+    expect(getStarted).toHaveAttribute("href", expect.stringContaining("screen=login"));
     expect(privacy).toHaveAttribute("href", expect.stringContaining("screen=privacy"));
 
     home.focus();

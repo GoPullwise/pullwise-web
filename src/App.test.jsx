@@ -119,9 +119,12 @@ describe("App", () => {
   it("shows workspace actions on the landing page for signed-in users", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: true }} />);
 
-    expect(screen.getAllByRole("button", { name: /dashboard/i }).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /settings/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^sign in$/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: /settings/i })).toHaveAttribute(
+      "href",
+      expect.stringContaining("screen=settings")
+    );
+    expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
   it("renders GitHub-only login UI", () => {

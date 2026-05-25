@@ -34,15 +34,15 @@ function LegalChrome({ go, current, children, auth }) {
           <span>Pullwise</span>
         </a>
         <nav className="lp-nav">
-          <button className="btn ghost sm" onClick={() => go("landing")}>
+          <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
             {T("Product", "产品")}
-          </button>
-          <button className="btn ghost sm" onClick={() => go("security")}>
+          </a>
+          <a className="btn ghost sm" {...screenLinkProps(go, "security")}>
             {T("Security", "安全")}
-          </button>
-          <button className="btn ghost sm" onClick={() => go("status")}>
+          </a>
+          <a className="btn ghost sm" {...screenLinkProps(go, "status")}>
             {T("Status", "状态")}
-          </button>
+          </a>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
           {signedIn ? (
@@ -50,18 +50,18 @@ function LegalChrome({ go, current, children, auth }) {
               <button className="btn sm" onClick={signOut}>
                 {T("Sign out", "退出登录")}
               </button>
-              <button className="btn primary sm" onClick={() => go("dashboard")}>
+              <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
                 {T("Dashboard", "工作台")}
-              </button>
+              </a>
             </>
           ) : (
             <>
-              <button className="btn sm" onClick={() => go("login")}>
+              <a className="btn sm" {...screenLinkProps(go, "login")}>
                 {T("Sign in", "登录")}
-              </button>
-              <button className="btn primary sm" onClick={() => go("login")}>
+              </a>
+              <a className="btn primary sm" {...screenLinkProps(go, "login")}>
                 {T("Get started", "开始使用")}
-              </button>
+              </a>
             </>
           )}
         </div>
