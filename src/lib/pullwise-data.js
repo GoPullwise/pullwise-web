@@ -127,7 +127,7 @@ function normalizeReferenceUrl(value) {
 
 function normalizeTextList(values) {
   if (!Array.isArray(values)) return [];
-  return values.map(scalarText).filter(Boolean);
+  return values.map(firstLineText).filter(Boolean);
 }
 
 function objectRecord(value) {
