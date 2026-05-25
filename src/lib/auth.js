@@ -24,6 +24,18 @@ function getContinueRepositoryRedirectUrl(redirectTo) {
   return redirectUrl.toString();
 }
 
+function safeHttpUrl(value, label) {
+  if (typeof value !== "string") throw new Error(`A safe ${label} is required.`);
+  const url = value.trim();
+  try {
+    const parsed = new URL(url);
+    if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
+  } catch {
+    // handled by the common error below
+  }
+  throw new Error(`A safe ${label} is required.`);
+}
+
 function repositoryItemsFrom(payload) {
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.repositories)) return payload.repositories;
@@ -59,7 +71,7 @@ export async function startGitHubLogin({ redirectTo } = {}) {
     throw new Error("GitHub authorize URL is missing from the auth response.");
   }
 
-  window.location.assign(result.url);
+  window.location.assign(safeHttpUrl(result.url, "GitHub authorize URL"));
 }
 
 export async function connectGitHubRepositories({ redirectTo, manage = false, add = false } = {}) {
@@ -90,10 +102,11 @@ export async function connectGitHubRepositories({ redirectTo, manage = false, ad
     );
   }
 
+  const authorizeUrl = safeHttpUrl(result.url, "GitHub repository authorization URL");
   markGitHubRepositoryAccessRefreshNeeded();
-  const completion = openGitHubInstallPopup(result.url);
+  const completion = openGitHubInstallPopup(authorizeUrl);
   if (!completion) {
-    window.location.assign(result.url);
+    window.location.assign(authorizeUrl);
     return;
   }
   try {

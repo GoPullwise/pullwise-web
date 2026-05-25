@@ -73,6 +73,27 @@ describe("auth redirects", () => {
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 
+  it("rejects unsafe GitHub login URLs before navigating", async () => {
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      url: "javascript:alert(1)",
+    });
+
+    await expect(startGitHubLogin()).rejects.toThrow(/safe GitHub authorize URL/i);
+  });
+
+  it("rejects unsafe repository authorization URLs before opening a popup", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      url: "javascript:alert(1)",
+      mode: "github-app-install",
+    });
+
+    await expect(connectGitHubRepositories()).rejects.toThrow(
+      /safe GitHub repository authorization URL/i
+    );
+
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
   it("does not open the GitHub install popup when an existing app installation is connected", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,
