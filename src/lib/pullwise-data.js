@@ -271,8 +271,11 @@ function normalizePullRequestUrl(value) {
 }
 
 function normalizePullRequestNumber(value) {
-  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) return null;
-  return value;
+  if (typeof value === "boolean") return null;
+  if (typeof value === "string" && !/^\d+$/.test(value.trim())) return null;
+  const number = Number(value);
+  if (!Number.isInteger(number) || number <= 0) return null;
+  return number;
 }
 
 function normalizeTimestamp(value) {

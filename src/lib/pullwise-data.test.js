@@ -456,7 +456,7 @@ describe("normalizeIssue", () => {
         issueId: { value: "f_123" },
         branch: "pullwise/fix-f_123-existing\r\nX-Injected: bad",
         url: "javascript:alert(1)",
-        number: { value: 42 },
+        number: true,
         title: "Fix Validate redirect targets\r\nX-Injected: bad",
       },
       pullRequestPending: {
@@ -503,7 +503,7 @@ describe("normalizeIssue", () => {
         issueId: "ignored",
         branch: "pullwise/fix-f_456-a1b2c3",
         url: "https://github.com/acme/api/pull/42",
-        number: 42,
+        number: "42",
         title: "Fix escape shell arguments",
       },
       pullRequestPending: {
