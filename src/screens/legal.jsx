@@ -359,9 +359,9 @@ export function SecurityScreen({ go, auth }) {
 
       <section className="lp-cta-band">
         <h2>{T("Report a security issue", "报告安全问题")}</h2>
-        <button className="btn primary lg">
+        <a className="btn primary lg" href="mailto:security@pullwise.dev">
           <I.Mail /> security@pullwise.dev
-        </button>
+        </a>
       </section>
     </LegalChrome>
   );

@@ -53,4 +53,13 @@ describe("legal pages", () => {
 
     expect(go).toHaveBeenCalledWith("landing");
   });
+
+  it("exposes the security report address as a real mail link", () => {
+    render(<SecurityScreen go={vi.fn()} />);
+
+    expect(screen.getByRole("link", { name: /security@pullwise\.dev/i })).toHaveAttribute(
+      "href",
+      "mailto:security@pullwise.dev"
+    );
+  });
 });

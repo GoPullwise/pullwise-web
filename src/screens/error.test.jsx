@@ -17,4 +17,13 @@ describe("NotFoundScreen", () => {
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Issues")).toBeInTheDocument();
   });
+
+  it("exposes support email as a real mail link", () => {
+    render(<NotFoundScreen go={vi.fn()} requested="missing" auth={{ authenticated: false }} />);
+
+    expect(screen.getByRole("link", { name: /support@pullwise\.dev/i })).toHaveAttribute(
+      "href",
+      "mailto:support@pullwise.dev"
+    );
+  });
 });
