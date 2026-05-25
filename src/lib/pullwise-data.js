@@ -80,7 +80,7 @@ function normalizeDisplayCount(...values) {
 
 function textValue(...values) {
   for (const value of values) {
-    const text = scalarText(value);
+    const text = firstLineText(value);
     if (text) return text;
   }
   return "";
