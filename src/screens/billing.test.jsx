@@ -76,6 +76,28 @@ describe("BillingScreen", () => {
     });
   });
 
+  it("exposes billing legal side navigation as real screen links", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none" },
+    });
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={go} navigate={vi.fn()} />);
+
+    expect(await screen.findByText("Stripe")).toBeInTheDocument();
+    const terms = screen.getByRole("link", { name: /^terms$/i });
+    const privacy = screen.getByRole("link", { name: /^privacy$/i });
+
+    expect(terms).toHaveAttribute("href", expect.stringContaining("screen=terms"));
+    expect(privacy).toHaveAttribute("href", expect.stringContaining("screen=privacy"));
+
+    await user.click(terms);
+
+    expect(go).toHaveBeenCalledWith("terms");
+  });
+
   it("rejects unsafe checkout URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

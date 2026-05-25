@@ -17,6 +17,21 @@ function billingReturnUrl(kind) {
   return url.toString();
 }
 
+function screenHref(screen) {
+  return `?screen=${encodeURIComponent(screen)}`;
+}
+
+function screenLinkProps(go, screen) {
+  return {
+    href: screenHref(screen),
+    onClick: (event) => {
+      if (typeof go !== "function") return;
+      event.preventDefault();
+      go(screen);
+    },
+  };
+}
+
 function safeBillingUrl(value, label) {
   if (typeof value !== "string") throw new Error(`A safe ${label} is required.`);
   const url = value.trim();
@@ -282,14 +297,14 @@ export function BillingScreen({
                 <I.Package size={14} />
                 <span>{T("Plan", "Plan")}</span>
               </button>
-              <button className="set-side-i" onClick={() => go("terms")}>
+              <a className="set-side-i" {...screenLinkProps(go, "terms")}>
                 <I.FileCode size={14} />
                 <span>{T("Terms", "Terms")}</span>
-              </button>
-              <button className="set-side-i" onClick={() => go("privacy")}>
+              </a>
+              <a className="set-side-i" {...screenLinkProps(go, "privacy")}>
                 <I.Lock size={14} />
                 <span>{T("Privacy", "Privacy")}</span>
-              </button>
+              </a>
             </aside>
 
             <div className="set-body">
