@@ -5,7 +5,13 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
-import { isActiveScan, scanQueueSummary, useIssues, useScans } from "../lib/pullwise-data.js";
+import {
+  isActiveScan,
+  normalizeIssuePullRequest,
+  scanQueueSummary,
+  useIssues,
+  useScans,
+} from "../lib/pullwise-data.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
@@ -60,6 +66,15 @@ function DetailSection({ title, children, empty = "" }) {
       {children || <div className="muted">{empty}</div>}
     </div>
   );
+}
+
+function issuePullRequestState(issue) {
+  if (!issue?.pullRequest) return null;
+  const value = normalizeIssuePullRequest(issue.pullRequest, {
+    issueId: issue.id,
+    title: issue.title,
+  });
+  return value ? { issueId: issue.id, value } : null;
 }
 
 function CodeEvidence({ title, lines }) {
@@ -294,9 +309,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const [currentStatus, setCurrentStatus] = useState(issue?.status || "open");
   const [actionError, setActionError] = useState("");
   const [fixPreview, setFixPreview] = useState(null);
-  const [pullRequest, setPullRequest] = useState(
-    issue?.pullRequest ? { issueId: issue.id, value: issue.pullRequest } : null
-  );
+  const [pullRequest, setPullRequest] = useState(issuePullRequestState(issue));
   const [fixLoading, setFixLoading] = useState("");
   const fixRequestRef = useRef(0);
 
@@ -305,7 +318,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     setCurrentStatus(issue?.status || "open");
     setActionError("");
     setFixPreview(null);
-    setPullRequest(issue?.pullRequest ? { issueId: issue.id, value: issue.pullRequest } : null);
+    setPullRequest(issuePullRequestState(issue));
     setFixLoading("");
     return () => {
       fixRequestRef.current += 1;
@@ -362,7 +375,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     const requestId = beginFixRequest();
     setActionError("");
     setFixPreview(null);
-    setPullRequest(issue?.pullRequest ? { issueId: issue.id, value: issue.pullRequest } : null);
+    setPullRequest(issuePullRequestState(issue));
     setFixLoading("preview");
     try {
       const preview = await pullwiseApi.issues.previewFix(issue.id);
@@ -382,7 +395,10 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     try {
       const result = await pullwiseApi.issues.createPullRequest(issue.id);
       if (!isCurrentFixRequest(requestId)) return;
-      setPullRequest({ issueId: issue.id, value: result });
+      setPullRequest({
+        issueId: issue.id,
+        value: normalizeIssuePullRequest(result, { issueId: issue.id, title: issue.title }) || null,
+      });
     } catch (error) {
       if (!isCurrentFixRequest(requestId)) return;
       setActionError(error?.message || "Unable to open pull request.");

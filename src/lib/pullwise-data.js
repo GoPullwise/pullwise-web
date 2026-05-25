@@ -217,7 +217,7 @@ function fallbackPullRequestTitle(issueId, title) {
   return `Fix ${cleanPullRequestText(title) || cleanPullRequestText(issueId) || "issue"}`;
 }
 
-function normalizePullRequest(value, { issueId, title } = {}) {
+export function normalizeIssuePullRequest(value, { issueId, title } = {}) {
   if (!objectRecord(value)) return undefined;
   return {
     issueId,
@@ -290,7 +290,7 @@ export function normalizeIssue(issue = {}) {
     references: normalizeReferences(issue.references),
     tags: normalizeTextList(issue.tags),
   };
-  const pullRequest = normalizePullRequest(issue.pullRequest, { issueId: id, title });
+  const pullRequest = normalizeIssuePullRequest(issue.pullRequest, { issueId: id, title });
   if (pullRequest) normalized.pullRequest = pullRequest;
   else delete normalized.pullRequest;
   const pendingPullRequest = normalizePendingPullRequest(issue.pullRequestPending, { issueId: id });

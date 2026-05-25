@@ -15,22 +15,26 @@ vi.mock("../api/pullwise.js", () => ({
   },
 }));
 
-vi.mock("../lib/pullwise-data.js", () => ({
-  isActiveScan: (scan) => ["queued", "running"].includes(scan?.status),
-  scanQueueSummary: (scan) =>
-    scan?.queue
-      ? {
-          message: scan.queue.message || "",
-          tags: [
-            scan.queue.position ? `Position ${scan.queue.position}` : null,
-            typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
-          ].filter(Boolean),
-        }
-      : null,
-  useIssues: vi.fn(() => ({ items: [] })),
-  useRepositories: vi.fn(() => ({ items: [] })),
-  useScans: vi.fn(),
-}));
+vi.mock("../lib/pullwise-data.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    isActiveScan: (scan) => ["queued", "running"].includes(scan?.status),
+    scanQueueSummary: (scan) =>
+      scan?.queue
+        ? {
+            message: scan.queue.message || "",
+            tags: [
+              scan.queue.position ? `Position ${scan.queue.position}` : null,
+              typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
+            ].filter(Boolean),
+          }
+        : null,
+    useIssues: vi.fn(() => ({ items: [] })),
+    useRepositories: vi.fn(() => ({ items: [] })),
+    useScans: vi.fn(),
+  };
+});
 
 import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useScans } from "../lib/pullwise-data.js";
@@ -198,6 +202,42 @@ describe("IssueDetailScreen review detail", () => {
       "href",
       "https://github.com/acme/api/pull/42"
     );
+  });
+
+  it("does not render unsafe pull request responses as links", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      status: "open",
+      autoFix: true,
+      file: "src/auth.py",
+    };
+    pullwiseApi.issues.previewFix.mockResolvedValueOnce({
+      valid: true,
+      file: "src/auth.py",
+      diff: "--- a/src/auth.py\n+++ b/src/auth.py\n",
+    });
+    pullwiseApi.issues.createPullRequest.mockResolvedValueOnce({
+      url: "javascript:alert(1)",
+      number: 42,
+      branch: "pullwise/fix-f_123-a1b2c3\r\nX-Injected: bad",
+      title: "Fix Validate redirect targets\r\nX-Injected: bad",
+    });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
+
+    await user.click(screen.getByRole("button", { name: /preview fix/i }));
+    expect(await screen.findByText("validated")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /open pr/i }));
+
+    expect(screen.queryByRole("link", { name: /pull request/i })).not.toBeInTheDocument();
+    expect(document.body).not.toContainHTML("javascript:alert");
   });
 
   it("ignores preview responses from a previous issue", async () => {
