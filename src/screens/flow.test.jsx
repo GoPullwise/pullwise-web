@@ -122,6 +122,38 @@ describe("ReposScreen scan selection", () => {
     expect(go).toHaveBeenCalledWith("scanning");
   });
 
+  it("selects repositories from the keyboard before scanning", async () => {
+    const go = vi.fn();
+    const setActiveRepo = vi.fn();
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [repoAlpha, repoBeta],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
+
+    const alphaRow = screen.getByRole("button", { name: /select repository octocat\/alpha/i });
+    const betaRow = screen.getByRole("button", { name: /select repository octocat\/beta/i });
+    alphaRow.focus();
+    await user.keyboard("{Enter}");
+    betaRow.focus();
+    await user.keyboard(" ");
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    const activeRepo = setActiveRepo.mock.calls[0][0];
+    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual([
+      "octocat/alpha",
+      "octocat/beta",
+    ]);
+    expect(go).toHaveBeenCalledWith("scanning");
+  });
+
   it("shows repository quota and workspace ownership before scanning", async () => {
     useRepositories.mockReturnValue({
       items: [

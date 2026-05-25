@@ -175,6 +175,11 @@ export function ReposScreen({
     setSelected((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     );
+  const activateRepositorySelection = (event, repoId) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    toggle(repoId);
+  };
 
   const startScan = () => {
     const reposToScan = selected
@@ -383,11 +388,17 @@ export function ReposScreen({
               const quotaLabel = repoQuotaLabel(repo.quota);
               const workspace = workspaceLabel(repo);
               const quotaEmpty = repo.quota && quotaNumber(repo.quota.remaining) <= 0;
+              const repoLabel = repo.fullName || repo.name;
               return (
                 <div
                   key={repo.id}
                   className={"repo-row" + (on ? " on" : "")}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={on}
+                  aria-label={`Select repository ${repoLabel}`}
                   onClick={() => toggle(repo.id)}
+                  onKeyDown={(event) => activateRepositorySelection(event, repo.id)}
                 >
                   <div className="repo-check">
                     <span className="repo-check-box">{on && <I.Check size={11} />}</span>
