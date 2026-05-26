@@ -191,10 +191,10 @@ describe("auth redirects", () => {
     await expect(manageGitHubInstallation("999")).rejects.toThrow(/account mismatch/i);
   });
 
-  it("opens the GitHub install URL when adding another account or organization", async () => {
+  it("opens the controlled GitHub install identity flow when adding another account or organization", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       mode: "github-app-add",
-      url: "https://github.com/apps/pullwise/installations/new?state=abc",
+      url: "https://api.pullwise.dev/integrations/github/install/start?state=abc",
     });
     openGitHubInstallPopup.mockResolvedValueOnce(undefined);
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
@@ -208,7 +208,7 @@ describe("auth redirects", () => {
       expect.objectContaining({ add: "1", manage: undefined })
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
-      "https://github.com/apps/pullwise/installations/new?state=abc"
+      "https://api.pullwise.dev/integrations/github/install/start?state=abc"
     );
   });
 
