@@ -149,3 +149,753 @@
 body.has-proto-nav {
   padding-top: 42px;
 }
+/* ── Alignment pass: stable rows, truncation, and responsive wrapping ── */
+:where(
+  .topbar,
+  .topbar > div,
+  .crumbs,
+  .with-side,
+  .main,
+  .page-h,
+  .page-h > div,
+  .page-h .sub,
+  .page-h .actions,
+  .card,
+  .kpi,
+  .dash-summary,
+  .dash-cats,
+  .dash-summary-head,
+  .dash-donut-row,
+  .dash-cat-row,
+  .issue-list,
+  .issue-row,
+  .issue-main,
+  .issue-meta,
+  .issue-card,
+  .kan-card,
+  .filters,
+  .filters-row,
+  .issues-table,
+  .issues-thead,
+  .issues-trow,
+  .issues-title-c,
+  .issue-detail-h,
+  .issue-detail-grid,
+  .section,
+  .code,
+  .fix-preview,
+  .modal,
+  .modal-h,
+  .modal-body,
+  .search-i,
+  .search-i-t,
+  .repo-row,
+  .repo-main,
+  .repo-name,
+  .repo-meta,
+  .repo-workspace,
+  .repo-quota,
+  .gh-install-row,
+  .gh-install-main,
+  .scanning,
+  .scanning-h,
+  .scanning-copy,
+  .scanning-actions,
+  .scanning-phase,
+  .scanning-side,
+  .hist-row,
+  .hist-row > div,
+  .set-shell,
+  .set-body,
+  .set-row,
+  .set-pref,
+  .int-row,
+  .bill-card,
+  .billing-summary,
+  .billing-summary-main,
+  .billing-summary-meter,
+  .billing-actions,
+  .pricing-card,
+  .pricing-card-h,
+  .pricing-table-wrap,
+  .docs-shell,
+  .docs-main,
+  .docs-table,
+  .docs-table-r,
+  .docs-code,
+  .docs-code-h,
+  .docs-foot,
+  .legal-shell,
+  .legal-main,
+  .legal-table,
+  .legal-table-r,
+  .security-card,
+  .status-card,
+  .notif-row,
+  .notfound-card
+) {
+  min-width: 0;
+}
+
+.with-side {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.topbar > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.topbar > div:last-child,
+.page-h .actions,
+.scanning-actions,
+.modal-foot,
+.docs-foot-actions,
+.billing-actions {
+  flex: 0 0 auto;
+}
+
+.crumbs {
+  flex: 1 1 auto;
+  max-width: min(56vw, 720px);
+}
+
+.crumb-label,
+.crumb-button,
+.side-i > span,
+.repo-name > span:first-child,
+.gh-install-account,
+.search-i-tt,
+.search-i-s,
+.pop-i-t,
+.pop-i-s,
+.fix-preview-h b,
+.ref-t,
+.ref-u,
+.notfound-suggest-t,
+.notfound-suggest-d {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.btn, .tag, .chip, .pill, .sev, .pill-btn, .seg-i, .repos-org) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+:where(.tag, .chip, .pill, .kbd, .repos-org, .pill-btn, .seg-i) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn {
+  min-width: 0;
+  vertical-align: middle;
+}
+
+.btn > svg,
+.btn .spin,
+.tag > svg,
+.chip > svg,
+.pill > svg,
+.sev .dot,
+.lang-dot {
+  flex: 0 0 auto;
+}
+
+.page-h {
+  align-items: flex-start;
+}
+
+.page-h h1,
+.page-h .sub,
+.lp-sub,
+.pricing-tag,
+.docs-lede,
+.legal-lede,
+.security-section-h p,
+.status-section-h p,
+.notfound-sub {
+  overflow-wrap: anywhere;
+}
+
+.page-h .sub,
+.issue-meta,
+.repo-meta,
+.gh-install-meta,
+.scanning-sub,
+.billing-summary-main .muted,
+.docs-foot,
+.legal-foot-actions {
+  gap: 8px;
+}
+
+.page-h .actions,
+.oauth-actions,
+.modal-foot,
+.docs-foot-actions,
+.billing-actions {
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.kpi svg,
+.dash-summary svg,
+.scanning-log svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.kpi-h,
+.dash-summary-head,
+.section-h,
+.status-card-h {
+  gap: 10px;
+}
+
+.dash-summary-head > :first-child,
+.section-h > :first-child,
+.dash-donut-row > span:nth-child(2),
+.dash-cat-row > span:first-child,
+.dash-cat-row > span:nth-child(2) {
+  min-width: 0;
+}
+
+.dash-donut-row > span:nth-child(2),
+.dash-cat-row > span:first-child,
+.dash-cat-row > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-cat-row > span:nth-child(2) {
+  text-align: right;
+}
+
+.issue-row {
+  grid-template-columns: minmax(76px, auto) minmax(58px, auto) minmax(0, 1fr) minmax(64px, auto) 14px;
+}
+
+.issue-row > *,
+.issues-trow > *,
+.hist-row > *,
+.repo-row > *,
+.int-row > * {
+  min-width: 0;
+}
+
+.issue-sev,
+.issue-id,
+.issue-effort {
+  justify-self: start;
+  white-space: nowrap;
+}
+
+.issue-meta > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue-t,
+.issue-card-t,
+.kan-card-t,
+.scanning-title,
+.scanning-phase-t,
+.scanning-phase-d,
+.section p,
+.legal-list li,
+.legal-list-flat li,
+.docs-card p {
+  overflow-wrap: anywhere;
+}
+
+.repo-row {
+  grid-template-columns: 30px 24px minmax(180px, 1fr) minmax(260px, auto);
+}
+
+.repo-check,
+.repo-icon,
+.hist-status,
+.gh-install-icon {
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+}
+
+.repo-name {
+  align-items: center;
+}
+
+.repo-name .tag,
+.gh-install-row > .btn,
+.hist-row > .btn,
+.int-row > .btn,
+.billing-actions .btn {
+  flex: 0 0 auto;
+}
+
+.repo-desc,
+.gh-install-status,
+.scanning-queue-message,
+.auth-error,
+.auth-success,
+.oauth-error {
+  overflow-wrap: anywhere;
+}
+
+.repo-meta {
+  max-width: min(52vw, 620px);
+  justify-content: flex-end;
+  gap: 8px 12px;
+}
+
+.repo-meta > span {
+  min-width: 0;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-meta .repo-quota {
+  max-width: 260px;
+}
+
+.gh-install-row {
+  grid-template-columns: 24px minmax(0, 1fr) max-content;
+}
+
+.gh-install-meta > span,
+.gh-install-meta > a,
+.gh-identities > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.filters-row > .repos-search {
+  min-width: 220px;
+}
+
+.issues-thead,
+.issues-trow {
+  grid-template-columns:
+    24px
+    minmax(260px, 1.55fr)
+    minmax(180px, 1.15fr)
+    minmax(110px, 0.75fr)
+    minmax(90px, 0.65fr)
+    minmax(78px, 0.55fr)
+    minmax(190px, auto);
+  align-items: center;
+}
+
+.issues-title-c {
+  display: block;
+}
+
+.issues-title-c > div:first-child {
+  align-items: center;
+  gap: 6px 8px !important;
+}
+
+.issues-file,
+.issue-id,
+.hist-meta,
+.kpi-v,
+.pricing-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.issues-trow > div:nth-child(4),
+.issues-trow > div:nth-child(5),
+.issues-trow > div:nth-child(6),
+.issues-trow > div:nth-child(7) {
+  align-items: center;
+}
+
+.issues-trow > div:nth-child(7) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.conf-bar {
+  max-width: 100%;
+}
+
+.issue-detail-h h1,
+.issue-detail-h .sub,
+.issue-detail-grid .section,
+.fix-preview,
+.diff-block,
+.code-body,
+.docs-code pre {
+  max-width: 100%;
+}
+
+.issue-detail-h .sub > span {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.code-line {
+  min-width: max-content;
+}
+
+.diff-block,
+.docs-code pre {
+  overflow-x: auto;
+}
+
+.scanning-h {
+  align-items: flex-start;
+}
+
+.scanning-icon {
+  flex: 0 0 auto;
+}
+
+.scanning-title b,
+.scanning-sub .tag,
+.scanning-queue-meta .tag {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.scanning-actions {
+  align-self: flex-start;
+  gap: 8px;
+}
+
+.scanning-phase > div:last-child {
+  min-width: 0;
+}
+
+.hist-row {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(120px, auto) auto;
+}
+
+.hist-row > div:nth-child(2) > div:first-child {
+  align-items: center;
+  gap: 6px 8px !important;
+}
+
+.hist-row b {
+  display: block;
+  max-width: 100%;
+}
+
+.hist-row > .btn {
+  justify-self: end;
+}
+
+.set-row,
+.set-pref,
+.billing-summary,
+.bill-card {
+  align-items: center;
+}
+
+.set-row > div:last-child,
+.set-pref > div:first-child,
+.billing-summary-main > div,
+.int-row > div:nth-child(2) {
+  min-width: 0;
+}
+
+.int-row {
+  grid-template-columns: 24px minmax(0, 1fr) max-content max-content;
+}
+
+.int-row > .pill,
+.int-row > .btn,
+.int-row > .tag {
+  justify-self: end;
+}
+
+.billing-summary {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.billing-summary-main {
+  flex: 1 1 260px;
+}
+
+.billing-summary-meter {
+  flex: 0 1 320px;
+}
+
+.billing-actions {
+  justify-content: flex-end;
+}
+
+.pricing-card {
+  min-height: 100%;
+}
+
+.pricing-price,
+.pricing-card-h,
+.pricing-feats li {
+  min-width: 0;
+}
+
+.pricing-table-wrap {
+  overflow-x: auto;
+}
+
+.pricing-table {
+  min-width: 720px;
+}
+
+.docs-shell {
+  grid-template-columns: 240px minmax(0, 1fr) 200px;
+}
+
+.docs-table-r,
+.legal-table-r {
+  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+}
+
+.docs-table-r b,
+.docs-table-r span,
+.legal-table-r b,
+.legal-table-r span,
+.docs-code-h span,
+.docs-card b,
+.legal-callout p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.docs-foot {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pop {
+  max-width: calc(100vw - 24px);
+}
+
+.pop-i > div,
+.search-i > div,
+.notfound-suggest-i > div {
+  min-width: 0;
+}
+
+.search-i .tag {
+  flex: 0 0 auto;
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .repo-row {
+    grid-template-columns: 30px 24px minmax(0, 1fr);
+  }
+
+  .repo-meta {
+    grid-column: 3;
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+
+  .repo-row-status {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+  }
+
+  .issues-table {
+    overflow-x: auto;
+  }
+
+  .issues-thead,
+  .issues-trow {
+    min-width: 1020px;
+  }
+
+  .hist-row {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+  }
+
+  .hist-meta,
+  .hist-row > .btn {
+    grid-column: 2 / -1;
+    justify-self: start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar > div:last-child .btn.ghost.sm span,
+  .topbar > div:last-child .btn.ghost.sm .kbd {
+    display: none;
+  }
+
+  .topbar > div:last-child .btn.ghost.sm {
+    width: 32px;
+    padding: 0;
+  }
+
+  .page-h {
+    flex-wrap: wrap;
+  }
+
+  .page-h .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .billing-summary-meter,
+  .billing-actions {
+    flex: 1 1 100%;
+  }
+
+  .billing-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .with-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crumbs {
+    max-width: none;
+  }
+
+  .repo-row,
+  .repo-row-status,
+  .gh-install-row,
+  .hist-row,
+  .int-row,
+  .docs-table-r,
+  .legal-table-r {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .repo-meta,
+  .gh-install-row > .btn,
+  .hist-meta,
+  .hist-row > .btn,
+  .int-row > .pill,
+  .int-row > .btn,
+  .int-row > .tag {
+    grid-column: 2;
+    justify-self: start;
+    text-align: left;
+  }
+
+  .repo-meta {
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+
+  .repo-meta > span {
+    max-width: 100%;
+  }
+
+  .filters-row > .repos-search {
+    min-width: 0;
+  }
+
+  .issues-table {
+    overflow: visible;
+  }
+
+  .issues-thead,
+  .issues-trow {
+    min-width: 0;
+  }
+
+  .issues-trow > div:nth-child(3),
+  .issues-trow > div:nth-child(4),
+  .issues-trow > div:nth-child(5),
+  .issues-trow > div:nth-child(6) {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .issues-trow > div:nth-child(3)::before,
+  .issues-trow > div:nth-child(4)::before,
+  .issues-trow > div:nth-child(5)::before,
+  .issues-trow > div:nth-child(6)::before {
+    color: var(--text-3);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .issues-trow > div:nth-child(3)::before {
+    content: "File";
+  }
+
+  .issues-trow > div:nth-child(4)::before {
+    content: "Category";
+  }
+
+  .issues-trow > div:nth-child(5)::before {
+    content: "Confidence";
+  }
+
+  .issues-trow > div:nth-child(6)::before {
+    content: "Status";
+  }
+
+  .issues-trow > div:nth-child(7) {
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .docs-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pricing-table {
+    min-width: 620px;
+  }
+}
+
+@media (max-width: 520px) {
+  .page-h .actions .btn,
+  .billing-actions .btn,
+  .docs-foot-actions .btn,
+  .oauth-actions .btn,
+  .modal-foot .btn {
+    flex: 1 1 100%;
+  }
+
+  .dash-cat-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dash-cat-row > b {
+    display: none;
+  }
+
+  .issue-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .scanning-h {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .scanning-actions {
+    grid-column: 2;
+    margin-left: 0;
+    width: 100%;
+  }
+}
