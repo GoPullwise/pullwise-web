@@ -20,4 +20,17 @@ describe("parseEnv", () => {
   it("rejects non-http API URL schemes", () => {
     expect(() => parseEnv({ VITE_API_BASE_URL: "javascript:alert(1)" })).toThrow();
   });
+
+  it("falls back to the production API domain on pull-wise.com when the build env is missing", () => {
+    expect(
+      parseEnv(
+        {},
+        {
+          location: {
+            hostname: "pull-wise.com",
+          },
+        }
+      ).VITE_API_BASE_URL
+    ).toBe("https://api.pull-wise.com");
+  });
 });

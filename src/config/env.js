@@ -19,8 +19,25 @@ const envSchema = z.object({
   VITE_GITHUB_APP_SLUG: z.string().optional(),
 });
 
-export function parseEnv(rawEnv) {
-  return envSchema.parse(rawEnv);
+const PRODUCTION_API_BASE_URL_BY_HOST = {
+  "pull-wise.com": "https://api.pull-wise.com",
+};
+
+function productionApiBaseUrlForLocation(location) {
+  const hostname = location?.hostname;
+  if (typeof hostname !== "string") return undefined;
+  return PRODUCTION_API_BASE_URL_BY_HOST[hostname.toLowerCase()];
 }
 
-export const env = parseEnv(import.meta.env);
+export function parseEnv(rawEnv, options = {}) {
+  const parsed = envSchema.parse(rawEnv);
+  return {
+    ...parsed,
+    VITE_API_BASE_URL:
+      parsed.VITE_API_BASE_URL || productionApiBaseUrlForLocation(options.location),
+  };
+}
+
+export const env = parseEnv(import.meta.env, {
+  location: typeof window === "undefined" ? undefined : window.location,
+});
