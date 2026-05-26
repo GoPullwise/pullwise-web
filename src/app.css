@@ -309,6 +309,11 @@ body.has-proto-nav {
   align-items: flex-start;
 }
 
+.page-h > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .page-h h1,
 .page-h .sub,
 .lp-sub,
@@ -319,6 +324,13 @@ body.has-proto-nav {
 .status-section-h p,
 .notfound-sub {
   overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-h .sub {
+  display: block;
+  line-height: 1.45;
 }
 
 .page-h .sub,
@@ -347,6 +359,25 @@ body.has-proto-nav {
 .scanning-log svg {
   max-width: 100%;
   height: auto;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-v {
+  flex: 0 0 auto;
+}
+
+.kpi-foot {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .kpi-h,
@@ -512,6 +543,14 @@ body.has-proto-nav {
   font-variant-numeric: tabular-nums;
 }
 
+.issues-file {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .issues-trow > div:nth-child(4),
 .issues-trow > div:nth-child(5),
 .issues-trow > div:nth-child(6),
@@ -538,6 +577,16 @@ body.has-proto-nav {
 .code-body,
 .docs-code pre {
   max-width: 100%;
+  min-width: 0;
+}
+
+.issue-detail-h h1 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.issue-detail-h > div:first-child {
+  min-width: 0;
 }
 
 .issue-detail-h .sub > span {
@@ -545,6 +594,10 @@ body.has-proto-nav {
   align-items: center;
   min-width: 0;
   overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .code-line {
@@ -579,6 +632,25 @@ body.has-proto-nav {
 
 .scanning-phase > div:last-child {
   min-width: 0;
+  overflow: hidden;
+}
+
+.scanning-phase-t {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.scanning-phase-d {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scanning-sub {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .hist-row {
@@ -588,11 +660,17 @@ body.has-proto-nav {
 .hist-row > div:nth-child(2) > div:first-child {
   align-items: center;
   gap: 6px 8px !important;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .hist-row b {
   display: block;
   max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hist-row > .btn {
@@ -606,11 +684,21 @@ body.has-proto-nav {
   align-items: center;
 }
 
+.set-row {
+  flex-wrap: wrap;
+}
+
 .set-row > div:last-child,
 .set-pref > div:first-child,
 .billing-summary-main > div,
 .int-row > div:nth-child(2) {
   min-width: 0;
+}
+
+.set-pref .muted {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .int-row {
@@ -730,6 +818,10 @@ body.has-proto-nav {
     grid-column: 2 / -1;
     justify-self: start;
     text-align: left;
+  }
+
+  .issue-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -865,6 +957,14 @@ body.has-proto-nav {
   .pricing-table {
     min-width: 620px;
   }
+
+  .issue-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .set-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 520px) {
@@ -897,5 +997,22 @@ body.has-proto-nav {
     grid-column: 2;
     margin-left: 0;
     width: 100%;
+  }
+
+  .set-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .set-side {
+    flex-direction: row;
+    overflow-x: auto;
+    flex: 0 0 auto;
+  }
+
+  .set-side-i {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }
