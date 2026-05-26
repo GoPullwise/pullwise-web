@@ -1,24 +1,27 @@
-/* === Project Review — base styles === */
-* {
+/* === Pullwise — base design system === */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 :root {
-  --bg: #fafaf9;
+  --bg: #f8f7f6;
   --bg-elev: #ffffff;
-  --bg-soft: #f4f4f3;
-  --bg-tint: rgba(0, 0, 0, 0.025);
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.14);
-  --text: #0a0a0a;
-  --text-2: #525252;
-  --text-3: #8a8a8a;
-  --text-4: #b8b8b8;
+  --bg-soft: #f1f0ef;
+  --bg-tint: rgba(0, 0, 0, 0.018);
+  --border: rgba(0, 0, 0, 0.07);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --text: #0d0d0d;
+  --text-2: #4a4a4a;
+  --text-3: #7d7d7d;
+  --text-4: #adadad;
   --accent: #6366f1;
-  --accent-soft: color-mix(in oklch, var(--accent) 12%, transparent);
+  --accent-soft: color-mix(in oklch, var(--accent) 10%, transparent);
   --accent-fg: #ffffff;
+  --accent-glow: color-mix(in oklch, var(--accent) 25%, transparent);
 
   --sev-critical: #dc2626;
   --sev-high: #ea580c;
@@ -28,33 +31,36 @@
 
   --r-1: 4px;
   --r-2: 6px;
-  --r-3: 8px;
-  --r-4: 8px;
-  --r-5: 8px;
+  --r-3: 10px;
+  --r-4: 12px;
+  --r-5: 16px;
 
-  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-2:
-    0 1px 0 rgba(0, 0, 0, 0.04), 0 6px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-3: 0 12px 48px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-2: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --shadow-3: 0 2px 8px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
 
-  --font-sans:
-    "Geist", "Inter Tight", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
+  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-display: "Geist", "Inter Tight", ui-sans-serif, sans-serif;
+  --font-display: "Geist", "Inter", ui-sans-serif, sans-serif;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 [data-theme="dark"] {
-  --bg: #0a0a0a;
-  --bg-elev: #111111;
-  --bg-soft: #161616;
-  --bg-tint: rgba(255, 255, 255, 0.03);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --text: #fafafa;
-  --text-2: #a1a1a1;
-  --text-3: #737373;
-  --text-4: #525252;
-  --accent-soft: color-mix(in oklch, var(--accent) 18%, transparent);
+  --bg: #080808;
+  --bg-elev: #121212;
+  --bg-soft: #1a1a1a;
+  --bg-tint: rgba(255, 255, 255, 0.02);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --text: #f5f5f5;
+  --text-2: #9e9e9e;
+  --text-3: #6b6b6b;
+  --text-4: #484848;
+  --accent-soft: color-mix(in oklch, var(--accent) 15%, transparent);
+  --accent-glow: color-mix(in oklch, var(--accent) 30%, transparent);
 
   --sev-critical: #f87171;
   --sev-high: #fb923c;
@@ -62,10 +68,9 @@
   --sev-low: #60a5fa;
   --sev-info: #9ca3af;
 
-  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.02), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-2:
-    0 1px 0 rgba(255, 255, 255, 0.03), 0 6px 24px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --shadow-3: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-2: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-3: 0 2px 8px rgba(0, 0, 0, 0.4), 0 16px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 html,
@@ -77,8 +82,13 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
   min-height: 100vh;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
 }
 
 button {
@@ -102,41 +112,50 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
   height: 34px;
   padding: 0 14px;
   border-radius: var(--r-3);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
   transition:
-    background 80ms ease,
-    border-color 80ms ease,
-    transform 80ms ease;
+    background 150ms var(--ease-out),
+    border-color 150ms var(--ease-out),
+    transform 150ms var(--ease-out),
+    box-shadow 150ms var(--ease-out);
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
 }
 .btn:hover {
   background: var(--bg-soft);
+  border-color: var(--border-strong);
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .btn:active {
-  transform: translateY(0.5px);
+  transform: translateY(0) scale(0.985);
 }
 .btn:disabled {
-  opacity: 0.58;
+  opacity: 0.45;
   pointer-events: none;
+  filter: grayscale(0.2);
 }
 
 .btn.primary {
   background: var(--text);
   color: var(--bg);
   border-color: var(--text);
+  font-weight: 500;
 }
 .btn.primary:hover {
-  opacity: 0.88;
+  opacity: 0.9;
   background: var(--text);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
 }
 
 .btn.accent {
@@ -145,7 +164,8 @@ textarea {
   border-color: var(--accent);
 }
 .btn.accent:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .btn.ghost {
@@ -156,6 +176,8 @@ textarea {
 .btn.ghost:hover {
   background: var(--bg-soft);
   color: var(--text);
+  box-shadow: none;
+  transform: none;
 }
 
 .btn.sm {
@@ -165,8 +187,8 @@ textarea {
   border-radius: var(--r-2);
 }
 .btn.lg {
-  height: 40px;
-  padding: 0 18px;
+  height: 42px;
+  padding: 0 20px;
   font-size: 14px;
 }
 
@@ -222,19 +244,26 @@ textarea {
   border: 1px solid var(--border);
   border-radius: var(--r-4);
   box-shadow: var(--shadow-1);
+  transition:
+    border-color 150ms var(--ease-out),
+    box-shadow 150ms var(--ease-out);
+}
+.card:hover {
+  border-color: var(--border-strong);
 }
 
 /* Severity */
 .sev {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 .sev .dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 2px;
 }
 .sev-critical {
@@ -350,22 +379,26 @@ textarea {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background:
+    radial-gradient(ellipse at 0% 0%, var(--bg-tint) 0%, transparent 50%),
+    var(--bg);
 }
 
 /* Topbar */
 .topbar {
-  height: 52px;
+  height: 54px;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 24px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
 .topbar .brand {
   display: flex;
@@ -460,11 +493,13 @@ textarea {
 }
 .side {
   border-right: 1px solid var(--border);
-  padding: 18px 12px;
+  padding: 20px 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .side-group {
   display: contents;
@@ -481,15 +516,16 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 30px;
+  height: 32px;
   padding: 0 10px;
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   font-size: 13px;
   color: var(--text-2);
   border: 0;
   background: transparent;
   text-align: left;
   min-width: 0;
+  transition: all 120ms var(--ease-out);
 }
 .side-i > span {
   min-width: 0;
@@ -505,6 +541,7 @@ textarea {
   background: var(--bg-soft);
   color: var(--text);
   font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 .side-i .ic {
   width: 15px;
@@ -529,7 +566,7 @@ textarea {
 }
 
 .main {
-  padding: 28px 32px 60px;
+  padding: 32px 36px 72px;
   min-width: 0;
   max-width: 1200px;
   width: 100%;
@@ -566,7 +603,7 @@ textarea {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -574,7 +611,49 @@ textarea {
   }
 }
 .fade-in {
-  animation: fadeIn 240ms ease both;
+  animation: fadeIn 320ms var(--ease-out) both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-in-up {
+  animation: fadeInUp 400ms var(--ease-out) 60ms both;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-in-scale {
+  animation: fadeInScale 300ms var(--ease-out) both;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.slide-in-left {
+  animation: slideInLeft 280ms var(--ease-out) both;
 }
 
 @keyframes spin {
@@ -621,9 +700,28 @@ textarea {
   }
 }
 .shimmer-bg {
-  background: linear-gradient(90deg, var(--bg-soft) 0%, var(--bg-tint) 50%, var(--bg-soft) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-soft) 0%,
+    var(--bg-tint) 50%,
+    var(--bg-soft) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.scale-in {
+  animation: scaleIn 200ms var(--ease-spring) both;
 }
 
 /* Empty / loading */
@@ -640,9 +738,9 @@ textarea {
   gap: 4px;
   height: 20px;
   padding: 0 7px;
-  font: 500 11px/1 var(--font-mono);
-  letter-spacing: 0;
-  border-radius: 4px;
+  font: 500 10.5px/1 var(--font-mono);
+  letter-spacing: 0.01em;
+  border-radius: 5px;
   background: var(--bg-soft);
   color: var(--text-2);
   border: 1px solid var(--border);
