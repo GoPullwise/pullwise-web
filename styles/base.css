@@ -780,3 +780,74 @@ textarea {
     flex: 1 1 auto;
   }
 }
+
+
+/* === Display hardening utilities === */
+#root {
+  min-height: 100vh;
+  min-width: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+:where(.app, .with-side, .main, .card, .section, .modal, .modal-body) {
+  min-width: 0;
+}
+
+.topbar > div {
+  min-width: 0;
+}
+
+.topbar > div:first-child {
+  flex: 1 1 auto;
+}
+
+.topbar > div:last-child {
+  flex: 0 0 auto;
+}
+
+.topbar .brand {
+  flex: 0 0 auto;
+}
+
+.crumbs {
+  flex: 1 1 auto;
+}
+
+:where(button, a, input, textarea, select) {
+  min-width: 0;
+}
+
+:where(svg, .ic, .brand-mark, .dot, .badge) {
+  flex-shrink: 0;
+}
+
+:where(.truncate, .text-ellipsis) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.text-wrap, .break-anywhere, .muted, p, li) {
+  overflow-wrap: anywhere;
+}
+
+:where(.btn, .chip, .tag, .pill, .kbd) {
+  max-width: 100%;
+}
+
+:where(.btn, .chip, .tag, .pill) > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@supports (text-wrap: pretty) {
+  :where(p, li, .muted) {
+    text-wrap: pretty;
+  }
+}

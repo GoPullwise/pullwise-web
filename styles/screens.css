@@ -4429,3 +4429,277 @@ button.dash-cat-row:hover {
 .notfound-foot .muted {
   color: var(--text-4);
 }
+
+
+/* === Layout hardening: wrapping, alignment, truncation === */
+:where(
+  .lp-preview-url,
+  .lp-preview-side-i,
+  .lp-preview-issue-f,
+  .repo-name > span:first-child,
+  .repo-workspace,
+  .gh-install-account,
+  .issues-file,
+  .fix-preview-h b,
+  .ref-u,
+  .hist-row b,
+  .docs-crumbs .now,
+  .docs-side-i,
+  .docs-table-r b,
+  .legal-table-r b,
+  .notfound-suggest-t
+) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(
+  .repo-desc,
+  .gh-install-status,
+  .scanning-sub,
+  .scanning-queue-message,
+  .kpi-foot,
+  .dash-donut-row,
+  .issue-meta,
+  .pricing-tag,
+  .docs-card p,
+  .legal-callout p,
+  .notfound-suggest-d
+) {
+  overflow-wrap: anywhere;
+}
+
+:where(.issue-t, .issue-card-t, .kan-card-t, .search-i-tt, .lp-preview-issue-t) {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.lp-preview-issue,
+.dash-donut-row,
+.dash-cat-row,
+.repo-row,
+.gh-install-row,
+.issues-thead,
+.issues-trow,
+.hist-row,
+.int-row,
+.docs-table-r,
+.legal-table-r,
+.notfound-suggest-i {
+  min-width: 0;
+}
+
+.lp-preview-url,
+.lp-preview-issue > *,
+.dash-donut-row > *,
+.dash-cat-row > *,
+.repo-row > *,
+.gh-install-row > *,
+.issues-trow > *,
+.hist-row > *,
+.int-row > *,
+.search-i > *,
+.docs-table-r > *,
+.legal-table-r > *,
+.notfound-suggest-i > * {
+  min-width: 0;
+}
+
+.repo-row {
+  grid-template-columns: 30px 24px minmax(0, 1fr) minmax(160px, auto);
+}
+
+.repo-row-status {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(160px, auto);
+}
+
+.repo-meta {
+  min-width: 0;
+}
+
+.repo-meta span {
+  min-width: 0;
+  max-width: min(220px, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gh-install-meta > span,
+.gh-identities .tag {
+  max-width: 100%;
+}
+
+.dash-donut-row {
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+}
+
+.dash-cat-row {
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+}
+
+.issue-row {
+  grid-template-columns: 76px 64px minmax(0, 1fr) minmax(96px, auto) 14px;
+}
+
+.issue-card-h,
+.issue-card-foot,
+.kan-card-foot,
+.fix-preview-h,
+.applied-card,
+.bill-card,
+.billing-summary,
+.docs-code-h,
+.docs-foot,
+.notfound-foot {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.issues-table {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.issues-thead,
+.issues-trow {
+  grid-template-columns:
+    32px minmax(220px, 1.6fr) minmax(160px, 1.15fr) minmax(112px, 0.8fr)
+    minmax(86px, 0.7fr) minmax(72px, 0.6fr) minmax(144px, auto);
+  min-width: 920px;
+}
+
+.issues-title-c {
+  min-width: 0;
+}
+
+.issues-trow > div:nth-child(7) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.issues-trow > div:nth-child(7) .btn {
+  flex: 0 1 auto;
+}
+
+.conf-bar {
+  max-width: 100%;
+}
+
+.diff-block,
+.docs-code pre,
+.pricing-table-wrap {
+  overflow-x: auto;
+}
+
+.hist-row {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(140px, auto) auto;
+}
+
+.hist-row .btn {
+  justify-self: end;
+}
+
+.hist-meta {
+  min-width: 0;
+}
+
+.search-i {
+  min-width: 0;
+}
+
+.search-i-t {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.search-i-s {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-i .tag {
+  flex: 0 1 auto;
+}
+
+.pop,
+.modal {
+  max-width: calc(100vw - 24px);
+}
+
+.pop-wide,
+.pop-bell {
+  min-width: min(320px, calc(100vw - 24px));
+}
+
+.pricing-table {
+  min-width: 760px;
+}
+
+.docs-table-r,
+.legal-table-r {
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+}
+
+@media (max-width: 760px) {
+  .repo-row,
+  .repo-row-status,
+  .gh-install-row,
+  .hist-row {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .issue-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dash-cat-row {
+    grid-template-columns: minmax(0, 1fr) 56px 20px;
+  }
+
+  .docs-table-r,
+  .legal-table-r {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .issues-table {
+    overflow: visible;
+  }
+
+  .issues-thead,
+  .issues-trow {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .issues-trow > div:nth-child(7) {
+    justify-content: stretch;
+  }
+
+  .issues-trow > div:nth-child(7) .btn {
+    flex: 1 1 120px;
+  }
+
+  .pricing-table {
+    min-width: 640px;
+  }
+
+  .docs-table,
+  .legal-table,
+  .pricing-table-wrap {
+    overflow-x: auto;
+  }
+
+  .search-i-tt {
+    white-space: normal;
+  }
+}
