@@ -733,7 +733,7 @@ body.has-proto-nav {
 }
 
 .pricing-card {
-  min-height: 100%;
+  min-height: 0;
 }
 
 .pricing-price,

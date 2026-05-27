@@ -289,27 +289,22 @@ export function BillingScreen({
                     </div>
                   </div>
                 </div>
-                <div className="billing-actions">
-                  {!activePro && (
-                    <a className="btn primary" {...screenLinkProps(go, "pricing")}>
-                      <I.Trend size={14} /> View pricing
-                    </a>
-                  )}
-                  {activePro && proInterval === "month" && (
-                    <button
-                      className="btn primary"
-                      disabled={Boolean(pendingAction)}
-                      onClick={switchToYearly}
-                    >
-                      {pendingAction === "switch-yearly" && (
-                        <span className="spin" style={{ display: "inline-block" }}>
-                          <I.Refresh size={14} />
-                        </span>
-                      )}
-                      <I.Trend size={14} /> Switch to yearly
-                    </button>
-                  )}
-                  {activePro && (
+                {activePro && (
+                  <div className="billing-actions">
+                    {proInterval === "month" && (
+                      <button
+                        className="btn primary"
+                        disabled={Boolean(pendingAction)}
+                        onClick={switchToYearly}
+                      >
+                        {pendingAction === "switch-yearly" && (
+                          <span className="spin" style={{ display: "inline-block" }}>
+                            <I.Refresh size={14} />
+                          </span>
+                        )}
+                        <I.Trend size={14} /> Switch to yearly
+                      </button>
+                    )}
                     <button className="btn" disabled={Boolean(pendingAction)} onClick={openPortal}>
                       {pendingAction === "portal" && (
                         <span className="spin" style={{ display: "inline-block" }}>
@@ -318,8 +313,8 @@ export function BillingScreen({
                       )}
                       <I.Settings size={14} /> Manage billing
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {!billingEnabled && !error && (
