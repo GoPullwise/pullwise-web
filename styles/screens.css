@@ -650,9 +650,8 @@
 /* ── Repos selector ──────────────────────────────────────── */
 .repos-toolbar {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 16px;
 }
 .repos-search {
@@ -3081,7 +3080,8 @@ button.dash-cat-row:hover {
 
 /* ── Search modal (⌘K) ──────────────────────────────────────────────── */
 .modal-search {
-  max-width: 640px;
+  width: 560px;
+  max-width: calc(100vw - 40px);
   align-self: start;
   margin-top: 12vh;
 }

@@ -343,7 +343,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: "API Keys" }]}
+        breadcrumbs={[{ label: "API Keys" }]}
         setIssue={setIssue}
       />
       <div className="with-side">
@@ -547,7 +547,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Organizations", "组织") }]}
+        breadcrumbs={[{ label: T("Organizations", "组织") }]}
         setIssue={setIssue}
       />
       <div className="with-side">

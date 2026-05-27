@@ -129,7 +129,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Overview", "总览") }]}
+        breadcrumbs={[{ label: T("Overview", "总览") }]}
         setIssue={setIssue}
       />
       <div className="with-side">

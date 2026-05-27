@@ -157,6 +157,13 @@ export function App({ prototypeNav = false }) {
   }, [prototypeNav, navOpen]);
 
   useEffect(() => {
+    if (auth.status !== "ready") return;
+    if (auth.authenticated) return;
+    if (PUBLIC_SCREENS.has(screen)) return;
+    setScreen("login");
+  }, [screen, auth.status, auth.authenticated]);
+
+  useEffect(() => {
     let cancelled = false;
 
     pullwiseApi.auth

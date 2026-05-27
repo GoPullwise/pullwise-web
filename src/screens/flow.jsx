@@ -239,7 +239,7 @@ export function ReposScreen({
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Repositories", "仓库") }]}
+        breadcrumbs={[{ label: T("Repositories", "仓库") }]}
         setIssue={setIssue}
       />
       <div className="with-side">
@@ -638,7 +638,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Scan", "扫描") }]}
+        breadcrumbs={[{ label: T("Scan", "扫描") }]}
         setIssue={setIssue}
       />
       <div className="main narrow" style={{ margin: "0 auto" }}>

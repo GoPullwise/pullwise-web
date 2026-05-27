@@ -141,7 +141,7 @@ export function IssuesScreen({ go, setIssue }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issues", "问题") }]}
+        breadcrumbs={[{ label: T("Issues", "问题") }]}
         setIssue={setIssue}
       />
       <div className="with-side">
@@ -340,7 +340,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
       <div className="app fade-in">
         <Topbar
           go={go}
-          breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Issue", "问题") }]}
+          breadcrumbs={[{ label: T("Issue", "问题") }]}
           setIssue={setIssue}
         />
         <div className="with-side">
@@ -424,7 +424,6 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
       <Topbar
         go={go}
         breadcrumbs={[
-          { label: "Pullwise", go: "dashboard" },
           { label: T("Issues", "问题"), go: "issues" },
           { label: issue.id },
         ]}
@@ -673,7 +672,6 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
       <Topbar
         go={go}
         breadcrumbs={[
-          { label: "Pullwise", go: "dashboard" },
           { label: T("Scan history", "扫描历史") },
         ]}
         setIssue={setIssue}
@@ -885,7 +883,7 @@ export function SettingsScreen({ go, setIssue = null }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Settings", "设置") }]}
+        breadcrumbs={[{ label: T("Settings", "设置") }]}
         setIssue={setIssue}
       />
       <div className="with-side">

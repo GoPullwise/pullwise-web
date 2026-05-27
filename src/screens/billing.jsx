@@ -214,7 +214,7 @@ export function BillingScreen({
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Billing", "Billing") }]}
+        breadcrumbs={[{ label: T("Billing", "Billing") }]}
         setIssue={setIssue}
       />
       <div className="with-side">
