@@ -474,7 +474,10 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                   {issue.file && issue.line ? ":" + issue.line : ""}
                 </span>
                 {hasConfidence && (
-                  <span>
+                  <span
+                    title={issue.confidenceRationale || undefined}
+                    style={issue.confidenceRationale ? { cursor: "help" } : undefined}
+                  >
                     <I.Sparkle size={12} /> {Math.round(confidence * 100)}%{" "}
                     {T("confidence", "置信度")}
                   </span>
@@ -489,7 +492,23 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
           </div>
           <div className="issue-detail-grid">
             <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
-              <DetailSection title="Impact" empty="No impact statement was provided.">
+              <DetailSection title={T("Detection reasoning", "检测推理")} empty="">
+                {issue.detectionReasoning && (
+                  <p className="muted" style={{ color: "var(--text-2)" }}>
+                    {issue.detectionReasoning}
+                  </p>
+                )}
+              </DetailSection>
+
+              <DetailSection title={T("Reproduction path", "复现路径")} empty="">
+                {issue.reproductionPath && (
+                  <p className="muted" style={{ color: "var(--text-2)" }}>
+                    {issue.reproductionPath}
+                  </p>
+                )}
+              </DetailSection>
+
+              <DetailSection title={T("Impact", "影响")} empty={T("No impact statement was provided.", "未提供影响说明。")}>
                 {issue.impact && (
                   <p className="muted" style={{ color: "var(--text-2)" }}>
                     {issue.impact}
@@ -497,7 +516,32 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                 )}
               </DetailSection>
 
-              <DetailSection title="Remediation" empty="No remediation steps were provided.">
+              {(issue.fixBenefits || issue.fixRisks) && (
+                <DetailSection title={T("Fix impact analysis", "修复影响分析")}>
+                  {issue.fixBenefits && (
+                    <div style={{ marginBottom: issue.fixRisks ? 10 : 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, fontSize: 12, fontWeight: 600, color: "#16a34a" }}>
+                        <I.Check size={12} /> {T("Benefits", "收益")}
+                      </div>
+                      <p className="muted" style={{ color: "var(--text-2)", margin: 0 }}>
+                        {issue.fixBenefits}
+                      </p>
+                    </div>
+                  )}
+                  {issue.fixRisks && (
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, fontSize: 12, fontWeight: 600, color: "var(--sev-high, #e97316)" }}>
+                        <I.X size={12} /> {T("Risks", "风险")}
+                      </div>
+                      <p className="muted" style={{ color: "var(--text-2)", margin: 0 }}>
+                        {issue.fixRisks}
+                      </p>
+                    </div>
+                  )}
+                </DetailSection>
+              )}
+
+              <DetailSection title={T("Remediation", "修复步骤")} empty={T("No remediation steps were provided.", "未提供修复步骤。")}>
                 {issue.steps?.length > 0 && (
                   <ol className="legal-list-flat" style={{ marginBottom: 0 }}>
                     {issue.steps.map((step, index) => (
@@ -507,7 +551,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                 )}
               </DetailSection>
 
-              <DetailSection title="Evidence" empty="No code evidence was provided.">
+              <DetailSection title={T("Evidence", "代码证据")} empty={T("No code evidence was provided.", "未提供代码证据。")}>
                 {hasEvidence && (
                   <>
                     <CodeEvidence title="Current code" lines={issue.badCode || []} />
@@ -517,7 +561,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
               </DetailSection>
 
               {issue.references?.length > 0 && (
-                <DetailSection title="References">
+                <DetailSection title={T("References", "参考资料")}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {issue.references.map((reference) => (
                       <a
@@ -948,11 +992,11 @@ export function SettingsScreen({ go, setIssue = null }) {
                   {currentWorkspace && (
                     <div className="set-pref">
                       <div>
-                        <b>{T("Workspace", "Workspace")}</b>
+                        <b>{T("Organization", "组织")}</b>
                         <div className="muted">
                           {T(
-                            `Subscription and scan quota belong to ${currentWorkspace.name || currentWorkspace.id || "this workspace"}.`,
-                            `Subscription and scan quota belong to ${currentWorkspace.name || currentWorkspace.id || "this workspace"}.`
+                            `${currentWorkspace.name || currentWorkspace.id || "Current organization"} — manages repositories, billing, and scan quota.`,
+                            `${currentWorkspace.name || currentWorkspace.id || "当前组织"} — 管理仓库、支付和扫描配额。`
                           )}
                         </div>
                       </div>

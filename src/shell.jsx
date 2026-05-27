@@ -108,7 +108,7 @@ function SearchModal({ close, go, setIssue }) {
     { k: "repos", t: T("Repositories", "仓库"), i: <I.Folder size={14} /> },
     { k: "history", t: T("Scan history", "扫描历史"), i: <I.Clock size={14} /> },
     { k: "apiKeys", t: T("API Keys", "API Keys"), i: <I.Code size={14} /> },
-    { k: "workspaces", t: T("Workspaces", "Workspaces"), i: <I.Layers size={14} /> },
+    { k: "workspaces", t: T("Organizations", "组织"), i: <I.Layers size={14} /> },
     { k: "billing", t: T("Billing", "支付"), i: <I.Package size={14} /> },
     { k: "pricing", t: T("Pricing", "Pricing"), i: <I.Trend size={14} /> },
     { k: "api", t: T("API docs", "API docs"), i: <I.FileCode size={14} /> },
@@ -271,7 +271,7 @@ export function Sidebar({ section, go }) {
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} />, badge: null },
     {
       k: "workspaces",
-      label: T("Workspaces", "Workspaces"),
+      label: T("Organizations", "组织"),
       icon: <I.Layers size={15} />,
       badge: null,
     },
@@ -281,7 +281,7 @@ export function Sidebar({ section, go }) {
   return (
     <aside className="side">
       <div className="side-group side-workspace">
-        <div className="side-h">{T("Workspace", "工作区")}</div>
+        <div className="side-h">{T("Organization", "组织")}</div>
         <a
           className={"side-i side-workspace-i" + (section === "workspaces" ? " active" : "")}
           aria-label="Open workspaces"

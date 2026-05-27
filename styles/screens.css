@@ -2,9 +2,7 @@
 
 /* ── Landing ────────────────────────────────────────────────── */
 .landing {
-  background:
-    radial-gradient(ellipse at 40% 0%, var(--bg-tint) 0%, transparent 60%),
-    var(--bg);
+  background: var(--bg);
 }
 .lp-top {
   display: grid;
@@ -38,7 +36,7 @@
   aspect-ratio: 1;
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--text);
   color: var(--bg);
   display: grid;
@@ -63,18 +61,17 @@
   gap: 8px;
   padding: 5px 14px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 12px;
   font-weight: 500;
   color: var(--text-2);
   background: var(--bg-elev);
   margin-bottom: 32px;
-  box-shadow: var(--shadow-1);
 }
 .lp-hero-tag .dot {
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 .lp-title {
   font-family: var(--font-display);
@@ -122,19 +119,12 @@
   max-width: 1120px;
   margin: 0 auto;
   padding: 24px 36px 64px;
-  perspective: 2400px;
 }
 .lp-preview-card {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--bg-elev);
-  box-shadow: var(--shadow-3);
   overflow: hidden;
-  transform: rotateX(1.5deg) rotateY(0deg);
-  transition: transform 400ms var(--ease-out);
-}
-.lp-preview-card:hover {
-  transform: rotateX(0deg);
 }
 .lp-preview-bar {
   display: flex;
@@ -147,7 +137,7 @@
 .lp-preview-bar > span:not(.lp-preview-url) {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--bg-soft);
   border: 1px solid var(--border);
 }
@@ -155,7 +145,7 @@
   margin-left: 14px;
   flex: 1;
   background: var(--bg-soft);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 5px 10px;
   font: 11.5px/1 var(--font-mono);
   color: var(--text-3);
@@ -177,7 +167,7 @@
 }
 .lp-preview-side-i {
   padding: 7px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--text-3);
 }
 .lp-preview-side-i.active {
@@ -196,7 +186,7 @@
 }
 .lp-preview-stat {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 10px 12px;
   background: var(--bg-elev);
 }
@@ -223,7 +213,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 12.5px;
 }
 .lp-preview-issue:hover {
@@ -251,12 +241,11 @@
   width: 36px;
   height: 36px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   margin-bottom: 16px;
   background: var(--bg-elev);
-  box-shadow: var(--shadow-1);
 }
 .lp-feat h3 {
   font-size: 15px;
@@ -304,65 +293,7 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      color-mix(in oklch, var(--accent) 8%, transparent) 0%,
-      transparent 60%
-    ),
-    var(--bg);
-  position: relative;
-}
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-  padding: 40px 36px 32px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-2);
-}
-.auth-title {
-  font-size: 22px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  text-align: center;
-  margin-bottom: 6px;
-}
-.lp-cta-band h2 {
-  font-size: clamp(28px, 4vw, 38px);
-  font-weight: 600;
-  letter-spacing: 0;
-  margin-bottom: 24px;
-}
-
-.lp-foot {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 28px 32px;
-  display: flex;
-  justify-content: space-between;
-  border-top: 1px solid var(--border);
-  font-size: 12.5px;
-  color: var(--text-3);
-}
-
-/* ── Auth ─────────────────────────────────────────────────── */
-.auth-shell,
-.auth-wrap {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      color-mix(in oklch, var(--accent) 10%, transparent) 0%,
-      transparent 50%
-    ),
-    var(--bg);
+  background: var(--bg);
   position: relative;
 }
 .auth-back {
@@ -376,8 +307,7 @@
   padding: 36px 32px 28px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-2);
+  border-radius: 0;
 }
 .auth-title {
   font-size: 22px;
@@ -434,15 +364,12 @@
   height: 38px;
   padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--bg);
-  transition:
-    border-color 150ms var(--ease-out),
-    box-shadow 150ms var(--ease-out);
+  transition: border-color 120ms var(--ease-out);
 }
 .auth-input:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .auth-input svg {
   color: var(--text-3);
@@ -474,7 +401,7 @@
   gap: 8px;
   padding: 10px 12px;
   border: 1px solid color-mix(in oklch, var(--sev-critical) 25%, var(--border));
-  border-radius: 10px;
+  border-radius: 0;
   background: color-mix(in oklch, var(--sev-critical) 6%, var(--bg-elev));
   color: var(--sev-critical);
   font-size: 12px;
@@ -490,7 +417,7 @@
   gap: 8px;
   padding: 10px 12px;
   border: 1px solid color-mix(in oklch, #16a34a 22%, var(--border));
-  border-radius: 10px;
+  border-radius: 0;
   background: color-mix(in oklch, #16a34a 6%, var(--bg-elev));
   color: #15803d;
   font-size: 12px;
@@ -531,7 +458,7 @@
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--bg-soft);
   color: var(--text-2);
   font: 600 11px/1 var(--font-mono);
@@ -552,21 +479,14 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background:
-    radial-gradient(
-      ellipse at 30% 20%,
-      color-mix(in oklch, var(--accent) 6%, transparent) 0%,
-      transparent 60%
-    ),
-    var(--bg);
+  background: var(--bg);
 }
 .oauth-card {
   width: 100%;
   max-width: 480px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-2);
+  border-radius: 0;
   overflow: hidden;
 }
 .oauth-head {
@@ -590,7 +510,7 @@
   min-height: 48px;
   max-height: 48px;
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: 0;
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
@@ -615,7 +535,7 @@
 .oauth-dots span {
   width: 4px;
   height: 4px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--text-3);
 }
 .oauth-head h2 {
@@ -653,7 +573,7 @@
 .oauth-perm-i {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--bg-soft);
   display: grid;
   place-items: center;
@@ -699,7 +619,7 @@
   margin: 0 24px 14px;
   padding: 9px 10px;
   border: 1px solid color-mix(in oklch, var(--sev-critical) 30%, var(--border));
-  border-radius: 8px;
+  border-radius: 0;
   background: color-mix(in oklch, var(--sev-critical) 8%, var(--bg-elev));
   color: var(--sev-critical);
   font-size: 12px;
@@ -744,15 +664,12 @@
   height: 38px;
   padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--bg-elev);
-  transition:
-    border-color 150ms var(--ease-out),
-    box-shadow 150ms var(--ease-out);
+  transition: border-color 120ms var(--ease-out);
 }
 .repos-search:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .repos-search svg {
   color: var(--text-3);
@@ -772,7 +689,7 @@
   overflow-x: auto;
   padding: 3px;
   background: var(--bg-soft);
-  border-radius: 10px;
+  border-radius: 0;
   border: 1px solid var(--border);
 }
 
@@ -780,16 +697,15 @@
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--bg-elev);
   overflow: hidden;
-  box-shadow: var(--shadow-1);
 }
 .repos-org {
   flex: 0 0 auto;
   height: 30px;
   padding: 0 12px;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 12.5px;
   color: var(--text-2);
   background: transparent;
@@ -801,18 +717,9 @@
 .repos-org.active {
   background: var(--bg-elev);
   color: var(--text);
-  box-shadow: var(--shadow-1);
   font-weight: 500;
 }
 
-.repos-list {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-elev);
-  overflow: hidden;
-}
 .repo-row {
   display: grid;
   grid-template-columns: 30px 24px minmax(0, 1fr) auto;
@@ -839,14 +746,14 @@
   width: 16px;
   height: 16px;
   border: 1.5px solid var(--border-strong);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--bg-elev);
   display: grid;
   place-items: center;
   color: white;
   transition:
-    background 150ms var(--ease-out),
-    border-color 150ms var(--ease-out);
+    background 120ms var(--ease-out),
+    border-color 120ms var(--ease-out);
 }
 .repo-row.on .repo-check-box {
   background: var(--accent);
@@ -904,7 +811,7 @@
 .lang-dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 0;
   background: #3178c6;
   display: inline-block;
 }
@@ -945,7 +852,7 @@
 }
 .gh-install-list {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-elev);
   overflow: hidden;
 }
@@ -1008,7 +915,7 @@
 }
 .scanning-card {
   padding: 28px;
-  border-radius: 14px;
+  border-radius: 0;
 }
 .scanning-h {
   display: flex;
@@ -1019,18 +926,12 @@
 .scanning-icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--accent-soft);
   color: var(--accent);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-}
-.scanning-h {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
 }
 .scanning-copy {
   min-width: 0;
@@ -1043,15 +944,6 @@
   gap: 8px;
   flex: 0 0 auto;
   margin-left: auto;
-}
-.scanning-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
 }
 .scanning-title {
   font-size: 15px;
@@ -1070,33 +962,22 @@
   margin-bottom: 24px;
 }
 .scanning-bar {
-  height: 6px;
+  height: 4px;
   background: var(--bg-soft);
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
   margin-bottom: 8px;
   position: relative;
 }
 .scanning-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), color-mix(in oklch, var(--accent) 70%, #fff));
-  border-radius: 999px;
+  background: var(--accent);
+  border-radius: 0;
   transition: width 300ms var(--ease-out);
   position: relative;
 }
 .scanning-bar-fill::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: -2px;
-  bottom: -2px;
-  width: 30px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklch, var(--accent) 50%, transparent)
-  );
-  filter: blur(6px);
+  display: none;
 }
 .scanning-bar-meta {
   display: flex;
@@ -1109,7 +990,7 @@
   margin: -12px 0 18px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-soft);
 }
 .scanning-queue-message {
@@ -1136,9 +1017,9 @@
   gap: 12px;
   align-items: center;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 0;
   color: var(--text-3);
-  transition: all 150ms var(--ease-out);
+  transition: background 80ms var(--ease-out), color 80ms var(--ease-out);
 }
 .scanning-phase.on {
   background: var(--bg-soft);
@@ -1151,7 +1032,7 @@
   width: 24px;
   height: 24px;
   border: 1.5px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   font: 500 11px/1 var(--font-mono);
@@ -1203,7 +1084,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--bg);
   border: 1px solid var(--border);
 }
@@ -1251,14 +1132,11 @@
 .kpi {
   padding: 18px 20px;
   min-height: 110px;
-  border-radius: 12px;
-  transition:
-    border-color 150ms var(--ease-out),
-    box-shadow 150ms var(--ease-out);
+  border-radius: 0;
+  transition: border-color 120ms var(--ease-out);
 }
 .kpi:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-2);
 }
 .kpi-h {
   display: flex;
@@ -1335,7 +1213,7 @@
 .dash-donut-dot {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: 0;
 }
 .dash-donut-row b {
   font-variant-numeric: tabular-nums;
@@ -1348,14 +1226,16 @@
   align-items: center;
   padding: 7px 6px;
   font-size: 12.5px;
-  border-radius: 6px;
+  border-radius: 0;
 }
 button.dash-cat-row {
   width: 100%;
   border: 0;
   background: transparent;
   color: inherit;
+  font: inherit;
   text-align: left;
+  cursor: pointer;
 }
 button.dash-cat-row:hover {
   background: var(--bg-soft);
@@ -1367,14 +1247,14 @@ button.dash-cat-row:hover {
   white-space: nowrap;
 }
 .dash-cat-bar {
-  height: 6px;
+  height: 4px;
   background: var(--bg-soft);
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
 }
 .dash-cat-bar > div {
   height: 100%;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 .seg {
@@ -1383,13 +1263,13 @@ button.dash-cat-row:hover {
   gap: 2px;
   background: var(--bg-soft);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
 }
 .seg-i {
   height: 26px;
   padding: 0 10px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--text-3);
   font-size: 12px;
@@ -1403,7 +1283,6 @@ button.dash-cat-row:hover {
 .seg-i.active {
   background: var(--bg-elev);
   color: var(--text);
-  box-shadow: var(--shadow-1);
   font-weight: 500;
 }
 
@@ -1419,10 +1298,9 @@ button.dash-cat-row:hover {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--bg-elev);
   overflow: hidden;
-  box-shadow: var(--shadow-1);
 }
 .issue-row {
   display: grid;
@@ -1430,7 +1308,14 @@ button.dash-cat-row:hover {
   gap: 14px;
   align-items: center;
   padding: 14px 18px;
+  border: 0;
   border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
   min-width: 0;
   transition: background 100ms var(--ease-out);
 }
@@ -1450,7 +1335,7 @@ button.dash-cat-row:hover {
   font-size: 11px;
   font-weight: 500;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 .issue-id {
   font: 500 11px/1 var(--font-mono);
@@ -1524,7 +1409,7 @@ button.dash-cat-row:hover {
 .kan-col {
   background: var(--bg-soft);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 10px;
   min-height: 200px;
 }
@@ -1546,9 +1431,8 @@ button.dash-cat-row:hover {
 .kan-card {
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 10px 11px;
-  box-shadow: var(--shadow-1);
 }
 .kan-card:hover {
   border-color: var(--border-strong);
@@ -1579,7 +1463,7 @@ button.dash-cat-row:hover {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-radius: 12px;
+  border-radius: 0;
 }
 .filters-row {
   display: flex;
@@ -1604,7 +1488,7 @@ button.dash-cat-row:hover {
 .pill-btn {
   height: 26px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text-2);
@@ -1624,7 +1508,7 @@ button.dash-cat-row:hover {
 .pill-btn .dot {
   width: 7px;
   height: 7px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 .issues-table {
@@ -1681,16 +1565,16 @@ button.dash-cat-row:hover {
 }
 .conf-bar {
   width: 60px;
-  height: 4px;
+  height: 3px;
   background: var(--bg-soft);
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
   margin-bottom: 4px;
 }
 .conf-bar > div {
   height: 100%;
   background: var(--accent);
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 /* ── Issue detail ─────────────────────────────────────────── */
@@ -1766,7 +1650,7 @@ button.dash-cat-row:hover {
   bottom: -1px;
   height: 2px;
   background: var(--text);
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .section {
@@ -1807,7 +1691,7 @@ button.dash-cat-row:hover {
   height: 22px;
   background: var(--bg-soft);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   font: 500 11px/1 var(--font-mono);
@@ -1831,7 +1715,7 @@ button.dash-cat-row:hover {
 .diff-tag {
   font: 500 10px/1 var(--font-mono);
   padding: 3px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1870,7 +1754,7 @@ button.dash-cat-row:hover {
   margin: 0;
   padding: 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--bg-soft);
   font: 11px/1.55 var(--font-mono);
   color: var(--text-2);
@@ -1888,7 +1772,7 @@ button.dash-cat-row:hover {
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 0;
 }
 .ref-item:hover {
   background: var(--bg-soft);
@@ -1915,7 +1799,7 @@ button.dash-cat-row:hover {
 .applied-i {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--accent-soft);
   display: grid;
   place-items: center;
@@ -1943,7 +1827,7 @@ button.dash-cat-row:hover {
 .discuss-av {
   width: 32px;
   height: 32px;
-  border-radius: 999px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   color: white;
@@ -1962,7 +1846,7 @@ button.dash-cat-row:hover {
   padding: 12px;
   background: var(--bg-soft);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 13px;
   resize: vertical;
   outline: none;
@@ -2000,7 +1884,7 @@ button.dash-cat-row:hover {
 .tl-dot {
   width: 14px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--bg-soft);
   border: 2px solid var(--bg-elev);
   box-shadow: 0 0 0 1px var(--border-strong);
@@ -2015,22 +1899,18 @@ button.dash-cat-row:hover {
 .modal-back {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 100;
   display: grid;
   place-items: center;
   padding: 20px;
-  animation: fadeIn 160ms var(--ease-out);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 .modal {
   width: 100%;
   max-width: 560px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-3);
+  border-radius: 0;
   overflow: hidden;
 }
 .modal-h {
@@ -2069,7 +1949,7 @@ button.dash-cat-row:hover {
   background: var(--bg-soft);
   color: var(--text);
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
+  border-radius: 0;
   font: 12px/1.6 var(--font-mono);
   resize: vertical;
   outline: none;
@@ -2078,7 +1958,6 @@ button.dash-cat-row:hover {
 }
 .pr-desc:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .pr-check {
   display: flex;
@@ -2112,7 +1991,7 @@ button.dash-cat-row:hover {
   width: 18px;
   height: 18px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   font: 500 10px/1 var(--font-mono);
@@ -2148,13 +2027,13 @@ button.dash-cat-row:hover {
 .hist-dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 .hist-stack {
   display: flex;
   height: 6px;
   gap: 1px;
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 .hist-stack > span {
@@ -2202,7 +2081,7 @@ button.dash-cat-row:hover {
   padding: 0 12px;
   border: 0;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 13px;
   color: var(--text-2);
   text-align: left;
@@ -2234,7 +2113,7 @@ button.dash-cat-row:hover {
 .set-av {
   width: 56px;
   height: 56px;
-  border-radius: 999px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   color: white;
@@ -2264,7 +2143,7 @@ button.dash-cat-row:hover {
   display: inline-flex;
   width: 30px;
   height: 18px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--bg-soft);
   border: 1px solid var(--border-strong);
   position: relative;
@@ -2278,7 +2157,7 @@ button.dash-cat-row:hover {
   width: 14px;
   height: 14px;
   background: var(--bg-elev);
-  border-radius: 999px;
+  border-radius: 0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   transition: transform 120ms;
   border: 1px solid var(--border-strong);
@@ -2324,19 +2203,19 @@ button.dash-cat-row:hover {
   justify-content: space-between;
   padding: 16px;
   background: var(--bg-soft);
-  border-radius: 8px;
+  border-radius: 0;
 }
 .usage-bar {
-  height: 6px;
+  height: 4px;
   background: var(--bg-soft);
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid var(--border);
 }
 .usage-bar > div {
   height: 100%;
   background: var(--accent);
-  border-radius: 999px;
+  border-radius: 0;
 }
 .billing-summary {
   display: flex;
@@ -2403,9 +2282,9 @@ button.dash-cat-row:hover {
 
 /* ── Pricing ──────────────────────────────────────────────── */
 .pricing-hero {
-  max-width: 920px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 80px 32px 40px;
+  padding: 80px 36px 40px;
   text-align: center;
 }
 .pricing-hero .lp-hero-tag {
@@ -2422,12 +2301,12 @@ button.dash-cat-row:hover {
   display: inline-flex;
   background: var(--bg-soft);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 4px;
   gap: 2px;
 }
 .pricing-toggle .seg-i {
-  border-radius: 999px;
+  border-radius: 0;
   padding: 8px 18px;
   font-size: 13px;
   font-family: var(--font-sans);
@@ -2438,7 +2317,6 @@ button.dash-cat-row:hover {
 .pricing-toggle .seg-i.active {
   background: var(--bg-elev);
   color: var(--text);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 .pricing-save {
   background: color-mix(in oklch, var(--accent) 14%, transparent);
@@ -2447,22 +2325,17 @@ button.dash-cat-row:hover {
   font-size: 10.5px;
   font-weight: 600;
   padding: 2px 7px;
-  border-radius: 999px;
+  border-radius: 0;
   letter-spacing: 0.02em;
 }
 
 .pricing-tiers {
-  max-width: 1180px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 24px 32px 60px;
+  padding: 24px 36px 60px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-}
-@media (max-width: 1100px) {
-  .pricing-tiers {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 @media (max-width: 640px) {
   .pricing-tiers {
@@ -2474,25 +2347,18 @@ button.dash-cat-row:hover {
   position: relative;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 32px 24px 28px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  transition:
-    border-color 200ms var(--ease-out),
-    box-shadow 200ms var(--ease-out);
+  transition: border-color 120ms var(--ease-out);
 }
 .pricing-card:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-2);
-  transform: translateY(-2px);
 }
 .pricing-card.featured {
   border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
-  box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--accent) 30%, transparent),
-    0 20px 56px -24px color-mix(in oklch, var(--accent) 30%, transparent);
 }
 .pricing-badge {
   position: absolute;
@@ -2506,7 +2372,7 @@ button.dash-cat-row:hover {
   font-weight: 600;
   letter-spacing: 0.04em;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   white-space: nowrap;
 }
 .pricing-card-h h3 {
@@ -2602,7 +2468,7 @@ button.dash-cat-row:hover {
 
 .pricing-table-wrap {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--bg-elev);
 }
@@ -2653,9 +2519,9 @@ button.dash-cat-row:hover {
 }
 
 .pricing-faq {
-  max-width: 760px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 60px 32px;
+  padding: 60px 36px;
   border-top: 1px solid var(--border);
 }
 .pricing-faq h2 {
@@ -2674,7 +2540,7 @@ button.dash-cat-row:hover {
 .pricing-faq-i {
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
 }
 .pricing-faq-i summary {
@@ -2708,17 +2574,17 @@ button.dash-cat-row:hover {
 
 /* ── Docs ─────────────────────────────────────────────────── */
 .docs-shell {
-  max-width: 1280px;
+  max-width: 1120px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 240px 1fr 200px;
-  gap: 40px;
-  padding: 32px 32px 60px;
+  grid-template-columns: 220px 1fr 180px;
+  gap: 36px;
+  padding: 32px 36px 60px;
   align-items: start;
 }
 @media (max-width: 1100px) {
   .docs-shell {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 200px 1fr;
   }
   .docs-toc {
     display: none;
@@ -2751,7 +2617,7 @@ button.dash-cat-row:hover {
   height: 34px;
   padding: 0 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-elev);
 }
 .docs-search input {
@@ -2772,7 +2638,7 @@ button.dash-cat-row:hover {
   color: var(--text-3);
   border: 1px solid var(--border);
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .docs-side-g {
   display: flex;
@@ -2792,7 +2658,7 @@ button.dash-cat-row:hover {
 .docs-side-i {
   display: block;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--text-2);
   font-size: 13px;
   cursor: pointer;
@@ -2868,7 +2734,7 @@ button.dash-cat-row:hover {
   padding: 14px 16px;
   background: color-mix(in oklch, var(--accent) 8%, var(--bg-elev));
   border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--border));
-  border-radius: 8px;
+  border-radius: 0;
   margin: 8px 0 24px;
 }
 .docs-callout svg {
@@ -2903,7 +2769,7 @@ button.dash-cat-row:hover {
 
 .docs-code {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   margin: 14px 0 22px;
   background: var(--bg-soft);
@@ -2935,7 +2801,7 @@ button.dash-cat-row:hover {
   align-items: center;
   gap: 4px;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .docs-code-copy:hover {
   background: var(--bg-soft);
@@ -2954,7 +2820,7 @@ button.dash-cat-row:hover {
 
 .docs-table {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   margin: 8px 0 22px;
 }
@@ -2997,17 +2863,14 @@ button.dash-cat-row:hover {
   gap: 12px;
   padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-elev);
   text-decoration: none !important;
   color: inherit !important;
-  transition:
-    border-color 0.15s ease,
-    transform 0.15s ease;
+  transition: border-color 120ms ease;
 }
 .docs-card:hover {
   border-color: var(--accent);
-  transform: translateY(-1px);
 }
 .docs-card svg {
   flex: 0 0 auto;
@@ -3087,10 +2950,8 @@ button.dash-cat-row:hover {
   min-width: 240px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-3);
+  border-radius: 0;
   overflow: hidden;
-  animation: fadeIn 120ms ease;
   text-align: left;
 }
 .pop-wide {
@@ -3192,14 +3053,14 @@ button.dash-cat-row:hover {
 }
 .pop-slider::-webkit-slider-runnable-track {
   height: 4px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--bg-soft);
 }
 .pop-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--accent);
   border: 2px solid var(--bg-elev);
   margin-top: -5px;
@@ -3207,13 +3068,13 @@ button.dash-cat-row:hover {
 }
 .pop-slider::-moz-range-track {
   height: 4px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--bg-soft);
 }
 .pop-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--accent);
   border: 2px solid var(--bg-elev);
 }
@@ -3325,7 +3186,7 @@ button.dash-cat-row:hover {
   min-width: 16px;
   height: 16px;
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--accent);
   color: white;
   font: 600 10.5px/1 var(--font-mono);
@@ -3398,7 +3259,7 @@ button.dash-cat-row:hover {
   }
 
   .lp-preview-card {
-    border-radius: 8px;
+    border-radius: 0;
   }
 
   .lp-preview-body {
@@ -3443,7 +3304,7 @@ button.dash-cat-row:hover {
   .auth-card,
   .oauth-card,
   .notfound-card {
-    border-radius: 8px;
+    border-radius: 0;
   }
 
   .oauth-actions,
@@ -3784,9 +3645,9 @@ button.dash-cat-row:hover {
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 32px 64px;
+  padding: 40px 36px 64px;
 }
 @media (min-width: 900px) {
   .legal-shell {
@@ -3820,7 +3681,7 @@ button.dash-cat-row:hover {
 .legal-side-i {
   display: block;
   padding: 5px 8px;
-  border-radius: 5px;
+  border-radius: 0;
   color: var(--text-3);
   text-decoration: none;
   font-size: 12.5px;
@@ -3911,7 +3772,7 @@ button.dash-cat-row:hover {
 }
 .legal-table {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-elev);
   margin: 0 0 18px;
 }
@@ -3939,7 +3800,7 @@ button.dash-cat-row:hover {
   display: flex;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid color-mix(in oklch, var(--accent) 22%, var(--border));
   background: color-mix(in oklch, var(--accent) 6%, var(--bg-elev));
   margin: 8px 0 18px;
@@ -3975,13 +3836,13 @@ button.dash-cat-row:hover {
 .security-hero {
   max-width: 880px;
   margin: 0 auto;
-  padding: 64px 32px 24px;
+  padding: 64px 36px 24px;
   text-align: center;
 }
 .security-section {
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 36px 32px;
+  padding: 36px 36px;
 }
 .security-section-h {
   margin-bottom: 22px;
@@ -4005,7 +3866,7 @@ button.dash-cat-row:hover {
 }
 .security-cert {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-elev);
   padding: 16px;
 }
@@ -4022,7 +3883,7 @@ button.dash-cat-row:hover {
   font-size: 11px;
   color: var(--accent);
   background: color-mix(in oklch, var(--accent) 12%, transparent);
-  border-radius: 4px;
+  border-radius: 0;
   padding: 2px 6px;
   margin-bottom: 10px;
 }
@@ -4039,7 +3900,7 @@ button.dash-cat-row:hover {
 }
 .security-card {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--bg-elev);
   padding: 24px;
   transition:
@@ -4053,7 +3914,7 @@ button.dash-cat-row:hover {
 .security-card-i {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--accent-soft);
   color: var(--accent);
   display: grid;
@@ -4106,9 +3967,9 @@ button.dash-cat-row:hover {
 
 /* ── Status ────────────────────────────────────────────────── */
 .status-hero {
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 56px 32px 24px;
+  padding: 56px 36px 24px;
   text-align: center;
 }
 .status-overall {
@@ -4116,7 +3977,7 @@ button.dash-cat-row:hover {
   align-items: center;
   gap: 12px;
   padding: 10px 18px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border-strong);
   background: var(--bg-elev);
   margin-bottom: 14px;
@@ -4131,7 +3992,7 @@ button.dash-cat-row:hover {
 .status-dot {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--text-3);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--text-3) 18%, transparent);
 }
@@ -4159,13 +4020,13 @@ button.dash-cat-row:hover {
   justify-content: center;
 }
 .status-section {
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 12px 32px 36px;
+  padding: 12px 36px 36px;
 }
 .status-card {
   padding: 8px;
-  border-radius: 14px;
+  border-radius: 0;
 }
 .status-card-h {
   display: flex;
@@ -4254,7 +4115,7 @@ button.dash-cat-row:hover {
 }
 .status-bar-i {
   flex: 1;
-  border-radius: 1.5px;
+  border-radius: 0;
   min-width: 2px;
   background: #16a34a;
   transition: transform 120ms ease;
@@ -4335,7 +4196,7 @@ button.dash-cat-row:hover {
   font-weight: 600;
   letter-spacing: 0.06em;
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: 0;
   background: color-mix(in oklch, var(--sev-medium) 18%, transparent);
   color: var(--sev-medium);
 }
@@ -4414,7 +4275,7 @@ button.dash-cat-row:hover {
   padding: 12px 14px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   transition:
     border-color 120ms ease,
     background 120ms ease;
@@ -4432,7 +4293,7 @@ button.dash-cat-row:hover {
 .notif-ic {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-soft);
   display: grid;
   place-items: center;
@@ -4479,7 +4340,7 @@ button.dash-cat-row:hover {
 .notif-unread-dot {
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--accent);
 }
 .notif-empty {
@@ -4521,7 +4382,7 @@ button.dash-cat-row:hover {
   padding: 40px 36px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 0;
   box-shadow: var(--shadow-2);
   text-align: center;
 }
@@ -4556,7 +4417,7 @@ button.dash-cat-row:hover {
   color: var(--text-3);
   border: 1px solid var(--border);
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: 0;
   margin-left: 4px;
 }
 .notfound-suggest {
@@ -4578,7 +4439,7 @@ button.dash-cat-row:hover {
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg);
   cursor: pointer;
@@ -4594,7 +4455,7 @@ button.dash-cat-row:hover {
 .notfound-suggest-ic {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--bg-soft);
   color: var(--text-2);
   display: grid;

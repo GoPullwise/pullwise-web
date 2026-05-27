@@ -547,7 +547,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: "Workspaces" }]}
+        breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: T("Organizations", "组织") }]}
         setIssue={setIssue}
       />
       <div className="with-side">
@@ -555,9 +555,12 @@ export function WorkspacesScreen({ go, setIssue = null }) {
         <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
-              <h1>Workspaces</h1>
+              <h1>{T("Organizations", "组织")}</h1>
               <div className="sub">
-                Create and manage the Pullwise workspace that owns repos, billing, and API keys.
+                {T(
+                  "Manage GitHub organizations and accounts connected to Pullwise.",
+                  "管理连接到 Pullwise 的 GitHub 组织和账号。"
+                )}
               </div>
             </div>
           </div>
@@ -572,11 +575,11 @@ export function WorkspacesScreen({ go, setIssue = null }) {
             <aside className="set-side">
               <button className="set-side-i active">
                 <I.Layers size={14} />
-                <span>Workspaces</span>
+                <span>{T("Organizations", "组织")}</span>
               </button>
               <a className="set-side-i" {...screenLinkProps(go, "repos")}>
                 <I.Folder size={14} />
-                <span>Repositories</span>
+                <span>{T("Repositories", "仓库")}</span>
               </a>
             </aside>
 
@@ -585,7 +588,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
                 <div className="billing-summary-main" style={{ flex: 1 }}>
                   <I.Plus size={18} />
                   <label className="auth-field" style={{ flex: 1 }}>
-                    <span>Workspace name</span>
+                    <span>{T("Organization name", "组织名称")}</span>
                     <div className="auth-input">
                       <I.Layers size={14} />
                       <input
@@ -602,7 +605,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
                       <I.Refresh size={14} />
                     </span>
                   )}
-                  <I.Plus size={14} /> Create workspace
+                  <I.Plus size={14} /> {T("Create organization", "创建组织")}
                 </button>
               </form>
 
@@ -629,7 +632,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
                   </div>
                 ))}
                 {!loading && sortedWorkspaces.length === 0 && (
-                  <div className="card section muted">No workspaces have been created yet.</div>
+                  <div className="card section muted">{T("No organizations have been created yet.", "尚未创建任何组织。")}</div>
                 )}
               </div>
             </div>
