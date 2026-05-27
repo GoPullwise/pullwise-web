@@ -741,7 +741,10 @@
   min-width: 0;
 }
 .repo-row-status {
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: none;
 }
 .repo-row:last-child {
   border-bottom: 0;
@@ -774,6 +777,7 @@
 }
 .repo-main {
   min-width: 0;
+  flex: 1;
 }
 .repo-name {
   display: flex;
@@ -1175,7 +1179,7 @@
 
 .dash-grid {
   display: grid;
-  grid-template-columns: minmax(160px, max-content) minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-bottom: 24px;
 }
@@ -1231,7 +1235,7 @@
 
 .dash-cat-row {
   display: grid;
-  grid-template-columns: minmax(80px, 1fr) auto 24px;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
   gap: 10px;
   align-items: center;
   padding: 7px 6px;
@@ -1255,19 +1259,6 @@ button.dash-cat-row:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.dash-cat-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  overflow: hidden;
-}
-.dash-cat-name-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
 }
 .dash-cat-bar {
   height: 4px;
@@ -3371,10 +3362,6 @@ button.dash-cat-row:hover {
     padding: 12px;
   }
 
-  .repo-row-status {
-    grid-template-columns: 24px minmax(0, 1fr);
-  }
-
   .repo-row > .repo-icon,
   .repo-row > .repo-meta,
   .repo-row > svg {
@@ -3421,7 +3408,7 @@ button.dash-cat-row:hover {
   }
 
   .dash-cat-row {
-    grid-template-columns: minmax(60px, 1fr) 56px 20px;
+    grid-template-columns: minmax(0, 1fr) 56px 20px;
   }
 
   .issue-row {
@@ -4676,7 +4663,6 @@ button.dash-cat-row:hover {
 
 @media (max-width: 760px) {
   .repo-row,
-  .repo-row-status,
   .gh-install-row,
   .hist-row {
     grid-template-columns: 24px minmax(0, 1fr);
@@ -4687,7 +4673,7 @@ button.dash-cat-row:hover {
   }
 
   .dash-cat-row {
-    grid-template-columns: minmax(60px, 1fr) 56px 20px;
+    grid-template-columns: minmax(0, 1fr) 56px 20px;
   }
 
   .docs-table-r,

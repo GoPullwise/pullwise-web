@@ -14,6 +14,7 @@ export class ApiError extends Error {
 export const http = axios.create({
   baseURL: env.VITE_API_BASE_URL || "",
   withCredentials: true,
+  timeout: 12000,
   headers: {
     "Content-Type": "application/json",
   },

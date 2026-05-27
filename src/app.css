@@ -800,10 +800,6 @@ body.has-proto-nav {
     max-width: 100%;
   }
 
-  .repo-row-status {
-    grid-template-columns: 24px minmax(0, 1fr) auto;
-  }
-
   .issues-table {
     overflow-x: auto;
   }
@@ -869,7 +865,6 @@ body.has-proto-nav {
   }
 
   .repo-row,
-  .repo-row-status,
   .gh-install-row,
   .hist-row,
   .int-row,
@@ -981,7 +976,7 @@ body.has-proto-nav {
   }
 
   .dash-cat-row {
-    grid-template-columns: minmax(60px, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .dash-cat-row > b {

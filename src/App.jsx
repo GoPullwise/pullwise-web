@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
 import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
@@ -153,21 +153,29 @@ export function App({ prototypeNav = false }) {
     setScreen("login");
   }, [screen, auth.status, auth.authenticated]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const SESSION_CHECK_TIMEOUT = 5000;
+  // Session check: runs on mount, retries on failure, re-checks on focus/visibility return.
+  // This is the standard pattern used by NextAuth, Supabase, and Firebase Auth for SPA session
+  // recovery — a single check on mount is not enough because the user may navigate away (e.g. to
+  // an OAuth provider) and return with a new session cookie that the app must detect.
+  const sessionAbortRef = useRef(null);
+  const sessionCheckingRef = useRef(false);
 
-    const timeoutId = setTimeout(() => {
-      if (cancelled) return;
-      setAuth({ status: "ready", authenticated: false, session: null });
-      setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
-    }, SESSION_CHECK_TIMEOUT);
+  const checkSession = useCallback(
+    async ({ isRetry = false } = {}) => {
+      if (sessionCheckingRef.current) return;
+      sessionCheckingRef.current = true;
 
-    pullwiseApi.auth
-      .getSession()
-      .then((payload) => {
-        if (cancelled) return;
-        clearTimeout(timeoutId);
+      if (sessionAbortRef.current) sessionAbortRef.current.abort();
+      const controller = new AbortController();
+      sessionAbortRef.current = controller;
+
+      if (!isRetry) {
+        setAuth((prev) => ({ ...prev, status: "checking" }));
+      }
+
+      try {
+        const payload = await pullwiseApi.auth.getSession({ signal: controller.signal });
+        if (controller.signal.aborted) return;
         const authenticated = Boolean(payload?.authenticated);
         setAuth({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
@@ -179,19 +187,56 @@ export function App({ prototypeNav = false }) {
           }
           return current;
         });
-      })
-      .catch(() => {
-        if (cancelled) return;
-        clearTimeout(timeoutId);
+      } catch (error) {
+        if (controller.signal.aborted) return;
         setAuth({ status: "ready", authenticated: false, session: null });
         setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
-      });
+      } finally {
+        sessionCheckingRef.current = false;
+      }
+    },
+    []
+  );
 
+  // Initial session check on mount, with a single retry on failure.
+  // Many transient issues (server cold start, brief network hiccup) resolve within seconds.
+  useEffect(() => {
+    let disposed = false;
+    checkSession().then(() => {
+      if (disposed) return;
+      // If the first check failed (auth is ready but not authenticated), retry once after a delay.
+      // This handles server cold starts and transient network issues without blocking the UI.
+      setAuth((current) => {
+        if (current.status === "ready" && !current.authenticated) {
+          setTimeout(() => {
+            if (!disposed) checkSession({ isRetry: true });
+          }, 2000);
+        }
+        return current;
+      });
+    });
     return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
+      disposed = true;
+      if (sessionAbortRef.current) sessionAbortRef.current.abort();
     };
-  }, []);
+  }, [checkSession]);
+
+  // Re-check session when the app becomes visible or regains focus.
+  // This catches the case where the user navigated away (e.g. to GitHub OAuth), completed an
+  // action that set a session cookie, and returned to this tab. Without this re-check, the app
+  // would show stale "not logged in" state even though the cookie is now valid.
+  useEffect(() => {
+    const recheck = () => {
+      if (document.visibilityState === "hidden") return;
+      checkSession({ isRetry: true });
+    };
+    window.addEventListener("focus", recheck);
+    document.addEventListener("visibilitychange", recheck);
+    return () => {
+      window.removeEventListener("focus", recheck);
+      document.removeEventListener("visibilitychange", recheck);
+    };
+  }, [checkSession]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

@@ -258,20 +258,22 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     )}
                     onClick={() => go("repos")}
                   >
-                    <span className="dash-cat-name">
-                      <I.Folder size={13} style={{ flexShrink: 0 }} />
-                      <span className="dash-cat-name-text">{repo.fullName || repo.name}</span>
+                    <span
+                      style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}
+                    >
+                      <I.Folder size={13} style={{ flexShrink: 0 }} />{" "}
+                      {repo.fullName || repo.name}
                     </span>
                     {repo.private ? (
-                      <span className="tag" style={{ fontSize: 10.5, flexShrink: 0 }}>
+                      <span className="tag" style={{ fontSize: 10.5 }}>
                         <I.Lock size={9} /> {T("Private", "私有")}
                       </span>
                     ) : (
-                      <span className="tag" style={{ fontSize: 10.5, flexShrink: 0 }}>
+                      <span className="tag" style={{ fontSize: 10.5 }}>
                         {T("Public", "公开")}
                       </span>
                     )}
-                    <b style={{ minWidth: 18, textAlign: "right", flexShrink: 0 }}>
+                    <b style={{ minWidth: 18, textAlign: "right" }}>
                       <I.ChevR size={12} />
                     </b>
                   </button>
