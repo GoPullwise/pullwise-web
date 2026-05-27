@@ -33,7 +33,7 @@ describe("Topbar navigation", () => {
     );
 
     const brand = screen.getByRole("link", { name: /go to pullwise home/i });
-    expect(brand).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+    expect(brand).toHaveAttribute("href", "/");
     brand.focus();
     await user.keyboard("{Enter}");
 
@@ -41,13 +41,13 @@ describe("Topbar navigation", () => {
 
     go.mockClear();
     const breadcrumb = screen.getByRole("link", { name: /^go to pullwise$/i });
-    expect(breadcrumb).toHaveAttribute("href", expect.stringContaining("screen=dashboard"));
+    expect(breadcrumb).toHaveAttribute("href", "/dashboard");
     await user.click(breadcrumb);
 
     expect(go).toHaveBeenCalledWith("dashboard");
 
     const account = screen.getByRole("link", { name: /open account settings/i });
-    expect(account).toHaveAttribute("href", expect.stringContaining("screen=settings"));
+    expect(account).toHaveAttribute("href", "/settings");
     await user.click(account);
 
     expect(go).toHaveBeenCalledWith("settings");
@@ -73,16 +73,16 @@ describe("Sidebar navigation", () => {
     const settings = screen.getByRole("link", { name: /^settings$/i });
     const repoAccess = screen.getByRole("link", { name: /1 repositories/i });
 
-    expect(workspace).toHaveAttribute("href", expect.stringContaining("screen=workspaces"));
-    expect(overview).toHaveAttribute("href", expect.stringContaining("screen=dashboard"));
-    expect(issues).toHaveAttribute("href", expect.stringContaining("screen=issues"));
-    expect(repositories).toHaveAttribute("href", expect.stringContaining("screen=repos"));
-    expect(history).toHaveAttribute("href", expect.stringContaining("screen=history"));
-    expect(apiKeys).toHaveAttribute("href", expect.stringContaining("screen=apiKeys"));
-    expect(workspaces).toHaveAttribute("href", expect.stringContaining("screen=workspaces"));
-    expect(billing).toHaveAttribute("href", expect.stringContaining("screen=billing"));
-    expect(settings).toHaveAttribute("href", expect.stringContaining("screen=settings"));
-    expect(repoAccess).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(workspace).toHaveAttribute("href", "/organizations");
+    expect(overview).toHaveAttribute("href", "/dashboard");
+    expect(issues).toHaveAttribute("href", "/issues");
+    expect(repositories).toHaveAttribute("href", "/repos");
+    expect(history).toHaveAttribute("href", "/history");
+    expect(apiKeys).toHaveAttribute("href", "/api-keys");
+    expect(workspaces).toHaveAttribute("href", "/organizations");
+    expect(billing).toHaveAttribute("href", "/billing");
+    expect(settings).toHaveAttribute("href", "/settings");
+    expect(repoAccess).toHaveAttribute("href", "/repos");
 
     await user.click(workspace);
     await user.click(apiKeys);

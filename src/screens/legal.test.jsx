@@ -15,9 +15,9 @@ describe("legal pages", () => {
   it("shows dashboard actions instead of sign-in actions for signed-in users", () => {
     render(<SecurityScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^dashboard$/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("screen=dashboard")
+      "/dashboard"
     );
     expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
@@ -38,13 +38,13 @@ describe("legal pages", () => {
     const getStarted = screen.getByRole("link", { name: /^get started$/i });
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
 
-    expect(home).toHaveAttribute("href", expect.stringContaining("screen=landing"));
-    expect(product).toHaveAttribute("href", expect.stringContaining("screen=landing"));
-    expect(security).toHaveAttribute("href", expect.stringContaining("screen=security"));
-    expect(status).toHaveAttribute("href", expect.stringContaining("screen=status"));
-    expect(signIn).toHaveAttribute("href", expect.stringContaining("screen=login"));
-    expect(getStarted).toHaveAttribute("href", expect.stringContaining("screen=login"));
-    expect(privacy).toHaveAttribute("href", expect.stringContaining("screen=privacy"));
+    expect(home).toHaveAttribute("href", "/");
+    expect(product).toHaveAttribute("href", "/");
+    expect(security).toHaveAttribute("href", "/security");
+    expect(status).toHaveAttribute("href", "/status");
+    expect(signIn).toHaveAttribute("href", "/login");
+    expect(getStarted).toHaveAttribute("href", "/login");
+    expect(privacy).toHaveAttribute("href", "/privacy");
 
     home.focus();
     await user.keyboard("{Enter}");
@@ -61,7 +61,7 @@ describe("legal pages", () => {
     render(<PrivacyScreen go={go} />);
 
     const breadcrumbHome = screen.getByRole("link", { name: /^pullwise$/i });
-    expect(breadcrumbHome).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+    expect(breadcrumbHome).toHaveAttribute("href", "/");
 
     await user.click(breadcrumbHome);
 

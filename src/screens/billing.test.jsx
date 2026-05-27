@@ -90,8 +90,8 @@ describe("BillingScreen", () => {
     const terms = screen.getByRole("link", { name: /^terms$/i });
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
 
-    expect(terms).toHaveAttribute("href", expect.stringContaining("screen=terms"));
-    expect(privacy).toHaveAttribute("href", expect.stringContaining("screen=privacy"));
+    expect(terms).toHaveAttribute("href", "/terms");
+    expect(privacy).toHaveAttribute("href", "/privacy");
 
     await user.click(terms);
 
@@ -110,7 +110,7 @@ describe("BillingScreen", () => {
 
     const pricingButtons = await screen.findAllByRole("link", { name: /view pricing/i });
     pricingButtons.forEach((link) => {
-      expect(link).toHaveAttribute("href", expect.stringContaining("screen=pricing"));
+      expect(link).toHaveAttribute("href", "/pricing");
     });
 
     await user.click(pricingButtons[0]);

@@ -39,12 +39,12 @@ describe("DashboardScreen issue list", () => {
     const repository = screen.getByRole("link", { name: /open repository acme\/api/i });
     const allIssues = screen.getAllByRole("link", { name: /all issues/i });
 
-    expect(newScan).toHaveAttribute("href", expect.stringContaining("screen=repos"));
-    expect(manage).toHaveAttribute("href", expect.stringContaining("screen=repos"));
-    expect(repository).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(newScan).toHaveAttribute("href", "/repos");
+    expect(manage).toHaveAttribute("href", "/repos");
+    expect(repository).toHaveAttribute("href", "/repos");
     expect(allIssues).toHaveLength(2);
     allIssues.forEach((link) => {
-      expect(link).toHaveAttribute("href", expect.stringContaining("screen=issues"));
+      expect(link).toHaveAttribute("href", "/issues");
     });
 
     await user.click(newScan);

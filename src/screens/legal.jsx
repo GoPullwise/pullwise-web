@@ -2,79 +2,18 @@ import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { signOut } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
+import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 function LegalChrome({ go, current, children, auth }) {
   useLang();
-  const signedIn = Boolean(auth?.authenticated);
   return (
     <div className="landing fade-in">
-      <header className="lp-top">
-        <a
-          className="brand"
-          aria-label="Go to Pullwise home"
-          {...screenLinkProps(go, "landing")}
-        >
-          <div className="brand-mark">PR</div>
-          <span>Pullwise</span>
-        </a>
-        <nav className="lp-nav">
-          <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
-            {T("Product", "产品")}
-          </a>
-          <a className="btn ghost sm" {...screenLinkProps(go, "security")}>
-            {T("Security", "安全")}
-          </a>
-          <a className="btn ghost sm" {...screenLinkProps(go, "status")}>
-            {T("Status", "状态")}
-          </a>
-        </nav>
-        <div style={{ display: "flex", gap: 8 }}>
-          {signedIn ? (
-            <>
-              <button className="btn sm" onClick={signOut}>
-                {T("Sign out", "退出登录")}
-              </button>
-              <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
-                {T("Dashboard", "工作台")}
-              </a>
-            </>
-          ) : (
-            <>
-              <a className="btn sm" {...screenLinkProps(go, "login")}>
-                {T("Sign in", "登录")}
-              </a>
-              <a className="btn primary sm" {...screenLinkProps(go, "login")}>
-                {T("Get started", "开始使用")}
-              </a>
-            </>
-          )}
-        </div>
-      </header>
+      <PublicHeader go={go} current={current} auth={auth} />
 
       {children}
 
-      <footer className="lp-foot">
-        <div>Copyright 2026 Pullwise</div>
-        <div style={{ display: "flex", gap: 18 }}>
-          {[
-            ["privacy", T("Privacy", "隐私")],
-            ["terms", T("Terms", "条款")],
-            ["security", T("Security", "安全")],
-            ["status", T("Status", "状态")],
-          ].map(([key, label]) => (
-            <a
-              key={key}
-              className="legal-foot-l"
-              {...screenLinkProps(go, key)}
-              style={{ color: current === key ? "var(--text)" : undefined }}
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-      </footer>
+      <PublicFooter go={go} current={current} />
     </div>
   );
 }

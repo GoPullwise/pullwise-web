@@ -115,7 +115,7 @@ describe("HistoryScreen queue state", () => {
     render(<HistoryScreen go={go} />);
 
     const newScan = screen.getByRole("link", { name: /new scan/i });
-    expect(newScan).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(newScan).toHaveAttribute("href", "/repos");
 
     await user.click(newScan);
 
@@ -194,7 +194,7 @@ describe("IssueDetailScreen review detail", () => {
     const { rerender } = render(<IssueDetailScreen go={go} issue={null} />);
 
     const backToIssues = screen.getByRole("link", { name: /back to issues/i });
-    expect(backToIssues).toHaveAttribute("href", expect.stringContaining("screen=issues"));
+    expect(backToIssues).toHaveAttribute("href", "/issues");
 
     await user.click(backToIssues);
     expect(go).toHaveBeenCalledWith("issues");
@@ -203,7 +203,7 @@ describe("IssueDetailScreen review detail", () => {
     rerender(<IssueDetailScreen go={go} issue={issue} />);
 
     const backToList = screen.getByRole("link", { name: /back to list/i });
-    expect(backToList).toHaveAttribute("href", expect.stringContaining("screen=issues"));
+    expect(backToList).toHaveAttribute("href", "/issues");
 
     await user.click(backToList);
     expect(go).toHaveBeenCalledWith("issues");

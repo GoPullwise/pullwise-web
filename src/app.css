@@ -451,7 +451,7 @@ body.has-proto-nav {
 }
 
 .repo-row {
-  grid-template-columns: 30px 24px minmax(180px, 1fr) minmax(260px, auto);
+  grid-template-columns: 30px 24px minmax(0, 1fr) auto;
 }
 
 .repo-check,

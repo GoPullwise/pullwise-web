@@ -145,7 +145,7 @@ describe("App", () => {
     expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: /settings/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("screen=settings")
+      "/settings"
     );
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
@@ -203,7 +203,7 @@ describe("App", () => {
     render(<App />);
 
     const back = await screen.findByRole("link", { name: /back/i });
-    expect(back).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(back).toHaveAttribute("href", "/repos");
 
     await user.click(back);
 

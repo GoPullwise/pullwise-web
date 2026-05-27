@@ -60,10 +60,10 @@ describe("API screens", () => {
       name: /pullwise/i,
     });
 
-    expect(apiKeysSide).toHaveAttribute("href", expect.stringContaining("screen=apiKeys"));
-    expect(apiKeysFoot).toHaveAttribute("href", expect.stringContaining("screen=apiKeys"));
-    expect(pricing).toHaveAttribute("href", expect.stringContaining("screen=pricing"));
-    expect(home).toHaveAttribute("href", expect.stringContaining("screen=landing"));
+    expect(apiKeysSide).toHaveAttribute("href", "/api-keys");
+    expect(apiKeysFoot).toHaveAttribute("href", "/api-keys");
+    expect(pricing).toHaveAttribute("href", "/pricing");
+    expect(home).toHaveAttribute("href", "/");
 
     await user.click(apiKeysSide);
     expect(go).toHaveBeenCalledWith("apiKeys");
@@ -82,8 +82,8 @@ describe("API screens", () => {
       name: /^docs$/i,
     });
 
-    expect(pageAction).toHaveAttribute("href", expect.stringContaining("screen=api"));
-    expect(docsSide).toHaveAttribute("href", expect.stringContaining("screen=api"));
+    expect(pageAction).toHaveAttribute("href", "/api");
+    expect(docsSide).toHaveAttribute("href", "/api");
 
     await user.click(pageAction);
     expect(go).toHaveBeenCalledWith("api");
@@ -254,8 +254,8 @@ describe("API screens", () => {
     const repositories = settingsNav.getByRole("link", { name: /repositories/i });
     const repoRow = screen.getByRole("link", { name: /^repos$/i });
 
-    expect(repositories).toHaveAttribute("href", expect.stringContaining("screen=repos"));
-    expect(repoRow).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(repositories).toHaveAttribute("href", "/repos");
+    expect(repoRow).toHaveAttribute("href", "/repos");
 
     await user.click(repoRow);
     expect(go).toHaveBeenCalledWith("repos");

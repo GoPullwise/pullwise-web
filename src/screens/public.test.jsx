@@ -18,14 +18,14 @@ describe("public navigation links", () => {
     const getStarted = screen.getByRole("link", { name: /^get started$/i });
     const primaryActions = screen.getAllByRole("link", { name: /sign in with github/i });
 
-    expect(product).toHaveAttribute("href", expect.stringContaining("screen=landing"));
-    expect(pricing).toHaveAttribute("href", expect.stringContaining("screen=pricing"));
-    expect(api).toHaveAttribute("href", expect.stringContaining("screen=api"));
-    expect(signIn).toHaveAttribute("href", expect.stringContaining("screen=login"));
-    expect(getStarted).toHaveAttribute("href", expect.stringContaining("screen=login"));
+    expect(product).toHaveAttribute("href", "/");
+    expect(pricing).toHaveAttribute("href", "/pricing");
+    expect(api).toHaveAttribute("href", "/api");
+    expect(signIn).toHaveAttribute("href", "/login");
+    expect(getStarted).toHaveAttribute("href", "/login");
     expect(primaryActions).toHaveLength(2);
     for (const action of primaryActions) {
-      expect(action).toHaveAttribute("href", expect.stringContaining("screen=login"));
+      expect(action).toHaveAttribute("href", "/login");
     }
 
     await user.click(getStarted);
@@ -40,19 +40,12 @@ describe("public navigation links", () => {
   it("exposes signed-in landing header actions as real screen links", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: true }} />);
 
-    expect(screen.getByRole("link", { name: /^settings$/i })).toHaveAttribute(
+    const header = screen.getByRole("banner");
+    expect(within(header).getByRole("button", { name: /^sign out$/i })).toBeInTheDocument();
+    expect(within(header).getByRole("link", { name: /^dashboard$/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("screen=settings")
+      "/dashboard"
     );
-    expect(screen.getByRole("link", { name: /^dashboard$/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("screen=dashboard")
-    );
-    const dashboardActions = screen.getAllByRole("link", { name: /open dashboard/i });
-    expect(dashboardActions).toHaveLength(2);
-    for (const action of dashboardActions) {
-      expect(action).toHaveAttribute("href", expect.stringContaining("screen=dashboard"));
-    }
   });
 
   it("opens landing footer legal pages from real links", async () => {
@@ -62,7 +55,7 @@ describe("public navigation links", () => {
     render(<LandingScreen go={go} accent="#6366f1" auth={{ authenticated: false }} />);
 
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
-    expect(privacy).toHaveAttribute("href", expect.stringContaining("screen=privacy"));
+    expect(privacy).toHaveAttribute("href", "/privacy");
 
     privacy.focus();
     await user.keyboard("{Enter}");
@@ -78,8 +71,8 @@ describe("public navigation links", () => {
 
     const terms = screen.getByRole("link", { name: /terms of service/i });
     const privacy = screen.getByRole("link", { name: /privacy policy/i });
-    expect(terms).toHaveAttribute("href", expect.stringContaining("screen=terms"));
-    expect(privacy).toHaveAttribute("href", expect.stringContaining("screen=privacy"));
+    expect(terms).toHaveAttribute("href", "/terms");
+    expect(privacy).toHaveAttribute("href", "/privacy");
 
     await user.click(terms);
 
@@ -93,7 +86,7 @@ describe("public navigation links", () => {
     render(<OAuthScreen go={go} auth={{ authenticated: false }} />);
 
     const back = screen.getByRole("link", { name: /^back$/i });
-    expect(back).toHaveAttribute("href", expect.stringContaining("screen=login"));
+    expect(back).toHaveAttribute("href", "/login");
 
     await user.click(back);
 
@@ -103,9 +96,6 @@ describe("public navigation links", () => {
   it("exposes repository authorization back navigation as a real link when signed in", () => {
     render(<OAuthScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(screen.getByRole("link", { name: /^back$/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("screen=repos")
-    );
+    expect(screen.getByRole("link", { name: /^back$/i })).toHaveAttribute("href", "/repos");
   });
 });

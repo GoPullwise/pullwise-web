@@ -29,9 +29,9 @@ describe("NotFoundScreen", () => {
     const signIn = screen.getByRole("link", { name: /^sign in/i });
     const status = screen.getByRole("link", { name: /^status/i });
 
-    expect(home).toHaveAttribute("href", expect.stringContaining("screen=landing"));
-    expect(signIn).toHaveAttribute("href", expect.stringContaining("screen=login"));
-    expect(status).toHaveAttribute("href", expect.stringContaining("screen=status"));
+    expect(home).toHaveAttribute("href", "/");
+    expect(signIn).toHaveAttribute("href", "/login");
+    expect(status).toHaveAttribute("href", "/status");
 
     await user.click(status);
 
@@ -43,11 +43,11 @@ describe("NotFoundScreen", () => {
 
     expect(screen.getByRole("link", { name: /^dashboard/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("screen=dashboard")
+      "/dashboard"
     );
     expect(screen.getByRole("link", { name: /^issues/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("screen=issues")
+      "/issues"
     );
   });
 

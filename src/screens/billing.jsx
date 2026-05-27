@@ -4,6 +4,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { Sidebar, Topbar } from "../shell.jsx";
+import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 function providerLabel(provider) {
   if (provider === "stripe") return "Stripe";
@@ -436,38 +437,7 @@ export function PricingScreen({
 
   return (
     <div className="landing fade-in">
-      <header className="lp-top">
-        <a
-          className="brand topbar-brand-button"
-          aria-label="Go to Pullwise home"
-          {...screenLinkProps(go, "landing")}
-        >
-          <div className="brand-mark">PR</div>
-          <span>Pullwise</span>
-        </a>
-        <nav className="lp-nav">
-          <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
-            {T("Product", "Product")}
-          </a>
-          <a className="btn ghost sm" {...screenLinkProps(go, "pricing")}>
-            {T("Pricing", "Pricing")}
-          </a>
-          <a className="btn ghost sm" {...screenLinkProps(go, "api")}>
-            {T("API", "API")}
-          </a>
-        </nav>
-        <div style={{ display: "flex", gap: 8 }}>
-          {signedIn ? (
-            <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
-              {T("Dashboard", "Dashboard")}
-            </a>
-          ) : (
-            <a className="btn primary sm" {...screenLinkProps(go, "login")}>
-              {T("Sign in", "Sign in")}
-            </a>
-          )}
-        </div>
-      </header>
+      <PublicHeader go={go} current="pricing" auth={auth} />
 
       <section className="pricing-hero">
         <div className="lp-hero-tag">
@@ -559,6 +529,8 @@ export function PricingScreen({
           </div>
         </div>
       )}
+
+      <PublicFooter go={go} current="pricing" />
     </div>
   );
 }

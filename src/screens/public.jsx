@@ -3,6 +3,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
+import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 function getAuthErrorMessage(error) {
   return (
@@ -83,55 +84,7 @@ export function LandingScreen({ go, accent, auth }) {
   );
   return (
     <div className="landing fade-in">
-      <header className="lp-top">
-        <a
-          className="brand"
-          aria-label="Go to Pullwise home"
-          {...screenLinkProps(go, "landing")}
-        >
-          <div className="brand-mark">PR</div>
-          <span>Pullwise</span>
-        </a>
-        <nav className="lp-nav">
-          <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
-            {T("Product", "Product")}
-          </a>
-          <a className="btn ghost sm" {...screenLinkProps(go, "pricing")}>
-            {T("Pricing", "Pricing")}
-          </a>
-          <a className="btn ghost sm" {...screenLinkProps(go, "api")}>
-            {T("API", "API")}
-          </a>
-        </nav>
-        <div style={{ display: "flex", gap: 8 }}>
-          {checkingSession ? (
-            <button className="btn sm" type="button" disabled>
-              <span className="spin" style={{ display: "inline-block" }}>
-                <I.Refresh size={14} />
-              </span>
-              {T("Checking session...", "Checking session...")}
-            </button>
-          ) : signedIn ? (
-            <>
-              <a className="btn sm" {...screenLinkProps(go, "settings")}>
-                {T("Settings", "Settings")}
-              </a>
-              <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
-                {T("Dashboard", "Dashboard")}
-              </a>
-            </>
-          ) : (
-            <>
-              <a className="btn sm" {...screenLinkProps(go, "login")}>
-                {T("Sign in", "Sign in")}
-              </a>
-              <a className="btn primary sm" {...screenLinkProps(go, "login")}>
-                {T("Get started", "Get started")}
-              </a>
-            </>
-          )}
-        </div>
-      </header>
+      <PublicHeader go={go} current="landing" auth={auth} />
 
       <section className="lp-hero">
         <div className="lp-hero-tag">
@@ -330,29 +283,7 @@ export function LandingScreen({ go, accent, auth }) {
         )}
       </section>
 
-      <footer className="lp-foot">
-        <div>Copyright 2026 Pullwise</div>
-        <div style={{ display: "flex", gap: 18 }}>
-          <a className="legal-foot-l" {...screenLinkProps(go, "privacy")}>
-            {T("Privacy", "Privacy")}
-          </a>
-          <a className="legal-foot-l" {...screenLinkProps(go, "terms")}>
-            {T("Terms", "Terms")}
-          </a>
-          <a className="legal-foot-l" {...screenLinkProps(go, "security")}>
-            {T("Security", "Security")}
-          </a>
-          <a className="legal-foot-l" {...screenLinkProps(go, "pricing")}>
-            {T("Pricing", "Pricing")}
-          </a>
-          <a className="legal-foot-l" {...screenLinkProps(go, "api")}>
-            {T("API", "API")}
-          </a>
-          <a className="legal-foot-l" {...screenLinkProps(go, "status")}>
-            {T("Status", "Status")}
-          </a>
-        </div>
-      </footer>
+      <PublicFooter go={go} current="landing" />
     </div>
   );
 }

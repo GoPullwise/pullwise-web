@@ -531,7 +531,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     const action = screen.getByRole("link", { name: /open settings/i });
-    expect(action).toHaveAttribute("href", expect.stringContaining("screen=settings"));
+    expect(action).toHaveAttribute("href", "/settings");
 
     await user.click(action);
 
@@ -544,7 +544,7 @@ describe("ScanningScreen queue state", () => {
     const { go } = renderScanError("Sync GitHub repositories before starting a scan.");
 
     const action = screen.getByRole("link", { name: /sync repositories/i });
-    expect(action).toHaveAttribute("href", expect.stringContaining("screen=repos"));
+    expect(action).toHaveAttribute("href", "/repos");
 
     await user.click(action);
 
@@ -557,7 +557,7 @@ describe("ScanningScreen queue state", () => {
     const { go } = renderScanError("Monthly review limit exceeded for this workspace.");
 
     const action = screen.getByRole("link", { name: /open billing/i });
-    expect(action).toHaveAttribute("href", expect.stringContaining("screen=billing"));
+    expect(action).toHaveAttribute("href", "/billing");
 
     await user.click(action);
 
@@ -570,7 +570,7 @@ describe("ScanningScreen queue state", () => {
     const { go } = renderScanError("Repository quota exhausted.", "QUOTA_EXCEEDED_REPOSITORY");
 
     const action = screen.getByRole("link", { name: /open billing/i });
-    expect(action).toHaveAttribute("href", expect.stringContaining("screen=billing"));
+    expect(action).toHaveAttribute("href", "/billing");
 
     await user.click(action);
 
@@ -583,7 +583,7 @@ describe("ScanningScreen queue state", () => {
     const { go } = renderScanError("Codex CLI is missing or not authenticated.");
 
     const action = screen.getByRole("link", { name: /open settings/i });
-    expect(action).toHaveAttribute("href", expect.stringContaining("screen=settings"));
+    expect(action).toHaveAttribute("href", "/settings");
 
     await user.click(action);
 

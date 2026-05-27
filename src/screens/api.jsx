@@ -415,7 +415,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                     </div>
                   </label>
                 </div>
-                <button className="btn primary" type="submit" disabled={pending === "create"}>
+                <button className="btn primary" type="submit" disabled={pending === "create"} style={{ alignSelf: "flex-end" }}>
                   {pending === "create" && (
                     <span className="spin" style={{ display: "inline-block" }}>
                       <I.Refresh size={14} />
@@ -599,7 +599,7 @@ export function WorkspacesScreen({ go, setIssue = null }) {
                     </div>
                   </label>
                 </div>
-                <button className="btn primary" type="submit" disabled={pending}>
+                <button className="btn primary" type="submit" disabled={pending} style={{ alignSelf: "flex-end" }}>
                   {pending && (
                     <span className="spin" style={{ display: "inline-block" }}>
                       <I.Refresh size={14} />
