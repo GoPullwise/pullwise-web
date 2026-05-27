@@ -21,6 +21,7 @@ import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
+const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
 const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
@@ -161,8 +162,8 @@ export function App({ prototypeNav = false }) {
   const sessionCheckingRef = useRef(false);
 
   const checkSession = useCallback(
-    async ({ isRetry = false } = {}) => {
-      if (sessionCheckingRef.current) return;
+    async ({ isRetry = false, deferUnauthenticated = false } = {}) => {
+      if (sessionCheckingRef.current) return { skipped: true };
       sessionCheckingRef.current = true;
 
       if (sessionAbortRef.current) sessionAbortRef.current.abort();
@@ -175,8 +176,11 @@ export function App({ prototypeNav = false }) {
 
       try {
         const payload = await pullwiseApi.auth.getSession({ signal: controller.signal });
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) return { aborted: true };
         const authenticated = Boolean(payload?.authenticated);
+        if (!authenticated && deferUnauthenticated) {
+          return { authenticated, payload: payload || null };
+        }
         setAuth({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
           if (authenticated && current === "login") {
@@ -187,10 +191,15 @@ export function App({ prototypeNav = false }) {
           }
           return current;
         });
+        return { authenticated, payload: payload || null };
       } catch (error) {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) return { aborted: true };
+        if (deferUnauthenticated) {
+          return { authenticated: false, error };
+        }
         setAuth({ status: "ready", authenticated: false, session: null });
         setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
+        return { authenticated: false, error };
       } finally {
         sessionCheckingRef.current = false;
       }
@@ -202,18 +211,14 @@ export function App({ prototypeNav = false }) {
   // Many transient issues (server cold start, brief network hiccup) resolve within seconds.
   useEffect(() => {
     let disposed = false;
-    checkSession().then(() => {
+    checkSession({ deferUnauthenticated: true }).then((result) => {
       if (disposed) return;
-      // If the first check failed (auth is ready but not authenticated), retry once after a delay.
-      // This handles server cold starts and transient network issues without blocking the UI.
-      setAuth((current) => {
-        if (current.status === "ready" && !current.authenticated) {
-          setTimeout(() => {
-            if (!disposed) checkSession({ isRetry: true });
-          }, 2000);
-        }
-        return current;
-      });
+      if (result?.authenticated || result?.aborted || result?.skipped) return;
+      // Keep login actions disabled until a second check confirms that the browser is actually
+      // signed out. This avoids a transient signed-out UI during cold starts or weak networks.
+      setTimeout(() => {
+        if (!disposed) checkSession({ isRetry: true });
+      }, INITIAL_SESSION_RETRY_DELAY_MS);
     });
     return () => {
       disposed = true;
@@ -277,6 +282,7 @@ export function App({ prototypeNav = false }) {
             type="button"
             style={{ marginTop: 16 }}
             onClick={() => {
+              if (sessionAbortRef.current) sessionAbortRef.current.abort();
               setAuth({ status: "ready", authenticated: false, session: null });
               setScreen("login");
             }}

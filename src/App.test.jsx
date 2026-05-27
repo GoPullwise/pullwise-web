@@ -136,7 +136,31 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="login"]')).toBeInTheDocument();
+    }, { timeout: 3500 });
+  });
+
+  it("keeps login actions hidden while confirming an initial signed-out session result", async () => {
+    pullwiseApi.auth.getSession
+      .mockResolvedValueOnce({ authenticated: false })
+      .mockResolvedValueOnce({
+        authenticated: true,
+        user: { name: "Dev", email: "dev@example.com" },
+      });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(1);
     });
+    expect(screen.getAllByRole("button", { name: /checking session/i }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sign in with github/i })).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
+      expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
+    }, { timeout: 3500 });
+    expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
   it("shows signed-in actions on the landing page", () => {
