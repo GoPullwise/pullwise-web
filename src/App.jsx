@@ -156,11 +156,19 @@ export function App({ prototypeNav = false }) {
 
   useEffect(() => {
     let cancelled = false;
+    const SESSION_CHECK_TIMEOUT = 5000;
+
+    const timeoutId = setTimeout(() => {
+      if (cancelled) return;
+      setAuth({ status: "ready", authenticated: false, session: null });
+      setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
+    }, SESSION_CHECK_TIMEOUT);
 
     pullwiseApi.auth
       .getSession()
       .then((payload) => {
         if (cancelled) return;
+        clearTimeout(timeoutId);
         const authenticated = Boolean(payload?.authenticated);
         setAuth({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
@@ -175,12 +183,14 @@ export function App({ prototypeNav = false }) {
       })
       .catch(() => {
         if (cancelled) return;
+        clearTimeout(timeoutId);
         setAuth({ status: "ready", authenticated: false, session: null });
         setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
       });
 
     return () => {
       cancelled = true;
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -218,6 +228,17 @@ export function App({ prototypeNav = false }) {
               "如果此浏览器仍保持登录，将恢复工作区。"
             )}
           </p>
+          <button
+            className="btn sm ghost"
+            type="button"
+            style={{ marginTop: 16 }}
+            onClick={() => {
+              setAuth({ status: "ready", authenticated: false, session: null });
+              setScreen("login");
+            }}
+          >
+            {T("Skip — go to sign in", "跳过 — 前往登录")}
+          </button>
         </div>
       </div>
     );
