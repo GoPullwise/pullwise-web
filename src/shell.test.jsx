@@ -19,7 +19,6 @@ beforeEach(() => {
   useIssues.mockReturnValue({ items: [] });
   useRepositories.mockReturnValue({
     items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
-    workspace: { name: "Acme" },
   });
 });
 
@@ -55,42 +54,36 @@ describe("Topbar navigation", () => {
 });
 
 describe("Sidebar navigation", () => {
-  it("exposes workspace navigation destinations as real screen links", async () => {
+  it("exposes navigation destinations as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
     useIssues.mockReturnValue({ items: [{ id: "f_1", status: "open" }] });
 
     render(<Sidebar section="dashboard" go={go} />);
 
-    const workspace = screen.getByRole("link", { name: /open workspaces/i });
     const overview = screen.getByRole("link", { name: /^overview$/i });
     const issues = screen.getByRole("link", { name: /^issues\b/i });
     const repositories = screen.getByRole("link", { name: /^repositories$/i });
     const history = screen.getByRole("link", { name: /^scan history$/i });
     const apiKeys = screen.getByRole("link", { name: /^api keys$/i });
-    const workspaces = screen.getByRole("link", { name: /^workspaces$/i });
     const billing = screen.getByRole("link", { name: /^billing$/i });
     const settings = screen.getByRole("link", { name: /^settings$/i });
     const repoAccess = screen.getByRole("link", { name: /1 repositories/i });
 
-    expect(workspace).toHaveAttribute("href", "/organizations");
     expect(overview).toHaveAttribute("href", "/dashboard");
     expect(issues).toHaveAttribute("href", "/issues");
     expect(repositories).toHaveAttribute("href", "/repos");
     expect(history).toHaveAttribute("href", "/history");
     expect(apiKeys).toHaveAttribute("href", "/api-keys");
-    expect(workspaces).toHaveAttribute("href", "/organizations");
     expect(billing).toHaveAttribute("href", "/billing");
     expect(settings).toHaveAttribute("href", "/settings");
     expect(repoAccess).toHaveAttribute("href", "/repos");
 
-    await user.click(workspace);
     await user.click(apiKeys);
     await user.click(repoAccess);
 
     expect(screen.getByText("Repository access")).toBeInTheDocument();
     expect(screen.queryByText(/authorized repos/i)).not.toBeInTheDocument();
-    expect(go).toHaveBeenCalledWith("workspaces");
     expect(go).toHaveBeenCalledWith("apiKeys");
     expect(go).toHaveBeenCalledWith("repos");
   });
@@ -98,7 +91,7 @@ describe("Sidebar navigation", () => {
   it("keeps repository connection as an action when no repositories are linked", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
-    useRepositories.mockReturnValue({ items: [], workspace: { name: "Acme" } });
+    useRepositories.mockReturnValue({ items: [] });
 
     render(<Sidebar section="dashboard" go={go} />);
 

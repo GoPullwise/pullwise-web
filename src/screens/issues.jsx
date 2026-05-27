@@ -840,7 +840,7 @@ export function SettingsScreen({ go, setIssue = null }) {
     )
   );
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
-  const currentWorkspace = session?.currentWorkspace || session?.workspace || integrations?.workspace || null;
+  const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
   const authorizeRepositories = async () => {
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
@@ -877,7 +877,6 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) setManagingInstallationId("");
     }
   };
-  const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
 
   return (
     <div className="app fade-in">
@@ -987,24 +986,6 @@ export function SettingsScreen({ go, setIssue = null }) {
                         : T("Connect repositories", "连接仓库")}
                     </button>
                   </div>
-                  {currentWorkspace && (
-                    <div className="set-pref">
-                      <div>
-                        <b>{T("Organization", "组织")}</b>
-                        <div className="muted">
-                          {T(
-                            `${currentWorkspace.name || currentWorkspace.id || "Current organization"} — manages repositories, billing, and scan quota.`,
-                            `${currentWorkspace.name || currentWorkspace.id || "当前组织"} — 管理仓库、支付和扫描配额。`
-                          )}
-                        </div>
-                      </div>
-                      {(currentWorkspace.githubAppInstallationId || currentWorkspace.id) && (
-                        <span className="tag">
-                          <I.Package size={10} /> {currentWorkspace.githubAppInstallationId || currentWorkspace.id}
-                        </span>
-                      )}
-                    </div>
-                  )}
                   {Array.isArray(github?.identities) && github.identities.length > 0 && (
                     <div className="gh-identities">
                       {github.identities.map((identity) => (

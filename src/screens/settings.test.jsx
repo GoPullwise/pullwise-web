@@ -140,33 +140,6 @@ describe("SettingsScreen", () => {
     expect(screen.getByRole("button", { name: /manage gopullwise/i })).toBeInTheDocument();
   });
 
-  it("shows the workspace that owns subscription and scan quota", async () => {
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Taylor", email: "taylor@example.com" },
-      currentWorkspace: {
-        id: "ws_1",
-        name: "acme",
-        githubAppInstallationId: "130258770",
-      },
-    });
-    pullwiseApi.integrations.list.mockResolvedValue({
-      github: {
-        connected: true,
-        installationAccounts: ["acme"],
-        repositories: ["acme/service"],
-        installations: [],
-      },
-    });
-    const user = userEvent.setup();
-
-    render(<SettingsScreen go={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: /integrations/i }));
-    expect(screen.getByText(/subscription and scan quota belong to acme/i)).toBeInTheDocument();
-    expect(screen.getByText("130258770")).toBeInTheDocument();
-  });
-
   it("does not render negative installation repository counts", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {

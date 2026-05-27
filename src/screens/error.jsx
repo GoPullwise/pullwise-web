@@ -12,7 +12,7 @@ export function NotFoundScreen({ go, requested, auth }) {
         {
           k: "dashboard",
           t: T("Dashboard", "Dashboard"),
-          d: T("Workspace overview", "工作区总览"),
+          d: T("Account overview", "账户总览"),
           i: <I.Layout size={14} />,
         },
         {
@@ -38,7 +38,7 @@ export function NotFoundScreen({ go, requested, auth }) {
         {
           k: "login",
           t: T("Sign in", "登录"),
-          d: T("Restore your workspace session", "恢复你的工作区会话"),
+          d: T("Restore your account session", "恢复你的账户会话"),
           i: <I.User size={14} />,
         },
         {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/auth.js";
@@ -267,9 +267,9 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-cta-band">
         <h2>
           {checkingSession
-            ? T("Restoring your workspace.", "Restoring your workspace.")
+            ? T("Restoring your account.", "Restoring your account.")
             : signedIn
-              ? T("Continue from your workspace.", "Continue from your workspace.")
+              ? T("Continue from your account.", "Continue from your account.")
               : T("Start with GitHub sign-in.", "Start with GitHub sign-in.")}
         </h2>
         {checkingSession ? (
@@ -293,18 +293,29 @@ export function LoginScreen({ go } = {}) {
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
   const pending = Boolean(pendingAction);
+  const loginAbortRef = useRef(null);
 
   const handleGitHubLogin = async () => {
+    if (loginAbortRef.current) loginAbortRef.current.abort();
+    const controller = new AbortController();
+    loginAbortRef.current = controller;
     setPendingAction("github");
     setError("");
 
     try {
-      await startGitHubLogin();
+      await startGitHubLogin({ signal: controller.signal });
     } catch (authError) {
+      if (controller.signal.aborted) return;
       setError(getAuthErrorMessage(authError));
       setPendingAction("");
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (loginAbortRef.current) loginAbortRef.current.abort();
+    };
+  }, []);
 
   return (
     <div className="auth-wrap fade-in">

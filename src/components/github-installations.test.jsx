@@ -45,8 +45,6 @@ describe("GitHubInstallationsList", () => {
             repositorySelection: "selected",
             repositoryCount: 2,
             installationHtmlUrl: "https://github.com/organizations/GoPullwise/settings/installations/999",
-            workspaceId: "ws_1",
-            workspaceName: "GoPullwise",
             manage: {
               mode: "verified_identity",
               githubIdentityId: "ghi_1",
@@ -60,7 +58,6 @@ describe("GitHubInstallationsList", () => {
 
     expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
     expect(screen.getByText("Last verified by @alice")).toBeInTheDocument();
-    expect(screen.getByText("Workspace GoPullwise")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /manage gopullwise/i }));
 

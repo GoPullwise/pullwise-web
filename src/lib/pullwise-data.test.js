@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
   normalizeIssue,
-  normalizeWorkspace,
   normalizeRepo,
   normalizeScan,
   scanQueueSummary,
@@ -299,14 +298,13 @@ describe("normalizeIssue", () => {
     });
   });
 
-  it("preserves repository workspace and quota fields", () => {
+  it("preserves repository quota fields", () => {
     expect(
       normalizeRepo({
         id: "repo_123",
         fullName: "octocat/repo",
         githubRepoId: 123,
         githubNodeId: "R_123",
-        workspace: { id: "ws_1", name: "octocat" },
         quota: { scope: "repository", period: "2026-05", used: "1.8", limit: "3", remaining: "2" },
         href: "/repositories/repo_123",
         scanAction: { href: "/scans", method: "POST" },
@@ -316,8 +314,6 @@ describe("normalizeIssue", () => {
       repoId: "repo_123",
       githubRepoId: "123",
       githubNodeId: "R_123",
-      workspaceId: "ws_1",
-      workspaceName: "octocat",
       href: "/repositories/repo_123",
       scanAction: { href: "/scans", method: "POST" },
       quota: {
@@ -330,40 +326,20 @@ describe("normalizeIssue", () => {
     });
   });
 
-  it("strips control characters from workspace and quota display text", () => {
-    expect(
-      normalizeWorkspace({
-        id: "ws_1\r\nX-Injected: bad",
-        name: "octocat\r\nX-Injected: bad",
-        githubOwnerLogin: "octo\x00cat",
-        githubOwnerType: "User\r\nX-Injected: bad",
-        githubAppInstallationId: "123\r\nX-Injected: bad",
-        role: "admin\r\nX-Injected: bad",
-      })
-    ).toMatchObject({
-      id: "ws_1",
-      name: "octocat",
-      githubOwnerLogin: "octocat",
-      githubOwnerType: "User",
-      githubAppInstallationId: "123",
-      role: "admin",
-    });
-
+  it("strips control characters from quota display text", () => {
     expect(
       normalizeRepo({
         fullName: "octocat/repo\r\nX-Injected: bad",
-        workspace: { id: "ws_1", name: "octocat\r\nX-Injected: bad" },
         quota: {
-          scope: "workspace\r\nX-Injected: bad",
+          scope: "repository\r\nX-Injected: bad",
           period: "2026-05\r\nX-Injected: bad",
           plan: "free\r\nX-Injected: bad",
         },
       })
     ).toMatchObject({
       fullName: "octocat/repo",
-      workspaceName: "octocat",
       quota: {
-        scope: "workspace",
+        scope: "repository",
         period: "2026-05",
         plan: "free",
       },

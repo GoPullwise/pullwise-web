@@ -67,23 +67,16 @@ describe("pullwiseApi issue fix endpoints", () => {
     });
   });
 
-  it("calls API key and workspace collection endpoints", async () => {
+  it("calls API key endpoints", async () => {
     request.mockResolvedValue({});
 
-    await pullwiseApi.apiKeys.list({ workspaceId: "ws_1" });
+    await pullwiseApi.apiKeys.list();
     await pullwiseApi.apiKeys.create({ name: "CI" });
-    await pullwiseApi.workspaces.list();
-    await pullwiseApi.workspaces.create({ name: "Acme" });
 
-    expect(request).toHaveBeenNthCalledWith(1, "/api-keys?workspaceId=ws_1");
+    expect(request).toHaveBeenNthCalledWith(1, "/api-keys");
     expect(request).toHaveBeenNthCalledWith(2, "/api-keys", {
       method: "POST",
       body: { name: "CI" },
-    });
-    expect(request).toHaveBeenNthCalledWith(3, "/workspaces");
-    expect(request).toHaveBeenNthCalledWith(4, "/workspaces", {
-      method: "POST",
-      body: { name: "Acme" },
     });
   });
 

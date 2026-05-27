@@ -96,10 +96,6 @@ function normalizedInstallations(installations) {
         targetType: installationTargetType(installation),
         selection: installationSelection(installation),
         repositoryCount: installationRepositoryCount(installation),
-        workspace:
-          scalarText(installation.workspaceName) ||
-          scalarText(installation.workspace?.name) ||
-          scalarText(installation.workspaceId),
         manage,
         status: installationStatusLabel(manage, account),
       };
@@ -128,9 +124,6 @@ export function GitHubInstallationsList({ installations, onManage, managingInsta
               <div className="gh-install-meta">
                 {installation.targetType} / {installation.selection} /{" "}
                 {repositoryCountLabel(installation.repositoryCount)}
-                {installation.workspace && (
-                  <span className="tag">Workspace {installation.workspace}</span>
-                )}
               </div>
               <div className="gh-install-status">{installation.status}</div>
             </div>

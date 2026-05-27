@@ -5,7 +5,7 @@ import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
 import { pathFromScreen, screenFromPath } from "./lib/navigation.js";
-import { ApiDocsScreen, ApiKeysScreen, WorkspacesScreen } from "./screens/api.jsx";
+import { ApiDocsScreen, ApiKeysScreen } from "./screens/api.jsx";
 import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
 import { NotFoundScreen } from "./screens/error.jsx";
@@ -68,7 +68,6 @@ function PrototypeNav({ go, current }) {
     { k: "issue", t: "详情" },
     { k: "history", t: "历史" },
     { k: "apiKeys", t: "API Keys" },
-    { k: "workspaces", t: "Workspaces" },
     { k: "settings", t: "设置" },
     { k: "billing", t: "Billing" },
     { k: "pricing", t: "Pricing" },
@@ -224,8 +223,8 @@ export function App({ prototypeNav = false }) {
           <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
           <p className="auth-sub">
             {T(
-              "Restoring your workspace if this browser is still signed in.",
-              "如果此浏览器仍保持登录，将恢复工作区。"
+              "Restoring your account if this browser is still signed in.",
+              "如果此浏览器仍保持登录，将恢复账户。"
             )}
           </p>
           <button
@@ -281,9 +280,6 @@ export function App({ prototypeNav = false }) {
         break;
       case "apiKeys":
         body = <ApiKeysScreen go={go} setIssue={setIssue} />;
-        break;
-      case "workspaces":
-        body = <WorkspacesScreen go={go} setIssue={setIssue} />;
         break;
       case "settings":
         body = <SettingsScreen go={go} setIssue={setIssue} />;

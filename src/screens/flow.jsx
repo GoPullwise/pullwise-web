@@ -27,13 +27,9 @@ function repoQuotaLabel(quota) {
   const remaining = Object.prototype.hasOwnProperty.call(quota, "remaining")
     ? quotaNumber(quota.remaining)
     : Math.max(0, limit - used);
-  const scope = quota.scope === "workspace" ? "workspace" : "repo";
+  const scope = quota.scope === "account" ? "account" : "repo";
   if (!limit) return `${scope} quota unavailable`;
   return `${remaining} of ${limit} ${scope} scans left`;
-}
-
-function workspaceLabel(repo) {
-  return repo?.workspaceName || repo?.workspace?.name || repo?.workspaceId || "";
 }
 
 function repoOwner(repo) {
@@ -76,7 +72,7 @@ function scanErrorAction(error) {
   const code = typeof error === "object" && error ? String(error.code || "") : "";
   const message = typeof error === "object" && error ? error.message : error;
   const text = `${code} ${String(message || "")}`.toLowerCase();
-  if (["QUOTA_EXCEEDED_WORKSPACE", "QUOTA_EXCEEDED_REPOSITORY"].includes(code)) {
+  if (["QUOTA_EXCEEDED_REPOSITORY"].includes(code)) {
     return { label: "Open billing", screen: "billing" };
   }
   if (
@@ -88,7 +84,7 @@ function scanErrorAction(error) {
   }
   if (
     text.includes("sync github repositories") ||
-    ["REPOSITORY_SYNC_REQUIRED", "REPOSITORY_NOT_AUTHORIZED", "WORKSPACE_MEMBERSHIP_REQUIRED"].includes(code)
+    ["REPOSITORY_SYNC_REQUIRED", "REPOSITORY_NOT_AUTHORIZED"].includes(code)
   ) {
     return { label: "Sync repositories", screen: "repos" };
   }
@@ -387,7 +383,6 @@ export function ReposScreen({
             {repos.map((repo) => {
               const on = selected.includes(repo.id);
               const quotaLabel = repoQuotaLabel(repo.quota);
-              const workspace = workspaceLabel(repo);
               const quotaEmpty = repo.quota && quotaNumber(repo.quota.remaining) <= 0;
               const repoLabel = repo.fullName || repo.name;
               return (
@@ -431,11 +426,6 @@ export function ReposScreen({
                     <span>
                       <I.Clock size={12} /> {repo.updated}
                     </span>
-                    {workspace && (
-                      <span className="repo-workspace">
-                        <I.Package size={12} /> {workspace}
-                      </span>
-                    )}
                     {quotaLabel && (
                       <span className={"repo-quota" + (quotaEmpty ? " empty" : "")}>
                         <I.Activity size={12} /> {quotaLabel}

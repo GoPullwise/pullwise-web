@@ -18,10 +18,11 @@ function pathSegment(value) {
 
 export const pullwiseApi = {
   auth: {
-    getSession: () => request("/auth/session"),
-    signOut: () => request("/auth/sign-out", { method: "POST" }),
-    getGitHubAuthorizeUrl: (params = {}) =>
-      request(withSearchParams("/auth/github/authorize", params)),
+    getSession: (options = {}) => request("/auth/session", { signal: options.signal }),
+    signOut: (options = {}) =>
+      request("/auth/sign-out", { method: "POST", signal: options.signal }),
+    getGitHubAuthorizeUrl: (params = {}, options = {}) =>
+      request(withSearchParams("/auth/github/authorize", params), { signal: options.signal }),
   },
 
   repositories: {
@@ -49,8 +50,10 @@ export const pullwiseApi = {
 
   integrations: {
     list: () => request("/integrations"),
-    getGitHubAuthorizeUrl: (params = {}) =>
-      request(withSearchParams("/integrations/github/authorize", params)),
+    getGitHubAuthorizeUrl: (params = {}, options = {}) =>
+      request(withSearchParams("/integrations/github/authorize", params), {
+        signal: options.signal,
+      }),
     createGitHubInstallationManageSession: (installationId, payload = {}) =>
       request(`/integrations/github/installations/${pathSegment(installationId)}/manage-sessions`, {
         method: "POST",
@@ -80,11 +83,6 @@ export const pullwiseApi = {
     list: (params = {}) => request(withSearchParams("/api-keys", params)),
     create: (payload = {}) => request("/api-keys", { method: "POST", body: payload }),
     revoke: (keyId) => request(`/api-keys/${pathSegment(keyId)}`, { method: "DELETE" }),
-  },
-
-  workspaces: {
-    list: () => request("/workspaces"),
-    create: (payload = {}) => request("/workspaces", { method: "POST", body: payload }),
   },
 
   system: {

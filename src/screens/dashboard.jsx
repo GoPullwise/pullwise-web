@@ -100,13 +100,11 @@ export function DashboardScreen({ go, setIssue, accent }) {
     items: repositories,
     loading: reposLoading,
     needsAuthorization,
-    workspace,
   } = useRepositories();
 
   const openIssues = issues.filter((issue) => issue.status === "open");
   const counts = issueCounts(openIssues);
   const latestScan = scans[0];
-  const workspaceName = workspace?.name || workspace?.githubOwnerLogin || "Pullwise";
 
   const issueTrend = useMemo(
     () => scans.slice(0, 14).reverse().map(scanIssueTotal),
@@ -138,7 +136,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
           <div className="page-h">
             <div>
               <h1>{T("Overview", "总览")}</h1>
-              <div className="sub">{workspaceName}</div>
+              <div className="sub">{T("Account overview", "账户总览")}</div>
             </div>
             <div className="actions">
               <a className="btn" {...screenLinkProps(go, "repos")}>
@@ -190,7 +188,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
               <div className="kpi-foot">
                 {needsAuthorization
                   ? T("Connect GitHub to add repositories", "连接 GitHub 以添加仓库")
-                  : T("Connected to your organization", "已连接到您的组织")}
+                  : T("Connected to your account", "已连接到您的账户")}
               </div>
               <Sparkline
                 data={scanTrend.map(() => repositories.length)}

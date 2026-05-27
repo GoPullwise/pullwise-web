@@ -140,7 +140,8 @@ describe("auth redirects", () => {
     await expect(connectGitHubRepositories({ manage: true })).resolves.toBeUndefined();
 
     expect(pullwiseApi.integrations.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ manage: "1" })
+      expect.objectContaining({ manage: "1" }),
+      expect.anything()
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pullwise.dev/integrations/github/manage/start?state=abc"
@@ -205,7 +206,8 @@ describe("auth redirects", () => {
     await expect(connectGitHubRepositories({ add: true })).resolves.toBeUndefined();
 
     expect(pullwiseApi.integrations.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ add: "1", manage: undefined })
+      expect.objectContaining({ add: "1", manage: undefined }),
+      expect.anything()
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pullwise.dev/integrations/github/install/start?state=abc"

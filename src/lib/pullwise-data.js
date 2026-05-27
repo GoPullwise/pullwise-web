@@ -160,23 +160,6 @@ export function normalizeQuotaUsage(value) {
   };
 }
 
-export function normalizeWorkspace(workspace = {}) {
-  if (!objectRecord(workspace)) return null;
-  const githubOwnerLogin = textValue(workspace.githubOwnerLogin, workspace.github_owner_login);
-  return {
-    ...workspace,
-    id: textValue(workspace.id, workspace.workspaceId, workspace.workspace_id),
-    name: textValue(workspace.name, githubOwnerLogin) || "Workspace",
-    githubOwnerLogin,
-    githubOwnerType: textValue(workspace.githubOwnerType, workspace.github_owner_type),
-    githubAppInstallationId: textValue(
-      workspace.githubAppInstallationId,
-      workspace.github_app_installation_id
-    ),
-    role: textValue(workspace.role),
-  };
-}
-
 function normalizeCodeLines(lines) {
   if (!Array.isArray(lines)) return [];
   return lines
@@ -320,15 +303,12 @@ export function normalizeRepo(repo = {}) {
   const fullName = textValue(repo.fullName, repo.full_name, repo.name);
   const rawRepoId = textValue(repo.repoId, repo.repositoryId, repo.repository_id);
   const normalizedId = textValue(repo.id, rawRepoId, fullName);
-  const workspace = normalizeWorkspace(repo.workspace);
   return {
     ...repo,
     id: normalizedId,
     repoId: rawRepoId || (normalizedId.startsWith("repo_") ? normalizedId : ""),
     githubRepoId: textValue(repo.githubRepoId, repo.github_repo_id),
     githubNodeId: textValue(repo.githubNodeId, repo.github_node_id),
-    workspaceId: textValue(repo.workspaceId, repo.workspace_id, workspace?.id),
-    workspaceName: textValue(repo.workspaceName, repo.workspace_name, workspace?.name),
     name: textValue(repo.name, fullName),
     fullName,
     desc: textValue(repo.desc, repo.description),
@@ -405,7 +385,6 @@ export function normalizeScan(scan = {}) {
     by: textValue(scan.by) || "you",
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
-    workspaceId: textValue(scan.workspaceId, scan.workspace_id),
     repoId: textValue(scan.repoId, scan.repositoryId, scan.repository_id),
     githubRepoId: textValue(scan.githubRepoId, scan.github_repo_id),
     quotaBucketIds,
@@ -420,8 +399,6 @@ export function useRepositories() {
     items: [],
     installations: [],
     installationAccounts: [],
-    workspaces: [],
-    workspace: null,
     loading: true,
     error: "",
     needsAuthorization: false,
@@ -440,8 +417,6 @@ export function useRepositories() {
         items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
         installations: itemsFrom(payload, "installations"),
         installationAccounts: itemsFrom(payload, "installationAccounts"),
-        workspaces: itemsFrom(payload, "workspaces").map(normalizeWorkspace).filter(Boolean),
-        workspace: normalizeWorkspace(payload?.currentWorkspace || payload?.workspace),
         loading: false,
         error: "",
         needsAuthorization: normalizeBoolean(payload?.needsAuthorization),
@@ -452,8 +427,6 @@ export function useRepositories() {
         items: [],
         installations: [],
         installationAccounts: [],
-        workspaces: [],
-        workspace: null,
         loading: false,
         error: error?.message || "Unable to load repositories.",
         needsAuthorization: false,

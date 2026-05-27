@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useRepositories } from "../lib/pullwise-data.js";
-import { ApiDocsScreen, ApiKeysScreen, WorkspacesScreen } from "./api.jsx";
+import { ApiDocsScreen, ApiKeysScreen } from "./api.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -11,10 +11,6 @@ vi.mock("../api/pullwise.js", () => ({
       list: vi.fn(),
       create: vi.fn(),
       revoke: vi.fn(),
-    },
-    workspaces: {
-      list: vi.fn(),
-      create: vi.fn(),
     },
   },
 }));
@@ -30,7 +26,6 @@ describe("API screens", () => {
     useIssues.mockReturnValue({ items: [] });
     useRepositories.mockReturnValue({
       items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
-      workspace: { name: "Acme" },
     });
   });
 
@@ -183,81 +178,5 @@ describe("API screens", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/api key response was malformed/i);
     expect(screen.queryByText("New key created")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /revoke/i })).not.toBeInTheDocument();
-  });
-
-  it("creates workspaces from the dashboard workspace page", async () => {
-    pullwiseApi.workspaces.list.mockResolvedValue({
-      currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
-      workspaces: [{ id: "ws_1", name: "Acme", role: "owner" }],
-    });
-    pullwiseApi.workspaces.create.mockResolvedValue({
-      workspace: { id: "ws_2", name: "Platform", role: "owner" },
-    });
-    const user = userEvent.setup();
-
-    render(<WorkspacesScreen go={vi.fn()} />);
-
-    expect(await screen.findByText("Acme")).toBeInTheDocument();
-    await user.clear(screen.getByLabelText(/workspace name/i));
-    await user.type(screen.getByLabelText(/workspace name/i), "Platform");
-    await user.click(screen.getByRole("button", { name: /create workspace/i }));
-
-    await waitFor(() => {
-      expect(pullwiseApi.workspaces.create).toHaveBeenCalledWith({ name: "Platform" });
-    });
-    expect(await screen.findByText("Platform")).toBeInTheDocument();
-  });
-
-  it("keeps valid workspaces visible when the API returns malformed workspace rows", async () => {
-    pullwiseApi.workspaces.list.mockResolvedValue({
-      currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
-      workspaces: [null, "bad workspace", { id: "ws_1", name: "Acme", role: "owner" }],
-    });
-
-    render(<WorkspacesScreen go={vi.fn()} />);
-
-    expect(await screen.findByText("Acme")).toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
-  it("shows an error when workspace creation returns malformed data", async () => {
-    pullwiseApi.workspaces.list.mockResolvedValue({
-      currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
-      workspaces: [{ id: "ws_1", name: "Acme", role: "owner" }],
-    });
-    pullwiseApi.workspaces.create.mockResolvedValue(null);
-    const user = userEvent.setup();
-
-    render(<WorkspacesScreen go={vi.fn()} />);
-
-    expect(await screen.findByText("Acme")).toBeInTheDocument();
-    await user.clear(screen.getByLabelText(/workspace name/i));
-    await user.type(screen.getByLabelText(/workspace name/i), "Platform");
-    await user.click(screen.getByRole("button", { name: /create workspace/i }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(/workspace response was malformed/i);
-    expect(screen.queryByText("Platform")).not.toBeInTheDocument();
-  });
-
-  it("exposes workspace repository navigation as real screen links", async () => {
-    pullwiseApi.workspaces.list.mockResolvedValue({
-      currentWorkspace: { id: "ws_1", name: "Acme", role: "owner" },
-      workspaces: [{ id: "ws_1", name: "Acme", role: "owner" }],
-    });
-    const user = userEvent.setup();
-    const go = vi.fn();
-
-    render(<WorkspacesScreen go={go} />);
-
-    expect(await screen.findByText("Acme")).toBeInTheDocument();
-    const settingsNav = within(document.querySelector(".set-side"));
-    const repositories = settingsNav.getByRole("link", { name: /repositories/i });
-    const repoRow = screen.getByRole("link", { name: /^repos$/i });
-
-    expect(repositories).toHaveAttribute("href", "/repos");
-    expect(repoRow).toHaveAttribute("href", "/repos");
-
-    await user.click(repoRow);
-    expect(go).toHaveBeenCalledWith("repos");
   });
 });

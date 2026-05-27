@@ -154,13 +154,12 @@ describe("ReposScreen scan selection", () => {
     expect(go).toHaveBeenCalledWith("scanning");
   });
 
-  it("shows repository quota and workspace ownership before scanning", async () => {
+  it("shows repository quota before scanning", async () => {
     useRepositories.mockReturnValue({
       items: [
         {
           ...repoAlpha,
           repoId: "repo_123",
-          workspaceName: "acme",
           quota: { scope: "repository", used: 1, limit: 3, remaining: 2 },
         },
       ],
@@ -175,7 +174,6 @@ describe("ReposScreen scan selection", () => {
     render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
-    expect(screen.getByText("acme")).toBeInTheDocument();
     expect(screen.getByText(/2 of 3 repo scans left/i)).toBeInTheDocument();
   });
 

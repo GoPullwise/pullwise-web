@@ -99,10 +99,15 @@ function needsGitHubIdentity(error) {
   return error?.status === 401 && String(error?.message || "").includes("Sign in with GitHub");
 }
 
-export async function startGitHubLogin({ redirectTo } = {}) {
-  const result = await pullwiseApi.auth.getGitHubAuthorizeUrl({
-    redirectTo: redirectTo || getScreenRedirectUrl("dashboard"),
-  });
+export async function startGitHubLogin({ redirectTo, signal } = {}) {
+  if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
+
+  const result = await pullwiseApi.auth.getGitHubAuthorizeUrl(
+    { redirectTo: redirectTo || getScreenRedirectUrl("dashboard") },
+    { signal }
+  );
+
+  if (signal?.aborted) return;
 
   if (!result?.url) {
     throw new Error("GitHub authorize URL is missing from the auth response.");
@@ -111,18 +116,29 @@ export async function startGitHubLogin({ redirectTo } = {}) {
   window.location.assign(safeHttpUrl(result.url, "GitHub authorize URL"));
 }
 
-export async function connectGitHubRepositories({ redirectTo, manage = false, add = false } = {}) {
+export async function connectGitHubRepositories({
+  redirectTo,
+  manage = false,
+  add = false,
+  signal,
+} = {}) {
   const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
   let result;
   try {
-    result = await pullwiseApi.integrations.getGitHubAuthorizeUrl({
-      redirectTo: repositoryRedirect,
-      manage: manage && !add ? "1" : undefined,
-      add: add ? "1" : undefined,
-    });
+    result = await pullwiseApi.integrations.getGitHubAuthorizeUrl(
+      {
+        redirectTo: repositoryRedirect,
+        manage: manage && !add ? "1" : undefined,
+        add: add ? "1" : undefined,
+      },
+      { signal }
+    );
   } catch (error) {
     if (needsGitHubIdentity(error)) {
-      await startGitHubLogin({ redirectTo: getContinueRepositoryRedirectUrl(repositoryRedirect) });
+      await startGitHubLogin({
+        redirectTo: getContinueRepositoryRedirectUrl(repositoryRedirect),
+        signal,
+      });
       return;
     }
     throw error;

@@ -108,7 +108,6 @@ function SearchModal({ close, go, setIssue }) {
     { k: "repos", t: T("Repositories", "仓库"), i: <I.Folder size={14} /> },
     { k: "history", t: T("Scan history", "扫描历史"), i: <I.Clock size={14} /> },
     { k: "apiKeys", t: T("API Keys", "API Keys"), i: <I.Code size={14} /> },
-    { k: "workspaces", t: T("Organizations", "组织"), i: <I.Layers size={14} /> },
     { k: "billing", t: T("Billing", "支付"), i: <I.Package size={14} /> },
     { k: "pricing", t: T("Pricing", "Pricing"), i: <I.Trend size={14} /> },
     { k: "api", t: T("API docs", "API docs"), i: <I.FileCode size={14} /> },
@@ -235,11 +234,9 @@ function SearchModal({ close, go, setIssue }) {
 
 export function Sidebar({ section, go }) {
   useLang();
-  const { items: repos, workspace } = useRepositories();
+  const { items: repos } = useRepositories();
   const { items: issues } = useIssues();
   const [connecting, setConnecting] = React.useState(false);
-  const workspaceName = workspace?.name || workspace?.githubOwnerLogin || "Pullwise";
-  const workspaceInitial = (workspaceName.trim().slice(0, 1) || "P").toUpperCase();
   const openIssueCount = issues.filter((issue) => issue.status === "open").length;
   const connectRepositories = async () => {
     if (connecting) return;
@@ -269,45 +266,11 @@ export function Sidebar({ section, go }) {
       badge: null,
     },
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} />, badge: null },
-    {
-      k: "workspaces",
-      label: T("Organizations", "组织"),
-      icon: <I.Layers size={15} />,
-      badge: null,
-    },
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} />, badge: null },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];
   return (
     <aside className="side">
-      <div className="side-group side-workspace">
-        <div className="side-h">{T("Organization", "组织")}</div>
-        <a
-          className={"side-i side-workspace-i" + (section === "workspaces" ? " active" : "")}
-          aria-label="Open workspaces"
-          {...screenLinkProps(go, "workspaces")}
-        >
-          <div
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 4,
-              background:
-                "linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, #000))",
-              display: "grid",
-              placeItems: "center",
-              color: "#fff",
-              fontSize: 9,
-              fontWeight: 700,
-            }}
-          >
-            {workspaceInitial}
-          </div>
-          <span>{workspaceName}</span>
-          <I.ChevD size={13} style={{ marginLeft: "auto", opacity: 0.6 }} />
-        </a>
-      </div>
-
       <div className="side-group side-nav" aria-label={T("Navigation", "导航")}>
         <div className="side-h" style={{ marginTop: 6 }}>
           {T("Navigation", "导航")}

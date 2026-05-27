@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -105,7 +105,7 @@ describe("App", () => {
   });
 
   it("shows session restoration instead of the login form while the login route is checking", () => {
-    window.history.replaceState({}, "", "/?screen=login");
+    window.history.replaceState({}, "", "/login");
     pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));
 
     render(<App />);
@@ -115,7 +115,7 @@ describe("App", () => {
   });
 
   it("sends authenticated users on the login screen back to the landing page", async () => {
-    window.history.replaceState({}, "", "/?screen=login");
+    window.history.replaceState({}, "", "/login");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -129,7 +129,7 @@ describe("App", () => {
   });
 
   it("sends expired sessions back to login on private screens", async () => {
-    window.history.replaceState({}, "", "/?screen=dashboard");
+    window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({ authenticated: false });
 
     render(<App />);
@@ -139,14 +139,10 @@ describe("App", () => {
     });
   });
 
-  it("shows workspace actions on the landing page for signed-in users", () => {
+  it("shows signed-in actions on the landing page", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: true }} />);
 
     expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: /settings/i })).toHaveAttribute(
-      "href",
-      "/settings"
-    );
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
@@ -193,7 +189,7 @@ describe("App", () => {
   });
 
   it("returns authenticated users from repository authorization back to repositories", async () => {
-    window.history.replaceState({}, "", "/?screen=oauth");
+    window.history.replaceState({}, "", "/oauth");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -311,7 +307,7 @@ describe("App", () => {
   });
 
   it("uses the full-width repository row layout for the GitHub connection prompt", async () => {
-    window.history.replaceState({}, "", "/?screen=repos");
+    window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -325,7 +321,7 @@ describe("App", () => {
   });
 
   it("starts GitHub repository authorization from the repositories empty state", async () => {
-    window.history.replaceState({}, "", "/?screen=repos");
+    window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -345,7 +341,7 @@ describe("App", () => {
   });
 
   it("starts adding another GitHub account or organization from the repositories footer", async () => {
-    window.history.replaceState({}, "", "/?screen=repos");
+    window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -374,7 +370,7 @@ describe("App", () => {
   });
 
   it("shows each authorized GitHub App installation on the repositories screen", async () => {
-    window.history.replaceState({}, "", "/?screen=repos");
+    window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -427,7 +423,7 @@ describe("App", () => {
   });
 
   it("syncs repositories after returning from GitHub installation management", async () => {
-    window.history.replaceState({}, "", "/?screen=repos");
+    window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -508,24 +504,8 @@ describe("App", () => {
     expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
   });
 
-  it("shows the current workspace name in the sidebar", async () => {
-    window.history.replaceState({}, "", "/?screen=dashboard");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [],
-      workspace: { id: "ws_1", name: "acme" },
-    });
-
-    render(<App />);
-
-    expect(await screen.findByText("acme")).toBeInTheDocument();
-  });
-
   it("starts GitHub repository authorization from the dashboard sidebar", async () => {
-    window.history.replaceState({}, "", "/?screen=dashboard");
+    window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -544,7 +524,7 @@ describe("App", () => {
   });
 
   it("opens issue search results directly in the issue detail view", async () => {
-    window.history.replaceState({}, "", "/?screen=dashboard");
+    window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -573,7 +553,9 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: /search/i }));
-    await user.click(await screen.findByRole("button", { name: /unsafe redirect target/i }));
+    const searchModal = document.querySelector(".modal-search");
+    await waitFor(() => expect(searchModal).toBeInTheDocument());
+    await user.click(within(searchModal).getByRole("button", { name: /unsafe redirect target/i }));
 
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
@@ -585,7 +567,7 @@ describe("App", () => {
   });
 
   it("keeps failed dashboard sidebar repository authorization in the repositories flow", async () => {
-    window.history.replaceState({}, "", "/?screen=dashboard");
+    window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -605,7 +587,7 @@ describe("App", () => {
   });
 
   it("continues repository authorization after returning from GitHub login", async () => {
-    window.history.replaceState({}, "", "/?screen=repos&repoAuth=1");
+    window.history.replaceState({}, "", "/repos?repoAuth=1");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -622,7 +604,7 @@ describe("App", () => {
   });
 
   it("shows repository authorization errors after automatic continuation fails", async () => {
-    window.history.replaceState({}, "", "/?screen=repos&repoAuth=1");
+    window.history.replaceState({}, "", "/repos?repoAuth=1");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },

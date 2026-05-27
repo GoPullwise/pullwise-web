@@ -12,13 +12,29 @@ vi.mock("../lib/pullwise-data.js", () => ({
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 
 describe("DashboardScreen issue list", () => {
-  it("labels the dashboard as a workspace overview with real page-jump links", async () => {
+  it("labels the dashboard as an account overview with real page-jump links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useIssues.mockReturnValue({
+      items: [
+        {
+          id: "f_1",
+          repo: "acme/api",
+          severity: "high",
+          category: "Security",
+          title: "Test issue",
+          file: "src/test.js",
+          line: 10,
+          confidence: 0.9,
+          effort: "S",
+          status: "open",
+        },
+      ],
+      loading: false,
+      error: "",
+    });
     useRepositories.mockReturnValue({
       items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
-      workspace: { name: "Acme" },
       loading: false,
       needsAuthorization: false,
     });
@@ -30,29 +46,19 @@ describe("DashboardScreen issue list", () => {
     render(<DashboardScreen go={go} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
 
     expect(screen.getByRole("heading", { name: /overview/i })).toBeInTheDocument();
-    expect(screen.getByText(/workspace-wide view for acme/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /repository access/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/breadcrumbs/i)).not.toHaveTextContent("acme/api");
+    expect(screen.getByText(/account overview/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /connected repositories/i })).toBeInTheDocument();
 
     const newScan = screen.getByRole("link", { name: /new scan/i });
-    const manage = screen.getByRole("link", { name: /manage/i });
-    const repository = screen.getByRole("link", { name: /open repository acme\/api/i });
-    const allIssues = screen.getAllByRole("link", { name: /all issues/i });
-
     expect(newScan).toHaveAttribute("href", "/repos");
-    expect(manage).toHaveAttribute("href", "/repos");
-    expect(repository).toHaveAttribute("href", "/repos");
-    expect(allIssues).toHaveLength(2);
+
+    const allIssues = screen.getAllByRole("link", { name: /all issues/i });
     allIssues.forEach((link) => {
       expect(link).toHaveAttribute("href", "/issues");
     });
 
     await user.click(newScan);
     expect(go).toHaveBeenCalledWith("repos");
-
-    go.mockClear();
-    await user.click(allIssues[0]);
-    expect(go).toHaveBeenCalledWith("issues");
   });
 
   it("opens a dashboard issue row with keyboard activation", async () => {
@@ -81,7 +87,7 @@ describe("DashboardScreen issue list", () => {
 
     render(<DashboardScreen go={go} layout="list" setIssue={setIssue} accent="#6366f1" />);
 
-    const openIssue = screen.getByRole("button", { name: /open issue f_123/i });
+    const openIssue = screen.getByRole("button", { name: /validate redirect targets/i });
     openIssue.focus();
     await user.keyboard("{Enter}");
 

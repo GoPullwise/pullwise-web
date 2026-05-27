@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -48,7 +48,6 @@ function normalizeApiKey(key = {}) {
     name: textValue(record.name) || "API key",
     prefix: textValue(record.prefix),
     scopes,
-    workspaceName: textValue(record.workspaceName, record.workspace_name, record.workspace?.name),
     createdAt: record.createdAt || record.created_at,
     lastUsedAt: record.lastUsedAt || record.last_used_at,
   };
@@ -68,19 +67,6 @@ function createdApiKeyToken(payload) {
     typeof payload?.key === "string" ? payload.key : payload?.key?.token,
     payload?.key?.key
   );
-}
-
-function normalizeWorkspace(workspace = {}) {
-  if (!objectRecord(workspace)) return null;
-  return {
-    ...workspace,
-    id: textValue(workspace.id, workspace.workspaceId, workspace.workspace_id),
-    name:
-      textValue(workspace.name, workspace.githubOwnerLogin, workspace.github_owner_login) ||
-      "Workspace",
-    role: textValue(workspace.role) || "owner",
-    githubOwnerLogin: textValue(workspace.githubOwnerLogin, workspace.github_owner_login),
-  };
 }
 
 function MarketingHeader({ go, auth }) {
@@ -174,16 +160,16 @@ export function ApiDocsScreen({ go, auth }) {
             Pullwise REST API
           </h1>
           <p className="docs-lede">
-            Automate repository review from CI, internal tools, or workspace scripts with keys
-            scoped to Pullwise workspace permissions for the signed-in user.
+            Automate repository review from CI, internal tools, or scripts with keys
+            scoped to Pullwise account permissions for the signed-in user.
           </p>
 
           <div className="docs-callout">
             <I.Shield size={16} />
             <div>
-              <b>Workspace-scoped access</b>
+              <b>Account-scoped access</b>
               <p>
-                API keys inherit the creator workspace and repository authorization. A key can only
+                API keys inherit the creator account and repository authorization. A key can only
                 read and scan repositories already authorized in Pullwise.
               </p>
             </div>
@@ -230,7 +216,7 @@ curl https://api.pullwise.dev/api/v1/repositories/repo_123/scans/current \\
             Quota
           </h2>
           <p>
-            Quota is reported per GitHub repository id and reflects the remaining workspace plan
+            Quota is reported per GitHub repository id and reflects the remaining account plan
             scan count.
           </p>
           <DocsCode title="Read remaining scan count">
@@ -266,7 +252,7 @@ curl https://api.pullwise.dev/api/v1/repositories/repo_123/scans/current \\
 export function ApiKeysScreen({ go, setIssue = null }) {
   useLang();
   const [keys, setKeys] = useState([]);
-  const [name, setName] = useState("Workspace automation");
+  const [name, setName] = useState("Account automation");
   const [createdToken, setCreatedToken] = useState("");
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
@@ -303,7 +289,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       if (!key) throw new Error("API key response was malformed.");
       setCreatedToken(token);
       setKeys((current) => [key, ...current.filter((item) => item.id !== key.id)]);
-      setName("Workspace automation");
+      setName("Account automation");
     } catch (err) {
       setError(err?.message || "Unable to create API key.");
     } finally {
@@ -353,7 +339,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             <div>
               <h1>API Keys</h1>
               <div className="sub">
-                REST credentials for workspace-scoped repository scans and quota checks.
+                REST credentials for account-scoped repository scans and quota checks.
               </div>
             </div>
             <div className="actions">
@@ -430,9 +416,9 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                   <div className="docs-table-r">
                     <b>Permission model</b>
                     <span>
-                      Keys inherit the creator Pullwise workspace role and authorized GitHub
+                      Keys inherit the creator Pullwise account role and authorized GitHub
                       repositories. Repo operations require the target repoId to belong to that
-                      workspace.
+                      account.
                     </span>
                   </div>
                   <div className="docs-table-r">
@@ -452,7 +438,6 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                     <div className="issue-main">
                       <div className="issue-t">{key.name}</div>
                       <div className="issue-meta">
-                        <span>{key.workspaceName || "Workspace"}</span>
                         <span className="tag">Created {formatDate(key.createdAt)}</span>
                         <span className="tag">Last used {formatDate(key.lastUsedAt)}</span>
                       </div>
@@ -478,167 +463,3 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   );
 }
 
-export function WorkspacesScreen({ go, setIssue = null }) {
-  useLang();
-  const [workspaces, setWorkspaces] = useState([]);
-  const [currentWorkspace, setCurrentWorkspace] = useState(null);
-  const [name, setName] = useState("Pullwise workspace");
-  const [loading, setLoading] = useState(true);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
-
-  const sortedWorkspaces = useMemo(
-    () =>
-      [...workspaces].sort((a, b) => {
-        if (a.id === currentWorkspace?.id) return -1;
-        if (b.id === currentWorkspace?.id) return 1;
-        return a.name.localeCompare(b.name);
-      }),
-    [workspaces, currentWorkspace]
-  );
-
-  const load = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const payload = await pullwiseApi.workspaces.list();
-      setWorkspaces(
-        itemsFrom(payload, "workspaces", "items").map(normalizeWorkspace).filter(Boolean)
-      );
-      setCurrentWorkspace(
-        normalizeWorkspace(payload?.currentWorkspace || payload?.workspace || {})
-      );
-    } catch (err) {
-      setError(err?.message || "Unable to load workspaces.");
-      setWorkspaces([]);
-      setCurrentWorkspace(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const createWorkspace = async (event) => {
-    event.preventDefault();
-    if (pending) return;
-    setPending(true);
-    setError("");
-    try {
-      const payload = await pullwiseApi.workspaces.create({ name: name.trim() || "Workspace" });
-      const workspace = normalizeWorkspace(payload?.workspace || payload);
-      if (!workspace) throw new Error("Workspace response was malformed.");
-      setWorkspaces((current) => [
-        workspace,
-        ...current.filter((item) => item.id !== workspace.id),
-      ]);
-      setCurrentWorkspace(workspace);
-      setName("Pullwise workspace");
-    } catch (err) {
-      setError(err?.message || "Unable to create workspace.");
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return (
-    <div className="app fade-in">
-      <Topbar
-        go={go}
-        breadcrumbs={[{ label: T("Organizations", "组织") }]}
-        setIssue={setIssue}
-      />
-      <div className="with-side">
-        <Sidebar section="workspaces" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
-          <div className="page-h">
-            <div>
-              <h1>{T("Organizations", "组织")}</h1>
-              <div className="sub">
-                {T(
-                  "Manage GitHub organizations and accounts connected to Pullwise.",
-                  "管理连接到 Pullwise 的 GitHub 组织和账号。"
-                )}
-              </div>
-            </div>
-          </div>
-
-          {error && (
-            <div className="auth-error" role="alert" style={{ marginBottom: 12 }}>
-              <I.X size={13} /> {error}
-            </div>
-          )}
-
-          <div className="set-shell">
-            <aside className="set-side">
-              <button className="set-side-i active">
-                <I.Layers size={14} />
-                <span>{T("Organizations", "组织")}</span>
-              </button>
-              <a className="set-side-i" {...screenLinkProps(go, "repos")}>
-                <I.Folder size={14} />
-                <span>{T("Repositories", "仓库")}</span>
-              </a>
-            </aside>
-
-            <div className="set-body">
-              <form className="bill-card billing-summary" onSubmit={createWorkspace}>
-                <div className="billing-summary-main" style={{ flex: 1 }}>
-                  <I.Plus size={18} />
-                  <label className="auth-field" style={{ flex: 1 }}>
-                    <span>{T("Organization name", "组织名称")}</span>
-                    <div className="auth-input">
-                      <I.Layers size={14} />
-                      <input
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        placeholder="Acme Engineering"
-                      />
-                    </div>
-                  </label>
-                </div>
-                <button className="btn primary" type="submit" disabled={pending} style={{ alignSelf: "flex-end" }}>
-                  {pending && (
-                    <span className="spin" style={{ display: "inline-block" }}>
-                      <I.Refresh size={14} />
-                    </span>
-                  )}
-                  <I.Plus size={14} /> {T("Create organization", "创建组织")}
-                </button>
-              </form>
-
-              <div className="issue-list">
-                {sortedWorkspaces.map((workspace) => (
-                  <div key={workspace.id || workspace.name} className="issue-row">
-                    <div className="issue-sev sev-bg-info">
-                      <I.Layers size={12} /> ws
-                    </div>
-                    <div className="issue-id">{workspace.id || "-"}</div>
-                    <div className="issue-main">
-                      <div className="issue-t">{workspace.name}</div>
-                      <div className="issue-meta">
-                        {workspace.githubOwnerLogin && <span>{workspace.githubOwnerLogin}</span>}
-                        <span className="tag">{workspace.role}</span>
-                        {workspace.id === currentWorkspace?.id && (
-                          <span className="tag">Current</span>
-                        )}
-                      </div>
-                    </div>
-                    <a className="btn sm" {...screenLinkProps(go, "repos")}>
-                      <I.Folder size={13} /> Repos
-                    </a>
-                  </div>
-                ))}
-                {!loading && sortedWorkspaces.length === 0 && (
-                  <div className="card section muted">{T("No organizations have been created yet.", "尚未创建任何组织。")}</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

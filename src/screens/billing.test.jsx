@@ -175,7 +175,7 @@ describe("BillingScreen", () => {
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Free")).toBeInTheDocument();
-    expect(screen.getByText("5 shared workspace reviews / month")).toBeInTheDocument();
+    expect(screen.getByText("5 shared account reviews / month")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 
@@ -202,31 +202,6 @@ describe("BillingScreen", () => {
 
     expect(await screen.findByText(/0 \/ 0 reviews used/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("NaN");
-  });
-
-  it("prefers workspace usage over the deprecated account payload", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      workspace: {
-        id: "ws_1",
-        name: "acme",
-        status: "active",
-        plan: "pro",
-        interval: "month",
-        usage: { period: "2026-05", used: 7, limit: 100, remaining: 93, scope: "workspace" },
-      },
-      account: {
-        deprecated: true,
-        usage: { period: "2026-05", used: 1, limit: 5, remaining: 4 },
-      },
-    });
-
-    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
-
-    expect(await screen.findByText("Workspace usage")).toBeInTheDocument();
-    expect(screen.getByText(/acme/)).toHaveTextContent("acme - 7 / 100 reviews used");
-    expect(screen.getByText("Pullwise Pro")).toBeInTheDocument();
-    expect(document.body).not.toHaveTextContent("Current account plan");
   });
 
   it("does not leak malformed billing price amounts", async () => {
