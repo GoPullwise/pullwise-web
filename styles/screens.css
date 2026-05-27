@@ -301,6 +301,19 @@
   top: 20px;
   left: 20px;
 }
+.auth-back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-3);
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: color 0.15s;
+}
+.auth-back-home:hover {
+  color: var(--text-1);
+}
 .auth-card {
   width: 100%;
   max-width: 400px;

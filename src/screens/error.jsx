@@ -62,7 +62,7 @@ export function NotFoundScreen({ go, requested, auth }) {
           {requested && (
             <span className="notfound-req">
               {" "}
-              · <span className="kbd">?screen={requested}</span>
+              · <span className="kbd">{requested}</span>
             </span>
           )}
         </p>

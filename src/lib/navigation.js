@@ -1,5 +1,43 @@
+const SCREEN_TO_PATH = {
+  landing: "/",
+  login: "/login",
+  oauth: "/oauth",
+  repos: "/repos",
+  scanning: "/scanning",
+  dashboard: "/dashboard",
+  issues: "/issues",
+  issue: "/issues/detail",
+  history: "/history",
+  apiKeys: "/api-keys",
+  workspaces: "/organizations",
+  settings: "/settings",
+  billing: "/billing",
+  pricing: "/pricing",
+  api: "/api",
+  privacy: "/privacy",
+  terms: "/terms",
+  security: "/security",
+  status: "/status",
+  notfound: "/404",
+};
+
+const PATH_TO_SCREEN = {};
+for (const [screen, path] of Object.entries(SCREEN_TO_PATH)) {
+  PATH_TO_SCREEN[path] = screen;
+}
+
 export function screenHref(screen) {
-  return `?screen=${encodeURIComponent(screen)}`;
+  return SCREEN_TO_PATH[screen] || "/404";
+}
+
+export function screenFromPath(pathname) {
+  if (!pathname || pathname === "/") return "landing";
+  const clean = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+  return PATH_TO_SCREEN[clean] || null;
+}
+
+export function pathFromScreen(screen) {
+  return SCREEN_TO_PATH[screen] || "/404";
 }
 
 export function shouldHandleScreenLinkClick(event) {

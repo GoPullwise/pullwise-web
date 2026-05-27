@@ -377,6 +377,9 @@ export function LoginScreen({ go } = {}) {
 
   return (
     <div className="auth-wrap fade-in">
+      <a className="auth-back-home" {...screenLinkProps(go, "landing")}>
+        <I.ArrowL size={14} /> {T("Back to home", "返回首页")}
+      </a>
       <div className="auth-card">
         <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
           <div className="brand-mark">PR</div>

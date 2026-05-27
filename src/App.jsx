@@ -4,6 +4,7 @@ import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
+import { pathFromScreen, screenFromPath } from "./lib/navigation.js";
 import { ApiDocsScreen, ApiKeysScreen, WorkspacesScreen } from "./screens/api.jsx";
 import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
@@ -20,28 +21,6 @@ import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
-const SCREENS = new Set([
-  "landing",
-  "login",
-  "oauth",
-  "repos",
-  "scanning",
-  "dashboard",
-  "issues",
-  "issue",
-  "history",
-  "apiKeys",
-  "workspaces",
-  "settings",
-  "billing",
-  "pricing",
-  "api",
-  "privacy",
-  "terms",
-  "security",
-  "status",
-  "notfound",
-]);
 const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
@@ -55,13 +34,12 @@ const PUBLIC_SCREENS = new Set([
 ]);
 
 function getInitialScreen() {
-  const requestedScreen = new URLSearchParams(window.location.search).get("screen");
-  if (!requestedScreen) return "landing";
-  return SCREENS.has(requestedScreen) ? requestedScreen : "notfound";
+  const screen = screenFromPath(window.location.pathname);
+  return screen || "notfound";
 }
 
 function getRequestedScreenParam() {
-  return new URLSearchParams(window.location.search).get("screen") || "";
+  return window.location.pathname || "/";
 }
 
 function repositoryAuthorizationRequested() {
@@ -136,9 +114,22 @@ export function App({ prototypeNav = false }) {
   const continuedRepositoryAuthorization = useRef(false);
 
   const go = (nextScreen) => {
+    const path = pathFromScreen(nextScreen);
+    if (window.location.pathname !== path) {
+      window.history.pushState({ screen: nextScreen }, "", path);
+    }
     setScreen(nextScreen);
     window.scrollTo({ top: 0 });
   };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const screen = screenFromPath(window.location.pathname) || "landing";
+      setScreen(screen);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const openScan = (scan) => {
     setActiveRepo({
