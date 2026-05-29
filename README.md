@@ -73,10 +73,8 @@ The Python API now requires real GitHub OAuth/App configuration for production
 login flows. Explicit local auth switches live in `F:\pullwise-server`; they are
 not enabled by the frontend.
 
-Billing and free scan limits are resource-scoped. The frontend prefers the
-backend `workspace` billing payload and displays repository quota from
-`/repositories`; the deprecated `account` billing payload is only a migration
-fallback.
+Billing and free scan limits are resource-scoped. The frontend displays account
+billing status plus repository quota from `/repositories`.
 
 ## Useful Commands
 
