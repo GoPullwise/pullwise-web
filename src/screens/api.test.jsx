@@ -77,8 +77,8 @@ describe("API screens", () => {
       name: /^docs$/i,
     });
 
-    expect(pageAction).toHaveAttribute("href", "/api");
-    expect(docsSide).toHaveAttribute("href", "/api");
+    expect(pageAction).toHaveAttribute("href", "/developers/api");
+    expect(docsSide).toHaveAttribute("href", "/developers/api");
 
     await user.click(pageAction);
     expect(go).toHaveBeenCalledWith("api");

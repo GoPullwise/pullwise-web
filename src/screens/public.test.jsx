@@ -20,7 +20,7 @@ describe("public navigation links", () => {
 
     expect(product).toHaveAttribute("href", "/");
     expect(pricing).toHaveAttribute("href", "/pricing");
-    expect(api).toHaveAttribute("href", "/api");
+    expect(api).toHaveAttribute("href", "/developers/api");
     expect(signIn).toHaveAttribute("href", "/login");
     expect(getStarted).toHaveAttribute("href", "/login");
     expect(primaryActions).toHaveLength(2);

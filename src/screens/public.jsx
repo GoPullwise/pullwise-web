@@ -139,7 +139,7 @@ export function LandingScreen({ go, accent, auth }) {
             <span />
             <span />
             <span />
-            <div className="lp-preview-url">pullwise.dev / dashboard</div>
+            <div className="lp-preview-url">pull-wise.com / dashboard</div>
           </div>
           <div className="lp-preview-body">
             <div className="lp-preview-side">

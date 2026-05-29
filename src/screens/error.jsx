@@ -80,8 +80,8 @@ export function NotFoundScreen({ go, requested, auth }) {
           ))}
         </div>
         <div className="notfound-foot">
-          <a className="auth-link" href="mailto:support@pullwise.dev">
-            support@pullwise.dev
+          <a className="auth-link" href="mailto:contact@pull-wise.com">
+            contact@pull-wise.com
           </a>
         </div>
       </div>

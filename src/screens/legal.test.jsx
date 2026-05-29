@@ -71,9 +71,9 @@ describe("legal pages", () => {
   it("exposes the security report address as a real mail link", () => {
     render(<SecurityScreen go={vi.fn()} />);
 
-    expect(screen.getByRole("link", { name: /security@pullwise\.dev/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /security@pull-wise\.com/i })).toHaveAttribute(
       "href",
-      "mailto:security@pullwise.dev"
+      "mailto:security@pull-wise.com"
     );
   });
 });

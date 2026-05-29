@@ -54,9 +54,9 @@ describe("NotFoundScreen", () => {
   it("exposes support email as a real mail link", () => {
     render(<NotFoundScreen go={vi.fn()} requested="missing" auth={{ authenticated: false }} />);
 
-    expect(screen.getByRole("link", { name: /support@pullwise\.dev/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /contact@pull-wise\.com/i })).toHaveAttribute(
       "href",
-      "mailto:support@pullwise.dev"
+      "mailto:contact@pull-wise.com"
     );
   });
 });

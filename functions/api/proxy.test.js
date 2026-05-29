@@ -23,7 +23,7 @@ describe("api proxy", () => {
 
     await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
-      request: new Request("https://app.pullwise.dev/api/auth/github/authorize", {
+      request: new Request("https://pull-wise.com/api/auth/github/authorize", {
         method: "POST",
         body: JSON.stringify({ ok: true }),
         headers: { "Content-Type": "application/json" },
@@ -31,7 +31,7 @@ describe("api proxy", () => {
     });
 
     expect(forwardedHeaders.get("X-Forwarded-Proto")).toBe("https");
-    expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("app.pullwise.dev");
+    expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("pull-wise.com");
     expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBe("/api");
     expect(forwardedInit.duplex).toBe("half");
   });
@@ -55,7 +55,7 @@ describe("api proxy", () => {
 
     const response = await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
-      request: new Request("https://app.pullwise.dev/api/health", {
+      request: new Request("https://pull-wise.com/api/health", {
         headers: {
           Connection: "X-Client-Hop",
           "X-Client-Hop": "drop-me",
@@ -87,7 +87,7 @@ describe("api proxy", () => {
 
     await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
-      request: new Request("https://app.pullwise.dev/apihttps://evil.example/steal?x=1"),
+      request: new Request("https://pull-wise.com/apihttps://evil.example/steal?x=1"),
     });
 
     expect(forwardedUrl).toBe("https://api.internal/https://evil.example/steal?x=1");

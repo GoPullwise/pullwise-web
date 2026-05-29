@@ -12,7 +12,7 @@ const SCREEN_TO_PATH = {
   settings: "/settings",
   billing: "/billing",
   pricing: "/pricing",
-  api: "/api",
+  api: "/developers/api",
   privacy: "/privacy",
   terms: "/terms",
   security: "/security",
