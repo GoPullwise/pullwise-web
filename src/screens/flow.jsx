@@ -27,7 +27,7 @@ function repoQuotaLabel(quota) {
   const remaining = Object.prototype.hasOwnProperty.call(quota, "remaining")
     ? quotaNumber(quota.remaining)
     : Math.max(0, limit - used);
-  const scope = quota.scope === "account" ? "account" : "repo";
+  const scope = quota.scope === "user" ? "account" : "repo";
   if (!limit) return `${scope} quota unavailable`;
   return `${remaining} of ${limit} ${scope} scans left`;
 }
@@ -87,9 +87,6 @@ function scanErrorAction(error) {
     ["REPOSITORY_SYNC_REQUIRED", "REPOSITORY_NOT_AUTHORIZED"].includes(code)
   ) {
     return { label: "Sync repositories", screen: "repos" };
-  }
-  if (text.includes("monthly review limit")) {
-    return { label: "Open billing", screen: "billing" };
   }
   return { label: "Retry", screen: "repos" };
 }
