@@ -294,7 +294,7 @@ describe("normalizeIssue", () => {
     });
     expect(normalizeIssue({ id: "f_auto", autoFix: "true" })).toMatchObject({
       autoFix: true,
-      autoFixable: true,
+      autoFixable: false,
     });
   });
 
@@ -349,7 +349,7 @@ describe("normalizeIssue", () => {
   it("normalizes issue text fields for search-safe rendering", () => {
     const issue = normalizeIssue({
       id: 123,
-      scan_id: 456,
+      scanId: 456,
       repo: 789,
       title: 1011,
       description: 1213,
@@ -540,7 +540,7 @@ describe("normalizeIssue", () => {
     expect(
       normalizeScan({
         id: 123,
-        repository: 456,
+        repo: 456,
         branch: 789,
         commit: 1011,
         status: 12,
@@ -676,7 +676,7 @@ describe("normalizeIssue", () => {
     expect(
       normalizeIssue({
         id: "f_123",
-        scan_id: "sc_1",
+        scanId: "sc_1",
         impact: "Production impact.",
         references: [{ label: "Docs", url: "https://example.com" }],
       })

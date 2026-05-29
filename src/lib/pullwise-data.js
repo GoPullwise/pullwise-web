@@ -300,23 +300,23 @@ function normalizePendingPullRequest(value, { issueId } = {}) {
 
 export function normalizeRepo(repo = {}) {
   repo = repo || {};
-  const fullName = textValue(repo.fullName, repo.full_name, repo.name);
-  const rawRepoId = textValue(repo.repoId, repo.repositoryId, repo.repository_id);
+  const fullName = textValue(repo.fullName, repo.name);
+  const rawRepoId = textValue(repo.repoId);
   const normalizedId = textValue(repo.id, rawRepoId, fullName);
   return {
     ...repo,
     id: normalizedId,
     repoId: rawRepoId || (normalizedId.startsWith("repo_") ? normalizedId : ""),
-    githubRepoId: textValue(repo.githubRepoId, repo.github_repo_id),
-    githubNodeId: textValue(repo.githubNodeId, repo.github_node_id),
+    githubRepoId: textValue(repo.githubRepoId),
+    githubNodeId: textValue(repo.githubNodeId),
     name: textValue(repo.name, fullName),
     fullName,
     desc: textValue(repo.desc, repo.description),
     lang: textValue(repo.lang, repo.language) || "-",
-    defaultBranch: textValue(repo.defaultBranch, repo.default_branch, repo.branch),
+    defaultBranch: textValue(repo.defaultBranch, repo.branch),
     stars: normalizeDisplayCount(repo.stars, repo.stargazers_count),
     branches: normalizeDisplayCount(repo.branches),
-    updated: textValue(repo.updated, repo.updated_at, repo.updatedAt),
+    updated: textValue(repo.updated, repo.updatedAt),
     private: normalizeBoolean(repo.private),
     quota: normalizeQuotaUsage(repo.quota),
     href: textValue(repo.href),
@@ -328,13 +328,13 @@ export function normalizeIssue(issue = {}) {
   issue = issue || {};
   const id = textValue(issue.id);
   const title = textValue(issue.title);
-  const autoFix = normalizeBoolean(issue.autoFix ?? issue.autoFixable);
-  const autoFixable = normalizeBoolean(issue.autoFixable ?? issue.autoFix);
+  const autoFix = normalizeBoolean(issue.autoFix);
+  const autoFixable = normalizeBoolean(issue.autoFixable);
   const normalized = {
     ...issue,
     id,
-    scanId: textValue(issue.scanId, issue.scan_id),
-    repo: textValue(issue.repo, issue.repository),
+    scanId: textValue(issue.scanId),
+    repo: textValue(issue.repo),
     title,
     summary: textValue(issue.summary, issue.description),
     impact: textValue(issue.impact),
@@ -370,13 +370,13 @@ export function normalizeIssue(issue = {}) {
 
 export function normalizeScan(scan = {}) {
   scan = scan || {};
-  const billingUsage = normalizeQuotaUsage(scan.billingUsage || scan.billing_usage);
-  const repoUsage = normalizeQuotaUsage(scan.repoUsage || scan.repo_usage);
+  const billingUsage = normalizeQuotaUsage(scan.billingUsage);
+  const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   return {
     ...scan,
     id: textValue(scan.id),
-    repo: textValue(scan.repo, scan.repository),
+    repo: textValue(scan.repo),
     branch: textValue(scan.branch) || "main",
     commit: textValue(scan.commit) || "-",
     status: normalizeScanStatus(scan.status),
@@ -385,8 +385,8 @@ export function normalizeScan(scan = {}) {
     by: textValue(scan.by) || "you",
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
-    repoId: textValue(scan.repoId, scan.repositoryId, scan.repository_id),
-    githubRepoId: textValue(scan.githubRepoId, scan.github_repo_id),
+    repoId: textValue(scan.repoId),
+    githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,
     billingUsage,
     repoUsage,
