@@ -194,9 +194,6 @@ export function ApiDocsScreen({ go, auth }) {
               </a>
             ))}
           </div>
-          <a className="btn" {...screenLinkProps(go, "apiKeys")}>
-            <I.Code size={14} /> {T("API Keys", "API 密钥")}
-          </a>
         </aside>
 
         <main className="docs-main">
@@ -267,7 +264,7 @@ Content-Type: application/json
           <div className="docs-table">
             {endpoints.map(({ method, path, scope, description }) => (
               <div key={`${method}-${path}`} className="docs-table-r">
-                <b>
+                <b className="docs-endpoint">
                   {method} {path}
                 </b>
                 <span>

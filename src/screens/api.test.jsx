@@ -37,6 +37,8 @@ describe("API screens", () => {
     expect(screen.getByRole("heading", { name: /pullwise rest api/i })).toBeInTheDocument();
     expect(screen.getByText("GET /api/v1/repositories")).toBeInTheDocument();
     expect(screen.getByText("POST /api/v1/repositories/{repoId}/scans")).toBeInTheDocument();
+    expect(screen.getByText("POST /api/v1/repositories/{repoId}/scans/stop")).toBeInTheDocument();
+    expect(screen.getByText("GET /api/v1/repositories/{repoId}/scans/current")).toBeInTheDocument();
     expect(screen.getByText("GET /api/v1/repositories/{repoId}/quota")).toBeInTheDocument();
   });
 
@@ -48,19 +50,18 @@ describe("API screens", () => {
 
     const docsSide = within(document.querySelector(".docs-side"));
     const docsFoot = within(document.querySelector(".docs-foot-actions"));
-    const apiKeysSide = docsSide.getByRole("link", { name: /api keys/i });
     const pricing = docsFoot.getByRole("link", { name: /pricing/i });
     const apiKeysFoot = docsFoot.getByRole("link", { name: /api keys/i });
     const home = within(document.querySelector(".docs-crumbs")).getByRole("link", {
       name: /pullwise/i,
     });
 
-    expect(apiKeysSide).toHaveAttribute("href", "/api-keys");
+    expect(docsSide.queryByRole("link", { name: /api keys/i })).not.toBeInTheDocument();
     expect(apiKeysFoot).toHaveAttribute("href", "/api-keys");
     expect(pricing).toHaveAttribute("href", "/pricing");
     expect(home).toHaveAttribute("href", "/");
 
-    await user.click(apiKeysSide);
+    await user.click(apiKeysFoot);
     expect(go).toHaveBeenCalledWith("apiKeys");
   });
 
