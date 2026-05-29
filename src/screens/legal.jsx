@@ -497,6 +497,8 @@ export function StatusScreen({ go, auth }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
   const [health, setHealth] = useState(null);
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [adminStatus, setAdminStatus] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -506,13 +508,25 @@ export function StatusScreen({ go, auth }) {
       setNow(new Date());
       try {
         const payload = await pullwiseApi.system.health();
+        const statusPayload =
+          typeof pullwiseApi.system.status === "function"
+            ? await pullwiseApi.system.status().catch(() => payload?.scanSystem || null)
+            : payload?.scanSystem || null;
+        const adminPayload =
+          auth?.session?.admin && typeof pullwiseApi.system.adminStatus === "function"
+            ? await pullwiseApi.system.adminStatus().catch(() => null)
+            : null;
         if (!cancelled) {
           setHealth(payload);
+          setSystemStatus(statusPayload || payload?.scanSystem || null);
+          setAdminStatus(adminPayload);
           setError("");
         }
       } catch (healthError) {
         if (!cancelled) {
           setHealth(null);
+          setSystemStatus(null);
+          setAdminStatus(null);
           setError(healthError?.message || "Unable to reach the Pullwise API.");
         }
       }
@@ -524,7 +538,7 @@ export function StatusScreen({ go, auth }) {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [auth?.session?.admin]);
 
   const apiStatus = statusClass(Boolean(health?.ok), error);
   const title = health?.ok
@@ -566,6 +580,12 @@ export function StatusScreen({ go, auth }) {
     ? `${health.database.type}: ${health.database.path || "configured backend path"}`
     : T("Waiting for backend health.", "等待后端健康检查。");
 
+  const scanSystem = adminStatus || systemStatus || health?.scanSystem || null;
+  const scanStatus = scanSystem?.scanSystemStatus || "down";
+  const scanSystemDetail = scanSystem
+    ? `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`
+    : "Waiting for scan system status.";
+
   return (
     <LegalChrome go={go} current="status" auth={auth}>
       <section className="status-hero">
@@ -604,6 +624,12 @@ export function StatusScreen({ go, auth }) {
             title={T("State database", "状态数据库")}
             status={health?.database ? "operational" : apiStatus}
             detail={databaseDetail}
+          />
+          <StatusRow
+            icon={<I.Activity size={14} />}
+            title="Scan system"
+            status={scanStatus === "ok" ? "operational" : scanStatus === "degraded" ? "degraded" : "incident"}
+            detail={scanSystemDetail}
           />
           {error && (
             <div className="auth-error" role="alert" style={{ marginTop: 14 }}>
@@ -652,6 +678,29 @@ export function StatusScreen({ go, auth }) {
                 detail={limitsDetail}
               />
             )}
+          </div>
+        )}
+        {adminStatus?.workers?.length > 0 && (
+          <div className="status-card card" style={{ marginTop: 14 }}>
+            <div className="status-card-h">
+              <h2>Worker registry</h2>
+              <span className="muted">Admin worker capacity and heartbeat state</span>
+            </div>
+            {adminStatus.workers.map((worker) => (
+              <StatusRow
+                key={worker.worker_id}
+                icon={<I.Terminal size={14} />}
+                title={worker.name || worker.worker_id}
+                status={
+                  ["idle", "busy"].includes(worker.status)
+                    ? "operational"
+                    : worker.status === "degraded"
+                      ? "degraded"
+                      : "incident"
+                }
+                detail={`${worker.status} / ${worker.running_jobs ?? 0}/${worker.max_concurrent_jobs ?? 0} jobs / ${worker.provider || "codex"} ${worker.version || ""} / ${worker.region || "unassigned"}`}
+              />
+            ))}
           </div>
         )}
       </section>

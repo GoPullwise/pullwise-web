@@ -87,5 +87,7 @@ export const pullwiseApi = {
 
   system: {
     health: () => request("/health"),
+    status: () => request("/status/system"),
+    adminStatus: () => request("/admin/status"),
   },
 };
