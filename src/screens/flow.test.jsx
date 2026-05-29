@@ -550,16 +550,16 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("repos");
   });
 
-  it("does not route unstructured monthly review quota text to billing", async () => {
+  it("does not route unstructured quota text to billing", async () => {
     const user = userEvent.setup();
-    const { go } = renderScanError("Monthly review limit exceeded for this workspace.");
+    const { go } = renderScanError("Workspace quota reached.");
 
     const action = screen.getByRole("link", { name: /retry/i });
     expect(action).toHaveAttribute("href", "/repos");
 
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/monthly review limit/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/workspace quota reached/i);
     expect(go).toHaveBeenCalledWith("repos");
   });
 
