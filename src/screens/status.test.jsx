@@ -111,6 +111,16 @@ describe("StatusScreen", () => {
           version: "0.1.0",
           region: "us-east",
         },
+        {
+          worker_id: "wk_2",
+          name: "EU worker",
+          status: "degraded",
+          running_jobs: 0,
+          max_concurrent_jobs: 8,
+          provider: "codex",
+          version: "0.1.0",
+          region: "eu",
+        },
       ],
     });
 
@@ -119,5 +129,7 @@ describe("StatusScreen", () => {
     expect(await screen.findByText("Worker registry")).toBeInTheDocument();
     expect(screen.getByText("US worker")).toBeInTheDocument();
     expect(screen.getByText(/busy \/ 2\/2 jobs \/ codex 0.1.0 \/ us-east/i)).toBeInTheDocument();
+    expect(screen.getByText("EU worker")).toBeInTheDocument();
+    expect(screen.getByText(/degraded \/ 0\/8 jobs \/ codex 0.1.0 \/ eu/i)).toBeInTheDocument();
   });
 });
