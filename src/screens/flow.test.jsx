@@ -18,7 +18,6 @@ vi.mock("../lib/pullwise-data.js", () => ({
           tags: [
             scan.queue.position ? `Position ${scan.queue.position}` : null,
             typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
-            scan.queue.limits?.global ? `Global ${scan.queue.limits.global}` : null,
             scan.queue.limits?.perUser ? `Per user ${scan.queue.limits.perUser}` : null,
           ].filter(Boolean),
         }
@@ -497,9 +496,9 @@ describe("ScanningScreen queue state", () => {
         queue: {
           position: 4,
           ahead: 3,
-          reason: "global_limit",
-          message: "Server is running 3 of 3 scans; 3 scans ahead.",
-          limits: { global: 3, perUser: 1 },
+          reason: "waiting_for_turn",
+          message: "Queued with 3 scans ahead.",
+          limits: { perUser: 1 },
           running: { global: 3, user: 0 },
         },
       },
@@ -518,7 +517,6 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText(/scan queued/i)).toBeInTheDocument();
     expect(screen.getByText(/position 4/i)).toBeInTheDocument();
     expect(screen.getAllByText(/3 scans ahead/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/global 3/i)).toBeInTheDocument();
     expect(screen.getByText(/per user 1/i)).toBeInTheDocument();
   });
 

@@ -482,11 +482,9 @@ export function scanQueueSummary(scan) {
   const tags = [];
   const position = normalizeQueueCount(queue.position, { positive: true });
   const ahead = normalizeQueueCount(queue.ahead);
-  const globalLimit = normalizeQueueCount(queue.limits?.global, { positive: true });
   const perUserLimit = normalizeQueueCount(queue.limits?.perUser, { positive: true });
   if (position !== null) tags.push(`Position ${position}`);
   if (ahead !== null) tags.push(`${scanCountLabel(ahead)} ahead`);
-  if (globalLimit !== null) tags.push(`Global ${globalLimit}`);
   if (perUserLimit !== null) tags.push(`Per user ${perUserLimit}`);
 
   return {

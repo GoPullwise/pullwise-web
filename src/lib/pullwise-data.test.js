@@ -642,13 +642,13 @@ describe("normalizeIssue", () => {
           ahead: "3",
           limits: {
             global: "4",
-            perUser: { value: 1 },
+            perUser: "1",
           },
         },
       })
     ).toEqual({
       message: "Waiting for capacity",
-      tags: ["Position 2", "3 scans ahead", "Global 4"],
+      tags: ["Position 2", "3 scans ahead", "Per user 1"],
     });
 
     expect(

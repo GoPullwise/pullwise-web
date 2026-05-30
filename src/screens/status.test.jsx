@@ -71,8 +71,9 @@ describe("StatusScreen", () => {
         enabled: false,
       },
       limits: {
-        maxConcurrentScans: 3,
         maxConcurrentScansPerUser: 1,
+        maxQueuedScansGlobal: 1000,
+        maxQueuedScansPerUser: 20,
         rateLimitEnabled: true,
       },
     });
@@ -84,7 +85,8 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/OAuth configured/i)).toBeInTheDocument();
     expect(screen.getByText(/App API missing/i)).toBeInTheDocument();
     expect(screen.getByText(/disabled \(not enabled\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/3 global \/ 1 per user/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 per user running/i)).toBeInTheDocument();
+    expect(screen.getByText(/1000 global \/ 20 per user queued/i)).toBeInTheDocument();
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
   });
 

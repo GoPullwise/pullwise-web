@@ -572,7 +572,8 @@ export function StatusScreen({ go, auth }) {
     : "";
   const limitsDetail = limits
     ? [
-        `${limits.maxConcurrentScans ?? "-"} global / ${limits.maxConcurrentScansPerUser ?? "-"} per user`,
+        `${limits.maxConcurrentScansPerUser ?? "-"} per user running`,
+        `${limits.maxQueuedScansGlobal ?? "-"} global / ${limits.maxQueuedScansPerUser ?? "-"} per user queued`,
         `Rate limiting ${limits.rateLimitEnabled ? "enabled" : "disabled"}`,
       ].join(" - ")
     : "";
@@ -674,7 +675,7 @@ export function StatusScreen({ go, auth }) {
               <StatusRow
                 icon={<I.Activity size={14} />}
                 title="Runtime limits"
-                status={limits.maxConcurrentScans ? "operational" : "degraded"}
+                status={limits.maxConcurrentScansPerUser ? "operational" : "degraded"}
                 detail={limitsDetail}
               />
             )}
