@@ -1,7 +1,7 @@
 # Pullwise Web
 
 Pullwise Web is a Vite React app for the Pullwise backend in
-`F:\pullwise-server`. The current product surfaces only server-backed flows:
+`../pullwise-server`. The current product surfaces only server-backed flows:
 
 - GitHub identity login through the backend OAuth endpoint
 - GitHub App repository authorization
@@ -49,8 +49,8 @@ http://localhost:5173/
 http://localhost:5173/review.html
 ```
 
-Use `/` for the normal product entry. Use `/review.html` for the prototype
-navigator that can jump between currently registered screens.
+Use `/` for the normal product entry. Use `/review.html` for the built-in
+prototype navigator that can jump between all registered screens.
 
 ## Environment
 
@@ -62,16 +62,18 @@ VITE_API_BASE_URL=http://localhost:8080
 VITE_GITHUB_APP_SLUG=pullwise
 ```
 
-Only `VITE_*` variables are exposed to browser code. Do not put GitHub client
-secrets, GitHub App private keys, AI provider keys, or repository credentials in
-frontend env files.
+Only `VITE_*` variables are exposed to browser code. `PULLWISE_API_ORIGIN` is
+a runtime-only variable read by the Cloudflare Pages Function at
+`functions/api/[[path]].js`; it does not reach the browser bundle. Do not put
+GitHub client secrets, GitHub App private keys, AI provider keys, or repository
+credentials in frontend env files.
 
 If real GitHub OAuth secrets or GitHub App private keys were ever committed or
 shared outside the local machine, rotate them in GitHub before production use.
 
 The Python API now requires real GitHub OAuth/App configuration for production
-login flows. Explicit local auth switches live in `F:\pullwise-server`; they are
-not enabled by the frontend.
+login flows. Explicit local auth switches live in the sibling `pullwise-server`
+repository; they are not enabled by the frontend.
 
 Billing and free scan limits are resource-scoped. The frontend displays account
 billing status plus repository quota from `/repositories`.
