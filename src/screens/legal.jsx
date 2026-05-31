@@ -586,6 +586,7 @@ export function StatusScreen({ go, auth }) {
   const scanSystemDetail = scanSystem
     ? `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`
     : "Waiting for scan system status.";
+  const visibleWorkers = Array.isArray(scanSystem?.workers) ? scanSystem.workers : [];
 
   return (
     <LegalChrome go={go} current="status" auth={auth}>
@@ -681,15 +682,19 @@ export function StatusScreen({ go, auth }) {
             )}
           </div>
         )}
-        {adminStatus?.workers?.length > 0 && (
+        {visibleWorkers.length > 0 && (
           <div className="status-card card" style={{ marginTop: 14 }}>
             <div className="status-card-h">
               <h2>Worker registry</h2>
-              <span className="muted">Admin worker capacity and heartbeat state</span>
+              <span className="muted">
+                {adminStatus
+                  ? "Admin worker capacity and heartbeat state"
+                  : "Public worker capacity and heartbeat state"}
+              </span>
             </div>
-            {adminStatus.workers.map((worker) => (
+            {visibleWorkers.map((worker, index) => (
               <StatusRow
-                key={worker.worker_id}
+                key={worker.worker_id || worker.name || index}
                 icon={<I.Terminal size={14} />}
                 title={worker.name || worker.worker_id}
                 status={

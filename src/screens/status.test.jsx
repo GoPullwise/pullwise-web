@@ -15,6 +15,7 @@ vi.mock("../api/pullwise.js", () => ({
 
 describe("StatusScreen", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     pullwiseApi.system.status.mockResolvedValue({
       scanSystemStatus: "ok",
       queuedJobs: 2,
@@ -88,6 +89,42 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/1 per user running/i)).toBeInTheDocument();
     expect(screen.getByText(/1000 global \/ 20 per user queued/i)).toBeInTheDocument();
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
+  });
+
+  it("renders public worker details for non-admin visitors from system status", async () => {
+    pullwiseApi.system.health.mockResolvedValue({
+      ok: true,
+      service: "pullwise-server",
+      mode: "production",
+      database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
+    });
+    pullwiseApi.system.status.mockResolvedValue({
+      scanSystemStatus: "ok",
+      queuedJobs: 1,
+      runningJobs: 1,
+      availableCapacity: 2,
+      workers: [
+        {
+          worker_id: "wk_public...",
+          name: "US worker",
+          status: "idle",
+          running_jobs: 1,
+          max_concurrent_jobs: 4,
+          free_slots: 3,
+          provider: "codex",
+          version: "0.1.0",
+          region: "us-east",
+          last_heartbeat_at: 1760000000,
+        },
+      ],
+    });
+
+    render(<StatusScreen go={vi.fn()} />);
+
+    expect(await screen.findByText("Worker registry")).toBeInTheDocument();
+    expect(screen.getByText("US worker")).toBeInTheDocument();
+    expect(screen.getByText(/idle \/ 1\/4 jobs \/ codex 0.1.0 \/ us-east/i)).toBeInTheDocument();
+    expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
   it("renders admin worker details when the signed-in user is admin", async () => {
