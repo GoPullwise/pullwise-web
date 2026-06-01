@@ -505,7 +505,11 @@ function AdminWorkerControls({ worker, onChanged }) {
     setMessage("");
     try {
       const payload = await fn();
-      if (payload?.worker_token) {
+      if (payload?.deleted) {
+        setMessage("Worker deleted.");
+      } else if (payload?.message) {
+        setMessage(payload.message);
+      } else if (payload?.worker_token) {
         setMessage(`New token: ${payload.worker_token}`);
       } else if (payload?.install_command) {
         setMessage(payload.install_command);
@@ -526,9 +530,9 @@ function AdminWorkerControls({ worker, onChanged }) {
   return (
     <div className="status-row-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 8, flexBasis: "100%" }}>
-        <input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
-        <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
-        <input value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
+        <input aria-label="Worker region" value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
+        <input aria-label="Worker version" value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
+        <input aria-label="Worker capacity" value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
       </div>
       <button
         className="btn sm"
@@ -579,7 +583,7 @@ function AdminWorkerControls({ worker, onChanged }) {
             const events = Array.isArray(payload?.auditEvents) ? payload.auditEvents : [];
             return {
               worker: payload?.worker || worker,
-              install_command: events.length
+              message: events.length
                 ? events.map((event) => `${event.action}: ${event.success ? "ok" : "failed"}`).join("\n")
                 : "No audit events.",
             };
@@ -643,10 +647,10 @@ function AdminWorkerCreate({ onCreated }) {
   return (
     <form onSubmit={createWorker} className="worker-create" style={{ display: "grid", gap: 8, marginTop: 12 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
-        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Worker name" />
-        <input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
-        <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
-        <input value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
+        <input aria-label="New worker name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Worker name" />
+        <input aria-label="New worker region" value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
+        <input aria-label="New worker version" value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
+        <input aria-label="New worker capacity" value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
       </div>
       <button className="btn sm" disabled={busy} type="submit">
         <I.Plus size={14} /> Create worker
@@ -758,6 +762,9 @@ export function StatusScreen({ go, auth }) {
       if (!current) return current;
       const existing = Array.isArray(current.workers) ? current.workers : [];
       const withoutWorker = existing.filter((item) => item.worker_id !== worker.worker_id);
+      if (payload?.deleted) {
+        return { ...current, workers: withoutWorker };
+      }
       return { ...current, workers: [worker, ...withoutWorker] };
     });
   }

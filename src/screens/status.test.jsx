@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { StatusScreen } from "./legal.jsx";
@@ -180,5 +181,45 @@ describe("StatusScreen", () => {
     expect(screen.getAllByText("Stop new jobs")[0]).toBeInTheDocument();
     expect(screen.getByText("EU worker")).toBeInTheDocument();
     expect(screen.getByText(/degraded \/ 0\/8 jobs \/ codex 0.1.0 \/ eu/i)).toBeInTheDocument();
+  });
+
+  it("removes a worker row after admin deletes it", async () => {
+    const user = userEvent.setup();
+    pullwiseApi.system.health.mockResolvedValue({
+      ok: true,
+      service: "pullwise-server",
+      mode: "production",
+      database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
+    });
+    pullwiseApi.system.adminStatus.mockResolvedValue({
+      scanSystemStatus: "ok",
+      queuedJobs: 0,
+      runningJobs: 0,
+      availableCapacity: 1,
+      workers: [
+        {
+          worker_id: "wk_1",
+          name: "US worker",
+          status: "idle",
+          running_jobs: 0,
+          max_concurrent_jobs: 1,
+          provider: "codex",
+          version: "0.1.0",
+          region: "us-east",
+        },
+      ],
+    });
+    pullwiseApi.system.deleteWorker.mockResolvedValue({
+      worker: { worker_id: "wk_1", name: "US worker" },
+      deleted: true,
+    });
+
+    render(<StatusScreen go={vi.fn()} auth={{ session: { admin: true } }} />);
+
+    expect(await screen.findByText("US worker")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /delete/i }));
+
+    await waitFor(() => expect(pullwiseApi.system.deleteWorker).toHaveBeenCalledWith("wk_1"));
+    await waitFor(() => expect(screen.queryByText("US worker")).not.toBeInTheDocument());
   });
 });
