@@ -375,6 +375,22 @@ describe("ScanningScreen queue state", () => {
           progress: 100,
         },
       ],
+      batchResults: [
+        {
+          repo: "octocat/alpha",
+          status: "done",
+          scanId: "sc_done",
+          scan: { id: "sc_done", status: "done" },
+          error: "",
+        },
+        {
+          repo: "octocat/beta",
+          status: "failed",
+          scanId: "",
+          scan: null,
+          error: "Repository quota exhausted.",
+        },
+      ],
       error: "Repository quota exhausted.",
       errorCode: "QUOTA_EXCEEDED_REPOSITORY",
       cancel: vi.fn(),
@@ -395,6 +411,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText(/scan batch failed/i)).toBeInTheDocument();
     expect(screen.queryByText(/scan batch queued/i)).not.toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
+    expect(screen.getByRole("button", { name: /history/i })).toBeInTheDocument();
   });
 
   it("returns terminal scans to scan history", async () => {

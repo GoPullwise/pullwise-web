@@ -68,6 +68,10 @@ function batchScanStatus(scans, expectedCount, hasError) {
   return "queued";
 }
 
+function isTerminalBatchRow(row) {
+  return ["done", "failed", "cancelled"].includes(row?.status) || isTerminalScan(row?.scan);
+}
+
 function scanErrorAction(error) {
   const code = typeof error === "object" && error ? String(error.code || "") : "";
   const message = typeof error === "object" && error ? error.message : error;
@@ -569,7 +573,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scanIssueTotals(scans)
     : scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
   const terminal = batchMode
-    ? expectedBatchCount > 0 && scans.length === expectedBatchCount && scans.every(isTerminalScan)
+    ? expectedBatchCount > 0 && batchRows.length === expectedBatchCount && batchRows.every(isTerminalBatchRow)
     : isTerminalScan(scan);
   const queueSummary = scanQueueSummary(scan);
   const canCancel = batchMode

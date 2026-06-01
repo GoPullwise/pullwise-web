@@ -63,8 +63,8 @@ VITE_GITHUB_APP_SLUG=pullwise
 ```
 
 Only `VITE_*` variables are exposed to browser code. `PULLWISE_API_ORIGIN` is
-a runtime-only variable read by the Cloudflare Pages Function at
-`functions/api/[[path]].js`; it does not reach the browser bundle. Do not put
+a runtime-only variable read by the Cloudflare Worker in `worker.js`; it does
+not reach the browser bundle. Do not put
 GitHub client secrets, GitHub App private keys, AI provider keys, or repository
 credentials in frontend env files.
 
@@ -123,37 +123,33 @@ secrets, GitHub App private keys, repository cloning, scan workers, AI provider
 credentials, payment provider keys, webhook handling, fix branch pushes, and
 pull request creation credentials.
 
-## Cloudflare Pages Deployment
+## Cloudflare Workers Deployment
 
 The recommended production topology is:
 
-- Cloudflare Pages serves the Vite app and the lightweight `/api/*` Pages Function.
+- Cloudflare Workers serves the Vite app with Workers static assets.
+- `worker.js` proxies same-origin browser requests from `/api/*` to the backend origin.
 - `pullwise-server` runs on a separate VM/container/server platform.
-- The Pages Function proxies same-origin browser requests from `/api/*` to the backend origin.
 
 This keeps browser API calls, session cookies, and GitHub OAuth callbacks on the
-frontend domain. The Pages Function is only a proxy; it does not run repository
+frontend domain. The Cloudflare Worker is only a proxy; it does not run repository
 scans, Git, SQLite, or Codex.
 
 Cloudflare references:
 
-- Pages Functions run code on the Workers runtime:
-  https://developers.cloudflare.com/pages/functions/
+- Workers static assets:
+  https://developers.cloudflare.com/workers/static-assets/
 - Workers have CPU, memory, startup, and runtime limits:
   https://developers.cloudflare.com/workers/platform/limits/
 - Python Workers are beta and run under Pyodide:
   https://developers.cloudflare.com/workers/languages/python/
 
-### Pages Project Settings
+### Workers Project Settings
 
-Set these in Cloudflare Pages:
+Deploy with Wrangler from `pullwise-web`:
 
-```text
-Framework preset: None or Vite
-Build command: npm run build
-Build output directory: dist
-Root directory: pullwise-web, if this repo is inside a monorepo
-Node version: 22.12.0 or newer, or 20.19.0 or newer
+```bash
+npm run deploy:workers
 ```
 
 Production environment variables:
@@ -166,12 +162,12 @@ PULLWISE_API_ORIGIN=https://api.your-domain.com
 ```
 
 `VITE_*` variables are bundled into browser code. `PULLWISE_API_ORIGIN` is read
-only by `functions/api/[[path]].js` at runtime and should point to the deployed
+only by `worker.js` at runtime and should point to the deployed
 Python backend origin.
 
 ### Matching Backend Settings
 
-For the same-origin Pages proxy topology, configure the backend with:
+For the same-origin Worker proxy topology, configure the backend with:
 
 ```text
 PULLWISE_APP_URL=https://app.your-domain.com
@@ -183,7 +179,7 @@ PULLWISE_API_BASE_URL=https://app.your-domain.com/api
 callbacks must return through `/api` so the browser receives the session cookie
 on `app.your-domain.com`.
 
-If you cannot set a fixed public API base URL, the Pages Function sends
+If you cannot set a fixed public API base URL, the Worker proxy sends
 `X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-Prefix: /api`. In that
 case set this on the backend:
 
@@ -195,7 +191,7 @@ Only enable that flag behind a trusted proxy.
 
 ### Direct API Option
 
-You can skip the Pages proxy and call the backend directly:
+You can skip the Worker proxy and call the backend directly:
 
 ```text
 VITE_API_BASE_URL=https://api.your-domain.com
@@ -211,12 +207,12 @@ PULLWISE_API_BASE_URL=https://api.your-domain.com
 
 Use custom domains that are same-site, such as `app.your-domain.com` and
 `api.your-domain.com`, so the default `SameSite=Lax` session cookie works with
-credentialed API requests. If the frontend is on `*.pages.dev` and the backend
+credentialed API requests. If the frontend is on a Cloudflare preview domain and the backend
 is on an unrelated domain, prefer the `/api` proxy topology.
 
 ### External Provider Callback URLs
 
-Use the Pages `/api` URLs when configuring browser-returning providers:
+Use the Worker `/api` URLs when configuring browser-returning providers:
 
 ```text
 GitHub OAuth callback: https://app.your-domain.com/api/auth/github/callback
@@ -224,7 +220,7 @@ GitHub App setup URL: https://app.your-domain.com/api/integrations/github/callba
 ```
 
 Stripe and Creem webhooks can point either to the backend directly or through
-the Pages proxy:
+the Worker proxy:
 
 ```text
 https://api.your-domain.com/webhooks/stripe
