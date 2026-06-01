@@ -218,6 +218,7 @@ describe("StatusScreen", () => {
 
     expect(await screen.findByText("US worker")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /delete/i }));
+    await user.click(screen.getByRole("button", { name: /confirm delete/i }));
 
     await waitFor(() => expect(pullwiseApi.system.deleteWorker).toHaveBeenCalledWith("wk_1"));
     await waitFor(() => expect(screen.queryByText("US worker")).not.toBeInTheDocument());

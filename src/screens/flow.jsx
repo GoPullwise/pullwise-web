@@ -530,6 +530,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   });
   const batchRun = useScanBatchRun({ repositories: batchRepositories });
   const scans = batchMode ? batchRun.scans : singleRun.scan ? [singleRun.scan] : [];
+  const batchRows = batchMode ? batchRun.batchResults || [] : [];
   const scan = batchMode
     ? scans.find((item) => !isTerminalScan(item)) || scans[0] || null
     : singleRun.scan;
@@ -575,13 +576,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scans.some((item) => item?.id && !isTerminalScan(item))
     : Boolean(scan && !terminal);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
-
-  // After a successful scan, drop into the dashboard so the user sees results.
-  useEffect(() => {
-    if (status !== "done") return undefined;
-    const id = setTimeout(() => go("dashboard"), 700);
-    return () => clearTimeout(id);
-  }, [status, go]);
 
   const handleCancel = async () => {
     if (canCancel) await cancel();
@@ -678,6 +672,16 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 <button className="btn ghost" onClick={handleBack}>
                   <I.ArrowL size={13} /> {T("Back", "返回")}
                 </button>
+                {terminal && (
+                  <>
+                    <button className="btn ghost" onClick={() => go("dashboard")}>
+                      <I.Layout size={13} /> {T("Dashboard", "总览")}
+                    </button>
+                    <button className="btn primary" onClick={() => go("history")}>
+                      <I.List size={13} /> {T("History", "历史")}
+                    </button>
+                  </>
+                )}
                 {canCancel && (
                   <button className="btn ghost" onClick={handleCancel}>
                     <I.X size={13} /> {T("Cancel", "取消")}
@@ -801,6 +805,25 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 ))}
               </div>
             </div>
+
+            {batchMode && (
+              <div className="card scanning-log">
+                <div className="scanning-counts-h">{T("Repository results", "仓库结果")}</div>
+                <div className="scanning-log-body">
+                  {batchRows.length === 0 && (
+                    <div className="muted">{T("Creating scan requests…", "正在创建扫描请求…")}</div>
+                  )}
+                  {batchRows.map((row) => (
+                    <div key={row.requestId || row.repo || row.scanId} className="scanning-log-line">
+                      <b>{row.repo || "—"}</b>
+                      <span className="tag" style={{ marginLeft: 8 }}>{row.status}</span>
+                      {row.scanId && <span className="tag" style={{ marginLeft: 8 }}>{row.scanId}</span>}
+                      {row.error && <div className="muted">{row.error}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

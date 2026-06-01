@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
@@ -6,6 +6,7 @@ import {
   normalizeRepo,
   normalizeScan,
   scanQueueSummary,
+  useIssues,
   useRepositories,
   useScanBatchRun,
   useScanRun,
@@ -21,6 +22,9 @@ vi.mock("../api/pullwise.js", () => ({
     scans: {
       create: vi.fn(),
       get: vi.fn(),
+      list: vi.fn(),
+    },
+    issues: {
       list: vi.fn(),
     },
   },
@@ -85,6 +89,49 @@ describe("useScans", () => {
       () => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(3),
       { timeout: 250 }
     );
+  });
+
+  it("passes list filters and appends paginated scan results", async () => {
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_1", status: "done" }],
+        total: 2,
+        limit: 1,
+        offset: 0,
+        hasMore: true,
+        nextOffset: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_2", status: "done" }],
+        total: 2,
+        limit: 1,
+        offset: 1,
+        hasMore: false,
+        nextOffset: null,
+      });
+
+    const { result } = renderHook(() =>
+      useScans({ pollIntervalMs: 25, limit: 1, status: "done", repo: "owner/repo" })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(pullwiseApi.scans.list).toHaveBeenNthCalledWith(1, {
+      limit: 1,
+      status: "done",
+      repo: "owner/repo",
+    });
+
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(pullwiseApi.scans.list).toHaveBeenNthCalledWith(2, {
+      limit: 1,
+      offset: 1,
+      status: "done",
+      repo: "owner/repo",
+    });
   });
 
   it("includes the scan request id when creating a scan", async () => {
@@ -221,6 +268,59 @@ describe("useScans", () => {
       expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_running");
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("useIssues", () => {
+  beforeEach(() => {
+    pullwiseApi.issues.list.mockReset();
+  });
+
+  it("passes list filters and appends paginated issue results", async () => {
+    pullwiseApi.issues.list
+      .mockResolvedValueOnce({
+        items: [{ id: "iss_1", status: "open", severity: "high" }],
+        total: 2,
+        limit: 1,
+        offset: 0,
+        hasMore: true,
+        nextOffset: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "iss_2", status: "open", severity: "high" }],
+        total: 2,
+        limit: 1,
+        offset: 1,
+        hasMore: false,
+        nextOffset: null,
+      });
+
+    const { result } = renderHook(() =>
+      useIssues({ limit: 1, status: "open", severity: "high", q: "auth", scanId: "sc_1" })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(pullwiseApi.issues.list).toHaveBeenNthCalledWith(1, {
+      limit: 1,
+      status: "open",
+      severity: "high",
+      q: "auth",
+      scanId: "sc_1",
+    });
+
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(pullwiseApi.issues.list).toHaveBeenNthCalledWith(2, {
+      limit: 1,
+      offset: 1,
+      status: "open",
+      severity: "high",
+      q: "auth",
+      scanId: "sc_1",
+    });
   });
 });
 

@@ -441,28 +441,64 @@ export function useRepositories() {
   return { ...state, reload: load };
 }
 
-export function useIssues() {
-  const [state, setState] = useState({ items: [], loading: true, error: "" });
-
-  const load = async () => {
-    setState((current) => ({ ...current, loading: true, error: "" }));
-    try {
-      const payload = await pullwiseApi.issues.list();
-      setState({
-        items: itemsFrom(payload, "items", "issues").map(normalizeIssue),
-        loading: false,
-        error: "",
-      });
-    } catch (error) {
-      setState({ items: [], loading: false, error: error?.message || "Unable to load issues." });
-    }
+function pageMeta(payload, fallbackLimit) {
+  return {
+    total: Number.isFinite(Number(payload?.total)) ? Number(payload.total) : itemsFrom(payload, "items").length,
+    limit: Number.isFinite(Number(payload?.limit)) ? Number(payload.limit) : fallbackLimit,
+    offset: Number.isFinite(Number(payload?.offset)) ? Number(payload.offset) : 0,
+    hasMore: Boolean(payload?.hasMore),
+    nextOffset: Number.isFinite(Number(payload?.nextOffset)) ? Number(payload.nextOffset) : null,
   };
+}
+
+function listParams({ limit, offset, status, severity, q, scanId, repo } = {}) {
+  const params = {};
+  if (limit) params.limit = limit;
+  if (offset) params.offset = offset;
+  if (status && status !== "all") params.status = status;
+  if (severity && severity !== "all") params.severity = severity;
+  if (q) params.q = q;
+  if (scanId) params.scanId = scanId;
+  if (repo) params.repo = repo;
+  return params;
+}
+
+export function useIssues({ limit = 50, status = "", severity = "", q = "", scanId = "" } = {}) {
+  const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
+
+  const load = useCallback(async ({ append = false, offset = 0 } = {}) => {
+    setState((current) => ({ ...current, loading: append ? current.loading : true, loadingMore: append, error: "" }));
+    try {
+      const payload = await pullwiseApi.issues.list(listParams({ limit, offset, status, severity, q, scanId }));
+      const nextItems = itemsFrom(payload, "items", "issues").map(normalizeIssue);
+      setState((current) => ({
+        items: append ? [...current.items, ...nextItems] : nextItems,
+        loading: false,
+        loadingMore: false,
+        error: "",
+        meta: pageMeta(payload, limit),
+      }));
+    } catch (error) {
+      setState((current) => ({
+        items: append ? current.items : [],
+        loading: false,
+        loadingMore: false,
+        error: error?.message || "Unable to load issues.",
+        meta: append ? current.meta : pageMeta({}, limit),
+      }));
+    }
+  }, [limit, status, severity, q, scanId]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
-  return { ...state, reload: load };
+  const loadMore = useCallback(() => {
+    if (!state.meta.hasMore || state.loadingMore) return;
+    load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
+  }, [load, state.meta, state.loadingMore, state.items.length]);
+
+  return { ...state, reload: load, loadMore };
 }
 
 const ACTIVE_SCAN_STATUSES = new Set(["queued", "running"]);
@@ -493,27 +529,32 @@ export function scanQueueSummary(scan) {
   };
 }
 
-export function useScans({ pollIntervalMs = 1500 } = {}) {
-  const [state, setState] = useState({ items: [], loading: true, error: "" });
+export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
+  const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
 
-  const load = useCallback(async ({ quiet = false } = {}) => {
-    setState((current) => ({ ...current, loading: quiet ? current.loading : true, error: "" }));
+  const load = useCallback(async ({ quiet = false, append = false, offset = 0 } = {}) => {
+    setState((current) => ({ ...current, loading: quiet || append ? current.loading : true, loadingMore: append, error: "" }));
     try {
-      const payload = await pullwiseApi.scans.list();
-      setState({
-        items: itemsFrom(payload, "items", "scans").map(normalizeScan),
+      const payload = await pullwiseApi.scans.list(listParams({ limit, offset, status, repo }));
+      const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
+      setState((current) => ({
+        items: append ? [...current.items, ...nextItems] : nextItems,
         loading: false,
+        loadingMore: false,
         error: "",
-      });
+        meta: pageMeta(payload, limit),
+      }));
     } catch (error) {
       const message = error?.message || "Unable to load scans.";
       setState((current) => ({
         items: quiet ? current.items : [],
         loading: false,
+        loadingMore: false,
         error: message,
+        meta: quiet ? current.meta : pageMeta({}, limit),
       }));
     }
-  }, []);
+  }, [limit, status, repo]);
 
   useEffect(() => {
     load();
@@ -527,7 +568,12 @@ export function useScans({ pollIntervalMs = 1500 } = {}) {
     return () => clearTimeout(handle);
   }, [state.items, load, pollIntervalMs]);
 
-  return { ...state, reload: load };
+  const loadMore = useCallback(() => {
+    if (!state.meta.hasMore || state.loadingMore) return;
+    load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
+  }, [load, state.meta, state.loadingMore, state.items.length]);
+
+  return { ...state, reload: load, loadMore };
 }
 
 const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled"]);
@@ -666,6 +712,7 @@ function normalizeScanRequest(request) {
 
 export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {}) {
   const [scans, setScans] = useState([]);
+  const [batchResults, setBatchResults] = useState([]);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const requests = repositories
@@ -679,6 +726,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     const nextRequests = requestsRef.current;
     if (!requestKey) {
       setScans((current) => (current.length ? [] : current));
+      setBatchResults((current) => (current.length ? [] : current));
       setError((current) => (current ? "" : current));
       setErrorCode((current) => (current ? "" : current));
       return undefined;
@@ -686,6 +734,18 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
 
     let alive = true;
     setScans((current) => (current.length ? [] : current));
+    setBatchResults(
+      nextRequests.map((request) => ({
+        repo: request.repo || request.repoId,
+        branch: request.branch || "main",
+        requestId: request.requestId || "",
+        status: "creating",
+        scanId: "",
+        scan: null,
+        error: "",
+        errorCode: "",
+      }))
+    );
     setError((current) => (current ? "" : current));
     setErrorCode((current) => (current ? "" : current));
 
@@ -698,6 +758,34 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         .map((result) => normalizeScan(result.value));
       const failed = results.find((result) => result.status === "rejected");
       setScans(createdScans);
+      setBatchResults(
+        results.map((result, index) => {
+          const request = nextRequests[index] || {};
+          if (result.status === "fulfilled") {
+            const scan = normalizeScan(result.value);
+            return {
+              repo: scan.repo || request.repo || request.repoId,
+              branch: scan.branch || request.branch || "main",
+              requestId: request.requestId || "",
+              status: scan.status,
+              scanId: scan.id,
+              scan,
+              error: "",
+              errorCode: "",
+            };
+          }
+          return {
+            repo: request.repo || request.repoId,
+            branch: request.branch || "main",
+            requestId: request.requestId || "",
+            status: "failed",
+            scanId: "",
+            scan: null,
+            error: result.reason?.message || "Unable to start scan.",
+            errorCode: textValue(result.reason?.code, result.reason?.payload?.code),
+          };
+        })
+      );
       if (failed) {
         setError(failed.reason?.message || "Unable to start one or more scans.");
         setErrorCode(textValue(failed.reason?.code, failed.reason?.payload?.code));
@@ -722,6 +810,12 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         if (!alive) return;
         const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
         setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
+        setBatchResults((current) =>
+          current.map((row) => {
+            const nextScan = byId.get(row.scanId);
+            return nextScan ? { ...row, status: nextScan.status, scan: nextScan } : row;
+          })
+        );
       } catch (err) {
         if (alive) {
           setError(err?.message || "Polling failed.");
@@ -746,11 +840,17 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       );
       const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
       setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
+      setBatchResults((current) =>
+        current.map((row) => {
+          const nextScan = byId.get(row.scanId);
+          return nextScan ? { ...row, status: nextScan.status, scan: nextScan } : row;
+        })
+      );
     } catch (err) {
       setError(err?.message || "Cancel failed.");
       setErrorCode(textValue(err?.code, err?.payload?.code));
     }
   };
 
-  return { scans, error, errorCode, cancel };
+  return { scans, batchResults, error, errorCode, cancel };
 }

@@ -94,15 +94,18 @@ function IssueRow({ issue, onClick }) {
 
 export function DashboardScreen({ go, setIssue, accent }) {
   useLang();
-  const { items: issues, loading: issuesLoading, error: issuesError } = useIssues();
-  const { items: scans, loading: scansLoading } = useScans();
+  const { items: issues, loading: issuesLoading, error: issuesError } = useIssues({
+    status: "open",
+    limit: 50,
+  });
+  const { items: scans, loading: scansLoading } = useScans({ limit: 50 });
   const {
     items: repositories,
     loading: reposLoading,
     needsAuthorization,
   } = useRepositories();
 
-  const openIssues = issues.filter((issue) => issue.status === "open");
+  const openIssues = issues;
   const counts = issueCounts(openIssues);
   const latestScan = scans[0];
 

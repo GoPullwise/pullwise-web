@@ -105,23 +105,22 @@ function CodeEvidence({ title, lines }) {
 
 export function IssuesScreen({ go, setIssue }) {
   useLang();
-  const { items: all, loading, error, reload } = useIssues();
   const [sev, setSev] = useState("all");
   const [status, setStatus] = useState("open");
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState("severity");
-  const query = q.trim().toLowerCase();
-  const filtered = sortIssues(
-    all.filter((issue) => {
-      if (sev !== "all" && issue.severity !== sev) return false;
-      if (status !== "all" && issue.status !== status) return false;
-      if (!query) return true;
-      return [issue.title, issue.file, issue.repo, issue.category, issue.id]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(query));
-    }),
-    sortBy
-  );
+  const query = q.trim();
+  const {
+    items: all,
+    loading,
+    loadingMore,
+    error,
+    reload,
+    loadMore,
+    meta = {},
+  } = useIssues({ status, severity: sev, q: query, limit: 50 });
+  const filtered = sortIssues(all, sortBy);
+  const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 
   const updateStatus = async (issue, nextStatus) => {
     await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
@@ -153,7 +152,7 @@ export function IssuesScreen({ go, setIssue }) {
               <div className="sub">
                 {loading
                   ? T("Loading findings", "正在加载 findings")
-                  : T(`${filtered.length} items`, `${filtered.length} 项`)}
+                  : T(`${filtered.length} of ${totalCount} items`, `${filtered.length} / ${totalCount} 项`)}
               </div>
             </div>
             <div className="actions">
@@ -307,6 +306,13 @@ export function IssuesScreen({ go, setIssue }) {
                 </div>
               );
             })}
+            {meta.hasMore && (
+              <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
+                <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
+                  {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -656,9 +662,17 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
 
 export function HistoryScreen({ go, openScan = null, setIssue = null }) {
   useLang();
-  const { items: scans, loading, error } = useScans();
   const [status, setStatus] = useState("all");
-  const filtered = scans.filter((scan) => status === "all" || scan.status === status);
+  const {
+    items: scans,
+    loading,
+    loadingMore,
+    error,
+    loadMore,
+    meta = {},
+  } = useScans({ status, limit: 50 });
+  const filtered = scans;
+  const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
   const viewScan = (scan) => {
     if (isActiveScan(scan) && openScan) {
       openScan(scan);
@@ -685,7 +699,7 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
               <div className="sub">
                 {loading
                   ? T("Loading scans", "正在加载扫描")
-                  : T(`${filtered.length} scans`, `${filtered.length} 次扫描`)}
+                  : T(`${filtered.length} of ${totalCount} scans`, `${filtered.length} / ${totalCount} 次扫描`)}
               </div>
             </div>
             <div className="actions">
@@ -773,6 +787,13 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                 </button>
               </div>
             ))}
+            {meta.hasMore && (
+              <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
+                <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
+                  {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

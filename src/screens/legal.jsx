@@ -496,6 +496,8 @@ function readinessAvailable(health) {
 function AdminWorkerControls({ worker, onChanged }) {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
+  const [copyValue, setCopyValue] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [region, setRegion] = useState(worker.region || "");
   const [version, setVersion] = useState(worker.version || "");
   const [capacity, setCapacity] = useState(String(worker.max_concurrent_jobs || 1));
@@ -503,6 +505,8 @@ function AdminWorkerControls({ worker, onChanged }) {
   async function runAction(action, fn) {
     setBusy(action);
     setMessage("");
+    setCopyValue("");
+    setConfirmDelete(false);
     try {
       const payload = await fn();
       if (payload?.deleted) {
@@ -511,8 +515,10 @@ function AdminWorkerControls({ worker, onChanged }) {
         setMessage(payload.message);
       } else if (payload?.worker_token) {
         setMessage(`New token: ${payload.worker_token}`);
+        setCopyValue(payload.worker_token);
       } else if (payload?.install_command) {
         setMessage(payload.install_command);
+        setCopyValue(payload.install_command);
       } else if (payload?.result) {
         setMessage(payload.result.ok ? "Worker checks passed." : "Worker checks need attention.");
       } else {
@@ -524,6 +530,11 @@ function AdminWorkerControls({ worker, onChanged }) {
     } finally {
       setBusy("");
     }
+  }
+
+  async function copyMessage() {
+    if (!copyValue || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(copyValue);
   }
 
   const workerId = worker.worker_id;
@@ -602,11 +613,27 @@ function AdminWorkerControls({ worker, onChanged }) {
       <button
         className="btn sm"
         disabled={Boolean(busy)}
-        onClick={() => runAction("delete", () => pullwiseApi.system.deleteWorker(workerId))}
+        onClick={() => {
+          if (confirmDelete) {
+            runAction("delete", () => pullwiseApi.system.deleteWorker(workerId));
+          } else {
+            setConfirmDelete(true);
+            setMessage("Confirm delete to remove this worker. Disable it first if you only want to stop new jobs.");
+          }
+        }}
       >
-        <I.X size={14} /> Delete
+        <I.X size={14} /> {confirmDelete ? "Confirm delete" : "Delete"}
       </button>
-      {message && <div className="status-row-region" style={{ flexBasis: "100%" }}>{message}</div>}
+      {message && (
+        <div className="status-row-region" style={{ flexBasis: "100%" }}>
+          {copyValue && (
+            <button className="btn sm" type="button" onClick={copyMessage} style={{ marginRight: 8 }}>
+              <I.Copy size={12} /> Copy
+            </button>
+          )}
+          {message}
+        </div>
+      )}
     </div>
   );
 }
@@ -618,11 +645,13 @@ function AdminWorkerCreate({ onCreated }) {
   const [capacity, setCapacity] = useState("1");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [copyValue, setCopyValue] = useState("");
 
   async function createWorker(event) {
     event.preventDefault();
     setBusy(true);
     setMessage("");
+    setCopyValue("");
     try {
       const payload = await pullwiseApi.system.createWorker({
         name: name || "Worker",
@@ -631,7 +660,9 @@ function AdminWorkerCreate({ onCreated }) {
         version,
         max_concurrent_jobs: Number(capacity) || 1,
       });
-      setMessage(payload?.install_command || `Worker token: ${payload?.worker_token || ""}`);
+      const installCommand = payload?.install_command || "";
+      setMessage(installCommand || `Worker token: ${payload?.worker_token || ""}`);
+      setCopyValue(installCommand || payload?.worker_token || "");
       setName("");
       setRegion("");
       setVersion("");
@@ -642,6 +673,11 @@ function AdminWorkerCreate({ onCreated }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function copyCreated() {
+    if (!copyValue || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(copyValue);
   }
 
   return (
@@ -655,7 +691,16 @@ function AdminWorkerCreate({ onCreated }) {
       <button className="btn sm" disabled={busy} type="submit">
         <I.Plus size={14} /> Create worker
       </button>
-      {message && <pre className="status-row-region" style={{ whiteSpace: "pre-wrap", overflowX: "auto" }}>{message}</pre>}
+      {message && (
+        <div className="status-row-region" style={{ whiteSpace: "pre-wrap", overflowX: "auto" }}>
+          {copyValue && (
+            <button className="btn sm" type="button" onClick={copyCreated} style={{ marginRight: 8 }}>
+              <I.Copy size={12} /> Copy
+            </button>
+          )}
+          <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>{message}</pre>
+        </div>
+      )}
     </form>
   );
 }
