@@ -225,7 +225,7 @@ describe("SettingsScreen", () => {
     expect(screen.getAllByText(/2 repositories/i).length).toBeGreaterThan(0);
   });
 
-  it("explains that repository contents are read-only before connecting GitHub", async () => {
+  it("explains repository contents and pull request permissions before connecting GitHub", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {
         connected: false,
@@ -238,7 +238,7 @@ describe("SettingsScreen", () => {
 
     await user.click(screen.getByRole("button", { name: /integrations/i }));
 
-    expect(await screen.findByText(/read-only repository contents/i)).toBeInTheDocument();
+    expect(await screen.findByText(/fix branches, and pull requests/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /connect repositories/i })).toBeInTheDocument();
   });
 

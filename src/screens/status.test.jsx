@@ -9,6 +9,14 @@ vi.mock("../api/pullwise.js", () => ({
       health: vi.fn(),
       status: vi.fn(),
       adminStatus: vi.fn(),
+      createWorker: vi.fn(),
+      getWorker: vi.fn(),
+      updateWorker: vi.fn(),
+      enableWorker: vi.fn(),
+      disableWorker: vi.fn(),
+      rotateWorkerToken: vi.fn(),
+      testWorker: vi.fn(),
+      deleteWorker: vi.fn(),
     },
   },
 }));
@@ -91,7 +99,7 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
   });
 
-  it("renders public worker details for non-admin visitors from system status", async () => {
+  it("does not render public worker details for non-admin visitors from system status", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
@@ -121,9 +129,9 @@ describe("StatusScreen", () => {
 
     render(<StatusScreen go={vi.fn()} />);
 
-    expect(await screen.findByText("Worker registry")).toBeInTheDocument();
-    expect(screen.getByText("US worker")).toBeInTheDocument();
-    expect(screen.getByText(/idle \/ 1\/4 jobs \/ codex 0.1.0 \/ us-east/i)).toBeInTheDocument();
+    expect(await screen.findByText("Scan system")).toBeInTheDocument();
+    expect(screen.queryByText("Worker registry")).not.toBeInTheDocument();
+    expect(screen.queryByText("US worker")).not.toBeInTheDocument();
     expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
@@ -166,8 +174,10 @@ describe("StatusScreen", () => {
     render(<StatusScreen go={vi.fn()} auth={{ session: { admin: true } }} />);
 
     expect(await screen.findByText("Worker registry")).toBeInTheDocument();
+    expect(screen.getByText(/Stopping new jobs does not cancel running jobs/i)).toBeInTheDocument();
     expect(screen.getByText("US worker")).toBeInTheDocument();
     expect(screen.getByText(/busy \/ 2\/2 jobs \/ codex 0.1.0 \/ us-east/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Stop new jobs")[0]).toBeInTheDocument();
     expect(screen.getByText("EU worker")).toBeInTheDocument();
     expect(screen.getByText(/degraded \/ 0\/8 jobs \/ codex 0.1.0 \/ eu/i)).toBeInTheDocument();
   });

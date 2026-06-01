@@ -965,8 +965,8 @@ export function SettingsScreen({ go, setIssue = null }) {
                               `${githubRepoCount} 个仓库已授权${githubAccountZh}`
                             )
                           : T(
-                              "Connect repositories when you are ready to scan. Pullwise only requests read-only repository contents.",
-                              "准备扫描时再连接仓库。Pullwise 只请求仓库内容只读权限。"
+                              "Connect repositories when you are ready to scan. Pullwise uses GitHub App repository access for checkout, fix branches, and pull requests.",
+                              "准备扫描时再连接仓库。Pullwise 使用 GitHub App 仓库权限进行 checkout、修复分支和 PR 创建。"
                             )}
                       </div>
                     </div>

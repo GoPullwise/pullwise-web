@@ -377,8 +377,8 @@ export function SecurityScreen({ go, auth }) {
       icon: <I.Github size={18} />,
       title: T("GitHub App permissions", "GitHub App 权限"),
       text: T(
-        "Pullwise requests read-only repository access for metadata and code checkout unless you add future write features.",
-        "Pullwise 默认只请求只读仓库权限，用于元数据读取和代码 checkout。"
+        "Pullwise requires repository contents and pull request permissions to scan code, push fix branches, and open pull requests.",
+        "Pullwise 需要仓库内容和 PR 权限来扫描代码、推送修复分支并创建 PR。"
       ),
     },
     {
@@ -391,7 +391,7 @@ export function SecurityScreen({ go, auth }) {
     },
     {
       icon: <I.Terminal size={18} />,
-      title: T("Read-only review runner", "只读审查运行器"),
+      title: T("Repository review runner", "仓库审查运行器"),
       text: T(
         "Codex review runs against a backend checkout with read-only sandbox settings and emits structured findings.",
         "Codex 审查在后端 checkout 中以只读沙箱运行，并输出结构化发现。"
@@ -493,6 +493,169 @@ function readinessAvailable(health) {
   return Boolean(health?.reviewProvider || health?.github || health?.billing || health?.limits);
 }
 
+function AdminWorkerControls({ worker, onChanged }) {
+  const [busy, setBusy] = useState("");
+  const [message, setMessage] = useState("");
+  const [region, setRegion] = useState(worker.region || "");
+  const [version, setVersion] = useState(worker.version || "");
+  const [capacity, setCapacity] = useState(String(worker.max_concurrent_jobs || 1));
+
+  async function runAction(action, fn) {
+    setBusy(action);
+    setMessage("");
+    try {
+      const payload = await fn();
+      if (payload?.worker_token) {
+        setMessage(`New token: ${payload.worker_token}`);
+      } else if (payload?.install_command) {
+        setMessage(payload.install_command);
+      } else if (payload?.result) {
+        setMessage(payload.result.ok ? "Worker checks passed." : "Worker checks need attention.");
+      } else {
+        setMessage("Worker updated.");
+      }
+      onChanged?.(payload);
+    } catch (error) {
+      setMessage(error?.message || "Worker action failed.");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  const workerId = worker.worker_id;
+  return (
+    <div className="status-row-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 8, flexBasis: "100%" }}>
+        <input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
+        <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
+        <input value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
+      </div>
+      <button
+        className="btn sm"
+        disabled={Boolean(busy)}
+        onClick={() =>
+          runAction("save", () =>
+            pullwiseApi.system.updateWorker(workerId, {
+              region,
+              version,
+              max_concurrent_jobs: Number(capacity) || 1,
+            })
+          )
+        }
+      >
+        <I.Check size={14} /> Save
+      </button>
+      {worker.enabled === false ? (
+        <button
+          className="btn sm"
+          disabled={Boolean(busy)}
+          onClick={() => runAction("enable", () => pullwiseApi.system.enableWorker(workerId))}
+        >
+          <I.Play size={14} /> Enable
+        </button>
+      ) : (
+        <button
+          className="btn sm"
+          disabled={Boolean(busy)}
+          title="Stop this worker from accepting new jobs. Running jobs continue."
+          onClick={() => runAction("disable", () => pullwiseApi.system.disableWorker(workerId))}
+        >
+          <I.X size={14} /> Stop new jobs
+        </button>
+      )}
+      <button
+        className="btn sm"
+        disabled={Boolean(busy)}
+        onClick={() => runAction("test", () => pullwiseApi.system.testWorker(workerId))}
+      >
+        <I.Activity size={14} /> Test
+      </button>
+      <button
+        className="btn sm"
+        disabled={Boolean(busy)}
+        onClick={() =>
+          runAction("audit", async () => {
+            const payload = await pullwiseApi.system.getWorker(workerId);
+            const events = Array.isArray(payload?.auditEvents) ? payload.auditEvents : [];
+            return {
+              worker: payload?.worker || worker,
+              install_command: events.length
+                ? events.map((event) => `${event.action}: ${event.success ? "ok" : "failed"}`).join("\n")
+                : "No audit events.",
+            };
+          })
+        }
+      >
+        <I.List size={14} /> Audit
+      </button>
+      <button
+        className="btn sm"
+        disabled={Boolean(busy)}
+        onClick={() => runAction("rotate", () => pullwiseApi.system.rotateWorkerToken(workerId))}
+      >
+        <I.Refresh size={14} /> Rotate token
+      </button>
+      <button
+        className="btn sm"
+        disabled={Boolean(busy)}
+        onClick={() => runAction("delete", () => pullwiseApi.system.deleteWorker(workerId))}
+      >
+        <I.X size={14} /> Delete
+      </button>
+      {message && <div className="status-row-region" style={{ flexBasis: "100%" }}>{message}</div>}
+    </div>
+  );
+}
+
+function AdminWorkerCreate({ onCreated }) {
+  const [name, setName] = useState("");
+  const [region, setRegion] = useState("");
+  const [version, setVersion] = useState("");
+  const [capacity, setCapacity] = useState("1");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function createWorker(event) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    try {
+      const payload = await pullwiseApi.system.createWorker({
+        name: name || "Worker",
+        provider: "codex",
+        region,
+        version,
+        max_concurrent_jobs: Number(capacity) || 1,
+      });
+      setMessage(payload?.install_command || `Worker token: ${payload?.worker_token || ""}`);
+      setName("");
+      setRegion("");
+      setVersion("");
+      setCapacity("1");
+      onCreated?.(payload);
+    } catch (error) {
+      setMessage(error?.message || "Worker creation failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={createWorker} className="worker-create" style={{ display: "grid", gap: 8, marginTop: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
+        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Worker name" />
+        <input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
+        <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
+        <input value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
+      </div>
+      <button className="btn sm" disabled={busy} type="submit">
+        <I.Plus size={14} /> Create worker
+      </button>
+      {message && <pre className="status-row-region" style={{ whiteSpace: "pre-wrap", overflowX: "auto" }}>{message}</pre>}
+    </form>
+  );
+}
+
 export function StatusScreen({ go, auth }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
@@ -586,7 +749,18 @@ export function StatusScreen({ go, auth }) {
   const scanSystemDetail = scanSystem
     ? `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`
     : "Waiting for scan system status.";
-  const visibleWorkers = Array.isArray(scanSystem?.workers) ? scanSystem.workers : [];
+  const visibleWorkers = adminStatus && Array.isArray(adminStatus.workers) ? adminStatus.workers : [];
+
+  function refreshAdminWorkers(payload) {
+    const worker = payload?.worker;
+    if (!worker) return;
+    setAdminStatus((current) => {
+      if (!current) return current;
+      const existing = Array.isArray(current.workers) ? current.workers : [];
+      const withoutWorker = existing.filter((item) => item.worker_id !== worker.worker_id);
+      return { ...current, workers: [worker, ...withoutWorker] };
+    });
+  }
 
   return (
     <LegalChrome go={go} current="status" auth={auth}>
@@ -682,30 +856,31 @@ export function StatusScreen({ go, auth }) {
             )}
           </div>
         )}
-        {visibleWorkers.length > 0 && (
+        {auth?.session?.admin && (
           <div className="status-card card" style={{ marginTop: 14 }}>
             <div className="status-card-h">
               <h2>Worker registry</h2>
               <span className="muted">
-                {adminStatus
-                  ? "Admin worker capacity and heartbeat state"
-                  : "Public worker capacity and heartbeat state"}
+                Admin worker lifecycle. Stopping new jobs does not cancel running jobs.
               </span>
             </div>
+            <AdminWorkerCreate onCreated={refreshAdminWorkers} />
             {visibleWorkers.map((worker, index) => (
-              <StatusRow
-                key={worker.worker_id || worker.name || index}
-                icon={<I.Terminal size={14} />}
-                title={worker.name || worker.worker_id}
-                status={
-                  ["idle", "busy"].includes(worker.status)
-                    ? "operational"
-                    : worker.status === "degraded"
-                      ? "degraded"
-                      : "incident"
-                }
-                detail={`${worker.status} / ${worker.running_jobs ?? 0}/${worker.max_concurrent_jobs ?? 0} jobs / ${worker.provider || "codex"} ${worker.version || ""} / ${worker.region || "unassigned"}`}
-              />
+              <div key={worker.worker_id || worker.name || index}>
+                <StatusRow
+                  icon={<I.Terminal size={14} />}
+                  title={worker.name || worker.worker_id}
+                  status={
+                    ["idle", "busy"].includes(worker.status)
+                      ? "operational"
+                      : worker.status === "degraded"
+                        ? "degraded"
+                        : "incident"
+                  }
+                  detail={`${worker.status} / ${worker.running_jobs ?? 0}/${worker.max_concurrent_jobs ?? 0} jobs / ${worker.provider || "codex"} ${worker.version || ""} / ${worker.region || "unassigned"}`}
+                />
+                <AdminWorkerControls worker={worker} onChanged={refreshAdminWorkers} />
+              </div>
             ))}
           </div>
         )}

@@ -56,8 +56,8 @@ function getRepositoryAuthErrorMessage(error) {
   }
   if (message.includes("Contents: read")) {
     return T(
-      "The GitHub App must use Contents: read-only permission. Write access is not accepted.",
-      "The GitHub App must use Contents: read-only permission. Write access is not accepted."
+      "The GitHub App must grant Contents: write and Pull requests: write so Pullwise can push fix branches and open pull requests.",
+      "The GitHub App must grant Contents: write and Pull requests: write so Pullwise can push fix branches and open pull requests."
     );
   }
   return getAuthErrorMessage(error);
@@ -453,10 +453,10 @@ export function OAuthScreen({ go, auth }) {
             },
             {
               i: <I.FileCode size={15} />,
-              h: T("Read repository contents", "Read repository contents"),
+              h: T("Contents and pull requests", "Contents and pull requests"),
               p: T(
-                "Read-only access for scan checkout and review.",
-                "Read-only access for scan checkout and review."
+                "Contents: write and Pull requests: write are required for scan checkout, fix branches, and pull request creation.",
+                "Contents: write and Pull requests: write are required for scan checkout, fix branches, and pull request creation."
               ),
             },
           ].map((permission, index) => (

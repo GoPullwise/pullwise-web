@@ -265,10 +265,10 @@ describe("App", () => {
     expect(go).not.toHaveBeenCalled();
   });
 
-  it("explains missing GitHub App read-only contents permission for private repositories", async () => {
+  it("explains missing GitHub App write permissions for private repository remediation", async () => {
     connectGitHubRepositories.mockRejectedValueOnce(
       new Error(
-        "GitHub App installation must grant Contents: read-only access so Pullwise can scan private repositories without write permission."
+        "GitHub App installation must grant Contents: read access."
       )
     );
     const go = vi.fn();
@@ -278,7 +278,7 @@ describe("App", () => {
 
     await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/read-only permission/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Contents: write and Pull requests: write/i);
     expect(go).not.toHaveBeenCalled();
   });
 
