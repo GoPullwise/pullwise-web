@@ -1,5 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { StatusScreen } from "./legal.jsx";
@@ -10,14 +9,7 @@ vi.mock("../api/pullwise.js", () => ({
       health: vi.fn(),
       status: vi.fn(),
       adminStatus: vi.fn(),
-      createWorker: vi.fn(),
-      getWorker: vi.fn(),
-      updateWorker: vi.fn(),
-      enableWorker: vi.fn(),
-      disableWorker: vi.fn(),
-      rotateWorkerToken: vi.fn(),
-      testWorker: vi.fn(),
-      deleteWorker: vi.fn(),
+      listWorkers: vi.fn(),
     },
   },
 }));
@@ -100,7 +92,7 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
   });
 
-  it("does not render public worker details for non-admin visitors from system status", async () => {
+  it("does not render worker details for non-admin visitors", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
@@ -136,7 +128,7 @@ describe("StatusScreen", () => {
     expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
-  it("renders admin worker details when the signed-in user is admin", async () => {
+  it("renders worker summary and link to workers screen for admin", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
@@ -175,16 +167,12 @@ describe("StatusScreen", () => {
     render(<StatusScreen go={vi.fn()} auth={{ session: { admin: true } }} />);
 
     expect(await screen.findByText("Worker registry")).toBeInTheDocument();
-    expect(screen.getByText(/Stopping new jobs does not cancel running jobs/i)).toBeInTheDocument();
     expect(screen.getByText("US worker")).toBeInTheDocument();
-    expect(screen.getByText(/busy \/ 2\/2 jobs \/ codex 0.1.0 \/ us-east/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Stop new jobs")[0]).toBeInTheDocument();
     expect(screen.getByText("EU worker")).toBeInTheDocument();
-    expect(screen.getByText(/degraded \/ 0\/8 jobs \/ codex 0.1.0 \/ eu/i)).toBeInTheDocument();
+    expect(screen.getByText(/Manage workers/i)).toBeInTheDocument();
   });
 
-  it("removes a worker row after admin deletes it", async () => {
-    const user = userEvent.setup();
+  it("shows empty state when no workers are registered for admin", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
@@ -196,31 +184,13 @@ describe("StatusScreen", () => {
       queuedJobs: 0,
       runningJobs: 0,
       availableCapacity: 1,
-      workers: [
-        {
-          worker_id: "wk_1",
-          name: "US worker",
-          status: "idle",
-          running_jobs: 0,
-          max_concurrent_jobs: 1,
-          provider: "codex",
-          version: "0.1.0",
-          region: "us-east",
-        },
-      ],
-    });
-    pullwiseApi.system.deleteWorker.mockResolvedValue({
-      worker: { worker_id: "wk_1", name: "US worker" },
-      deleted: true,
+      workers: [],
     });
 
     render(<StatusScreen go={vi.fn()} auth={{ session: { admin: true } }} />);
 
-    expect(await screen.findByText("US worker")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /delete/i }));
-    await user.click(screen.getByRole("button", { name: /confirm delete/i }));
-
-    await waitFor(() => expect(pullwiseApi.system.deleteWorker).toHaveBeenCalledWith("wk_1"));
-    await waitFor(() => expect(screen.queryByText("US worker")).not.toBeInTheDocument());
+    expect(await screen.findByText("Worker registry")).toBeInTheDocument();
+    expect(screen.getByText(/No workers registered/i)).toBeInTheDocument();
+    expect(screen.getByText(/Manage workers/i)).toBeInTheDocument();
   });
 });
