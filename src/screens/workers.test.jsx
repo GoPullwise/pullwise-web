@@ -135,9 +135,17 @@ describe("WorkersScreen", () => {
 
   it("creates a worker via the modal form", async () => {
     const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    const workerId =
+      "wk_26c6d03c862c7953769be430d6ab6987ecf02450223d1518dcff862177fe0cad";
+    const standardInstallCommand = "curl -fsSL http://localhost:8080/install-worker.sh | bash";
     pullwiseApi.system.createWorker.mockResolvedValue({
       worker: {
-        worker_id: "wk_new",
+        worker_id: workerId,
         name: "New Worker",
         status: "offline",
         enabled: true,
@@ -146,11 +154,11 @@ describe("WorkersScreen", () => {
         provider: "codex",
       },
       worker_token: "pwk_test_new_token",
-      install_command: "curl -fsSL http://localhost:8080/install-worker.sh | bash",
+      install_command: standardInstallCommand,
       local_install_command:
         "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
       install_commands: {
-        standard: "curl -fsSL http://localhost:8080/install-worker.sh | bash",
+        standard: standardInstallCommand,
         local:
           "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
       },
@@ -179,6 +187,52 @@ describe("WorkersScreen", () => {
     expect(screen.getByText("Local same-host deployment")).toBeInTheDocument();
     expect(screen.getAllByText(/127\.0\.0\.1:8080/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/worker does not listen on port 8080/i)).toBeInTheDocument();
+    expect(screen.getByText("Worker token")).toBeInTheDocument();
+    expect(screen.getByText("pwk_test_new_token")).toBeInTheDocument();
+    expect(screen.getByTitle(workerId).querySelector("wbr")).not.toBeNull();
+
+    const standardBlock = screen.getByText("Standard deployment").closest(".docs-code");
+    await user.click(within(standardBlock).getByRole("button", { name: /copy/i }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(standardInstallCommand));
+    expect(within(standardBlock).getByRole("button", { name: /copied/i })).toBeInTheDocument();
+  });
+
+  it("adds break opportunities for long worker ids in rows", async () => {
+    const workerId =
+      "wk_26c6d03c862c7953769be430d6ab6987ecf02450223d1518dcff862177fe0cad";
+    pullwiseApi.system.listWorkers.mockResolvedValue({
+      workers: [
+        {
+          worker_id: workerId,
+          name: "",
+          status: "idle",
+          enabled: true,
+          running_jobs: 0,
+          max_concurrent_jobs: 1,
+          provider: "codex",
+          version: "0.2.0",
+          region: "local",
+        },
+      ],
+      items: [
+        {
+          worker_id: workerId,
+          name: "",
+          status: "idle",
+          enabled: true,
+          running_jobs: 0,
+          max_concurrent_jobs: 1,
+          provider: "codex",
+          version: "0.2.0",
+          region: "local",
+        },
+      ],
+    });
+
+    render(<WorkersScreen go={mockGo} />);
+
+    expect((await screen.findByTitle(workerId)).querySelector("wbr")).not.toBeNull();
   });
 
   it("shows empty state when no workers exist", async () => {
@@ -309,5 +363,7 @@ describe("WorkersScreen", () => {
       expect(screen.getByText("Token rotated")).toBeInTheDocument()
     );
     expect(screen.getByText("Local same-host deployment")).toBeInTheDocument();
+    expect(screen.getByText("Worker token")).toBeInTheDocument();
+    expect(screen.getByText("pwk_rotated_token")).toBeInTheDocument();
   });
 });

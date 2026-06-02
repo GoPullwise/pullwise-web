@@ -42,6 +42,18 @@ function formatRelative(value) {
   return T(`${Math.floor(seconds / 86400)}d ago`, `${Math.floor(seconds / 86400)} 天前`);
 }
 
+function breakableText(value, chunkSize = 16) {
+  const text = String(value || "");
+  if (!text) return "";
+  const chunks = text.match(new RegExp(`.{1,${chunkSize}}`, "g")) || [text];
+  return chunks.map((chunk, index) => (
+    <span key={`${chunk}-${index}`}>
+      {chunk}
+      {index < chunks.length - 1 ? <wbr /> : null}
+    </span>
+  ));
+}
+
 const WORKER_REFRESH_MS = 15000;
 
 /* ── status helpers ─────────────────────────────────────── */
@@ -91,14 +103,27 @@ function installCommandOptions(result) {
   return commands;
 }
 
+function tokenFromResult(result) {
+  return (
+    result?.worker_token ||
+    result?.worker?.worker_token ||
+    result?.suggested_env?.PULLWISE_WORKER_TOKEN ||
+    result?.token ||
+    ""
+  );
+}
+
 function InstallCommandBlocks({ result }) {
   useLang();
   const commands = installCommandOptions(result);
-  const token = result?.worker_token || "";
+  const token = tokenFromResult(result);
+  const [copiedKey, setCopiedKey] = useState("");
 
-  const copyToClipboard = async (value) => {
+  const copyToClipboard = async (key, value) => {
     if (!value || !navigator.clipboard) return;
     await navigator.clipboard.writeText(value);
+    setCopiedKey(key);
+    window.setTimeout(() => setCopiedKey((current) => (current === key ? "" : current)), 1600);
   };
 
   if (!commands.length && !token) return null;
@@ -111,8 +136,8 @@ function InstallCommandBlocks({ result }) {
             <span>
               <I.Terminal size={12} /> {command.title}
             </span>
-            <button className="docs-code-copy" type="button" onClick={() => copyToClipboard(command.value)}>
-              <I.Copy size={12} /> {T("Copy", "复制")}
+            <button className="docs-code-copy" type="button" onClick={() => copyToClipboard(command.key, command.value)}>
+              <I.Copy size={12} /> {copiedKey === command.key ? T("Copied", "已复制") : T("Copy", "复制")}
             </button>
           </div>
           <div className="muted" style={{ padding: "8px 12px 0", fontSize: 12 }}>
@@ -121,14 +146,14 @@ function InstallCommandBlocks({ result }) {
           <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{command.value}</pre>
         </div>
       ))}
-      {!commands.length && token && (
+      {token && (
         <div className="docs-code">
           <div className="docs-code-h">
             <span>
               <I.Shield size={12} /> {T("Worker token", "Worker Token")}
             </span>
-            <button className="docs-code-copy" type="button" onClick={() => copyToClipboard(token)}>
-              <I.Copy size={12} /> {T("Copy", "复制")}
+            <button className="docs-code-copy" type="button" onClick={() => copyToClipboard("token", token)}>
+              <I.Copy size={12} /> {copiedKey === "token" ? T("Copied", "已复制") : T("Copy", "复制")}
             </button>
           </div>
           <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{token}</pre>
@@ -279,7 +304,9 @@ function CreateWorkerModal({ onClose, onCreated }) {
               <div className="wk-created-info">
                 <div className="wk-created-row">
                   <span className="muted">{T("Worker ID", "Worker ID")}</span>
-                  <span className="wk-mono">{result.worker.worker_id}</span>
+                  <span className="wk-mono" title={result.worker.worker_id}>
+                    {breakableText(result.worker.worker_id)}
+                  </span>
                 </div>
                 <div className="wk-created-row">
                   <span className="muted">{T("Name", "名称")}</span>
@@ -446,7 +473,9 @@ function WorkerRow({ worker, onAction, pendingAction }) {
         </div>
         <div className="wk-row-info">
           <div className="wk-row-title">
-            <span className="wk-row-name">{worker.name || worker.worker_id}</span>
+            <span className="wk-row-name" title={worker.name || worker.worker_id}>
+              {worker.name || breakableText(worker.worker_id)}
+            </span>
             {isDisabled && <span className="wk-disabled-tag">{T("Disabled", "已停用")}</span>}
             <span className={"wk-status-tag " + statusMeta.cls}>{statusMeta.label}</span>
           </div>
