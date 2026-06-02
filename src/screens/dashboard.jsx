@@ -166,7 +166,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
               <div className="kpi-foot" aria-hidden="true">
                 &nbsp;
               </div>
-              <Sparkline data={issueTrend} color={accent} height={20} />
+              <div className="kpi-chart">
+                <Sparkline data={issueTrend} color={accent} height={20} />
+              </div>
             </div>
             <div className="kpi card">
               <div className="kpi-h">
@@ -180,11 +182,13 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   ? T("Requires immediate attention", "需要立即处理")
                   : T("No critical issues found", "未发现关键问题")}
               </div>
-              <Sparkline
-                data={issueTrend.map(() => counts.critical)}
-                color="var(--sev-critical)"
-                height={20}
-              />
+              <div className="kpi-chart">
+                <Sparkline
+                  data={issueTrend.map(() => counts.critical)}
+                  color="var(--sev-critical)"
+                  height={20}
+                />
+              </div>
             </div>
             <div className="kpi card">
               <div className="kpi-h">
@@ -196,11 +200,13 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   ? T("Connect GitHub to add repositories", "连接 GitHub 以添加仓库")
                   : T("Connected to your account", "已连接到您的账户")}
               </div>
-              <Sparkline
-                data={scanTrend.map(() => repositories.length)}
-                color="var(--text-3)"
-                height={20}
-              />
+              <div className="kpi-chart">
+                <Sparkline
+                  data={scanTrend.map(() => repositories.length)}
+                  color="var(--text-3)"
+                  height={20}
+                />
+              </div>
             </div>
             <div className="kpi card">
               <div className="kpi-h">
@@ -212,7 +218,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   ? T(`Last: ${latestScan.time}`, `最近：${latestScan.time}`)
                   : T("No scans yet", "暂无扫描记录")}
               </div>
-              <Sparkline data={scanTrend} color={accent} height={20} />
+              <div className="kpi-chart">
+                <Sparkline data={scanTrend} color={accent} height={20} />
+              </div>
             </div>
           </div>
 

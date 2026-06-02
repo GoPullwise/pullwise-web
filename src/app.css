@@ -365,22 +365,28 @@ body.has-proto-nav {
 }
 
 .kpi {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto 32px 20px;
+  align-content: start;
 }
 
 .kpi-v {
-  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .kpi-foot {
-  flex: 1 1 auto;
   min-width: 0;
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+}
+
+.kpi-chart {
+  align-self: end;
+  min-width: 0;
+  height: 20px;
 }
 
 .kpi-h,

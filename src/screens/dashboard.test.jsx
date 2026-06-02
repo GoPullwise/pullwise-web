@@ -81,7 +81,9 @@ describe("DashboardScreen issue list", () => {
     expect(kpis).toHaveLength(4);
     kpis.forEach((kpi) => {
       expect(kpi.querySelectorAll(".kpi-foot")).toHaveLength(1);
-      expect(kpi.querySelector("svg")).toHaveStyle({ height: "20px" });
+      const chart = kpi.querySelector(".kpi-chart");
+      expect(chart).toBeInTheDocument();
+      expect(chart.querySelector("svg")).toHaveStyle({ height: "20px" });
     });
   });
 
