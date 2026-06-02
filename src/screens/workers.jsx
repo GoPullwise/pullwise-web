@@ -94,8 +94,8 @@ function installCommandOptions(result) {
       key: "local",
       title: T("Local same-host deployment", "本机同机部署"),
       detail: T(
-        "Use this when this worker runs on the same host as Pullwise server. It connects to the existing server at 127.0.0.1:8080; the worker does not listen on port 8080.",
-        "当 Worker 和 Pullwise server 在同一台机器上时使用。它连接已运行在 127.0.0.1:8080 的 server；Worker 不会监听 8080 端口。"
+        "Use this when this worker runs on the same host as Pullwise server. It connects to the existing server at 127.0.0.1:18080; the worker does not listen on port 18080.",
+        "当 Worker 和 Pullwise server 在同一台机器上时使用。它连接已运行在 127.0.0.1:18080 的 server；Worker 不会监听 18080 端口。"
       ),
       value: local,
     });
