@@ -156,11 +156,11 @@ describe("WorkersScreen", () => {
       worker_token: "pwk_test_new_token",
       install_command: standardInstallCommand,
       local_install_command:
-        "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
+        "curl -fsSL http://127.0.0.1:18080/install-worker.sh | bash -s -- --server http://127.0.0.1:18080",
       install_commands: {
         standard: standardInstallCommand,
         local:
-          "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
+          "curl -fsSL http://127.0.0.1:18080/install-worker.sh | bash -s -- --server http://127.0.0.1:18080",
       },
     });
 
@@ -185,8 +185,8 @@ describe("WorkersScreen", () => {
     );
     expect(await screen.findByText("Standard deployment")).toBeInTheDocument();
     expect(screen.getByText("Local same-host deployment")).toBeInTheDocument();
-    expect(screen.getAllByText(/127\.0\.0\.1:8080/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/worker does not listen on port 8080/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/127\.0\.0\.1:18080/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/worker does not listen on port 18080/i)).toBeInTheDocument();
     expect(screen.getByText("Worker token")).toBeInTheDocument();
     expect(screen.getByText("pwk_test_new_token")).toBeInTheDocument();
     expect(screen.getByTitle(workerId).querySelector("wbr")).not.toBeNull();
@@ -349,7 +349,7 @@ describe("WorkersScreen", () => {
       worker_token: "pwk_rotated_token",
       install_command: "curl -fsSL http://localhost:8080/install-worker.sh | bash",
       local_install_command:
-        "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
+        "curl -fsSL http://127.0.0.1:18080/install-worker.sh | bash -s -- --server http://127.0.0.1:18080",
     });
 
     render(<WorkersScreen go={mockGo} />);
