@@ -70,6 +70,7 @@ describe("Sidebar navigation", () => {
     const settings = screen.getByRole("link", { name: /^settings$/i });
     const repoAccess = screen.getByRole("link", { name: /1 repositories/i });
 
+    expect(screen.queryByRole("link", { name: /^workers$/i })).not.toBeInTheDocument();
     expect(overview).toHaveAttribute("href", "/dashboard");
     expect(issues).toHaveAttribute("href", "/issues");
     expect(repositories).toHaveAttribute("href", "/repos");

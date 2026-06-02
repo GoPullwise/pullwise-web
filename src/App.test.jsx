@@ -139,6 +139,21 @@ describe("App", () => {
     }, { timeout: 3500 });
   });
 
+  it("does not expose the workers admin screen in the public web app", async () => {
+    window.history.replaceState({}, "", "/workers");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="notfound"]')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/worker registry/i)).not.toBeInTheDocument();
+  });
+
   it("keeps login actions hidden while confirming an initial signed-out session result", async () => {
     pullwiseApi.auth.getSession
       .mockResolvedValueOnce({ authenticated: false })

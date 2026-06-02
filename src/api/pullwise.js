@@ -88,21 +88,5 @@ export const pullwiseApi = {
   system: {
     health: () => request("/health"),
     status: () => request("/status/system"),
-    adminStatus: () => request("/admin/status"),
-    listWorkers: () => request("/admin/workers"),
-    createWorker: (payload = {}) => request("/admin/workers", { method: "POST", body: payload }),
-    getWorker: (workerId) => request(`/admin/workers/${pathSegment(workerId)}`),
-    updateWorker: (workerId, payload = {}) =>
-      request(`/admin/workers/${pathSegment(workerId)}`, { method: "PATCH", body: payload }),
-    enableWorker: (workerId) =>
-      request(`/admin/workers/${pathSegment(workerId)}/enable`, { method: "POST" }),
-    disableWorker: (workerId) =>
-      request(`/admin/workers/${pathSegment(workerId)}/disable`, { method: "POST" }),
-    rotateWorkerToken: (workerId) =>
-      request(`/admin/workers/${pathSegment(workerId)}/rotate-token`, { method: "POST" }),
-    testWorker: (workerId) =>
-      request(`/admin/workers/${pathSegment(workerId)}/test`, { method: "POST" }),
-    deleteWorker: (workerId) =>
-      request(`/admin/workers/${pathSegment(workerId)}`, { method: "DELETE" }),
   },
 };

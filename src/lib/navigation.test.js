@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { screenLinkProps } from "./navigation.js";
+import { pathFromScreen, screenFromPath, screenLinkProps } from "./navigation.js";
 
 function fakeClick(overrides = {}) {
   return {
@@ -42,5 +42,12 @@ describe("screenLinkProps", () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
+  });
+});
+
+describe("admin routes", () => {
+  it("does not expose the workers admin screen from the public web app", () => {
+    expect(screenFromPath("/workers")).toBeNull();
+    expect(pathFromScreen("workers")).toBe("/404");
   });
 });

@@ -8,8 +8,6 @@ vi.mock("../api/pullwise.js", () => ({
     system: {
       health: vi.fn(),
       status: vi.fn(),
-      adminStatus: vi.fn(),
-      listWorkers: vi.fn(),
     },
   },
 }));
@@ -22,13 +20,6 @@ describe("StatusScreen", () => {
       queuedJobs: 2,
       runningJobs: 1,
       availableCapacity: 3,
-    });
-    pullwiseApi.system.adminStatus.mockResolvedValue({
-      scanSystemStatus: "ok",
-      queuedJobs: 2,
-      runningJobs: 1,
-      availableCapacity: 3,
-      workers: [],
     });
   });
 
@@ -125,17 +116,16 @@ describe("StatusScreen", () => {
     expect(await screen.findByText("Scan system")).toBeInTheDocument();
     expect(screen.queryByText("Worker registry")).not.toBeInTheDocument();
     expect(screen.queryByText("US worker")).not.toBeInTheDocument();
-    expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
-  it("does not render worker registry for admin visitors", async () => {
+  it("does not render worker registry from public status even for admin sessions", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
       mode: "production",
       database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
     });
-    pullwiseApi.system.adminStatus.mockResolvedValue({
+    pullwiseApi.system.status.mockResolvedValue({
       scanSystemStatus: "degraded",
       queuedJobs: 5,
       runningJobs: 2,
@@ -171,7 +161,6 @@ describe("StatusScreen", () => {
     expect(screen.queryByText("US worker")).not.toBeInTheDocument();
     expect(screen.queryByText("EU worker")).not.toBeInTheDocument();
     expect(screen.queryByText(/Manage workers/i)).not.toBeInTheDocument();
-    expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
   it("keeps status page focused on public status when admin has no workers", async () => {
@@ -181,7 +170,7 @@ describe("StatusScreen", () => {
       mode: "production",
       database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
     });
-    pullwiseApi.system.adminStatus.mockResolvedValue({
+    pullwiseApi.system.status.mockResolvedValue({
       scanSystemStatus: "ok",
       queuedJobs: 0,
       runningJobs: 0,
@@ -195,6 +184,5 @@ describe("StatusScreen", () => {
     expect(screen.queryByText("Worker registry")).not.toBeInTheDocument();
     expect(screen.queryByText(/No workers registered/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Manage workers/i)).not.toBeInTheDocument();
-    expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 });

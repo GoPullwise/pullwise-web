@@ -267,7 +267,6 @@ export function Sidebar({ section, go }) {
     },
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} />, badge: null },
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} />, badge: null },
-    { k: "workers", label: T("Workers", "Workers"), icon: <I.Terminal size={15} />, badge: null },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];
   return (
