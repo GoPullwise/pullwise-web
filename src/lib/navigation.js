@@ -17,6 +17,7 @@ const SCREEN_TO_PATH = {
   terms: "/terms",
   security: "/security",
   status: "/status",
+  workers: "/workers",
   notfound: "/404",
 };
 

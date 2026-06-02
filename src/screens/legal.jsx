@@ -493,218 +493,6 @@ function readinessAvailable(health) {
   return Boolean(health?.reviewProvider || health?.github || health?.billing || health?.limits);
 }
 
-function AdminWorkerControls({ worker, onChanged }) {
-  const [busy, setBusy] = useState("");
-  const [message, setMessage] = useState("");
-  const [copyValue, setCopyValue] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [region, setRegion] = useState(worker.region || "");
-  const [version, setVersion] = useState(worker.version || "");
-  const [capacity, setCapacity] = useState(String(worker.max_concurrent_jobs || 1));
-
-  async function runAction(action, fn) {
-    setBusy(action);
-    setMessage("");
-    setCopyValue("");
-    setConfirmDelete(false);
-    try {
-      const payload = await fn();
-      if (payload?.deleted) {
-        setMessage("Worker deleted.");
-      } else if (payload?.message) {
-        setMessage(payload.message);
-      } else if (payload?.worker_token) {
-        setMessage(`New token: ${payload.worker_token}`);
-        setCopyValue(payload.worker_token);
-      } else if (payload?.install_command) {
-        setMessage(payload.install_command);
-        setCopyValue(payload.install_command);
-      } else if (payload?.result) {
-        setMessage(payload.result.ok ? "Worker checks passed." : "Worker checks need attention.");
-      } else {
-        setMessage("Worker updated.");
-      }
-      onChanged?.(payload);
-    } catch (error) {
-      setMessage(error?.message || "Worker action failed.");
-    } finally {
-      setBusy("");
-    }
-  }
-
-  async function copyMessage() {
-    if (!copyValue || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(copyValue);
-  }
-
-  const workerId = worker.worker_id;
-  return (
-    <div className="status-row-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 8, flexBasis: "100%" }}>
-        <input aria-label="Worker region" value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
-        <input aria-label="Worker version" value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
-        <input aria-label="Worker capacity" value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
-      </div>
-      <button
-        className="btn sm"
-        disabled={Boolean(busy)}
-        onClick={() =>
-          runAction("save", () =>
-            pullwiseApi.system.updateWorker(workerId, {
-              region,
-              version,
-              max_concurrent_jobs: Number(capacity) || 1,
-            })
-          )
-        }
-      >
-        <I.Check size={14} /> Save
-      </button>
-      {worker.enabled === false ? (
-        <button
-          className="btn sm"
-          disabled={Boolean(busy)}
-          onClick={() => runAction("enable", () => pullwiseApi.system.enableWorker(workerId))}
-        >
-          <I.Play size={14} /> Enable
-        </button>
-      ) : (
-        <button
-          className="btn sm"
-          disabled={Boolean(busy)}
-          title="Stop this worker from accepting new jobs. Running jobs continue."
-          onClick={() => runAction("disable", () => pullwiseApi.system.disableWorker(workerId))}
-        >
-          <I.X size={14} /> Stop new jobs
-        </button>
-      )}
-      <button
-        className="btn sm"
-        disabled={Boolean(busy)}
-        onClick={() => runAction("test", () => pullwiseApi.system.testWorker(workerId))}
-      >
-        <I.Activity size={14} /> Test
-      </button>
-      <button
-        className="btn sm"
-        disabled={Boolean(busy)}
-        onClick={() =>
-          runAction("audit", async () => {
-            const payload = await pullwiseApi.system.getWorker(workerId);
-            const events = Array.isArray(payload?.auditEvents) ? payload.auditEvents : [];
-            return {
-              worker: payload?.worker || worker,
-              message: events.length
-                ? events.map((event) => `${event.action}: ${event.success ? "ok" : "failed"}`).join("\n")
-                : "No audit events.",
-            };
-          })
-        }
-      >
-        <I.List size={14} /> Audit
-      </button>
-      <button
-        className="btn sm"
-        disabled={Boolean(busy)}
-        onClick={() => runAction("rotate", () => pullwiseApi.system.rotateWorkerToken(workerId))}
-      >
-        <I.Refresh size={14} /> Rotate token
-      </button>
-      <button
-        className="btn sm"
-        disabled={Boolean(busy)}
-        onClick={() => {
-          if (confirmDelete) {
-            runAction("delete", () => pullwiseApi.system.deleteWorker(workerId));
-          } else {
-            setConfirmDelete(true);
-            setMessage("Confirm delete to remove this worker. Disable it first if you only want to stop new jobs.");
-          }
-        }}
-      >
-        <I.X size={14} /> {confirmDelete ? "Confirm delete" : "Delete"}
-      </button>
-      {message && (
-        <div className="status-row-region" style={{ flexBasis: "100%" }}>
-          {copyValue && (
-            <button className="btn sm" type="button" onClick={copyMessage} style={{ marginRight: 8 }}>
-              <I.Copy size={12} /> Copy
-            </button>
-          )}
-          {message}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AdminWorkerCreate({ onCreated }) {
-  const [name, setName] = useState("");
-  const [region, setRegion] = useState("");
-  const [version, setVersion] = useState("");
-  const [capacity, setCapacity] = useState("1");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
-  const [copyValue, setCopyValue] = useState("");
-
-  async function createWorker(event) {
-    event.preventDefault();
-    setBusy(true);
-    setMessage("");
-    setCopyValue("");
-    try {
-      const payload = await pullwiseApi.system.createWorker({
-        name: name || "Worker",
-        provider: "codex",
-        region,
-        version,
-        max_concurrent_jobs: Number(capacity) || 1,
-      });
-      const installCommand = payload?.install_command || "";
-      setMessage(installCommand || `Worker token: ${payload?.worker_token || ""}`);
-      setCopyValue(installCommand || payload?.worker_token || "");
-      setName("");
-      setRegion("");
-      setVersion("");
-      setCapacity("1");
-      onCreated?.(payload);
-    } catch (error) {
-      setMessage(error?.message || "Worker creation failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function copyCreated() {
-    if (!copyValue || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(copyValue);
-  }
-
-  return (
-    <form onSubmit={createWorker} className="worker-create" style={{ display: "grid", gap: 8, marginTop: 12 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
-        <input aria-label="New worker name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Worker name" />
-        <input aria-label="New worker region" value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Region" />
-        <input aria-label="New worker version" value={version} onChange={(event) => setVersion(event.target.value)} placeholder="Version" />
-        <input aria-label="New worker capacity" value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="1" placeholder="Capacity" />
-      </div>
-      <button className="btn sm" disabled={busy} type="submit">
-        <I.Plus size={14} /> Create worker
-      </button>
-      {message && (
-        <div className="status-row-region" style={{ whiteSpace: "pre-wrap", overflowX: "auto" }}>
-          {copyValue && (
-            <button className="btn sm" type="button" onClick={copyCreated} style={{ marginRight: 8 }}>
-              <I.Copy size={12} /> Copy
-            </button>
-          )}
-          <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>{message}</pre>
-        </div>
-      )}
-    </form>
-  );
-}
-
 export function StatusScreen({ go, auth }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
@@ -913,13 +701,13 @@ export function StatusScreen({ go, auth }) {
             <div className="status-card-h">
               <h2>Worker registry</h2>
               <span className="muted">
-                Admin worker lifecycle. Stopping new jobs does not cancel running jobs.
+                {visibleWorkers.length} worker{visibleWorkers.length !== 1 ? "s" : ""} registered
               </span>
             </div>
-            <AdminWorkerCreate onCreated={refreshAdminWorkers} />
-            {visibleWorkers.map((worker, index) => (
-              <div key={worker.worker_id || worker.name || index}>
+            {visibleWorkers.length > 0 ? (
+              visibleWorkers.map((worker, index) => (
                 <StatusRow
+                  key={worker.worker_id || worker.name || index}
                   icon={<I.Terminal size={14} />}
                   title={worker.name || worker.worker_id}
                   status={
@@ -929,11 +717,19 @@ export function StatusScreen({ go, auth }) {
                         ? "degraded"
                         : "incident"
                   }
-                  detail={`${worker.status} / ${worker.running_jobs ?? 0}/${worker.max_concurrent_jobs ?? 0} jobs / ${worker.provider || "codex"} ${worker.version || ""} / ${worker.region || "unassigned"}`}
+                  detail={`${worker.status} / ${worker.running_jobs ?? 0}/${worker.max_concurrent_jobs ?? 0} jobs / ${worker.region || "unassigned"}`}
                 />
-                <AdminWorkerControls worker={worker} onChanged={refreshAdminWorkers} />
+              ))
+            ) : (
+              <div className="status-empty">
+                {T("No workers registered.", "尚未注册 Worker。")}
               </div>
-            ))}
+            )}
+            <div style={{ padding: "8px 0" }}>
+              <a className="btn primary" {...screenLinkProps(go, "workers")}>
+                <I.Terminal size={14} /> {T("Manage workers", "管理 Workers")}
+              </a>
+            </div>
           </div>
         )}
       </section>

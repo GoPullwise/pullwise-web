@@ -18,6 +18,7 @@ import {
 } from "./screens/issues.jsx";
 import { PrivacyScreen, SecurityScreen, StatusScreen, TermsScreen } from "./screens/legal.jsx";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
+import { WorkersScreen } from "./screens/workers.jsx";
 
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
@@ -77,6 +78,7 @@ function PrototypeNav({ go, current }) {
     { k: "terms", t: "条款" },
     { k: "security", t: "安全" },
     { k: "status", t: "状态" },
+    { k: "workers", t: "Workers" },
     { k: "notfound", t: "404" },
   ];
 
@@ -355,6 +357,9 @@ export function App({ prototypeNav = false }) {
         break;
       case "status":
         body = <StatusScreen go={go} auth={auth} />;
+        break;
+      case "workers":
+        body = <WorkersScreen go={go} setIssue={setIssue} />;
         break;
       case "notfound":
         body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
