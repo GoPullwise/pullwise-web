@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { DashboardScreen } from "./dashboard.jsx";
 
@@ -85,6 +87,14 @@ describe("DashboardScreen issue list", () => {
       expect(chart).toBeInTheDocument();
       expect(chart.querySelector("svg")).toHaveStyle({ height: "20px" });
     });
+  });
+
+  it("pins KPI footnote text to a fixed slot above the sparkline", () => {
+    const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
+
+    expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*align-self:\s*end;/s);
+    expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*line-height:\s*16px;/s);
+    expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*max-height:\s*32px;/s);
   });
 
   it("opens a dashboard issue row with keyboard activation", async () => {

@@ -375,7 +375,10 @@ body.has-proto-nav {
 }
 
 .kpi-foot {
+  align-self: end;
   min-width: 0;
+  line-height: 16px;
+  max-height: 32px;
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-box-orient: vertical;
