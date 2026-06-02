@@ -62,6 +62,82 @@ function workerStatusMeta(status) {
   }
 }
 
+function installCommandOptions(result) {
+  const standard = result?.install_commands?.standard || result?.install_command || "";
+  const local = result?.install_commands?.local || result?.local_install_command || "";
+  const commands = [];
+  if (standard) {
+    commands.push({
+      key: "standard",
+      title: T("Standard deployment", "常规部署"),
+      detail: T(
+        "Use this when the worker reaches the Pullwise API through the public or configured server URL.",
+        "当 Worker 通过公网或已配置的 Server URL 访问 Pullwise API 时使用。"
+      ),
+      value: standard,
+    });
+  }
+  if (local && local !== standard) {
+    commands.push({
+      key: "local",
+      title: T("Local same-host deployment", "本机同机部署"),
+      detail: T(
+        "Use this when this worker runs on the same host as Pullwise server. It connects to the existing server at 127.0.0.1:8080; the worker does not listen on port 8080.",
+        "当 Worker 和 Pullwise server 在同一台机器上时使用。它连接已运行在 127.0.0.1:8080 的 server；Worker 不会监听 8080 端口。"
+      ),
+      value: local,
+    });
+  }
+  return commands;
+}
+
+function InstallCommandBlocks({ result }) {
+  useLang();
+  const commands = installCommandOptions(result);
+  const token = result?.worker_token || "";
+
+  const copyToClipboard = async (value) => {
+    if (!value || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(value);
+  };
+
+  if (!commands.length && !token) return null;
+
+  return (
+    <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+      {commands.map((command) => (
+        <div className="docs-code" key={command.key}>
+          <div className="docs-code-h">
+            <span>
+              <I.Terminal size={12} /> {command.title}
+            </span>
+            <button className="docs-code-copy" type="button" onClick={() => copyToClipboard(command.value)}>
+              <I.Copy size={12} /> {T("Copy", "复制")}
+            </button>
+          </div>
+          <div className="muted" style={{ padding: "8px 12px 0", fontSize: 12 }}>
+            {command.detail}
+          </div>
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{command.value}</pre>
+        </div>
+      ))}
+      {!commands.length && token && (
+        <div className="docs-code">
+          <div className="docs-code-h">
+            <span>
+              <I.Shield size={12} /> {T("Worker token", "Worker Token")}
+            </span>
+            <button className="docs-code-copy" type="button" onClick={() => copyToClipboard(token)}>
+              <I.Copy size={12} /> {T("Copy", "复制")}
+            </button>
+          </div>
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{token}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Create worker modal ────────────────────────────────── */
 
 function CreateWorkerModal({ onClose, onCreated }) {
@@ -95,12 +171,6 @@ function CreateWorkerModal({ onClose, onCreated }) {
     } finally {
       setBusy(false);
     }
-  };
-
-  const copyValue = result?.install_command || result?.worker_token || "";
-  const copyToClipboard = async () => {
-    if (!copyValue || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(copyValue);
   };
 
   return (
@@ -198,8 +268,8 @@ function CreateWorkerModal({ onClose, onCreated }) {
                 <b>{T("Worker registered", "Worker 已注册")}</b>
                 <span>
                   {T(
-                    "Copy the install command below. The full token is only shown once.",
-                    "请复制下面的安装命令。完整的 token 仅显示一次。"
+                    "Copy one of the install commands below. The full token is only shown once.",
+                    "请从下面的安装命令中选择一个复制执行。完整的 token 仅显示一次。"
                   )}
                 </span>
               </div>
@@ -218,19 +288,7 @@ function CreateWorkerModal({ onClose, onCreated }) {
               </div>
             )}
 
-            <div className="docs-code" style={{ marginTop: 12 }}>
-              <div className="docs-code-h">
-                <span>
-                  <I.Terminal size={12} /> {T("Install command", "安装命令")}
-                </span>
-                <button className="docs-code-copy" type="button" onClick={copyToClipboard}>
-                  <I.Copy size={12} /> {T("Copy", "复制")}
-                </button>
-              </div>
-              <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-                {result.install_command || result.worker_token || ""}
-              </pre>
-            </div>
+            <InstallCommandBlocks result={result} />
 
             <div className="wk-token-notice">
               <I.Shield size={14} />
@@ -550,14 +608,6 @@ function WorkerRow({ worker, onAction, pendingAction }) {
 
 function TokenDisplayModal({ result, onClose }) {
   useLang();
-  const installCommand = result?.install_command || "";
-  const token = result?.worker_token || "";
-  const copyValue = installCommand || token;
-
-  const copyToClipboard = async () => {
-    if (!copyValue || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(copyValue);
-  };
 
   return (
     <div className="modal-back" onClick={onClose}>
@@ -575,38 +625,13 @@ function TokenDisplayModal({ result, onClose }) {
               <b>{T("New token generated", "已生成新 Token")}</b>
               <span>
                 {T(
-                  "The old token is no longer valid. Copy the new token now — it is only shown once.",
-                  "旧 token 已失效。请立即复制新 token — 仅显示一次。"
+                  "The old token is no longer valid. Copy one of the new install commands now — the token is only shown once.",
+                  "旧 token 已失效。请立即复制新的安装命令之一 — token 仅显示一次。"
                 )}
               </span>
             </div>
           </div>
-          {installCommand && (
-            <div className="docs-code" style={{ marginTop: 12 }}>
-              <div className="docs-code-h">
-                <span>
-                  <I.Terminal size={12} /> {T("Install command", "安装命令")}
-                </span>
-                <button className="docs-code-copy" type="button" onClick={copyToClipboard}>
-                  <I.Copy size={12} /> {T("Copy", "复制")}
-                </button>
-              </div>
-              <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{installCommand}</pre>
-            </div>
-          )}
-          {!installCommand && token && (
-            <div className="docs-code" style={{ marginTop: 12 }}>
-              <div className="docs-code-h">
-                <span>
-                  <I.Shield size={12} /> {T("Worker token", "Worker Token")}
-                </span>
-                <button className="docs-code-copy" type="button" onClick={copyToClipboard}>
-                  <I.Copy size={12} /> {T("Copy", "复制")}
-                </button>
-              </div>
-              <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{token}</pre>
-            </div>
-          )}
+          <InstallCommandBlocks result={result} />
         </div>
         <div className="modal-foot">
           <button className="btn primary" onClick={onClose}>
@@ -701,8 +726,7 @@ export function WorkersScreen({ go, setIssue = null }) {
     }
   };
 
-  const handleCreated = (payload) => {
-    setShowCreate(false);
+  const handleCreated = () => {
     loadWorkers();
   };
 

@@ -147,6 +147,13 @@ describe("WorkersScreen", () => {
       },
       worker_token: "pwk_test_new_token",
       install_command: "curl -fsSL http://localhost:8080/install-worker.sh | bash",
+      local_install_command:
+        "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
+      install_commands: {
+        standard: "curl -fsSL http://localhost:8080/install-worker.sh | bash",
+        local:
+          "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
+      },
     });
 
     render(<WorkersScreen go={mockGo} />);
@@ -168,6 +175,10 @@ describe("WorkersScreen", () => {
         expect.objectContaining({ name: "New Worker" })
       )
     );
+    expect(await screen.findByText("Standard deployment")).toBeInTheDocument();
+    expect(screen.getByText("Local same-host deployment")).toBeInTheDocument();
+    expect(screen.getAllByText(/127\.0\.0\.1:8080/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/worker does not listen on port 8080/i)).toBeInTheDocument();
   });
 
   it("shows empty state when no workers exist", async () => {
@@ -283,6 +294,8 @@ describe("WorkersScreen", () => {
       worker: { ...sampleWorkers[0], worker_token: "pwk_rotated_token" },
       worker_token: "pwk_rotated_token",
       install_command: "curl -fsSL http://localhost:8080/install-worker.sh | bash",
+      local_install_command:
+        "curl -fsSL http://127.0.0.1:8080/install-worker.sh | bash -s -- --server http://127.0.0.1:8080",
     });
 
     render(<WorkersScreen go={mockGo} />);
@@ -295,5 +308,6 @@ describe("WorkersScreen", () => {
     await waitFor(() =>
       expect(screen.getByText("Token rotated")).toBeInTheDocument()
     );
+    expect(screen.getByText("Local same-host deployment")).toBeInTheDocument();
   });
 });
