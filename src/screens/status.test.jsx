@@ -128,7 +128,7 @@ describe("StatusScreen", () => {
     expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
-  it("renders worker summary and link to workers screen for admin", async () => {
+  it("does not render worker registry for admin visitors", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
@@ -166,13 +166,15 @@ describe("StatusScreen", () => {
 
     render(<StatusScreen go={vi.fn()} auth={{ session: { admin: true } }} />);
 
-    expect(await screen.findByText("Worker registry")).toBeInTheDocument();
-    expect(screen.getByText("US worker")).toBeInTheDocument();
-    expect(screen.getByText("EU worker")).toBeInTheDocument();
-    expect(screen.getByText(/Manage workers/i)).toBeInTheDocument();
+    expect(await screen.findByText("Scan system")).toBeInTheDocument();
+    expect(screen.queryByText("Worker registry")).not.toBeInTheDocument();
+    expect(screen.queryByText("US worker")).not.toBeInTheDocument();
+    expect(screen.queryByText("EU worker")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Manage workers/i)).not.toBeInTheDocument();
+    expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 
-  it("shows empty state when no workers are registered for admin", async () => {
+  it("keeps status page focused on public status when admin has no workers", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
@@ -189,8 +191,10 @@ describe("StatusScreen", () => {
 
     render(<StatusScreen go={vi.fn()} auth={{ session: { admin: true } }} />);
 
-    expect(await screen.findByText("Worker registry")).toBeInTheDocument();
-    expect(screen.getByText(/No workers registered/i)).toBeInTheDocument();
-    expect(screen.getByText(/Manage workers/i)).toBeInTheDocument();
+    expect(await screen.findByText("Scan system")).toBeInTheDocument();
+    expect(screen.queryByText("Worker registry")).not.toBeInTheDocument();
+    expect(screen.queryByText(/No workers registered/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Manage workers/i)).not.toBeInTheDocument();
+    expect(pullwiseApi.system.adminStatus).not.toHaveBeenCalled();
   });
 });

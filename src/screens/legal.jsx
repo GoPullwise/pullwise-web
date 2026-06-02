@@ -498,7 +498,6 @@ export function StatusScreen({ go, auth }) {
   const [now, setNow] = useState(() => new Date());
   const [health, setHealth] = useState(null);
   const [systemStatus, setSystemStatus] = useState(null);
-  const [adminStatus, setAdminStatus] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -512,21 +511,15 @@ export function StatusScreen({ go, auth }) {
           typeof pullwiseApi.system.status === "function"
             ? await pullwiseApi.system.status().catch(() => payload?.scanSystem || null)
             : payload?.scanSystem || null;
-        const adminPayload =
-          auth?.session?.admin && typeof pullwiseApi.system.adminStatus === "function"
-            ? await pullwiseApi.system.adminStatus().catch(() => null)
-            : null;
         if (!cancelled) {
           setHealth(payload);
           setSystemStatus(statusPayload || payload?.scanSystem || null);
-          setAdminStatus(adminPayload);
           setError("");
         }
       } catch (healthError) {
         if (!cancelled) {
           setHealth(null);
           setSystemStatus(null);
-          setAdminStatus(null);
           setError(healthError?.message || "Unable to reach the Pullwise API.");
         }
       }
@@ -538,7 +531,7 @@ export function StatusScreen({ go, auth }) {
       cancelled = true;
       clearInterval(id);
     };
-  }, [auth?.session?.admin]);
+  }, []);
 
   const apiStatus = statusClass(Boolean(health?.ok), error);
   const title = health?.ok
@@ -581,26 +574,11 @@ export function StatusScreen({ go, auth }) {
     ? `${health.database.type}: ${health.database.path || "configured backend path"}`
     : T("Waiting for backend health.", "等待后端健康检查。");
 
-  const scanSystem = adminStatus || systemStatus || health?.scanSystem || null;
+  const scanSystem = systemStatus || health?.scanSystem || null;
   const scanStatus = scanSystem?.scanSystemStatus || "down";
   const scanSystemDetail = scanSystem
     ? `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`
     : "Waiting for scan system status.";
-  const visibleWorkers = adminStatus && Array.isArray(adminStatus.workers) ? adminStatus.workers : [];
-
-  function refreshAdminWorkers(payload) {
-    const worker = payload?.worker;
-    if (!worker) return;
-    setAdminStatus((current) => {
-      if (!current) return current;
-      const existing = Array.isArray(current.workers) ? current.workers : [];
-      const withoutWorker = existing.filter((item) => item.worker_id !== worker.worker_id);
-      if (payload?.deleted) {
-        return { ...current, workers: withoutWorker };
-      }
-      return { ...current, workers: [worker, ...withoutWorker] };
-    });
-  }
 
   return (
     <LegalChrome go={go} current="status" auth={auth}>
@@ -694,42 +672,6 @@ export function StatusScreen({ go, auth }) {
                 detail={limitsDetail}
               />
             )}
-          </div>
-        )}
-        {auth?.session?.admin && (
-          <div className="status-card card" style={{ marginTop: 14 }}>
-            <div className="status-card-h">
-              <h2>Worker registry</h2>
-              <span className="muted">
-                {visibleWorkers.length} worker{visibleWorkers.length !== 1 ? "s" : ""} registered
-              </span>
-            </div>
-            {visibleWorkers.length > 0 ? (
-              visibleWorkers.map((worker, index) => (
-                <StatusRow
-                  key={worker.worker_id || worker.name || index}
-                  icon={<I.Terminal size={14} />}
-                  title={worker.name || worker.worker_id}
-                  status={
-                    ["idle", "busy"].includes(worker.status)
-                      ? "operational"
-                      : worker.status === "degraded"
-                        ? "degraded"
-                        : "incident"
-                  }
-                  detail={`${worker.status} / ${worker.running_jobs ?? 0}/${worker.max_concurrent_jobs ?? 0} jobs / ${worker.region || "unassigned"}`}
-                />
-              ))
-            ) : (
-              <div className="status-empty">
-                {T("No workers registered.", "尚未注册 Worker。")}
-              </div>
-            )}
-            <div style={{ padding: "8px 0" }}>
-              <a className="btn primary" {...screenLinkProps(go, "workers")}>
-                <I.Terminal size={14} /> {T("Manage workers", "管理 Workers")}
-              </a>
-            </div>
           </div>
         )}
       </section>
