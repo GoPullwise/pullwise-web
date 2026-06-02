@@ -5078,7 +5078,7 @@ button.dash-cat-row:hover {
 
 /* Create modal */
 .modal-wk {
-  width: min(560px, calc(100vw - 24px));
+  width: min(720px, calc(100vw - 24px));
 }
 .wk-modal-desc {
   font-size: 13.5px;
@@ -5098,14 +5098,18 @@ button.dash-cat-row:hover {
   border: 1px solid var(--border);
 }
 .wk-created-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
   align-items: baseline;
   gap: 12px;
   font-size: 12.5px;
 }
 .wk-created-row .muted {
   white-space: nowrap;
+}
+.wk-created-row > :last-child {
+  min-width: 0;
+  text-align: left;
 }
 
 /* Token notice */
