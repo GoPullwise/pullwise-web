@@ -92,6 +92,11 @@ describe("DashboardScreen issue list", () => {
   it("pins KPI footnote text to a fixed slot above the sparkline", () => {
     const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
 
+    expect(appCss).toMatch(/grid-template-rows:\s*20px 39px 32px 20px;/);
+    expect(appCss).not.toMatch(/grid-template-rows:\s*auto auto 32px 20px;/);
+    expect(appCss).toMatch(/\.kpi-h\s*\{[^}]*margin-bottom:\s*0;/s);
+    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*margin-bottom:\s*0;/s);
+    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*white-space:\s*nowrap;/s);
     expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*align-self:\s*end;/s);
     expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*line-height:\s*16px;/s);
     expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*max-height:\s*32px;/s);
