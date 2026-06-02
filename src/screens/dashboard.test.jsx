@@ -61,6 +61,30 @@ describe("DashboardScreen issue list", () => {
     expect(go).toHaveBeenCalledWith("repos");
   });
 
+  it("keeps overview KPI sparklines aligned across all cards", () => {
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: [{ id: "scan_1", repo: "acme/api", branch: "main", commit: "abc123", time: "now" }],
+      loading: false,
+    });
+
+    const { container } = render(
+      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
+    );
+
+    const kpis = Array.from(container.querySelectorAll(".kpi"));
+    expect(kpis).toHaveLength(4);
+    kpis.forEach((kpi) => {
+      expect(kpi.querySelectorAll(".kpi-foot")).toHaveLength(1);
+      expect(kpi.querySelector("svg")).toHaveStyle({ height: "20px" });
+    });
+  });
+
   it("opens a dashboard issue row with keyboard activation", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

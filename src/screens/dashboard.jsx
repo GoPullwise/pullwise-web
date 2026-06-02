@@ -163,7 +163,10 @@ export function DashboardScreen({ go, setIssue, accent }) {
                 )}
               </div>
               <div className="kpi-v">{openIssues.length}</div>
-              <Sparkline data={issueTrend} color={accent} />
+              <div className="kpi-foot" aria-hidden="true">
+                &nbsp;
+              </div>
+              <Sparkline data={issueTrend} color={accent} height={20} />
             </div>
             <div className="kpi card">
               <div className="kpi-h">
