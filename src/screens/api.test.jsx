@@ -85,15 +85,14 @@ describe("API screens", () => {
     expect(go).toHaveBeenCalledWith("api");
   });
 
-  it("creates and revokes workspace-scoped API keys", async () => {
+  it("creates and revokes account-scoped API keys", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({
-      apiKeys: [{ id: "key_1", name: "Old key", prefix: "pwk_old", workspaceName: "Acme" }],
+      apiKeys: [{ id: "key_1", name: "Old key", prefix: "pwk_old" }],
     });
     pullwiseApi.apiKeys.create.mockResolvedValue({
       id: "key_2",
       name: "CI scanner",
       prefix: "pwk_new",
-      workspaceName: "Acme",
       key: "pwk_live_secret",
     });
     pullwiseApi.apiKeys.revoke.mockResolvedValue({});
@@ -124,7 +123,6 @@ describe("API screens", () => {
       id: "key_2",
       name: "CI scanner",
       prefix: "pwk_new",
-      workspaceName: "Acme",
       key: "pwk_live_secret",
     });
     const user = userEvent.setup();
@@ -153,7 +151,7 @@ describe("API screens", () => {
       apiKeys: [
         null,
         "bad key",
-        { id: "key_1", name: "Old key", prefix: "pwk_old", workspaceName: "Acme" },
+        { id: "key_1", name: "Old key", prefix: "pwk_old" },
       ],
     });
 

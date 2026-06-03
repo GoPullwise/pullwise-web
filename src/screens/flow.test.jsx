@@ -567,14 +567,14 @@ describe("ScanningScreen queue state", () => {
 
   it("does not route unstructured quota text to billing", async () => {
     const user = userEvent.setup();
-    const { go } = renderScanError("Workspace quota reached.");
+    const { go } = renderScanError("Account quota reached.");
 
     const action = screen.getByRole("link", { name: /retry/i });
     expect(action).toHaveAttribute("href", "/repos");
 
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/workspace quota reached/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/account quota reached/i);
     expect(go).toHaveBeenCalledWith("repos");
   });
 

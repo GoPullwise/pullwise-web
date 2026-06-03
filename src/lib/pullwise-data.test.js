@@ -661,23 +661,21 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_running", status: "running" }).status).toBe("running");
   });
 
-  it("preserves scan workspace, repository, and quota summaries", () => {
+  it("preserves scan account, repository, and quota summaries", () => {
     expect(
       normalizeScan({
         id: "sc_1",
         repoId: "repo_123",
         githubRepoId: 123,
-        workspaceId: "ws_1",
-        quotaBucketIds: { workspace: "qb_ws", repository: "qb_repo" },
-        billingUsage: { scope: "workspace", used: 2, limit: 10, remaining: 8 },
+        quotaBucketIds: { user: "qb_user", repository: "qb_repo" },
+        billingUsage: { scope: "user", used: 2, limit: 10, remaining: 8 },
         repoUsage: { scope: "repository", used: 1, limit: 3, remaining: 2 },
       })
     ).toMatchObject({
       repoId: "repo_123",
       githubRepoId: "123",
-      workspaceId: "ws_1",
-      quotaBucketIds: { workspace: "qb_ws", repository: "qb_repo" },
-      billingUsage: { scope: "workspace", used: 2, limit: 10, remaining: 8 },
+      quotaBucketIds: { user: "qb_user", repository: "qb_repo" },
+      billingUsage: { scope: "user", used: 2, limit: 10, remaining: 8 },
       repoUsage: { scope: "repository", used: 1, limit: 3, remaining: 2 },
     });
   });
