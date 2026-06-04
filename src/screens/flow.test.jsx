@@ -718,16 +718,20 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("billing");
   });
 
-  it("routes missing CLI provider errors to settings", async () => {
+  it.each([
+    "Codex CLI is missing or not authenticated.",
+    "OpenCode CLI is missing or not authenticated.",
+  ])("routes missing CLI provider errors to settings without exposing the runner name", async (message) => {
     const user = userEvent.setup();
-    const { go } = renderScanError("Codex CLI is missing or not authenticated.");
+    const { go } = renderScanError(message);
 
     const action = screen.getByRole("link", { name: /open settings/i });
     expect(action).toHaveAttribute("href", "/settings");
 
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/cli is missing/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/review runner is missing/i);
+    expect(screen.getByRole("alert")).not.toHaveTextContent(/codex|opencode/i);
     expect(go).toHaveBeenCalledWith("settings");
   });
 });

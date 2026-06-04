@@ -12,6 +12,13 @@ describe("legal pages", () => {
     expect(screen.getByText(/GitHub App permissions/i)).toBeInTheDocument();
   });
 
+  it("does not expose concrete review runner names on the security page", () => {
+    render(<SecurityScreen go={vi.fn()} />);
+
+    expect(screen.getByText(/review runner credentials/i)).toBeInTheDocument();
+    expect(screen.queryByText(/codex|opencode/i)).not.toBeInTheDocument();
+  });
+
   it("shows dashboard actions instead of sign-in actions for signed-in users", () => {
     render(<SecurityScreen go={vi.fn()} auth={{ authenticated: true }} />);
 

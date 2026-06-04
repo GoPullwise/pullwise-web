@@ -162,6 +162,15 @@ function scanErrorAction(error) {
   return { label: "Retry", screen: "repos" };
 }
 
+const REVIEW_RUNNER_CLI_RE = /\b[A-Za-z][A-Za-z0-9_-]*\s+cli\b/gi;
+
+function publicScanErrorMessage(error) {
+  const message = typeof error === "object" && error ? error.message : error;
+  return String(message || "")
+    .replace(REVIEW_RUNNER_CLI_RE, "Review runner")
+    .replace(/\bcli\b/gi, "review runner");
+}
+
 function scanIssueTotals(scans) {
   return scans.reduce(
     (totals, scan) => {
@@ -855,6 +864,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scans.some((item) => item?.id && !isTerminalScan(item))
     : Boolean(scan && !terminal);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
+  const publicError = error ? publicScanErrorMessage(error) : "";
   const batchSummary = batchMode
     ? batchCreationSummary(batchRows, scans, expectedBatchCount)
     : null;
@@ -984,7 +994,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 style={{ margin: "0 0 12px", alignItems: "center" }}
               >
                 <I.X size={13} />
-                <span style={{ flex: 1 }}>{error}</span>
+                <span style={{ flex: 1 }}>{publicError}</span>
                 {errorAction && (
                   <a className="btn sm" {...screenLinkProps(go, errorAction.screen)}>
                     {errorAction.label} <I.ArrowR size={11} />

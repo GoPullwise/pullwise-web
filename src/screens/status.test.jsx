@@ -74,13 +74,30 @@ describe("StatusScreen", () => {
     render(<StatusScreen go={vi.fn()} />);
 
     expect(await screen.findByText("Backend readiness")).toBeInTheDocument();
-    expect(screen.getByText("codex")).toBeInTheDocument();
+    expect(screen.getByText("Configured")).toBeInTheDocument();
+    expect(screen.queryByText(/codex|opencode/i)).not.toBeInTheDocument();
     expect(screen.getByText(/OAuth configured/i)).toBeInTheDocument();
     expect(screen.getByText(/App API missing/i)).toBeInTheDocument();
     expect(screen.getByText(/disabled \(not enabled\)/i)).toBeInTheDocument();
     expect(screen.getByText(/1 per user running/i)).toBeInTheDocument();
     expect(screen.getByText(/1000 global \/ 20 per user queued/i)).toBeInTheDocument();
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
+  });
+
+  it("does not expose OpenCode as the public review provider detail", async () => {
+    pullwiseApi.system.health.mockResolvedValue({
+      ok: true,
+      service: "pullwise-server",
+      mode: "production",
+      database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
+      reviewProvider: "opencode",
+    });
+
+    render(<StatusScreen go={vi.fn()} />);
+
+    expect(await screen.findByText("Backend readiness")).toBeInTheDocument();
+    expect(screen.getByText("Configured")).toBeInTheDocument();
+    expect(screen.queryByText(/opencode/i)).not.toBeInTheDocument();
   });
 
   it("does not render worker details for non-admin visitors", async () => {

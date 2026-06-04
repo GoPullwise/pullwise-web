@@ -385,16 +385,16 @@ export function SecurityScreen({ go, auth }) {
       icon: <I.Lock size={18} />,
       title: T("Secret isolation", "密钥隔离"),
       text: T(
-        "OAuth secrets, GitHub App private keys, payment API keys, and Codex credentials stay on the backend.",
-        "OAuth 密钥、GitHub App 私钥、支付 API key 和 Codex 凭据只保存在后端。"
+        "OAuth secrets, GitHub App private keys, payment API keys, and review runner credentials stay on the backend.",
+        "OAuth 密钥、GitHub App 私钥、支付 API key 和审查运行器凭据只保存在后端。"
       ),
     },
     {
       icon: <I.Terminal size={18} />,
       title: T("Repository review runner", "仓库审查运行器"),
       text: T(
-        "Codex review runs against a backend checkout with read-only sandbox settings and emits structured findings.",
-        "Codex 审查在后端 checkout 中以只读沙箱运行，并输出结构化发现。"
+        "Repository review runs against a backend checkout with read-only sandbox settings and emits structured findings.",
+        "仓库审查在后端 checkout 中以只读沙箱运行，并输出结构化发现。"
       ),
     },
     {
@@ -489,6 +489,10 @@ function configuredLabel(value, configured, missing) {
   return value ? configured : missing;
 }
 
+function reviewProviderDetail(value) {
+  return value && value !== "disabled" ? "Configured" : "Disabled";
+}
+
 function readinessAvailable(health) {
   return Boolean(health?.reviewProvider || health?.github || health?.billing || health?.limits);
 }
@@ -579,6 +583,9 @@ export function StatusScreen({ go, auth }) {
   const scanSystemDetail = scanSystem
     ? `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`
     : "Waiting for scan system status.";
+  const reviewProviderConfigured = Boolean(
+    health?.reviewProvider && health.reviewProvider !== "disabled"
+  );
 
   return (
     <LegalChrome go={go} current="status" auth={auth}>
@@ -641,12 +648,8 @@ export function StatusScreen({ go, auth }) {
             <StatusRow
               icon={<I.Terminal size={14} />}
               title="Review provider"
-              status={
-                health?.reviewProvider && health.reviewProvider !== "disabled"
-                  ? "operational"
-                  : "degraded"
-              }
-              detail={health?.reviewProvider || "disabled"}
+              status={reviewProviderConfigured ? "operational" : "degraded"}
+              detail={reviewProviderDetail(health?.reviewProvider)}
             />
             {github && (
               <StatusRow
