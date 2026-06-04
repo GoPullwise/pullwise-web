@@ -50,15 +50,20 @@ describe("API screens", () => {
     expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(5);
   });
 
-  it("positions docs sidebars while keeping navigation text left-aligned", () => {
+  it("keeps a wider docs layout inside the marketing header bounds", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
     const styles = readFileSync("styles/screens.css", "utf8");
+    const appStyles = readFileSync("src/app.css", "utf8");
 
-    expect(styles).toMatch(/\.docs-side\s*{[^}]*justify-self:\s*end;/);
+    expect(document.querySelector(".docs-toc")).not.toBeInTheDocument();
+    expect(styles).toMatch(/\.docs-shell\s*{[^}]*max-width:\s*1120px;/);
+    expect(styles).toMatch(/\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/);
+    expect(appStyles).toMatch(/\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/);
+    expect(styles).toMatch(/\.docs-side\s*{[^}]*justify-self:\s*start;/);
     expect(styles).toMatch(/\.docs-side-h\s*{[^}]*text-align:\s*left;/);
     expect(styles).toMatch(/\.docs-side-i\s*{[^}]*text-align:\s*left;/);
-    expect(styles).toMatch(/\.docs-toc\s*{[^}]*justify-self:\s*end;/);
-    expect(styles).toMatch(/\.docs-toc-h\s*{[^}]*text-align:\s*left;/);
-    expect(styles).toMatch(/\.docs-toc a\s*{[^}]*text-align:\s*left;/);
+    expect(styles).toMatch(/\.docs-h1\s*{[^}]*max-width:\s*none;/);
+    expect(styles).toMatch(/\.docs-lede\s*{[^}]*max-width:\s*none;/);
   });
 
   it("keeps scan response examples aligned with the public API payload", () => {
@@ -184,20 +189,31 @@ describe("API screens", () => {
     });
   });
 
-  it("uses a compact dashboard-aligned scope selector in API key creation", async () => {
+  it("uses a streamlined API key creation panel without redundant scope explainer rows", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
 
     render(<ApiKeysScreen go={vi.fn()} />);
 
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     const scopes = screen.getByRole("group", { name: /scopes/i });
+    const createForm = scopes.closest("form");
     const styles = readFileSync("styles/screens.css", "utf8");
 
+    expect(screen.queryByText("Permission model")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^REST scopes$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Keys inherit the creator Pullwise account role/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Choose only the REST scopes each key needs/i)).not.toBeInTheDocument();
+    expect(createForm).toHaveClass("api-key-create");
+    expect(createForm.querySelector(".api-key-create-main")).toBeInTheDocument();
+    expect(createForm.querySelector(".api-key-name-row")).toContainElement(
+      screen.getByRole("button", { name: /create key/i })
+    );
     expect(scopes).toHaveClass("api-scope-panel");
-    expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/REST scopes/i);
+    expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/^Scopes/);
     expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("4 / 4 selected");
     expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(4);
     expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(4);
+    expect(styles).toMatch(/\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/);
     expect(styles).toMatch(/\.api-scope-panel\s*{[^}]*border:\s*1px solid var\(--border\);/);
     expect(styles).toMatch(
       /\.api-scope-row\s*{[^}]*grid-template-columns:\s*18px minmax\(0,\s*1fr\) auto;/

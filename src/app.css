@@ -858,8 +858,9 @@ body.has-proto-nav {
 .int-row > div:nth-child(2),
 .api-key-create,
 .api-key-create-head > div:last-child,
-.api-key-create-grid,
-.api-key-name-block,
+.api-key-create-main,
+.api-key-name-row,
+.api-key-name-row .auth-field,
 .api-scope-panel,
 .api-scope-head > div:first-child,
 .api-scope-row,
@@ -923,7 +924,7 @@ body.has-proto-nav {
 }
 
 .docs-shell {
-  grid-template-columns: 176px minmax(0, 1fr) 168px;
+  grid-template-columns: 176px minmax(0, 1fr);
 }
 
 .docs-table-r,

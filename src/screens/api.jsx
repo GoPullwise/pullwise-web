@@ -547,12 +547,6 @@ Content-Type: application/json
           </div>
         </main>
 
-        <aside className="docs-toc">
-          <div className="docs-toc-h">{T("On this page", "本页内容")}</div>
-          {nav.slice(1).map(([id, label]) => (
-            <a key={id} href={`#${id}`}>{label}</a>
-          ))}
-        </aside>
       </div>
     </div>
   );
@@ -717,11 +711,11 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                   </div>
                   <div>
                     <b>Create API key</b>
-                    <span>Use least-privilege REST scopes for each automation token.</span>
+                    <span>Name the key, choose scopes, then create the token.</span>
                   </div>
                 </div>
-                <div className="api-key-create-grid">
-                  <div className="api-key-name-block">
+                <div className="api-key-create-main">
+                  <div className="api-key-name-row">
                     <label className="auth-field">
                       <span>Key name</span>
                       <div className="auth-input">
@@ -733,16 +727,28 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                         />
                       </div>
                     </label>
+                    <button
+                      className="btn primary"
+                      type="submit"
+                      disabled={pending === "create"}
+                    >
+                      {pending === "create" && (
+                        <span className="spin" style={{ display: "inline-block" }}>
+                          <I.Refresh size={14} />
+                        </span>
+                      )}
+                      <I.Plus size={14} /> Create key
+                    </button>
                   </div>
                   <fieldset className="api-scope-panel" aria-describedby="api-scope-help">
                     <legend className="api-scope-legend">Scopes</legend>
                     <div className="api-scope-head">
                       <div>
                         <span className="api-scope-kicker">
-                          <I.Shield size={13} /> REST scopes
+                          <I.Shield size={13} /> Scopes
                         </span>
                         <span id="api-scope-help" className="api-scope-help">
-                          Grant only the routes this key needs.
+                          Select the API routes this key can use.
                         </span>
                       </div>
                       <span className="tag api-scope-count">
@@ -773,42 +779,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                     </div>
                   </fieldset>
                 </div>
-                <div className="api-key-create-foot">
-                  <span className="muted">Scopes apply to REST API routes only.</span>
-                  <button
-                    className="btn primary"
-                    type="submit"
-                    disabled={pending === "create"}
-                  >
-                    {pending === "create" && (
-                      <span className="spin" style={{ display: "inline-block" }}>
-                        <I.Refresh size={14} />
-                      </span>
-                    )}
-                    <I.Plus size={14} /> Create key
-                  </button>
-                </div>
               </form>
-
-              <div className="bill-card" style={{ display: "block" }}>
-                <div className="docs-table">
-                  <div className="docs-table-r">
-                    <b>Permission model</b>
-                    <span>
-                      Keys inherit the creator Pullwise account role and authorized GitHub
-                      repositories. Repo operations require the target repoId to belong to that
-                      account.
-                    </span>
-                  </div>
-                  <div className="docs-table-r">
-                    <b>REST scopes</b>
-                    <span>
-                      Choose only the REST scopes each key needs: repositories:read,
-                      scans:write, scans:read, quota:read.
-                    </span>
-                  </div>
-                </div>
-              </div>
 
               <div className="issue-list">
                 {keys.map((key) => (
