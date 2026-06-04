@@ -148,6 +148,10 @@ export function App({ prototypeNav = false }) {
   }, [prototypeNav, navOpen]);
 
   useEffect(() => {
+    document.title = T("Pullwise - AI Review", "Pullwise - AI审查");
+  }, [lang]);
+
+  useEffect(() => {
     if (auth.status !== "ready") return;
     if (auth.authenticated) return;
     if (PUBLIC_SCREENS.has(screen)) return;

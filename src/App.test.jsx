@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
+import { setLang } from "./i18n.jsx";
 import {
   connectGitHubRepositories,
   manageGitHubInstallation,
@@ -49,6 +50,8 @@ function blockedStorage() {
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    setLang("en");
+    document.title = "";
     window.history.replaceState({}, "", "/");
     pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
     pullwiseApi.repositories.list.mockResolvedValue({ items: [] });
@@ -58,6 +61,7 @@ describe("App", () => {
   });
 
   afterEach(() => {
+    setLang("en");
     vi.unstubAllGlobals();
   });
 
@@ -65,6 +69,22 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
+  });
+
+  it("localizes the browser tab title when the language changes", async () => {
+    document.title = "Pullwise - AI 代码 Review 助手";
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.title).toBe("Pullwise - AI Review");
+    });
+
+    setLang("zh");
+
+    await waitFor(() => {
+      expect(document.title).toBe("Pullwise - AI审查");
+    });
   });
 
   it("renders when browser storage is unavailable", () => {

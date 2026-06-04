@@ -274,7 +274,7 @@ export function BillingScreen({
                   <div className="usage-bar">
                     <div style={{ width: `${usagePercent(usage)}%` }} />
                   </div>
-                  <span className="tag">{accountStatus}</span>
+                  <span className="tag">{currentPlan?.name || "Plan"}</span>
                 </div>
               </div>
 

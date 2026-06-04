@@ -120,6 +120,24 @@ describe("BillingScreen", () => {
     expect(screen.queryByRole("button", { name: /start pro/i })).not.toBeInTheDocument();
   });
 
+  it("labels the account usage meter with the current plan instead of raw billing status", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "none",
+        plan: "free",
+        usage: { period: "2026-05", used: 2, limit: 5, remaining: 3 },
+      },
+    });
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findByText(/2 \/ 5 reviews used/)).toBeInTheDocument();
+    const usageTag = document.querySelector(".billing-summary-meter .tag");
+    expect(usageTag).toHaveTextContent("Free");
+    expect(usageTag).not.toHaveTextContent("none");
+  });
+
   it("rejects unsafe checkout URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
