@@ -7,7 +7,6 @@ import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "..
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
-  isActiveScan,
   normalizeIssuePullRequest,
   scanQueueSummary,
   useIssues,
@@ -674,7 +673,7 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
   const filtered = scans;
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
   const viewScan = (scan) => {
-    if (isActiveScan(scan) && openScan) {
+    if (openScan) {
       openScan(scan);
       return;
     }

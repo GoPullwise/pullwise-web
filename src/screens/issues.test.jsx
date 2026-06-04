@@ -177,6 +177,33 @@ describe("HistoryScreen queue state", () => {
     expect(openScan).toHaveBeenCalledWith(scan);
     expect(go).not.toHaveBeenCalledWith("dashboard");
   });
+
+  it("opens completed scan instances from history", async () => {
+    const openScan = vi.fn();
+    const go = vi.fn();
+    const user = userEvent.setup();
+    const scan = {
+      id: "sc_done",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "abc123",
+      status: "done",
+      time: "now",
+      by: "you",
+    };
+    useScans.mockReturnValue({
+      items: [scan],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={go} openScan={openScan} />);
+
+    await user.click(screen.getByRole("button", { name: /^view\b/i }));
+
+    expect(openScan).toHaveBeenCalledWith(scan);
+    expect(go).not.toHaveBeenCalledWith("dashboard");
+  });
 });
 
 describe("IssueDetailScreen review detail", () => {
