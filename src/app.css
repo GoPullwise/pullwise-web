@@ -844,6 +844,10 @@ body.has-proto-nav {
   align-items: center;
 }
 
+.bill-card.api-key-create {
+  align-items: stretch;
+}
+
 .set-row {
   flex-wrap: wrap;
 }
@@ -851,7 +855,19 @@ body.has-proto-nav {
 .set-row > div:last-child,
 .set-pref > div:first-child,
 .billing-summary-main > div,
-.int-row > div:nth-child(2) {
+.int-row > div:nth-child(2),
+.api-key-create,
+.api-key-create-head > div:last-child,
+.api-key-create-grid,
+.api-key-name-block,
+.api-scope-panel,
+.api-scope-head > div:first-child,
+.api-scope-row,
+.api-scope-copy {
+  min-width: 0;
+}
+
+.api-scope-value {
   min-width: 0;
 }
 

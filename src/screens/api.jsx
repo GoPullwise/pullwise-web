@@ -710,10 +710,18 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             </aside>
 
             <div className="set-body">
-              <form className="bill-card" onSubmit={createKey} style={{ display: "block" }}>
-                <div className="billing-summary-main" style={{ alignItems: "flex-start" }}>
-                  <I.Shield size={18} style={{ marginTop: 27 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
+              <form className="bill-card api-key-create" onSubmit={createKey}>
+                <div className="api-key-create-head">
+                  <div className="api-key-create-icon">
+                    <I.Shield size={16} />
+                  </div>
+                  <div>
+                    <b>Create API key</b>
+                    <span>Use least-privilege REST scopes for each automation token.</span>
+                  </div>
+                </div>
+                <div className="api-key-create-grid">
+                  <div className="api-key-name-block">
                     <label className="auth-field">
                       <span>Key name</span>
                       <div className="auth-input">
@@ -725,82 +733,48 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                         />
                       </div>
                     </label>
-                    <fieldset
-                      style={{
-                        border: 0,
-                        margin: "14px 0 0",
-                        padding: 0,
-                      }}
-                    >
-                      <legend
-                        style={{
-                          color: "var(--text-2)",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          marginBottom: 8,
-                        }}
-                      >
-                        Scopes
-                      </legend>
-                      <div
-                        style={{
-                          display: "grid",
-                          gap: 10,
-                          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                        }}
-                      >
-                        {API_KEY_SCOPES.map((scope) => (
+                  </div>
+                  <fieldset className="api-scope-panel" aria-describedby="api-scope-help">
+                    <legend className="api-scope-legend">Scopes</legend>
+                    <div className="api-scope-head">
+                      <div>
+                        <span className="api-scope-kicker">
+                          <I.Shield size={13} /> REST scopes
+                        </span>
+                        <span id="api-scope-help" className="api-scope-help">
+                          Grant only the routes this key needs.
+                        </span>
+                      </div>
+                      <span className="tag api-scope-count">
+                        {selectedScopes.length} / {API_KEY_SCOPES.length} selected
+                      </span>
+                    </div>
+                    <div className="api-scope-list">
+                      {API_KEY_SCOPES.map((scope) => {
+                        const checked = selectedScopes.includes(scope.value);
+                        return (
                           <label
                             key={scope.value}
-                            className="auth-field"
-                            style={{
-                              border: "1px solid var(--line)",
-                              borderRadius: 8,
-                              cursor: "pointer",
-                              gap: 6,
-                              padding: 10,
-                            }}
+                            className={"api-scope-row" + (checked ? " selected" : "")}
                           >
-                            <span
-                              style={{
-                                alignItems: "center",
-                                color: "var(--text-1)",
-                                display: "flex",
-                                fontSize: 13,
-                                gap: 8,
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedScopes.includes(scope.value)}
-                                onChange={() => toggleScope(scope.value)}
-                              />
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleScope(scope.value)}
+                            />
+                            <span className="api-scope-copy">
                               <b>{scope.label}</b>
+                              <span>{scope.description}</span>
                             </span>
-                            <span style={{ color: "var(--text-2)", fontSize: 12 }}>
-                              {scope.value}
-                            </span>
-                            <span style={{ color: "var(--text-3)", fontSize: 12 }}>
-                              {scope.description}
-                            </span>
+                            <code className="api-scope-value">{scope.value}</code>
                           </label>
-                        ))}
-                      </div>
-                    </fieldset>
-                  </div>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
                 </div>
-                <div
-                  style={{
-                    alignItems: "center",
-                    display: "flex",
-                    gap: 12,
-                    justifyContent: "space-between",
-                    marginTop: 14,
-                  }}
-                >
-                  <span className="sub">
-                    {selectedScopes.length} of {API_KEY_SCOPES.length} scopes selected
-                  </span>
+                <div className="api-key-create-foot">
+                  <span className="muted">Scopes apply to REST API routes only.</span>
                   <button
                     className="btn primary"
                     type="submit"

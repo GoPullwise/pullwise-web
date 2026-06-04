@@ -50,11 +50,15 @@ describe("API screens", () => {
     expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(5);
   });
 
-  it("right-aligns the left docs navigation against the content gutter", () => {
+  it("positions docs sidebars while keeping navigation text left-aligned", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 
-    expect(styles).toMatch(/\.docs-side-h\s*{[^}]*text-align:\s*right;/);
-    expect(styles).toMatch(/\.docs-side-i\s*{[^}]*text-align:\s*right;/);
+    expect(styles).toMatch(/\.docs-side\s*{[^}]*justify-self:\s*end;/);
+    expect(styles).toMatch(/\.docs-side-h\s*{[^}]*text-align:\s*left;/);
+    expect(styles).toMatch(/\.docs-side-i\s*{[^}]*text-align:\s*left;/);
+    expect(styles).toMatch(/\.docs-toc\s*{[^}]*justify-self:\s*end;/);
+    expect(styles).toMatch(/\.docs-toc-h\s*{[^}]*text-align:\s*left;/);
+    expect(styles).toMatch(/\.docs-toc a\s*{[^}]*text-align:\s*left;/);
   });
 
   it("keeps scan response examples aligned with the public API payload", () => {
@@ -178,6 +182,26 @@ describe("API screens", () => {
         scopes: ["repositories:read", "scans:read"],
       });
     });
+  });
+
+  it("uses a compact dashboard-aligned scope selector in API key creation", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
+    const scopes = screen.getByRole("group", { name: /scopes/i });
+    const styles = readFileSync("styles/screens.css", "utf8");
+
+    expect(scopes).toHaveClass("api-scope-panel");
+    expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/REST scopes/i);
+    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("4 / 4 selected");
+    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(4);
+    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(4);
+    expect(styles).toMatch(/\.api-scope-panel\s*{[^}]*border:\s*1px solid var\(--border\);/);
+    expect(styles).toMatch(
+      /\.api-scope-row\s*{[^}]*grid-template-columns:\s*18px minmax\(0,\s*1fr\) auto;/
+    );
   });
 
   it("shows feedback when copying a newly created API key fails", async () => {
