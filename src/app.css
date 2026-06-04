@@ -655,6 +655,37 @@ body.has-proto-nav {
   gap: 8px;
 }
 
+.scanning-h-terminal {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: flex-start;
+  column-gap: 14px;
+  row-gap: 8px;
+}
+
+.scanning-h-terminal .scanning-icon {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.scanning-h-terminal .scanning-copy {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.scanning-h-terminal .scanning-actions {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  margin-left: 0;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.scanning-h-terminal .scanning-actions .btn {
+  flex: 0 1 auto;
+}
+
 .scanning-phase > div:last-child {
   min-width: 0;
   overflow: hidden;

@@ -629,7 +629,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
       <div className="main narrow" style={{ margin: "0 auto" }}>
         <div className="scanning">
           <div className="scanning-card card">
-            <div className="scanning-h">
+            <div className={"scanning-h" + (terminal ? " scanning-h-terminal" : "")}>
               <div className="scanning-icon">{headerIcon}</div>
               <div className="scanning-copy">
                 <div className="scanning-title">
