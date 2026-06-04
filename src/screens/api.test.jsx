@@ -35,11 +35,35 @@ describe("API screens", () => {
     render(<ApiDocsScreen go={go} auth={{ authenticated: true }} />);
 
     expect(screen.getByRole("heading", { name: /pullwise rest api/i })).toBeInTheDocument();
-    expect(screen.getByText("GET /api/v1/repositories")).toBeInTheDocument();
-    expect(screen.getByText("POST /api/v1/repositories/{repoId}/scans")).toBeInTheDocument();
-    expect(screen.getByText("POST /api/v1/repositories/{repoId}/scans/stop")).toBeInTheDocument();
-    expect(screen.getByText("GET /api/v1/repositories/{repoId}/scans/current")).toBeInTheDocument();
-    expect(screen.getByText("GET /api/v1/repositories/{repoId}/quota")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/repositories")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/repositories/{repoId}/scans")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/repositories/{repoId}/scans/stop")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/repositories/{repoId}/scans/current")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/repositories/{repoId}/quota")).toBeInTheDocument();
+  });
+
+  it("renders endpoint docs as scannable cards instead of a compressed table", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
+    expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(5);
+  });
+
+  it("keeps scan response examples aligned with the public API payload", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const scanResponse = screen.getByText("Scan response").closest(".docs-code");
+    expect(scanResponse?.querySelector("pre")).not.toHaveTextContent(/"requestId"/);
+  });
+
+  it("uses the implemented free-plan quota defaults in response examples", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const quotaResponse = screen.getByText("Quota response").closest(".docs-code");
+    const quotaExample = quotaResponse?.querySelector("pre");
+
+    expect(quotaExample).toHaveTextContent(/"scope": "user"[\s\S]*"limit": 10,/);
+    expect(quotaExample).toHaveTextContent(/"scope": "repository"[\s\S]*"limit": 3,/);
   });
 
   it("exposes API docs navigation destinations as real screen links", async () => {

@@ -200,6 +200,7 @@ export function ApiDocsScreen({ go, auth }) {
   const nav = [
     ["overview", T("Overview", "概览")],
     ["authentication", T("Authentication", "认证")],
+    ["endpoints", T("Endpoints", "端点")],
     ["repositories", T("Repositories", "仓库")],
     ["scans", T("Scans", "扫描")],
     ["quota", T("Quota", "配额")],
@@ -283,23 +284,33 @@ Content-Type: application/json
 }`}
           </DocsCode>
 
+          <h2 id="endpoints" className="docs-h2">
+            {T("Endpoints", "端点")}
+          </h2>
+          <p>
+            {T(
+              "All public REST routes are account-scoped. Use repoId from the repository list when starting, stopping, or reading scans.",
+              "所有公开 REST 路由都以账户为边界。启动、停止或读取扫描时，请使用仓库列表返回的 repoId。"
+            )}
+          </p>
+          <div className="docs-endpoint-list">
+            {endpoints.map(({ method, path, scope, description }) => (
+              <article key={`${method}-${path}`} className="docs-endpoint-card">
+                <div className="docs-endpoint-card-h">
+                  <span className="docs-method">{method}</span>
+                  <code>{path}</code>
+                </div>
+                <p>{description}</p>
+                <span className="docs-scope">
+                  {T("Required scope", "所需权限")}: {scope}
+                </span>
+              </article>
+            ))}
+          </div>
+
           <h2 id="repositories" className="docs-h2">
             {T("Repositories", "仓库")}
           </h2>
-          <div className="docs-table">
-            {endpoints.map(({ method, path, scope, description }) => (
-              <div key={`${method}-${path}`} className="docs-table-r">
-                <b className="docs-endpoint">
-                  {method} {path}
-                </b>
-                <span>
-                  {description}
-                  <br />
-                  <span className="muted">{T("Required scope", "所需权限")}: {scope}</span>
-                </span>
-              </div>
-            ))}
-          </div>
           <DocsCode title={T("List authorized repositories", "列出已授权仓库")}>
             {`curl ${API_BASE_URL}/api/v1/repositories \\
   -H "Authorization: Bearer $PULLWISE_API_KEY"`}
@@ -321,13 +332,33 @@ Content-Type: application/json
       "installationAccount": "acme",
       "permissions": { "contents": "read" },
       "quota": {
-        "limit": 100,
-        "used": 12,
-        "remaining": 88
+        "scope": "repository",
+        "period": "2026-06",
+        "plan": "free",
+        "limit": 3,
+        "used": 1,
+        "remaining": 2,
+        "resetAt": 1780272000,
+        "bucketId": "qb_repo_123"
+      },
+      "href": "/repositories/repo_123",
+      "scanAction": {
+        "method": "POST",
+        "href": "/api/v1/repositories/repo_123/scans"
       }
     }
   ],
   "repositories": [/* same records as items */],
+  "userQuota": {
+    "scope": "user",
+    "period": "2026-06",
+    "plan": "free",
+    "limit": 10,
+    "used": 2,
+    "remaining": 8,
+    "resetAt": 1780272000,
+    "bucketId": "qb_user_123"
+  },
   "apiKey": {
     "id": "ak_abc",
     "name": "CI scanner",
@@ -346,6 +377,12 @@ Content-Type: application/json
               "扫描会为已授权仓库排队执行后端 checkout 和审查。可选字段 requestId 是幂等键：同一仓库重复使用同一个 requestId 会返回已有扫描；不同仓库重复使用会返回 409。"
             )}
           </p>
+          <p>
+            {T(
+              "requestId is accepted on scan creation for idempotency, but the public scan payload returns the scan id and status fields rather than echoing requestId.",
+              "创建扫描时可以传入 requestId 做幂等控制；公开扫描响应返回 scan id 和状态字段，不会回显 requestId。"
+            )}
+          </p>
           <DocsCode title={T("Start a scan", "启动扫描")}>
             {`curl -X POST ${API_BASE_URL}/api/v1/repositories/repo_123/scans \\
   -H "Authorization: Bearer $PULLWISE_API_KEY" \\
@@ -359,7 +396,9 @@ Content-Type: application/json
           <DocsCode title={T("Scan response", "扫描响应")}>
             {`{
   "id": "sc_abc123",
+  "userId": "usr_123",
   "repoId": "repo_123",
+  "githubRepoId": "987654321",
   "repo": "acme/api",
   "branch": "main",
   "commit": "pending",
@@ -375,7 +414,31 @@ Content-Type: application/json
   },
   "createdAt": 1779997800,
   "queuedAt": 1779997800,
-  "requestId": "ci-2026-05-29T06:30:00Z"
+  "quotaBucketIds": {
+    "user": "qb_user_123",
+    "repository": "qb_repo_123"
+  },
+  "billingUsage": {
+    "scope": "user",
+    "period": "2026-06",
+    "plan": "free",
+    "limit": 10,
+    "used": 1,
+    "remaining": 9,
+    "resetAt": 1780272000,
+    "bucketId": "qb_user_123"
+  },
+  "repoUsage": {
+    "scope": "repository",
+    "period": "2026-06",
+    "plan": "free",
+    "limit": 3,
+    "used": 1,
+    "remaining": 2,
+    "resetAt": 1780272000,
+    "bucketId": "qb_repo_123"
+  },
+  "by": "api key"
 }`}
           </DocsCode>
           <DocsCode title={T("Read current scan", "读取当前扫描")}>
@@ -411,14 +474,24 @@ Content-Type: application/json
             {`{
   "repoId": "repo_123",
   "user": {
-    "limit": 100,
-    "used": 12,
-    "remaining": 88
+    "scope": "user",
+    "period": "2026-06",
+    "plan": "free",
+    "limit": 10,
+    "used": 2,
+    "remaining": 8,
+    "resetAt": 1780272000,
+    "bucketId": "qb_user_123"
   },
   "repository": {
-    "limit": 20,
-    "used": 3,
-    "remaining": 17
+    "scope": "repository",
+    "period": "2026-06",
+    "plan": "free",
+    "limit": 3,
+    "used": 1,
+    "remaining": 2,
+    "resetAt": 1780272000,
+    "bucketId": "qb_repo_123"
   }
 }`}
           </DocsCode>

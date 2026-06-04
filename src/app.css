@@ -223,6 +223,9 @@ body.has-proto-nav {
   .pricing-table-wrap,
   .docs-shell,
   .docs-main,
+  .docs-endpoint-list,
+  .docs-endpoint-card,
+  .docs-endpoint-card-h,
   .docs-table,
   .docs-table-r,
   .docs-code,
@@ -904,7 +907,7 @@ body.has-proto-nav {
 }
 
 .docs-shell {
-  grid-template-columns: 176px minmax(0, 1fr) 180px;
+  grid-template-columns: 176px minmax(0, 1fr) 168px;
 }
 
 .docs-table-r,
@@ -913,7 +916,7 @@ body.has-proto-nav {
 }
 
 .docs-table-r {
-  grid-template-columns: minmax(280px, 440px) minmax(0, 1fr);
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
 }
 
 .docs-endpoint {
@@ -1031,9 +1034,12 @@ body.has-proto-nav {
   .gh-install-row,
   .hist-row,
   .int-row,
-  .docs-table-r,
   .legal-table-r {
     grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .docs-table-r {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .repo-meta,
