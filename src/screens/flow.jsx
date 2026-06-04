@@ -232,6 +232,7 @@ export function ReposScreen({
     return matchesOrg && matchesQuery;
   });
   const accountQuotaRemaining = quotaRemaining(userQuota);
+  const accountQuotaLabel = repoQuotaLabel(userQuota);
   const selectedRepoObjects = selected
     .map((id) => availableRepos.find((item) => item.id === id))
     .filter(Boolean);
@@ -425,6 +426,11 @@ export function ReposScreen({
                       `${availableRepos.length} 个已授权仓库`
                     )}
               </div>
+              {accountQuotaLabel && (
+                <div className="sub account-quota-summary">
+                  Account quota: {accountQuotaLabel}
+                </div>
+              )}
             </div>
             <div className="actions">
               <button className="btn" disabled={loading} onClick={() => reload({ sync: true })}>

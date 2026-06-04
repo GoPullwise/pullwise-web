@@ -196,6 +196,27 @@ describe("ReposScreen scan selection", () => {
     expect(screen.getByText(/resets 2026-06-01 00:00 UTC/i)).toBeInTheDocument();
   });
 
+  it("shows account quota reset time on the repository selection screen", async () => {
+    const resetAt = Date.UTC(2026, 5, 1, 0, 0, 0) / 1000;
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [],
+      installationAccounts: [],
+      userQuota: { scope: "user", used: 9, limit: 10, remaining: 1, resetAt },
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
+    expect(screen.getByText(/account quota/i)).toHaveTextContent(
+      /1 of 10 account scans left - resets 2026-06-01 00:00 UTC/i
+    );
+  });
+
   it("blocks selecting beyond the current account quota with a clear reason", async () => {
     const user = userEvent.setup();
     useRepositories.mockReturnValue({
