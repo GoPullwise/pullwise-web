@@ -165,7 +165,6 @@ export function BillingScreen({
     period: "",
   };
   const usageResetText = quotaResetText(usage, "Monthly quota resets");
-  const provider = providerLabel(plan?.provider);
   const billingEnabled = Boolean(plan?.enabled);
 
   const openPortal = async () => {
@@ -232,7 +231,6 @@ export function BillingScreen({
               </div>
             </div>
             <div className="actions">
-              <span className="tag">{provider}</span>
               <a className="btn" {...screenLinkProps(go, "pricing")}>
                 <I.Trend size={14} /> View pricing
               </a>

@@ -86,7 +86,7 @@ describe("BillingScreen", () => {
 
     render(<BillingScreen go={go} navigate={vi.fn()} />);
 
-    expect(await screen.findByText("Stripe")).toBeInTheDocument();
+    expect(await screen.findByText(/0 \/ 5 reviews used/i)).toBeInTheDocument();
     const terms = screen.getByRole("link", { name: /^terms$/i });
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
 
@@ -118,6 +118,22 @@ describe("BillingScreen", () => {
     expect(go).toHaveBeenCalledWith("pricing");
     expect(pullwiseApi.billing.createCheckoutSession).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: /start pro/i })).not.toBeInTheDocument();
+  });
+
+  it("does not show the billing provider tag beside View pricing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      provider: "disabled",
+      account: { status: "none", plan: "free" },
+    });
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await screen.findByRole("link", { name: /view pricing/i });
+    const headerActions = document.querySelector(".page-h .actions");
+
+    expect(headerActions).not.toHaveTextContent("Disabled");
+    expect(headerActions.querySelector(".tag")).toBeNull();
   });
 
   it("labels the account usage meter with the current plan instead of raw billing status", async () => {
