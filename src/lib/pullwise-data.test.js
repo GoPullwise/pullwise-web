@@ -41,6 +41,7 @@ describe("useRepositories", () => {
       items: [],
       installations: [],
       installationAccounts: [],
+      userQuota: { scope: "user", used: "8", limit: "10", remaining: "2" },
       needsAuthorization: "false",
     });
 
@@ -48,6 +49,12 @@ describe("useRepositories", () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.needsAuthorization).toBe(false);
+    expect(result.current.userQuota).toMatchObject({
+      scope: "user",
+      used: 8,
+      limit: 10,
+      remaining: 2,
+    });
     unmount();
 
     pullwiseApi.repositories.list.mockResolvedValueOnce({

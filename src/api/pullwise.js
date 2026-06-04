@@ -31,6 +31,7 @@ export const pullwiseApi = {
   },
 
   scans: {
+    preflight: (payload) => request("/scans/preflight", { method: "POST", body: payload }),
     create: (payload) => request("/scans", { method: "POST", body: payload }),
     get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
     list: (params = {}) => request(withSearchParams("/scans", params)),

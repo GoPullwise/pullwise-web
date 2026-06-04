@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
@@ -30,6 +31,62 @@ function repoQuotaLabel(quota) {
   const scope = quota.scope === "user" ? "account" : "repo";
   if (!limit) return `${scope} quota unavailable`;
   return `${remaining} of ${limit} ${scope} scans left`;
+}
+
+function quotaRemaining(quota) {
+  if (!quota || typeof quota !== "object") return null;
+  if (Object.prototype.hasOwnProperty.call(quota, "remaining")) {
+    return quotaNumber(quota.remaining);
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(quota, "limit") &&
+    Object.prototype.hasOwnProperty.call(quota, "used")
+  ) {
+    return Math.max(0, quotaNumber(quota.limit) - quotaNumber(quota.used));
+  }
+  return null;
+}
+
+function scansWord(count) {
+  return count === 1 ? "scan" : "scans";
+}
+
+function accountQuotaNotice(remaining) {
+  if (remaining === 0) {
+    return "Your account has 0 scans left for this billing period. Upgrade or wait for the quota reset before selecting a repository.";
+  }
+  return `Your account has ${remaining} ${scansWord(remaining)} left for this billing period. Deselect another repository before selecting more.`;
+}
+
+function repositoryQuotaNotice(repo) {
+  const label = repo?.fullName || repo?.name || "This repository";
+  return `${label} has 0 repository scans left for this billing period.`;
+}
+
+function preflightAllowedCount(payload, fallback) {
+  if (!payload || !Object.prototype.hasOwnProperty.call(payload, "allowedCount")) return fallback;
+  return Math.min(fallback, quotaNumber(payload.allowedCount));
+}
+
+function preflightRows(payload) {
+  return Array.isArray(payload?.repositories) ? payload.repositories : [];
+}
+
+function repoLookupValues(repo) {
+  return new Set(
+    [repo?.id, repo?.repoId, repo?.githubRepoId, repo?.fullName, repo?.name, repo?.repo]
+      .map((value) => String(value || ""))
+      .filter(Boolean)
+  );
+}
+
+function preflightRowForRepo(rows, repo) {
+  const values = repoLookupValues(repo);
+  return rows.find((row) =>
+    [row?.repoId, row?.githubRepoId, row?.repo, row?.fullName, row?.id]
+      .map((value) => String(value || ""))
+      .some((value) => values.has(value))
+  );
 }
 
 function repoOwner(repo) {
@@ -68,6 +125,14 @@ function batchScanStatus(scans, expectedCount, hasError) {
   return "queued";
 }
 
+function batchCreationSummary(batchRows, scans, expectedCount) {
+  const created = batchRows.length
+    ? batchRows.filter((row) => row.scanId || row.scan?.id).length
+    : scans.length;
+  const failedToCreate = batchRows.filter((row) => row.status === "failed" && !row.scanId).length;
+  return { created, failedToCreate, expected: expectedCount };
+}
+
 function isTerminalBatchRow(row) {
   return ["done", "failed", "cancelled"].includes(row?.status) || isTerminalScan(row?.scan);
 }
@@ -76,7 +141,7 @@ function scanErrorAction(error) {
   const code = typeof error === "object" && error ? String(error.code || "") : "";
   const message = typeof error === "object" && error ? error.message : error;
   const text = `${code} ${String(message || "")}`.toLowerCase();
-  if (["QUOTA_EXCEEDED_REPOSITORY"].includes(code)) {
+  if (code.startsWith("QUOTA_EXCEEDED")) {
     return { label: "Open billing", screen: "billing" };
   }
   if (
@@ -123,10 +188,16 @@ export function ReposScreen({
   const [connecting, setConnecting] = useState(false);
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const [connectError, setConnectError] = useState("");
+  const [selectionNotice, setSelectionNotice] = useState("");
+  const [checkingQuota, setCheckingQuota] = useState(false);
+  const [quotaPreflight, setQuotaPreflight] = useState(null);
+  const [quotaDialogSelected, setQuotaDialogSelected] = useState([]);
+  const [quotaDialogNotice, setQuotaDialogNotice] = useState("");
   const {
     items: availableRepos,
     installations,
     installationAccounts,
+    userQuota,
     loading,
     error,
     needsAuthorization,
@@ -158,6 +229,10 @@ export function ReposScreen({
       repo.desc.toLowerCase().includes(query);
     return matchesOrg && matchesQuery;
   });
+  const accountQuotaRemaining = quotaRemaining(userQuota);
+  const selectedRepoObjects = selected
+    .map((id) => availableRepos.find((item) => item.id === id))
+    .filter(Boolean);
 
   useEffect(() => {
     if (!orgs.includes(org)) setOrg(allLabel);
@@ -169,28 +244,120 @@ export function ReposScreen({
 
   useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
 
-  const toggle = (id) =>
-    setSelected((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
-  const activateRepositorySelection = (event, repoId) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    toggle(repoId);
-  };
-
-  const startScan = () => {
-    const reposToScan = selected
-      .map((id) => availableRepos.find((item) => item.id === id))
-      .filter(Boolean);
-    if (reposToScan.length === 0) return;
-
+  const runScanForRepos = (reposToScan) => {
+    if (!reposToScan.length) return;
     const selectedRepos = reposToScan.map((repo) => ({
       ...repo,
       scanRequestId: makeScanRequestId(),
     }));
     setActiveRepo({ ...selectedRepos[0], selectedRepos });
     go("scanning");
+  };
+
+  const toggle = (id) => {
+    const isSelected = selected.includes(id);
+    if (isSelected) {
+      setSelected((current) => current.filter((item) => item !== id));
+      setSelectionNotice("");
+      return;
+    }
+
+    const repo = availableRepos.find((item) => item.id === id);
+    const repoRemaining = quotaRemaining(repo?.quota);
+    if (repoRemaining !== null && repoRemaining <= 0) {
+      setSelectionNotice(repositoryQuotaNotice(repo));
+      return;
+    }
+    if (accountQuotaRemaining !== null && selected.length >= accountQuotaRemaining) {
+      setSelectionNotice(accountQuotaNotice(accountQuotaRemaining));
+      return;
+    }
+
+    setSelectionNotice("");
+    setSelected((current) => (current.includes(id) ? current : [...current, id]));
+  };
+
+  const activateRepositorySelection = (event, repoId) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    toggle(repoId);
+  };
+
+  const startScan = async () => {
+    if (checkingQuota) return;
+    const reposToScan = selectedRepoObjects;
+    if (reposToScan.length === 0) return;
+
+    setCheckingQuota(true);
+    setConnectError("");
+    setSelectionNotice("");
+    clearAuthorizationError();
+    try {
+      const preflight = await pullwiseApi.scans.preflight({
+        repositories: reposToScan.map(scanInputFromRepo),
+      });
+      const allowedCount = preflightAllowedCount(preflight, reposToScan.length);
+      if (allowedCount < reposToScan.length) {
+        const remaining = quotaRemaining(preflight?.userQuota);
+        const notice =
+          remaining !== null && remaining < reposToScan.length
+            ? `Your account currently has ${remaining} ${scansWord(remaining)} left. Choose up to ${allowedCount} repositories to scan now.`
+            : `Only ${allowedCount} of these repositories can be scanned right now based on current quota. Choose which repositories to scan.`;
+        setQuotaPreflight({ ...preflight, selectedRepos: reposToScan });
+        setQuotaDialogSelected([]);
+        setQuotaDialogNotice(notice);
+        return;
+      }
+      runScanForRepos(reposToScan);
+    } catch (quotaError) {
+      setConnectError(quotaError?.message || "Unable to verify scan quota before starting.");
+    } finally {
+      setCheckingQuota(false);
+    }
+  };
+
+  const quotaDialogRepos = Array.isArray(quotaPreflight?.selectedRepos)
+    ? quotaPreflight.selectedRepos
+    : [];
+  const quotaDialogAllowed = preflightAllowedCount(quotaPreflight, quotaDialogRepos.length);
+  const quotaDialogRows = preflightRows(quotaPreflight);
+  const quotaDialogCanConfirm =
+    quotaDialogSelected.length > 0 && quotaDialogSelected.length <= quotaDialogAllowed;
+
+  const closeQuotaDialog = () => {
+    setQuotaPreflight(null);
+    setQuotaDialogSelected([]);
+    setQuotaDialogNotice("");
+  };
+
+  const toggleQuotaDialogRepo = (repo) => {
+    const row = preflightRowForRepo(quotaDialogRows, repo);
+    if (row?.available === false) {
+      setQuotaDialogNotice(
+        row.reason === "repository_quota_exceeded"
+          ? repositoryQuotaNotice(repo)
+          : "This repository cannot be scanned with the current GitHub authorization."
+      );
+      return;
+    }
+    if (quotaDialogSelected.includes(repo.id)) {
+      setQuotaDialogSelected((current) => current.filter((item) => item !== repo.id));
+      return;
+    }
+    if (quotaDialogSelected.length >= quotaDialogAllowed) {
+      setQuotaDialogNotice(
+        `You can choose ${quotaDialogAllowed} ${scansWord(quotaDialogAllowed)} because that is the current effective quota.`
+      );
+      return;
+    }
+    setQuotaDialogSelected((current) => [...current, repo.id]);
+  };
+
+  const confirmQuotaDialogSelection = () => {
+    if (!quotaDialogCanConfirm) return;
+    const reposToScan = quotaDialogRepos.filter((repo) => quotaDialogSelected.includes(repo.id));
+    closeQuotaDialog();
+    runScanForRepos(reposToScan);
   };
 
   const connectRepositories = async (options = {}) => {
@@ -261,8 +428,19 @@ export function ReposScreen({
               <button className="btn" disabled={loading} onClick={() => reload({ sync: true })}>
                 <I.Refresh size={14} /> {T("Sync", "同步")}
               </button>
-              <button className="btn primary" disabled={selected.length === 0} onClick={startScan}>
-                <I.Play size={12} /> {T("Start scan", "开始扫描")} ({selected.length})
+              <button
+                className="btn primary"
+                disabled={selected.length === 0 || checkingQuota}
+                onClick={startScan}
+              >
+                {checkingQuota ? (
+                  <span className="spin" style={{ display: "inline-block" }}>
+                    <I.Refresh size={12} />
+                  </span>
+                ) : (
+                  <I.Play size={12} />
+                )}{" "}
+                {checkingQuota ? "Checking quota" : T("Start scan", "开始扫描")} ({selected.length})
               </button>
             </div>
           </div>
@@ -298,6 +476,19 @@ export function ReposScreen({
           </div>
 
           <div className="repos-list">
+            {selectionNotice && (
+              <div className="repo-row repo-row-status quota-selection-alert" role="alert">
+                <div className="repo-icon">
+                  <I.Activity size={16} />
+                </div>
+                <div className="repo-main">
+                  <div className="repo-name">
+                    <span>Scan quota limit</span>
+                  </div>
+                  <div className="repo-desc">{selectionNotice}</div>
+                </div>
+              </div>
+            )}
             {needsAuthorization && (
               <div
                 className="repo-row repo-row-status"
@@ -452,6 +643,82 @@ export function ReposScreen({
           </div>
         </div>
       </div>
+      {quotaPreflight && (
+        <div className="quota-modal-back">
+          <div
+            className="quota-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quota-dialog-title"
+          >
+            <div className="modal-h">
+              <div>
+                <h2 id="quota-dialog-title">Choose repositories to scan</h2>
+                <p>{quotaDialogNotice}</p>
+              </div>
+              <button className="btn ghost icon" type="button" onClick={closeQuotaDialog}>
+                <I.X size={14} />
+              </button>
+            </div>
+            <div className="quota-choice-count">
+              {quotaDialogSelected.length} of {quotaDialogAllowed} selected
+            </div>
+            <div className="quota-choice-list">
+              {quotaDialogRepos.map((repo) => {
+                const row = preflightRowForRepo(quotaDialogRows, repo);
+                const on = quotaDialogSelected.includes(repo.id);
+                const unavailable = row?.available === false || quotaDialogAllowed <= 0;
+                const quotaLabel = repoQuotaLabel(row?.repoQuota || row?.quota || repo.quota);
+                return (
+                  <button
+                    key={repo.id}
+                    type="button"
+                    className={
+                      "quota-choice-row" +
+                      (on ? " on" : "") +
+                      (unavailable ? " unavailable" : "")
+                    }
+                    aria-pressed={on}
+                    onClick={() => toggleQuotaDialogRepo(repo)}
+                    disabled={unavailable}
+                  >
+                    <span className="repo-check-box">{on && <I.Check size={11} />}</span>
+                    <span className="quota-choice-copy">
+                      <strong>{repo.fullName || repo.name}</strong>
+                      <span>{quotaLabel || repo.desc || "Authorized repository"}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="modal-foot">
+              {quotaDialogAllowed <= 0 && (
+                <button
+                  className="btn"
+                  type="button"
+                  onClick={() => {
+                    closeQuotaDialog();
+                    go("billing");
+                  }}
+                >
+                  <I.Activity size={14} /> Open billing
+                </button>
+              )}
+              <button className="btn ghost" type="button" onClick={closeQuotaDialog}>
+                Cancel
+              </button>
+              <button
+                className="btn primary"
+                type="button"
+                disabled={!quotaDialogCanConfirm}
+                onClick={confirmQuotaDialogSelection}
+              >
+                <I.Play size={12} /> Scan selected
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -580,6 +847,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scans.some((item) => item?.id && !isTerminalScan(item))
     : Boolean(scan && !terminal);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
+  const batchSummary = batchMode
+    ? batchCreationSummary(batchRows, scans, expectedBatchCount)
+    : null;
 
   const handleCancel = async () => {
     if (canCancel) await cancel();
@@ -647,10 +917,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 <div className="scanning-sub">
                   {batchMode ? (
                     <span className="tag">
-                      {T(
-                        `${scans.length}/${expectedBatchCount} scans created`,
-                        `${scans.length}/${expectedBatchCount} 个扫描已创建`
-                      )}
+                      {batchSummary.failedToCreate
+                        ? T(
+                            `${batchSummary.created}/${batchSummary.expected} scans created, ${batchSummary.failedToCreate} not created`,
+                            `${batchSummary.created}/${batchSummary.expected} 个扫描已创建，${batchSummary.failedToCreate} 个未创建`
+                          )
+                        : T(
+                            `${batchSummary.created}/${batchSummary.expected} scans created`,
+                            `${batchSummary.created}/${batchSummary.expected} 个扫描已创建`
+                          )}
                     </span>
                   ) : (
                     <>

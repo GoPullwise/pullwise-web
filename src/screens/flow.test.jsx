@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n.jsx";
@@ -7,6 +7,14 @@ import { ReposScreen, ScanningScreen } from "./flow.jsx";
 vi.mock("../lib/auth.js", () => ({
   connectGitHubRepositories: vi.fn(),
   manageGitHubInstallation: vi.fn(),
+}));
+
+vi.mock("../api/pullwise.js", () => ({
+  pullwiseApi: {
+    scans: {
+      preflight: vi.fn(),
+    },
+  },
 }));
 
 vi.mock("../lib/pullwise-data.js", () => ({
@@ -30,6 +38,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
 
 import { useRepositories, useScanBatchRun, useScanRun } from "../lib/pullwise-data.js";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
+import { pullwiseApi } from "../api/pullwise.js";
 
 const repoAlpha = {
   id: "repo_alpha",
@@ -61,6 +70,13 @@ beforeEach(() => {
   connectGitHubRepositories.mockResolvedValue(undefined);
   manageGitHubInstallation.mockReset();
   manageGitHubInstallation.mockResolvedValue(undefined);
+  pullwiseApi.scans.preflight.mockReset();
+  pullwiseApi.scans.preflight.mockResolvedValue({
+    requestedCount: 0,
+    allowedCount: 99,
+    userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
+    repositories: [],
+  });
   useRepositories.mockReset();
   useScanBatchRun.mockReset();
   useScanBatchRun.mockReturnValue({ scans: [], error: "", cancel: vi.fn() });
@@ -107,6 +123,7 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
+    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
     const activeRepo = setActiveRepo.mock.calls[0][0];
     expect(activeRepo.selectedRepos).toHaveLength(2);
     expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual([
@@ -145,6 +162,7 @@ describe("ReposScreen scan selection", () => {
     await user.keyboard(" ");
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
+    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
     const activeRepo = setActiveRepo.mock.calls[0][0];
     expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual([
       "octocat/alpha",
@@ -174,6 +192,88 @@ describe("ReposScreen scan selection", () => {
 
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText(/2 of 3 repo scans left/i)).toBeInTheDocument();
+  });
+
+  it("blocks selecting beyond the current account quota with a clear reason", async () => {
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [repoAlpha, repoBeta],
+      installations: [],
+      installationAccounts: [],
+      userQuota: { scope: "user", used: 9, limit: 10, remaining: 1 },
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/1 scan left/i);
+    expect(screen.getByRole("button", { name: /select repository octocat\/alpha/i })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getByRole("button", { name: /select repository octocat\/beta/i })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    expect(pullwiseApi.scans.preflight).not.toHaveBeenCalled();
+  });
+
+  it("asks the user to choose repositories when server preflight reports fewer scans left", async () => {
+    const go = vi.fn();
+    const setActiveRepo = vi.fn();
+    const user = userEvent.setup();
+    pullwiseApi.scans.preflight.mockResolvedValueOnce({
+      requestedCount: 2,
+      allowedCount: 1,
+      userQuota: { scope: "user", used: 9, limit: 10, remaining: 1 },
+      repositories: [
+        {
+          repo: "octocat/alpha",
+          available: true,
+          repoQuota: { scope: "repository", used: 0, limit: 3, remaining: 3 },
+        },
+        {
+          repo: "octocat/beta",
+          available: true,
+          repoQuota: { scope: "repository", used: 0, limit: 3, remaining: 3 },
+        },
+      ],
+    });
+    useRepositories.mockReturnValue({
+      items: [repoAlpha, repoBeta],
+      installations: [],
+      installationAccounts: [],
+      userQuota: null,
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
+
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    const dialog = await screen.findByRole("dialog", { name: /choose repositories to scan/i });
+    expect(dialog).toHaveTextContent(/1 scan left/i);
+    expect(setActiveRepo).not.toHaveBeenCalled();
+    expect(go).not.toHaveBeenCalledWith("scanning");
+
+    await user.click(within(dialog).getByRole("button", { name: /octocat\/beta/i }));
+    await user.click(within(dialog).getByRole("button", { name: /scan selected/i }));
+
+    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
+    const activeRepo = setActiveRepo.mock.calls[0][0];
+    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual(["octocat/beta"]);
+    expect(go).toHaveBeenCalledWith("scanning");
   });
 
   it("renders repository onboarding copy in readable Chinese", async () => {
@@ -410,6 +510,7 @@ describe("ScanningScreen queue state", () => {
 
     expect(screen.getByText(/scan batch failed/i)).toBeInTheDocument();
     expect(screen.queryByText(/scan batch queued/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/1\/2 scans created, 1 not created/i)).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
     expect(screen.getByRole("button", { name: /history/i })).toBeInTheDocument();
   });
@@ -578,16 +679,19 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("repos");
   });
 
-  it("routes structured quota errors to billing", async () => {
+  it.each([
+    ["Repository quota exhausted.", "QUOTA_EXCEEDED_REPOSITORY"],
+    ["Your account has used its scan quota.", "QUOTA_EXCEEDED_USER"],
+  ])("routes structured quota errors to billing", async (message, code) => {
     const user = userEvent.setup();
-    const { go } = renderScanError("Repository quota exhausted.", "QUOTA_EXCEEDED_REPOSITORY");
+    const { go } = renderScanError(message, code);
 
     const action = screen.getByRole("link", { name: /open billing/i });
     expect(action).toHaveAttribute("href", "/billing");
 
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(message);
     expect(go).toHaveBeenCalledWith("billing");
   });
 
