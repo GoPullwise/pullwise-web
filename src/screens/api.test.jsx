@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useRepositories } from "../lib/pullwise-data.js";
@@ -47,6 +48,13 @@ describe("API screens", () => {
 
     expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
     expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(5);
+  });
+
+  it("right-aligns the left docs navigation against the content gutter", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+
+    expect(styles).toMatch(/\.docs-side-h\s*{[^}]*text-align:\s*right;/);
+    expect(styles).toMatch(/\.docs-side-i\s*{[^}]*text-align:\s*right;/);
   });
 
   it("keeps scan response examples aligned with the public API payload", () => {

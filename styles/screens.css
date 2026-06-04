@@ -2675,6 +2675,7 @@ button.dash-cat-row:hover {
   color: var(--text-3);
   margin-bottom: 6px;
   padding: 0 10px;
+  text-align: right;
 }
 .docs-side-i {
   display: block;
@@ -2684,6 +2685,7 @@ button.dash-cat-row:hover {
   font-size: 13px;
   cursor: pointer;
   text-decoration: none;
+  text-align: right;
 }
 .docs-side-i:hover {
   background: var(--bg-soft);
