@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { connectGitHubRepositories, manageGitHubInstallation, startGitHubLogin } from "./auth.js";
+import { markGitHubRepositoryAccessRefreshNeeded } from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -23,6 +24,11 @@ vi.mock("./install-popup.js", () => ({
   openGitHubInstallPopup: vi.fn(),
 }));
 
+vi.mock("./github-repository-access-refresh.js", () => ({
+  markGitHubRepositoryAccessRefreshNeeded: vi.fn(),
+  clearGitHubRepositoryAccessRefreshNeeded: vi.fn(),
+}));
+
 function redirectScreen(call) {
   const redirectTo = call[0].redirectTo;
   return new URL(redirectTo).searchParams.get("screen");
@@ -35,7 +41,7 @@ function redirectParam(call, name) {
 
 describe("auth redirects", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     window.history.replaceState({}, "", "/?screen=login#ignored");
   });
 
@@ -171,12 +177,42 @@ describe("auth redirects", () => {
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
-      { installationId: "999", githubIdentityId: "ghi_1" }
+      { installationId: "999", githubIdentityId: "ghi_1", requireCloseSyncReady: true }
     );
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith({
       installationId: "999",
       githubIdentityId: "ghi_1",
     });
+  });
+
+  it("does not arm automatic repository refresh while a manage popup can still be cancelled", async () => {
+    pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+      mode: "github-installation-manage",
+      url: "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
+      installationId: "999",
+    });
+    let finishPopup;
+    openGitHubInstallPopup.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishPopup = resolve;
+      })
+    );
+    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+      needsAuthorization: false,
+      items: [{ fullName: "octocat/private-repo" }],
+    });
+
+    const completion = manageGitHubInstallation("999", { githubIdentityId: "ghi_1" });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(openGitHubInstallPopup).toHaveBeenCalledTimes(1);
+    expect(markGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+
+    finishPopup();
+    await completion;
+
+    expect(markGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
   });
 
   it("maps manage account mismatch errors to a readable message", async () => {

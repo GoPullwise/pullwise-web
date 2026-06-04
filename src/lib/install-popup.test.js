@@ -16,6 +16,7 @@ vi.mock("../api/pullwise.js", () => ({
 describe("openGitHubInstallPopup", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.clearAllMocks();
     vi.spyOn(window, "open").mockReturnValue({
       closed: true,
       close: vi.fn(),
@@ -63,6 +64,67 @@ describe("openGitHubInstallPopup", () => {
       githubIdentityId: "ghi_1",
     });
 
+    await vi.advanceTimersByTimeAsync(400);
+
+    await expect(completion).resolves.toBeUndefined();
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith({
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+    });
+  });
+
+  it("does not sync a manage popup that closes before the manage flow is verified", async () => {
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new", {
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+      requireCloseSyncReady: true,
+    });
+    const expectation = expect(completion).rejects.toMatchObject({
+      code: "popup_closed",
+    });
+
+    await vi.advanceTimersByTimeAsync(400);
+
+    await expectation;
+    expect(pullwiseApi.auth.getSession).not.toHaveBeenCalled();
+    expect(pullwiseApi.repositories.sync).not.toHaveBeenCalled();
+  });
+
+  it("syncs a manage popup after the same-origin manage continuation is reached", async () => {
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      focus: vi.fn(),
+    };
+    window.open.mockReturnValueOnce(popup);
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      authenticated: true,
+      github: {
+        repositoriesConnected: false,
+      },
+    });
+    pullwiseApi.repositories.sync.mockResolvedValue({
+      needsAuthorization: false,
+      items: [{ id: "repo_1", fullName: "octocat/private-repo" }],
+    });
+
+    const completion = openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new", {
+      installationId: "999",
+      githubIdentityId: "ghi_1",
+      requireCloseSyncReady: true,
+    });
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        data: {
+          type: "pullwise:github-install",
+          ok: true,
+          closeSyncReady: true,
+        },
+      })
+    );
+    popup.closed = true;
     await vi.advanceTimersByTimeAsync(400);
 
     await expect(completion).resolves.toBeUndefined();

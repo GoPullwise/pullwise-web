@@ -186,19 +186,23 @@ export async function manageGitHubInstallation(
     }
   );
   const manageUrl = safeHttpUrl(result?.url, "GitHub installation manage URL");
-  markGitHubRepositoryAccessRefreshNeeded();
-  const syncPayload = {
+  const repositorySyncPayload = {
     installationId: cleanInstallationId,
     githubIdentityId: cleanIdentityId,
   };
-  const completion = openGitHubInstallPopup(manageUrl, syncPayload);
+  const popupSyncPayload = {
+    ...repositorySyncPayload,
+    requireCloseSyncReady: true,
+  };
+  const completion = openGitHubInstallPopup(manageUrl, popupSyncPayload);
   if (!completion) {
+    markGitHubRepositoryAccessRefreshNeeded();
     window.location.assign(manageUrl);
     return;
   }
   try {
     await completion;
-    await pullwiseApi.repositories.sync(syncPayload);
+    await pullwiseApi.repositories.sync(repositorySyncPayload);
     clearGitHubRepositoryAccessRefreshNeeded();
   } catch (error) {
     clearGitHubRepositoryAccessRefreshNeeded();

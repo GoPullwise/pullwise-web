@@ -43,18 +43,31 @@ export function isInstallPopupReturn() {
 
 export function notifyOpenerAndClose() {
   const params = new URLSearchParams(window.location.search);
-  const githubError = params.get("github_error");
+  let githubError = params.get("github_error");
+  let continueUrl = "";
+  if (!githubError && params.get("github_manage_continue_url")) {
+    try {
+      continueUrl = safePopupUrl(params.get("github_manage_continue_url"));
+    } catch {
+      githubError = "invalid_manage_continue_url";
+    }
+  }
   try {
     window.opener.postMessage(
       {
         type: MESSAGE_TYPE,
         ok: !githubError,
         error: githubError || null,
+        closeSyncReady: Boolean(continueUrl),
       },
       window.location.origin
     );
   } catch {
     // opener may be cross-origin or already torn down
+  }
+  if (continueUrl) {
+    window.location.replace(continueUrl);
+    return;
   }
   try {
     window.close();
@@ -75,11 +88,23 @@ export function openGitHubInstallPopup(url, syncPayload) {
 
   return new Promise((resolve, reject) => {
     let settled = false;
+    const requireCloseSyncReady = Boolean(syncPayload?.requireCloseSyncReady);
+    const repositorySyncPayload =
+      syncPayload && typeof syncPayload === "object"
+        ? Object.fromEntries(
+            Object.entries(syncPayload).filter(([key]) => key !== "requireCloseSyncReady")
+          )
+        : syncPayload;
+    let closeSyncReady = !requireCloseSyncReady;
 
     const onMessage = (event) => {
       if (event.origin !== window.location.origin) return;
       const data = event.data;
       if (!data || data.type !== MESSAGE_TYPE) return;
+      if (data.ok && data.closeSyncReady) {
+        closeSyncReady = true;
+        return;
+      }
       finish();
       if (data.ok) resolve();
       else {
@@ -98,6 +123,10 @@ export function openGitHubInstallPopup(url, syncPayload) {
       }
       if (!closed) return;
       finish();
+      if (!closeSyncReady) {
+        reject(new GitHubInstallCancelled());
+        return;
+      }
       try {
         const session = await pullwiseApi.auth.getSession();
         if (session?.github?.repositoriesConnected) {
@@ -105,7 +134,7 @@ export function openGitHubInstallPopup(url, syncPayload) {
           return;
         }
 
-        const repositories = await pullwiseApi.repositories.sync(syncPayload);
+        const repositories = await pullwiseApi.repositories.sync(repositorySyncPayload);
         if (repositories?.authorizationIssue) {
           const error = new Error(repositories.message || repositories.authorizationIssue);
           error.code = repositories.authorizationIssue;
