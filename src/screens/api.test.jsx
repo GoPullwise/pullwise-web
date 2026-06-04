@@ -106,7 +106,10 @@ describe("API screens", () => {
     await user.click(screen.getByRole("button", { name: /create key/i }));
 
     await waitFor(() => {
-      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({ name: "CI scanner" });
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+        name: "CI scanner",
+        scopes: ["repositories:read", "scans:write", "scans:read", "quota:read"],
+      });
     });
     expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
 
@@ -114,6 +117,34 @@ describe("API screens", () => {
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalled();
+    });
+  });
+
+  it("creates API keys with the selected scopes", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_2",
+      name: "CI scanner",
+      prefix: "pwk_new",
+      scopes: ["repositories:read", "scans:read"],
+      key: "pwk_live_secret",
+    });
+    const user = userEvent.setup();
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/key name/i));
+    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
+    await user.click(screen.getByRole("checkbox", { name: /start repository scans/i }));
+    await user.click(screen.getByRole("checkbox", { name: /read quota/i }));
+    await user.click(screen.getByRole("button", { name: /create key/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+        name: "CI scanner",
+        scopes: ["repositories:read", "scans:read"],
+      });
     });
   });
 

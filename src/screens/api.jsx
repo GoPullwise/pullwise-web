@@ -27,6 +27,31 @@ function objectRecord(value) {
   return value && typeof value === "object" && !Array.isArray(value);
 }
 
+const API_KEY_SCOPES = [
+  {
+    value: "repositories:read",
+    label: "Read repositories",
+    description: "List repositories authorized for this account.",
+  },
+  {
+    value: "scans:write",
+    label: "Start repository scans",
+    description: "Create or stop scans for authorized repositories.",
+  },
+  {
+    value: "scans:read",
+    label: "Read scans",
+    description: "Read scan status, findings, and history.",
+  },
+  {
+    value: "quota:read",
+    label: "Read quota",
+    description: "Check account and repository quota.",
+  },
+];
+
+const API_KEY_SCOPE_VALUES = API_KEY_SCOPES.map((scope) => scope.value);
+
 function formatDate(value) {
   if (!value) return "Never";
   const date = new Date(typeof value === "number" ? value * 1000 : value);
@@ -464,6 +489,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   useLang();
   const [keys, setKeys] = useState([]);
   const [name, setName] = useState("Account automation");
+  const [selectedScopes, setSelectedScopes] = useState(API_KEY_SCOPE_VALUES);
   const [createdToken, setCreatedToken] = useState("");
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
@@ -487,6 +513,15 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     load();
   }, []);
 
+  const toggleScope = (scopeValue) => {
+    setSelectedScopes((current) => {
+      const next = current.includes(scopeValue)
+        ? current.filter((scope) => scope !== scopeValue)
+        : [...current, scopeValue];
+      return API_KEY_SCOPE_VALUES.filter((scope) => next.includes(scope));
+    });
+  };
+
   const createKey = async (event) => {
     event.preventDefault();
     if (pending) return;
@@ -494,13 +529,18 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     setError("");
     setCreatedToken("");
     try {
-      const payload = await pullwiseApi.apiKeys.create({ name: name.trim() || "API key" });
+      const scopes = API_KEY_SCOPE_VALUES.filter((scope) => selectedScopes.includes(scope));
+      const payload = await pullwiseApi.apiKeys.create({
+        name: name.trim() || "API key",
+        scopes,
+      });
       const key = normalizeApiKey(createdApiKeyRecord(payload));
       const token = createdApiKeyToken(payload);
       if (!key) throw new Error("API key response was malformed.");
       setCreatedToken(token);
       setKeys((current) => [key, ...current.filter((item) => item.id !== key.id)]);
       setName("Account automation");
+      setSelectedScopes(API_KEY_SCOPE_VALUES);
     } catch (err) {
       setError(err?.message || "Unable to create API key.");
     } finally {
@@ -597,29 +637,110 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             </aside>
 
             <div className="set-body">
-              <form className="bill-card billing-summary" onSubmit={createKey}>
-                <div className="billing-summary-main" style={{ flex: 1 }}>
-                  <I.Shield size={18} />
-                  <label className="auth-field" style={{ flex: 1 }}>
-                    <span>Key name</span>
-                    <div className="auth-input">
-                      <I.Code size={14} />
-                      <input
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        placeholder="CI scanner"
-                      />
-                    </div>
-                  </label>
+              <form className="bill-card" onSubmit={createKey} style={{ display: "block" }}>
+                <div className="billing-summary-main" style={{ alignItems: "flex-start" }}>
+                  <I.Shield size={18} style={{ marginTop: 27 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <label className="auth-field">
+                      <span>Key name</span>
+                      <div className="auth-input">
+                        <I.Code size={14} />
+                        <input
+                          value={name}
+                          onChange={(event) => setName(event.target.value)}
+                          placeholder="CI scanner"
+                        />
+                      </div>
+                    </label>
+                    <fieldset
+                      style={{
+                        border: 0,
+                        margin: "14px 0 0",
+                        padding: 0,
+                      }}
+                    >
+                      <legend
+                        style={{
+                          color: "var(--text-2)",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          marginBottom: 8,
+                        }}
+                      >
+                        Scopes
+                      </legend>
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: 10,
+                          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                        }}
+                      >
+                        {API_KEY_SCOPES.map((scope) => (
+                          <label
+                            key={scope.value}
+                            className="auth-field"
+                            style={{
+                              border: "1px solid var(--line)",
+                              borderRadius: 8,
+                              cursor: "pointer",
+                              gap: 6,
+                              padding: 10,
+                            }}
+                          >
+                            <span
+                              style={{
+                                alignItems: "center",
+                                color: "var(--text-1)",
+                                display: "flex",
+                                fontSize: 13,
+                                gap: 8,
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedScopes.includes(scope.value)}
+                                onChange={() => toggleScope(scope.value)}
+                              />
+                              <b>{scope.label}</b>
+                            </span>
+                            <span style={{ color: "var(--text-2)", fontSize: 12 }}>
+                              {scope.value}
+                            </span>
+                            <span style={{ color: "var(--text-3)", fontSize: 12 }}>
+                              {scope.description}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
                 </div>
-                <button className="btn primary" type="submit" disabled={pending === "create"} style={{ alignSelf: "flex-end" }}>
-                  {pending === "create" && (
-                    <span className="spin" style={{ display: "inline-block" }}>
-                      <I.Refresh size={14} />
-                    </span>
-                  )}
-                  <I.Plus size={14} /> Create key
-                </button>
+                <div
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    gap: 12,
+                    justifyContent: "space-between",
+                    marginTop: 14,
+                  }}
+                >
+                  <span className="sub">
+                    {selectedScopes.length} of {API_KEY_SCOPES.length} scopes selected
+                  </span>
+                  <button
+                    className="btn primary"
+                    type="submit"
+                    disabled={pending === "create"}
+                  >
+                    {pending === "create" && (
+                      <span className="spin" style={{ display: "inline-block" }}>
+                        <I.Refresh size={14} />
+                      </span>
+                    )}
+                    <I.Plus size={14} /> Create key
+                  </button>
+                </div>
               </form>
 
               <div className="bill-card" style={{ display: "block" }}>
@@ -634,7 +755,10 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                   </div>
                   <div className="docs-table-r">
                     <b>REST scopes</b>
-                    <span>repositories:read, scans:write, scans:read, quota:read</span>
+                    <span>
+                      Choose only the REST scopes each key needs: repositories:read,
+                      scans:write, scans:read, quota:read.
+                    </span>
                   </div>
                 </div>
               </div>
@@ -651,6 +775,11 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                       <div className="issue-meta">
                         <span className="tag">Created {formatDate(key.createdAt)}</span>
                         <span className="tag">Last used {formatDate(key.lastUsedAt)}</span>
+                        {key.scopes.map((scope) => (
+                          <span className="tag" key={scope}>
+                            {scope}
+                          </span>
+                        ))}
                       </div>
                     </div>
                     <button
