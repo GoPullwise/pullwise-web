@@ -3,6 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
+import { quotaResetText } from "../lib/quota-display.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
@@ -163,6 +164,7 @@ export function BillingScreen({
     remaining: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
     period: "",
   };
+  const usageResetText = quotaResetText(usage, "Monthly quota resets");
   const provider = providerLabel(plan?.provider);
   const billingEnabled = Boolean(plan?.enabled);
 
@@ -268,6 +270,7 @@ export function BillingScreen({
                     <div className="muted">
                       {accountName} - {usageText(usage)}
                     </div>
+                    {usageResetText && <div className="muted">{usageResetText}</div>}
                   </div>
                 </div>
                 <div className="billing-summary-meter">

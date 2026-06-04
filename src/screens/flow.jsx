@@ -13,6 +13,7 @@ import {
   useScanBatchRun,
   useScanRun,
 } from "../lib/pullwise-data.js";
+import { quotaResetText } from "../lib/quota-display.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function quotaNumber(value, fallback = 0) {
@@ -30,7 +31,8 @@ function repoQuotaLabel(quota) {
     : Math.max(0, limit - used);
   const scope = quota.scope === "user" ? "account" : "repo";
   if (!limit) return `${scope} quota unavailable`;
-  return `${remaining} of ${limit} ${scope} scans left`;
+  const reset = quotaResetText(quota);
+  return `${remaining} of ${limit} ${scope} scans left${reset ? ` - ${reset}` : ""}`;
 }
 
 function quotaRemaining(quota) {

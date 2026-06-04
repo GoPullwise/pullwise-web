@@ -172,12 +172,13 @@ describe("ReposScreen scan selection", () => {
   });
 
   it("shows repository quota before scanning", async () => {
+    const resetAt = Date.UTC(2026, 5, 1, 0, 0, 0) / 1000;
     useRepositories.mockReturnValue({
       items: [
         {
           ...repoAlpha,
           repoId: "repo_123",
-          quota: { scope: "repository", used: 1, limit: 3, remaining: 2 },
+          quota: { scope: "repository", used: 1, limit: 3, remaining: 2, resetAt },
         },
       ],
       installations: [],
@@ -192,6 +193,7 @@ describe("ReposScreen scan selection", () => {
 
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText(/2 of 3 repo scans left/i)).toBeInTheDocument();
+    expect(screen.getByText(/resets 2026-06-01 00:00 UTC/i)).toBeInTheDocument();
   });
 
   it("blocks selecting beyond the current account quota with a clear reason", async () => {

@@ -121,18 +121,20 @@ describe("BillingScreen", () => {
   });
 
   it("labels the account usage meter with the current plan instead of raw billing status", async () => {
+    const resetAt = Date.UTC(2026, 5, 1, 0, 0, 0) / 1000;
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {
         status: "none",
         plan: "free",
-        usage: { period: "2026-05", used: 2, limit: 5, remaining: 3 },
+        usage: { period: "2026-05", used: 2, limit: 5, remaining: 3, resetAt },
       },
     });
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     expect(await screen.findByText(/2 \/ 5 reviews used/)).toBeInTheDocument();
+    expect(screen.getByText(/Monthly quota resets 2026-06-01 00:00 UTC/i)).toBeInTheDocument();
     const usageTag = document.querySelector(".billing-summary-meter .tag");
     expect(usageTag).toHaveTextContent("Free");
     expect(usageTag).not.toHaveTextContent("none");
