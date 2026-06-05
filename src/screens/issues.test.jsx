@@ -187,6 +187,44 @@ describe("IssuesScreen list resilience", () => {
     });
     await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
   });
+
+  it("moves a fixed issue out of Open and into Fixed even before list reload catches up", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      status: "open",
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "fixed" });
+    useIssues.mockImplementation(({ status } = {}) => ({
+      items: status === "open" ? [issue] : [],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: {},
+    }));
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: /open issue f_123/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /mark fixed/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /open issue f_123/i })).not.toBeInTheDocument()
+    );
+
+    await user.click(screen.getByRole("button", { name: /^fixed$/i }));
+
+    expect(await screen.findByRole("button", { name: /open issue f_123/i })).toBeInTheDocument();
+  });
 });
 
 describe("HistoryScreen queue state", () => {
