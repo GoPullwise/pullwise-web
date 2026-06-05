@@ -40,7 +40,7 @@ describe("Topbar navigation", () => {
 
     go.mockClear();
     const breadcrumb = screen.getByRole("link", { name: /^go to pullwise$/i });
-    expect(breadcrumb).toHaveAttribute("href", "/dashboard");
+    expect(breadcrumb).toHaveAttribute("href", "/dashboard/overview");
     await user.click(breadcrumb);
 
     expect(go).toHaveBeenCalledWith("dashboard");
@@ -71,7 +71,7 @@ describe("Sidebar navigation", () => {
     const repoAccess = screen.getByRole("link", { name: /1 repositories/i });
 
     expect(screen.queryByRole("link", { name: /^workers$/i })).not.toBeInTheDocument();
-    expect(overview).toHaveAttribute("href", "/dashboard");
+    expect(overview).toHaveAttribute("href", "/dashboard/overview");
     expect(issues).toHaveAttribute("href", "/issues");
     expect(repositories).toHaveAttribute("href", "/repos");
     expect(history).toHaveAttribute("href", "/history");

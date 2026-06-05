@@ -349,6 +349,27 @@ function scanAuditSwarmSummary(scans) {
   };
 }
 
+function scanAiUsageSummary(scans) {
+  const usages = scans.map((scan) => scan?.aiUsage).filter(Boolean);
+  if (!usages.length) return null;
+  const models = uniqueStrings(usages.map((usage) => usage.model));
+  const totals = usages
+    .map((usage) => Number(usage.totalTokens))
+    .filter((count) => Number.isFinite(count) && count >= 0);
+  const usage = {};
+  if (models.length === 1) usage.model = models[0];
+  else if (models.length > 1) usage.model = `${models.length} models`;
+  if (totals.length) usage.totalTokens = totals.reduce((sum, count) => sum + Math.trunc(count), 0);
+  return usage.model || usage.totalTokens !== undefined ? usage : null;
+}
+
+function tokenUsageLabel(usage) {
+  const total = Number(usage?.totalTokens);
+  if (!Number.isFinite(total) || total < 0) return "";
+  const count = Math.trunc(total);
+  return `${count.toLocaleString()} tokens`;
+}
+
 function hasAuditSwarm(audit) {
   if (!audit) return false;
   const counts = audit.counts || {};
@@ -1166,50 +1187,66 @@ export function ReposScreen({
   );
 }
 
-const SCAN_PHASES = [
+const PRODUCTION_SCAN_PHASES = [
   {
     k: "clone",
     t_en: "Cloning repository",
     t_zh: "克隆仓库",
-    d_en: "Preparing working tree",
-    d_zh: "准备工作树",
+    d_en: "Checking out the requested ref",
+    d_zh: "检出请求的分支或 commit",
   },
   {
     k: "index",
-    t_en: "Building AST index",
-    t_zh: "构建 AST 索引",
-    d_en: "Parsing source files",
-    d_zh: "解析源代码",
+    t_en: "Repository preflight",
+    t_zh: "仓库预检",
+    d_en: "Capturing manifests, tools, and verifier output",
+    d_zh: "采集清单、工具版本和验证器输出",
   },
+  {
+    k: "ai",
+    t_en: "Audit Swarm review",
+    t_zh: "Audit Swarm 审计",
+    d_en: "Reviewer agents evaluate and verify candidates",
+    d_zh: "reviewer agents 评估并验证候选问题",
+  },
+  {
+    k: "report",
+    t_en: "Uploading report",
+    t_zh: "上传报告",
+    d_en: "Persisting findings and audit evidence",
+    d_zh: "保存 findings 和审计证据",
+  },
+];
+
+const LEGACY_SCAN_PHASES = [
+  ...PRODUCTION_SCAN_PHASES.slice(0, 2),
   {
     k: "secrets",
     t_en: "Scanning for secrets",
     t_zh: "扫描密钥泄露",
-    d_en: "Regex + entropy scan",
-    d_zh: "正则 + 熵值扫描",
+    d_en: "Legacy local scan phase",
+    d_zh: "旧版本地扫描阶段",
   },
   {
     k: "deps",
     t_en: "Analyzing dependencies",
     t_zh: "分析依赖",
-    d_en: "Reading lockfile",
-    d_zh: "读取 lockfile",
+    d_en: "Legacy local scan phase",
+    d_zh: "旧版本地扫描阶段",
   },
-  {
-    k: "ai",
-    t_en: "AI semantic review",
-    t_zh: "AI 语义 review",
-    d_en: "Agent reviewing repository",
-    d_zh: "agent 审查代码",
-  },
-  {
-    k: "report",
-    t_en: "Composing report",
-    t_zh: "生成报告",
-    d_en: "Merging signals",
-    d_zh: "合并扫描信号",
-  },
+  ...PRODUCTION_SCAN_PHASES.slice(2),
 ];
+
+const LEGACY_ONLY_SCAN_PHASE_KEYS = new Set(["secrets", "deps"]);
+const SCAN_PHASE_BY_KEY = new Map(LEGACY_SCAN_PHASES.map((phase) => [phase.k, phase]));
+
+function scanPhaseDefinition(phase) {
+  return SCAN_PHASE_BY_KEY.get(phase);
+}
+
+function scanPhasesForPhase(phase) {
+  return LEGACY_ONLY_SCAN_PHASE_KEYS.has(phase) ? LEGACY_SCAN_PHASES : PRODUCTION_SCAN_PHASES;
+}
 
 export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useLang();
@@ -1256,7 +1293,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useEffect(() => {
     const phase = scan?.phase;
     if (!phase) return;
-    const def = SCAN_PHASES.find((p) => p.k === phase);
+    const def = scanPhaseDefinition(phase);
     if (!def) return;
     setLogs((prev) => {
       const stamp = new Date().toLocaleTimeString();
@@ -1277,8 +1314,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     : typeof scan?.progress === "number"
       ? scan.progress
       : 0;
-  const currentPhase = scan?.phase || (status === "queued" ? null : "clone");
-  const phaseIdx = currentPhase ? SCAN_PHASES.findIndex((p) => p.k === currentPhase) : -1;
+  const currentPhase = scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
+  const scanPhases = scanPhasesForPhase(currentPhase);
+  const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.k === currentPhase) : -1;
   const found = batchMode
     ? scanIssueTotals(scans)
     : scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
@@ -1298,6 +1336,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
   const auditSwarm = scanAuditSwarmSummary(scans);
+  const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
+  const aiUsageTokens = tokenUsageLabel(aiUsage);
   const terminal = batchMode
     ? expectedBatchCount > 0 &&
       batchRows.length === expectedBatchCount &&
@@ -1425,8 +1465,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 {terminal && (
                   <>
                     <span className="scanning-actions-sep" aria-hidden="true" />
-                    <button className="btn primary" onClick={() => go("history")}>
-                      <I.List size={13} /> {T("History", "历史")}
+                    <button className="btn primary" onClick={() => go("dashboard")}>
+                      <I.Layout size={13} /> {T("Overview", "总览")}
                     </button>
                   </>
                 )}
@@ -1457,7 +1497,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 <span>{Math.floor(progress)}%</span>
                 <span>
                   {phaseIdx >= 0
-                    ? T(SCAN_PHASES[phaseIdx].t_en, SCAN_PHASES[phaseIdx].t_zh)
+                    ? T(scanPhases[phaseIdx].t_en, scanPhases[phaseIdx].t_zh)
                     : T("Queued", "队列中")}
                 </span>
               </div>
@@ -1479,7 +1519,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
             )}
 
             <div className="scanning-phases">
-              {SCAN_PHASES.map((p, i) => {
+              {scanPhases.map((p, i) => {
                 const isDone = phaseIdx > i || status === "done";
                 const isOn = phaseIdx === i && !terminal;
                 const cls = isDone ? " done" : isOn ? " on" : "";
@@ -1541,6 +1581,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <span>Low</span>
                 </div>
               </div>
+              {(aiUsage?.model || aiUsageTokens) && (
+                <>
+                  <div className="scanning-counts-h scanning-counts-subh">Model usage</div>
+                  <div className="scan-preflight-meta">
+                    {aiUsage?.model && <span className="tag">{aiUsage.model}</span>}
+                    {aiUsageTokens && <span className="tag">{aiUsageTokens}</span>}
+                  </div>
+                </>
+              )}
               <div className="scanning-counts-h scanning-counts-subh">Evidence status</div>
               <div className="scanning-counts-grid">
                 <div>

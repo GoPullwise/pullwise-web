@@ -24,7 +24,7 @@ describe("legal pages", () => {
 
     expect(screen.getByRole("link", { name: /^dashboard$/i })).toHaveAttribute(
       "href",
-      "/dashboard"
+      "/dashboard/overview"
     );
     expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();

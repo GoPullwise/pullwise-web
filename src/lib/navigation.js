@@ -4,7 +4,7 @@ const SCREEN_TO_PATH = {
   oauth: "/oauth",
   repos: "/repos",
   scanning: "/scanning",
-  dashboard: "/dashboard",
+  dashboard: "/dashboard/overview",
   issues: "/issues",
   issue: "/issues/detail",
   history: "/history",
@@ -24,6 +24,7 @@ const PATH_TO_SCREEN = {};
 for (const [screen, path] of Object.entries(SCREEN_TO_PATH)) {
   PATH_TO_SCREEN[path] = screen;
 }
+PATH_TO_SCREEN["/dashboard"] = "dashboard";
 
 export function screenHref(screen) {
   return SCREEN_TO_PATH[screen] || "/404";

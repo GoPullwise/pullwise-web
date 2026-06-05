@@ -43,7 +43,7 @@ describe("NotFoundScreen", () => {
 
     expect(screen.getByRole("link", { name: /^dashboard/i })).toHaveAttribute(
       "href",
-      "/dashboard"
+      "/dashboard/overview"
     );
     expect(screen.getByRole("link", { name: /^issues/i })).toHaveAttribute(
       "href",

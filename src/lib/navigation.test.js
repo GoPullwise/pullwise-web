@@ -51,3 +51,11 @@ describe("admin routes", () => {
     expect(pathFromScreen("workers")).toBe("/404");
   });
 });
+
+describe("dashboard routes", () => {
+  it("uses dashboard overview as the canonical dashboard path", () => {
+    expect(pathFromScreen("dashboard")).toBe("/dashboard/overview");
+    expect(screenFromPath("/dashboard/overview")).toBe("dashboard");
+    expect(screenFromPath("/dashboard")).toBe("dashboard");
+  });
+});

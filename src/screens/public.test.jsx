@@ -44,7 +44,7 @@ describe("public navigation links", () => {
     expect(within(header).getByRole("button", { name: /^sign out$/i })).toBeInTheDocument();
     expect(within(header).getByRole("link", { name: /^dashboard$/i })).toHaveAttribute(
       "href",
-      "/dashboard"
+      "/dashboard/overview"
     );
   });
 

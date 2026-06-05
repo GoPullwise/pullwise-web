@@ -531,6 +531,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Unverified")).toBeInTheDocument();
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
     expect(screen.getByText("168 tokens")).toBeInTheDocument();
+    expect(screen.queryByText("codex")).not.toBeInTheDocument();
     expect(screen.getByText("Candidate audit")).toBeInTheDocument();
     expect(screen.getByText("Candidates")).toBeInTheDocument();
     expect(screen.getByText("Reported")).toBeInTheDocument();
@@ -643,8 +644,8 @@ describe("ScanningScreen queue state", () => {
     expect(auditEvidence).toHaveClass("scanning-audit-inline");
     expect(auditEvidence.closest(".scanning-card")).toBeInTheDocument();
     expect(auditEvidence.closest(".scanning-side")).toBeNull();
-    expect(auditEvidence.previousElementSibling).toHaveTextContent("AI semantic review");
-    expect(auditEvidence.nextElementSibling).toHaveTextContent("Composing report");
+    expect(auditEvidence.previousElementSibling).toHaveTextContent("Audit Swarm review");
+    expect(auditEvidence.nextElementSibling).toHaveTextContent("Uploading report");
     expect(screen.getByText("audit-swarm/0.1")).toBeInTheDocument();
     expect(screen.getByText("stage report")).toBeInTheDocument();
     expect(screen.getByText("7 evidence blocks")).toBeInTheDocument();
@@ -788,7 +789,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText(/scan batch queued/i)).not.toBeInTheDocument();
     expect(screen.getByText(/1\/2 scans created, 1 not created/i)).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
-    expect(screen.getByRole("button", { name: /history/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /overview/i })).toBeInTheDocument();
   });
 
   it("returns terminal scans to scan history", async () => {
@@ -817,6 +818,34 @@ describe("ScanningScreen queue state", () => {
     await user.click(screen.getByRole("button", { name: /back/i }));
 
     expect(go).toHaveBeenCalledWith("history");
+  });
+
+  it("opens the dashboard overview from completed scans", async () => {
+    const go = vi.fn();
+    const user = userEvent.setup();
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        progress: 100,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={go}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /overview/i }));
+
+    expect(go).toHaveBeenCalledWith("dashboard");
   });
 
   it("returns active scans to history without cancelling them", async () => {
@@ -876,6 +905,38 @@ describe("ScanningScreen queue state", () => {
 
     expect(actionGroup).not.toBeNull();
     expect(cancel.closest(".scanning-actions")).toBe(actionGroup);
+  });
+
+  it("shows the production worker scan phases instead of legacy simulated phases", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "ai",
+        progress: 80,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const phases = document.querySelector(".scanning-phases");
+    expect(phases).not.toBeNull();
+    expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
+    expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
+    expect(within(phases).getByText("Audit Swarm review")).toBeInTheDocument();
+    expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
+    expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
+    expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
   });
 
   it("explains queued scans with queue position and capacity limits", () => {

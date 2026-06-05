@@ -82,6 +82,12 @@ function scanHistorySummary(scan) {
   return scan.status;
 }
 
+function scanAiUsageTokensLabel(usage) {
+  const total = Number(usage?.totalTokens);
+  if (!Number.isFinite(total) || total < 0) return "";
+  return `${Math.trunc(total).toLocaleString()} tokens`;
+}
+
 function DetailSection({ title, children, empty = "" }) {
   if (!children && !empty) return null;
   return (
@@ -1115,6 +1121,14 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                   )}
                   {!(scan.status === "queued" && scanQueueSummary(scan)) && (
                     <div className="muted">{scanHistorySummary(scan)}</div>
+                  )}
+                  {(scan.aiUsage?.model || scanAiUsageTokensLabel(scan.aiUsage)) && (
+                    <div className="scan-preflight-meta">
+                      {scan.aiUsage?.model && <span className="tag">{scan.aiUsage.model}</span>}
+                      {scanAiUsageTokensLabel(scan.aiUsage) && (
+                        <span className="tag">{scanAiUsageTokensLabel(scan.aiUsage)}</span>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="hist-meta">
