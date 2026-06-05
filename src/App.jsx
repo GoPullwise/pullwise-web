@@ -108,7 +108,9 @@ export function App({ prototypeNav = false }) {
   const [screen, setScreen] = useState(getInitialScreen);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
-  const [activeRepo, setActiveRepo] = useState(null);
+  const [activeRepo, setActiveRepo] = useState(
+    () => localStorageGet("pw-active-repo", null)
+  );
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const continuedRepositoryAuthorization = useRef(false);
@@ -252,6 +254,14 @@ export function App({ prototypeNav = false }) {
     document.documentElement.style.setProperty("--accent", ACCENT);
     localStorageSet("pw-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (activeRepo) {
+      localStorageSet("pw-active-repo", activeRepo);
+    } else {
+      localStorageSet("pw-active-repo", null);
+    }
+  }, [activeRepo]);
 
   useEffect(() => {
     if (auth.status !== "ready" || !auth.authenticated || screen !== "repos") return;

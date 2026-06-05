@@ -962,6 +962,7 @@
   flex-wrap: wrap;
   flex: 0 0 auto;
   margin-left: auto;
+  text-align: right;
 }
 
 .scanning-actions-sep {
