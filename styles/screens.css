@@ -936,9 +936,10 @@
 }
 .scanning-h {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
   margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 .scanning-icon {
   width: 44px;
@@ -963,6 +964,10 @@
   flex: 0 0 auto;
   margin-left: auto;
   text-align: right;
+}
+
+.scanning-actions .btn {
+  flex-shrink: 0;
 }
 
 .scanning-actions-sep {
@@ -1213,6 +1218,7 @@
 
 .scanning-audit-inline .audit-card-list {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
 }
 
 .audit-head {
