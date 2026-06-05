@@ -276,6 +276,7 @@ function scanAuditSwarmSummary(scans) {
   if (!audits.length) return null;
   const issueCards = audits.flatMap((audit) => audit.issueCards || []).slice(0, 8);
   const verificationResults = audits.flatMap((audit) => audit.verificationResults || []).slice(0, 12);
+  const evidenceBlocks = audits.flatMap((audit) => audit.evidenceBlocks || []).slice(0, 12);
   const counts = audits.reduce(
     (totals, audit) => {
       for (const key of Object.keys(totals)) {
@@ -286,6 +287,7 @@ function scanAuditSwarmSummary(scans) {
     {
       issueCards: 0,
       verificationResults: 0,
+      evidenceBlocks: 0,
       candidateCount: 0,
       reportedCount: 0,
       rejectedCount: 0,
@@ -300,6 +302,7 @@ function scanAuditSwarmSummary(scans) {
   );
   counts.issueCards = Math.max(counts.issueCards, issueCards.length);
   counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
+  counts.evidenceBlocks = Math.max(counts.evidenceBlocks, evidenceBlocks.length);
   const summaries = uniqueStrings(audits.map((audit) => audit.summary));
   return {
     protocol: uniqueStrings(audits.map((audit) => audit.protocol)).join(", "),
@@ -314,15 +317,15 @@ function scanAuditSwarmSummary(scans) {
     counts,
     roles: uniqueStrings([
       ...audits.flatMap((audit) => audit.roles || []),
-      ...issueCards.map((card) => card.agentRole),
-      ...verificationResults.map((result) => result.verifierRole),
+      ...evidenceBlocks.map((block) => block.role),
     ]).slice(0, 8),
     shards: uniqueStrings([
       ...audits.flatMap((audit) => audit.shards || []),
-      ...issueCards.map((card) => card.shardId),
+      ...evidenceBlocks.map((block) => block.shardId),
     ]).slice(0, 8),
-    issueCards,
-    verificationResults,
+    issueCards: [],
+    verificationResults: [],
+    evidenceBlocks,
   };
 }
 
@@ -335,21 +338,50 @@ function hasAuditSwarm(audit) {
       audit.summary ||
       audit.roles?.length ||
       audit.shards?.length ||
-      audit.issueCards?.length ||
-      audit.verificationResults?.length ||
+      audit.evidenceBlocks?.length ||
       Object.values(counts).some((value) => Number(value || 0) > 0)
   );
 }
 
-function auditSwarmLocation(card) {
-  const location = card?.locations?.[0] || {};
-  const file = card?.file || location.file || "";
-  const line = card?.line || location.startLine || "";
+function auditSwarmBlockLabel(kind) {
+  return (
+    {
+      summary: "Summary",
+      claim: "Claim",
+      code_location: "Code location",
+      evidence: "Evidence",
+      command: "Command",
+      verifier_verdict: "Verifier verdict",
+      false_positive_check: "False-positive check",
+      invariant: "Invariant",
+      risk: "Risk",
+    }[kind] || "Evidence"
+  );
+}
+
+function auditSwarmBlockLocation(block) {
+  const file = block?.file || "";
+  const line = block?.startLine || "";
   return file ? `${file}${line ? `:${line}` : ""}` : "";
 }
 
 function auditSwarmCountLabel(count, singular, plural = `${singular}s`) {
   return `${count || 0} ${count === 1 ? singular : plural}`;
+}
+
+function auditSwarmBlockMeta(block) {
+  const location = auditSwarmBlockLocation(block);
+  return uniqueStrings([
+    auditSwarmBlockLabel(block?.kind),
+    block?.severity,
+    block?.role,
+    block?.shardId ? `shard ${block.shardId}` : "",
+    block?.verdict,
+    block?.proofType,
+    block?.status,
+    location,
+    block?.confidence ? `${Math.round(Number(block.confidence) * 100)}% confidence` : "",
+  ]);
 }
 
 export function ReposScreen({
@@ -1159,29 +1191,39 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 </div>
               </div>
               <div className="scanning-actions">
-                <button className="btn ghost" onClick={handleBack}>
-                  <I.ArrowL size={13} /> {T("Back", "返回")}
-                </button>
+                <div className="scanning-actions-group">
+                  <button className="btn ghost" onClick={handleBack}>
+                    <I.ArrowL size={13} /> {T("Back", "返回")}
+                  </button>
+                  {canCancel && (
+                    <>
+                      <span className="scanning-actions-sep" aria-hidden="true" />
+                      <button className="btn ghost" onClick={handleCancel}>
+                        <I.X size={13} /> {T("Cancel", "取消")}
+                      </button>
+                    </>
+                  )}
+                </div>
                 {terminal && (
-                  <>
+                  <div className="scanning-actions-group scanning-actions-end">
                     {!batchMode && scan?.id && (
-                      <button className="btn ghost" disabled={bundleLoading} onClick={downloadAuditBundle}>
+                      <button
+                        className="btn ghost"
+                        disabled={bundleLoading}
+                        onClick={downloadAuditBundle}
+                      >
                         <I.Download size={13} />{" "}
                         {bundleLoading ? T("Preparing", "准备中") : T("Download audit zip", "下载审计 zip")}
                       </button>
                     )}
+                    <span className="scanning-actions-sep" aria-hidden="true" />
                     <button className="btn ghost" onClick={() => go("dashboard")}>
                       <I.Layout size={13} /> {T("Dashboard", "总览")}
                     </button>
                     <button className="btn primary" onClick={() => go("history")}>
                       <I.List size={13} /> {T("History", "历史")}
                     </button>
-                  </>
-                )}
-                {canCancel && (
-                  <button className="btn ghost" onClick={handleCancel}>
-                    <I.X size={13} /> {T("Cancel", "取消")}
-                  </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -1382,6 +1424,59 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                     <span>{auditSwarm.counts.staticProofCount} static proof</span>
                   )}
                 </div>
+                {auditSwarm.evidenceBlocks.length > 0 && (
+                  <div className="audit-section">
+                    <div className="audit-section-h">
+                      <span>{T("Evidence blocks", "Evidence blocks")}</span>
+                      <span className="audit-section-count">
+                        {auditSwarmCountLabel(auditSwarm.counts.evidenceBlocks, "evidence block")}
+                      </span>
+                    </div>
+                    <div className="audit-card-list">
+                      {auditSwarm.evidenceBlocks.slice(0, 8).map((block, index) => (
+                        <div
+                          key={block.id || `${block.kind}-${block.title}-${index}`}
+                          className="audit-card"
+                        >
+                          <div className="audit-card-title">
+                            {block.title || auditSwarmBlockLabel(block.kind)}
+                          </div>
+                          <div className="audit-card-meta">
+                            {auditSwarmBlockMeta(block).map((item) => (
+                              <span key={`${block.id || index}-${item}`}>{item}</span>
+                            ))}
+                          </div>
+                          {block.summary && (
+                            <div className="audit-card-row">
+                              <b>{T("Summary", "Summary")}</b>
+                              <span>{block.summary}</span>
+                            </div>
+                          )}
+                          {block.command && (
+                            <div className="audit-card-row">
+                              <b>{T("Command", "Command")}</b>
+                              <code className="tag evidence-command">{block.command}</code>
+                            </div>
+                          )}
+                          {block.items?.length > 0 && (
+                            <div className="audit-card-row">
+                              <b>{T("Details", "Details")}</b>
+                              <span>{block.items.join("; ")}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {auditSwarm.counts.evidenceBlocks > Math.min(auditSwarm.evidenceBlocks.length, 8) && (
+                      <div className="audit-card-more">
+                        {T(
+                          `+${auditSwarm.counts.evidenceBlocks - Math.min(auditSwarm.evidenceBlocks.length, 8)} more evidence blocks in the downloaded audit bundle`,
+                          `+${auditSwarm.counts.evidenceBlocks - Math.min(auditSwarm.evidenceBlocks.length, 8)} more evidence blocks in the downloaded audit bundle`
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {auditSwarm.issueCards.length > 0 && (
                   <div className="audit-section">
                     <div className="audit-section-h">

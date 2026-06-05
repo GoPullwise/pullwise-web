@@ -238,12 +238,6 @@ function EvidenceChain({ issue }) {
               )}
             </div>
           )}
-          {item.output && (
-            <details className="docs-code evidence-raw-output">
-              <summary>Raw output</summary>
-              <pre>{item.output}</pre>
-            </details>
-          )}
         </div>
       ))}
     </div>
@@ -1130,19 +1124,21 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                     {scan.by}
                   </div>
                 </div>
-                <button className="btn sm" onClick={() => viewScan(scan)}>
-                  {T("View", "查看")} <I.ArrowR size={11} />
-                </button>
-                <button
-                  className="btn sm"
-                  disabled={!["done", "failed", "cancelled"].includes(scan.status) || bundleLoading === scan.id}
-                  onClick={() => downloadAuditBundle(scan)}
-                  title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
-                  aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
-                >
-                  <I.Download size={11} />
-                  {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Download zip", "下载 zip")}
-                </button>
+                <div className="hist-actions">
+                  <button className="btn sm" onClick={() => viewScan(scan)}>
+                    {T("View", "查看")} <I.ArrowR size={11} />
+                  </button>
+                  <button
+                    className="btn sm"
+                    disabled={!["done", "failed", "cancelled"].includes(scan.status) || bundleLoading === scan.id}
+                    onClick={() => downloadAuditBundle(scan)}
+                    title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
+                    aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
+                  >
+                    <I.Download size={11} />
+                    {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Download zip", "下载 zip")}
+                  </button>
+                </div>
               </div>
             ))}
             {meta.hasMore && (
