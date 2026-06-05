@@ -22,6 +22,7 @@ import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
 const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
+const ACTIVE_REPO_STORAGE_KEY = "pw-active-repo";
 const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
@@ -55,6 +56,27 @@ function clearRepositoryAuthorizationRequest() {
 
 function shouldShowSessionCheck(screen) {
   return screen === "login" || !PUBLIC_SCREENS.has(screen);
+}
+
+function isObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isUsableActiveRepo(value) {
+  if (!isObject(value)) return false;
+  if (Array.isArray(value.selectedRepos)) return value.selectedRepos.length > 0;
+  return Boolean(value.scanId || value.repoId || value.fullName || value.name || value.repo);
+}
+
+function storedActiveRepo() {
+  const raw = localStorageGet(ACTIVE_REPO_STORAGE_KEY, null);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return isUsableActiveRepo(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function PrototypeNav({ go, current }) {
@@ -108,9 +130,7 @@ export function App({ prototypeNav = false }) {
   const [screen, setScreen] = useState(getInitialScreen);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
-  const [activeRepo, setActiveRepo] = useState(
-    () => localStorageGet("pw-active-repo", null)
-  );
+  const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const continuedRepositoryAuthorization = useRef(false);
@@ -257,9 +277,9 @@ export function App({ prototypeNav = false }) {
 
   useEffect(() => {
     if (activeRepo) {
-      localStorageSet("pw-active-repo", activeRepo);
+      localStorageSet(ACTIVE_REPO_STORAGE_KEY, JSON.stringify(activeRepo));
     } else {
-      localStorageSet("pw-active-repo", null);
+      localStorageSet(ACTIVE_REPO_STORAGE_KEY, null);
     }
   }, [activeRepo]);
 

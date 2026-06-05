@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { openGitHubInstallPopup } from "./install-popup.js";
+import { notifyOpenerAndClose, openGitHubInstallPopup } from "./install-popup.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -117,6 +117,7 @@ describe("openGitHubInstallPopup", () => {
     window.dispatchEvent(
       new MessageEvent("message", {
         origin: window.location.origin,
+        source: popup,
         data: {
           type: "pullwise:github-install",
           ok: true,
@@ -171,6 +172,7 @@ describe("openGitHubInstallPopup", () => {
     window.dispatchEvent(
       new MessageEvent("message", {
         origin: window.location.origin,
+        source: popup,
         data: {
           type: "pullwise:github-install",
           ok: false,
@@ -191,5 +193,73 @@ describe("openGitHubInstallPopup", () => {
     );
 
     expect(window.open).not.toHaveBeenCalled();
+  });
+
+  it("ignores same-origin install completion messages from windows other than the opened popup", () => {
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      focus: vi.fn(),
+    };
+    window.open.mockReturnValueOnce(popup);
+
+    openGitHubInstallPopup("https://github.com/apps/pullwise/installations/new");
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        source: window,
+        data: {
+          type: "pullwise:github-install",
+          ok: true,
+        },
+      })
+    );
+
+    expect(popup.close).not.toHaveBeenCalled();
+  });
+});
+
+describe("notifyOpenerAndClose", () => {
+  const originalName = window.name;
+  const originalOpener = window.opener;
+
+  afterEach(() => {
+    window.history.replaceState({}, "", "/");
+    window.name = originalName;
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: originalOpener,
+    });
+    vi.restoreAllMocks();
+  });
+
+  it("rejects external manage continuation URLs instead of redirecting the popup", () => {
+    const opener = {
+      postMessage: vi.fn(),
+      closed: false,
+    };
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: opener,
+    });
+    window.history.replaceState(
+      {},
+      "",
+      "/?github_manage_continue_url=https%3A%2F%2Fevil.example%2Fphish"
+    );
+    vi.spyOn(window, "close").mockImplementation(() => {});
+
+    notifyOpenerAndClose();
+
+    expect(opener.postMessage).toHaveBeenCalledWith(
+      {
+        type: "pullwise:github-install",
+        ok: false,
+        error: "invalid_manage_continue_url",
+        closeSyncReady: false,
+      },
+      window.location.origin
+    );
   });
 });

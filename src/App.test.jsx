@@ -21,7 +21,10 @@ vi.mock("./api/pullwise.js", () => ({
       sync: vi.fn(),
     },
     scans: {
+      create: vi.fn(),
+      get: vi.fn(),
       list: vi.fn(),
+      cancel: vi.fn(),
     },
     issues: {
       list: vi.fn(),
@@ -56,6 +59,24 @@ describe("App", () => {
     pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
     pullwiseApi.repositories.list.mockResolvedValue({ items: [] });
     pullwiseApi.repositories.sync.mockResolvedValue({ items: [] });
+    pullwiseApi.scans.create.mockResolvedValue({
+      id: "sc_created",
+      repo: "GoPullwise/pullwise-web",
+      branch: "main",
+      commit: "pending",
+      status: "queued",
+      phase: "clone",
+      progress: 0,
+    });
+    pullwiseApi.scans.get.mockResolvedValue({
+      id: "sc_created",
+      repo: "GoPullwise/pullwise-web",
+      branch: "main",
+      commit: "pending",
+      status: "queued",
+      phase: "clone",
+      progress: 0,
+    });
     pullwiseApi.scans.list.mockResolvedValue({ items: [] });
     pullwiseApi.issues.list.mockResolvedValue({ items: [] });
   });
@@ -93,6 +114,67 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
+  });
+
+  it("restores persisted scan context from JSON on the scanning route", async () => {
+    window.history.replaceState({}, "", "/scanning");
+    localStorage.setItem(
+      "pw-active-repo",
+      JSON.stringify({
+        scanId: "sc_restore",
+        fullName: "GoPullwise/pullwise-web",
+        name: "pullwise-web",
+        defaultBranch: "main",
+        commit: "abc123",
+        initialScan: {
+          id: "sc_restore",
+          repo: "GoPullwise/pullwise-web",
+          branch: "main",
+          commit: "abc123",
+          status: "running",
+          phase: "clone",
+          progress: 15,
+        },
+      })
+    );
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_restore",
+      repo: "GoPullwise/pullwise-web",
+      branch: "main",
+      commit: "abc123",
+      status: "done",
+      phase: "report",
+      progress: 100,
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_restore");
+    });
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+    expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
+  });
+
+  it("clears invalid persisted scan context instead of passing it to the scanning route", async () => {
+    window.history.replaceState({}, "", "/scanning");
+    localStorage.setItem("pw-active-repo", "[object Object]");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(localStorage.getItem("pw-active-repo")).toBeNull();
+    });
+    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
   it("renders the prototype navigator entry", () => {

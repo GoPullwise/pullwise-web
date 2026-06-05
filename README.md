@@ -49,8 +49,9 @@ http://localhost:5173/
 http://localhost:5173/review.html
 ```
 
-Use `/` for the normal product entry. Use `/review.html` for the built-in
-prototype navigator that can jump between all registered screens.
+Use `/` for the normal product entry. In local development only, use
+`/review.html` for the built-in prototype navigator that can jump between all
+registered screens. The production Vite build does not include `review.html`.
 
 ## Environment
 
@@ -97,9 +98,9 @@ npm run check     # lint, test, then build
 
 ```text
 index.html          Product entry
-review.html         Prototype navigator entry
+review.html         Local-development prototype navigator entry
 src/main.jsx        Vite entry for index.html
-src/review-main.jsx Vite entry for review.html
+src/review-main.jsx Local-development entry for review.html
 src/App.jsx         Screen router and app chrome
 src/app.css         Language/theme/prototype-nav chrome styles
 styles/*            Existing CSS
@@ -187,7 +188,10 @@ case set this on the backend:
 PULLWISE_TRUST_PROXY_HEADERS=true
 ```
 
-Only enable that flag behind a trusted proxy.
+Only enable that flag behind a trusted proxy. The Worker and Pages proxy strip
+client-supplied `Forwarded`, `X-Forwarded-*`, `X-Real-IP`, and provider client
+IP headers before setting the canonical `X-Forwarded-Proto`, `X-Forwarded-Host`,
+and `X-Forwarded-Prefix` values.
 
 ### Direct API Option
 

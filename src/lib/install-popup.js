@@ -21,6 +21,15 @@ function safePopupUrl(value) {
   throw new Error("A safe GitHub installation popup URL is required.");
 }
 
+function safeManageContinueUrl(value) {
+  const url = safePopupUrl(value);
+  const parsed = new URL(url);
+  const sameOrigin = parsed.origin === window.location.origin;
+  const trustedGitHub = parsed.protocol === "https:" && parsed.hostname === "github.com";
+  if (sameOrigin || trustedGitHub) return url;
+  throw new Error("A safe GitHub installation popup URL is required.");
+}
+
 export class GitHubInstallCancelled extends Error {
   constructor() {
     super("GitHub installation was cancelled.");
@@ -47,7 +56,7 @@ export function notifyOpenerAndClose() {
   let continueUrl = "";
   if (!githubError && params.get("github_manage_continue_url")) {
     try {
-      continueUrl = safePopupUrl(params.get("github_manage_continue_url"));
+      continueUrl = safeManageContinueUrl(params.get("github_manage_continue_url"));
     } catch {
       githubError = "invalid_manage_continue_url";
     }
@@ -99,6 +108,7 @@ export function openGitHubInstallPopup(url, syncPayload) {
 
     const onMessage = (event) => {
       if (event.origin !== window.location.origin) return;
+      if (event.source !== popup) return;
       const data = event.data;
       if (!data || data.type !== MESSAGE_TYPE) return;
       if (data.ok && data.closeSyncReady) {

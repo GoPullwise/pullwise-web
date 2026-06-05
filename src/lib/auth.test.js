@@ -34,6 +34,11 @@ function redirectScreen(call) {
   return new URL(redirectTo).searchParams.get("screen");
 }
 
+function redirectPath(call) {
+  const redirectTo = call[0].redirectTo;
+  return new URL(redirectTo).pathname;
+}
+
 function redirectParam(call, name) {
   const redirectTo = call[0].redirectTo;
   return new URL(redirectTo).searchParams.get(name);
@@ -50,7 +55,9 @@ describe("auth redirects", () => {
 
     await expect(startGitHubLogin()).rejects.toThrow("stop");
 
-    expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("dashboard");
+    const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
+    expect(redirectPath(call)).toBe("/dashboard/overview");
+    expect(redirectScreen(call)).toBeNull();
   });
 
   it("keeps repository authorization scoped to the repositories flow", async () => {
@@ -58,9 +65,9 @@ describe("auth redirects", () => {
 
     await expect(connectGitHubRepositories()).rejects.toThrow("stop");
 
-    expect(redirectScreen(pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0])).toBe(
-      "repos"
-    );
+    const call = pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0];
+    expect(redirectPath(call)).toBe("/repos");
+    expect(redirectScreen(call)).toBeNull();
   });
 
   it("starts GitHub login first when repository authorization requires a GitHub identity", async () => {
@@ -73,10 +80,10 @@ describe("auth redirects", () => {
 
     await expect(connectGitHubRepositories()).rejects.toThrow("login-started");
 
-    expect(redirectScreen(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0])).toBe("repos");
-    expect(redirectParam(pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0], "repoAuth")).toBe(
-      "1"
-    );
+    const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
+    expect(redirectPath(call)).toBe("/repos");
+    expect(redirectScreen(call)).toBeNull();
+    expect(redirectParam(call, "repoAuth")).toBe("1");
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 

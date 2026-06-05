@@ -4,17 +4,19 @@ import {
   markGitHubRepositoryAccessRefreshNeeded,
 } from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
+import { pathFromScreen } from "./navigation.js";
 
 function getScreenRedirectUrl(screen) {
   const redirectUrl = new URL(window.location.href);
-  redirectUrl.searchParams.set("screen", screen);
+  redirectUrl.pathname = pathFromScreen(screen);
+  redirectUrl.search = "";
   redirectUrl.hash = "";
   return redirectUrl.toString();
 }
 
 function getRepositoryRedirectUrl(redirectTo) {
   const redirectUrl = new URL(redirectTo || getScreenRedirectUrl("repos"));
-  redirectUrl.searchParams.set("screen", "repos");
+  redirectUrl.pathname = pathFromScreen("repos");
   return redirectUrl.toString();
 }
 
