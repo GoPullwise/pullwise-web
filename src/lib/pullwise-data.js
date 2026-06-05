@@ -1000,11 +1000,30 @@ function listParams({ limit, offset, status, severity, q, scanId, repo } = {}) {
   return params;
 }
 
-export function useIssues({ limit = 50, status = "", severity = "", q = "", scanId = "" } = {}) {
+const ISSUES_CHANGED_EVENT = "pullwise:issues-changed";
+
+export function notifyIssuesChanged(detail = {}) {
+  if (typeof window === "undefined" || typeof window.dispatchEvent !== "function") return;
+  window.dispatchEvent(new CustomEvent(ISSUES_CHANGED_EVENT, { detail }));
+}
+
+export function useIssues({
+  limit = 50,
+  status = "",
+  severity = "",
+  q = "",
+  scanId = "",
+  refreshOnChange = true,
+} = {}) {
   const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
 
-  const load = useCallback(async ({ append = false, offset = 0 } = {}) => {
-    setState((current) => ({ ...current, loading: append ? current.loading : true, loadingMore: append, error: "" }));
+  const load = useCallback(async ({ append = false, offset = 0, quiet = false } = {}) => {
+    setState((current) => ({
+      ...current,
+      loading: append || quiet ? current.loading : true,
+      loadingMore: append,
+      error: "",
+    }));
     try {
       const payload = await pullwiseApi.issues.list(listParams({ limit, offset, status, severity, q, scanId }));
       const nextItems = itemsFrom(payload, "items", "issues").map(normalizeIssue);
@@ -1029,6 +1048,15 @@ export function useIssues({ limit = 50, status = "", severity = "", q = "", scan
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!refreshOnChange || typeof window === "undefined") return undefined;
+    const handleIssuesChanged = () => {
+      load({ quiet: true });
+    };
+    window.addEventListener(ISSUES_CHANGED_EVENT, handleIssuesChanged);
+    return () => window.removeEventListener(ISSUES_CHANGED_EVENT, handleIssuesChanged);
+  }, [load, refreshOnChange]);
 
   const loadMore = useCallback(() => {
     if (!state.meta.hasMore || state.loadingMore) return;

@@ -89,6 +89,18 @@ describe("Sidebar navigation", () => {
     expect(go).toHaveBeenCalledWith("repos");
   });
 
+  it("uses the server-filtered open issue total for the issues badge", () => {
+    useIssues.mockReturnValue({
+      items: [{ id: "f_1", status: "open" }],
+      meta: { total: 12 },
+    });
+
+    render(<Sidebar section="dashboard" go={vi.fn()} />);
+
+    expect(useIssues).toHaveBeenCalledWith({ status: "open", limit: 1 });
+    expect(screen.getByText("12")).toBeInTheDocument();
+  });
+
   it("keeps repository connection as an action when no repositories are linked", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

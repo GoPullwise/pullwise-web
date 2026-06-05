@@ -329,6 +329,31 @@ describe("useIssues", () => {
       scanId: "sc_1",
     });
   });
+
+  it("reloads issue lists when issue data changes", async () => {
+    pullwiseApi.issues.list
+      .mockResolvedValueOnce({
+        items: [{ id: "iss_1", status: "open", severity: "high" }],
+        total: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [],
+        total: 0,
+      });
+
+    const { result, unmount } = renderHook(() => useIssues({ status: "open", limit: 1 }));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent("pullwise:issues-changed"));
+    });
+
+    await waitFor(() => expect(pullwiseApi.issues.list).toHaveBeenCalledTimes(2));
+    expect(result.current.items).toHaveLength(0);
+
+    unmount();
+  });
 });
 
 describe("normalizeIssue", () => {

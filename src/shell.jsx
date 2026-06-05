@@ -235,9 +235,11 @@ function SearchModal({ close, go, setIssue }) {
 export function Sidebar({ section, go }) {
   useLang();
   const { items: repos } = useRepositories();
-  const { items: issues } = useIssues();
+  const { items: issues, meta: issueMeta = {} } = useIssues({ status: "open", limit: 1 });
   const [connecting, setConnecting] = React.useState(false);
-  const openIssueCount = issues.filter((issue) => issue.status === "open").length;
+  const openIssueCount = Number.isFinite(Number(issueMeta.total))
+    ? Number(issueMeta.total)
+    : issues.length;
   const connectRepositories = async () => {
     if (connecting) return;
     setConnecting(true);

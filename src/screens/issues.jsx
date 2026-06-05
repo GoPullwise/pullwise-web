@@ -9,6 +9,7 @@ import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-a
 import { screenLinkProps } from "../lib/navigation.js";
 import {
   normalizeIssuePullRequest,
+  notifyIssuesChanged,
   scanQueueSummary,
   useIssues,
   useScans,
@@ -385,6 +386,8 @@ export function IssuesScreen({ go, setIssue }) {
   const [status, setStatus] = useState("open");
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState("severity");
+  const [statusUpdating, setStatusUpdating] = useState({});
+  const statusUpdatingRef = useRef(new Set());
   const query = q.trim();
   const {
     items: all,
@@ -394,13 +397,26 @@ export function IssuesScreen({ go, setIssue }) {
     reload,
     loadMore,
     meta = {},
-  } = useIssues({ status, severity: sev, q: query, limit: 50 });
+  } = useIssues({ status, severity: sev, q: query, limit: 50, refreshOnChange: false });
   const filtered = sortIssues(all, sortBy);
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 
   const updateStatus = async (issue, nextStatus) => {
-    await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
-    await reload();
+    if (statusUpdatingRef.current.has(issue.id)) return;
+    statusUpdatingRef.current.add(issue.id);
+    setStatusUpdating((current) => ({ ...current, [issue.id]: true }));
+    try {
+      await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
+      await reload();
+      notifyIssuesChanged({ issueId: issue.id, status: nextStatus });
+    } finally {
+      statusUpdatingRef.current.delete(issue.id);
+      setStatusUpdating((current) => {
+        const next = { ...current };
+        delete next[issue.id];
+        return next;
+      });
+    }
   };
   const openIssue = (issue) => {
     setIssue(issue);
@@ -508,6 +524,7 @@ export function IssuesScreen({ go, setIssue }) {
               </div>
             )}
             {filtered.map((issue) => {
+              const updatingStatus = Boolean(statusUpdating[issue.id]);
               return (
                 <div key={issue.id} className="issues-trow">
                   <div></div>
@@ -547,13 +564,18 @@ export function IssuesScreen({ go, setIssue }) {
                   </div>
                   <div className="issues-row-actions">
                     {issue.status === "open" && (
-                      <button className="btn sm" onClick={() => updateStatus(issue, "snoozed")}>
+                      <button
+                        className="btn sm"
+                        disabled={updatingStatus}
+                        onClick={() => updateStatus(issue, "snoozed")}
+                      >
                         {T("Snooze", "推迟")}
                       </button>
                     )}
                     {issue.status !== "fixed" && (
                       <button
                         className="btn sm primary"
+                        disabled={updatingStatus}
                         onClick={() => updateStatus(issue, "fixed")}
                       >
                         {T("Mark fixed", "标记已修复")}
@@ -594,6 +616,8 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const [fixPreview, setFixPreview] = useState(null);
   const [pullRequest, setPullRequest] = useState(issuePullRequestState(issue));
   const [fixLoading, setFixLoading] = useState("");
+  const [statusLoading, setStatusLoading] = useState("");
+  const statusRequestRef = useRef(false);
   const fixRequestRef = useRef(0);
 
   useEffect(() => {
@@ -603,8 +627,11 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     setFixPreview(null);
     setPullRequest(issuePullRequestState(issue));
     setFixLoading("");
+    setStatusLoading("");
+    statusRequestRef.current = false;
     return () => {
       fixRequestRef.current += 1;
+      statusRequestRef.current = false;
     };
   }, [issue]);
 
@@ -632,12 +659,21 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   }
 
   const updateStatus = async (nextStatus) => {
+    if (statusRequestRef.current) return;
+    statusRequestRef.current = true;
     setActionError("");
+    setStatusLoading(nextStatus);
     try {
       const updated = await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
-      setCurrentStatus(updated?.status || nextStatus);
+      const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
+      setCurrentStatus(mergedIssue.status);
+      if (typeof setIssue === "function") setIssue(mergedIssue);
+      notifyIssuesChanged({ issueId: issue.id, status: mergedIssue.status });
     } catch (error) {
       setActionError(error?.message || "Unable to update issue status.");
+    } finally {
+      statusRequestRef.current = false;
+      setStatusLoading("");
     }
   };
   const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
@@ -935,15 +971,27 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
               )}
               {currentStatus === "open" ? (
                 <div className="issue-action-row">
-                  <button className="btn sm primary" onClick={() => updateStatus("fixed")}>
+                  <button
+                    className="btn sm primary"
+                    disabled={Boolean(statusLoading)}
+                    onClick={() => updateStatus("fixed")}
+                  >
                     <I.Check size={13} /> Mark fixed
                   </button>
-                  <button className="btn sm" onClick={() => updateStatus("snoozed")}>
+                  <button
+                    className="btn sm"
+                    disabled={Boolean(statusLoading)}
+                    onClick={() => updateStatus("snoozed")}
+                  >
                     <I.Clock size={13} /> Snooze
                   </button>
                 </div>
               ) : (
-                <button className="btn sm" onClick={() => updateStatus("open")}>
+                <button
+                  className="btn sm"
+                  disabled={Boolean(statusLoading)}
+                  onClick={() => updateStatus("open")}
+                >
                   <I.Refresh size={13} /> Reopen
                 </button>
               )}

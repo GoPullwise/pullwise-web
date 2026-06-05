@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
@@ -145,6 +145,47 @@ describe("IssuesScreen list resilience", () => {
 
     expect(setIssue).toHaveBeenCalledWith(issue);
     expect(go).toHaveBeenCalledWith("issue");
+  });
+
+  it("does not submit concurrent status updates from the list actions", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      status: "open",
+    };
+    const reload = vi.fn();
+    let resolveUpdate;
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+    useIssues.mockReturnValue({
+      items: [issue],
+      loading: false,
+      error: "",
+      reload,
+      meta: {},
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    const markFixed = screen.getByRole("button", { name: /mark fixed/i });
+    await user.dblClick(markFixed);
+
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(1);
+    expect(markFixed).toBeDisabled();
+
+    await act(async () => {
+      resolveUpdate({ ...issue, status: "fixed" });
+    });
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
   });
 });
 
@@ -493,6 +534,60 @@ describe("IssueDetailScreen review detail", () => {
     expect(screen.getByRole("button", { name: /snooze/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /preview fix/i })).toBeEnabled();
     expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
+  });
+
+  it("does not submit concurrent status updates from detail actions", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      status: "open",
+    };
+    let resolveUpdate;
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
+
+    const markFixed = screen.getByRole("button", { name: /mark fixed/i });
+    await user.dblClick(markFixed);
+
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(1);
+    expect(markFixed).toBeDisabled();
+
+    await act(async () => {
+      resolveUpdate({ ...issue, status: "fixed" });
+    });
+  });
+
+  it("syncs the selected issue after a detail status update", async () => {
+    const user = userEvent.setup();
+    const setIssue = vi.fn();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      status: "open",
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "fixed" });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={setIssue} />);
+
+    await user.click(screen.getByRole("button", { name: /mark fixed/i }));
+
+    await waitFor(() =>
+      expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123", status: "fixed" }))
+    );
   });
 
   it("previews an auto-fix and then opens a pull request", async () => {
