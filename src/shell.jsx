@@ -30,7 +30,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
           aria-label="Go to Pullwise home"
           {...screenLinkProps(go, "landing")}
         >
-          <img className="brand-mark" src="/favicon.png" alt="" aria-hidden="true" />
+          <img className="brand-mark" src="/favicon.png" alt="" aria-hidden="true" width="24" height="24" />
           <span>Pullwise</span>
         </a>
         {breadcrumbs && (
