@@ -752,6 +752,26 @@ describe("normalizeIssue", () => {
     });
   });
 
+  it("normalizes scan AI model and token usage metadata", () => {
+    expect(
+      normalizeScan({
+        id: "sc_1",
+        ai_usage: {
+          provider: "codex",
+          model: "gpt-5.5",
+          input_tokens: "123",
+          outputTokens: 45.8,
+          total_tokens: "168",
+        },
+      }).aiUsage
+    ).toEqual({
+      model: "gpt-5.5",
+      inputTokens: 123,
+      outputTokens: 45,
+      totalTokens: 168,
+    });
+  });
+
   it("normalizes scan verification counts for evidence summaries", () => {
     expect(
       normalizeScan({

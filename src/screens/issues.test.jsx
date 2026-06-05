@@ -219,7 +219,6 @@ describe("HistoryScreen queue state", () => {
     render(<HistoryScreen go={go} openScan={openScan} />);
 
     await user.click(screen.getByRole("button", { name: /^view\b/i }));
-
     expect(openScan).toHaveBeenCalledWith(scan);
     expect(go).not.toHaveBeenCalledWith("dashboard");
   });
@@ -237,6 +236,12 @@ describe("HistoryScreen queue state", () => {
       time: "now",
       by: "you",
       issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
+      aiUsage: {
+        model: "gpt-5.5",
+        inputTokens: 123,
+        outputTokens: 45,
+        totalTokens: 168,
+      },
       verificationAudit: { rejectedCount: 2, downgradedCount: 1 },
     };
     useScans.mockReturnValue({
@@ -248,6 +253,8 @@ describe("HistoryScreen queue state", () => {
     render(<HistoryScreen go={go} openScan={openScan} />);
 
     await user.click(screen.getByRole("button", { name: /^view\b/i }));
+    expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
+    expect(screen.getByText("168 tokens")).toBeInTheDocument();
 
     expect(screen.getByText("1 issues · 2 rejected · 1 downgraded")).toBeInTheDocument();
     expect(openScan).toHaveBeenCalledWith(scan);

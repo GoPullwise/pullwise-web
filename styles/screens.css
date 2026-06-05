@@ -927,7 +927,7 @@
 /* ── Scanning ─────────────────────────────────────────────── */
 .scanning {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: minmax(0, 1fr) 240px;
   gap: 20px;
 }
 .scanning-card {

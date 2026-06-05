@@ -494,6 +494,13 @@ describe("ScanningScreen queue state", () => {
         progress: 100,
         issues: { critical: 0, high: 1, medium: 0, low: 0 },
         verification: { verified: 1, static_proof: 2, potential_risk: 3, unverified: 4 },
+        aiUsage: {
+          provider: "codex",
+          model: "gpt-5.5",
+          inputTokens: 123,
+          outputTokens: 45,
+          totalTokens: 168,
+        },
         verificationAudit: {
           candidateCount: 6,
           reportedCount: 4,
@@ -522,6 +529,8 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Static")).toBeInTheDocument();
     expect(screen.getByText("Risk")).toBeInTheDocument();
     expect(screen.getByText("Unverified")).toBeInTheDocument();
+    expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
+    expect(screen.getByText("168 tokens")).toBeInTheDocument();
     expect(screen.getByText("Candidate audit")).toBeInTheDocument();
     expect(screen.getByText("Candidates")).toBeInTheDocument();
     expect(screen.getByText("Reported")).toBeInTheDocument();
