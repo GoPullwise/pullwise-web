@@ -7,6 +7,10 @@
     {
       "pattern": "pull-wise.com",
       "custom_domain": true
+    },
+    {
+      "pattern": "www.pull-wise.com",
+      "custom_domain": true
     }
   ],
   "assets": {
