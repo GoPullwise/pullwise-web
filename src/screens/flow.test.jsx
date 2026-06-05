@@ -860,66 +860,6 @@ describe("ScanningScreen queue state", () => {
     expect(cancel.closest(".scanning-actions")).toBe(actionGroup);
   });
 
-  it("downloads the audit bundle from a completed single scan", async () => {
-    const user = userEvent.setup();
-    const createObjectURL = vi.fn(() => "blob:pullwise-scan-audit");
-    const revokeObjectURL = vi.fn();
-    const originalCreateObjectURL = URL.createObjectURL;
-    const originalRevokeObjectURL = URL.revokeObjectURL;
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    pullwiseApi.scans.auditBundleArchive.mockResolvedValueOnce(
-      new Blob(["zip"], { type: "application/zip" })
-    );
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_done",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "abc123",
-        status: "done",
-        progress: 100,
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
-    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
-
-    try {
-      render(
-        <ScanningScreen
-          go={vi.fn()}
-          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
-        />
-      );
-
-      await user.click(screen.getByRole("button", { name: /audit zip/i }));
-
-      expect(pullwiseApi.scans.auditBundleArchive).toHaveBeenCalledWith("sc_done");
-      expect(createObjectURL).toHaveBeenCalledTimes(1);
-      expect(click).toHaveBeenCalledTimes(1);
-      expect(revokeObjectURL).toHaveBeenCalledWith("blob:pullwise-scan-audit");
-    } finally {
-      if (originalCreateObjectURL) {
-        Object.defineProperty(URL, "createObjectURL", {
-          configurable: true,
-          value: originalCreateObjectURL,
-        });
-      } else {
-        delete URL.createObjectURL;
-      }
-      if (originalRevokeObjectURL) {
-        Object.defineProperty(URL, "revokeObjectURL", {
-          configurable: true,
-          value: originalRevokeObjectURL,
-        });
-      } else {
-        delete URL.revokeObjectURL;
-      }
-      click.mockRestore();
-    }
-  });
-
   it("explains queued scans with queue position and capacity limits", () => {
     useScanRun.mockReturnValue({
       scan: {

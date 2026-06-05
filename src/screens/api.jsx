@@ -3,6 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
+import { PublicHeader } from "./public-layout.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function itemsFrom(payload, ...keys) {
@@ -94,44 +95,6 @@ function createdApiKeyToken(payload) {
   );
 }
 
-function MarketingHeader({ go, auth }) {
-  const signedIn = Boolean(auth?.authenticated);
-  return (
-    <header className="lp-top">
-      <a
-        className="brand topbar-brand-button"
-        aria-label="Go to Pullwise home"
-        {...screenLinkProps(go, "landing")}
-      >
-        <div className="brand-mark">PR</div>
-        <span>Pullwise</span>
-      </a>
-      <nav className="lp-nav">
-        <a className="btn ghost sm" {...screenLinkProps(go, "landing")}>
-          {T("Product", "Product")}
-        </a>
-        <a className="btn ghost sm" {...screenLinkProps(go, "pricing")}>
-          {T("Pricing", "Pricing")}
-        </a>
-        <a className="btn ghost sm" {...screenLinkProps(go, "api")}>
-          {T("API", "API")}
-        </a>
-      </nav>
-      <div style={{ display: "flex", gap: 8 }}>
-        {signedIn ? (
-          <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
-            {T("Dashboard", "Dashboard")}
-          </a>
-        ) : (
-          <a className="btn primary sm" {...screenLinkProps(go, "login")}>
-            {T("Sign in", "Sign in")}
-          </a>
-        )}
-      </div>
-    </header>
-  );
-}
-
 function DocsCode({ title, children }) {
   return (
     <div className="docs-code">
@@ -209,7 +172,7 @@ export function ApiDocsScreen({ go, auth }) {
 
   return (
     <div className="landing fade-in">
-      <MarketingHeader go={go} auth={auth} />
+      <PublicHeader go={go} current="api" auth={auth} />
       <div className="docs-shell">
         <aside className="docs-side">
           <div className="docs-side-g">

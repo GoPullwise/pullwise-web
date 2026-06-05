@@ -76,6 +76,45 @@ describe("BillingScreen", () => {
     });
   });
 
+  it("lets an admin start Pro even when provider billing is disabled", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      enabled: false,
+      provider: "disabled",
+      plans: [
+        billingCatalog.plans[0],
+        {
+          ...billingCatalog.plans[1],
+          prices: {
+            month: { amount: "29", currency: "USD", interval: "month", configured: false },
+            year: { amount: "290", currency: "USD", interval: "year", configured: false },
+          },
+        },
+      ],
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "admin",
+      granted: true,
+      url: "https://app.pullwise.dev/?screen=pricing&billing=success",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true, admin: true }} navigate={navigate} />);
+
+    const startPro = await screen.findByRole("button", { name: /start pro/i });
+    expect(startPro).not.toBeDisabled();
+    await user.click(startPro);
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(
+        expect.objectContaining({ plan: "pro", interval: "month" })
+      );
+      expect(navigate).toHaveBeenCalledWith("https://app.pullwise.dev/?screen=pricing&billing=success");
+    });
+  });
+
   it("exposes billing legal side navigation as real screen links", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

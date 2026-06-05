@@ -345,6 +345,7 @@ export function PricingScreen({
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const signedIn = Boolean(auth?.authenticated);
+  const adminBypass = signedIn && Boolean(auth?.admin);
 
   useEffect(() => {
     let cancelled = false;
@@ -406,6 +407,7 @@ export function PricingScreen({
   const selectedProPrice = priceFor(proPlan, interval);
   const billingEnabled = Boolean(plan?.enabled);
   const proConfigured = Boolean(selectedProPrice?.configured);
+  const canStartPro = adminBypass || (billingEnabled && proConfigured);
 
   const startCheckout = async () => {
     if (!signedIn) {
@@ -497,7 +499,7 @@ export function PricingScreen({
               ) : (
                 <button
                   className="btn primary"
-                  disabled={!billingEnabled || !proConfigured || Boolean(pendingAction)}
+                  disabled={!canStartPro || Boolean(pendingAction)}
                   onClick={startCheckout}
                 >
                   {pendingAction === "checkout" && (

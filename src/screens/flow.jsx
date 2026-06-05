@@ -986,7 +986,6 @@ const SCAN_PHASES = [
 export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
-  const [bundleLoading, setBundleLoading] = useState(false);
   const selectedRepos = useMemo(
     () => (Array.isArray(activeRepo?.selectedRepos) ? activeRepo.selectedRepos : []),
     [activeRepo?.selectedRepos]
@@ -1088,18 +1087,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   };
   const handleBack = () => {
     go("history");
-  };
-  const downloadAuditBundle = async () => {
-    if (!scan?.id || bundleLoading) return;
-    setBundleLoading(true);
-    try {
-      const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
-      downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
-    } catch (downloadError) {
-      globalThis.alert?.(downloadError?.message || "Unable to download audit bundle.");
-    } finally {
-      setBundleLoading(false);
-    }
   };
 
   const headerLabel =
@@ -1205,20 +1192,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 {terminal && (
                   <>
                     <span className="scanning-actions-sep" aria-hidden="true" />
-                    {!batchMode && scan?.id && (
-                      <button
-                        className="btn ghost"
-                        disabled={bundleLoading}
-                        onClick={downloadAuditBundle}
-                      >
-                        <I.Download size={13} />{" "}
-                        {bundleLoading ? T("Preparing", "准备中") : T("Download audit zip", "下载审计 zip")}
-                      </button>
-                    )}
-                    <span className="scanning-actions-sep" aria-hidden="true" />
-                    <button className="btn ghost" onClick={() => go("dashboard")}>
-                      <I.Layout size={13} /> {T("Dashboard", "总览")}
-                    </button>
                     <button className="btn primary" onClick={() => go("history")}>
                       <I.List size={13} /> {T("History", "历史")}
                     </button>
