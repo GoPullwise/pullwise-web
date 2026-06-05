@@ -416,6 +416,13 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
 
   const rootClassName = ["scanning-audit", className].filter(Boolean).join(" ");
   const visibleEvidenceCount = Math.min(auditSwarm.evidenceBlocks.length, 8);
+  const stats = [
+    { key: "candidates", value: auditSwarm.counts.candidateCount, label: "Candidates" },
+    { key: "reported", value: auditSwarm.counts.reportedCount, label: "Reported" },
+    { key: "rejected", value: auditSwarm.counts.rejectedCount, label: "Rejected" },
+    { key: "verified", value: auditSwarm.counts.verifiedCount, label: "Verified" },
+  ].filter((s) => typeof s.value === "number");
+  const showStats = stats.some((s) => s.value > 0);
 
   return (
     <div className={rootClassName}>
@@ -443,7 +450,20 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
           </span>
         ))}
       </div>
-      <div className="scan-preflight-meta">
+      {showStats && (
+        <div className="audit-stat-strip">
+          {stats.map((s) => (
+            <div
+              key={s.key}
+              className={"audit-stat" + (s.value > 0 ? "" : " audit-stat-empty")}
+            >
+              <b>{s.value}</b>
+              <span>{s.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="scan-preflight-meta audit-meta-fallback">
         {auditSwarm.counts.candidateCount > 0 && (
           <span>{auditSwarm.counts.candidateCount} candidates evaluated</span>
         )}
@@ -1340,7 +1360,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
       <div className="main narrow" style={{ margin: "0 auto" }}>
         <div className="scanning">
           <div className="scanning-card card">
-            <div className={"scanning-h" + (terminal ? " scanning-h-terminal" : "")}>
+            <div className="scanning-h">
               <div className="scanning-icon">{headerIcon}</div>
               <div className="scanning-copy">
                 <div className="scanning-title">
@@ -1608,10 +1628,16 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                     <span key={`env-${item}`}>{item}</span>
                   ))}
                   <span>{preflight.verifierRuns || 0} verifier runs</span>
-                  {preflight.verifierFailed > 0 && <span>{preflight.verifierFailed} failed</span>}
-                  {preflight.verifierFlaky > 0 && <span>{preflight.verifierFlaky} flaky</span>}
+                  {preflight.verifierFailed > 0 && (
+                    <span className="preflight-warn">{preflight.verifierFailed} failed</span>
+                  )}
+                  {preflight.verifierFlaky > 0 && (
+                    <span className="preflight-warn">{preflight.verifierFlaky} flaky</span>
+                  )}
                   {preflight.verifierTimeout > 0 && (
-                    <span>{preflight.verifierTimeout} timed out</span>
+                    <span className="preflight-warn">
+                      {preflight.verifierTimeout} timed out
+                    </span>
                   )}
                   {preflight.availableScripts.length > 0 && (
                     <span>{preflight.availableScripts.join(", ")}</span>
