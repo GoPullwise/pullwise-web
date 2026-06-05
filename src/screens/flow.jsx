@@ -453,10 +453,7 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
       {showStats && (
         <div className="audit-stat-strip">
           {stats.map((s) => (
-            <div
-              key={s.key}
-              className={"audit-stat" + (s.value > 0 ? "" : " audit-stat-empty")}
-            >
+            <div key={s.key} className={"audit-stat" + (s.value > 0 ? "" : " audit-stat-empty")}>
               <b>{s.value}</b>
               <span>{s.label}</span>
             </div>
@@ -1390,18 +1387,23 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                     </span>
                   ) : (
                     <>
-                      {T("branch ", "分支 ")}
+                      <span className="scanning-sub-label">{T("branch", "分支")}</span>
                       <span className="tag">{scan?.branch || branch}</span>
                       {scan?.commit && scan.commit !== "pending" && scan.commit !== "-" && (
                         <>
-                          {T(" · commit ", " · commit ")}
+                          <span className="scanning-sub-sep" aria-hidden="true">
+                            ·
+                          </span>
+                          <span className="scanning-sub-label">{T("commit", "commit")}</span>
                           <span className="tag">{scan.commit}</span>
                         </>
                       )}
                       {scan?.id && (
                         <>
-                          {" "}
-                          · <span className="tag">{scan.id}</span>
+                          <span className="scanning-sub-sep" aria-hidden="true">
+                            ·
+                          </span>
+                          <span className="tag">{scan.id}</span>
                         </>
                       )}
                     </>
@@ -1635,9 +1637,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                     <span className="preflight-warn">{preflight.verifierFlaky} flaky</span>
                   )}
                   {preflight.verifierTimeout > 0 && (
-                    <span className="preflight-warn">
-                      {preflight.verifierTimeout} timed out
-                    </span>
+                    <span className="preflight-warn">{preflight.verifierTimeout} timed out</span>
                   )}
                   {preflight.availableScripts.length > 0 && (
                     <span>{preflight.availableScripts.join(", ")}</span>

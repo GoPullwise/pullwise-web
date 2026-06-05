@@ -767,8 +767,10 @@ body.has-proto-nav {
 .scanning-sub .tag,
 .scanning-queue-meta .tag {
   max-width: 100%;
-  overflow-wrap: anywhere;
-  white-space: normal;
+}
+
+.scanning-sub .tag {
+  white-space: nowrap;
 }
 
 .scanning-actions {
@@ -826,8 +828,26 @@ body.has-proto-nav {
 }
 
 .scanning-sub {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px 8px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.scanning-sub > * {
+  flex-shrink: 0;
+}
+
+.scanning-sub-label {
+  color: var(--text-3);
+  opacity: 0.85;
+}
+
+.scanning-sub-sep {
+  color: var(--text-3);
+  opacity: 0.5;
 }
 
 .hist-row {

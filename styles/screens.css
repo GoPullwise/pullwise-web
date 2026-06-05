@@ -1124,8 +1124,9 @@
 .scanning-title b {
   overflow-wrap: anywhere;
 }
-.scanning-sub {
-  overflow-wrap: anywhere;
+.scanning-sub,
+.scanning-sub * {
+  white-space: nowrap;
 }
 .scanning-counts-grid b {
   font-size: 22px;
