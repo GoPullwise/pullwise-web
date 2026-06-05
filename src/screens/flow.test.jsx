@@ -240,14 +240,12 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
 
     expect(screen.getByRole("alert")).toHaveTextContent(/1 scan left/i);
-    expect(screen.getByRole("button", { name: /select repository octocat\/alpha/i })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-    expect(screen.getByRole("button", { name: /select repository octocat\/beta/i })).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
+    expect(
+      screen.getByRole("button", { name: /select repository octocat\/alpha/i })
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: /select repository octocat\/beta/i })
+    ).toHaveAttribute("aria-pressed", "false");
     expect(pullwiseApi.scans.preflight).not.toHaveBeenCalled();
   });
 
@@ -529,7 +527,9 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Reported")).toBeInTheDocument();
     expect(screen.getByText("Rejected")).toBeInTheDocument();
     expect(screen.getByText("Downgraded")).toBeInTheDocument();
-    expect(screen.getByText("Rejected: missing_evidence - Only a vague model guess")).toBeInTheDocument();
+    expect(
+      screen.getByText("Rejected: missing_evidence - Only a vague model guess")
+    ).toBeInTheDocument();
   });
 
   it("shows user-readable Audit Swarm evidence from the worker scan payload", () => {
@@ -630,7 +630,12 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    expect(screen.getByText("Audit evidence")).toBeInTheDocument();
+    const auditEvidence = screen.getByText("Audit evidence").closest(".scanning-audit");
+    expect(auditEvidence).toHaveClass("scanning-audit-inline");
+    expect(auditEvidence.closest(".scanning-card")).toBeInTheDocument();
+    expect(auditEvidence.closest(".scanning-side")).toBeNull();
+    expect(auditEvidence.previousElementSibling).toHaveTextContent("AI semantic review");
+    expect(auditEvidence.nextElementSibling).toHaveTextContent("Composing report");
     expect(screen.getByText("audit-swarm/0.1")).toBeInTheDocument();
     expect(screen.getByText("stage report")).toBeInTheDocument();
     expect(screen.getByText("7 evidence blocks")).toBeInTheDocument();
@@ -639,14 +644,18 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getAllByText("Code location").length).toBeGreaterThan(0);
     expect(screen.getByText("src/auth/refresh.ts:42")).toBeInTheDocument();
     expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
-    expect(screen.getByText("Token invalidation and issuance are not in one transaction.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Token invalidation and issuance are not in one transaction.")
+    ).toBeInTheDocument();
     expect(
       screen.getByText("createRefreshToken runs before old-token invalidation is confirmed.")
     ).toBeInTheDocument();
     expect(
       screen.getByText("Check whether the caller wraps this service in a transaction.")
     ).toBeInTheDocument();
-    expect(screen.getByText("Mock a failure between issuance and invalidation.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mock a failure between issuance and invalidation.")
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Verifier verdict").length).toBeGreaterThan(0);
     expect(screen.getByText("confirmed")).toBeInTheDocument();
     expect(screen.getAllByText("prover").length).toBeGreaterThan(0);
@@ -956,17 +965,20 @@ describe("ScanningScreen queue state", () => {
   it.each([
     "Codex CLI is missing or not authenticated.",
     "OpenCode CLI is missing or not authenticated.",
-  ])("routes missing CLI provider errors to settings without exposing the runner name", async (message) => {
-    const user = userEvent.setup();
-    const { go } = renderScanError(message);
+  ])(
+    "routes missing CLI provider errors to settings without exposing the runner name",
+    async (message) => {
+      const user = userEvent.setup();
+      const { go } = renderScanError(message);
 
-    const action = screen.getByRole("link", { name: /open settings/i });
-    expect(action).toHaveAttribute("href", "/settings");
+      const action = screen.getByRole("link", { name: /open settings/i });
+      expect(action).toHaveAttribute("href", "/settings");
 
-    await user.click(action);
+      await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/review runner is missing/i);
-    expect(screen.getByRole("alert")).not.toHaveTextContent(/codex|opencode/i);
-    expect(go).toHaveBeenCalledWith("settings");
-  });
+      expect(screen.getByRole("alert")).toHaveTextContent(/review runner is missing/i);
+      expect(screen.getByRole("alert")).not.toHaveTextContent(/codex|opencode/i);
+      expect(go).toHaveBeenCalledWith("settings");
+    }
+  );
 });

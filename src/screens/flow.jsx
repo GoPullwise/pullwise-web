@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
-import { downloadBlob } from "../lib/download.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
@@ -214,18 +213,24 @@ function scanVerificationAuditTotals(scans) {
         rejectedSamples: [...totals.rejectedSamples, ...(audit.rejectedSamples || [])].slice(0, 5),
       };
     },
-    { candidateCount: 0, reportedCount: 0, rejectedCount: 0, downgradedCount: 0, rejectedSamples: [] }
+    {
+      candidateCount: 0,
+      reportedCount: 0,
+      rejectedCount: 0,
+      downgradedCount: 0,
+      rejectedSamples: [],
+    }
   );
 }
 
 function hasVerificationAudit(audit) {
   return Boolean(
     audit &&
-      (audit.candidateCount ||
-        audit.reportedCount ||
-        audit.rejectedCount ||
-        audit.downgradedCount ||
-        audit.rejectedSamples?.length)
+    (audit.candidateCount ||
+      audit.reportedCount ||
+      audit.rejectedCount ||
+      audit.downgradedCount ||
+      audit.rejectedSamples?.length)
   );
 }
 
@@ -253,11 +258,24 @@ function scanPreflightSummary(scans) {
       preflights.length === 1
         ? preflights[0].summary
         : `${preflights.length} repository preflights captured without running project scripts.`,
-    languages: uniqueStrings(preflights.flatMap((preflight) => preflight.languages || [])).slice(0, 6),
-    packageManagers: uniqueStrings(preflights.flatMap((preflight) => preflight.packageManagers || [])).slice(0, 6),
-    availableScripts: uniqueStrings(preflights.flatMap((preflight) => preflight.availableScripts || [])).slice(0, 8),
-    manifestsCount: preflights.reduce((total, preflight) => total + (preflight.manifests?.length || 0), 0),
-    toolCount: preflights.reduce((total, preflight) => total + (preflight.toolVersions?.length || 0), 0),
+    languages: uniqueStrings(preflights.flatMap((preflight) => preflight.languages || [])).slice(
+      0,
+      6
+    ),
+    packageManagers: uniqueStrings(
+      preflights.flatMap((preflight) => preflight.packageManagers || [])
+    ).slice(0, 6),
+    availableScripts: uniqueStrings(
+      preflights.flatMap((preflight) => preflight.availableScripts || [])
+    ).slice(0, 8),
+    manifestsCount: preflights.reduce(
+      (total, preflight) => total + (preflight.manifests?.length || 0),
+      0
+    ),
+    toolCount: preflights.reduce(
+      (total, preflight) => total + (preflight.toolVersions?.length || 0),
+      0
+    ),
     environmentLabels,
     verifierRuns: verifierRuns.length,
     verifierFailed,
@@ -275,7 +293,9 @@ function scanAuditSwarmSummary(scans) {
   const audits = scans.map((scan) => scan?.auditSwarm).filter(Boolean);
   if (!audits.length) return null;
   const issueCards = audits.flatMap((audit) => audit.issueCards || []).slice(0, 8);
-  const verificationResults = audits.flatMap((audit) => audit.verificationResults || []).slice(0, 12);
+  const verificationResults = audits
+    .flatMap((audit) => audit.verificationResults || [])
+    .slice(0, 12);
   const evidenceBlocks = audits.flatMap((audit) => audit.evidenceBlocks || []).slice(0, 12);
   const counts = audits.reduce(
     (totals, audit) => {
@@ -334,12 +354,12 @@ function hasAuditSwarm(audit) {
   const counts = audit.counts || {};
   return Boolean(
     audit.protocol ||
-      audit.stage ||
-      audit.summary ||
-      audit.roles?.length ||
-      audit.shards?.length ||
-      audit.evidenceBlocks?.length ||
-      Object.values(counts).some((value) => Number(value || 0) > 0)
+    audit.stage ||
+    audit.summary ||
+    audit.roles?.length ||
+    audit.shards?.length ||
+    audit.evidenceBlocks?.length ||
+    Object.values(counts).some((value) => Number(value || 0) > 0)
   );
 }
 
@@ -365,6 +385,13 @@ function auditSwarmBlockLocation(block) {
   return file ? `${file}${line ? `:${line}` : ""}` : "";
 }
 
+function auditSwarmLocation(item) {
+  const location = item?.location && typeof item.location === "object" ? item.location : {};
+  const file = item?.file || location.file || "";
+  const line = item?.startLine || item?.line || location.startLine || location.line || "";
+  return file ? `${file}${line ? `:${line}` : ""}` : "";
+}
+
 function auditSwarmCountLabel(count, singular, plural = `${singular}s`) {
   return `${count || 0} ${count === 1 ? singular : plural}`;
 }
@@ -382,6 +409,198 @@ function auditSwarmBlockMeta(block) {
     location,
     block?.confidence ? `${Math.round(Number(block.confidence) * 100)}% confidence` : "",
   ]);
+}
+
+function AuditSwarmEvidence({ auditSwarm, className = "" }) {
+  if (!hasAuditSwarm(auditSwarm)) return null;
+
+  const rootClassName = ["scanning-audit", className].filter(Boolean).join(" ");
+  const visibleEvidenceCount = Math.min(auditSwarm.evidenceBlocks.length, 8);
+
+  return (
+    <div className={rootClassName}>
+      <div className="audit-head">
+        <span className="audit-head-icon">
+          <I.Shield size={13} />
+        </span>
+        <span className="audit-head-t">{T("Audit evidence", "审计证据")}</span>
+        {auditSwarm.protocol && <span className="audit-head-sub">{auditSwarm.protocol}</span>}
+      </div>
+      {auditSwarm.summary && (
+        <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
+      )}
+      <div className="scan-preflight-tags">
+        {auditSwarm.stage && <span className="tag">stage {auditSwarm.stage}</span>}
+        {auditSwarm.adapter && <span className="tag">{auditSwarm.adapter}</span>}
+        {auditSwarm.roles.slice(0, 4).map((role) => (
+          <span className="tag" key={`audit-role-${role}`}>
+            {role}
+          </span>
+        ))}
+        {auditSwarm.shards.slice(0, 3).map((shard) => (
+          <span className="tag" key={`audit-shard-${shard}`}>
+            shard {shard}
+          </span>
+        ))}
+      </div>
+      <div className="scan-preflight-meta">
+        {auditSwarm.counts.candidateCount > 0 && (
+          <span>{auditSwarm.counts.candidateCount} candidates evaluated</span>
+        )}
+        {auditSwarm.counts.rejectedCount > 0 && (
+          <span>{auditSwarm.counts.rejectedCount} rejected before reporting</span>
+        )}
+        {auditSwarm.counts.verifiedCount > 0 && (
+          <span>{auditSwarm.counts.verifiedCount} verified</span>
+        )}
+        {auditSwarm.counts.staticProofCount > 0 && (
+          <span>{auditSwarm.counts.staticProofCount} static proof</span>
+        )}
+      </div>
+      {auditSwarm.evidenceBlocks.length > 0 && (
+        <div className="audit-section">
+          <div className="audit-section-h">
+            <span>{T("Evidence blocks", "Evidence blocks")}</span>
+            <span className="audit-section-count">
+              {auditSwarmCountLabel(auditSwarm.counts.evidenceBlocks, "evidence block")}
+            </span>
+          </div>
+          <div className="audit-card-list">
+            {auditSwarm.evidenceBlocks.slice(0, 8).map((block, index) => (
+              <div key={block.id || `${block.kind}-${block.title}-${index}`} className="audit-card">
+                <div className="audit-card-title">
+                  {block.title || auditSwarmBlockLabel(block.kind)}
+                </div>
+                <div className="audit-card-meta">
+                  {auditSwarmBlockMeta(block).map((item) => (
+                    <span key={`${block.id || index}-${item}`}>{item}</span>
+                  ))}
+                </div>
+                {block.summary && (
+                  <div className="audit-card-row">
+                    <b>{T("Summary", "Summary")}</b>
+                    <span>{block.summary}</span>
+                  </div>
+                )}
+                {block.command && (
+                  <div className="audit-card-row">
+                    <b>{T("Command", "Command")}</b>
+                    <code className="tag evidence-command">{block.command}</code>
+                  </div>
+                )}
+                {block.items?.length > 0 && (
+                  <div className="audit-card-row">
+                    <b>{T("Details", "Details")}</b>
+                    <span>{block.items.join("; ")}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {auditSwarm.counts.evidenceBlocks > visibleEvidenceCount && (
+            <div className="audit-card-more">
+              {T(
+                `+${auditSwarm.counts.evidenceBlocks - visibleEvidenceCount} more evidence blocks in the downloaded audit bundle`,
+                `+${auditSwarm.counts.evidenceBlocks - visibleEvidenceCount} more evidence blocks in the downloaded audit bundle`
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      {auditSwarm.issueCards.length > 0 && (
+        <div className="audit-section">
+          <div className="audit-section-h">
+            <span>{T("Issue cards", "问题卡片")}</span>
+            <span className="audit-section-count">
+              {auditSwarmCountLabel(auditSwarm.counts.issueCards, "issue card")}
+            </span>
+          </div>
+          <div className="audit-card-list">
+            {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
+              const location = auditSwarmLocation(card);
+              return (
+                <div key={card.issueId || `${card.title}-${index}`} className="audit-card">
+                  <div className="audit-card-title">{card.title}</div>
+                  <div className="audit-card-meta">
+                    {card.severity && <span className="sev-mini">{card.severity}</span>}
+                    {card.agentRole && <span>{card.agentRole}</span>}
+                    {location && <span>{location}</span>}
+                  </div>
+                  {card.claim && (
+                    <div className="audit-card-row">
+                      <b>{T("Claim", "结论")}</b>
+                      <span>{card.claim}</span>
+                    </div>
+                  )}
+                  {card.evidence?.[0] && (
+                    <div className="audit-card-row">
+                      <b>{T("Evidence", "证据")}</b>
+                      <span>{card.evidence[0]}</span>
+                    </div>
+                  )}
+                  {card.falsePositiveChecks?.[0] && (
+                    <div className="audit-card-row">
+                      <b>{T("False +", "误报排除")}</b>
+                      <span>{card.falsePositiveChecks[0]}</span>
+                    </div>
+                  )}
+                  {card.suggestedTest && (
+                    <div className="audit-card-row">
+                      <b>{T("Test", "建议测试")}</b>
+                      <span>{card.suggestedTest}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {auditSwarm.counts.issueCards > auditSwarm.issueCards.length && (
+            <div className="audit-card-more">
+              {T(
+                `+${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} more in the downloaded audit bundle`,
+                `下载的审计包中还有 ${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} 条`
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      {auditSwarm.verificationResults.length > 0 && (
+        <div className="audit-section">
+          <div className="audit-section-h">
+            <span>{T("Verifier results", "验证结果")}</span>
+            <span className="audit-section-count">
+              {auditSwarmCountLabel(auditSwarm.counts.verificationResults, "verifier result")}
+            </span>
+          </div>
+          <div className="audit-card-list">
+            {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
+              <div
+                key={`${result.issueId || "result"}-${result.verifierRole || index}`}
+                className="audit-card"
+              >
+                <div className="audit-card-title">
+                  {result.verdict || "reviewed"}
+                  {result.verifierRole ? ` · ${result.verifierRole}` : ""}
+                </div>
+                {result.summary && (
+                  <div className="audit-card-row">
+                    <b>{T("Summary", "摘要")}</b>
+                    <span>{result.summary}</span>
+                  </div>
+                )}
+                {result.command && (
+                  <div className="audit-card-row">
+                    <b>{T("Command", "命令")}</b>
+                    <code className="tag evidence-command">{result.command}</code>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ReposScreen({
@@ -611,11 +830,7 @@ export function ReposScreen({
 
   return (
     <div className="app fade-in">
-      <Topbar
-        go={go}
-        breadcrumbs={[{ label: T("Repositories", "仓库") }]}
-        setIssue={setIssue}
-      />
+      <Topbar go={go} breadcrumbs={[{ label: T("Repositories", "仓库") }]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="repos" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
@@ -634,9 +849,7 @@ export function ReposScreen({
                     )}
               </div>
               {accountQuotaLabel && (
-                <div className="sub account-quota-summary">
-                  Account quota: {accountQuotaLabel}
-                </div>
+                <div className="sub account-quota-summary">Account quota: {accountQuotaLabel}</div>
               )}
             </div>
             <div className="actions">
@@ -889,9 +1102,7 @@ export function ReposScreen({
                     key={repo.id}
                     type="button"
                     className={
-                      "quota-choice-row" +
-                      (on ? " on" : "") +
-                      (unavailable ? " unavailable" : "")
+                      "quota-choice-row" + (on ? " on" : "") + (unavailable ? " unavailable" : "")
                     }
                     aria-pressed={on}
                     onClick={() => toggleQuotaDialogRepo(repo)}
@@ -1059,17 +1270,21 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     : scan?.verification || { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 };
   const verificationAuditFound = batchMode
     ? scanVerificationAuditTotals(scans)
-      : scan?.verificationAudit || {
+    : scan?.verificationAudit || {
         candidateCount: 0,
         reportedCount: 0,
         rejectedCount: 0,
         downgradedCount: 0,
         rejectedSamples: [],
       };
-  const preflight = batchMode ? scanPreflightSummary(scans) : scanPreflightSummary(scan ? [scan] : []);
+  const preflight = batchMode
+    ? scanPreflightSummary(scans)
+    : scanPreflightSummary(scan ? [scan] : []);
   const auditSwarm = scanAuditSwarmSummary(scans);
   const terminal = batchMode
-    ? expectedBatchCount > 0 && batchRows.length === expectedBatchCount && batchRows.every(isTerminalBatchRow)
+    ? expectedBatchCount > 0 &&
+      batchRows.length === expectedBatchCount &&
+      batchRows.every(isTerminalBatchRow)
     : isTerminalScan(scan);
   const queueSummary = scanQueueSummary(scan);
   const canCancel = batchMode
@@ -1121,11 +1336,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar
-        go={go}
-        breadcrumbs={[{ label: T("Scan", "扫描") }]}
-        setIssue={setIssue}
-      />
+      <Topbar go={go} breadcrumbs={[{ label: T("Scan", "扫描") }]} setIssue={setIssue} />
       <div className="main narrow" style={{ margin: "0 auto" }}>
         <div className="scanning">
           <div className="scanning-card card">
@@ -1267,13 +1478,21 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   i + 1
                 );
                 return (
-                  <div key={p.k} className={"scanning-phase" + cls}>
-                    <div className="scanning-phase-bullet">{bullet}</div>
-                    <div>
-                      <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
-                      <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
+                  <Fragment key={p.k}>
+                    <div className={"scanning-phase" + cls}>
+                      <div className="scanning-phase-bullet">{bullet}</div>
+                      <div>
+                        <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
+                        <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
+                      </div>
                     </div>
-                  </div>
+                    {p.k === "ai" && (
+                      <AuditSwarmEvidence
+                        auditSwarm={auditSwarm}
+                        className="scanning-audit-inline"
+                      />
+                    )}
+                  </Fragment>
                 );
               })}
             </div>
@@ -1315,7 +1534,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <span>Risk</span>
                 </div>
                 <div>
-                  <b className="scan-verification-unverified">{verificationFound.unverified || 0}</b>
+                  <b className="scan-verification-unverified">
+                    {verificationFound.unverified || 0}
+                  </b>
                   <span>Unverified</span>
                 </div>
               </div>
@@ -1328,15 +1549,21 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                       <span>Candidates</span>
                     </div>
                     <div>
-                      <b className="scan-verification-verified">{verificationAuditFound.reportedCount || 0}</b>
+                      <b className="scan-verification-verified">
+                        {verificationAuditFound.reportedCount || 0}
+                      </b>
                       <span>Reported</span>
                     </div>
                     <div>
-                      <b className="scan-verification-risk">{verificationAuditFound.rejectedCount || 0}</b>
+                      <b className="scan-verification-risk">
+                        {verificationAuditFound.rejectedCount || 0}
+                      </b>
                       <span>Rejected</span>
                     </div>
                     <div>
-                      <b className="scan-verification-static">{verificationAuditFound.downgradedCount || 0}</b>
+                      <b className="scan-verification-static">
+                        {verificationAuditFound.downgradedCount || 0}
+                      </b>
                       <span>Downgraded</span>
                     </div>
                   </div>
@@ -1354,202 +1581,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
               )}
             </div>
 
-            {hasAuditSwarm(auditSwarm) && (
-              <div className="card scanning-audit">
-                <div className="audit-head">
-                  <span className="audit-head-icon">
-                    <I.Shield size={13} />
-                  </span>
-                  <span className="audit-head-t">{T("Audit evidence", "审计证据")}</span>
-                  {auditSwarm.protocol && (
-                    <span className="audit-head-sub">{auditSwarm.protocol}</span>
-                  )}
-                </div>
-                {auditSwarm.summary && (
-                  <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
-                )}
-                <div className="scan-preflight-tags">
-                  {auditSwarm.stage && <span className="tag">stage {auditSwarm.stage}</span>}
-                  {auditSwarm.adapter && <span className="tag">{auditSwarm.adapter}</span>}
-                  {auditSwarm.roles.slice(0, 4).map((role) => (
-                    <span className="tag" key={`audit-role-${role}`}>
-                      {role}
-                    </span>
-                  ))}
-                  {auditSwarm.shards.slice(0, 3).map((shard) => (
-                    <span className="tag" key={`audit-shard-${shard}`}>
-                      shard {shard}
-                    </span>
-                  ))}
-                </div>
-                <div className="scan-preflight-meta">
-                  {auditSwarm.counts.candidateCount > 0 && (
-                    <span>{auditSwarm.counts.candidateCount} candidates evaluated</span>
-                  )}
-                  {auditSwarm.counts.rejectedCount > 0 && (
-                    <span>{auditSwarm.counts.rejectedCount} rejected before reporting</span>
-                  )}
-                  {auditSwarm.counts.verifiedCount > 0 && (
-                    <span>{auditSwarm.counts.verifiedCount} verified</span>
-                  )}
-                  {auditSwarm.counts.staticProofCount > 0 && (
-                    <span>{auditSwarm.counts.staticProofCount} static proof</span>
-                  )}
-                </div>
-                {auditSwarm.evidenceBlocks.length > 0 && (
-                  <div className="audit-section">
-                    <div className="audit-section-h">
-                      <span>{T("Evidence blocks", "Evidence blocks")}</span>
-                      <span className="audit-section-count">
-                        {auditSwarmCountLabel(auditSwarm.counts.evidenceBlocks, "evidence block")}
-                      </span>
-                    </div>
-                    <div className="audit-card-list">
-                      {auditSwarm.evidenceBlocks.slice(0, 8).map((block, index) => (
-                        <div
-                          key={block.id || `${block.kind}-${block.title}-${index}`}
-                          className="audit-card"
-                        >
-                          <div className="audit-card-title">
-                            {block.title || auditSwarmBlockLabel(block.kind)}
-                          </div>
-                          <div className="audit-card-meta">
-                            {auditSwarmBlockMeta(block).map((item) => (
-                              <span key={`${block.id || index}-${item}`}>{item}</span>
-                            ))}
-                          </div>
-                          {block.summary && (
-                            <div className="audit-card-row">
-                              <b>{T("Summary", "Summary")}</b>
-                              <span>{block.summary}</span>
-                            </div>
-                          )}
-                          {block.command && (
-                            <div className="audit-card-row">
-                              <b>{T("Command", "Command")}</b>
-                              <code className="tag evidence-command">{block.command}</code>
-                            </div>
-                          )}
-                          {block.items?.length > 0 && (
-                            <div className="audit-card-row">
-                              <b>{T("Details", "Details")}</b>
-                              <span>{block.items.join("; ")}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {auditSwarm.counts.evidenceBlocks > Math.min(auditSwarm.evidenceBlocks.length, 8) && (
-                      <div className="audit-card-more">
-                        {T(
-                          `+${auditSwarm.counts.evidenceBlocks - Math.min(auditSwarm.evidenceBlocks.length, 8)} more evidence blocks in the downloaded audit bundle`,
-                          `+${auditSwarm.counts.evidenceBlocks - Math.min(auditSwarm.evidenceBlocks.length, 8)} more evidence blocks in the downloaded audit bundle`
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {auditSwarm.issueCards.length > 0 && (
-                  <div className="audit-section">
-                    <div className="audit-section-h">
-                      <span>{T("Issue cards", "问题卡片")}</span>
-                      <span className="audit-section-count">
-                        {auditSwarmCountLabel(auditSwarm.counts.issueCards, "issue card")}
-                      </span>
-                    </div>
-                    <div className="audit-card-list">
-                      {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
-                        const location = auditSwarmLocation(card);
-                        return (
-                          <div key={card.issueId || `${card.title}-${index}`} className="audit-card">
-                            <div className="audit-card-title">{card.title}</div>
-                            <div className="audit-card-meta">
-                              {card.severity && (
-                                <span className="sev-mini">{card.severity}</span>
-                              )}
-                              {card.agentRole && <span>{card.agentRole}</span>}
-                              {location && <span>{location}</span>}
-                            </div>
-                            {card.claim && (
-                              <div className="audit-card-row">
-                                <b>{T("Claim", "结论")}</b>
-                                <span>{card.claim}</span>
-                              </div>
-                            )}
-                            {card.evidence?.[0] && (
-                              <div className="audit-card-row">
-                                <b>{T("Evidence", "证据")}</b>
-                                <span>{card.evidence[0]}</span>
-                              </div>
-                            )}
-                            {card.falsePositiveChecks?.[0] && (
-                              <div className="audit-card-row">
-                                <b>{T("False +", "误报排除")}</b>
-                                <span>{card.falsePositiveChecks[0]}</span>
-                              </div>
-                            )}
-                            {card.suggestedTest && (
-                              <div className="audit-card-row">
-                                <b>{T("Test", "建议测试")}</b>
-                                <span>{card.suggestedTest}</span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {auditSwarm.counts.issueCards > auditSwarm.issueCards.length && (
-                      <div className="audit-card-more">
-                        {T(
-                          `+${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} more in the downloaded audit bundle`,
-                          `下载的审计包中还有 ${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} 条`
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {auditSwarm.verificationResults.length > 0 && (
-                  <div className="audit-section">
-                    <div className="audit-section-h">
-                      <span>{T("Verifier results", "验证结果")}</span>
-                      <span className="audit-section-count">
-                        {auditSwarmCountLabel(auditSwarm.counts.verificationResults, "verifier result")}
-                      </span>
-                    </div>
-                    <div className="audit-card-list">
-                      {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
-                        <div
-                          key={`${result.issueId || "result"}-${result.verifierRole || index}`}
-                          className="audit-card"
-                        >
-                          <div className="audit-card-title">
-                            {result.verdict || "reviewed"}
-                            {result.verifierRole ? ` · ${result.verifierRole}` : ""}
-                          </div>
-                          {result.summary && (
-                            <div className="audit-card-row">
-                              <b>{T("Summary", "摘要")}</b>
-                              <span>{result.summary}</span>
-                            </div>
-                          )}
-                          {result.command && (
-                            <div className="audit-card-row">
-                              <b>{T("Command", "命令")}</b>
-                              <code className="tag evidence-command">{result.command}</code>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
             {preflight && (
               <div className="card scanning-preflight">
                 <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
-                {preflight.summary && <div className="muted scan-preflight-summary">{preflight.summary}</div>}
+                {preflight.summary && (
+                  <div className="muted scan-preflight-summary">{preflight.summary}</div>
+                )}
                 <div className="scan-preflight-tags">
                   {preflight.execution && <span className="tag">{preflight.execution}</span>}
                   {preflight.mode && <span className="tag">{preflight.mode}</span>}
@@ -1573,7 +1610,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <span>{preflight.verifierRuns || 0} verifier runs</span>
                   {preflight.verifierFailed > 0 && <span>{preflight.verifierFailed} failed</span>}
                   {preflight.verifierFlaky > 0 && <span>{preflight.verifierFlaky} flaky</span>}
-                  {preflight.verifierTimeout > 0 && <span>{preflight.verifierTimeout} timed out</span>}
+                  {preflight.verifierTimeout > 0 && (
+                    <span>{preflight.verifierTimeout} timed out</span>
+                  )}
                   {preflight.availableScripts.length > 0 && (
                     <span>{preflight.availableScripts.join(", ")}</span>
                   )}
@@ -1603,10 +1642,19 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                     <div className="muted">{T("Creating scan requests…", "正在创建扫描请求…")}</div>
                   )}
                   {batchRows.map((row) => (
-                    <div key={row.requestId || row.repo || row.scanId} className="scanning-log-line">
+                    <div
+                      key={row.requestId || row.repo || row.scanId}
+                      className="scanning-log-line"
+                    >
                       <b>{row.repo || "—"}</b>
-                      <span className="tag" style={{ marginLeft: 8 }}>{row.status}</span>
-                      {row.scanId && <span className="tag" style={{ marginLeft: 8 }}>{row.scanId}</span>}
+                      <span className="tag" style={{ marginLeft: 8 }}>
+                        {row.status}
+                      </span>
+                      {row.scanId && (
+                        <span className="tag" style={{ marginLeft: 8 }}>
+                          {row.scanId}
+                        </span>
+                      )}
                       {row.error && <div className="muted">{row.error}</div>}
                     </div>
                   ))}
