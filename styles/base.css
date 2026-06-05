@@ -402,11 +402,8 @@ textarea {
   width: 22px;
   height: 22px;
   border-radius: 0;
-  background: var(--text);
-  color: var(--bg);
-  display: grid;
-  place-items: center;
-  font: 700 11px/1 var(--font-mono);
+  display: block;
+  object-fit: contain;
   aspect-ratio: 1;
 }
 .topbar nav {

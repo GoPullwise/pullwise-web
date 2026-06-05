@@ -32,7 +32,7 @@ export function PublicHeader({ go, current, auth }) {
         aria-label="Go to Pullwise home"
         {...screenLinkProps(go, "landing")}
       >
-        <div className="brand-mark">PR</div>
+        <img className="brand-mark" src="/favicon.png" alt="" aria-hidden="true" />
         <span>Pullwise</span>
       </a>
       <nav className="lp-nav">

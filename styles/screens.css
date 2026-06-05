@@ -37,11 +37,12 @@
   width: 24px;
   height: 24px;
   border-radius: 0;
-  background: var(--text);
-  color: var(--bg);
-  display: grid;
-  place-items: center;
-  font: 700 12px/1 var(--font-mono);
+  display: block;
+  object-fit: contain;
+}
+
+[data-theme="dark"] .brand-mark {
+  filter: invert(1);
 }
 .lp-nav {
   display: flex;
@@ -540,6 +541,8 @@
   background: var(--accent);
   color: white;
   border-color: var(--accent);
+  object-fit: contain;
+  padding: 6px;
 }
 .oauth-dots {
   display: flex;
@@ -955,20 +958,9 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-
-.scanning-actions-group {
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-}
-
-.scanning-actions-end {
+  flex: 0 0 auto;
   margin-left: auto;
 }
 
@@ -4197,16 +4189,6 @@ button.dash-cat-row:hover {
     align-items: stretch;
     flex-direction: column;
     gap: 10px;
-  }
-
-  .scanning-actions-group {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
-
-  .scanning-actions-end {
-    margin-left: 0;
   }
 
   .scanning-actions-sep {

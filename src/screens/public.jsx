@@ -324,7 +324,7 @@ export function LoginScreen({ go } = {}) {
       </a>
       <div className="auth-card">
         <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
-          <div className="brand-mark">PR</div>
+          <img className="brand-mark" src="/favicon.png" alt="" aria-hidden="true" />
           <span style={{ fontSize: 16 }}>Pullwise</span>
         </div>
         <h2 className="auth-title">{T("Sign in to Pullwise", "Sign in to Pullwise")}</h2>
@@ -427,7 +427,7 @@ export function OAuthScreen({ go, auth }) {
               <span />
               <span />
             </div>
-            <div className="oauth-logo app">PR</div>
+            <img className="oauth-logo app" src="/favicon.png" alt="Pullwise" />
           </div>
           <h2>{T("Connect GitHub repository access", "Connect GitHub repository access")}</h2>
           <p className="oauth-org">

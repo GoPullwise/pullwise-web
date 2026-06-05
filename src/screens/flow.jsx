@@ -1191,21 +1191,20 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 </div>
               </div>
               <div className="scanning-actions">
-                <div className="scanning-actions-group">
-                  <button className="btn ghost" onClick={handleBack}>
-                    <I.ArrowL size={13} /> {T("Back", "返回")}
-                  </button>
-                  {canCancel && (
-                    <>
-                      <span className="scanning-actions-sep" aria-hidden="true" />
-                      <button className="btn ghost" onClick={handleCancel}>
-                        <I.X size={13} /> {T("Cancel", "取消")}
-                      </button>
-                    </>
-                  )}
-                </div>
+                <button className="btn ghost" onClick={handleBack}>
+                  <I.ArrowL size={13} /> {T("Back", "返回")}
+                </button>
+                {canCancel && (
+                  <>
+                    <span className="scanning-actions-sep" aria-hidden="true" />
+                    <button className="btn ghost" onClick={handleCancel}>
+                      <I.X size={13} /> {T("Cancel", "取消")}
+                    </button>
+                  </>
+                )}
                 {terminal && (
-                  <div className="scanning-actions-group scanning-actions-end">
+                  <>
+                    <span className="scanning-actions-sep" aria-hidden="true" />
                     {!batchMode && scan?.id && (
                       <button
                         className="btn ghost"
@@ -1223,7 +1222,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                     <button className="btn primary" onClick={() => go("history")}>
                       <I.List size={13} /> {T("History", "历史")}
                     </button>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
