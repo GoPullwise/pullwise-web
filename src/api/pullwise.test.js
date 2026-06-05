@@ -37,6 +37,7 @@ describe("pullwiseApi issue fix endpoints", () => {
       githubIdentityId: "ghi_1",
     });
     await pullwiseApi.apiKeys.revoke("key/with spaces#1");
+    await pullwiseApi.repositories.branches("repo/with spaces#1");
 
     expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231");
     expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/audit-bundle");
@@ -72,6 +73,10 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(11, "/api-keys/key%2Fwith%20spaces%231", {
       method: "DELETE",
     });
+    expect(request).toHaveBeenNthCalledWith(
+      12,
+      "/repositories/repo%2Fwith%20spaces%231/branches"
+    );
   });
 
   it("calls API key endpoints", async () => {
@@ -101,6 +106,7 @@ describe("pullwiseApi issue fix endpoints", () => {
       /path segment/i
     );
     expect(() => pullwiseApi.apiKeys.revoke("")).toThrow(/path segment/i);
+    expect(() => pullwiseApi.repositories.branches("")).toThrow(/path segment/i);
 
     expect(request).not.toHaveBeenCalled();
   });

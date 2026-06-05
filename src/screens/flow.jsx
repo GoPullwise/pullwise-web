@@ -106,12 +106,37 @@ function makeScanRequestId() {
 function scanInputFromRepo(repo) {
   const request = {
     repo: repo?.fullName || repo?.name || repo?.repo || "",
-    branch: repo?.defaultBranch || repo?.branch || "main",
+    branch: repo?.branch || repo?.defaultBranch || "main",
     commit: repo?.commit || "pending",
     requestId: repo?.scanRequestId || "",
   };
   if (repo?.repoId) request.repoId = repo.repoId;
   return request;
+}
+
+function repoBranchKey(repo) {
+  return String(repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || "");
+}
+
+function repoBranchApiId(repo) {
+  return String(repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || "");
+}
+
+function cleanBranchList(values) {
+  if (!Array.isArray(values)) return [];
+  return [
+    ...new Set(
+      values
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter((value) => value && !/[\r\n\u0000]/.test(value))
+    ),
+  ];
+}
+
+function branchPayloadBranches(payload, fallbackBranch) {
+  const branches = cleanBranchList(payload?.branches);
+  if (branches.length) return branches;
+  return cleanBranchList([payload?.defaultBranch, fallbackBranch]);
 }
 
 function batchScanStatus(scans, expectedCount, hasError) {
@@ -659,6 +684,8 @@ export function ReposScreen({
   const [quotaPreflight, setQuotaPreflight] = useState(null);
   const [quotaDialogSelected, setQuotaDialogSelected] = useState([]);
   const [quotaDialogNotice, setQuotaDialogNotice] = useState("");
+  const [repoBranches, setRepoBranches] = useState({});
+  const [selectedBranches, setSelectedBranches] = useState({});
   const {
     items: availableRepos,
     installations,
@@ -697,9 +724,68 @@ export function ReposScreen({
   });
   const accountQuotaRemaining = quotaRemaining(userQuota);
   const accountQuotaLabel = repoQuotaLabel(userQuota);
+  const branchForRepo = useCallback(
+    (repo) => {
+      const key = repoBranchKey(repo);
+      return (
+        selectedBranches[key] ||
+        repoBranches[key]?.defaultBranch ||
+        repo?.branch ||
+        repo?.defaultBranch ||
+        "main"
+      );
+    },
+    [repoBranches, selectedBranches]
+  );
   const selectedRepoObjects = selected
     .map((id) => availableRepos.find((item) => item.id === id))
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((repo) => ({ ...repo, branch: branchForRepo(repo) }));
+
+  const loadRepoBranches = useCallback(
+    async (repo) => {
+      const key = repoBranchKey(repo);
+      const apiId = repoBranchApiId(repo);
+      if (!key || !apiId) return;
+      const current = repoBranches[key];
+      if (current?.loading || current?.branches?.length) return;
+      const fallbackBranch = repo?.branch || repo?.defaultBranch || "main";
+      setRepoBranches((state) => ({
+        ...state,
+        [key]: {
+          branches: branchPayloadBranches(state[key], fallbackBranch),
+          defaultBranch: state[key]?.defaultBranch || fallbackBranch,
+          loading: true,
+          error: "",
+        },
+      }));
+      try {
+        const payload = await pullwiseApi.repositories.branches(apiId);
+        const branches = branchPayloadBranches(payload, fallbackBranch);
+        const defaultBranch =
+          cleanBranchList([payload?.defaultBranch])[0] || fallbackBranch || branches[0] || "main";
+        setRepoBranches((state) => ({
+          ...state,
+          [key]: { branches, defaultBranch, loading: false, error: "" },
+        }));
+        setSelectedBranches((state) => ({
+          ...state,
+          [key]: branches.includes(state[key]) ? state[key] : defaultBranch,
+        }));
+      } catch (branchError) {
+        setRepoBranches((state) => ({
+          ...state,
+          [key]: {
+            branches: branchPayloadBranches(state[key], fallbackBranch),
+            defaultBranch: fallbackBranch,
+            loading: false,
+            error: branchError?.message || "Unable to load branches.",
+          },
+        }));
+      }
+    },
+    [repoBranches]
+  );
 
   useEffect(() => {
     if (!orgs.includes(org)) setOrg(allLabel);
@@ -707,6 +793,16 @@ export function ReposScreen({
 
   useEffect(() => {
     setSelected((current) => current.filter((id) => availableRepos.some((repo) => repo.id === id)));
+  }, [availableRepos]);
+
+  useEffect(() => {
+    const availableKeys = new Set(availableRepos.map(repoBranchKey).filter(Boolean));
+    setSelectedBranches((current) =>
+      Object.fromEntries(Object.entries(current).filter(([key]) => availableKeys.has(key)))
+    );
+    setRepoBranches((current) =>
+      Object.fromEntries(Object.entries(current).filter(([key]) => availableKeys.has(key)))
+    );
   }, [availableRepos]);
 
   useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
@@ -742,6 +838,7 @@ export function ReposScreen({
 
     setSelectionNotice("");
     setSelected((current) => (current.includes(id) ? current : [...current, id]));
+    loadRepoBranches(repo);
   };
 
   const activateRepositorySelection = (event, repoId) => {
@@ -1043,6 +1140,12 @@ export function ReposScreen({
               const quotaLabel = repoQuotaLabel(repo.quota);
               const quotaEmpty = repo.quota && quotaNumber(repo.quota.remaining) <= 0;
               const repoLabel = repo.fullName || repo.name;
+              const branchKey = repoBranchKey(repo);
+              const branchState = repoBranches[branchKey] || null;
+              const selectedBranch = branchForRepo(repo);
+              const branchOptions = branchState?.branches?.length
+                ? branchState.branches
+                : [selectedBranch].filter(Boolean);
               return (
                 <div
                   key={repo.id}
@@ -1072,6 +1175,38 @@ export function ReposScreen({
                     <div className="repo-desc">{repo.desc}</div>
                   </div>
                   <div className="repo-meta">
+                    {on && (
+                      <span
+                        className={
+                          "repo-branch-picker" + (branchState?.error ? " repo-branch-error" : "")
+                        }
+                        title={branchState?.error || `Branch: ${selectedBranch}`}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
+                        <I.GitBranch size={12} />
+                        <select
+                          aria-label={`Branch for ${repoLabel}`}
+                          value={selectedBranch}
+                          disabled={branchState?.loading}
+                          onChange={(event) => {
+                            const nextBranch = event.target.value;
+                            setSelectedBranches((current) => ({
+                              ...current,
+                              [branchKey]: nextBranch,
+                            }));
+                          }}
+                        >
+                          {branchState?.loading && <option value={selectedBranch}>Loading...</option>}
+                          {!branchState?.loading &&
+                            branchOptions.map((branch) => (
+                              <option key={branch} value={branch}>
+                                {branch}
+                              </option>
+                            ))}
+                        </select>
+                      </span>
+                    )}
                     <span>
                       <span className="lang-dot" data-lang={repo.lang}></span> {repo.lang}
                     </span>

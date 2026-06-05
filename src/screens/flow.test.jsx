@@ -16,6 +16,9 @@ vi.mock("../api/pullwise.js", () => ({
       auditBundle: vi.fn(),
       auditBundleArchive: vi.fn(),
     },
+    repositories: {
+      branches: vi.fn(),
+    },
   },
 }));
 
@@ -81,6 +84,11 @@ beforeEach(() => {
   });
   pullwiseApi.scans.auditBundle.mockReset();
   pullwiseApi.scans.auditBundleArchive.mockReset();
+  pullwiseApi.repositories.branches.mockReset();
+  pullwiseApi.repositories.branches.mockResolvedValue({
+    defaultBranch: "main",
+    branches: ["main", "develop"],
+  });
   useRepositories.mockReset();
   useScanBatchRun.mockReset();
   useScanBatchRun.mockReturnValue({ scans: [], error: "", cancel: vi.fn() });
@@ -172,6 +180,48 @@ describe("ReposScreen scan selection", () => {
       "octocat/alpha",
       "octocat/beta",
     ]);
+    expect(go).toHaveBeenCalledWith("scanning");
+  });
+
+  it("loads repository branches and scans the selected branch", async () => {
+    const go = vi.fn();
+    const setActiveRepo = vi.fn();
+    const user = userEvent.setup();
+    pullwiseApi.repositories.branches.mockResolvedValueOnce({
+      defaultBranch: "main",
+      branches: ["main", "release/1.0"],
+    });
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
+
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+    const branchSelect = await screen.findByRole("combobox", {
+      name: /branch for octocat\/alpha/i,
+    });
+    await user.selectOptions(branchSelect, "release/1.0");
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
+    expect(pullwiseApi.repositories.branches).toHaveBeenCalledWith("repo_alpha");
+    expect(pullwiseApi.scans.preflight).toHaveBeenCalledWith({
+      repositories: [
+        expect.objectContaining({
+          repo: "octocat/alpha",
+          branch: "release/1.0",
+        }),
+      ],
+    });
+    const activeRepo = setActiveRepo.mock.calls[0][0];
+    expect(activeRepo.selectedRepos[0].branch).toBe("release/1.0");
     expect(go).toHaveBeenCalledWith("scanning");
   });
 

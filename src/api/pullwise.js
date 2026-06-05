@@ -29,6 +29,7 @@ export const pullwiseApi = {
 
   repositories: {
     list: (params = {}) => request(withSearchParams("/repositories", params)),
+    branches: (repoId) => request(`/repositories/${pathSegment(repoId)}/branches`),
     sync: (payload) => request("/repositories/sync", { method: "POST", body: payload }),
   },
 

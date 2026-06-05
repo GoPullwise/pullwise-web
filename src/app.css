@@ -526,6 +526,31 @@ body.has-proto-nav {
   white-space: normal;
 }
 
+.repo-meta .repo-branch-picker {
+  max-width: 220px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-1);
+}
+
+.repo-branch-picker select {
+  min-width: 88px;
+  max-width: 160px;
+  border: 0;
+  outline: 0;
+  color: var(--text-1);
+  background: transparent;
+  font: inherit;
+}
+
+.repo-branch-picker.repo-branch-error {
+  border-color: color-mix(in srgb, var(--danger, #dc2626) 38%, var(--border));
+}
+
 .quota-selection-alert {
   border-color: color-mix(in srgb, var(--warn, #b45309) 34%, var(--border));
 }
