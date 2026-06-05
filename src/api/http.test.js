@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { ApiError } from "./http.js";
+import { describe, expect, it, vi } from "vitest";
+import { ApiError, http, request } from "./http.js";
 
 describe("ApiError", () => {
   it("preserves structured backend error codes", () => {
@@ -9,5 +9,28 @@ describe("ApiError", () => {
     });
 
     expect(error.code).toBe("QUOTA_EXCEEDED_REPOSITORY");
+  });
+});
+
+describe("request", () => {
+  it("passes per-request timeout overrides through to axios", async () => {
+    const httpRequest = vi.spyOn(http, "request").mockResolvedValueOnce({ data: "zip" });
+
+    await expect(
+      request("/scans/sc_done/audit-bundle.zip", {
+        responseType: "blob",
+        timeout: 120000,
+      })
+    ).resolves.toBe("zip");
+
+    expect(httpRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "/scans/sc_done/audit-bundle.zip",
+        responseType: "blob",
+        timeout: 120000,
+      })
+    );
+
+    httpRequest.mockRestore();
   });
 });

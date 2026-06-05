@@ -1,5 +1,7 @@
 import { request } from "./http.js";
 
+const AUDIT_BUNDLE_ARCHIVE_TIMEOUT_MS = 120000;
+
 function withSearchParams(path, params = {}) {
   const cleanParams = Object.fromEntries(
     Object.entries(params).filter(
@@ -36,7 +38,10 @@ export const pullwiseApi = {
     get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
     auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
     auditBundleArchive: (scanId) =>
-      request(`/scans/${pathSegment(scanId)}/audit-bundle.zip`, { responseType: "blob" }),
+      request(`/scans/${pathSegment(scanId)}/audit-bundle.zip`, {
+        responseType: "blob",
+        timeout: AUDIT_BUNDLE_ARCHIVE_TIMEOUT_MS,
+      }),
     list: (params = {}) => request(withSearchParams("/scans", params)),
     cancel: (scanId) => request(`/scans/${pathSegment(scanId)}/cancel`, { method: "POST" }),
   },

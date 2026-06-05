@@ -42,6 +42,7 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/audit-bundle");
     expect(request).toHaveBeenNthCalledWith(3, "/scans/scan%2Fwith%20spaces%231/audit-bundle.zip", {
       responseType: "blob",
+      timeout: 120000,
     });
     expect(request).toHaveBeenNthCalledWith(4, "/scans/scan%2Fwith%20spaces%231/cancel", {
       method: "POST",

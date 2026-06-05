@@ -30,6 +30,7 @@ export async function request(path, options = {}) {
       headers: options.headers,
       responseType: options.responseType,
       signal: options.signal,
+      timeout: options.timeout,
     });
 
     return response.data;
