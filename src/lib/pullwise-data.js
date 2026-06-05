@@ -142,7 +142,8 @@ function normalizePreflight(preflight) {
                       : "skipped",
                     exitCode: normalizeCount(attempt.exitCode),
                     durationMs: normalizeCount(attempt.durationMs),
-                    output: textValue(attempt.output),
+                    outputRedacted:
+                      normalizeBoolean(attempt.outputRedacted) || Boolean(textValue(attempt.output)),
                   };
                 })
                 .filter(Boolean)
@@ -158,7 +159,7 @@ function normalizePreflight(preflight) {
             confirmedFailure: normalizeBoolean(item.confirmedFailure),
             attempts,
             logPath: textValue(item.logPath),
-            output: textValue(item.output),
+            outputRedacted: normalizeBoolean(item.outputRedacted) || Boolean(textValue(item.output)),
           };
         })
         .filter((item) => item?.script || item?.command)
@@ -414,9 +415,10 @@ function normalizeEvidence(evidence) {
       const file = textValue(item.file);
       const command = textValue(item.command);
       const logPath = textValue(item.logPath, item.log_path);
-      const output = multilineTextValue(item.output);
+      const outputRedacted =
+        normalizeBoolean(item.outputRedacted) || Boolean(multilineTextValue(item.output));
       const url = normalizeReferenceUrl(item.url);
-      if (!summary && !file && !command && !logPath && !output && !url) return null;
+      if (!summary && !file && !command && !logPath && !url) return null;
       const exitCode = Number(item.exitCode ?? item.exit_code);
       return {
         type,
@@ -428,7 +430,7 @@ function normalizeEvidence(evidence) {
         command,
         exitCode: Number.isFinite(exitCode) ? Math.trunc(exitCode) : null,
         logPath,
-        output,
+        outputRedacted,
         url,
       };
     })
@@ -466,11 +468,24 @@ function normalizeAuditSwarmTextList(value) {
     .filter(Boolean);
 }
 
+const AUDIT_SWARM_EVIDENCE_BLOCK_KINDS = new Set([
+  "summary",
+  "claim",
+  "code_location",
+  "evidence",
+  "command",
+  "verifier_verdict",
+  "false_positive_check",
+  "invariant",
+  "risk",
+]);
+
 function normalizeAuditSwarmCounts(value) {
   const source = objectRecord(value) ? value : {};
   return {
     issueCards: normalizeCount(source.issueCards ?? source.issue_cards),
     verificationResults: normalizeCount(source.verificationResults ?? source.verification_results),
+    evidenceBlocks: normalizeCount(source.evidenceBlocks ?? source.evidence_blocks),
     candidateCount: normalizeCount(source.candidateCount ?? source.candidate_count),
     reportedCount: normalizeCount(source.reportedCount ?? source.reported_count),
     rejectedCount: normalizeCount(source.rejectedCount ?? source.rejected_count),
@@ -557,17 +572,66 @@ function normalizeAuditSwarmVerificationResults(value) {
     .slice(0, 30);
 }
 
+function normalizeAuditSwarmEvidenceBlocks(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((block) => {
+      if (!objectRecord(block)) return null;
+      const rawKind = textValue(block.kind).toLowerCase();
+      const kind = AUDIT_SWARM_EVIDENCE_BLOCK_KINDS.has(rawKind) ? rawKind : "evidence";
+      const verdict = textValue(block.verdict).toLowerCase();
+      const severity = textValue(block.severity).toLowerCase();
+      const items = normalizeAuditSwarmTextList(block.items).slice(0, 8);
+      return {
+        id: textValue(block.id, block.blockId, block.block_id),
+        kind,
+        title: textValue(block.title) || kind.replaceAll("_", " "),
+        summary: textValue(block.summary, block.text, block.claim),
+        issueId: textValue(block.issueId, block.issue_id),
+        severity: ["critical", "high", "medium", "low", "info"].includes(severity) ? severity : "",
+        category: textValue(block.category),
+        role: textValue(block.role, block.agentRole, block.agent_role, block.verifierRole, block.verifier_role),
+        shardId: textValue(block.shardId, block.shard_id),
+        stage: textValue(block.stage),
+        status: textValue(block.status),
+        verdict: ["confirmed", "rejected", "inconclusive"].includes(verdict) ? verdict : "",
+        proofType: textValue(block.proofType, block.proof_type),
+        proofStrength: normalizeCount(block.proofStrength ?? block.proof_strength),
+        command: textValue(block.command),
+        file: textValue(block.file, block.path),
+        startLine: normalizeLineNumber(block.startLine ?? block.start_line ?? block.line),
+        endLine: normalizeLineNumber(block.endLine ?? block.end_line),
+        confidence: normalizeConfidence(block.confidence),
+        items,
+      };
+    })
+    .filter(
+      (block) =>
+        block &&
+        (block.title ||
+          block.summary ||
+          block.command ||
+          block.file ||
+          block.items.length ||
+          block.verdict ||
+          block.issueId)
+    )
+    .slice(0, 40);
+}
+
 function normalizeAuditSwarm(value) {
   if (!objectRecord(value)) return {};
   const issueCards = normalizeAuditSwarmIssueCards(value.issueCards ?? value.issue_cards);
   const verificationResults = normalizeAuditSwarmVerificationResults(
     value.verificationResults ?? value.verification_results
   );
+  const evidenceBlocks = normalizeAuditSwarmEvidenceBlocks(value.evidenceBlocks ?? value.evidence_blocks);
   const counts = normalizeAuditSwarmCounts(value.counts);
   if (issueCards.length) counts.issueCards = Math.max(counts.issueCards, issueCards.length);
   if (verificationResults.length) {
     counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
   }
+  if (evidenceBlocks.length) counts.evidenceBlocks = Math.max(counts.evidenceBlocks, evidenceBlocks.length);
   return {
     protocol: textValue(value.protocol),
     stage: textValue(value.stage),
@@ -580,6 +644,7 @@ function normalizeAuditSwarm(value) {
     shards: normalizeTextList(value.shards),
     issueCards,
     verificationResults,
+    evidenceBlocks,
     shardId: textValue(value.shardId, value.shard_id),
     agentRole: textValue(value.agentRole, value.agent_role),
     verdict: textValue(value.verdict),

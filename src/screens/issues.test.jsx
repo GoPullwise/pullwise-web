@@ -390,7 +390,7 @@ describe("IssueDetailScreen review detail", () => {
           command: "pytest tests/repro/test_redirect.py",
           exitCode: 1,
           logPath: "logs/f_123.log",
-          output: "FAIL tests/repro/test_redirect.py\nAssertionError: expected 400 received 302",
+          outputRedacted: true,
         },
       ],
       reproduction: {
@@ -449,8 +449,8 @@ describe("IssueDetailScreen review detail", () => {
     expect(screen.getByText("Fixed commit")).toBeInTheDocument();
     expect(screen.getByText("Evidence chain")).toBeInTheDocument();
     expect(screen.getByText("Redirect call")).toBeInTheDocument();
-    expect(screen.getByText("Raw output")).toBeInTheDocument();
-    expect(screen.getByText(/AssertionError: expected 400 received 302/)).toBeInTheDocument();
+    expect(screen.queryByText("Raw output")).not.toBeInTheDocument();
+    expect(screen.queryByText(/AssertionError: expected 400 received 302/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open evidence line/i })).toHaveAttribute(
       "href",
       "https://github.com/acme/api/blob/abc1234/src/auth.py#L42"

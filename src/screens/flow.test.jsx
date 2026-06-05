@@ -551,33 +551,65 @@ describe("ScanningScreen queue state", () => {
           counts: {
             issueCards: 1,
             verificationResults: 1,
+            evidenceBlocks: 7,
             candidateCount: 2,
             rejectedCount: 1,
             verifiedCount: 1,
           },
           roles: ["security-reviewer", "prover"],
           shards: ["auth.session"],
-          issueCards: [
+          evidenceBlocks: [
             {
+              id: "issue-refresh:claim",
+              kind: "claim",
               issueId: "issue-refresh",
               title: "Refresh token rotation may not be atomic",
               severity: "high",
-              agentRole: "security-reviewer",
+              role: "security-reviewer",
               shardId: "auth.session",
-              file: "src/auth/refresh.ts",
-              line: "42",
-              claim: "Token invalidation and issuance are not in one transaction.",
-              evidence: ["createRefreshToken runs before old-token invalidation is confirmed."],
-              falsePositiveChecks: ["Check whether the caller wraps this service in a transaction."],
-              suggestedTest: "Mock a failure between issuance and invalidation.",
+              summary: "Token invalidation and issuance are not in one transaction.",
             },
-          ],
-          verificationResults: [
             {
-              issueId: "issue-refresh",
-              verifierRole: "prover",
+              id: "issue-refresh:location:0",
+              kind: "code_location",
+              title: "Code location",
+              file: "src/auth/refresh.ts",
+              startLine: "42",
+              summary: "Primary audited location.",
+            },
+            {
+              id: "issue-refresh:evidence:0",
+              kind: "evidence",
+              title: "Discovery evidence",
+              summary: "createRefreshToken runs before old-token invalidation is confirmed.",
+            },
+            {
+              id: "issue-refresh:false-positive:0",
+              kind: "false_positive_check",
+              title: "False-positive check",
+              summary: "Check whether the caller wraps this service in a transaction.",
+            },
+            {
+              id: "issue-refresh:suggested-test",
+              kind: "command",
+              title: "Suggested test",
+              status: "suggested",
+              summary: "Mock a failure between issuance and invalidation.",
+            },
+            {
+              id: "issue-refresh:verdict:prover",
+              kind: "verifier_verdict",
+              title: "Verifier verdict",
+              role: "prover",
               verdict: "confirmed",
               summary: "A mocked failure leaves both tokens valid.",
+            },
+            {
+              id: "issue-refresh:command:0",
+              kind: "command",
+              title: "Verifier command",
+              role: "prover",
+              status: "executed",
               command: "pnpm test auth -- refresh-token-rotation",
             },
           ],
@@ -601,9 +633,11 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Audit evidence")).toBeInTheDocument();
     expect(screen.getByText("audit-swarm/0.1")).toBeInTheDocument();
     expect(screen.getByText("stage report")).toBeInTheDocument();
-    expect(screen.getByText("1 issue card")).toBeInTheDocument();
-    expect(screen.getByText("1 verifier result")).toBeInTheDocument();
+    expect(screen.getByText("7 evidence blocks")).toBeInTheDocument();
     expect(screen.getByText("2 candidates evaluated")).toBeInTheDocument();
+    expect(screen.getByText("Claim")).toBeInTheDocument();
+    expect(screen.getAllByText("Code location").length).toBeGreaterThan(0);
+    expect(screen.getByText("src/auth/refresh.ts:42")).toBeInTheDocument();
     expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
     expect(screen.getByText("Token invalidation and issuance are not in one transaction.")).toBeInTheDocument();
     expect(
@@ -613,7 +647,9 @@ describe("ScanningScreen queue state", () => {
       screen.getByText("Check whether the caller wraps this service in a transaction.")
     ).toBeInTheDocument();
     expect(screen.getByText("Mock a failure between issuance and invalidation.")).toBeInTheDocument();
-    expect(screen.getByText("confirmed · prover")).toBeInTheDocument();
+    expect(screen.getAllByText("Verifier verdict").length).toBeGreaterThan(0);
+    expect(screen.getByText("confirmed")).toBeInTheDocument();
+    expect(screen.getAllByText("prover").length).toBeGreaterThan(0);
     expect(screen.getByText("A mocked failure leaves both tokens valid.")).toBeInTheDocument();
     expect(screen.getByText("pnpm test auth -- refresh-token-rotation")).toBeInTheDocument();
   });

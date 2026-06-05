@@ -618,7 +618,7 @@ describe("normalizeIssue", () => {
         command: "pytest tests/repro.py",
         exitCode: 1,
         logPath: "logs/f_evidence.log",
-        output: "FAIL tests/repro.py\nAssertionError: expected 400 received 500",
+        outputRedacted: true,
         url: null,
       },
     ]);
@@ -923,7 +923,7 @@ describe("normalizeIssue", () => {
             exitCode: 1,
             durationMs: 1200,
             logPath: "verification/job/test.log",
-            output: "AssertionError",
+            outputRedacted: true,
           },
           {
             script: "lint",
@@ -933,10 +933,10 @@ describe("normalizeIssue", () => {
             durationMs: 900,
             confirmedFailure: false,
             logPath: "verification/job/lint.log",
-            output: "first attempt failed, second passed",
+            outputRedacted: true,
             attempts: [
-              { attempt: 1, status: "failed", exitCode: 1, durationMs: 400, output: "FAIL" },
-              { attempt: 2, status: "passed", exitCode: 0, durationMs: 300, output: "PASS" },
+              { attempt: 1, status: "failed", exitCode: 1, durationMs: 400, outputRedacted: true },
+              { attempt: 2, status: "passed", exitCode: 0, durationMs: 300, outputRedacted: true },
             ],
           },
         ],
@@ -992,6 +992,52 @@ describe("normalizeIssue", () => {
             evidence: ["Focused test reproduced the token rotation gap."],
           },
         ],
+        evidence_blocks: [
+          {
+            id: "issue-refresh:claim",
+            kind: "claim",
+            title: "Refresh token rotation may not be atomic",
+            summary: "Token invalidation and issuance are not in one transaction.",
+            issue_id: "issue-refresh",
+            severity: "high",
+            role: "security-reviewer",
+            shard_id: "auth.session",
+            confidence: "0.83",
+          },
+          {
+            id: "issue-refresh:location:0",
+            kind: "code_location",
+            title: "Code location",
+            summary: "Primary audited location.",
+            file: "src/auth/refresh.ts",
+            start_line: "42",
+            end_line: "81",
+          },
+          {
+            id: "issue-refresh:false-positive:0",
+            kind: "false_positive_check",
+            title: "False-positive check",
+            summary: "Check whether the caller wraps this service in a transaction.",
+          },
+          {
+            id: "issue-refresh:verdict:prover",
+            kind: "verifier_verdict",
+            title: "Verifier verdict",
+            summary: "A mocked failure leaves both tokens valid.",
+            verdict: "confirmed",
+            role: "prover",
+            proof_type: "failing_test",
+            proof_strength: "3",
+          },
+          {
+            id: "issue-refresh:command:0",
+            kind: "command",
+            title: "Verifier command",
+            summary: "A mocked failure leaves both tokens valid.",
+            command: "pnpm test auth -- refresh-token-rotation",
+            status: "executed",
+          },
+        ],
       },
     });
 
@@ -1004,6 +1050,7 @@ describe("normalizeIssue", () => {
       counts: {
         issueCards: 1,
         verificationResults: 1,
+        evidenceBlocks: 5,
         candidateCount: 2,
         rejectedCount: 1,
         verifiedCount: 1,
@@ -1030,6 +1077,36 @@ describe("normalizeIssue", () => {
       summary: "A mocked failure leaves both tokens valid.",
       command: "pnpm test auth -- refresh-token-rotation",
       evidence: ["Focused test reproduced the token rotation gap."],
+    });
+    expect(scan.auditSwarm.evidenceBlocks).toHaveLength(5);
+    expect(scan.auditSwarm.evidenceBlocks[0]).toMatchObject({
+      id: "issue-refresh:claim",
+      kind: "claim",
+      title: "Refresh token rotation may not be atomic",
+      summary: "Token invalidation and issuance are not in one transaction.",
+      issueId: "issue-refresh",
+      severity: "high",
+      role: "security-reviewer",
+      shardId: "auth.session",
+      confidence: 0.83,
+    });
+    expect(scan.auditSwarm.evidenceBlocks[1]).toMatchObject({
+      kind: "code_location",
+      file: "src/auth/refresh.ts",
+      startLine: "42",
+      endLine: "81",
+    });
+    expect(scan.auditSwarm.evidenceBlocks[3]).toMatchObject({
+      kind: "verifier_verdict",
+      verdict: "confirmed",
+      role: "prover",
+      proofType: "failing_test",
+      proofStrength: 3,
+    });
+    expect(scan.auditSwarm.evidenceBlocks[4]).toMatchObject({
+      kind: "command",
+      command: "pnpm test auth -- refresh-token-rotation",
+      status: "executed",
     });
   });
 
