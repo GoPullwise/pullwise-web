@@ -35,6 +35,170 @@ function normalizeIssueCounts(issues) {
   );
 }
 
+function normalizeVerificationCounts(verification) {
+  if (!verification || typeof verification !== "object" || Array.isArray(verification)) {
+    return { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 };
+  }
+  return {
+    verified: normalizeCount(verification.verified),
+    static_proof: normalizeCount(verification.static_proof ?? verification.staticProof),
+    potential_risk: normalizeCount(verification.potential_risk ?? verification.potentialRisk),
+    unverified: normalizeCount(verification.unverified),
+  };
+}
+
+function normalizeVerificationAudit(value) {
+  const source = objectRecord(value) ? value : {};
+  const rejectedReasons = Array.isArray(source.rejectedReasons ?? source.rejected_reasons)
+    ? (source.rejectedReasons ?? source.rejected_reasons)
+        .map((item) => {
+          if (!objectRecord(item)) return null;
+          const reason = textValue(item.reason);
+          const count = normalizeCount(item.count);
+          return reason && count ? { reason, count } : null;
+        })
+        .filter(Boolean)
+    : [];
+  const rejectedSamples = Array.isArray(source.rejectedSamples ?? source.rejected_samples)
+    ? (source.rejectedSamples ?? source.rejected_samples)
+        .map((item) => {
+          if (!objectRecord(item)) return null;
+          const reason = textValue(item.reason);
+          if (!reason) return null;
+          return {
+            reason,
+            title: textValue(item.title),
+            severity: textValue(item.severity),
+            category: textValue(item.category),
+            file: textValue(item.file),
+            line: normalizeCount(item.line),
+            verificationStatus: normalizeVerificationStatus(item.verificationStatus),
+          };
+        })
+        .filter(Boolean)
+        .slice(0, 5)
+    : [];
+  const rejectedReasonCount = rejectedReasons.reduce((sum, item) => sum + item.count, 0);
+  return {
+    candidateCount: normalizeCount(source.candidateCount ?? source.candidate_count),
+    reportedCount: normalizeCount(source.reportedCount ?? source.reported_count),
+    rejectedCount: Math.max(
+      normalizeCount(source.rejectedCount ?? source.rejected_count),
+      rejectedReasonCount
+    ),
+    downgradedCount: normalizeCount(source.downgradedCount ?? source.downgraded_count),
+    verifiedCount: normalizeCount(source.verifiedCount ?? source.verified_count),
+    staticProofCount: normalizeCount(source.staticProofCount ?? source.static_proof_count),
+    potentialRiskCount: normalizeCount(source.potentialRiskCount ?? source.potential_risk_count),
+    unverifiedCount: normalizeCount(source.unverifiedCount ?? source.unverified_count),
+    rejectedReasons,
+    rejectedSamples,
+    summary: textValue(source.summary),
+  };
+}
+
+function normalizePreflight(preflight) {
+  if (!objectRecord(preflight)) return null;
+  const manifests = Array.isArray(preflight.manifests)
+    ? preflight.manifests
+        .map((item) =>
+          objectRecord(item)
+            ? { file: textValue(item.file), type: textValue(item.type) }
+            : null
+        )
+        .filter((item) => item?.file && item?.type)
+    : [];
+  const toolVersions = Array.isArray(preflight.toolVersions)
+    ? preflight.toolVersions
+        .map((item) => {
+          if (!objectRecord(item)) return null;
+          const name = textValue(item.name);
+          if (!name) return null;
+          const exitCode = Number(item.exitCode ?? 0);
+          return {
+            name,
+            command: textValue(item.command),
+            available: normalizeBoolean(item.available),
+            exitCode: Number.isFinite(exitCode) ? Math.trunc(exitCode) : 0,
+            output: textValue(item.output),
+          };
+        })
+        .filter(Boolean)
+    : [];
+  const verifierRuns = Array.isArray(preflight.verifier?.runs)
+    ? preflight.verifier.runs
+        .map((item) => {
+          if (!objectRecord(item)) return null;
+          const status = textValue(item.status);
+          const attempts = Array.isArray(item.attempts)
+            ? item.attempts
+                .map((attempt) => {
+                  if (!objectRecord(attempt)) return null;
+                  const attemptStatus = textValue(attempt.status);
+                  return {
+                    attempt: normalizeCount(attempt.attempt),
+                    status: ["passed", "failed", "skipped", "timeout"].includes(attemptStatus)
+                      ? attemptStatus
+                      : "skipped",
+                    exitCode: normalizeCount(attempt.exitCode),
+                    durationMs: normalizeCount(attempt.durationMs),
+                    output: textValue(attempt.output),
+                  };
+                })
+                .filter(Boolean)
+            : [];
+          return {
+            script: textValue(item.script),
+            command: textValue(item.command),
+            status: ["passed", "failed", "skipped", "timeout", "flaky"].includes(status)
+              ? status
+              : "skipped",
+            exitCode: normalizeCount(item.exitCode),
+            durationMs: normalizeCount(item.durationMs),
+            confirmedFailure: normalizeBoolean(item.confirmedFailure),
+            attempts,
+            logPath: textValue(item.logPath),
+            output: textValue(item.output),
+          };
+        })
+        .filter((item) => item?.script || item?.command)
+    : [];
+  const verifier = objectRecord(preflight.verifier)
+    ? {
+        enabled: normalizeBoolean(preflight.verifier.enabled),
+        summary: textValue(preflight.verifier.summary),
+        runs: verifierRuns,
+      }
+    : null;
+  const environment = objectRecord(preflight.environment)
+    ? {
+        os: textValue(preflight.environment.os),
+        osRelease: textValue(preflight.environment.osRelease),
+        platform: textValue(preflight.environment.platform),
+        machine: textValue(preflight.environment.machine),
+        pythonVersion: textValue(preflight.environment.pythonVersion),
+      }
+    : null;
+  return {
+    mode: textValue(preflight.mode),
+    execution: textValue(preflight.execution),
+    summary: textValue(preflight.summary),
+    repo: textValue(preflight.repo),
+    branch: textValue(preflight.branch),
+    commit: textValue(preflight.commit),
+    workerVersion: textValue(preflight.workerVersion),
+    environment,
+    providerChain: normalizeTextList(preflight.providerChain),
+    languages: normalizeTextList(preflight.languages),
+    packageManagers: normalizeTextList(preflight.packageManagers),
+    availableScripts: normalizeTextList(preflight.availableScripts),
+    limitations: normalizeTextList(preflight.limitations),
+    manifests,
+    toolVersions,
+    verifier,
+  };
+}
+
 function normalizeProgress(value) {
   const progress = Number(value ?? 0);
   if (!Number.isFinite(progress)) return 0;
@@ -96,6 +260,18 @@ function normalizeIssueStatus(value) {
   return ["open", "fixed", "snoozed"].includes(status) ? status : "open";
 }
 
+function normalizeVerificationStatus(value) {
+  const status = textValue(value);
+  return ["verified", "static_proof", "potential_risk", "unverified"].includes(status)
+    ? status
+    : "potential_risk";
+}
+
+function normalizeConfidenceLevel(value) {
+  const level = textValue(value);
+  return ["high", "medium", "low"].includes(level) ? level : "low";
+}
+
 function normalizeScanStatus(value) {
   const status = textValue(value);
   return ["queued", "running", "done", "failed", "cancelled"].includes(status) ? status : "queued";
@@ -112,6 +288,14 @@ function firstLineText(value) {
     .replaceAll("\x00", "")
     .split(/\r?\n|\r/, 1)[0]
     .trim();
+}
+
+function multilineTextValue(value, maxLength = 4000) {
+  const text = scalarText(value)
+    .replaceAll("\x00", "")
+    .replace(/\r\n|\r/g, "\n")
+    .trim();
+  return text.slice(0, maxLength);
 }
 
 function normalizeReferenceUrl(value) {
@@ -196,6 +380,243 @@ function normalizeReferences(references) {
         label: firstLineText(reference.label) || url,
         url,
       };
+    })
+    .filter(Boolean);
+}
+
+function normalizeLocations(locations) {
+  if (!Array.isArray(locations)) return [];
+  return locations
+    .map((location) => {
+      if (!objectRecord(location)) return null;
+      const file = textValue(location.file);
+      if (!file) return null;
+      const startLine = normalizeLineNumber(location.startLine ?? location.start_line ?? location.line);
+      const endLine = normalizeLineNumber(location.endLine ?? location.end_line ?? startLine);
+      return {
+        file,
+        startLine,
+        endLine: endLine || startLine,
+        url: normalizeReferenceUrl(location.url),
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeEvidence(evidence) {
+  if (!Array.isArray(evidence)) return [];
+  return evidence
+    .map((item) => {
+      if (!objectRecord(item)) return null;
+      const type = textValue(item.type) || "code";
+      const label = textValue(item.label) || type.replaceAll("_", " ");
+      const summary = textValue(item.summary);
+      const file = textValue(item.file);
+      const command = textValue(item.command);
+      const logPath = textValue(item.logPath, item.log_path);
+      const output = multilineTextValue(item.output);
+      const url = normalizeReferenceUrl(item.url);
+      if (!summary && !file && !command && !logPath && !output && !url) return null;
+      const exitCode = Number(item.exitCode ?? item.exit_code);
+      return {
+        type,
+        label,
+        summary,
+        file,
+        startLine: normalizeLineNumber(item.startLine ?? item.start_line ?? item.line),
+        endLine: normalizeLineNumber(item.endLine ?? item.end_line ?? item.startLine),
+        command,
+        exitCode: Number.isFinite(exitCode) ? Math.trunc(exitCode) : null,
+        logPath,
+        output,
+        url,
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeReproduction(value) {
+  const source = objectRecord(value) ? value : {};
+  return {
+    commands: normalizeTextList(source.commands),
+    input: textValue(source.input),
+    expected: textValue(source.expected),
+    actual: textValue(source.actual),
+    testFile: textValue(source.testFile, source.test_file),
+    logPath: textValue(source.logPath, source.log_path),
+  };
+}
+
+function normalizeReasoningBreakdown(value) {
+  const source = objectRecord(value) ? value : {};
+  return {
+    facts: normalizeTextList(source.facts),
+    inferences: normalizeTextList(source.inferences),
+    recommendations: normalizeTextList(source.recommendations),
+  };
+}
+
+function normalizeAuditSwarmTextList(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (objectRecord(item)) return textValue(item.summary, item.text, item.claim);
+      return textValue(item);
+    })
+    .filter(Boolean);
+}
+
+function normalizeAuditSwarmCounts(value) {
+  const source = objectRecord(value) ? value : {};
+  return {
+    issueCards: normalizeCount(source.issueCards ?? source.issue_cards),
+    verificationResults: normalizeCount(source.verificationResults ?? source.verification_results),
+    candidateCount: normalizeCount(source.candidateCount ?? source.candidate_count),
+    reportedCount: normalizeCount(source.reportedCount ?? source.reported_count),
+    rejectedCount: normalizeCount(source.rejectedCount ?? source.rejected_count),
+    downgradedCount: normalizeCount(source.downgradedCount ?? source.downgraded_count),
+    verifiedCount: normalizeCount(source.verifiedCount ?? source.verified_count),
+    staticProofCount: normalizeCount(source.staticProofCount ?? source.static_proof_count),
+    potentialRiskCount: normalizeCount(source.potentialRiskCount ?? source.potential_risk_count),
+    unverifiedCount: normalizeCount(source.unverifiedCount ?? source.unverified_count),
+    manifestCount: normalizeCount(source.manifestCount ?? source.manifest_count),
+    toolCount: normalizeCount(source.toolCount ?? source.tool_count),
+    verifierRunCount: normalizeCount(source.verifierRunCount ?? source.verifier_run_count),
+  };
+}
+
+function normalizeAuditSwarmIssueCards(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((card, index) => {
+      if (!objectRecord(card)) return null;
+      const locations = normalizeLocations(card.locations);
+      const primary = locations[0] || {};
+      const evidence = normalizeAuditSwarmTextList(card.evidence);
+      const title = textValue(card.title) || `Audit candidate ${index + 1}`;
+      return {
+        issueId: textValue(card.issueId, card.issue_id, card.id),
+        title,
+        severity: normalizeSeverity(card.severity),
+        category: textValue(card.category) || "Quality",
+        shardId: textValue(card.shardId, card.shard_id),
+        agentRole: textValue(card.agentRole, card.agent_role),
+        confidence: normalizeConfidence(card.confidence),
+        file: textValue(card.file, primary.file),
+        line: normalizeLineNumber(card.line ?? primary.startLine),
+        locations,
+        claim: textValue(card.claim, card.summary, card.description),
+        evidence,
+        evidenceCount: Math.max(
+          normalizeCount(card.evidenceCount ?? card.evidence_count),
+          evidence.length
+        ),
+        reproductionIdea: textValue(card.reproductionIdea, card.reproduction_idea),
+        suggestedTest: textValue(card.suggestedTest, card.suggested_test),
+        falsePositiveChecks: normalizeTextList(card.falsePositiveChecks ?? card.false_positive_checks),
+        violatedInvariants: normalizeTextList(card.violatedInvariants ?? card.violated_invariants),
+      };
+    })
+    .filter((card) => card && (card.title || card.claim || card.file || card.evidence.length))
+    .slice(0, 20);
+}
+
+function normalizeAuditSwarmVerificationResults(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((result) => {
+      if (!objectRecord(result)) return null;
+      const commands = normalizeTextList(result.commandsRun ?? result.commands_run ?? result.commands);
+      const command = textValue(result.command);
+      if (command && !commands.includes(command)) commands.unshift(command);
+      const evidence = normalizeAuditSwarmTextList(result.evidence);
+      const verdict = textValue(result.verdict);
+      return {
+        issueId: textValue(result.issueId, result.issue_id),
+        verifierRole: textValue(result.verifierRole, result.verifier_role),
+        verdict: ["confirmed", "rejected", "inconclusive"].includes(verdict) ? verdict : "",
+        confidence: normalizeConfidence(result.confidence),
+        proofType: textValue(result.proofType, result.proof_type),
+        proofStrength: normalizeCount(result.proofStrength ?? result.proof_strength),
+        summary: textValue(result.summary, result.resultSummary, result.result_summary),
+        commands: commands.slice(0, 5),
+        command: commands[0] || "",
+        commandCount: Math.max(
+          normalizeCount(result.commandCount ?? result.command_count),
+          commands.length
+        ),
+        evidence,
+        evidenceCount: Math.max(
+          normalizeCount(result.evidenceCount ?? result.evidence_count),
+          evidence.length
+        ),
+        notesForFix: normalizeTextList(result.notesForFix ?? result.notes_for_fix),
+      };
+    })
+    .filter((result) => result && (result.issueId || result.verdict || result.summary || result.commands.length))
+    .slice(0, 30);
+}
+
+function normalizeAuditSwarm(value) {
+  if (!objectRecord(value)) return {};
+  const issueCards = normalizeAuditSwarmIssueCards(value.issueCards ?? value.issue_cards);
+  const verificationResults = normalizeAuditSwarmVerificationResults(
+    value.verificationResults ?? value.verification_results
+  );
+  const counts = normalizeAuditSwarmCounts(value.counts);
+  if (issueCards.length) counts.issueCards = Math.max(counts.issueCards, issueCards.length);
+  if (verificationResults.length) {
+    counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
+  }
+  return {
+    protocol: textValue(value.protocol),
+    stage: textValue(value.stage),
+    adapter: textValue(value.adapter),
+    providerChain: normalizeTextList(value.providerChain ?? value.provider_chain),
+    summary: textValue(value.summary),
+    logsSummary: textValue(value.logsSummary, value.logs_summary),
+    counts,
+    roles: normalizeTextList(value.roles),
+    shards: normalizeTextList(value.shards),
+    issueCards,
+    verificationResults,
+    shardId: textValue(value.shardId, value.shard_id),
+    agentRole: textValue(value.agentRole, value.agent_role),
+    verdict: textValue(value.verdict),
+  };
+}
+
+function normalizeEvidenceTrace(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((stage) => {
+      if (!objectRecord(stage)) return null;
+      const key = textValue(stage.key);
+      const label = textValue(stage.label, key);
+      const status = ["present", "missing"].includes(stage.status) ? stage.status : "missing";
+      const summary = textValue(stage.summary);
+      const items = normalizeTextList(stage.items);
+      if (!key && !label && !summary && !items.length) return null;
+      return {
+        key,
+        label,
+        status,
+        summary,
+        items,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeEvidenceChecklist(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!objectRecord(item)) return null;
+      const label = textValue(item.label);
+      if (!label) return null;
+      return { label, met: normalizeBoolean(item.met) };
     })
     .filter(Boolean);
 }
@@ -340,6 +761,21 @@ export function normalizeIssue(issue = {}) {
     impact: textValue(issue.impact),
     detectionReasoning: textValue(issue.detectionReasoning),
     reproductionPath: textValue(issue.reproductionPath),
+    verificationStatus: normalizeVerificationStatus(issue.verificationStatus),
+    verificationSummary: textValue(issue.verificationSummary),
+    affectedLocations: normalizeLocations(issue.affectedLocations),
+    evidence: normalizeEvidence(issue.evidence),
+    reproduction: normalizeReproduction(issue.reproduction),
+    whyNotFalsePositive: normalizeTextList(issue.whyNotFalsePositive),
+    limitations: normalizeTextList(issue.limitations),
+    evidenceChecklist: normalizeEvidenceChecklist(issue.evidenceChecklist),
+    confidenceLevel: normalizeConfidenceLevel(issue.confidenceLevel),
+    evidenceTrace: normalizeEvidenceTrace(issue.evidenceTrace),
+    reasoningBreakdown: normalizeReasoningBreakdown(issue.reasoningBreakdown),
+    auditSwarm: normalizeAuditSwarm(issue.auditSwarm),
+    audit: objectRecord(issue.audit) ? { ...issue.audit } : {},
+    commit: textValue(issue.commit, issue.audit?.commit),
+    jobId: textValue(issue.jobId, issue.audit?.jobId),
     severity: normalizeSeverity(issue.severity),
     category: textValue(issue.category) || "General",
     status: normalizeIssueStatus(issue.status),
@@ -385,6 +821,10 @@ export function normalizeScan(scan = {}) {
     by: textValue(scan.by) || "you",
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
+    verification: normalizeVerificationCounts(scan.verification),
+    verificationAudit: normalizeVerificationAudit(scan.verificationAudit ?? scan.verification_audit),
+    preflight: normalizePreflight(scan.preflight),
+    auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,

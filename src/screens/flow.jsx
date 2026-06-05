@@ -4,6 +4,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
+import { downloadBlob } from "../lib/download.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
@@ -184,6 +185,171 @@ function scanIssueTotals(scans) {
     },
     { critical: 0, high: 0, medium: 0, low: 0 }
   );
+}
+
+function scanVerificationTotals(scans) {
+  return scans.reduce(
+    (totals, scan) => {
+      const verification = scan?.verification || {};
+      return {
+        verified: totals.verified + Number(verification.verified || 0),
+        static_proof: totals.static_proof + Number(verification.static_proof || 0),
+        potential_risk: totals.potential_risk + Number(verification.potential_risk || 0),
+        unverified: totals.unverified + Number(verification.unverified || 0),
+      };
+    },
+    { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 }
+  );
+}
+
+function scanVerificationAuditTotals(scans) {
+  return scans.reduce(
+    (totals, scan) => {
+      const audit = scan?.verificationAudit || {};
+      return {
+        candidateCount: totals.candidateCount + Number(audit.candidateCount || 0),
+        reportedCount: totals.reportedCount + Number(audit.reportedCount || 0),
+        rejectedCount: totals.rejectedCount + Number(audit.rejectedCount || 0),
+        downgradedCount: totals.downgradedCount + Number(audit.downgradedCount || 0),
+        rejectedSamples: [...totals.rejectedSamples, ...(audit.rejectedSamples || [])].slice(0, 5),
+      };
+    },
+    { candidateCount: 0, reportedCount: 0, rejectedCount: 0, downgradedCount: 0, rejectedSamples: [] }
+  );
+}
+
+function hasVerificationAudit(audit) {
+  return Boolean(
+    audit &&
+      (audit.candidateCount ||
+        audit.reportedCount ||
+        audit.rejectedCount ||
+        audit.downgradedCount ||
+        audit.rejectedSamples?.length)
+  );
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+}
+
+function scanPreflightSummary(scans) {
+  const preflights = scans.map((scan) => scan?.preflight).filter(Boolean);
+  if (!preflights.length) return null;
+  const verifierRuns = preflights.flatMap((preflight) => preflight.verifier?.runs || []);
+  const verifierFailed = verifierRuns.filter((run) => run.status === "failed").length;
+  const verifierFlaky = verifierRuns.filter((run) => run.status === "flaky").length;
+  const verifierTimeout = verifierRuns.filter((run) => run.status === "timeout").length;
+  const environments = preflights.map((preflight) => preflight.environment).filter(Boolean);
+  const environmentLabels = uniqueStrings(
+    environments.map((environment) =>
+      [environment.os, environment.osRelease, environment.machine].filter(Boolean).join(" ")
+    )
+  ).slice(0, 3);
+  return {
+    mode: uniqueStrings(preflights.map((preflight) => preflight.mode)).join(", "),
+    execution: uniqueStrings(preflights.map((preflight) => preflight.execution)).join(", "),
+    summary:
+      preflights.length === 1
+        ? preflights[0].summary
+        : `${preflights.length} repository preflights captured without running project scripts.`,
+    languages: uniqueStrings(preflights.flatMap((preflight) => preflight.languages || [])).slice(0, 6),
+    packageManagers: uniqueStrings(preflights.flatMap((preflight) => preflight.packageManagers || [])).slice(0, 6),
+    availableScripts: uniqueStrings(preflights.flatMap((preflight) => preflight.availableScripts || [])).slice(0, 8),
+    manifestsCount: preflights.reduce((total, preflight) => total + (preflight.manifests?.length || 0), 0),
+    toolCount: preflights.reduce((total, preflight) => total + (preflight.toolVersions?.length || 0), 0),
+    environmentLabels,
+    verifierRuns: verifierRuns.length,
+    verifierFailed,
+    verifierFlaky,
+    verifierTimeout,
+  };
+}
+
+function auditSwarmCount(audit, key) {
+  const value = Number(audit?.counts?.[key] || 0);
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
+}
+
+function scanAuditSwarmSummary(scans) {
+  const audits = scans.map((scan) => scan?.auditSwarm).filter(Boolean);
+  if (!audits.length) return null;
+  const issueCards = audits.flatMap((audit) => audit.issueCards || []).slice(0, 8);
+  const verificationResults = audits.flatMap((audit) => audit.verificationResults || []).slice(0, 12);
+  const counts = audits.reduce(
+    (totals, audit) => {
+      for (const key of Object.keys(totals)) {
+        totals[key] += auditSwarmCount(audit, key);
+      }
+      return totals;
+    },
+    {
+      issueCards: 0,
+      verificationResults: 0,
+      candidateCount: 0,
+      reportedCount: 0,
+      rejectedCount: 0,
+      verifiedCount: 0,
+      staticProofCount: 0,
+      potentialRiskCount: 0,
+      unverifiedCount: 0,
+      manifestCount: 0,
+      toolCount: 0,
+      verifierRunCount: 0,
+    }
+  );
+  counts.issueCards = Math.max(counts.issueCards, issueCards.length);
+  counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
+  const summaries = uniqueStrings(audits.map((audit) => audit.summary));
+  return {
+    protocol: uniqueStrings(audits.map((audit) => audit.protocol)).join(", "),
+    stage: uniqueStrings(audits.map((audit) => audit.stage)).join(", "),
+    adapter: uniqueStrings(audits.map((audit) => audit.adapter)).join(", "),
+    providerChain: uniqueStrings(audits.flatMap((audit) => audit.providerChain || [])).slice(0, 5),
+    summary:
+      audits.length === 1
+        ? summaries[0] || ""
+        : `${audits.length} repository audit protocols are reporting structured evidence.`,
+    logsSummary: audits.find((audit) => audit.logsSummary)?.logsSummary || "",
+    counts,
+    roles: uniqueStrings([
+      ...audits.flatMap((audit) => audit.roles || []),
+      ...issueCards.map((card) => card.agentRole),
+      ...verificationResults.map((result) => result.verifierRole),
+    ]).slice(0, 8),
+    shards: uniqueStrings([
+      ...audits.flatMap((audit) => audit.shards || []),
+      ...issueCards.map((card) => card.shardId),
+    ]).slice(0, 8),
+    issueCards,
+    verificationResults,
+  };
+}
+
+function hasAuditSwarm(audit) {
+  if (!audit) return false;
+  const counts = audit.counts || {};
+  return Boolean(
+    audit.protocol ||
+      audit.stage ||
+      audit.summary ||
+      audit.roles?.length ||
+      audit.shards?.length ||
+      audit.issueCards?.length ||
+      audit.verificationResults?.length ||
+      Object.values(counts).some((value) => Number(value || 0) > 0)
+  );
+}
+
+function auditSwarmLocation(card) {
+  const location = card?.locations?.[0] || {};
+  const file = card?.file || location.file || "";
+  const line = card?.line || location.startLine || "";
+  return file ? `${file}${line ? `:${line}` : ""}` : "";
+}
+
+function auditSwarmCountLabel(count, singular, plural = `${singular}s`) {
+  return `${count || 0} ${count === 1 ? singular : plural}`;
 }
 
 export function ReposScreen({
@@ -788,6 +954,7 @@ const SCAN_PHASES = [
 export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
+  const [bundleLoading, setBundleLoading] = useState(false);
   const selectedRepos = useMemo(
     () => (Array.isArray(activeRepo?.selectedRepos) ? activeRepo.selectedRepos : []),
     [activeRepo?.selectedRepos]
@@ -856,6 +1023,20 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   const found = batchMode
     ? scanIssueTotals(scans)
     : scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
+  const verificationFound = batchMode
+    ? scanVerificationTotals(scans)
+    : scan?.verification || { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 };
+  const verificationAuditFound = batchMode
+    ? scanVerificationAuditTotals(scans)
+      : scan?.verificationAudit || {
+        candidateCount: 0,
+        reportedCount: 0,
+        rejectedCount: 0,
+        downgradedCount: 0,
+        rejectedSamples: [],
+      };
+  const preflight = batchMode ? scanPreflightSummary(scans) : scanPreflightSummary(scan ? [scan] : []);
+  const auditSwarm = scanAuditSwarmSummary(scans);
   const terminal = batchMode
     ? expectedBatchCount > 0 && batchRows.length === expectedBatchCount && batchRows.every(isTerminalBatchRow)
     : isTerminalScan(scan);
@@ -875,6 +1056,18 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   };
   const handleBack = () => {
     go("history");
+  };
+  const downloadAuditBundle = async () => {
+    if (!scan?.id || bundleLoading) return;
+    setBundleLoading(true);
+    try {
+      const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
+      downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
+    } catch (downloadError) {
+      globalThis.alert?.(downloadError?.message || "Unable to download audit bundle.");
+    } finally {
+      setBundleLoading(false);
+    }
   };
 
   const headerLabel =
@@ -971,6 +1164,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 </button>
                 {terminal && (
                   <>
+                    {!batchMode && scan?.id && (
+                      <button className="btn ghost" disabled={bundleLoading} onClick={downloadAuditBundle}>
+                        <I.Package size={13} />{" "}
+                        {bundleLoading ? T("Preparing", "准备中") : T("Audit bundle", "证据包")}
+                      </button>
+                    )}
                     <button className="btn ghost" onClick={() => go("dashboard")}>
                       <I.Layout size={13} /> {T("Dashboard", "总览")}
                     </button>
@@ -1087,7 +1286,180 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <span>Low</span>
                 </div>
               </div>
+              <div className="scanning-counts-h scanning-counts-subh">Evidence status</div>
+              <div className="scanning-counts-grid">
+                <div>
+                  <b className="scan-verification-verified">{verificationFound.verified || 0}</b>
+                  <span>Verified</span>
+                </div>
+                <div>
+                  <b className="scan-verification-static">{verificationFound.static_proof || 0}</b>
+                  <span>Static</span>
+                </div>
+                <div>
+                  <b className="scan-verification-risk">{verificationFound.potential_risk || 0}</b>
+                  <span>Risk</span>
+                </div>
+                <div>
+                  <b className="scan-verification-unverified">{verificationFound.unverified || 0}</b>
+                  <span>Unverified</span>
+                </div>
+              </div>
+              {hasVerificationAudit(verificationAuditFound) && (
+                <>
+                  <div className="scanning-counts-h scanning-counts-subh">Candidate audit</div>
+                  <div className="scanning-counts-grid">
+                    <div>
+                      <b>{verificationAuditFound.candidateCount || 0}</b>
+                      <span>Candidates</span>
+                    </div>
+                    <div>
+                      <b className="scan-verification-verified">{verificationAuditFound.reportedCount || 0}</b>
+                      <span>Reported</span>
+                    </div>
+                    <div>
+                      <b className="scan-verification-risk">{verificationAuditFound.rejectedCount || 0}</b>
+                      <span>Rejected</span>
+                    </div>
+                    <div>
+                      <b className="scan-verification-static">{verificationAuditFound.downgradedCount || 0}</b>
+                      <span>Downgraded</span>
+                    </div>
+                  </div>
+                  {verificationAuditFound.rejectedSamples?.length > 0 && (
+                    <div className="scan-preflight-meta">
+                      {verificationAuditFound.rejectedSamples.slice(0, 5).map((sample, index) => (
+                        <span key={`${sample.reason}-${sample.title || index}`}>
+                          Rejected: {sample.reason}
+                          {sample.title ? ` - ${sample.title}` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
+
+            {hasAuditSwarm(auditSwarm) && (
+              <div className="card scanning-preflight">
+                <div className="scanning-counts-h">{T("Audit evidence", "审计证据")}</div>
+                {auditSwarm.summary && (
+                  <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
+                )}
+                <div className="scan-preflight-tags">
+                  {auditSwarm.protocol && <span className="tag">{auditSwarm.protocol}</span>}
+                  {auditSwarm.stage && <span className="tag">stage {auditSwarm.stage}</span>}
+                  {auditSwarm.adapter && <span className="tag">{auditSwarm.adapter}</span>}
+                  {auditSwarm.roles.slice(0, 4).map((role) => (
+                    <span className="tag" key={`audit-role-${role}`}>
+                      {role}
+                    </span>
+                  ))}
+                  {auditSwarm.shards.slice(0, 3).map((shard) => (
+                    <span className="tag" key={`audit-shard-${shard}`}>
+                      shard {shard}
+                    </span>
+                  ))}
+                </div>
+                <div className="scan-preflight-meta">
+                  <span>{auditSwarmCountLabel(auditSwarm.counts.issueCards, "issue card")}</span>
+                  <span>
+                    {auditSwarmCountLabel(auditSwarm.counts.verificationResults, "verifier result")}
+                  </span>
+                  {auditSwarm.counts.candidateCount > 0 && (
+                    <span>{auditSwarm.counts.candidateCount} candidates evaluated</span>
+                  )}
+                  {auditSwarm.counts.rejectedCount > 0 && (
+                    <span>{auditSwarm.counts.rejectedCount} rejected before reporting</span>
+                  )}
+                  {auditSwarm.counts.verifiedCount > 0 && (
+                    <span>{auditSwarm.counts.verifiedCount} verified</span>
+                  )}
+                  {auditSwarm.counts.staticProofCount > 0 && (
+                    <span>{auditSwarm.counts.staticProofCount} static proof</span>
+                  )}
+                </div>
+                {auditSwarm.issueCards.length > 0 && (
+                  <div className="scanning-log-body">
+                    {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
+                      const location = auditSwarmLocation(card);
+                      return (
+                        <div key={card.issueId || `${card.title}-${index}`} className="scanning-log-line">
+                          <b>{card.title}</b>
+                          <div className="scan-preflight-meta">
+                            {card.severity && <span>{card.severity}</span>}
+                            {card.agentRole && <span>{card.agentRole}</span>}
+                            {location && <span>{location}</span>}
+                          </div>
+                          {card.claim && <div className="muted">Claim: {card.claim}</div>}
+                          {card.evidence?.[0] && <div className="muted">Evidence: {card.evidence[0]}</div>}
+                          {card.falsePositiveChecks?.[0] && (
+                            <div className="muted">
+                              False-positive check: {card.falsePositiveChecks[0]}
+                            </div>
+                          )}
+                          {card.suggestedTest && (
+                            <div className="muted">Suggested test: {card.suggestedTest}</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {auditSwarm.verificationResults.length > 0 && (
+                  <div className="scanning-log-body">
+                    {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
+                      <div
+                        key={`${result.issueId || "result"}-${result.verifierRole || index}`}
+                        className="scanning-log-line"
+                      >
+                        <b>
+                          {result.verdict || "reviewed"}
+                          {result.verifierRole ? ` by ${result.verifierRole}` : ""}
+                        </b>
+                        {result.summary && <div className="muted">{result.summary}</div>}
+                        {result.command && <code className="tag evidence-command">{result.command}</code>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {preflight && (
+              <div className="card scanning-preflight">
+                <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
+                {preflight.summary && <div className="muted scan-preflight-summary">{preflight.summary}</div>}
+                <div className="scan-preflight-tags">
+                  {preflight.execution && <span className="tag">{preflight.execution}</span>}
+                  {preflight.mode && <span className="tag">{preflight.mode}</span>}
+                  {preflight.packageManagers.map((item) => (
+                    <span className="tag" key={`pm-${item}`}>
+                      {item}
+                    </span>
+                  ))}
+                  {preflight.languages.map((item) => (
+                    <span className="tag" key={`lang-${item}`}>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+                <div className="scan-preflight-meta">
+                  <span>{preflight.manifestsCount || 0} manifests</span>
+                  <span>{preflight.toolCount || 0} tool checks</span>
+                  {preflight.environmentLabels.map((item) => (
+                    <span key={`env-${item}`}>{item}</span>
+                  ))}
+                  <span>{preflight.verifierRuns || 0} verifier runs</span>
+                  {preflight.verifierFailed > 0 && <span>{preflight.verifierFailed} failed</span>}
+                  {preflight.verifierFlaky > 0 && <span>{preflight.verifierFlaky} flaky</span>}
+                  {preflight.verifierTimeout > 0 && <span>{preflight.verifierTimeout} timed out</span>}
+                  {preflight.availableScripts.length > 0 && (
+                    <span>{preflight.availableScripts.join(", ")}</span>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="card scanning-log">
               <div className="scanning-counts-h">Live log</div>

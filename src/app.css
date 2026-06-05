@@ -701,6 +701,13 @@ body.has-proto-nav {
 .issue-detail-h h1,
 .issue-detail-h .sub,
 .issue-detail-grid .section,
+.issue-detail-main-col,
+.evidence-item,
+.evidence-meta,
+.evidence-command,
+.repro-center,
+.repro-command,
+.audit-scope,
 .fix-preview,
 .diff-block,
 .code-body,
@@ -736,6 +743,16 @@ body.has-proto-nav {
 .diff-block,
 .docs-code pre {
   overflow-x: auto;
+}
+
+.evidence-command,
+.audit-tag {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evidence-command {
+  white-space: nowrap;
 }
 
 .scanning-h {

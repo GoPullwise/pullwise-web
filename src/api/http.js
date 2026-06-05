@@ -28,6 +28,7 @@ export async function request(path, options = {}) {
       data: options.body,
       params: options.params,
       headers: options.headers,
+      responseType: options.responseType,
       signal: options.signal,
     });
 

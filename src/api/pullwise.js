@@ -34,6 +34,9 @@ export const pullwiseApi = {
     preflight: (payload) => request("/scans/preflight", { method: "POST", body: payload }),
     create: (payload) => request("/scans", { method: "POST", body: payload }),
     get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
+    auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
+    auditBundleArchive: (scanId) =>
+      request(`/scans/${pathSegment(scanId)}/audit-bundle.zip`, { responseType: "blob" }),
     list: (params = {}) => request(withSearchParams("/scans", params)),
     cancel: (scanId) => request(`/scans/${pathSegment(scanId)}/cancel`, { method: "POST" }),
   },

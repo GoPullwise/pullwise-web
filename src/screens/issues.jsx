@@ -4,6 +4,7 @@ import { GitHubInstallationsList } from "../components/github-installations.jsx"
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
+import { downloadBlob } from "../lib/download.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
@@ -15,11 +16,14 @@ import {
 import { Sidebar, Topbar } from "../shell.jsx";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
+const VERIFICATION_RANK = { verified: 4, static_proof: 3, potential_risk: 2, unverified: 1 };
+const EVIDENCE_RANK = { high: 3, medium: 2, low: 1 };
 
-function issueConfidence(issue) {
-  const confidence = Number(issue?.confidence);
-  if (!Number.isFinite(confidence)) return null;
-  return Math.max(0, Math.min(1, confidence));
+function evidenceSortRank(issue) {
+  return (
+    (VERIFICATION_RANK[issueVerificationStatus(issue)] ?? 0) * 10 +
+    (EVIDENCE_RANK[issueConfidenceLevel(issue)] ?? 0)
+  );
 }
 
 function sortIssues(items, key) {
@@ -28,11 +32,17 @@ function sortIssues(items, key) {
     sorted.sort(
       (a, b) =>
         (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0) ||
-        (issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1)
+        evidenceSortRank(b) - evidenceSortRank(a)
     );
   }
   if (key === "confidence")
-    sorted.sort((a, b) => (issueConfidence(b) ?? -1) - (issueConfidence(a) ?? -1));
+    sorted.sort(
+      (a, b) =>
+        (VERIFICATION_RANK[issueVerificationStatus(b)] ?? 0) -
+          (VERIFICATION_RANK[issueVerificationStatus(a)] ?? 0) ||
+        (EVIDENCE_RANK[issueConfidenceLevel(b)] ?? 0) -
+          (EVIDENCE_RANK[issueConfidenceLevel(a)] ?? 0)
+    );
   if (key === "newest")
     sorted.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (key === "file") sorted.sort((a, b) => (a.file || "").localeCompare(b.file || ""));
@@ -52,7 +62,23 @@ function scanHistorySummary(scan) {
     );
     return ["queued", ...queueTags].join(" - ");
   }
-  if (scan.issues) return T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} issues`);
+  if (scan.issues) {
+    const total = issueTotal(scan);
+    const audit = scan.verificationAudit || {};
+    const rejected = Number(audit.rejectedCount || 0);
+    const downgraded = Number(audit.downgradedCount || 0);
+    const partsEn = [`${total} issues`];
+    const partsZh = [`${total} 个问题`];
+    if (rejected > 0) {
+      partsEn.push(`${rejected} rejected`);
+      partsZh.push(`${rejected} 个候选被拒绝`);
+    }
+    if (downgraded > 0) {
+      partsEn.push(`${downgraded} downgraded`);
+      partsZh.push(`${downgraded} 个被降级`);
+    }
+    return T(partsEn.join(" · "), partsZh.join(" · "));
+  }
   return scan.status;
 }
 
@@ -80,7 +106,7 @@ function issuePullRequestState(issue) {
 function CodeEvidence({ title, lines }) {
   if (!lines?.length) return null;
   return (
-    <div className="code" style={{ marginTop: 10 }}>
+    <div className="code code-evidence">
       <div className="code-head">{title}</div>
       <div className="code-body">
         <pre>
@@ -99,6 +125,257 @@ function CodeEvidence({ title, lines }) {
         </pre>
       </div>
     </div>
+  );
+}
+
+const VERIFICATION_LABELS = {
+  verified: "Verified",
+  static_proof: "Static proof",
+  potential_risk: "Potential risk",
+  unverified: "Unverified",
+};
+
+const CONFIDENCE_LABELS = {
+  high: "High evidence",
+  medium: "Medium evidence",
+  low: "Low evidence",
+};
+
+function issueVerificationStatus(issue) {
+  return issue?.verificationStatus || "potential_risk";
+}
+
+function issueConfidenceLevel(issue) {
+  return issue?.confidenceLevel || "low";
+}
+
+function verificationLabel(issue) {
+  return VERIFICATION_LABELS[issueVerificationStatus(issue)] || "Potential risk";
+}
+
+function confidenceEvidenceLabel(issue) {
+  return CONFIDENCE_LABELS[issueConfidenceLevel(issue)] || "Low evidence";
+}
+
+function locationLabel(item) {
+  if (!item?.file) return "";
+  if (item.startLine && item.endLine && item.endLine !== item.startLine) {
+    return `${item.file}:${item.startLine}-${item.endLine}`;
+  }
+  return item.startLine ? `${item.file}:${item.startLine}` : item.file;
+}
+
+function copyText(value) {
+  const clipboard = globalThis.navigator?.clipboard;
+  if (!value || !clipboard?.writeText) return;
+  clipboard.writeText(value).catch(() => {});
+}
+
+function VerificationBadge({ issue }) {
+  return <span className="tag">{verificationLabel(issue)}</span>;
+}
+
+function EvidenceChecklist({ issue }) {
+  const checklist = issue.evidenceChecklist || [];
+  if (!checklist.length) return null;
+  return (
+    <div className="evidence-checklist">
+      <div className="evidence-badges">
+        <span className="tag">{confidenceEvidenceLabel(issue)}</span>
+        <VerificationBadge issue={issue} />
+      </div>
+      <div className="evidence-checklist-list">
+        {checklist.map((item) => (
+          <div key={item.label} className="evidence-check">
+            {item.met ? (
+              <I.Check size={13} className="evidence-check-icon met" />
+            ) : (
+              <I.X size={13} className="evidence-check-icon" />
+            )}
+            <span className="muted evidence-check-label">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EvidenceChain({ issue }) {
+  const evidence = issue.evidence || [];
+  if (!evidence.length) return null;
+  return (
+    <div className="evidence-chain">
+      {evidence.map((item, index) => (
+        <div
+          key={`${item.type}-${item.label}-${index}`}
+          className="evidence-item"
+        >
+          <div className="evidence-item-h">
+            <span className="tag">{item.type.replaceAll("_", " ")}</span>
+            <strong className="evidence-item-title">{item.label}</strong>
+            {item.exitCode !== null && item.exitCode !== undefined && (
+              <span className="tag">exit {item.exitCode}</span>
+            )}
+          </div>
+          {item.summary && (
+            <p className="muted evidence-summary">{item.summary}</p>
+          )}
+          {(item.file || item.command || item.logPath || item.url) && (
+            <div className="evidence-meta">
+              {item.file && (
+                <span className="tag">
+                  <I.FileCode size={11} /> {locationLabel(item)}
+                </span>
+              )}
+              {item.command && (
+                <code className="tag evidence-command">{item.command}</code>
+              )}
+              {item.logPath && <span className="tag">log: {item.logPath}</span>}
+              {item.url && (
+                <a className="auth-link" href={item.url} target="_blank" rel="noreferrer">
+                  Open evidence line
+                </a>
+              )}
+            </div>
+          )}
+          {item.output && (
+            <details className="docs-code evidence-raw-output">
+              <summary>Raw output</summary>
+              <pre>{item.output}</pre>
+            </details>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EvidenceTrace({ issue }) {
+  const stages = Array.isArray(issue.evidenceTrace) ? issue.evidenceTrace : [];
+  if (!stages.length) return null;
+  return (
+    <div className="evidence-chain">
+      {stages.map((stage, index) => (
+        <EvidenceTraceStage key={`${stage.key || stage.label}-${index}`} stage={stage} />
+      ))}
+    </div>
+  );
+}
+
+function EvidenceTraceStage({ stage }) {
+  const items = (stage.items || []).filter((item) => item !== stage.summary);
+  return (
+    <div className="evidence-item">
+      <div className="evidence-item-h">
+        <span className="tag">{stage.status}</span>
+        <strong className="evidence-item-title">{stage.label || stage.key}</strong>
+      </div>
+      {stage.summary && <p className="muted evidence-summary">{stage.summary}</p>}
+      {items.length > 0 && (
+        <ul className="legal-list-flat evidence-list">
+          {items.map((item, itemIndex) => (
+            <li key={`${stage.key}-${itemIndex}-${item}`}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ReproductionCenter({ issue }) {
+  const reproduction = issue.reproduction || {};
+  const commands = Array.isArray(reproduction.commands) ? reproduction.commands : [];
+  const commandText = commands.join("\n");
+  const hasStructuredRepro =
+    commands.length ||
+    reproduction.input ||
+    reproduction.expected ||
+    reproduction.actual ||
+    reproduction.testFile ||
+    reproduction.logPath;
+  if (!hasStructuredRepro && !issue.reproductionPath) return null;
+  return (
+    <div className="repro-center">
+      {issue.reproductionPath && (
+        <p className="muted repro-note">{issue.reproductionPath}</p>
+      )}
+      {commands.length > 0 && (
+        <div className="docs-code repro-command">
+          <div className="docs-code-h">
+            <span>Reproduction command</span>
+            <button className="docs-code-copy" type="button" onClick={() => copyText(commandText)}>
+              <I.Copy size={12} /> Copy
+            </button>
+          </div>
+          <pre>{commandText}</pre>
+        </div>
+      )}
+      {(reproduction.input || reproduction.expected || reproduction.actual) && (
+        <div className="repro-fields">
+          {reproduction.input && (
+            <div className="repro-field">
+              <b className="repro-field-title">Input</b>
+              <p className="muted repro-field-text">{reproduction.input}</p>
+            </div>
+          )}
+          {reproduction.expected && (
+            <div className="repro-field">
+              <b className="repro-field-title">Expected</b>
+              <p className="muted repro-field-text">{reproduction.expected}</p>
+            </div>
+          )}
+          {reproduction.actual && (
+            <div className="repro-field">
+              <b className="repro-field-title">Actual</b>
+              <p className="muted repro-field-text">{reproduction.actual}</p>
+            </div>
+          )}
+        </div>
+      )}
+      {(reproduction.testFile || reproduction.logPath) && (
+        <div className="repro-tags">
+          {reproduction.testFile && <span className="tag">test: {reproduction.testFile}</span>}
+          {reproduction.logPath && <span className="tag">log: {reproduction.logPath}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReasoningBreakdown({ issue }) {
+  const breakdown = issue.reasoningBreakdown || {};
+  const sections = [
+    ["Facts", breakdown.facts],
+    ["Inferences", breakdown.inferences],
+    ["Recommendations", breakdown.recommendations],
+  ].filter(([, items]) => Array.isArray(items) && items.length > 0);
+  if (!sections.length) return null;
+  return (
+    <div className="repro-fields">
+      {sections.map(([title, items]) => (
+        <div key={title} className="repro-field">
+          <b className="repro-field-title">{title}</b>
+          <ul className="legal-list-flat evidence-list">
+            {items.map((item, index) => (
+              <li key={`${title}-${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TextListSection({ title, items }) {
+  if (!items?.length) return null;
+  return (
+    <DetailSection title={title}>
+      <ul className="legal-list-flat evidence-list">
+        {items.map((item, index) => (
+          <li key={`${title}-${index}-${item}`}>{item}</li>
+        ))}
+      </ul>
+    </DetailSection>
   );
 }
 
@@ -160,7 +437,7 @@ export function IssuesScreen({ go, setIssue }) {
                 onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}
               >
                 <I.Sort size={14} />{" "}
-                {sortBy === "severity" ? T("Severity", "严重度") : T("Confidence", "置信度")}
+                {sortBy === "severity" ? T("Severity", "严重度") : "Evidence"}
               </button>
             </div>
           </div>
@@ -216,24 +493,21 @@ export function IssuesScreen({ go, setIssue }) {
               <div>Issue</div>
               <div>File</div>
               <div>Category</div>
-              <div>Confidence</div>
+              <div>Evidence</div>
               <div>Status</div>
               <div></div>
             </div>
             {error && (
-              <div className="muted" style={{ padding: 18 }}>
+              <div className="muted issues-table-message">
                 {error}
               </div>
             )}
             {!loading && !error && filtered.length === 0 && (
-              <div className="muted" style={{ padding: 24, textAlign: "center" }}>
+              <div className="muted issues-table-empty">
                 {T("No findings are available yet.", "暂无 findings。")}
               </div>
             )}
             {filtered.map((issue) => {
-              const confidence = issueConfidence(issue);
-              const confidenceLabel =
-                confidence == null ? "--" : `${Math.round(confidence * 100)}%`;
               return (
                 <div key={issue.id} className="issues-trow">
                   <div></div>
@@ -245,7 +519,7 @@ export function IssuesScreen({ go, setIssue }) {
                     onClick={() => openIssue(issue)}
                     onKeyDown={(event) => activateIssue(event, issue)}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                    <div className="issues-title-meta">
                       <span className={"sev sev-" + issue.severity}>
                         <span className="dot" style={{ background: "currentColor" }}></span>
                         {issue.severity}
@@ -263,23 +537,15 @@ export function IssuesScreen({ go, setIssue }) {
                     <span className="tag">{issue.category}</span>
                   </div>
                   <div>
-                    <div className="conf-bar">
-                      <div style={{ width: `${(confidence ?? 0) * 100}%` }}></div>
+                    <div className="issues-evidence-cell">
+                      <VerificationBadge issue={issue} />
+                      <span className="issues-evidence-label">{confidenceEvidenceLabel(issue)}</span>
                     </div>
-                    <span
-                      style={{
-                        fontSize: 11,
-                        color: "var(--text-3)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {confidenceLabel}
-                    </span>
                   </div>
                   <div>
                     <span className="tag">{issue.status}</span>
                   </div>
-                  <div style={{ display: "flex", gap: 6 }}>
+                  <div className="issues-row-actions">
                     {issue.status === "open" && (
                       <button className="btn sm" onClick={() => updateStatus(issue, "snoozed")}>
                         {T("Snooze", "推迟")}
@@ -306,7 +572,7 @@ export function IssuesScreen({ go, setIssue }) {
               );
             })}
             {meta.hasMore && (
-              <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
+              <div className="issues-load-more">
                 <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
                   {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}
                 </button>
@@ -375,8 +641,22 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
   const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
   const severity = issue.severity || "info";
-  const confidence = Number(issue.confidence);
-  const hasConfidence = Number.isFinite(confidence);
+  const primaryLocation = issue.affectedLocations?.[0] || null;
+  const hasReproduction = Boolean(
+    issue.reproductionPath ||
+      issue.reproduction?.commands?.length ||
+      issue.reproduction?.input ||
+      issue.reproduction?.expected ||
+      issue.reproduction?.actual ||
+      issue.reproduction?.testFile ||
+      issue.reproduction?.logPath
+  );
+  const hasReasoningBreakdown = Boolean(
+    issue.reasoningBreakdown?.facts?.length ||
+      issue.reasoningBreakdown?.inferences?.length ||
+      issue.reasoningBreakdown?.recommendations?.length
+  );
+  const hasEvidenceTrace = Boolean(issue.evidenceTrace?.length);
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
   const activePullRequest =
     pullRequest?.issueId === issue.id
@@ -456,6 +736,8 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                 </span>
                 <span className="issue-id">{issue.id}</span>
                 {issue.category && <span className="tag">{issue.category}</span>}
+                <VerificationBadge issue={issue} />
+                <span className="tag">{confidenceEvidenceLabel(issue)}</span>
                 <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
@@ -474,40 +756,57 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                   <I.Folder size={12} /> {issue.repo || "Repository unknown"}
                 </span>
                 <span>
-                  <I.FileCode size={12} /> {issue.file || "File unknown"}
-                  {issue.file && issue.line ? ":" + issue.line : ""}
+                  <I.FileCode size={12} />{" "}
+                  {primaryLocation ? locationLabel(primaryLocation) : issue.file || "File unknown"}
                 </span>
-                {hasConfidence && (
-                  <span
-                    title={issue.confidenceRationale || undefined}
-                    style={issue.confidenceRationale ? { cursor: "help" } : undefined}
-                  >
-                    <I.Sparkle size={12} /> {Math.round(confidence * 100)}%{" "}
-                    {T("confidence", "置信度")}
-                  </span>
-                )}
                 {issue.scanId && (
                   <span>
                     <I.Activity size={12} /> {issue.scanId}
+                  </span>
+                )}
+                {issue.commit && issue.commit !== "pending" && (
+                  <span>
+                    <I.GitBranch size={12} /> {issue.commit}
                   </span>
                 )}
               </div>
             </div>
           </div>
           <div className="issue-detail-grid">
-            <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+            <div className="issue-detail-main-col">
+              {issue.evidenceChecklist?.length > 0 && (
+                <DetailSection title="Confidence evidence">
+                  {issue.verificationSummary && (
+                    <p className="muted issue-section-note">{issue.verificationSummary}</p>
+                  )}
+                  <EvidenceChecklist issue={issue} />
+                </DetailSection>
+              )}
+
+              {hasEvidenceTrace && (
+                <DetailSection title="Evidence trace">
+                  <EvidenceTrace issue={issue} />
+                </DetailSection>
+              )}
+
+              {hasReasoningBreakdown && (
+                <DetailSection title="Facts, reasoning, recommendations">
+                  <ReasoningBreakdown issue={issue} />
+                </DetailSection>
+              )}
+
+              <DetailSection title="Evidence chain" empty="No structured evidence was provided.">
+                {issue.evidence?.length > 0 && <EvidenceChain issue={issue} />}
+              </DetailSection>
+
+              <DetailSection title="Reproduction center" empty="No executable reproduction was provided.">
+                {hasReproduction && <ReproductionCenter issue={issue} />}
+              </DetailSection>
+
               <DetailSection title={T("Detection reasoning", "检测推理")} empty="">
                 {issue.detectionReasoning && (
                   <p className="muted" style={{ color: "var(--text-2)" }}>
                     {issue.detectionReasoning}
-                  </p>
-                )}
-              </DetailSection>
-
-              <DetailSection title={T("Reproduction path", "复现路径")} empty="">
-                {issue.reproductionPath && (
-                  <p className="muted" style={{ color: "var(--text-2)" }}>
-                    {issue.reproductionPath}
                   </p>
                 )}
               </DetailSection>
@@ -519,6 +818,10 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                   </p>
                 )}
               </DetailSection>
+
+              <TextListSection title="Why this is not a false positive" items={issue.whyNotFalsePositive} />
+
+              <TextListSection title="When this may not apply" items={issue.limitations} />
 
               {(issue.fixBenefits || issue.fixRisks) && (
                 <DetailSection title={T("Fix impact analysis", "修复影响分析")}>
@@ -555,7 +858,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
                 )}
               </DetailSection>
 
-              <DetailSection title={T("Evidence", "代码证据")} empty={T("No code evidence was provided.", "未提供代码证据。")}>
+              <DetailSection title="Patch evidence" empty="No patch evidence was provided.">
                 {hasEvidence && (
                   <>
                     <CodeEvidence title="Current code" lines={issue.badCode || []} />
@@ -584,17 +887,52 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
               )}
             </div>
 
-            <div className="card section" style={{ display: "grid", gap: 10 }}>
+            <div className="card section issue-actions">
               <div className="section-h">
                 <h3>Actions</h3>
               </div>
+              <div className="audit-scope">
+                <div className="muted">Audit scope</div>
+                <div className="tag audit-tag">
+                  {issue.repo || "Repository unknown"}
+                </div>
+                <div className="tag audit-tag">
+                  {issue.branch || issue.audit?.branch || "main"} @ {issue.commit || "pending"}
+                </div>
+                {issue.jobId && (
+                  <div className="tag audit-tag">
+                    job {issue.jobId}
+                  </div>
+                )}
+                {issue.auditSwarm?.protocol && (
+                  <div className="tag audit-tag">
+                    {issue.auditSwarm.protocol}
+                  </div>
+                )}
+                {issue.auditSwarm?.agentRole && (
+                  <div className="tag audit-tag">
+                    {issue.auditSwarm.agentRole}
+                  </div>
+                )}
+                {issue.auditSwarm?.shardId && (
+                  <div className="tag audit-tag">
+                    shard {issue.auditSwarm.shardId}
+                  </div>
+                )}
+                {issue.auditSwarm?.verdict && (
+                  <div className="tag audit-tag">
+                    verdict {issue.auditSwarm.verdict}
+                  </div>
+                )}
+              </div>
+              <div className="divider" />
               {actionError && (
                 <div className="auth-error" role="alert">
                   <I.X size={13} /> {actionError}
                 </div>
               )}
               {currentStatus === "open" ? (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div className="issue-action-row">
                   <button className="btn sm primary" onClick={() => updateStatus("fixed")}>
                     <I.Check size={13} /> Mark fixed
                   </button>
@@ -662,6 +1000,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
 export function HistoryScreen({ go, openScan = null, setIssue = null }) {
   useLang();
   const [status, setStatus] = useState("all");
+  const [bundleLoading, setBundleLoading] = useState("");
   const {
     items: scans,
     loading,
@@ -678,6 +1017,18 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
       return;
     }
     go("dashboard");
+  };
+  const downloadAuditBundle = async (scan) => {
+    if (!scan?.id || bundleLoading) return;
+    setBundleLoading(scan.id);
+    try {
+      const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
+      downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
+    } catch (error) {
+      globalThis.alert?.(error?.message || "Unable to download audit bundle.");
+    } finally {
+      setBundleLoading("");
+    }
   };
 
   return (
@@ -767,11 +1118,7 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                     <div className="muted">{scanHistorySummary(scan)}</div>
                   )}
                   {!(scan.status === "queued" && scanQueueSummary(scan)) && (
-                    <div className="muted">
-                      {scan.issues
-                        ? T(`${issueTotal(scan)} issues`, `${issueTotal(scan)} 个问题`)
-                        : scan.status}
-                    </div>
+                    <div className="muted">{scanHistorySummary(scan)}</div>
                   )}
                 </div>
                 <div className="hist-meta">
@@ -783,6 +1130,14 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                 </div>
                 <button className="btn sm" onClick={() => viewScan(scan)}>
                   {T("View", "查看")} <I.ArrowR size={11} />
+                </button>
+                <button
+                  className="btn sm"
+                  disabled={!["done", "failed", "cancelled"].includes(scan.status) || bundleLoading === scan.id}
+                  onClick={() => downloadAuditBundle(scan)}
+                >
+                  <I.Package size={11} />
+                  {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Bundle", "证据包")}
                 </button>
               </div>
             ))}

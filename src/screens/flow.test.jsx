@@ -13,6 +13,8 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
       preflight: vi.fn(),
+      auditBundle: vi.fn(),
+      auditBundleArchive: vi.fn(),
     },
   },
 }));
@@ -77,6 +79,8 @@ beforeEach(() => {
     userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
     repositories: [],
   });
+  pullwiseApi.scans.auditBundle.mockReset();
+  pullwiseApi.scans.auditBundleArchive.mockReset();
   useRepositories.mockReset();
   useScanBatchRun.mockReset();
   useScanBatchRun.mockReturnValue({ scans: [], error: "", cancel: vi.fn() });
@@ -481,6 +485,197 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
+  it("shows evidence status totals for a completed scan", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        verification: { verified: 1, static_proof: 2, potential_risk: 3, unverified: 4 },
+        verificationAudit: {
+          candidateCount: 6,
+          reportedCount: 4,
+          rejectedCount: 2,
+          downgradedCount: 1,
+          rejectedSamples: [{ reason: "missing_evidence", title: "Only a vague model guess" }],
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Evidence status")).toBeInTheDocument();
+    expect(screen.getByText("Verified")).toBeInTheDocument();
+    expect(screen.getByText("Static")).toBeInTheDocument();
+    expect(screen.getByText("Risk")).toBeInTheDocument();
+    expect(screen.getByText("Unverified")).toBeInTheDocument();
+    expect(screen.getByText("Candidate audit")).toBeInTheDocument();
+    expect(screen.getByText("Candidates")).toBeInTheDocument();
+    expect(screen.getByText("Reported")).toBeInTheDocument();
+    expect(screen.getByText("Rejected")).toBeInTheDocument();
+    expect(screen.getByText("Downgraded")).toBeInTheDocument();
+    expect(screen.getByText("Rejected: missing_evidence - Only a vague model guess")).toBeInTheDocument();
+  });
+
+  it("shows user-readable Audit Swarm evidence from the worker scan payload", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        verification: { verified: 1, static_proof: 0, potential_risk: 0, unverified: 0 },
+        auditSwarm: {
+          protocol: "audit-swarm/0.1",
+          stage: "report",
+          adapter: "codex",
+          summary: "2 candidates evaluated; 1 reported; 1 rejected before reporting.",
+          counts: {
+            issueCards: 1,
+            verificationResults: 1,
+            candidateCount: 2,
+            rejectedCount: 1,
+            verifiedCount: 1,
+          },
+          roles: ["security-reviewer", "prover"],
+          shards: ["auth.session"],
+          issueCards: [
+            {
+              issueId: "issue-refresh",
+              title: "Refresh token rotation may not be atomic",
+              severity: "high",
+              agentRole: "security-reviewer",
+              shardId: "auth.session",
+              file: "src/auth/refresh.ts",
+              line: "42",
+              claim: "Token invalidation and issuance are not in one transaction.",
+              evidence: ["createRefreshToken runs before old-token invalidation is confirmed."],
+              falsePositiveChecks: ["Check whether the caller wraps this service in a transaction."],
+              suggestedTest: "Mock a failure between issuance and invalidation.",
+            },
+          ],
+          verificationResults: [
+            {
+              issueId: "issue-refresh",
+              verifierRole: "prover",
+              verdict: "confirmed",
+              summary: "A mocked failure leaves both tokens valid.",
+              command: "pnpm test auth -- refresh-token-rotation",
+            },
+          ],
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Audit evidence")).toBeInTheDocument();
+    expect(screen.getByText("audit-swarm/0.1")).toBeInTheDocument();
+    expect(screen.getByText("stage report")).toBeInTheDocument();
+    expect(screen.getByText("1 issue card")).toBeInTheDocument();
+    expect(screen.getByText("1 verifier result")).toBeInTheDocument();
+    expect(screen.getByText("2 candidates evaluated")).toBeInTheDocument();
+    expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
+    expect(screen.getByText("Claim: Token invalidation and issuance are not in one transaction.")).toBeInTheDocument();
+    expect(screen.getByText("Evidence: createRefreshToken runs before old-token invalidation is confirmed.")).toBeInTheDocument();
+    expect(screen.getByText("False-positive check: Check whether the caller wraps this service in a transaction.")).toBeInTheDocument();
+    expect(screen.getByText("Suggested test: Mock a failure between issuance and invalidation.")).toBeInTheDocument();
+    expect(screen.getByText("confirmed by prover")).toBeInTheDocument();
+    expect(screen.getByText("A mocked failure leaves both tokens valid.")).toBeInTheDocument();
+    expect(screen.getByText("pnpm test auth -- refresh-token-rotation")).toBeInTheDocument();
+  });
+
+  it("shows preflight evidence for a completed scan", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        verification: { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 },
+        preflight: {
+          mode: "static",
+          execution: "allowlisted_verifier_scripts",
+          summary: "Static preflight captured repository manifests and worker tool versions.",
+          packageManagers: ["pnpm"],
+          languages: ["JavaScript/TypeScript"],
+          availableScripts: ["build", "test"],
+          environment: {
+            os: "Linux",
+            osRelease: "6.8.0",
+            machine: "x86_64",
+          },
+          manifests: [{ file: "package.json", type: "node" }],
+          toolVersions: [{ name: "git", available: true, output: "git ok" }],
+          verifier: {
+            enabled: true,
+            summary: "Verifier ran one command.",
+            runs: [
+              { script: "test", command: "pnpm run test", status: "failed", exitCode: 1 },
+              { script: "lint", command: "pnpm run lint", status: "flaky", exitCode: 1 },
+            ],
+          },
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Preflight evidence")).toBeInTheDocument();
+    expect(screen.getByText("allowlisted_verifier_scripts")).toBeInTheDocument();
+    expect(screen.getByText("pnpm")).toBeInTheDocument();
+    expect(screen.getByText("1 manifests")).toBeInTheDocument();
+    expect(screen.getByText("1 tool checks")).toBeInTheDocument();
+    expect(screen.getByText("Linux 6.8.0 x86_64")).toBeInTheDocument();
+    expect(screen.getByText("2 verifier runs")).toBeInTheDocument();
+    expect(screen.getByText("1 failed")).toBeInTheDocument();
+    expect(screen.getByText("1 flaky")).toBeInTheDocument();
+    expect(screen.getByText("build, test")).toBeInTheDocument();
+  });
+
   it("marks a partial batch startup failure as failed after created scans finish", () => {
     useScanRun.mockReturnValue({
       scan: null,
@@ -623,6 +818,66 @@ describe("ScanningScreen queue state", () => {
 
     expect(actionGroup).not.toBeNull();
     expect(cancel.closest(".scanning-actions")).toBe(actionGroup);
+  });
+
+  it("downloads the audit bundle from a completed single scan", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn(() => "blob:pullwise-scan-audit");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    pullwiseApi.scans.auditBundleArchive.mockResolvedValueOnce(
+      new Blob(["zip"], { type: "application/zip" })
+    );
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        progress: 100,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
+
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      );
+
+      await user.click(screen.getByRole("button", { name: /audit bundle/i }));
+
+      expect(pullwiseApi.scans.auditBundleArchive).toHaveBeenCalledWith("sc_done");
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:pullwise-scan-audit");
+    } finally {
+      if (originalCreateObjectURL) {
+        Object.defineProperty(URL, "createObjectURL", {
+          configurable: true,
+          value: originalCreateObjectURL,
+        });
+      } else {
+        delete URL.createObjectURL;
+      }
+      if (originalRevokeObjectURL) {
+        Object.defineProperty(URL, "revokeObjectURL", {
+          configurable: true,
+          value: originalRevokeObjectURL,
+        });
+      } else {
+        delete URL.revokeObjectURL;
+      }
+      click.mockRestore();
+    }
   });
 
   it("explains queued scans with queue position and capacity limits", () => {

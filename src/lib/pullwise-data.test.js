@@ -535,6 +535,122 @@ describe("normalizeIssue", () => {
     expect(issue.tags).toEqual(["security", "42", "true"]);
   });
 
+  it("normalizes issue evidence and reproduction fields for safe rendering", () => {
+    const issue = normalizeIssue({
+      id: "f_evidence",
+      verificationStatus: "verified",
+      confidenceLevel: "high",
+      affectedLocations: [
+        {
+          file: "src/app.py",
+          startLine: "12",
+          endLine: "14",
+          url: "https://github.com/acme/api/blob/abc1234/src/app.py#L12-L14",
+        },
+        { file: "", startLine: "1" },
+      ],
+      evidence: [
+        {
+          type: "runtime_log",
+          label: "Failing test",
+          summary: "pytest reproduced the 500.",
+          file: "tests/repro.py",
+          startLine: "7.9",
+          command: "pytest tests/repro.py",
+          exitCode: "1",
+          logPath: "logs/f_evidence.log",
+          output: "FAIL tests/repro.py\r\nAssertionError: expected 400 received 500",
+          url: "javascript:alert(1)",
+        },
+      ],
+      reproduction: {
+        commands: ["pytest tests/repro.py", "bad\r\ncommand"],
+        input: "GET /users?page=0",
+        expected: "400",
+        actual: "500",
+        testFile: "tests/repro.py",
+        logPath: "logs/f_evidence.log",
+      },
+      evidenceChecklist: [
+        { label: "Fixed commit", met: "true" },
+        { label: "Runtime output", met: 0 },
+      ],
+      evidenceTrace: [
+        {
+          key: "code",
+          label: "Code",
+          status: "present",
+          summary: "Affected code location: src/app.py:L12-L14",
+          items: ["Affected code location: src/app.py:L12-L14", "bad\r\nextra"],
+        },
+        {
+          key: "runtime",
+          label: "Runtime",
+          status: "unexpected",
+          summary: "Observed result: 500",
+          items: ["Observed result: 500"],
+        },
+      ],
+      reasoningBreakdown: {
+        facts: ["Finding is pinned to commit abc1234.", "bad\r\nextra"],
+        inferences: ["Impact: page=0 returns 500"],
+        recommendations: ["Validate page >= 1.", { value: "bad" }],
+      },
+    });
+
+    expect(issue.verificationStatus).toBe("verified");
+    expect(issue.confidenceLevel).toBe("high");
+    expect(issue.affectedLocations).toEqual([
+      {
+        file: "src/app.py",
+        startLine: "12",
+        endLine: "14",
+        url: "https://github.com/acme/api/blob/abc1234/src/app.py#L12-L14",
+      },
+    ]);
+    expect(issue.evidence).toMatchObject([
+      {
+        type: "runtime_log",
+        label: "Failing test",
+        summary: "pytest reproduced the 500.",
+        file: "tests/repro.py",
+        startLine: "7",
+        command: "pytest tests/repro.py",
+        exitCode: 1,
+        logPath: "logs/f_evidence.log",
+        output: "FAIL tests/repro.py\nAssertionError: expected 400 received 500",
+        url: null,
+      },
+    ]);
+    expect(issue.reproduction.commands).toEqual(["pytest tests/repro.py", "bad"]);
+    expect(issue.reproduction.actual).toBe("500");
+    expect(issue.evidenceChecklist).toEqual([
+      { label: "Fixed commit", met: true },
+      { label: "Runtime output", met: false },
+    ]);
+    expect(issue.evidenceTrace).toEqual([
+      {
+        key: "code",
+        label: "Code",
+        status: "present",
+        summary: "Affected code location: src/app.py:L12-L14",
+        items: ["Affected code location: src/app.py:L12-L14", "bad"],
+      },
+      {
+        key: "runtime",
+        label: "Runtime",
+        status: "missing",
+        summary: "Observed result: 500",
+        items: ["Observed result: 500"],
+      },
+    ]);
+    expect(issue.reasoningBreakdown).toEqual({
+      facts: ["Finding is pinned to commit abc1234.", "bad"],
+      inferences: ["Impact: page=0 returns 500"],
+      recommendations: ["Validate page >= 1."],
+    });
+  });
+
   it("normalizes issue pull request metadata for safe rendering", () => {
     const issue = normalizeIssue({
       id: "f_123",
@@ -633,6 +749,287 @@ describe("normalizeIssue", () => {
       high: 0,
       medium: 2,
       low: 3,
+    });
+  });
+
+  it("normalizes scan verification counts for evidence summaries", () => {
+    expect(
+      normalizeScan({
+        id: "sc_1",
+        verification: {
+          verified: "2",
+          staticProof: 1.8,
+          potential_risk: "bad",
+          unverified: -3,
+        },
+      }).verification
+    ).toEqual({
+      verified: 2,
+      static_proof: 1,
+      potential_risk: 0,
+      unverified: 0,
+    });
+    expect(normalizeScan({ id: "sc_empty" }).verification).toEqual({
+      verified: 0,
+      static_proof: 0,
+      potential_risk: 0,
+      unverified: 0,
+    });
+  });
+
+  it("normalizes scan verification audit counts for candidate reporting", () => {
+    expect(
+      normalizeScan({
+        id: "sc_audit",
+        verification_audit: {
+          candidate_count: "7",
+          reported_count: "3",
+          rejected_count: "1",
+          downgraded_count: "2",
+          verified_count: "1",
+          static_proof_count: "2",
+          potential_risk_count: "bad",
+          unverified_count: -1,
+          rejectedReasons: [
+            { reason: "missing_evidence", count: "2" },
+            { reason: "", count: "10" },
+          ],
+          rejectedSamples: [
+            {
+              reason: "missing_evidence",
+              title: "Only a vague model guess",
+              severity: "low",
+              category: "Quality",
+              file: "src/guess.py",
+              line: "9",
+              verificationStatus: "unverified",
+              summary: "drop me",
+            },
+            { reason: "", title: "bad" },
+          ],
+          summary: "7 candidates evaluated\n3 reported",
+        },
+      }).verificationAudit
+    ).toEqual({
+      candidateCount: 7,
+      reportedCount: 3,
+      rejectedCount: 2,
+      downgradedCount: 2,
+      verifiedCount: 1,
+      staticProofCount: 2,
+      potentialRiskCount: 0,
+      unverifiedCount: 0,
+      rejectedReasons: [{ reason: "missing_evidence", count: 2 }],
+      rejectedSamples: [
+        {
+          reason: "missing_evidence",
+          title: "Only a vague model guess",
+          severity: "low",
+          category: "Quality",
+          file: "src/guess.py",
+          line: 9,
+          verificationStatus: "unverified",
+        },
+      ],
+      summary: "7 candidates evaluated",
+    });
+  });
+
+  it("normalizes scan preflight evidence for safe rendering", () => {
+    const scan = normalizeScan({
+      id: "sc_preflight",
+      preflight: {
+        mode: "static",
+        execution: "no_project_scripts",
+        summary: "Static preflight\nsecond line",
+        packageManagers: ["pnpm", "", null],
+        languages: ["JavaScript/TypeScript"],
+        availableScripts: ["build", "test"],
+        environment: {
+          os: "Linux",
+          osRelease: "6.8.0",
+          platform: "Linux-6.8.0-x86_64",
+          machine: "x86_64",
+          pythonVersion: "3.12.3",
+          checkoutRoot: "/srv/pullwise/checkouts/job",
+        },
+        manifests: [
+          { file: "package.json", type: "node" },
+          { file: "", type: "bad" },
+        ],
+        toolVersions: [
+          { name: "git", command: "git --version", available: true, exitCode: "0", output: "git ok" },
+          { name: "", command: "bad", available: true },
+        ],
+        verifier: {
+          enabled: true,
+          summary: "Verifier ran one command",
+          runs: [
+            {
+              script: "test",
+              command: "npm run test",
+              status: "failed",
+              exitCode: "1",
+              durationMs: "1200",
+              logPath: "verification/job/test.log",
+              output: "AssertionError",
+            },
+            {
+              script: "lint",
+              command: "npm run lint",
+              status: "flaky",
+              exitCode: "1",
+              durationMs: "900",
+              confirmedFailure: false,
+              logPath: "verification/job/lint.log",
+              output: "first attempt failed, second passed",
+              attempts: [
+                { attempt: "1", status: "failed", exitCode: "1", durationMs: "400", output: "FAIL" },
+                { attempt: "2", status: "passed", exitCode: "0", durationMs: "300", output: "PASS" },
+              ],
+            },
+            { script: "", command: "", status: "bad" },
+          ],
+        },
+      },
+    });
+
+    expect(scan.preflight).toMatchObject({
+      mode: "static",
+      execution: "no_project_scripts",
+      summary: "Static preflight",
+      packageManagers: ["pnpm"],
+      languages: ["JavaScript/TypeScript"],
+      availableScripts: ["build", "test"],
+      environment: {
+        os: "Linux",
+        osRelease: "6.8.0",
+        platform: "Linux-6.8.0-x86_64",
+        machine: "x86_64",
+        pythonVersion: "3.12.3",
+      },
+      manifests: [{ file: "package.json", type: "node" }],
+      toolVersions: [
+        { name: "git", command: "git --version", available: true, exitCode: 0, output: "git ok" },
+      ],
+      verifier: {
+        enabled: true,
+        summary: "Verifier ran one command",
+        runs: [
+          {
+            script: "test",
+            command: "npm run test",
+            status: "failed",
+            exitCode: 1,
+            durationMs: 1200,
+            logPath: "verification/job/test.log",
+            output: "AssertionError",
+          },
+          {
+            script: "lint",
+            command: "npm run lint",
+            status: "flaky",
+            exitCode: 1,
+            durationMs: 900,
+            confirmedFailure: false,
+            logPath: "verification/job/lint.log",
+            output: "first attempt failed, second passed",
+            attempts: [
+              { attempt: 1, status: "failed", exitCode: 1, durationMs: 400, output: "FAIL" },
+              { attempt: 2, status: "passed", exitCode: 0, durationMs: 300, output: "PASS" },
+            ],
+          },
+        ],
+      },
+    });
+    expect(normalizeScan({ id: "sc_empty" }).preflight).toBeNull();
+  });
+
+  it("normalizes scan Audit Swarm evidence for readable rendering", () => {
+    const scan = normalizeScan({
+      id: "sc_audit_swarm",
+      audit_swarm: {
+        protocol: "audit-swarm/0.1",
+        stage: "report",
+        adapter: "codex",
+        provider_chain: ["codex", "opencode"],
+        summary: "2 candidates evaluated\n1 reported",
+        counts: {
+          issueCards: "1",
+          verificationResults: "1",
+          candidateCount: "2",
+          rejectedCount: "1",
+          verifiedCount: "1",
+        },
+        roles: ["security-reviewer"],
+        shards: ["auth.session"],
+        issue_cards: [
+          {
+            issue_id: "issue-refresh",
+            title: "Refresh token rotation may not be atomic",
+            severity: "high",
+            category: "Security",
+            shard_id: "auth.session",
+            agent_role: "security-reviewer",
+            confidence: "0.83",
+            locations: [{ file: "src/auth/refresh.ts", startLine: "42", endLine: "81" }],
+            claim: "Token invalidation and issuance are not in one transaction.",
+            evidence: [{ summary: "createRefreshToken runs before old-token invalidation is confirmed." }],
+            false_positive_checks: ["Check whether the caller wraps this service in a transaction."],
+            suggested_test: "Mock a failure between issuance and invalidation.",
+          },
+        ],
+        verification_results: [
+          {
+            issue_id: "issue-refresh",
+            verifier_role: "prover",
+            verdict: "confirmed",
+            confidence: "0.9",
+            proof_type: "failing_test",
+            proof_strength: "3",
+            result_summary: "A mocked failure leaves both tokens valid.",
+            commands_run: ["pnpm test auth -- refresh-token-rotation"],
+            evidence: ["Focused test reproduced the token rotation gap."],
+          },
+        ],
+      },
+    });
+
+    expect(scan.auditSwarm).toMatchObject({
+      protocol: "audit-swarm/0.1",
+      stage: "report",
+      adapter: "codex",
+      providerChain: ["codex", "opencode"],
+      summary: "2 candidates evaluated",
+      counts: {
+        issueCards: 1,
+        verificationResults: 1,
+        candidateCount: 2,
+        rejectedCount: 1,
+        verifiedCount: 1,
+      },
+      roles: ["security-reviewer"],
+      shards: ["auth.session"],
+    });
+    expect(scan.auditSwarm.issueCards[0]).toMatchObject({
+      issueId: "issue-refresh",
+      title: "Refresh token rotation may not be atomic",
+      file: "src/auth/refresh.ts",
+      line: "42",
+      claim: "Token invalidation and issuance are not in one transaction.",
+      evidence: ["createRefreshToken runs before old-token invalidation is confirmed."],
+      falsePositiveChecks: ["Check whether the caller wraps this service in a transaction."],
+      suggestedTest: "Mock a failure between issuance and invalidation.",
+    });
+    expect(scan.auditSwarm.verificationResults[0]).toMatchObject({
+      issueId: "issue-refresh",
+      verifierRole: "prover",
+      verdict: "confirmed",
+      proofType: "failing_test",
+      proofStrength: 3,
+      summary: "A mocked failure leaves both tokens valid.",
+      command: "pnpm test auth -- refresh-token-rotation",
+      evidence: ["Focused test reproduced the token rotation gap."],
     });
   });
 
