@@ -1166,8 +1166,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <>
                     {!batchMode && scan?.id && (
                       <button className="btn ghost" disabled={bundleLoading} onClick={downloadAuditBundle}>
-                        <I.Package size={13} />{" "}
-                        {bundleLoading ? T("Preparing", "准备中") : T("Audit bundle", "证据包")}
+                        <I.Download size={13} />{" "}
+                        {bundleLoading ? T("Preparing", "准备中") : T("Download audit zip", "下载审计 zip")}
                       </button>
                     )}
                     <button className="btn ghost" onClick={() => go("dashboard")}>
@@ -1342,12 +1342,19 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
 
             {hasAuditSwarm(auditSwarm) && (
               <div className="card scanning-audit">
-                <div className="scanning-counts-h">{T("Audit evidence", "审计证据")}</div>
+                <div className="audit-head">
+                  <span className="audit-head-icon">
+                    <I.Shield size={13} />
+                  </span>
+                  <span className="audit-head-t">{T("Audit evidence", "审计证据")}</span>
+                  {auditSwarm.protocol && (
+                    <span className="audit-head-sub">{auditSwarm.protocol}</span>
+                  )}
+                </div>
                 {auditSwarm.summary && (
                   <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
                 )}
                 <div className="scan-preflight-tags">
-                  {auditSwarm.protocol && <span className="tag">{auditSwarm.protocol}</span>}
                   {auditSwarm.stage && <span className="tag">stage {auditSwarm.stage}</span>}
                   {auditSwarm.adapter && <span className="tag">{auditSwarm.adapter}</span>}
                   {auditSwarm.roles.slice(0, 4).map((role) => (
@@ -1362,10 +1369,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   ))}
                 </div>
                 <div className="scan-preflight-meta">
-                  <span>{auditSwarmCountLabel(auditSwarm.counts.issueCards, "issue card")}</span>
-                  <span>
-                    {auditSwarmCountLabel(auditSwarm.counts.verificationResults, "verifier result")}
-                  </span>
                   {auditSwarm.counts.candidateCount > 0 && (
                     <span>{auditSwarm.counts.candidateCount} candidates evaluated</span>
                   )}
@@ -1380,47 +1383,97 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   )}
                 </div>
                 {auditSwarm.issueCards.length > 0 && (
-                  <div className="audit-card-list">
-                    {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
-                      const location = auditSwarmLocation(card);
-                      return (
-                        <div key={card.issueId || `${card.title}-${index}`} className="audit-card">
-                          <div className="audit-card-title">{card.title}</div>
-                          <div className="audit-card-meta">
-                            {card.severity && <span>{card.severity}</span>}
-                            {card.agentRole && <span>{card.agentRole}</span>}
-                            {location && <span>{location}</span>}
-                          </div>
-                          {card.claim && <div className="audit-card-line">Claim: {card.claim}</div>}
-                          {card.evidence?.[0] && <div className="audit-card-line">Evidence: {card.evidence[0]}</div>}
-                          {card.falsePositiveChecks?.[0] && (
-                            <div className="audit-card-line">
-                              False-positive check: {card.falsePositiveChecks[0]}
+                  <div className="audit-section">
+                    <div className="audit-section-h">
+                      <span>{T("Issue cards", "问题卡片")}</span>
+                      <span className="audit-section-count">
+                        {auditSwarmCountLabel(auditSwarm.counts.issueCards, "issue card")}
+                      </span>
+                    </div>
+                    <div className="audit-card-list">
+                      {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
+                        const location = auditSwarmLocation(card);
+                        return (
+                          <div key={card.issueId || `${card.title}-${index}`} className="audit-card">
+                            <div className="audit-card-title">{card.title}</div>
+                            <div className="audit-card-meta">
+                              {card.severity && (
+                                <span className="sev-mini">{card.severity}</span>
+                              )}
+                              {card.agentRole && <span>{card.agentRole}</span>}
+                              {location && <span>{location}</span>}
                             </div>
-                          )}
-                          {card.suggestedTest && (
-                            <div className="audit-card-line">Suggested test: {card.suggestedTest}</div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            {card.claim && (
+                              <div className="audit-card-row">
+                                <b>{T("Claim", "结论")}</b>
+                                <span>{card.claim}</span>
+                              </div>
+                            )}
+                            {card.evidence?.[0] && (
+                              <div className="audit-card-row">
+                                <b>{T("Evidence", "证据")}</b>
+                                <span>{card.evidence[0]}</span>
+                              </div>
+                            )}
+                            {card.falsePositiveChecks?.[0] && (
+                              <div className="audit-card-row">
+                                <b>{T("False +", "误报排除")}</b>
+                                <span>{card.falsePositiveChecks[0]}</span>
+                              </div>
+                            )}
+                            {card.suggestedTest && (
+                              <div className="audit-card-row">
+                                <b>{T("Test", "建议测试")}</b>
+                                <span>{card.suggestedTest}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {auditSwarm.counts.issueCards > auditSwarm.issueCards.length && (
+                      <div className="audit-card-more">
+                        {T(
+                          `+${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} more in the downloaded audit bundle`,
+                          `下载的审计包中还有 ${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} 条`
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
                 {auditSwarm.verificationResults.length > 0 && (
-                  <div className="audit-card-list">
-                    {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
-                      <div
-                        key={`${result.issueId || "result"}-${result.verifierRole || index}`}
-                        className="audit-card"
-                      >
-                        <div className="audit-card-title">
-                          {result.verdict || "reviewed"}
-                          {result.verifierRole ? ` by ${result.verifierRole}` : ""}
+                  <div className="audit-section">
+                    <div className="audit-section-h">
+                      <span>{T("Verifier results", "验证结果")}</span>
+                      <span className="audit-section-count">
+                        {auditSwarmCountLabel(auditSwarm.counts.verificationResults, "verifier result")}
+                      </span>
+                    </div>
+                    <div className="audit-card-list">
+                      {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
+                        <div
+                          key={`${result.issueId || "result"}-${result.verifierRole || index}`}
+                          className="audit-card"
+                        >
+                          <div className="audit-card-title">
+                            {result.verdict || "reviewed"}
+                            {result.verifierRole ? ` · ${result.verifierRole}` : ""}
+                          </div>
+                          {result.summary && (
+                            <div className="audit-card-row">
+                              <b>{T("Summary", "摘要")}</b>
+                              <span>{result.summary}</span>
+                            </div>
+                          )}
+                          {result.command && (
+                            <div className="audit-card-row">
+                              <b>{T("Command", "命令")}</b>
+                              <code className="tag evidence-command">{result.command}</code>
+                            </div>
+                          )}
                         </div>
-                        {result.summary && <div className="audit-card-line">{result.summary}</div>}
-                        {result.command && <code className="tag evidence-command">{result.command}</code>}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

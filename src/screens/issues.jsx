@@ -1140,8 +1140,8 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                   title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
                   aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
                 >
-                  <I.Package size={11} />
-                  {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Audit bundle", "证据包")}
+                  <I.Download size={11} />
+                  {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Download zip", "下载 zip")}
                 </button>
               </div>
             ))}

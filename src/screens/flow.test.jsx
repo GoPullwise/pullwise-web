@@ -605,11 +605,15 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("1 verifier result")).toBeInTheDocument();
     expect(screen.getByText("2 candidates evaluated")).toBeInTheDocument();
     expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
-    expect(screen.getByText("Claim: Token invalidation and issuance are not in one transaction.")).toBeInTheDocument();
-    expect(screen.getByText("Evidence: createRefreshToken runs before old-token invalidation is confirmed.")).toBeInTheDocument();
-    expect(screen.getByText("False-positive check: Check whether the caller wraps this service in a transaction.")).toBeInTheDocument();
-    expect(screen.getByText("Suggested test: Mock a failure between issuance and invalidation.")).toBeInTheDocument();
-    expect(screen.getByText("confirmed by prover")).toBeInTheDocument();
+    expect(screen.getByText("Token invalidation and issuance are not in one transaction.")).toBeInTheDocument();
+    expect(
+      screen.getByText("createRefreshToken runs before old-token invalidation is confirmed.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Check whether the caller wraps this service in a transaction.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Mock a failure between issuance and invalidation.")).toBeInTheDocument();
+    expect(screen.getByText("confirmed · prover")).toBeInTheDocument();
     expect(screen.getByText("A mocked failure leaves both tokens valid.")).toBeInTheDocument();
     expect(screen.getByText("pnpm test auth -- refresh-token-rotation")).toBeInTheDocument();
   });
@@ -853,7 +857,7 @@ describe("ScanningScreen queue state", () => {
         />
       );
 
-      await user.click(screen.getByRole("button", { name: /audit bundle/i }));
+      await user.click(screen.getByRole("button", { name: /audit zip/i }));
 
       expect(pullwiseApi.scans.auditBundleArchive).toHaveBeenCalledWith("sc_done");
       expect(createObjectURL).toHaveBeenCalledTimes(1);
