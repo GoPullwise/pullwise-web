@@ -101,7 +101,13 @@ describe("BillingScreen", () => {
     const navigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true, admin: true }} navigate={navigate} />);
+    render(
+      <PricingScreen
+        go={vi.fn()}
+        auth={{ authenticated: true, session: { admin: true } }}
+        navigate={navigate}
+      />
+    );
 
     const startPro = await screen.findByRole("button", { name: /start pro/i });
     expect(startPro).not.toBeDisabled();

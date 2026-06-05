@@ -345,7 +345,7 @@ export function PricingScreen({
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const signedIn = Boolean(auth?.authenticated);
-  const adminBypass = signedIn && Boolean(auth?.admin);
+  const adminBypass = signedIn && Boolean(auth?.session?.admin || auth?.admin);
 
   useEffect(() => {
     let cancelled = false;
