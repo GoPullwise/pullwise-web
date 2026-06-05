@@ -564,6 +564,8 @@ export function IssuesScreen({ go, setIssue }) {
                       onClick={() => {
                         openIssue(issue);
                       }}
+                      title={T(`View issue ${issue.id}`, `查看问题 ${issue.id}`)}
+                      aria-label={T(`View issue ${issue.id}`, `查看问题 ${issue.id}`)}
                     >
                       <I.ArrowR size={11} />
                     </button>
@@ -1135,9 +1137,11 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                   className="btn sm"
                   disabled={!["done", "failed", "cancelled"].includes(scan.status) || bundleLoading === scan.id}
                   onClick={() => downloadAuditBundle(scan)}
+                  title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
+                  aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
                 >
                   <I.Package size={11} />
-                  {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Bundle", "证据包")}
+                  {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Audit bundle", "证据包")}
                 </button>
               </div>
             ))}

@@ -1341,7 +1341,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
             </div>
 
             {hasAuditSwarm(auditSwarm) && (
-              <div className="card scanning-preflight">
+              <div className="card scanning-audit">
                 <div className="scanning-counts-h">{T("Audit evidence", "审计证据")}</div>
                 {auditSwarm.summary && (
                   <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
@@ -1380,26 +1380,26 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   )}
                 </div>
                 {auditSwarm.issueCards.length > 0 && (
-                  <div className="scanning-log-body">
+                  <div className="audit-card-list">
                     {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
                       const location = auditSwarmLocation(card);
                       return (
-                        <div key={card.issueId || `${card.title}-${index}`} className="scanning-log-line">
-                          <b>{card.title}</b>
-                          <div className="scan-preflight-meta">
+                        <div key={card.issueId || `${card.title}-${index}`} className="audit-card">
+                          <div className="audit-card-title">{card.title}</div>
+                          <div className="audit-card-meta">
                             {card.severity && <span>{card.severity}</span>}
                             {card.agentRole && <span>{card.agentRole}</span>}
                             {location && <span>{location}</span>}
                           </div>
-                          {card.claim && <div className="muted">Claim: {card.claim}</div>}
-                          {card.evidence?.[0] && <div className="muted">Evidence: {card.evidence[0]}</div>}
+                          {card.claim && <div className="audit-card-line">Claim: {card.claim}</div>}
+                          {card.evidence?.[0] && <div className="audit-card-line">Evidence: {card.evidence[0]}</div>}
                           {card.falsePositiveChecks?.[0] && (
-                            <div className="muted">
+                            <div className="audit-card-line">
                               False-positive check: {card.falsePositiveChecks[0]}
                             </div>
                           )}
                           {card.suggestedTest && (
-                            <div className="muted">Suggested test: {card.suggestedTest}</div>
+                            <div className="audit-card-line">Suggested test: {card.suggestedTest}</div>
                           )}
                         </div>
                       );
@@ -1407,17 +1407,17 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   </div>
                 )}
                 {auditSwarm.verificationResults.length > 0 && (
-                  <div className="scanning-log-body">
+                  <div className="audit-card-list">
                     {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
                       <div
                         key={`${result.issueId || "result"}-${result.verifierRole || index}`}
-                        className="scanning-log-line"
+                        className="audit-card"
                       >
-                        <b>
+                        <div className="audit-card-title">
                           {result.verdict || "reviewed"}
                           {result.verifierRole ? ` by ${result.verifierRole}` : ""}
-                        </b>
-                        {result.summary && <div className="muted">{result.summary}</div>}
+                        </div>
+                        {result.summary && <div className="audit-card-line">{result.summary}</div>}
                         {result.command && <code className="tag evidence-command">{result.command}</code>}
                       </div>
                     ))}
