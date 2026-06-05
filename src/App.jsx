@@ -271,7 +271,7 @@ export function App({ prototypeNav = false }) {
       <div className="auth-wrap fade-in">
         <div className="auth-card">
           <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
-            <img className="brand-mark" src="/favicon.png" alt="" aria-hidden="true" width="24" height="24" />
+            <img className="brand-mark" src="/favicon.ico" alt="" aria-hidden="true" width="24" height="24" />
             <span style={{ fontSize: 16 }}>Pullwise</span>
           </div>
           <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
