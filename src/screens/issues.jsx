@@ -80,6 +80,10 @@ function issueTotal(scan) {
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
+function scanHasResults(scan) {
+  return ["done", "failed", "cancelled"].includes(scan?.status);
+}
+
 function scanHistorySummary(scan) {
   const queueSummary = scanQueueSummary(scan);
   if (scan.status === "queued" && queueSummary) {
@@ -1252,12 +1256,16 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                   <button className="btn sm" onClick={() => viewScan(scan)}>
                     {T("View", "查看")} <I.ArrowR size={11} />
                   </button>
-                  <button className="btn sm" disabled={!scan.id} onClick={() => viewScanIssues(scan)}>
+                  <button
+                    className="btn sm"
+                    disabled={!scan.id || !scanHasResults(scan)}
+                    onClick={() => viewScanIssues(scan)}
+                  >
                     <I.Bug size={11} /> Issues
                   </button>
                   <button
                     className="btn sm"
-                    disabled={!["done", "failed", "cancelled"].includes(scan.status) || bundleLoading === scan.id}
+                    disabled={!scanHasResults(scan) || bundleLoading === scan.id}
                     onClick={() => downloadAuditBundle(scan)}
                     title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
                     aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
