@@ -130,6 +130,7 @@ export function App({ prototypeNav = false }) {
   const [screen, setScreen] = useState(getInitialScreen);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
+  const [issueScanFilter, setIssueScanFilter] = useState(null);
   const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
@@ -163,6 +164,18 @@ export function App({ prototypeNav = false }) {
       initialScan: scan,
     });
     go("scanning");
+  };
+
+  const openScanIssues = (scan) => {
+    if (!scan?.id) return;
+    setIssueScanFilter({
+      id: scan.id,
+      repo: scan.repo,
+      branch: scan.branch || "main",
+      commit: scan.commit || "pending",
+      time: scan.time || "",
+    });
+    go("issues");
   };
 
   useEffect(() => {
@@ -355,13 +368,27 @@ export function App({ prototypeNav = false }) {
         body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} accent={ACCENT} />;
         break;
       case "issues":
-        body = <IssuesScreen go={go} setIssue={setIssue} />;
+        body = (
+          <IssuesScreen
+            go={go}
+            setIssue={setIssue}
+            scanFilter={issueScanFilter}
+            onClearScanFilter={() => setIssueScanFilter(null)}
+          />
+        );
         break;
       case "issue":
         body = <IssueDetailScreen go={go} issue={issue} setIssue={setIssue} />;
         break;
       case "history":
-        body = <HistoryScreen go={go} openScan={openScan} setIssue={setIssue} />;
+        body = (
+          <HistoryScreen
+            go={go}
+            openScan={openScan}
+            openScanIssues={openScanIssues}
+            setIssue={setIssue}
+          />
+        );
         break;
       case "apiKeys":
         body = <ApiKeysScreen go={go} setIssue={setIssue} />;

@@ -399,7 +399,7 @@ function TextListSection({ title, items }) {
   );
 }
 
-export function IssuesScreen({ go, setIssue }) {
+export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilter = null }) {
   useLang();
   const [sev, setSev] = useState("all");
   const [status, setStatus] = useState("open");
@@ -409,6 +409,7 @@ export function IssuesScreen({ go, setIssue }) {
   const [localIssueUpdates, setLocalIssueUpdates] = useState({});
   const statusUpdatingRef = useRef(new Set());
   const query = q.trim();
+  const scanId = scanFilter?.id || "";
   const {
     items: all,
     loading,
@@ -417,7 +418,7 @@ export function IssuesScreen({ go, setIssue }) {
     reload,
     loadMore,
     meta = {},
-  } = useIssues({ status, severity: sev, q: query, limit: 50, refreshOnChange: false });
+  } = useIssues({ status, severity: sev, q: query, scanId, limit: 50, refreshOnChange: false });
   const localIssues = Object.values(localIssueUpdates);
   const serverIssueKeys = new Set(all.map(issueRowKey));
   const issuesWithLocalStatus = [
@@ -533,6 +534,27 @@ export function IssuesScreen({ go, setIssue }) {
                 ))}
               </div>
             </div>
+            {scanId && (
+              <div className="filters-row">
+                <div className="filter-pills">
+                  <span className="filter-l">Scan</span>
+                  <span className="tag">
+                    <I.Activity size={11} /> Scan {scanId}
+                  </span>
+                  {scanFilter?.repo && <span className="tag">{scanFilter.repo}</span>}
+                  {scanFilter?.branch && (
+                    <span className="tag">
+                      <I.GitBranch size={10} /> {scanFilter.branch}
+                    </span>
+                  )}
+                  {onClearScanFilter && (
+                    <button className="btn sm" onClick={onClearScanFilter}>
+                      {T("Clear scan", "Clear scan")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="issues-table card">
@@ -1083,7 +1105,7 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
   );
 }
 
-export function HistoryScreen({ go, openScan = null, setIssue = null }) {
+export function HistoryScreen({ go, openScan = null, openScanIssues = null, setIssue = null }) {
   useLang();
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
@@ -1103,6 +1125,13 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
       return;
     }
     go("dashboard");
+  };
+  const viewScanIssues = (scan) => {
+    if (openScanIssues) {
+      openScanIssues(scan);
+      return;
+    }
+    go("issues");
   };
   const downloadAuditBundle = async (scan) => {
     if (!scan?.id || bundleLoading) return;
@@ -1222,6 +1251,9 @@ export function HistoryScreen({ go, openScan = null, setIssue = null }) {
                 <div className="hist-actions">
                   <button className="btn sm" onClick={() => viewScan(scan)}>
                     {T("View", "查看")} <I.ArrowR size={11} />
+                  </button>
+                  <button className="btn sm" disabled={!scan.id} onClick={() => viewScanIssues(scan)}>
+                    <I.Bug size={11} /> Issues
                   </button>
                   <button
                     className="btn sm"

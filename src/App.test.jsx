@@ -707,6 +707,68 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
+  it("opens scan history issues with a scanId filter", async () => {
+    window.history.replaceState({}, "", "/history");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.scans.list.mockResolvedValue({
+      items: [
+        {
+          id: "sc_history_1",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          createdAt: 1710000000,
+          time: "Today",
+          by: "you",
+          issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
+        },
+      ],
+    });
+    pullwiseApi.issues.list.mockResolvedValue({
+      items: [
+        {
+          id: "f_history",
+          scanId: "sc_history_1",
+          repo: "octocat/private-repo",
+          title: "History-only issue",
+          severity: "high",
+          category: "Security",
+          status: "open",
+          file: "src/auth.js",
+          line: 42,
+        },
+      ],
+      total: 1,
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    const historyRow = (await screen.findByText("octocat/private-repo")).closest(".hist-row");
+    await user.click(within(historyRow).getByRole("button", { name: /^issues$/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.issues.list).toHaveBeenCalledWith(
+        expect.objectContaining({ scanId: "sc_history_1" })
+      );
+    });
+    expect(await screen.findByText("History-only issue")).toBeInTheDocument();
+    expect(screen.getByText(/scan sc_history_1/i)).toBeInTheDocument();
+
+    const filteredCallCount = pullwiseApi.issues.list.mock.calls.length;
+    await user.click(screen.getByRole("button", { name: /clear scan/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.issues.list.mock.calls.length).toBeGreaterThan(filteredCallCount);
+    });
+    const latestIssueParams = pullwiseApi.issues.list.mock.calls.at(-1)?.[0] || {};
+    expect(latestIssueParams.scanId).toBeUndefined();
+  });
+
   it("keeps failed dashboard sidebar repository authorization in the repositories flow", async () => {
     window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
