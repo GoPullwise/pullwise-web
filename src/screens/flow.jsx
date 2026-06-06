@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
@@ -666,6 +666,100 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
   );
 }
 
+function BranchPicker({ repoLabel, value, options, loading, error, disabled, onChange }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    const handleKey = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        if (triggerRef.current) triggerRef.current.focus();
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  const handleSelect = (branch) => {
+    if (branch === value) {
+      setOpen(false);
+      return;
+    }
+    onChange(branch);
+    setOpen(false);
+  };
+
+  const pickerClass = "repo-branch-picker" + (error ? " repo-branch-error" : "");
+
+  return (
+    <span
+      ref={containerRef}
+      className={pickerClass}
+      title={error || `Branch: ${value}`}
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        className="repo-branch-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Branch for ${repoLabel}`}
+        disabled={disabled}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <I.GitBranch size={12} />
+        <span className="repo-branch-value">{loading ? T("Loading...", "加载中...") : value}</span>
+        <I.ChevD size={11} className="repo-branch-chev" aria-hidden="true" />
+      </button>
+      {open && (
+        <ul role="listbox" className="repo-branch-menu" aria-label={`Branches for ${repoLabel}`}>
+          {loading && (
+            <li className="repo-branch-empty" role="presentation">
+              {T("Loading branches...", "正在加载分支...")}
+            </li>
+          )}
+          {!loading && options.length === 0 && (
+            <li className="repo-branch-empty" role="presentation">
+              {T("No branches available", "暂无分支")}
+            </li>
+          )}
+          {!loading &&
+            options.map((branch) => {
+              const isSelected = branch === value;
+              return (
+                <li
+                  key={branch}
+                  role="option"
+                  aria-selected={isSelected}
+                  className={"repo-branch-option" + (isSelected ? " selected" : "")}
+                  onClick={() => handleSelect(branch)}
+                >
+                  <I.GitBranch size={11} aria-hidden="true" />
+                  <span className="repo-branch-option-label">{branch}</span>
+                  {isSelected && <I.Check size={11} className="repo-branch-option-check" aria-hidden="true" />}
+                </li>
+              );
+            })}
+        </ul>
+      )}
+    </span>
+  );
+}
+
 export function ReposScreen({
   go,
   setActiveRepo,
@@ -1176,36 +1270,20 @@ export function ReposScreen({
                   </div>
                   <div className="repo-meta">
                     {on && (
-                      <span
-                        className={
-                          "repo-branch-picker" + (branchState?.error ? " repo-branch-error" : "")
-                        }
-                        title={branchState?.error || `Branch: ${selectedBranch}`}
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                      >
-                        <I.GitBranch size={12} />
-                        <select
-                          aria-label={`Branch for ${repoLabel}`}
-                          value={selectedBranch}
-                          disabled={branchState?.loading}
-                          onChange={(event) => {
-                            const nextBranch = event.target.value;
-                            setSelectedBranches((current) => ({
-                              ...current,
-                              [branchKey]: nextBranch,
-                            }));
-                          }}
-                        >
-                          {branchState?.loading && <option value={selectedBranch}>Loading...</option>}
-                          {!branchState?.loading &&
-                            branchOptions.map((branch) => (
-                              <option key={branch} value={branch}>
-                                {branch}
-                              </option>
-                            ))}
-                        </select>
-                      </span>
+                      <BranchPicker
+                        repoLabel={repoLabel}
+                        value={selectedBranch}
+                        options={branchOptions}
+                        loading={!!branchState?.loading}
+                        error={branchState?.error || ""}
+                        disabled={!!branchState?.loading}
+                        onChange={(nextBranch) => {
+                          setSelectedBranches((current) => ({
+                            ...current,
+                            [branchKey]: nextBranch,
+                          }));
+                        }}
+                      />
                     )}
                     <span>
                       <span className="lang-dot" data-lang={repo.lang}></span> {repo.lang}

@@ -204,10 +204,11 @@ describe("ReposScreen scan selection", () => {
     render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
 
     await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
-    const branchSelect = await screen.findByRole("combobox", {
+    const branchTrigger = await screen.findByRole("button", {
       name: /branch for octocat\/alpha/i,
     });
-    await user.selectOptions(branchSelect, "release/1.0");
+    await user.click(branchTrigger);
+    await user.click(await screen.findByRole("option", { name: "release/1.0" }));
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
     await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
@@ -580,7 +581,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Risk")).toBeInTheDocument();
     expect(screen.getByText("Unverified")).toBeInTheDocument();
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
-    expect(screen.getByText("168 tokens")).toBeInTheDocument();
+    expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
     expect(screen.queryByText("codex")).not.toBeInTheDocument();
     expect(screen.getByText("Candidate audit")).toBeInTheDocument();
     expect(screen.getByText("Candidates")).toBeInTheDocument();

@@ -527,6 +527,7 @@ body.has-proto-nav {
 }
 
 .repo-meta .repo-branch-picker {
+  position: relative;
   max-width: 220px;
   display: inline-flex;
   align-items: center;
@@ -537,14 +538,111 @@ body.has-proto-nav {
   background: var(--surface-1);
 }
 
-.repo-branch-picker select {
-  min-width: 88px;
-  max-width: 160px;
+.repo-branch-picker .repo-branch-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 0;
+  margin: 0;
   border: 0;
   outline: 0;
-  color: var(--text-1);
   background: transparent;
+  color: var(--text-1);
   font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.repo-branch-picker .repo-branch-trigger:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.repo-branch-picker .repo-branch-trigger:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.repo-branch-picker .repo-branch-value {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-branch-picker .repo-branch-chev {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  transition: transform 150ms var(--ease-out, ease);
+}
+
+.repo-branch-picker .repo-branch-trigger[aria-expanded="true"] .repo-branch-chev {
+  transform: rotate(180deg);
+}
+
+.repo-branch-picker .repo-branch-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-width: 240px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg-elev, var(--surface-1));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-3, 0 8px 24px rgba(0, 0, 0, 0.18));
+  z-index: 30;
+}
+
+.repo-branch-picker .repo-branch-empty {
+  padding: 6px 8px;
+  color: var(--text-3);
+  font-size: 12px;
+  list-style: none;
+}
+
+.repo-branch-picker .repo-branch-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: var(--text-1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.repo-branch-picker .repo-branch-option:hover,
+.repo-branch-picker .repo-branch-option:focus-visible {
+  background: var(--bg-soft, color-mix(in srgb, var(--accent) 6%, var(--surface-1)));
+  outline: 0;
+}
+
+.repo-branch-picker .repo-branch-option.selected {
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev, var(--surface-1)));
+  color: var(--text-1);
+}
+
+.repo-branch-picker .repo-branch-option-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-branch-picker .repo-branch-option-check {
+  flex: 0 0 auto;
+  color: var(--accent);
 }
 
 .repo-branch-picker.repo-branch-error {
