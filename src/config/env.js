@@ -20,7 +20,7 @@ const envSchema = z.object({
 });
 
 const PRODUCTION_API_BASE_URL_BY_HOST = {
-  "pull-wise.com": "https://api.pull-wise.com",
+  "pull-wise.com": "/api",
 };
 
 function productionApiBaseUrlForLocation(location) {

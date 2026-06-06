@@ -4,7 +4,7 @@ import { T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
-import { pathFromScreen, screenFromPath } from "./lib/navigation.js";
+import { issueIdFromPath, pathFromScreen, screenFromPath } from "./lib/navigation.js";
 import { ApiDocsScreen, ApiKeysScreen } from "./screens/api.jsx";
 import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
@@ -130,25 +130,29 @@ export function App({ prototypeNav = false }) {
   const [screen, setScreen] = useState(getInitialScreen);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
+  const [routeIssueId, setRouteIssueId] = useState(() => issueIdFromPath(window.location.pathname));
   const [issueScanFilter, setIssueScanFilter] = useState(null);
   const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const continuedRepositoryAuthorization = useRef(false);
 
-  const go = (nextScreen) => {
-    const path = pathFromScreen(nextScreen);
+  const go = (nextScreen, params = {}) => {
+    const path = pathFromScreen(nextScreen, params);
+    const nextIssueId = nextScreen === "issue" ? issueIdFromPath(path) : "";
     if (window.location.pathname !== path) {
-      window.history.pushState({ screen: nextScreen }, "", path);
+      window.history.pushState({ screen: nextScreen, issueId: nextIssueId }, "", path);
     }
+    setRouteIssueId(nextIssueId);
     setScreen(nextScreen);
     window.scrollTo({ top: 0 });
   };
 
   useEffect(() => {
     const onPopState = () => {
-      const screen = screenFromPath(window.location.pathname) || "landing";
-      setScreen(screen);
+      const nextScreen = screenFromPath(window.location.pathname) || "landing";
+      setRouteIssueId(nextScreen === "issue" ? issueIdFromPath(window.location.pathname) : "");
+      setScreen(nextScreen);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -378,7 +382,14 @@ export function App({ prototypeNav = false }) {
         );
         break;
       case "issue":
-        body = <IssueDetailScreen go={go} issue={issue} setIssue={setIssue} />;
+        body = (
+          <IssueDetailScreen
+            go={go}
+            issue={issue}
+            issueId={routeIssueId}
+            setIssue={setIssue}
+          />
+        );
         break;
       case "history":
         body = (

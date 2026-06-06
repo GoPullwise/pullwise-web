@@ -26,17 +26,44 @@ for (const [screen, path] of Object.entries(SCREEN_TO_PATH)) {
 }
 PATH_TO_SCREEN["/dashboard"] = "dashboard";
 
-export function screenHref(screen) {
-  return SCREEN_TO_PATH[screen] || "/404";
+const ISSUE_DETAIL_PREFIX = "/issues/";
+
+function cleanPathname(pathname) {
+  const raw = String(pathname || "/").split(/[?#]/, 1)[0] || "/";
+  return raw.endsWith("/") && raw !== "/" ? raw.slice(0, -1) : raw;
+}
+
+function hasRouteParams(params) {
+  return params && typeof params === "object" && Object.keys(params).length > 0;
+}
+
+export function issueIdFromPath(pathname) {
+  const clean = cleanPathname(pathname);
+  if (!clean.startsWith(ISSUE_DETAIL_PREFIX)) return "";
+  const encodedIssueId = clean.slice(ISSUE_DETAIL_PREFIX.length);
+  if (!encodedIssueId || encodedIssueId === "detail") return "";
+  try {
+    return decodeURIComponent(encodedIssueId);
+  } catch {
+    return "";
+  }
+}
+
+export function screenHref(screen, params = {}) {
+  return pathFromScreen(screen, params);
 }
 
 export function screenFromPath(pathname) {
   if (!pathname || pathname === "/") return "landing";
-  const clean = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+  const clean = cleanPathname(pathname);
+  if (clean.startsWith(ISSUE_DETAIL_PREFIX)) return "issue";
   return PATH_TO_SCREEN[clean] || null;
 }
 
-export function pathFromScreen(screen) {
+export function pathFromScreen(screen, params = {}) {
+  if (screen === "issue" && params?.issueId) {
+    return `${ISSUE_DETAIL_PREFIX}${encodeURIComponent(params.issueId)}`;
+  }
   return SCREEN_TO_PATH[screen] || "/404";
 }
 
@@ -49,14 +76,15 @@ export function shouldHandleScreenLinkClick(event) {
   return !target || target === "_self";
 }
 
-export function screenLinkProps(go, screen) {
+export function screenLinkProps(go, screen, params = {}) {
   return {
-    href: screenHref(screen),
+    href: screenHref(screen, params),
     onClick: (event) => {
       if (typeof go !== "function") return;
       if (!shouldHandleScreenLinkClick(event)) return;
       event.preventDefault();
-      go(screen);
+      if (hasRouteParams(params)) go(screen, params);
+      else go(screen);
     },
   };
 }

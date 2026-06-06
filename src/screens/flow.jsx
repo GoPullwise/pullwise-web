@@ -132,7 +132,13 @@ function cleanBranchList(values) {
     ...new Set(
       values
         .map((value) => (typeof value === "string" ? value.trim() : ""))
-        .filter((value) => value && !/[\r\n\u0000]/.test(value))
+        .filter(
+          (value) =>
+            value &&
+            !value.includes("\r") &&
+            !value.includes("\n") &&
+            !value.includes(String.fromCharCode(0))
+        )
     ),
   ];
 }
