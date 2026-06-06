@@ -21,7 +21,7 @@ describe("parseEnv", () => {
     expect(() => parseEnv({ VITE_API_BASE_URL: "javascript:alert(1)" })).toThrow();
   });
 
-  it("falls back to the production API domain on pull-wise.com when the build env is missing", () => {
+  it("falls back to the same-origin API proxy on pull-wise.com when the build env is missing", () => {
     expect(
       parseEnv(
         {},
@@ -31,6 +31,6 @@ describe("parseEnv", () => {
           },
         }
       ).VITE_API_BASE_URL
-    ).toBe("https://api.pull-wise.com");
+    ).toBe("/api");
   });
 });

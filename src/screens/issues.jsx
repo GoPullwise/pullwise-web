@@ -8,6 +8,7 @@ import { downloadBlob } from "../lib/download.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
+  normalizeIssue,
   normalizeIssuePullRequest,
   notifyIssuesChanged,
   scanQueueSummary,
@@ -457,7 +458,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   };
   const openIssue = (issue) => {
     setIssue(issue);
-    go("issue");
+    go("issue", issue.id ? { issueId: issue.id } : {});
   };
   const activateIssue = (event, issue) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -668,23 +669,59 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   );
 }
 
-export function IssueDetailScreen({ go, issue, setIssue = null }) {
+export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIssue = null }) {
   useLang();
-  const [currentStatus, setCurrentStatus] = useState(issue?.status || "open");
+  const [loadedIssue, setLoadedIssue] = useState(null);
+  const [, setLoadingIssue] = useState(false);
+  const [, setLoadError] = useState("");
+  const routeMatchesInitialIssue = !issueId || initialIssue?.id === issueId;
+  const activeIssue = loadedIssue || (routeMatchesInitialIssue ? initialIssue : null);
+  const [currentStatus, setCurrentStatus] = useState(activeIssue?.status || "open");
   const [actionError, setActionError] = useState("");
   const [fixPreview, setFixPreview] = useState(null);
-  const [pullRequest, setPullRequest] = useState(issuePullRequestState(issue));
+  const [pullRequest, setPullRequest] = useState(issuePullRequestState(activeIssue));
   const [fixLoading, setFixLoading] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
   const statusRequestRef = useRef(false);
   const fixRequestRef = useRef(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoadedIssue(null);
+    setLoadError("");
+    if (!issueId || initialIssue?.id === issueId) {
+      setLoadingIssue(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+    setLoadingIssue(true);
+    pullwiseApi.issues
+      .get(issueId)
+      .then((payload) => {
+        if (cancelled) return;
+        const nextIssue = normalizeIssue(payload);
+        setLoadedIssue(nextIssue);
+        if (typeof setIssue === "function") setIssue(nextIssue);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setLoadError(error?.message || "Unable to load issue.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingIssue(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [issueId, initialIssue, setIssue]);
+
+  useEffect(() => {
     fixRequestRef.current += 1;
-    setCurrentStatus(issue?.status || "open");
+    setCurrentStatus(activeIssue?.status || "open");
     setActionError("");
     setFixPreview(null);
-    setPullRequest(issuePullRequestState(issue));
+    setPullRequest(issuePullRequestState(activeIssue));
     setFixLoading("");
     setStatusLoading("");
     statusRequestRef.current = false;
@@ -692,9 +729,9 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
       fixRequestRef.current += 1;
       statusRequestRef.current = false;
     };
-  }, [issue]);
+  }, [activeIssue]);
 
-  if (!issue) {
+  if (!activeIssue) {
     return (
       <div className="app fade-in">
         <Topbar
@@ -716,6 +753,8 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
       </div>
     );
   }
+
+  const issue = activeIssue;
 
   const updateStatus = async (nextStatus) => {
     if (statusRequestRef.current) return;

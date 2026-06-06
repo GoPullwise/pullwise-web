@@ -993,9 +993,12 @@ export function useIssues({
   scanId = "",
   refreshOnChange = true,
 } = {}) {
+  const requestIdRef = useRef(0);
   const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
 
   const load = useCallback(async ({ append = false, offset = 0, quiet = false } = {}) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     setState((current) => ({
       ...current,
       loading: append || quiet ? current.loading : true,
@@ -1004,6 +1007,7 @@ export function useIssues({
     }));
     try {
       const payload = await pullwiseApi.issues.list(listParams({ limit, offset, status, severity, q, scanId }));
+      if (requestId !== requestIdRef.current) return;
       const nextItems = itemsFrom(payload, "items", "issues").map(normalizeIssue);
       setState((current) => ({
         items: append ? [...current.items, ...nextItems] : nextItems,
@@ -1013,6 +1017,7 @@ export function useIssues({
         meta: pageMeta(payload, limit),
       }));
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       setState((current) => ({
         items: append ? current.items : [],
         loading: false,
@@ -1073,12 +1078,16 @@ export function scanQueueSummary(scan) {
 }
 
 export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
+  const requestIdRef = useRef(0);
   const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
 
   const load = useCallback(async ({ quiet = false, append = false, offset = 0 } = {}) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     setState((current) => ({ ...current, loading: quiet || append ? current.loading : true, loadingMore: append, error: "" }));
     try {
       const payload = await pullwiseApi.scans.list(listParams({ limit, offset, status, repo }));
+      if (requestId !== requestIdRef.current) return;
       const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
       setState((current) => ({
         items: append ? [...current.items, ...nextItems] : nextItems,
@@ -1088,6 +1097,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
         meta: pageMeta(payload, limit),
       }));
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       const message = error?.message || "Unable to load scans.";
       setState((current) => ({
         items: quiet ? current.items : [],
