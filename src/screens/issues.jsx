@@ -60,6 +60,21 @@ function issueMatchesListFilters(issue, { status, severity, q }) {
     .some((value) => String(value).toLowerCase().includes(query));
 }
 
+const ISSUE_IDENTITY_FIELDS = ["id", "scanId", "jobId", "repo", "file", "line", "title", "createdAt"];
+const ISSUE_STATUS_IDENTITY_FIELDS = ISSUE_IDENTITY_FIELDS.filter((field) => field !== "id");
+
+function issueRowKey(issue) {
+  return JSON.stringify(ISSUE_IDENTITY_FIELDS.map((field) => String(issue?.[field] ?? "")));
+}
+
+function issueStatusIdentity(issue) {
+  return Object.fromEntries(
+    ISSUE_STATUS_IDENTITY_FIELDS
+      .map((field) => [field, issue?.[field]])
+      .filter(([, value]) => value !== undefined && value !== null && value !== "")
+  );
+}
+
 function issueTotal(scan) {
   if (!scan?.issues) return 0;
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
@@ -410,29 +425,33 @@ export function IssuesScreen({ go, setIssue }) {
     meta = {},
   } = useIssues({ status, severity: sev, q: query, limit: 50, refreshOnChange: false });
   const localIssues = Object.values(localIssueUpdates);
-  const serverIssueIds = new Set(all.map((issue) => issue.id));
+  const serverIssueKeys = new Set(all.map(issueRowKey));
   const issuesWithLocalStatus = [
-    ...all.map((issue) => ({ ...issue, ...(localIssueUpdates[issue.id] || {}) })),
-    ...localIssues.filter((issue) => !serverIssueIds.has(issue.id)),
+    ...all.map((issue) => ({ ...issue, ...(localIssueUpdates[issueRowKey(issue)] || {}) })),
+    ...localIssues.filter((issue) => !serverIssueKeys.has(issueRowKey(issue))),
   ].filter((issue) => issueMatchesListFilters(issue, { status, severity: sev, q: query }));
   const filtered = sortIssues(issuesWithLocalStatus, sortBy);
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 
   const updateStatus = async (issue, nextStatus) => {
-    if (statusUpdatingRef.current.has(issue.id)) return;
-    statusUpdatingRef.current.add(issue.id);
-    setStatusUpdating((current) => ({ ...current, [issue.id]: true }));
+    const rowKey = issueRowKey(issue);
+    if (statusUpdatingRef.current.has(rowKey)) return;
+    statusUpdatingRef.current.add(rowKey);
+    setStatusUpdating((current) => ({ ...current, [rowKey]: true }));
     try {
-      const updated = await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
+      const updated = await pullwiseApi.issues.updateStatus(issue.id, {
+        status: nextStatus,
+        ...issueStatusIdentity(issue),
+      });
       const updatedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
-      setLocalIssueUpdates((current) => ({ ...current, [issue.id]: updatedIssue }));
+      setLocalIssueUpdates((current) => ({ ...current, [rowKey]: updatedIssue }));
       await reload();
-      notifyIssuesChanged({ issueId: issue.id, status: updatedIssue.status });
+      notifyIssuesChanged({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
     } finally {
-      statusUpdatingRef.current.delete(issue.id);
+      statusUpdatingRef.current.delete(rowKey);
       setStatusUpdating((current) => {
         const next = { ...current };
-        delete next[issue.id];
+        delete next[rowKey];
         return next;
       });
     }
@@ -543,9 +562,10 @@ export function IssuesScreen({ go, setIssue }) {
               </div>
             )}
             {filtered.map((issue) => {
-              const updatingStatus = Boolean(statusUpdating[issue.id]);
+              const rowKey = issueRowKey(issue);
+              const updatingStatus = Boolean(statusUpdating[rowKey]);
               return (
-                <div key={issue.id} className="issues-trow">
+                <div key={rowKey} className="issues-trow">
                   <div></div>
                   <div
                     className="issues-title-c"
@@ -683,11 +703,14 @@ export function IssueDetailScreen({ go, issue, setIssue = null }) {
     setActionError("");
     setStatusLoading(nextStatus);
     try {
-      const updated = await pullwiseApi.issues.updateStatus(issue.id, { status: nextStatus });
+      const updated = await pullwiseApi.issues.updateStatus(issue.id, {
+        status: nextStatus,
+        ...issueStatusIdentity(issue),
+      });
       const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
       setCurrentStatus(mergedIssue.status);
       if (typeof setIssue === "function") setIssue(mergedIssue);
-      notifyIssuesChanged({ issueId: issue.id, status: mergedIssue.status });
+      notifyIssuesChanged({ issueId: issue.id, issueKey: issueRowKey(issue), status: mergedIssue.status });
     } catch (error) {
       setActionError(error?.message || "Unable to update issue status.");
     } finally {

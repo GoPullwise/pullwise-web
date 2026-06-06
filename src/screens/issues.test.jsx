@@ -225,6 +225,74 @@ describe("IssuesScreen list resilience", () => {
 
     expect(await screen.findByRole("button", { name: /open issue f_123/i })).toBeInTheDocument();
   });
+
+  it("keeps duplicate issue ids from sharing pending or local status state", async () => {
+    const user = userEvent.setup();
+    const firstIssue = {
+      id: "dup_issue",
+      scanId: "sc_1",
+      jobId: "job_1",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "First duplicate issue",
+      file: "src/first.py",
+      line: 10,
+      status: "open",
+      createdAt: 100,
+    };
+    const secondIssue = {
+      ...firstIssue,
+      title: "Second duplicate issue",
+      file: "src/second.py",
+      line: 20,
+      createdAt: 101,
+    };
+    let resolveUpdate;
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+    useIssues.mockReturnValue({
+      items: [firstIssue, secondIssue],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    const markFixedButtons = screen.getAllByRole("button", { name: /mark fixed/i });
+    await user.click(markFixedButtons[0]);
+
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
+      "dup_issue",
+      expect.objectContaining({
+        status: "fixed",
+        scanId: "sc_1",
+        jobId: "job_1",
+        repo: "acme/api",
+        file: "src/first.py",
+        line: 10,
+        title: "First duplicate issue",
+        createdAt: 100,
+      })
+    );
+    expect(markFixedButtons[0]).toBeDisabled();
+    expect(markFixedButtons[1]).not.toBeDisabled();
+
+    await act(async () => {
+      resolveUpdate({ ...firstIssue, status: "fixed" });
+    });
+
+    await waitFor(() => expect(screen.queryByText("First duplicate issue")).not.toBeInTheDocument());
+    expect(screen.getByText("Second duplicate issue")).toBeInTheDocument();
+  });
 });
 
 describe("HistoryScreen queue state", () => {
@@ -625,6 +693,43 @@ describe("IssueDetailScreen review detail", () => {
 
     await waitFor(() =>
       expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123", status: "fixed" }))
+    );
+  });
+
+  it("sends issue identity fields when updating status from detail actions", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "dup_issue",
+      scanId: "sc_1",
+      jobId: "job_1",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Duplicate issue",
+      file: "src/app.py",
+      line: 20,
+      status: "open",
+      createdAt: 101,
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "fixed" });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /mark fixed/i }));
+
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
+      "dup_issue",
+      expect.objectContaining({
+        status: "fixed",
+        scanId: "sc_1",
+        jobId: "job_1",
+        repo: "acme/api",
+        file: "src/app.py",
+        line: 20,
+        title: "Duplicate issue",
+        createdAt: 101,
+      })
     );
   });
 
