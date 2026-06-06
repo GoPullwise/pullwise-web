@@ -810,10 +810,12 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
+  align-content: center;
   color: var(--text-3);
   font-size: 11.5px;
   font-variant-numeric: tabular-nums;
   min-width: 0;
+  min-height: calc(2 * 1.6em);
 }
 .repo-meta span {
   display: inline-flex;
