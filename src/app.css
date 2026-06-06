@@ -527,7 +527,6 @@ body.has-proto-nav {
 }
 
 .repo-meta .repo-branch-picker {
-  position: relative;
   max-width: 220px;
   display: inline-flex;
   align-items: center;
@@ -585,10 +584,6 @@ body.has-proto-nav {
 }
 
 .repo-branch-picker .repo-branch-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  min-width: 100%;
   max-width: 240px;
   max-height: 240px;
   overflow-y: auto;
@@ -599,7 +594,7 @@ body.has-proto-nav {
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow-3, 0 8px 24px rgba(0, 0, 0, 0.18));
-  z-index: 30;
+  z-index: 60;
 }
 
 .repo-branch-picker .repo-branch-empty {

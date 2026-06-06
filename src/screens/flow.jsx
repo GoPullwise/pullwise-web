@@ -115,11 +115,15 @@ function scanInputFromRepo(repo) {
 }
 
 function repoBranchKey(repo) {
-  return String(repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || "");
+  return String(
+    repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || ""
+  );
 }
 
 function repoBranchApiId(repo) {
-  return String(repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || "");
+  return String(
+    repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || ""
+  );
 }
 
 function cleanBranchList(values) {
@@ -657,15 +661,35 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
 
 function BranchPicker({ repoLabel, value, options, loading, error, disabled, onChange }) {
   const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0, minWidth: 0 });
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const minWidth = Math.max(rect.width, 140);
+    const maxLeft = viewportWidth - minWidth - 8;
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: Math.max(8, Math.min(rect.left, maxLeft)),
+      minWidth,
+    });
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
+    updateMenuPosition();
     const handlePointerDown = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setOpen(false);
-      }
+      const container = containerRef.current;
+      const menu = menuRef.current;
+      const target = event.target;
+      if (container && container.contains(target)) return;
+      if (menu && menu.contains(target)) return;
+      setOpen(false);
     };
     const handleKey = (event) => {
       if (event.key === "Escape") {
@@ -673,13 +697,18 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         if (triggerRef.current) triggerRef.current.focus();
       }
     };
+    const handleScrollOrResize = () => updateMenuPosition();
     document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("keydown", handleKey);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKey);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
     };
-  }, [open]);
+  }, [open, updateMenuPosition]);
 
   const handleSelect = (branch) => {
     if (branch === value) {
@@ -715,7 +744,18 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         <I.ChevD size={11} className="repo-branch-chev" aria-hidden="true" />
       </button>
       {open && (
-        <ul role="listbox" className="repo-branch-menu" aria-label={`Branches for ${repoLabel}`}>
+        <ul
+          ref={menuRef}
+          role="listbox"
+          className="repo-branch-menu"
+          aria-label={`Branches for ${repoLabel}`}
+          style={{
+            position: "fixed",
+            top: menuPos.top,
+            left: menuPos.left,
+            minWidth: menuPos.minWidth,
+          }}
+        >
           {loading && (
             <li className="repo-branch-empty" role="presentation">
               {T("Loading branches...", "正在加载分支...")}
@@ -739,7 +779,9 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
                 >
                   <I.GitBranch size={11} aria-hidden="true" />
                   <span className="repo-branch-option-label">{branch}</span>
-                  {isSelected && <I.Check size={11} className="repo-branch-option-check" aria-hidden="true" />}
+                  {isSelected && (
+                    <I.Check size={11} className="repo-branch-option-check" aria-hidden="true" />
+                  )}
                 </li>
               );
             })}
@@ -1516,7 +1558,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     : typeof scan?.progress === "number"
       ? scan.progress
       : 0;
-  const currentPhase = scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
+  const currentPhase =
+    scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
   const scanPhases = scanPhasesForPhase(currentPhase);
   const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.k === currentPhase) : -1;
   const found = batchMode
