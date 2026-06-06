@@ -777,7 +777,7 @@ describe("normalizeIssue", () => {
     });
   });
 
-  it("normalizes scan AI model and token usage metadata", () => {
+  it("normalizes scan AI usage to model metadata without token counts", () => {
     expect(
       normalizeScan({
         id: "sc_1",
@@ -791,9 +791,6 @@ describe("normalizeIssue", () => {
       }).aiUsage
     ).toEqual({
       model: "gpt-5.5",
-      inputTokens: 123,
-      outputTokens: 45,
-      totalTokens: 168,
     });
   });
 

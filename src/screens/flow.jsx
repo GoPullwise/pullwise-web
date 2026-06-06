@@ -378,21 +378,10 @@ function scanAiUsageSummary(scans) {
   const usages = scans.map((scan) => scan?.aiUsage).filter(Boolean);
   if (!usages.length) return null;
   const models = uniqueStrings(usages.map((usage) => usage.model));
-  const totals = usages
-    .map((usage) => Number(usage.totalTokens))
-    .filter((count) => Number.isFinite(count) && count >= 0);
   const usage = {};
   if (models.length === 1) usage.model = models[0];
   else if (models.length > 1) usage.model = `${models.length} models`;
-  if (totals.length) usage.totalTokens = totals.reduce((sum, count) => sum + Math.trunc(count), 0);
-  return usage.model || usage.totalTokens !== undefined ? usage : null;
-}
-
-function tokenUsageLabel(usage) {
-  const total = Number(usage?.totalTokens);
-  if (!Number.isFinite(total) || total < 0) return "";
-  const count = Math.trunc(total);
-  return `${count.toLocaleString()} tokens`;
+  return usage.model ? usage : null;
 }
 
 function hasAuditSwarm(audit) {
@@ -1550,7 +1539,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     : scanPreflightSummary(scan ? [scan] : []);
   const auditSwarm = scanAuditSwarmSummary(scans);
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
-  const aiUsageTokens = tokenUsageLabel(aiUsage);
   const terminal = batchMode
     ? expectedBatchCount > 0 &&
       batchRows.length === expectedBatchCount &&
@@ -1794,12 +1782,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <span>Low</span>
                 </div>
               </div>
-              {(aiUsage?.model || aiUsageTokens) && (
+              {aiUsage?.model && (
                 <>
                   <div className="scanning-counts-h scanning-counts-subh">Model usage</div>
                   <div className="scan-preflight-meta">
-                    {aiUsage?.model && <span className="tag">{aiUsage.model}</span>}
-                    {aiUsageTokens && <span className="tag">{aiUsageTokens}</span>}
+                    <span className="tag">{aiUsage.model}</span>
                   </div>
                 </>
               )}

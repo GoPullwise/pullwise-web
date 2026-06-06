@@ -233,32 +233,10 @@ function normalizeQueueCount(value, { positive = false } = {}) {
   return normalized;
 }
 
-function normalizeTokenCount(...values) {
-  for (const value of values) {
-    if (value === undefined || value === null || value === "") continue;
-    const count = Number(value);
-    if (!Number.isFinite(count)) continue;
-    const normalized = Math.trunc(count);
-    if (normalized < 0) continue;
-    return normalized;
-  }
-  return null;
-}
-
 function normalizeAiUsage(value) {
   const source = objectRecord(value) ? value : {};
-  const inputTokens = normalizeTokenCount(source.inputTokens, source.input_tokens);
-  const outputTokens = normalizeTokenCount(source.outputTokens, source.output_tokens);
-  const explicitTotal = normalizeTokenCount(source.totalTokens, source.total_tokens);
-  const totalTokens =
-    explicitTotal ?? (inputTokens !== null && outputTokens !== null ? inputTokens + outputTokens : null);
-  const payload = {
-    model: textValue(source.model, source.modelName, source.model_name),
-  };
-  if (inputTokens !== null) payload.inputTokens = inputTokens;
-  if (outputTokens !== null) payload.outputTokens = outputTokens;
-  if (totalTokens !== null) payload.totalTokens = totalTokens;
-  return payload.model || Object.keys(payload).length > 1 ? payload : null;
+  const model = textValue(source.model, source.modelName, source.model_name);
+  return model ? { model } : null;
 }
 
 function normalizeDisplayCount(...values) {

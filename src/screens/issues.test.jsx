@@ -401,7 +401,7 @@ describe("HistoryScreen queue state", () => {
 
     await user.click(screen.getByRole("button", { name: /^view\b/i }));
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
-    expect(screen.getByText("168 tokens")).toBeInTheDocument();
+    expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
 
     expect(screen.getByText("1 issues · 2 rejected · 1 downgraded")).toBeInTheDocument();
     expect(openScan).toHaveBeenCalledWith(scan);
