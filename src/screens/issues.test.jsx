@@ -370,6 +370,34 @@ describe("HistoryScreen queue state", () => {
     expect(go).not.toHaveBeenCalledWith("dashboard");
   });
 
+  it("keeps scan issues disabled while a scan is running", async () => {
+    const openScanIssues = vi.fn();
+    const user = userEvent.setup();
+    const scan = {
+      id: "sc_running",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "pending",
+      status: "running",
+      time: "now",
+      by: "you",
+    };
+    useScans.mockReturnValue({
+      items: [scan],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={vi.fn()} openScanIssues={openScanIssues} />);
+
+    const issues = screen.getByRole("button", { name: /issues/i });
+    expect(issues).toBeDisabled();
+
+    await user.click(issues);
+
+    expect(openScanIssues).not.toHaveBeenCalled();
+  });
+
   it("opens completed scan instances from history", async () => {
     const openScan = vi.fn();
     const go = vi.fn();
