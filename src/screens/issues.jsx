@@ -203,6 +203,182 @@ function copyText(value) {
   clipboard.writeText(value).catch(() => {});
 }
 
+function markdownText(value) {
+  return String(value ?? "").trim();
+}
+
+function appendMarkdownSection(lines, title, content) {
+  const body = Array.isArray(content)
+    ? content.map(markdownText).filter(Boolean).join("\n")
+    : markdownText(content);
+  if (!body) return;
+  lines.push("", `## ${title}`, body);
+}
+
+function appendMarkdownCodeBlock(lines, title, value) {
+  const body = markdownText(value);
+  if (!body) return;
+  lines.push("", `### ${title}`, "```", body, "```");
+}
+
+function codeLinesMarkdown(lines = []) {
+  return lines
+    .map((line) => (typeof line === "string" ? line : line?.code))
+    .map(markdownText)
+    .filter(Boolean)
+    .join("\n");
+}
+
+function buildIssuePageMarkdown(issue, currentStatus) {
+  const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
+  const primaryLocation = issue.affectedLocations?.[0] || null;
+  const lines = [`# ${title}`];
+  const metadata = [
+    ["Issue", issue.id],
+    ["Status", currentStatus || issue.status],
+    ["Severity", issue.severity],
+    ["Category", issue.category],
+    ["Repository", issue.repo],
+    ["Branch", issue.branch || issue.audit?.branch],
+    ["Commit", issue.commit],
+    ["Scan", issue.scanId],
+    ["Job", issue.jobId],
+    ["File", primaryLocation ? locationLabel(primaryLocation) : issue.file],
+  ]
+    .map(([label, value]) => {
+      const text = markdownText(value);
+      return text ? `- ${label}: ${text}` : "";
+    })
+    .filter(Boolean);
+
+  appendMarkdownSection(lines, "Metadata", metadata);
+  appendMarkdownSection(lines, "Summary", issue.summary);
+
+  const confidenceEvidence = [];
+  if (issue.verificationSummary) confidenceEvidence.push(markdownText(issue.verificationSummary));
+  if (issue.evidenceChecklist?.length) {
+    confidenceEvidence.push(
+      ...issue.evidenceChecklist
+        .map((item) => {
+          const label = markdownText(item?.label);
+          if (!label) return "";
+          return `- [${item?.met ? "x" : " "}] ${label}`;
+        })
+        .filter(Boolean)
+    );
+  }
+  appendMarkdownSection(lines, "Confidence evidence", confidenceEvidence);
+
+  if (issue.evidenceTrace?.length) {
+    appendMarkdownSection(
+      lines,
+      "Evidence trace",
+      issue.evidenceTrace.flatMap((stage) => {
+        const label = markdownText(stage.label || stage.key);
+        const status = markdownText(stage.status);
+        const stageLines = label ? [`### ${label}${status ? ` (${status})` : ""}`] : [];
+        if (stage.summary) stageLines.push(markdownText(stage.summary));
+        if (stage.items?.length) {
+          stageLines.push(...stage.items.map((item) => `- ${markdownText(item)}`).filter(Boolean));
+        }
+        return stageLines;
+      })
+    );
+  }
+
+  const breakdown = issue.reasoningBreakdown || {};
+  const reasoningLines = [
+    ["Facts", breakdown.facts],
+    ["Inferences", breakdown.inferences],
+    ["Recommendations", breakdown.recommendations],
+  ].flatMap(([label, items]) => {
+    if (!items?.length) return [];
+    return [`### ${label}`, ...items.map((item) => `- ${markdownText(item)}`).filter(Boolean)];
+  });
+  appendMarkdownSection(lines, "Facts, reasoning, recommendations", reasoningLines);
+
+  if (issue.evidence?.length) {
+    appendMarkdownSection(
+      lines,
+      "Evidence chain",
+      issue.evidence.flatMap((item) => {
+        const itemLines = [`### ${markdownText(item.label || item.type)}`];
+        if (item.type) itemLines.push(`- Type: ${markdownText(item.type).replaceAll("_", " ")}`);
+        if (item.summary) itemLines.push(markdownText(item.summary));
+        if (item.file) itemLines.push(`- File: ${locationLabel(item)}`);
+        if (item.command) itemLines.push(`- Command: ${markdownText(item.command)}`);
+        if (item.logPath) itemLines.push(`- Log: ${markdownText(item.logPath)}`);
+        if (item.url) itemLines.push(`- URL: ${markdownText(item.url)}`);
+        if (item.exitCode !== null && item.exitCode !== undefined) {
+          itemLines.push(`- Exit code: ${item.exitCode}`);
+        }
+        return itemLines.filter(Boolean);
+      })
+    );
+  }
+
+  const reproduction = issue.reproduction || {};
+  const reproductionLines = [];
+  if (issue.reproductionPath) reproductionLines.push(markdownText(issue.reproductionPath));
+  if (reproduction.commands?.length) {
+    reproductionLines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
+  }
+  [
+    ["Input", reproduction.input],
+    ["Expected", reproduction.expected],
+    ["Actual", reproduction.actual],
+    ["Test file", reproduction.testFile],
+    ["Log", reproduction.logPath],
+  ].forEach(([label, value]) => {
+    const text = markdownText(value);
+    if (text) reproductionLines.push(`- ${label}: ${text}`);
+  });
+  appendMarkdownSection(lines, "Reproduction center", reproductionLines);
+
+  appendMarkdownSection(lines, "Detection reasoning", issue.detectionReasoning);
+  appendMarkdownSection(lines, "Impact", issue.impact);
+  appendMarkdownSection(lines, "Why this is not a false positive", issue.whyNotFalsePositive);
+  appendMarkdownSection(lines, "When this may not apply", issue.limitations);
+
+  const fixImpact = [];
+  if (issue.fixBenefits) fixImpact.push(`### Benefits\n${markdownText(issue.fixBenefits)}`);
+  if (issue.fixRisks) fixImpact.push(`### Risks\n${markdownText(issue.fixRisks)}`);
+  appendMarkdownSection(lines, "Fix impact analysis", fixImpact);
+
+  if (issue.steps?.length) {
+    appendMarkdownSection(
+      lines,
+      "Remediation",
+      issue.steps.map((step, index) => `${index + 1}. ${markdownText(step)}`).filter(Boolean)
+    );
+  }
+
+  const badCode = codeLinesMarkdown(issue.badCode || []);
+  const goodCode = codeLinesMarkdown(issue.goodCode || []);
+  if (badCode || goodCode) {
+    lines.push("", "## Patch evidence");
+    appendMarkdownCodeBlock(lines, "Current code", badCode);
+    appendMarkdownCodeBlock(lines, "Suggested code", goodCode);
+  }
+
+  if (issue.references?.length) {
+    appendMarkdownSection(
+      lines,
+      "References",
+      issue.references
+        .map((reference) => {
+          const url = markdownText(reference?.url);
+          if (!url) return "";
+          const label = markdownText(reference?.label) || url;
+          return `- [${label}](${url})`;
+        })
+        .filter(Boolean)
+    );
+  }
+
+  return `${lines.join("\n").replace(/\n{3,}/g, "\n\n").trim()}\n`;
+}
+
 function VerificationBadge({ issue }) {
   return <span className="tag">{verificationLabel(issue)}</span>;
 }
@@ -412,6 +588,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState("severity");
   const [statusUpdating, setStatusUpdating] = useState({});
+  const [bulkStatusLoading, setBulkStatusLoading] = useState("");
   const [localIssueUpdates, setLocalIssueUpdates] = useState({});
   const statusUpdatingRef = useRef(new Set());
   const query = q.trim();
@@ -433,6 +610,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   ].filter((issue) => issueMatchesListFilters(issue, { status, severity: sev, q: query }));
   const filtered = sortIssues(issuesWithLocalStatus, sortBy);
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
+  const bulkFixableIssues = filtered.filter((issue) => issue.status !== "fixed");
 
   const updateStatus = async (issue, nextStatus) => {
     const rowKey = issueRowKey(issue);
@@ -455,6 +633,67 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         delete next[rowKey];
         return next;
       });
+    }
+  };
+  const markAllFixed = async () => {
+    if (bulkStatusLoading) return;
+    const targets = filtered.filter((issue) => {
+      const rowKey = issueRowKey(issue);
+      return issue.status !== "fixed" && !statusUpdatingRef.current.has(rowKey);
+    });
+    if (!targets.length) return;
+    const rowKeys = targets.map(issueRowKey);
+    rowKeys.forEach((rowKey) => statusUpdatingRef.current.add(rowKey));
+    setBulkStatusLoading("fixed");
+    setStatusUpdating((current) =>
+      rowKeys.reduce((next, rowKey) => ({ ...next, [rowKey]: true }), current)
+    );
+    try {
+      const results = await Promise.allSettled(
+        targets.map((issue) =>
+          pullwiseApi.issues.updateStatus(issue.id, {
+            status: "fixed",
+            ...issueStatusIdentity(issue),
+          })
+        )
+      );
+      const localUpdates = {};
+      const notifications = [];
+      let failureCount = 0;
+      results.forEach((result, index) => {
+        if (result.status !== "fulfilled") {
+          failureCount += 1;
+          return;
+        }
+        const issue = targets[index];
+        const rowKey = rowKeys[index];
+        const updatedIssue = { ...issue, ...result.value, status: result.value?.status || "fixed" };
+        localUpdates[rowKey] = updatedIssue;
+        notifications.push({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
+      });
+      if (Object.keys(localUpdates).length) {
+        setLocalIssueUpdates((current) => ({ ...current, ...localUpdates }));
+        await reload();
+        notifications.forEach(notifyIssuesChanged);
+      }
+      if (failureCount) {
+        globalThis.alert?.(
+          T(
+            `${failureCount} issue status update failed.`,
+            `${failureCount} 个问题状态更新失败。`
+          )
+        );
+      }
+    } finally {
+      rowKeys.forEach((rowKey) => statusUpdatingRef.current.delete(rowKey));
+      setStatusUpdating((current) => {
+        const next = { ...current };
+        rowKeys.forEach((rowKey) => {
+          delete next[rowKey];
+        });
+        return next;
+      });
+      setBulkStatusLoading("");
     }
   };
   const openIssue = (issue) => {
@@ -487,6 +726,14 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               </div>
             </div>
             <div className="actions">
+              <button
+                className="btn primary"
+                disabled={loading || Boolean(bulkStatusLoading) || bulkFixableIssues.length === 0}
+                onClick={markAllFixed}
+              >
+                <I.Check size={14} />{" "}
+                {bulkStatusLoading ? T("Marking...", "正在标记...") : T("Mark all fixed", "全部标记已修复")}
+              </button>
               <button
                 className="btn"
                 onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}
@@ -1071,6 +1318,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   <I.X size={13} /> {actionError}
                 </div>
               )}
+              <button
+                className="btn sm"
+                onClick={() => copyText(buildIssuePageMarkdown(issue, currentStatus))}
+              >
+                <I.Copy size={13} /> Copy Page
+              </button>
+              <div className="divider" />
               {currentStatus === "open" ? (
                 <div className="issue-action-row">
                   <button

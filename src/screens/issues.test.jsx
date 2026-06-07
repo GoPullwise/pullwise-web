@@ -1,5 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
@@ -43,6 +45,10 @@ vi.mock("../lib/pullwise-data.js", async (importOriginal) => {
 
 import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useScans } from "../lib/pullwise-data.js";
+
+function baseStyles() {
+  return readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
+}
 
 describe("IssuesScreen list resilience", () => {
   it("does not leak NaN when issue evidence metadata is missing", () => {
@@ -225,6 +231,91 @@ describe("IssuesScreen list resilience", () => {
     await user.click(screen.getByRole("button", { name: /^fixed$/i }));
 
     expect(await screen.findByRole("button", { name: /open issue f_123/i })).toBeInTheDocument();
+  });
+
+  it("marks every visible non-fixed issue as fixed from the list action", async () => {
+    const user = userEvent.setup();
+    const firstIssue = {
+      id: "f_first",
+      scanId: "sc_1",
+      jobId: "job_1",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      line: 42,
+      status: "open",
+      createdAt: 100,
+    };
+    const secondIssue = {
+      ...firstIssue,
+      id: "f_second",
+      jobId: "job_2",
+      title: "Escape shell arguments",
+      file: "src/shell.py",
+      line: 12,
+      createdAt: 101,
+    };
+    const reload = vi.fn();
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockImplementation((issueId) =>
+      Promise.resolve({
+        ...(issueId === "f_first" ? firstIssue : secondIssue),
+        status: "fixed",
+      })
+    );
+    useIssues.mockReturnValue({
+      items: [firstIssue, secondIssue],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload,
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
+
+    await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(2));
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
+      "f_first",
+      expect.objectContaining({
+        status: "fixed",
+        scanId: "sc_1",
+        jobId: "job_1",
+        repo: "acme/api",
+        file: "src/auth.py",
+        line: 42,
+        title: "Validate redirect targets",
+        createdAt: 100,
+      })
+    );
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
+      "f_second",
+      expect.objectContaining({
+        status: "fixed",
+        scanId: "sc_1",
+        jobId: "job_2",
+        repo: "acme/api",
+        file: "src/shell.py",
+        line: 12,
+        title: "Escape shell arguments",
+        createdAt: 101,
+      })
+    );
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /open issue f_first/i })).not.toBeInTheDocument()
+    );
+    expect(screen.queryByRole("button", { name: /open issue f_second/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^fixed$/i }));
+
+    expect(await screen.findByRole("button", { name: /open issue f_first/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open issue f_second/i })).toBeInTheDocument();
   });
 
   it("keeps duplicate issue ids from sharing pending or local status state", async () => {
@@ -558,6 +649,15 @@ describe("HistoryScreen queue state", () => {
 });
 
 describe("IssueDetailScreen review detail", () => {
+  it("keeps clickable breadcrumbs vertically centered in the topbar", () => {
+    const css = baseStyles();
+    const crumbBlock =
+      css.match(/\.crumb-label,\s*\.crumb-button\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+
+    expect(crumbBlock).toMatch(/display:\s*inline-flex;/);
+    expect(crumbBlock).toMatch(/align-items:\s*center;/);
+  });
+
   it("exposes issue detail recovery navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
@@ -729,6 +829,98 @@ describe("IssueDetailScreen review detail", () => {
     expect(screen.getByRole("button", { name: /snooze/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /preview fix/i })).toBeEnabled();
     expect(screen.getByRole("button", { name: /open pr/i })).toBeDisabled();
+  });
+
+  it("copies the issue detail page as markdown", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const issue = {
+      id: "f_123",
+      scanId: "sc_1",
+      repo: "acme/api",
+      branch: "main",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      impact: "Attackers can abuse this for phishing.",
+      file: "src/auth.py",
+      line: 42,
+      commit: "abc1234",
+      verificationStatus: "verified",
+      verificationSummary: "A focused request test reproduces the redirect behavior.",
+      confidenceLevel: "high",
+      evidenceChecklist: [{ label: "Precise file and line", met: true }],
+      evidence: [
+        {
+          type: "code",
+          label: "Redirect call",
+          summary: "The endpoint passes next_url directly into redirect.",
+          file: "src/auth.py",
+          startLine: "42",
+          endLine: "42",
+          url: "https://github.com/acme/api/blob/abc1234/src/auth.py#L42",
+        },
+      ],
+      reproduction: {
+        commands: ["pytest tests/repro/test_redirect.py"],
+        input: "GET /login?next=https://evil.example",
+        expected: "400 validation error",
+        actual: "302 external redirect",
+      },
+      reasoningBreakdown: {
+        facts: ["Redirect call: The endpoint passes next_url directly into redirect."],
+        inferences: ["Impact: Attackers can abuse this for phishing."],
+        recommendations: ["Validate redirect targets before returning a redirect."],
+      },
+      status: "open",
+      autoFix: true,
+      steps: ["Allow only same-origin redirect targets.", "Add tests for rejected external URLs."],
+      badCode: [{ ln: 42, code: "return redirect(next_url)", t: "del" }],
+      goodCode: [{ ln: 42, code: "return redirect(safe_redirect(next_url))", t: "add" }],
+      references: [{ label: "OWASP redirects", url: "https://cheatsheetseries.owasp.org/" }],
+    };
+
+    try {
+      render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
+
+      await user.click(screen.getByRole("button", { name: /copy page/i }));
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      const markdown = writeText.mock.calls[0][0];
+      expect(markdown).toContain("# Validate redirect targets");
+      expect(markdown).toContain("- Issue: f_123");
+      expect(markdown).toContain("- Status: open");
+      expect(markdown).toContain("## Confidence evidence");
+      expect(markdown).toContain("- [x] Precise file and line");
+      expect(markdown).toContain("## Evidence chain");
+      expect(markdown).toContain("Redirect call");
+      expect(markdown).toContain("## Reproduction center");
+      expect(markdown).toContain("pytest tests/repro/test_redirect.py");
+      expect(markdown).toContain("## Impact");
+      expect(markdown).toContain("Attackers can abuse this for phishing.");
+      expect(markdown).toContain("## Remediation");
+      expect(markdown).toContain("1. Allow only same-origin redirect targets.");
+      expect(markdown).toContain("## Patch evidence");
+      expect(markdown).toContain("```");
+      expect(markdown).toContain("return redirect(next_url)");
+      expect(markdown).toContain("return redirect(safe_redirect(next_url))");
+      expect(markdown).toContain("[OWASP redirects](https://cheatsheetseries.owasp.org/)");
+    } finally {
+      if (originalClipboard) {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
+      } else {
+        delete navigator.clipboard;
+      }
+    }
   });
 
   it("does not submit concurrent status updates from detail actions", async () => {
