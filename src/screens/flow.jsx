@@ -1306,7 +1306,7 @@ export function ReposScreen({
                     <div className="repo-desc">{repo.desc}</div>
                   </div>
                   <div className="repo-meta">
-                    {on && (
+                    {on ? (
                       <BranchPicker
                         repoLabel={repoLabel}
                         value={selectedBranch}
@@ -1321,6 +1321,17 @@ export function ReposScreen({
                           }));
                         }}
                       />
+                    ) : (
+                      <span
+                        className="repo-branch-picker repo-branch-placeholder"
+                        aria-hidden="true"
+                      >
+                        <span className="repo-branch-trigger">
+                          <I.GitBranch size={12} />
+                          <span className="repo-branch-value">{selectedBranch}</span>
+                          <I.ChevD size={11} className="repo-branch-chev" />
+                        </span>
+                      </span>
                     )}
                     <span>
                       <span className="lang-dot" data-lang={repo.lang}></span> {repo.lang}

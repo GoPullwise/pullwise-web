@@ -544,6 +544,11 @@ body.has-proto-nav {
   background: var(--surface-1);
 }
 
+.repo-meta .repo-branch-placeholder {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .repo-branch-picker .repo-branch-trigger {
   display: inline-flex;
   align-items: center;

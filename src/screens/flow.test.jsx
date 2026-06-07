@@ -124,6 +124,38 @@ describe("ReposScreen scan selection", () => {
       /\.repo-meta\s*{[^}]*grid-template-rows:\s*repeat\(2,\s*minmax\(16px,\s*auto\)\);/
     );
     expect(appStyles).toMatch(/\.repo-meta\s*{[^}]*grid-auto-flow:\s*column;/);
+    expect(appStyles).toMatch(
+      /\.repo-meta \.repo-branch-placeholder\s*{[^}]*visibility:\s*hidden;/
+    );
+  });
+
+  it("reserves the branch slot before a repository is selected", async () => {
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    const row = screen.getByRole("button", { name: /select repository octocat\/alpha/i });
+    expect(row.querySelector(".repo-branch-placeholder")).toBeInTheDocument();
+    expect(row.querySelector(".repo-branch-placeholder")).toHaveTextContent("main");
+    expect(
+      screen.queryByRole("button", { name: /branch for octocat\/alpha/i })
+    ).not.toBeInTheDocument();
+
+    await user.click(row);
+
+    expect(row.querySelector(".repo-branch-placeholder")).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /branch for octocat\/alpha/i })
+    ).toBeInTheDocument();
   });
 
   it("hands every selected repository to the scanning screen", async () => {
