@@ -1218,6 +1218,97 @@ describe("normalizeIssue", () => {
     });
   });
 
+  it("maps Audit Swarm P-class severities onto the UI severity scale", () => {
+    const scan = normalizeScan({
+      id: "sc_audit_swarm_priority",
+      audit_swarm: {
+        issue_cards: [
+          { issue_id: "issue-p0", title: "P0 issue", severity: "P0" },
+          { issue_id: "issue-p1", title: "P1 issue", severity: "P1" },
+          { issue_id: "issue-p2", title: "P2 issue", severity: "P2" },
+          { issue_id: "issue-p3", title: "P3 issue", severity: "P3" },
+          { issue_id: "issue-p4", title: "P4 issue", severity: "P4" },
+        ],
+        evidence_blocks: [
+          { id: "block-p0", title: "P0 block", severity: "P0" },
+          { id: "block-p1", title: "P1 block", severity: "P1" },
+          { id: "block-p2", title: "P2 block", severity: "P2" },
+          { id: "block-p3", title: "P3 block", severity: "P3" },
+          { id: "block-p4", title: "P4 block", severity: "P4" },
+        ],
+      },
+    });
+
+    expect(scan.auditSwarm.issueCards.map((card) => card.severity)).toEqual([
+      "critical",
+      "high",
+      "medium",
+      "low",
+      "info",
+    ]);
+    expect(scan.auditSwarm.evidenceBlocks.map((block) => block.severity)).toEqual([
+      "critical",
+      "high",
+      "medium",
+      "low",
+      "info",
+    ]);
+  });
+
+  it("keeps structured Audit Swarm command and file evidence visible", () => {
+    const scan = normalizeScan({
+      id: "sc_audit_swarm_structured_evidence",
+      audit_swarm: {
+        issue_cards: [
+          {
+            issue_id: "issue-command",
+            title: "Command evidence",
+            evidence: [
+              { type: "command", command: "npm test -- auth", exit_code: 1 },
+              { type: "file", file: "src/auth/session.ts", start_line: "42" },
+            ],
+          },
+        ],
+        verification_results: [
+          {
+            issue_id: "issue-command",
+            verdict: "confirmed",
+            evidence: [
+              { type: "command", command: "npm run check", exit_code: 1 },
+              { type: "file", file: "src/auth/session.ts", line: "42" },
+            ],
+          },
+        ],
+        evidence_blocks: [
+          {
+            id: "issue-command:evidence",
+            kind: "evidence",
+            title: "Structured evidence",
+            items: [
+              { type: "command", command: "npm test -- auth" },
+              { type: "file", file: "src/auth/session.ts", start_line: "42" },
+              { type: "output", output: "failed output\nmore detail" },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(scan.auditSwarm.issueCards[0].evidence).toEqual([
+      "npm test -- auth",
+      "src/auth/session.ts:42",
+    ]);
+    expect(scan.auditSwarm.verificationResults[0].evidence).toEqual([
+      "npm run check",
+      "src/auth/session.ts:42",
+    ]);
+    expect(scan.auditSwarm.evidenceBlocks[0].items).toEqual([
+      "npm test -- auth",
+      "src/auth/session.ts:42",
+      "failed output",
+    ]);
+  });
+
   it("normalizes scan progress into a finite percentage range", () => {
     expect(normalizeScan({ id: "sc_invalid", progress: "not-a-number" }).progress).toBe(0);
     expect(normalizeScan({ id: "sc_low", progress: -12 }).progress).toBe(0);

@@ -257,9 +257,22 @@ function textValue(...values) {
   return "";
 }
 
+const NORMALIZED_SEVERITIES = new Set(["critical", "high", "medium", "low", "info"]);
+const AUDIT_SWARM_SEVERITY_ALIASES = {
+  p0: "critical",
+  p1: "high",
+  p2: "medium",
+  p3: "low",
+  p4: "info",
+};
+
+function normalizeSeverityValue(value) {
+  const severity = textValue(value).toLowerCase();
+  return AUDIT_SWARM_SEVERITY_ALIASES[severity] || (NORMALIZED_SEVERITIES.has(severity) ? severity : "");
+}
+
 function normalizeSeverity(value) {
-  const severity = textValue(value);
-  return ["critical", "high", "medium", "low", "info"].includes(severity) ? severity : "info";
+  return normalizeSeverityValue(value) || "info";
 }
 
 function normalizeIssueStatus(value) {
@@ -468,10 +481,33 @@ function normalizeAuditSwarmTextList(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => {
-      if (objectRecord(item)) return textValue(item.summary, item.text, item.claim);
+      if (objectRecord(item)) return normalizeAuditSwarmEvidenceText(item);
       return textValue(item);
     })
     .filter(Boolean);
+}
+
+function normalizeAuditSwarmEvidenceLocation(item) {
+  const file = textValue(item.file, item.path);
+  if (!file) return "";
+  const startLine = normalizeLineNumber(item.startLine ?? item.start_line ?? item.line);
+  const endLine = normalizeLineNumber(item.endLine ?? item.end_line);
+  if (startLine && endLine && endLine !== startLine) return `${file}:${startLine}-${endLine}`;
+  return startLine ? `${file}:${startLine}` : file;
+}
+
+function normalizeAuditSwarmEvidenceText(item) {
+  return textValue(
+    item.summary,
+    item.text,
+    item.claim,
+    item.command,
+    normalizeAuditSwarmEvidenceLocation(item),
+    item.output,
+    item.label,
+    item.url,
+    item.type
+  );
 }
 
 const AUDIT_SWARM_EVIDENCE_BLOCK_KINDS = new Set([
@@ -586,7 +622,6 @@ function normalizeAuditSwarmEvidenceBlocks(value) {
       const rawKind = textValue(block.kind).toLowerCase();
       const kind = AUDIT_SWARM_EVIDENCE_BLOCK_KINDS.has(rawKind) ? rawKind : "evidence";
       const verdict = textValue(block.verdict).toLowerCase();
-      const severity = textValue(block.severity).toLowerCase();
       const items = normalizeAuditSwarmTextList(block.items).slice(0, 8);
       return {
         id: textValue(block.id, block.blockId, block.block_id),
@@ -594,7 +629,7 @@ function normalizeAuditSwarmEvidenceBlocks(value) {
         title: textValue(block.title) || kind.replaceAll("_", " "),
         summary: textValue(block.summary, block.text, block.claim),
         issueId: textValue(block.issueId, block.issue_id),
-        severity: ["critical", "high", "medium", "low", "info"].includes(severity) ? severity : "",
+        severity: normalizeSeverityValue(block.severity),
         category: textValue(block.category),
         role: textValue(block.role, block.agentRole, block.agent_role, block.verifierRole, block.verifier_role),
         shardId: textValue(block.shardId, block.shard_id),
