@@ -82,7 +82,7 @@ function issueTotal(scan) {
 }
 
 function scanHasResults(scan) {
-  return ["done", "failed", "cancelled"].includes(scan?.status);
+  return ["done", "failed"].includes(scan?.status);
 }
 
 function scanHistorySummary(scan) {
@@ -93,6 +93,7 @@ function scanHistorySummary(scan) {
     );
     return ["queued", ...queueTags].join(" - ");
   }
+  if (scan.status === "cancelled") return "cancelled";
   if (scan.issues) {
     const total = issueTotal(scan);
     const audit = scan.verificationAudit || {};
@@ -1170,6 +1171,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
     go("dashboard");
   };
   const viewScanIssues = (scan) => {
+    if (!scan?.id || !scanHasResults(scan)) return;
     if (openScanIssues) {
       openScanIssues(scan);
       return;
@@ -1177,7 +1179,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
     go("issues");
   };
   const downloadAuditBundle = async (scan) => {
-    if (!scan?.id || bundleLoading) return;
+    if (!scan?.id || !scanHasResults(scan) || bundleLoading) return;
     setBundleLoading(scan.id);
     try {
       const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
@@ -1270,7 +1272,9 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                     <span className="tag">
                       <I.GitBranch size={10} /> {scan.branch}
                     </span>
-                    <span className="tag">{scan.commit}</span>
+                    {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
+                      <span className="tag">{scan.commit}</span>
+                    )}
                   </div>
                   {scan.status === "queued" && scanQueueSummary(scan) && (
                     <div className="muted">{scanHistorySummary(scan)}</div>

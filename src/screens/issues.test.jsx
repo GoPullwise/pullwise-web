@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
@@ -419,6 +419,44 @@ describe("HistoryScreen queue state", () => {
     await user.click(issues);
 
     expect(openScanIssues).not.toHaveBeenCalled();
+  });
+
+  it("shows cancelled scans as cancelled and disables result actions", async () => {
+    const openScanIssues = vi.fn();
+    const user = userEvent.setup();
+    const scan = {
+      id: "sc_cancelled",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "pending",
+      status: "cancelled",
+      time: "now",
+      by: "you",
+      issues: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
+    };
+    useScans.mockReturnValue({
+      items: [scan],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={vi.fn()} openScanIssues={openScanIssues} />);
+
+    const row = screen.getByText("octocat/private-repo").closest(".hist-row");
+    expect(row).not.toBeNull();
+    expect(within(row).getByText(/^cancelled$/i)).toBeInTheDocument();
+    expect(within(row).queryByText(/^pending$/i)).not.toBeInTheDocument();
+
+    const issues = within(row).getByRole("button", { name: /^issues$/i });
+    const downloadZip = within(row).getByRole("button", { name: /download audit bundle/i });
+    expect(issues).toBeDisabled();
+    expect(downloadZip).toBeDisabled();
+
+    await user.click(issues);
+    await user.click(downloadZip);
+
+    expect(openScanIssues).not.toHaveBeenCalled();
+    expect(pullwiseApi.scans.auditBundleArchive).not.toHaveBeenCalled();
   });
 
   it("opens completed scan instances from history", async () => {
