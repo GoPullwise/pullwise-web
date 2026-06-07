@@ -47,7 +47,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
                     {crumb.label}
                   </a>
                 ) : (
-                  <span className="crumb-label now" aria-current="page">
+                  <span className="crumb-button crumb-current" aria-current="page">
                     {crumb.label}
                   </span>
                 )}

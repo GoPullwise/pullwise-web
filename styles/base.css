@@ -467,8 +467,11 @@ textarea {
   padding: 0;
   font: inherit;
 }
-.crumb-button:hover {
+a.crumb-button:hover {
   color: var(--text);
+}
+.crumb-current {
+  cursor: default;
 }
 .crumbs .now {
   color: var(--text);

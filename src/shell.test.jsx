@@ -23,6 +23,16 @@ beforeEach(() => {
 });
 
 describe("Topbar navigation", () => {
+  it("renders the current breadcrumb with the same base styling as clickable breadcrumbs", () => {
+    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
+
+    const current = screen.getByText("Issues");
+
+    expect(current).toHaveClass("crumb-button");
+    expect(current).not.toHaveClass("now");
+    expect(screen.queryByRole("link", { name: /^issues$/i })).not.toBeInTheDocument();
+  });
+
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
