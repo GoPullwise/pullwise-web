@@ -28,6 +28,7 @@ vi.mock("./api/pullwise.js", () => ({
     },
     issues: {
       list: vi.fn(),
+      get: vi.fn(),
     },
   },
 }));
@@ -79,6 +80,15 @@ describe("App", () => {
     });
     pullwiseApi.scans.list.mockResolvedValue({ items: [] });
     pullwiseApi.issues.list.mockResolvedValue({ items: [] });
+    pullwiseApi.issues.get.mockResolvedValue({
+      id: "f_123",
+      repo: "GoPullwise/pullwise-web",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.js",
+      status: "open",
+    });
   });
 
   afterEach(() => {
@@ -194,6 +204,21 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="landing"]')).toBeInTheDocument();
     });
+  });
+
+  it("loads an issue detail page directly from the issue id in the route", async () => {
+    window.history.replaceState({}, "", "/issues/f_123");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
+    });
+    expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
   });
 
   it("does not show signed-out landing actions while the session check is pending", () => {

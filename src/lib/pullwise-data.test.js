@@ -30,6 +30,16 @@ vi.mock("../api/pullwise.js", () => ({
   },
 }));
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
 describe("useRepositories", () => {
   beforeEach(() => {
     pullwiseApi.repositories.list.mockReset();
@@ -330,6 +340,34 @@ describe("useIssues", () => {
     });
   });
 
+  it("ignores late scan-list responses from older filters", async () => {
+    const slowAll = deferred();
+    const fastDone = deferred();
+    pullwiseApi.scans.list
+      .mockReturnValueOnce(slowAll.promise)
+      .mockReturnValueOnce(fastDone.promise);
+
+    const { result, rerender } = renderHook(
+      ({ status }) => useScans({ pollIntervalMs: 10000, limit: 1, status }),
+      { initialProps: { status: "" } }
+    );
+
+    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(1));
+    rerender({ status: "done" });
+    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(2));
+
+    await act(async () => {
+      fastDone.resolve({ items: [{ id: "sc_done", status: "done" }] });
+    });
+    await waitFor(() => expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_done"]));
+
+    await act(async () => {
+      slowAll.resolve({ items: [{ id: "sc_queued", status: "queued" }] });
+    });
+
+    expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_done"]);
+  });
+
   it("reloads issue lists when issue data changes", async () => {
     pullwiseApi.issues.list
       .mockResolvedValueOnce({
@@ -353,6 +391,34 @@ describe("useIssues", () => {
     expect(result.current.items).toHaveLength(0);
 
     unmount();
+  });
+
+  it("ignores late issue-list responses from older filters", async () => {
+    const slowOpen = deferred();
+    const fastFixed = deferred();
+    pullwiseApi.issues.list
+      .mockReturnValueOnce(slowOpen.promise)
+      .mockReturnValueOnce(fastFixed.promise);
+
+    const { result, rerender } = renderHook(
+      ({ status }) => useIssues({ status, limit: 1, refreshOnChange: false }),
+      { initialProps: { status: "open" } }
+    );
+
+    await waitFor(() => expect(pullwiseApi.issues.list).toHaveBeenCalledTimes(1));
+    rerender({ status: "fixed" });
+    await waitFor(() => expect(pullwiseApi.issues.list).toHaveBeenCalledTimes(2));
+
+    await act(async () => {
+      fastFixed.resolve({ items: [{ id: "iss_fixed", status: "fixed" }] });
+    });
+    await waitFor(() => expect(result.current.items.map((issue) => issue.id)).toEqual(["iss_fixed"]));
+
+    await act(async () => {
+      slowOpen.resolve({ items: [{ id: "iss_open", status: "open" }] });
+    });
+
+    expect(result.current.items.map((issue) => issue.id)).toEqual(["iss_fixed"]);
   });
 });
 

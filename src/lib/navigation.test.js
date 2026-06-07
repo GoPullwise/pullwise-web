@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { pathFromScreen, screenFromPath, screenLinkProps } from "./navigation.js";
+import { issueIdFromPath, pathFromScreen, screenFromPath, screenLinkProps } from "./navigation.js";
 
 function fakeClick(overrides = {}) {
   return {
@@ -57,5 +57,15 @@ describe("dashboard routes", () => {
     expect(pathFromScreen("dashboard")).toBe("/dashboard/overview");
     expect(screenFromPath("/dashboard/overview")).toBe("dashboard");
     expect(screenFromPath("/dashboard")).toBe("dashboard");
+  });
+});
+
+describe("issue detail routes", () => {
+  it("encodes issue identity in the URL so detail pages can reload", () => {
+    expect(pathFromScreen("issue", { issueId: "issue/with spaces#1" })).toBe(
+      "/issues/issue%2Fwith%20spaces%231"
+    );
+    expect(screenFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue");
+    expect(issueIdFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue/with spaces#1");
   });
 });

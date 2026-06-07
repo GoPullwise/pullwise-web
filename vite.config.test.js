@@ -6,3 +6,12 @@ describe("vite production build inputs", () => {
     expect(config.build.rollupOptions.input).not.toHaveProperty("review");
   });
 });
+
+describe("vite development API proxy", () => {
+  it("strips the /api prefix to match the production Worker proxy", () => {
+    expect(config.server.proxy["/api"].rewrite("/api/auth/session?fresh=1")).toBe(
+      "/auth/session?fresh=1"
+    );
+    expect(config.server.proxy["/api"].rewrite("/api")).toBe("/");
+  });
+});

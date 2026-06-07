@@ -12,6 +12,7 @@ vi.mock("../api/pullwise.js", () => ({
       auditBundleArchive: vi.fn(),
     },
     issues: {
+      get: vi.fn(),
       updateStatus: vi.fn(),
       previewFix: vi.fn(),
       createPullRequest: vi.fn(),
@@ -292,6 +293,28 @@ describe("IssuesScreen list resilience", () => {
 
     await waitFor(() => expect(screen.queryByText("First duplicate issue")).not.toBeInTheDocument());
     expect(screen.getByText("Second duplicate issue")).toBeInTheDocument();
+  });
+});
+
+describe("IssueDetailScreen direct loading", () => {
+  it("fetches issue data by route id when in-memory issue state is missing", async () => {
+    const setIssue = vi.fn();
+    pullwiseApi.issues.get.mockReset();
+    pullwiseApi.issues.get.mockResolvedValueOnce({
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      status: "open",
+    });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={setIssue} />);
+
+    expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
+    expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
+    expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
   });
 });
 
