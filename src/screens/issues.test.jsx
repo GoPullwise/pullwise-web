@@ -891,6 +891,7 @@ describe("IssueDetailScreen review detail", () => {
 
       await user.click(screen.getByRole("button", { name: /copy page/i }));
 
+      expect(await screen.findByRole("button", { name: /copied/i })).toBeInTheDocument();
       expect(writeText).toHaveBeenCalledTimes(1);
       const markdown = writeText.mock.calls[0][0];
       expect(markdown).toContain("# Validate redirect targets");

@@ -199,8 +199,11 @@ function locationLabel(item) {
 
 function copyText(value) {
   const clipboard = globalThis.navigator?.clipboard;
-  if (!value || !clipboard?.writeText) return;
-  clipboard.writeText(value).catch(() => {});
+  if (!value || !clipboard?.writeText) return Promise.resolve(false);
+  return clipboard
+    .writeText(value)
+    .then(() => true)
+    .catch(() => false);
 }
 
 function markdownText(value) {
@@ -930,8 +933,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [pullRequest, setPullRequest] = useState(issuePullRequestState(activeIssue));
   const [fixLoading, setFixLoading] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
+  const [pageCopied, setPageCopied] = useState(false);
   const statusRequestRef = useRef(false);
   const fixRequestRef = useRef(0);
+  const pageCopyResetRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -972,10 +977,19 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setPullRequest(issuePullRequestState(activeIssue));
     setFixLoading("");
     setStatusLoading("");
+    setPageCopied(false);
     statusRequestRef.current = false;
+    if (pageCopyResetRef.current) {
+      clearTimeout(pageCopyResetRef.current);
+      pageCopyResetRef.current = null;
+    }
     return () => {
       fixRequestRef.current += 1;
       statusRequestRef.current = false;
+      if (pageCopyResetRef.current) {
+        clearTimeout(pageCopyResetRef.current);
+        pageCopyResetRef.current = null;
+      }
     };
   }, [activeIssue]);
 
@@ -1089,6 +1103,16 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     } finally {
       if (isCurrentFixRequest(requestId)) setFixLoading("");
     }
+  };
+  const copyPage = async () => {
+    const copied = await copyText(buildIssuePageMarkdown(issue, currentStatus));
+    if (!copied) return;
+    setPageCopied(true);
+    if (pageCopyResetRef.current) clearTimeout(pageCopyResetRef.current);
+    pageCopyResetRef.current = setTimeout(() => {
+      setPageCopied(false);
+      pageCopyResetRef.current = null;
+    }, 2000);
   };
 
   return (
@@ -1320,9 +1344,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
               <button
                 className="btn sm"
-                onClick={() => copyText(buildIssuePageMarkdown(issue, currentStatus))}
+                onClick={copyPage}
+                aria-live="polite"
               >
-                <I.Copy size={13} /> Copy Page
+                {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
+                {pageCopied ? T("Copied", "已复制") : "Copy Page"}
               </button>
               <div className="divider" />
               {currentStatus === "open" ? (
