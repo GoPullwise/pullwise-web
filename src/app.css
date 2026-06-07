@@ -508,8 +508,15 @@ body.has-proto-nav {
 }
 
 .repo-meta {
+  display: grid;
+  grid-template-rows: repeat(2, minmax(16px, auto));
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
   max-width: min(52vw, 620px);
   justify-content: flex-end;
+  justify-self: end;
+  align-content: center;
+  align-items: center;
   gap: 8px 12px;
 }
 

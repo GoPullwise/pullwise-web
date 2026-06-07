@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -115,6 +116,16 @@ function renderScanError(error, errorCode = "") {
 }
 
 describe("ReposScreen scan selection", () => {
+  it("keeps scan list metadata in two rows before selection", () => {
+    const appStyles = readFileSync("src/app.css", "utf8");
+
+    expect(appStyles).toMatch(/\.repo-meta\s*{[^}]*display:\s*grid;/);
+    expect(appStyles).toMatch(
+      /\.repo-meta\s*{[^}]*grid-template-rows:\s*repeat\(2,\s*minmax\(16px,\s*auto\)\);/
+    );
+    expect(appStyles).toMatch(/\.repo-meta\s*{[^}]*grid-auto-flow:\s*column;/);
+  });
+
   it("hands every selected repository to the scanning screen", async () => {
     const go = vi.fn();
     const setActiveRepo = vi.fn();
