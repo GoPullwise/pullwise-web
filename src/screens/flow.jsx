@@ -1096,15 +1096,14 @@ export function ReposScreen({
     () => visibleRepoIds.reduce((sum, id) => sum + (selected.includes(id) ? 1 : 0), 0),
     [visibleRepoIds, selected]
   );
-  const allVisibleSelected =
-    visibleRepoIds.length > 0 && visibleSelectedCount === visibleRepoIds.length;
-  const selectAllLabel = allVisibleSelected
+  const hasVisibleSelection = visibleSelectedCount > 0;
+  const selectAllLabel = hasVisibleSelection
     ? T("Deselect all", "取消全选")
     : T("Select all", "全选");
 
   const toggleSelectAll = () => {
     if (repos.length === 0) return;
-    if (allVisibleSelected) {
+    if (hasVisibleSelection) {
       const visibleSet = new Set(visibleRepoIds);
       setSelected((current) => current.filter((id) => !visibleSet.has(id)));
       setSelectionNotice("");
@@ -1325,28 +1324,36 @@ export function ReposScreen({
                 className="btn repos-select-all"
                 onClick={toggleSelectAll}
                 disabled={repos.length === 0}
-                aria-pressed={allVisibleSelected}
+                aria-pressed={hasVisibleSelection}
                 aria-label={
-                  allVisibleSelected
+                  hasVisibleSelection
                     ? T("Deselect all visible repositories", "取消全选可见仓库")
                     : T("Select all visible repositories", "全选可见仓库")
                 }
                 title={
-                  allVisibleSelected
+                  hasVisibleSelection
                     ? T("Deselect all visible repositories", "取消全选可见仓库")
                     : T("Select all visible repositories", "全选可见仓库")
                 }
               >
-                {allVisibleSelected ? (
+                {hasVisibleSelection ? (
                   <I.X size={12} />
                 ) : (
                   <I.Check size={12} />
                 )}
                 {selectAllLabel}
-                {!allVisibleSelected && visibleRepoIds.length > 0 && (
-                  <span className="repos-select-all-count">
-                    ({visibleRepoIds.length})
-                  </span>
+                {hasVisibleSelection ? (
+                  visibleSelectedCount > 0 && (
+                    <span className="repos-select-all-count">
+                      ({visibleSelectedCount})
+                    </span>
+                  )
+                ) : (
+                  visibleRepoIds.length > 0 && (
+                    <span className="repos-select-all-count">
+                      ({visibleRepoIds.length})
+                    </span>
+                  )
                 )}
               </button>
             </div>
