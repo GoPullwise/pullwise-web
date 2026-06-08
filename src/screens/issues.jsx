@@ -560,9 +560,7 @@ function EvidenceTrace({ issue }) {
     <div className="evidence-trace-wrap">
       <div className="trace-progress">
         <div className="trace-progress-h">
-          <span className="trace-progress-title">
-            {T("Evidence trail", "证据链")}
-          </span>
+          <span className="trace-progress-title">{T("Evidence trail", "证据链")}</span>
           <span className="trace-progress-count">
             {presentCount} / {total} {T("stages captured", "个阶段已采集")} · {percent}%
           </span>
@@ -642,10 +640,7 @@ function EvidenceTraceStep({ stage, index, nextStatus, isLast }) {
             </ul>
           ) : (
             <p className="muted trace-node-empty">
-              {T(
-                "No additional items were captured for this stage.",
-                "此阶段未采集到其他条目。"
-              )}
+              {T("No additional items were captured for this stage.", "此阶段未采集到其他条目。")}
             </p>
           )}
         </div>
@@ -1852,10 +1847,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
             {/* Default: severity capsules (no big colored bar — those get read as a progress meter) */}
             <div className="scan-severity-capsules">
               {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map((s) => (
-                <span
-                  key={s.key}
-                  className={`scan-severity-capsule scan-severity-${s.key}`}
-                >
+                <span key={s.key} className={`scan-severity-capsule scan-severity-${s.key}`}>
                   <span className="scan-severity-capsule-dot" aria-hidden="true" />
                   {T(s.labelEn, s.labelZh)} {breakdown[s.key]}
                 </span>
@@ -1864,15 +1856,14 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
             {/* On hover/focus: one dot per issue, grouped by severity.
                 Replaces the capsule view for a more granular "issue cartridge" look. */}
             <div className="scan-severity-dots" aria-hidden="true">
-              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).flatMap(
-                (s) =>
-                  Array.from({ length: Number(breakdown[s.key] || 0) }, (_, i) => (
-                    <span
-                      key={`${s.key}-${i}`}
-                      className={`scan-issue-dot scan-severity-${s.key}`}
-                      title={`${T(s.labelEn, s.labelZh)} #${i + 1}`}
-                    />
-                  ))
+              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).flatMap((s) =>
+                Array.from({ length: Number(breakdown[s.key] || 0) }, (_, i) => (
+                  <span
+                    key={`${s.key}-${i}`}
+                    className={`scan-issue-dot scan-severity-${s.key}`}
+                    title={`${T(s.labelEn, s.labelZh)} #${i + 1}`}
+                  />
+                ))
               )}
             </div>
           </div>

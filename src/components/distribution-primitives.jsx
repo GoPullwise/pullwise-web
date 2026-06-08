@@ -61,11 +61,7 @@ export function StackedBar({ segments, height = 6, radius = 999, className = "" 
   }
   let offset = 0;
   return (
-    <div
-      className={"disto-bar " + className}
-      style={{ height, borderRadius: radius }}
-      role="img"
-    >
+    <div className={"disto-bar " + className} style={{ height, borderRadius: radius }} role="img">
       {segments.map((segment, index) => {
         if (segment.weight <= 0) return null;
         const pct = (segment.weight / total) * 100;
@@ -237,7 +233,10 @@ export function DistributionCard({
                   (active ? " disto-legend-active" : "")
                 }
                 onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
-                title={T(`${value} ${bucket.label || bucket.key} (${pct}%)`, `${value} ${bucket.label || bucket.key}（${pct}%）`)}
+                title={T(
+                  `${value} ${bucket.label || bucket.key} (${pct}%)`,
+                  `${value} ${bucket.label || bucket.key}（${pct}%）`
+                )}
               >
                 <span className="disto-legend-dot" style={{ background: bucket.color }} />
                 <span className="disto-legend-l">{bucket.label || bucket.key}</span>
