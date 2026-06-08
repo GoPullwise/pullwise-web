@@ -61,8 +61,8 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
           <span
             className="topbar-loading spin"
             role="status"
-            aria-label={T("Loading dashboard", "正在加载 dashboard")}
-            title={T("Loading dashboard", "正在加载 dashboard")}
+            aria-label={T("Loading", "正在加载")}
+            title={T("Loading", "正在加载")}
           >
             <I.Refresh size={14} />
           </span>

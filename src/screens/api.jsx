@@ -612,6 +612,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
         go={go}
         breadcrumbs={[{ label: "API Keys" }]}
         setIssue={setIssue}
+        loading={loading}
       />
       <div className="with-side">
         <Sidebar section="apiKeys" go={go} />

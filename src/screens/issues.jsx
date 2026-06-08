@@ -715,6 +715,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         go={go}
         breadcrumbs={[{ label: T("Issues", "问题") }]}
         setIssue={setIssue}
+        loading={loading}
       />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
@@ -1479,6 +1480,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
           { label: T("Scan history", "扫描历史") },
         ]}
         setIssue={setIssue}
+        loading={loading}
       />
       <div className="with-side">
         <Sidebar section="history" go={go} />

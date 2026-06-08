@@ -1096,7 +1096,12 @@ export function ReposScreen({
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: T("Repositories", "仓库") }]} setIssue={setIssue} />
+      <Topbar
+        go={go}
+        breadcrumbs={[{ label: T("Repositories", "仓库") }]}
+        setIssue={setIssue}
+        loading={loading}
+      />
       <div className="with-side">
         <Sidebar section="repos" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>

@@ -126,6 +126,27 @@ describe("API screens", () => {
     expect(go).toHaveBeenCalledWith("api");
   });
 
+  it("shows the topbar loading spinner only while API keys are loading", async () => {
+    let resolveList;
+    pullwiseApi.apiKeys.list.mockReturnValue(
+      new Promise((resolve) => {
+        resolveList = resolve;
+      })
+    );
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
+      "topbar-loading",
+      "spin"
+    );
+
+    resolveList({ apiKeys: [] });
+    await waitFor(() => {
+      expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+    });
+  });
+
   it("creates and revokes account-scoped API keys", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({
       apiKeys: [{ id: "key_1", name: "Old key", prefix: "pwk_old" }],

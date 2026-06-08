@@ -51,6 +51,38 @@ function baseStyles() {
 }
 
 describe("IssuesScreen list resilience", () => {
+  it("shows the topbar loading spinner only while issues are loading", () => {
+    useIssues.mockReturnValue({
+      items: [],
+      loading: true,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    const { rerender } = render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
+      "topbar-loading",
+      "spin"
+    );
+
+    useIssues.mockReturnValue({
+      items: [],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: {},
+    });
+    rerender(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+  });
+
   it("does not leak NaN when issue evidence metadata is missing", () => {
     useIssues.mockReturnValue({
       items: [
@@ -410,6 +442,36 @@ describe("IssueDetailScreen direct loading", () => {
 });
 
 describe("HistoryScreen queue state", () => {
+  it("shows the topbar loading spinner only while scan history is loading", () => {
+    useScans.mockReturnValue({
+      items: [],
+      loading: true,
+      loadingMore: false,
+      error: "",
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    const { rerender } = render(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
+      "topbar-loading",
+      "spin"
+    );
+
+    useScans.mockReturnValue({
+      items: [],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      loadMore: vi.fn(),
+      meta: {},
+    });
+    rerender(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+  });
+
   it("exposes the history new scan action as a real screen link", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

@@ -116,6 +116,38 @@ function renderScanError(error, errorCode = "") {
 }
 
 describe("ReposScreen scan selection", () => {
+  it("shows the topbar loading spinner only while repositories are loading", () => {
+    useRepositories.mockReturnValue({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      loading: true,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    const { rerender } = render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
+      "topbar-loading",
+      "spin"
+    );
+
+    useRepositories.mockReturnValue({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+    rerender(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+  });
+
   it("keeps scan list metadata in two rows before selection", () => {
     const appStyles = readFileSync("src/app.css", "utf8");
 

@@ -102,7 +102,7 @@ describe("DashboardScreen issue list", () => {
       <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
     );
 
-    expect(screen.getByRole("status", { name: /loading dashboard/i })).toHaveClass(
+    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
       "topbar-loading",
       "spin"
     );
@@ -110,7 +110,7 @@ describe("DashboardScreen issue list", () => {
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     rerender(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
 
-    expect(screen.queryByRole("status", { name: /loading dashboard/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
   it("pins KPI footnote text to a fixed slot above the sparkline", () => {
