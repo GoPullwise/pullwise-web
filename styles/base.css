@@ -91,20 +91,41 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-button {
-  font: inherit;
-  color: inherit;
-  cursor: default;
+/* === Interactive base — the project's three text roles ===
+ *  1) Text-only chrome (labels, badges, nav chrome, status indicators)
+ *     → user-select: none. They are decoration, not content.
+ *  2) Interactive controls (<button>, <a href>, <summary>, [role=button])
+ *     → cursor: pointer; user-select: none. The cursor tells the user
+ *     the element is clickable; we still don't want a drag-select to
+ *     grab the label inside a button.
+ *  3) Actual content the user may want to copy (code bodies, prose,
+ *     log output, form values) → default behaviour: text cursor on
+ *     inputs, I-beam on plain text, no special cursor on containers.
+ *     Don't add user-select: none to these — copy is a feature.
+ */
+button,
+a[href],
+summary,
+[role="button"] {
+  cursor: pointer;
   user-select: none;
+}
+button:disabled,
+a[aria-disabled="true"],
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
 }
 a {
   color: inherit;
   text-decoration: none;
 }
 input,
-textarea {
+textarea,
+select {
   font: inherit;
   color: inherit;
+  cursor: text;
+  user-select: text;
 }
 
 /* === Shared atoms === */
@@ -691,19 +712,149 @@ a.crumb-button:hover {
   background: currentColor;
 }
 
-/* Non-selectable UI chrome (atoms) */
+/* Non-selectable UI chrome (atoms + screen chrome).
+ * The single canonical list — keep this in sync if a new chrome-only
+ * class is added. Anything not in this list is treated as content the
+ * user is allowed to select / copy.
+ */
+/* Landing */
+.lp-top, .lp-nav, .lp-hero-tag, .lp-meta,
+.lp-preview-bar, .lp-preview-side, .lp-preview-issue-f,
+.lp-feat-i, .lp-foot,
+/* Auth / OAuth */
+.auth-or, .auth-legal,
+.oauth-head, .oauth-perm-h, .oauth-perm-i,
+.oauth-actions, .oauth-foot,
+/* Repos */
+.repos-toolbar, .repos-orgs, .repos-foot,
+.repo-check-box, .repo-meta, .lang-dot,
+.gh-installs-h, .gh-install-icon, .gh-install-meta, .gh-install-status,
+/* Scanning */
+.scanning-h, .scanning-icon,
+.scanning-bar-meta, .scanning-phases, .scanning-phase-bullet,
+.scanning-counts-h, .scanning-counts-grid span,
+/* Dashboard */
+.kpi-h, .kpi-l, .kpi-d, .kpi-foot,
+.dash-summary-head, .dash-donut-dot,
+.dash-cat-row, .dash-cat-bar,
+.seg, .seg-i,
+.dash-issues-h,
+/* Issues list / kanban */
+.issue-sev, .issue-id, .issue-effort, .issue-meta,
+.issue-card-foot,
+.kan-col-h, .kan-empty, .kan-card-foot,
+/* Issues table */
+.filters, .filter-l, .filter-pills, .pill-btn,
+.issues-thead, .issues-check, .conf-bar,
+/* Issue detail */
+.tabs, .tab,
+.impact-h, .impact-i,
+.section-h, .step-n,
+.diff-tag, .diff-col-h,
+.applied-i,
+.discuss-av,
+.tl-dot,
+/* Modal / PR form */
+.modal-h, .modal-foot,
+.pr-progress, .pr-step, .pr-check,
+/* History */
+.hist-status, .hist-dot, .hist-stack, .hist-meta,
+/* Settings */
+.set-side, .set-side-i, .set-av,
+.switch, .int-row,
+.usage-bar,
+/* Pricing */
+.pricing-toggle, .pricing-save, .pricing-badge,
+.pricing-billed, .pricing-table-g,
+.pricing-feats svg,
+.pricing-faq-i summary,
+/* Docs */
+.docs-side, .docs-toc, .docs-crumbs,
+.docs-side-h, .docs-toc-h, .docs-side-i, .docs-foot,
+/* Popovers */
+.pop, .pop-h, .pop-foot, .pop-section, .pop-i-ic,
+/* Search modal */
+.search-h, .search-gh, .search-foot, .search-empty,
+/* Legal / Security / Status / Notifications / 404 */
+.legal-side, .legal-side-h, .legal-side-i, .legal-side-foot, .legal-side-l,
+.legal-crumbs, .legal-foot-actions,
+.security-cert-h, .security-cert-s, .security-card-i,
+.status-overall, .status-dot, .status-bar, .status-bar-i,
+.status-row-region, .status-row-pct, .status-legend,
+.status-inc-sev, .status-inc-tl-h,
+.notif-group-h, .notif-meta, .notif-actions, .notif-unread-dot,
+.notfound-code, .notfound-suggest-h, .notfound-suggest-ic, .notfound-suggest-d,
+/* Atoms */
 .chip,
 .kbd,
 .tag,
 .pill,
 .sev,
+.dot,
+.badge,
 .topbar,
 .crumbs,
+.crumb-label,
+.crumb-button,
+.crumbs .sep,
+.crumbs .now,
 .brand,
 .brand-mark,
 .side,
 .side-h,
-.page-h .actions {
+.side-i,
+.side-i .badge,
+.page-h,
+.page-h h1,
+.page-h .sub,
+.page-h .actions,
+.notif-h,
+.notif-row,
+.notif-sub,
+.pricing-card-h,
+.pricing-num,
+.pricing-tag,
+.docs-endpoint-card-h,
+.docs-code-h,
+.docs-foot-actions,
+.legal-list-h,
+.security-section-h,
+.status-section-h,
+.status-card-h,
+.notfound-sub,
+.notfound-suggest-i,
+.lang-toggle,
+.theme-toggle,
+.proto-nav,
+.proto-nav-i,
+.proto-nav-l,
+.proto-nav-n,
+.proto-nav-hint,
+.proto-nav-toggle,
+.quota-choice-count,
+.billing-summary,
+.billing-summary-main,
+.billing-summary-meter,
+.billing-actions,
+.bill-card,
+.bill-card-h,
+.kbd-hint,
+.muted,
+.text-3,
+.text-4,
+.sub,
+.code-head,
+.code-line .ln,
+.kpi-v,
+.kan-card-t,
+.hist-row b,
+.hist-row > .btn,
+.scanning-title,
+.scanning-sub,
+.scanning-phase-t,
+.scanning-phase-d,
+.search-i .tag,
+.issue-t {
   user-select: none;
 }
 
