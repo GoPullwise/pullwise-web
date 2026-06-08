@@ -1,4 +1,5 @@
 import { pullwiseApi } from "../api/pullwise.js";
+import { safeGitHubInstallationUrl, safeHttpUrl } from "./trusted-redirects.js";
 
 const POPUP_NAME = "pullwise-github-install";
 const MESSAGE_TYPE = "pullwise:github-install";
@@ -6,26 +7,14 @@ const POPUP_FEATURES = "popup=1,width=920,height=820,resizable=1,scrollbars=1";
 const POLL_INTERVAL_MS = 400;
 
 function safePopupUrl(value) {
-  if (typeof value !== "string")
-    throw new Error("A safe GitHub installation popup URL is required.");
-  const url = value.trim();
-  if ([...url].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
-    throw new Error("A safe GitHub installation popup URL is required.");
-  }
-  try {
-    const parsed = new URL(url);
-    if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
-  } catch {
-    // handled by the common error below
-  }
-  throw new Error("A safe GitHub installation popup URL is required.");
+  return safeGitHubInstallationUrl(value, "GitHub installation popup URL");
 }
 
 function safeManageContinueUrl(value) {
-  const url = safePopupUrl(value);
+  const url = safeHttpUrl(value, "GitHub installation popup URL");
   const parsed = new URL(url);
   const sameOrigin = parsed.origin === window.location.origin;
-  const trustedGitHub = parsed.protocol === "https:" && parsed.hostname === "github.com";
+  const trustedGitHub = parsed.protocol === "https:" && parsed.hostname.toLowerCase() === "github.com";
   if (sameOrigin || trustedGitHub) return url;
   throw new Error("A safe GitHub installation popup URL is required.");
 }

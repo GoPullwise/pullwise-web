@@ -4,6 +4,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { quotaResetText } from "../lib/quota-display.js";
+import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
@@ -18,21 +19,6 @@ function billingReturnUrl(kind, screen = "billing") {
   url.searchParams.set("screen", screen);
   url.searchParams.set("billing", kind);
   return url.toString();
-}
-
-function safeBillingUrl(value, label) {
-  if (typeof value !== "string") throw new Error(`A safe ${label} is required.`);
-  const url = value.trim();
-  if ([...url].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
-    throw new Error(`A safe ${label} is required.`);
-  }
-  try {
-    const parsed = new URL(url);
-    if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
-  } catch {
-    // handled by the common error below
-  }
-  throw new Error(`A safe ${label} is required.`);
 }
 
 function planById(payload, id) {
@@ -175,7 +161,7 @@ export function BillingScreen({
         returnUrl: billingReturnUrl("return"),
       });
       if (!session?.url) throw new Error("Billing provider did not return a portal URL.");
-      navigate(safeBillingUrl(session.url, "billing portal URL"));
+      navigate(safeBillingRedirectUrl(session.url, "billing portal URL"));
     } catch (err) {
       setError(err?.message || "Unable to open billing portal.");
       setPendingAction("");
@@ -191,7 +177,7 @@ export function BillingScreen({
         returnUrl: billingReturnUrl("return"),
       });
       if (result?.url) {
-        navigate(safeBillingUrl(result.url, "billing interval URL"));
+        navigate(safeBillingRedirectUrl(result.url, "billing interval URL"));
         return;
       }
       setPlan((current) => ({
@@ -424,7 +410,7 @@ export function PricingScreen({
         cancelUrl: billingReturnUrl("cancel", "pricing"),
       });
       if (!session?.url) throw new Error("Billing provider did not return a checkout URL.");
-      navigate(safeBillingUrl(session.url, "billing checkout URL"));
+      navigate(safeBillingRedirectUrl(session.url, "billing checkout URL"));
     } catch (err) {
       setError(err?.message || "Unable to start checkout.");
       setPendingAction("");

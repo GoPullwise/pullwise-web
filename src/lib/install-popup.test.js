@@ -195,6 +195,14 @@ describe("openGitHubInstallPopup", () => {
     expect(window.open).not.toHaveBeenCalled();
   });
 
+  it("rejects non-trusted popup hosts before opening a browser window", () => {
+    expect(() => openGitHubInstallPopup("https://evil.example/phish")).toThrow(
+      /safe GitHub installation popup URL/i
+    );
+
+    expect(window.open).not.toHaveBeenCalled();
+  });
+
   it("ignores same-origin install completion messages from windows other than the opened popup", () => {
     const popup = {
       closed: false,

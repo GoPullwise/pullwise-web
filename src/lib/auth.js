@@ -5,6 +5,7 @@ import {
 } from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 import { pathFromScreen } from "./navigation.js";
+import { safeGitHubInstallationUrl, safeHttpUrl } from "./trusted-redirects.js";
 
 function getScreenRedirectUrl(screen) {
   const redirectUrl = new URL(window.location.href);
@@ -24,21 +25,6 @@ function getContinueRepositoryRedirectUrl(redirectTo) {
   const redirectUrl = new URL(getRepositoryRedirectUrl(redirectTo));
   redirectUrl.searchParams.set("repoAuth", "1");
   return redirectUrl.toString();
-}
-
-function safeHttpUrl(value, label) {
-  if (typeof value !== "string") throw new Error(`A safe ${label} is required.`);
-  const url = value.trim();
-  if ([...url].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
-    throw new Error(`A safe ${label} is required.`);
-  }
-  try {
-    const parsed = new URL(url);
-    if (["http:", "https:"].includes(parsed.protocol) && parsed.hostname) return url;
-  } catch {
-    // handled by the common error below
-  }
-  throw new Error(`A safe ${label} is required.`);
 }
 
 function repositoryItemsFrom(payload) {
@@ -157,7 +143,10 @@ export async function connectGitHubRepositories({
     );
   }
 
-  const authorizeUrl = safeHttpUrl(result.url, "GitHub repository authorization URL");
+  const authorizeUrl = safeGitHubInstallationUrl(
+    result.url,
+    "GitHub repository authorization URL"
+  );
   markGitHubRepositoryAccessRefreshNeeded();
   const completion = openGitHubInstallPopup(authorizeUrl);
   if (!completion) {
@@ -187,7 +176,7 @@ export async function manageGitHubInstallation(
       returnUrl: getRepositoryRedirectUrl(redirectTo),
     }
   );
-  const manageUrl = safeHttpUrl(result?.url, "GitHub installation manage URL");
+  const manageUrl = safeGitHubInstallationUrl(result?.url, "GitHub installation manage URL");
   const repositorySyncPayload = {
     installationId: cleanInstallationId,
     githubIdentityId: cleanIdentityId,

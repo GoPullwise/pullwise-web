@@ -121,6 +121,19 @@ describe("auth redirects", () => {
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 
+  it("rejects non-trusted repository authorization hosts before opening a popup", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      url: "https://evil.example/phish",
+      mode: "github-app-install",
+    });
+
+    await expect(connectGitHubRepositories()).rejects.toThrow(
+      /safe GitHub repository authorization URL/i
+    );
+
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
   it("does not open the GitHub install popup when an existing app installation is connected", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       connected: true,
@@ -233,6 +246,18 @@ describe("auth redirects", () => {
     );
 
     await expect(manageGitHubInstallation("999")).rejects.toThrow(/account mismatch/i);
+  });
+
+  it("rejects non-trusted GitHub installation manage hosts before opening a popup", async () => {
+    pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+      url: "https://evil.example/manage",
+    });
+
+    await expect(manageGitHubInstallation("999")).rejects.toThrow(
+      /safe GitHub installation manage URL/i
+    );
+
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 
   it("opens the controlled GitHub install identity flow when adding another account or organization", async () => {

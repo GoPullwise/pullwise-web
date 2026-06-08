@@ -241,6 +241,48 @@ describe("BillingScreen", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("rejects non-provider checkout hosts before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "stripe",
+      url: "https://evil.example/checkout",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /start pro/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing checkout URL/i);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("allows Creem checkout redirects from the configured provider host", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      provider: "creem",
+      account: { status: "none" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "creem",
+      url: "https://checkout.creem.io/ch_test",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /start pro/i }));
+
+    await waitFor(() => {
+      expect(navigate).toHaveBeenCalledWith("https://checkout.creem.io/ch_test");
+    });
+  });
+
   it("shows free and pro monthly limits with yearly pricing toggle", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -405,6 +447,31 @@ describe("BillingScreen", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("rejects non-provider billing portal hosts before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "year",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.createPortalSession.mockResolvedValue({
+      provider: "stripe",
+      url: "https://evil.example/portal",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /manage billing/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing portal URL/i);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("rejects unsafe interval-change URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -419,6 +486,32 @@ describe("BillingScreen", () => {
       provider: "stripe",
       interval: "year",
       url: "javascript:alert(1)",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing interval URL/i);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-provider interval-change hosts before navigating", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      provider: "stripe",
+      interval: "year",
+      url: "https://evil.example/change",
     });
     const navigate = vi.fn();
     const user = userEvent.setup();
