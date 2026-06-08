@@ -1452,7 +1452,7 @@ export function ReposScreen({
                         </span>
                       </span>
                     )}
-                    <span>
+                    <span className="repo-meta-lang">
                       <span
                         className="lang-dot"
                         data-lang-color={languageColorKey}

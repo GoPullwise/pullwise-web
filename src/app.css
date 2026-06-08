@@ -510,14 +510,19 @@ body.has-proto-nav {
 .repo-meta {
   display: grid;
   grid-template-rows: repeat(2, minmax(16px, auto));
+  grid-template-columns: 220px max-content max-content;
   grid-auto-flow: column;
-  grid-auto-columns: max-content;
   max-width: min(52vw, 620px);
   justify-content: flex-end;
   justify-self: end;
   align-content: center;
   align-items: center;
   gap: 8px 12px;
+}
+
+.repo-meta .repo-meta-lang {
+  justify-self: end;
+  text-align: right;
 }
 
 .repo-meta > span {
@@ -1148,6 +1153,7 @@ body.has-proto-nav {
     grid-column: 3;
     justify-content: flex-start;
     max-width: 100%;
+    grid-template-columns: max-content max-content max-content;
   }
 
   .issues-table {
@@ -1241,6 +1247,7 @@ body.has-proto-nav {
   .repo-meta {
     max-width: 100%;
     justify-content: flex-start;
+    grid-template-columns: max-content max-content max-content;
   }
 
   .repo-meta > span {
