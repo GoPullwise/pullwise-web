@@ -2160,6 +2160,47 @@ button.dash-cat-row:hover {
 .issue-actions {
   gap: 10px;
 }
+.issue-feedback {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+.issue-feedback-h,
+.issue-feedback-reason {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.issue-feedback-h {
+  justify-content: space-between;
+}
+.issue-feedback-reason {
+  flex-wrap: wrap;
+}
+.issue-feedback-select {
+  flex: 1 1 150px;
+  height: 28px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  background: var(--bg-elev);
+  color: var(--text);
+  font: 500 12px/1 var(--font-sans);
+}
+.issue-feedback-select:disabled {
+  opacity: 0.4;
+}
+.issue-feedback-negative {
+  color: var(--sev-critical);
+  border-color: color-mix(in oklch, var(--sev-critical) 30%, var(--border));
+}
+.issue-feedback-negative:hover {
+  border-color: color-mix(in oklch, var(--sev-critical) 42%, var(--border));
+  background: color-mix(in oklch, var(--sev-critical) 7%, var(--bg-elev));
+}
 .audit-scope {
   gap: 6px;
 }

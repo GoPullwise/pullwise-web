@@ -1077,6 +1077,98 @@ describe("IssueDetailScreen review detail", () => {
     );
   });
 
+  it("submits useful feedback without closing the issue", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      scanId: "sc_1",
+      jobId: "job_1",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      line: 42,
+      status: "open",
+      createdAt: 101,
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "open" });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /useful/i }));
+
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
+      "f_123",
+      expect.objectContaining({
+        status: "open",
+        falsePositive: false,
+        reason: "User marked issue useful / valid.",
+        scanId: "sc_1",
+        jobId: "job_1",
+        repo: "acme/api",
+        file: "src/auth.py",
+        line: 42,
+        title: "Validate redirect targets",
+        createdAt: 101,
+      })
+    );
+  });
+
+  it("submits false positive feedback as a strong negative label", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      status: "open",
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "snoozed" });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /false positive/i }));
+
+    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
+      "f_123",
+      expect.objectContaining({
+        status: "snoozed",
+        falsePositive: true,
+        reason: "False positive.",
+      })
+    );
+  });
+
+  it("keeps non-false-positive dismiss reasons as weak feedback", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      status: "open",
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "snoozed" });
+
+    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /dismiss reason/i }), "duplicate");
+    await user.click(screen.getByRole("button", { name: /dismiss/i }));
+
+    const payload = pullwiseApi.issues.updateStatus.mock.calls[0][1];
+    expect(payload).toMatchObject({
+      status: "snoozed",
+      reason: "Duplicate issue.",
+    });
+    expect(payload).not.toHaveProperty("falsePositive");
+  });
+
   it("previews an auto-fix and then opens a pull request", async () => {
     const user = userEvent.setup();
     const issue = {

@@ -76,6 +76,47 @@ function issueStatusIdentity(issue) {
   );
 }
 
+const ISSUE_DISMISS_REASONS = [
+  {
+    value: "not_relevant",
+    labelEn: "Not relevant",
+    labelZh: "不相关",
+    reason: "Not relevant to this PR.",
+  },
+  {
+    value: "duplicate",
+    labelEn: "Duplicate",
+    labelZh: "重复",
+    reason: "Duplicate issue.",
+  },
+  {
+    value: "expected_behavior",
+    labelEn: "Expected behavior",
+    labelZh: "预期行为",
+    reason: "Expected behavior.",
+  },
+  {
+    value: "too_speculative",
+    labelEn: "Too speculative",
+    labelZh: "过于推测",
+    reason: "Too speculative.",
+  },
+  {
+    value: "low_impact",
+    labelEn: "Low impact",
+    labelZh: "影响较低",
+    reason: "Low impact.",
+  },
+];
+const DEFAULT_ISSUE_DISMISS_REASON = ISSUE_DISMISS_REASONS[0].value;
+
+function issueDismissReason(value) {
+  return (
+    ISSUE_DISMISS_REASONS.find((reason) => reason.value === value) ||
+    ISSUE_DISMISS_REASONS[0]
+  );
+}
+
 function issueTotal(scan) {
   if (!scan?.issues) return 0;
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
@@ -935,6 +976,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [fixLoading, setFixLoading] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
   const [pageCopied, setPageCopied] = useState(false);
+  const [feedbackReason, setFeedbackReason] = useState(DEFAULT_ISSUE_DISMISS_REASON);
   const statusRequestRef = useRef(false);
   const fixRequestRef = useRef(0);
   const pageCopyResetRef = useRef(null);
@@ -979,6 +1021,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setFixLoading("");
     setStatusLoading("");
     setPageCopied(false);
+    setFeedbackReason(DEFAULT_ISSUE_DISMISS_REASON);
     statusRequestRef.current = false;
     if (pageCopyResetRef.current) {
       clearTimeout(pageCopyResetRef.current);
@@ -1019,7 +1062,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
 
   const issue = activeIssue;
 
-  const updateStatus = async (nextStatus) => {
+  const updateStatus = async (nextStatus, feedback = {}) => {
     if (statusRequestRef.current) return;
     statusRequestRef.current = true;
     setActionError("");
@@ -1028,6 +1071,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       const updated = await pullwiseApi.issues.updateStatus(issue.id, {
         status: nextStatus,
         ...issueStatusIdentity(issue),
+        ...feedback,
       });
       const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
       setCurrentStatus(mergedIssue.status);
@@ -1064,6 +1108,21 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     pullRequest?.issueId === issue.id
       ? pullRequest.value
       : issuePullRequestState(issue)?.value || null;
+  const selectedDismissReason = issueDismissReason(feedbackReason);
+  const markUseful = () =>
+    updateStatus(currentStatus || "open", {
+      falsePositive: false,
+      reason: "User marked issue useful / valid.",
+    });
+  const markFalsePositive = () =>
+    updateStatus("snoozed", {
+      falsePositive: true,
+      reason: "False positive.",
+    });
+  const dismissWithReason = () =>
+    updateStatus("snoozed", {
+      reason: selectedDismissReason.reason,
+    });
   const beginFixRequest = () => {
     const requestId = fixRequestRef.current + 1;
     fixRequestRef.current = requestId;
@@ -1351,6 +1410,51 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
                 {pageCopied ? T("Copied", "已复制") : "Copy Page"}
               </button>
+              <div className="divider" />
+              <div className="issue-feedback">
+                <div className="issue-feedback-h">
+                  <span className="muted">{T("Feedback", "反馈")}</span>
+                  <span className="tag">{currentStatus || "open"}</span>
+                </div>
+                <div className="issue-action-row">
+                  <button
+                    className="btn sm"
+                    disabled={Boolean(statusLoading)}
+                    onClick={markUseful}
+                  >
+                    <I.Check size={13} /> {T("Useful", "有用")}
+                  </button>
+                  <button
+                    className="btn sm issue-feedback-negative"
+                    disabled={Boolean(statusLoading)}
+                    onClick={markFalsePositive}
+                  >
+                    <I.X size={13} /> {T("False positive", "误报")}
+                  </button>
+                </div>
+                <div className="issue-feedback-reason">
+                  <select
+                    className="issue-feedback-select"
+                    aria-label={T("Dismiss reason", "忽略原因")}
+                    disabled={Boolean(statusLoading)}
+                    value={feedbackReason}
+                    onChange={(event) => setFeedbackReason(event.target.value)}
+                  >
+                    {ISSUE_DISMISS_REASONS.map((reason) => (
+                      <option key={reason.value} value={reason.value}>
+                        {T(reason.labelEn, reason.labelZh)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="btn sm"
+                    disabled={Boolean(statusLoading)}
+                    onClick={dismissWithReason}
+                  >
+                    <I.Clock size={13} /> {T("Dismiss", "忽略")}
+                  </button>
+                </div>
+              </div>
               <div className="divider" />
               {currentStatus === "open" ? (
                 <div className="issue-action-row">
