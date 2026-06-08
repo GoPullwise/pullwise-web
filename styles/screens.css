@@ -4266,7 +4266,12 @@ button.dash-cat-row:hover {
   .issue-kanban,
   .set-shell,
   .docs-cards,
-  .status-row,
+  .status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
   .legal-table-r {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4871,10 +4876,10 @@ button.dash-cat-row:hover {
   border-bottom: 1px solid var(--border);
 }
 .status-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 220px) 1fr auto;
-  gap: 18px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  gap: 18px;
   padding: 18px 20px;
   border-bottom: 1px solid var(--border);
   transition: background 100ms var(--ease-out);

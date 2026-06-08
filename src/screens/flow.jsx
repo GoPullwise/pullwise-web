@@ -537,6 +537,136 @@ function auditSwarmBlockLabel(kind) {
   );
 }
 
+function AuditFunnel({ audit }) {
+  if (!audit) return null;
+  const candidateCount = Number(audit.candidateCount || 0);
+  const reportedCount = Number(audit.reportedCount || 0);
+  const verifiedCount = Number(audit.verifiedCount || 0);
+  const staticProofCount = Number(audit.staticProofCount || 0);
+  const potentialRiskCount = Number(audit.potentialRiskCount || 0);
+  const unverifiedCount = Number(audit.unverifiedCount || 0);
+  const rejectedCount = Number(audit.rejectedCount || 0);
+  const downgradedCount = Number(audit.downgradedCount || 0);
+  if (
+    !candidateCount &&
+    !reportedCount &&
+    !verifiedCount &&
+    !staticProofCount &&
+    !rejectedCount &&
+    !downgradedCount
+  ) {
+    return null;
+  }
+  const maxWidth = Math.max(
+    candidateCount,
+    reportedCount,
+    verifiedCount + staticProofCount,
+    rejectedCount,
+    1
+  );
+  const ratio = (value) => (maxWidth > 0 ? (value / maxWidth) * 100 : 0);
+  const reasons = Array.isArray(audit.rejectedReasons) ? audit.rejectedReasons : [];
+  const samples = Array.isArray(audit.rejectedSamples) ? audit.rejectedSamples : [];
+  const topReasons = [...reasons]
+    .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
+    .slice(0, 5);
+  return (
+    <div className="audit-funnel-wrap">
+      <div className="audit-funnel-h">
+        {T("Audit funnel", "审计漏斗")}
+      </div>
+      <div className="audit-funnel" role="img" aria-label={T("Audit funnel", "审计漏斗")}>
+        <div className="audit-funnel-stage" style={{ background: "var(--bg-2, rgba(0,0,0,0.04))" }}>
+          <span
+            className="audit-funnel-fill"
+            style={{ width: ratio(candidateCount) + "%", background: "#94a3b8" }}
+          />
+          <span className="audit-funnel-label">
+            {T("Candidates evaluated", "评估候选")}
+            <b>{candidateCount}</b>
+          </span>
+        </div>
+        <div className="audit-funnel-stage">
+          <span
+            className="audit-funnel-fill"
+            style={{
+              width: ratio(reportedCount) + "%",
+              background: "var(--accent, #6366f1)",
+            }}
+          />
+          <span className="audit-funnel-label">
+            {T("Reported", "已报告")}
+            <b>{reportedCount}</b>
+          </span>
+        </div>
+        <div className="audit-funnel-stage">
+          <span
+            className="audit-funnel-fill"
+            style={{
+              width: ratio(verifiedCount + staticProofCount) + "%",
+              background: "#16a34a",
+            }}
+          />
+          <span className="audit-funnel-label">
+            {T("Verified / static proof", "已验证 / 静态证明")}
+            <b>
+              {verifiedCount}
+              {staticProofCount ? ` + ${staticProofCount}` : ""}
+            </b>
+          </span>
+        </div>
+        <div className="audit-funnel-stage">
+          <span
+            className="audit-funnel-fill"
+            style={{
+              width: ratio(rejectedCount) + "%",
+              background: "var(--sev-critical, #dc2626)",
+            }}
+          />
+          <span className="audit-funnel-label">
+            {T("Rejected", "已拒绝")}
+            <b>{rejectedCount}</b>
+          </span>
+        </div>
+      </div>
+      {(topReasons.length > 0 || potentialRiskCount > 0 || unverifiedCount > 0) && (
+        <div className="audit-funnel-foot">
+          {potentialRiskCount > 0 && (
+            <span className="audit-funnel-reason">
+              <b>{potentialRiskCount}</b> {T("potential risk", "潜在风险")}
+            </span>
+          )}
+          {unverifiedCount > 0 && (
+            <span className="audit-funnel-reason">
+              <b>{unverifiedCount}</b> {T("unverified", "未验证")}
+            </span>
+          )}
+          {downgradedCount > 0 && (
+            <span className="audit-funnel-reason">
+              <b>{downgradedCount}</b> {T("downgraded", "已降级")}
+            </span>
+          )}
+          {topReasons.map((reason) => (
+            <span className="audit-funnel-reason" key={`reason-${reason.reason}`}>
+              <b>{reason.count}</b> {reason.reason}
+            </span>
+          ))}
+        </div>
+      )}
+      {samples.length > 0 && (
+        <ul className="audit-funnel-samples" aria-label={T("Recent rejections", "最近被拒的样本")}>
+          {samples.slice(0, 3).map((sample, index) => (
+            <li key={`${sample.reason || "reason"}-${index}-${sample.title || ""}`}>
+              <span className="audit-funnel-sample-reason">{sample.reason}</span>
+              {sample.title && <span className="audit-funnel-sample-title">{sample.title}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function auditSwarmBlockLocation(block) {
   const file = block?.file || "";
   const line = block?.startLine || "";
@@ -2118,6 +2248,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                       ))}
                     </div>
                   )}
+                  <AuditFunnel audit={verificationAuditFound} />
                 </>
               )}
             </div>

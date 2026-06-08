@@ -1,9 +1,8 @@
 import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
-import { connectGitHubRepositories } from "./lib/auth.js";
 import { screenLinkProps } from "./lib/navigation.js";
-import { useIssues, useRepositories } from "./lib/pullwise-data.js";
+import { useIssues } from "./lib/pullwise-data.js";
 
 export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
   useLang();
@@ -244,24 +243,10 @@ function SearchModal({ close, go, setIssue }) {
 
 export function Sidebar({ section, go }) {
   useLang();
-  const { items: repos } = useRepositories();
   const { items: issues, meta: issueMeta = {} } = useIssues({ status: "open", limit: 1 });
-  const [connecting, setConnecting] = React.useState(false);
   const openIssueCount = Number.isFinite(Number(issueMeta.total))
     ? Number(issueMeta.total)
     : issues.length;
-  const connectRepositories = async () => {
-    if (connecting) return;
-    setConnecting(true);
-    try {
-      await connectGitHubRepositories();
-    } catch {
-      // Repositories screen owns the retry/error UI for repository authorization.
-    } finally {
-      go("repos");
-      setConnecting(false);
-    }
-  };
   const items = [
     { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} />, badge: null },
     {
@@ -298,39 +283,6 @@ export function Sidebar({ section, go }) {
             {item.badge != null && <span className="badge">{item.badge}</span>}
           </a>
         ))}
-      </div>
-
-      <div className="side-group side-repos">
-        <div className="side-h" style={{ marginTop: 6 }}>
-          {T("Repository access", "Repository access")}
-        </div>
-        {repos.length > 0 ? (
-          <a className="side-i side-repo-i" {...screenLinkProps(go, "repos")}>
-            <I.Folder size={14} />
-            <span style={{ fontSize: 12.5 }}>
-              {T(`${repos.length} repositories`, `${repos.length} repositories`)}
-            </span>
-          </a>
-        ) : (
-          <button
-            className="side-i side-repo-i"
-            onClick={connectRepositories}
-            disabled={connecting}
-          >
-            {connecting ? (
-              <span className="spin" style={{ display: "inline-block" }}>
-                <I.Refresh size={14} />
-              </span>
-            ) : (
-              <I.Github size={14} />
-            )}
-            <span style={{ fontSize: 12.5 }}>
-              {connecting
-                ? T("Opening GitHub...", "Opening GitHub...")
-                : T("Connect GitHub", "连接 GitHub")}
-            </span>
-          </button>
-        )}
       </div>
     </aside>
   );

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { IssueDistributionBand } from "../components/issue-distribution-band.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
@@ -523,10 +524,45 @@ function EvidenceTrace({ issue }) {
   const stages = Array.isArray(issue.evidenceTrace) ? issue.evidenceTrace : [];
   if (!stages.length) return null;
   return (
-    <div className="evidence-chain">
-      {stages.map((stage, index) => (
-        <EvidenceTraceStage key={`${stage.key || stage.label}-${index}`} stage={stage} />
-      ))}
+    <div className="evidence-trace-wrap">
+      <div className="trace-timeline" role="list">
+        {stages.map((stage, index) => (
+          <EvidenceTraceNode
+            key={`${stage.key || stage.label}-${index}`}
+            stage={stage}
+            index={index}
+          />
+        ))}
+      </div>
+      <div className="evidence-trace-fallback">
+        {stages.map((stage, index) => (
+          <EvidenceTraceStage key={`${stage.key || stage.label}-${index}`} stage={stage} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EvidenceTraceNode({ stage, index }) {
+  const items = (stage.items || []).filter((item) => item !== stage.summary);
+  const status = stage.status === "present" ? "present" : "missing";
+  const summary = stage.summary || (items[0] || "");
+  return (
+    <div
+      className={`trace-node trace-node-${status}`}
+      role="listitem"
+      title={summary}
+      data-trace-key={stage.key || stage.label || `step-${index}`}
+    >
+      <div className="trace-node-bullet" aria-hidden="true">
+        {status === "present" ? <I.Check size={13} /> : <I.X size={13} />}
+      </div>
+      <div className="trace-node-l">{stage.label || stage.key || `Step ${index + 1}`}</div>
+      <div className="trace-node-s">
+        {status === "present"
+          ? T("captured", "已采集")
+          : T("missing", "缺失")}
+      </div>
     </div>
   );
 }
@@ -877,6 +913,10 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               </div>
             )}
           </div>
+
+          {!loading && !error && all.length > 0 && (
+            <IssueDistributionBand issues={all} activeSeverity={sev} onSeverityClick={setSev} />
+          )}
 
           <div className="issues-table card">
             <div className="issues-thead">
@@ -1525,6 +1565,185 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   );
 }
 
+function dayKey(value) {
+  const date = scanDate(value);
+  if (!date) return "";
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
+
+function scanDate(value) {
+  if (value == null || value === "") return null;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return new Date(value * 1000);
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  const num = Number(text);
+  if (Number.isFinite(num) && /^\d{10,}$/.test(text)) return new Date(num * 1000);
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function dayLabel(key) {
+  const [y, m, d] = key.split("-").map((part) => Number(part));
+  if (!y || !m || !d) return key;
+  const date = new Date(y, m - 1, d);
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+  if (key === todayKey) return T("Today", "今天");
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const yesterdayKey = `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`;
+  if (key === yesterdayKey) return T("Yesterday", "昨天");
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function scanTimeLabel(scan) {
+  const date = scanDate(scan?.createdAt);
+  if (date) {
+    return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  }
+  return scan?.time || "";
+}
+
+function scanIssuesTotal(scan) {
+  if (!scan?.issues) return 0;
+  return Object.values(scan.issues).reduce(
+    (sum, value) => sum + Number(value || 0),
+    0
+  );
+}
+
+function groupScansByDay(scans) {
+  const groups = new Map();
+  for (const scan of scans) {
+    const key = dayKey(scan?.createdAt) || "unknown";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(scan);
+  }
+  return Array.from(groups.entries());
+}
+
+function HistoryTimeline({ scans, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+  const groups = useMemo(() => groupScansByDay(scans), [scans]);
+  if (scans.length === 0) return null;
+  return (
+    <div className="hist-timeline" role="list">
+      <div className="hist-timeline-axis" />
+      {groups.map(([key, items]) => (
+        <div className="hist-timeline-day" key={key} role="listitem">
+          <div className="hist-timeline-day-label">
+            {dayLabel(key)}
+            <span className="hist-timeline-day-count">
+              {T(`${items.length} scan${items.length === 1 ? "" : "s"}`, `${items.length} 次扫描`)}
+            </span>
+          </div>
+          {items.map((scan) => (
+            <HistoryTimelineRow
+              key={scan.id || `${scan.repo}-${scan.createdAt}`}
+              scan={scan}
+              viewScan={viewScan}
+              viewScanIssues={viewScanIssues}
+              downloadAuditBundle={downloadAuditBundle}
+              bundleLoading={bundleLoading}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HistoryTimelineRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+  const total = scanIssuesTotal(scan);
+  const breakdown = scan?.issues || {};
+  const maxBucket = Math.max(
+    Number(breakdown.critical || 0),
+    Number(breakdown.high || 0),
+    Number(breakdown.medium || 0),
+    Number(breakdown.low || 0),
+    1
+  );
+  return (
+    <div className="hist-timeline-row">
+      <div className="hist-timeline-time">{scanTimeLabel(scan)}</div>
+      <div className="hist-timeline-content">
+        <span className={`hist-timeline-dot hist-timeline-dot-${scan.status || "info"}`} />
+        <div className="hist-timeline-h">
+          <b>{scan.repo}</b>
+          <span className="tag">
+            <I.GitBranch size={10} /> {scan.branch}
+          </span>
+          {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
+            <span className="tag">{scan.commit}</span>
+          )}
+          <span className={`tag tag-${scan.status || "info"}`}>{scan.status || "unknown"}</span>
+          {scan.aiUsage?.model && <span className="tag">{scan.aiUsage.model}</span>}
+        </div>
+        <div className="muted" style={{ fontSize: 12 }}>
+          {scanHistorySummary(scan)}
+        </div>
+        {total > 0 && (
+          <div
+            className="hist-timeline-bar"
+            role="img"
+            aria-label={T(
+              `${total} issues: critical ${breakdown.critical || 0}, high ${breakdown.high || 0}, medium ${breakdown.medium || 0}, low ${breakdown.low || 0}`,
+              `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
+            )}
+          >
+            <span
+              style={{
+                width: `${(Number(breakdown.critical || 0) / maxBucket) * 100}%`,
+                background: "var(--sev-critical)",
+              }}
+            />
+            <span
+              style={{
+                width: `${(Number(breakdown.high || 0) / maxBucket) * 100}%`,
+                background: "var(--sev-high)",
+              }}
+            />
+            <span
+              style={{
+                width: `${(Number(breakdown.medium || 0) / maxBucket) * 100}%`,
+                background: "var(--sev-medium)",
+              }}
+            />
+            <span
+              style={{
+                width: `${(Number(breakdown.low || 0) / maxBucket) * 100}%`,
+                background: "var(--sev-low)",
+              }}
+            />
+          </div>
+        )}
+        <div className="hist-timeline-actions">
+          <button className="btn sm" onClick={() => viewScan(scan)}>
+            {T("View", "查看")} <I.ArrowR size={11} />
+          </button>
+          <button
+            className="btn sm"
+            disabled={!scan.id || !scanHasResults(scan)}
+            onClick={() => viewScanIssues(scan)}
+          >
+            <I.Bug size={11} /> {T("Issues", "问题")}
+          </button>
+          <button
+            className="btn sm"
+            disabled={!scanHasResults(scan) || bundleLoading === scan.id}
+            onClick={() => downloadAuditBundle(scan)}
+            title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
+            aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
+          >
+            <I.Download size={11} />
+            {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Download zip", "下载 zip")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function HistoryScreen({ go, openScan = null, openScanIssues = null, setIssue = null }) {
   useLang();
   const [status, setStatus] = useState("all");
@@ -1625,77 +1844,15 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 {T("No scans yet.", "暂无扫描。")}
               </div>
             )}
-            {filtered.map((scan) => (
-              <div key={scan.id} className="hist-row">
-                <div className="hist-status">
-                  {scan.status === "done" && (
-                    <span className="hist-dot" style={{ background: "#16a34a" }}></span>
-                  )}
-                  {["queued", "running"].includes(scan.status) && (
-                    <span
-                      className="spin"
-                      style={{ display: "inline-block", color: "var(--accent)" }}
-                    >
-                      <I.Refresh size={12} />
-                    </span>
-                  )}
-                  {["failed", "cancelled"].includes(scan.status) && (
-                    <span className="hist-dot" style={{ background: "var(--sev-critical)" }}></span>
-                  )}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 2 }}>
-                    <b style={{ fontSize: 13.5 }}>{scan.repo}</b>
-                    <span className="tag">
-                      <I.GitBranch size={10} /> {scan.branch}
-                    </span>
-                    {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
-                      <span className="tag">{scan.commit}</span>
-                    )}
-                  </div>
-                  {scan.status === "queued" && scanQueueSummary(scan) && (
-                    <div className="muted">{scanHistorySummary(scan)}</div>
-                  )}
-                  {!(scan.status === "queued" && scanQueueSummary(scan)) && (
-                    <div className="muted">{scanHistorySummary(scan)}</div>
-                  )}
-                  {scan.aiUsage?.model && (
-                    <div className="scan-preflight-meta">
-                      <span className="tag">{scan.aiUsage.model}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="hist-meta">
-                  <div>{scan.time}</div>
-                  <div className="muted">
-                    {T("Triggered by ", "触发：")}
-                    {scan.by}
-                  </div>
-                </div>
-                <div className="hist-actions">
-                  <button className="btn sm" onClick={() => viewScan(scan)}>
-                    {T("View", "查看")} <I.ArrowR size={11} />
-                  </button>
-                  <button
-                    className="btn sm"
-                    disabled={!scan.id || !scanHasResults(scan)}
-                    onClick={() => viewScanIssues(scan)}
-                  >
-                    <I.Bug size={11} /> Issues
-                  </button>
-                  <button
-                    className="btn sm"
-                    disabled={!scanHasResults(scan) || bundleLoading === scan.id}
-                    onClick={() => downloadAuditBundle(scan)}
-                    title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
-                    aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
-                  >
-                    <I.Download size={11} />
-                    {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Download zip", "下载 zip")}
-                  </button>
-                </div>
-              </div>
-            ))}
+            {filtered.length > 0 && (
+              <HistoryTimeline
+                scans={filtered}
+                viewScan={viewScan}
+                viewScanIssues={viewScanIssues}
+                downloadAuditBundle={downloadAuditBundle}
+                bundleLoading={bundleLoading}
+              />
+            )}
             {meta.hasMore && (
               <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
                 <button className="btn sm" disabled={loadingMore} onClick={loadMore}>

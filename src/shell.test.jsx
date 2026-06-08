@@ -1,13 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { connectGitHubRepositories } from "./lib/auth.js";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 import { Sidebar, Topbar } from "./shell.jsx";
-
-vi.mock("./lib/auth.js", () => ({
-  connectGitHubRepositories: vi.fn(),
-}));
 
 vi.mock("./lib/pullwise-data.js", () => ({
   useIssues: vi.fn(),
@@ -78,9 +73,9 @@ describe("Sidebar navigation", () => {
     const apiKeys = screen.getByRole("link", { name: /^api keys$/i });
     const billing = screen.getByRole("link", { name: /^billing$/i });
     const settings = screen.getByRole("link", { name: /^settings$/i });
-    const repoAccess = screen.getByRole("link", { name: /1 repositories/i });
 
     expect(screen.queryByRole("link", { name: /^workers$/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/repository access/i)).not.toBeInTheDocument();
     expect(overview).toHaveAttribute("href", "/dashboard/overview");
     expect(issues).toHaveAttribute("href", "/issues");
     expect(repositories).toHaveAttribute("href", "/repos");
@@ -88,15 +83,10 @@ describe("Sidebar navigation", () => {
     expect(apiKeys).toHaveAttribute("href", "/api-keys");
     expect(billing).toHaveAttribute("href", "/billing");
     expect(settings).toHaveAttribute("href", "/settings");
-    expect(repoAccess).toHaveAttribute("href", "/repos");
 
     await user.click(apiKeys);
-    await user.click(repoAccess);
 
-    expect(screen.getByText("Repository access")).toBeInTheDocument();
-    expect(screen.queryByText(/authorized repos/i)).not.toBeInTheDocument();
     expect(go).toHaveBeenCalledWith("apiKeys");
-    expect(go).toHaveBeenCalledWith("repos");
   });
 
   it("uses the server-filtered open issue total for the issues badge", () => {
@@ -109,18 +99,5 @@ describe("Sidebar navigation", () => {
 
     expect(useIssues).toHaveBeenCalledWith({ status: "open", limit: 1 });
     expect(screen.getByText("12")).toBeInTheDocument();
-  });
-
-  it("keeps repository connection as an action when no repositories are linked", async () => {
-    const user = userEvent.setup();
-    const go = vi.fn();
-    useRepositories.mockReturnValue({ items: [] });
-
-    render(<Sidebar section="dashboard" go={go} />);
-
-    await user.click(screen.getByRole("button", { name: /connect github/i }));
-
-    expect(connectGitHubRepositories).toHaveBeenCalled();
-    expect(go).toHaveBeenCalledWith("repos");
   });
 });

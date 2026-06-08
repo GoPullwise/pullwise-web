@@ -3,6 +3,12 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
+import {
+  CONFIDENCE_BUCKETS,
+  DistributionCard,
+  VERIFICATION_BUCKETS,
+  countBy,
+} from "../components/distribution-primitives.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function Sparkline({ data, color, height = 28 }) {
@@ -107,6 +113,31 @@ export function DashboardScreen({ go, setIssue, accent }) {
 
   const openIssues = issues;
   const counts = issueCounts(openIssues);
+  const verificationCounts = useMemo(
+    () =>
+      countBy(
+        openIssues,
+        (issue) => issue.verificationStatus,
+        VERIFICATION_BUCKETS.map((bucket) => bucket.key)
+      ),
+    [openIssues]
+  );
+  const confidenceCounts = useMemo(
+    () =>
+      countBy(
+        openIssues,
+        (issue) => issue.confidenceLevel,
+        CONFIDENCE_BUCKETS.map((bucket) => bucket.key)
+      ),
+    [openIssues]
+  );
+  const verifiedShare =
+    Number(verificationCounts.verified || 0) + Number(verificationCounts.static_proof || 0);
+  const highShare = Number(confidenceCounts.high || 0);
+  const verifiedPct = openIssues.length
+    ? Math.round((verifiedShare / openIssues.length) * 100)
+    : 0;
+  const highPct = openIssues.length ? Math.round((highShare / openIssues.length) * 100) : 0;
   const latestScan = scans[0];
 
   const issueTrend = useMemo(
@@ -247,6 +278,49 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     {T("No open issues to display.", "暂无未解决问题。")}
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="card dash-summary">
+              <div className="dash-summary-head">
+                <h3>{T("Trust & evidence", "可信度与证据")}</h3>
+                <span className="sub">
+                  {T("Open issues only", "仅未解决问题")}
+                </span>
+              </div>
+              <div className="dash-donut-cards">
+                <DistributionCard
+                  className="dash-donut-card"
+                  title={T("Verification", "验证状态")}
+                  subtitle={T(
+                    `${verifiedPct}% verified or static proof`,
+                    `${verifiedPct}% 已验证或静态证明`
+                  )}
+                  counts={verificationCounts}
+                  buckets={VERIFICATION_BUCKETS}
+                  layout="donut"
+                  donutCenterTop={verifiedPct + "%"}
+                  donutCenterBottom={T(
+                    `${verifiedShare}/${openIssues.length}`,
+                    `${verifiedShare}/${openIssues.length}`
+                  )}
+                />
+                <DistributionCard
+                  className="dash-donut-card"
+                  title={T("Confidence", "置信度")}
+                  subtitle={T(
+                    `${highPct}% high-confidence findings`,
+                    `${highPct}% 高置信度发现`
+                  )}
+                  counts={confidenceCounts}
+                  buckets={CONFIDENCE_BUCKETS}
+                  layout="donut"
+                  donutCenterTop={highPct + "%"}
+                  donutCenterBottom={T(
+                    `${highShare}/${openIssues.length}`,
+                    `${highShare}/${openIssues.length}`
+                  )}
+                />
               </div>
             </div>
 
