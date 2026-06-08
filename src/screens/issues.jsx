@@ -38,6 +38,18 @@ function reviewOutputLanguageValue(settings) {
   return settings?.review?.outputLanguage || DEFAULT_REVIEW_OUTPUT_LANGUAGE;
 }
 
+function withReviewOutputLanguage(settings, outputLanguage, fallback = null) {
+  return {
+    ...(fallback || {}),
+    ...(settings || {}),
+    review: {
+      ...(fallback?.review || {}),
+      ...(settings?.review || {}),
+      outputLanguage,
+    },
+  };
+}
+
 function evidenceSortRank(issue) {
   return (
     (VERIFICATION_RANK[issueVerificationStatus(issue)] ?? 0) * 10 +
@@ -2114,15 +2126,12 @@ export function SettingsScreen({ go, setIssue = null }) {
     const previousSettings = settings;
     setSettingsError("");
     setSettingsSaving("reviewOutputLanguage");
-    setSettings({
-      ...(settings || {}),
-      review: { ...(settings?.review || {}), outputLanguage },
-    });
+    setSettings(withReviewOutputLanguage(settings, outputLanguage));
     try {
       const settingsPayload = await pullwiseApi.settings.update({
         review: { outputLanguage },
       });
-      setSettings(settingsPayload);
+      setSettings(withReviewOutputLanguage(settingsPayload, outputLanguage, previousSettings));
     } catch (error) {
       setSettings(previousSettings);
       setSettingsError(error?.message || "Unable to save review output language.");

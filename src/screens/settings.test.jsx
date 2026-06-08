@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -302,6 +302,55 @@ describe("SettingsScreen", () => {
       expect(pullwiseApi.settings.update).toHaveBeenCalledWith({
         review: { outputLanguage: "zh-CN" },
       });
+      expect(select).toHaveValue("zh-CN");
+    });
+  });
+
+  it("keeps the selected review output language when a delayed save response echoes stale English", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: false,
+        repositories: [],
+      },
+    });
+    pullwiseApi.settings.get.mockResolvedValueOnce({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
+    });
+    let resolveUpdate;
+    pullwiseApi.settings.update.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+    const staleSettingsPayload = {
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
+    };
+    const resolveStaleSave = () =>
+      act(async () => {
+        resolveUpdate(staleSettingsPayload);
+      });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /preferences/i }));
+
+    const select = await screen.findByRole("combobox", { name: /review output language/i });
+
+    await user.selectOptions(select, "zh-CN");
+
+    await waitFor(() => {
+      expect(pullwiseApi.settings.update).toHaveBeenCalledWith({
+        review: { outputLanguage: "zh-CN" },
+      });
+    });
+    expect(select).toHaveValue("zh-CN");
+
+    await resolveStaleSave();
+
+    await waitFor(() => {
       expect(select).toHaveValue("zh-CN");
     });
   });
