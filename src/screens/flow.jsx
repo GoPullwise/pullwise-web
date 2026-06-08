@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
@@ -799,7 +799,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
     });
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return undefined;
     updateMenuPosition();
     const handlePointerDown = (event) => {
@@ -856,7 +856,10 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         aria-expanded={open}
         aria-label={`Branch for ${repoLabel}`}
         disabled={disabled}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          if (!open) updateMenuPosition();
+          setOpen((prev) => !prev);
+        }}
       >
         <I.GitBranch size={12} />
         <span className="repo-branch-value">{loading ? T("Loading...", "加载中...") : value}</span>
