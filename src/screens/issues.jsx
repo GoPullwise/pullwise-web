@@ -20,6 +20,22 @@ import { Sidebar, Topbar } from "../shell.jsx";
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 const VERIFICATION_RANK = { verified: 4, static_proof: 3, potential_risk: 2, unverified: 1 };
 const EVIDENCE_RANK = { high: 3, medium: 2, low: 1 };
+const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
+const REVIEW_OUTPUT_LANGUAGES = [
+  { value: "en", labelEn: "English", labelZh: "英文" },
+  { value: "zh-CN", labelEn: "Chinese", labelZh: "中文" },
+  { value: "ja", labelEn: "Japanese", labelZh: "日语" },
+  { value: "ko", labelEn: "Korean", labelZh: "韩语" },
+  { value: "es", labelEn: "Spanish", labelZh: "西班牙语" },
+  { value: "fr", labelEn: "French", labelZh: "法语" },
+  { value: "de", labelEn: "German", labelZh: "德语" },
+  { value: "pt-BR", labelEn: "Portuguese", labelZh: "葡萄牙语" },
+  { value: "it", labelEn: "Italian", labelZh: "意大利语" },
+];
+
+function reviewOutputLanguageValue(settings) {
+  return settings?.review?.outputLanguage || DEFAULT_REVIEW_OUTPUT_LANGUAGE;
+}
 
 function evidenceSortRank(issue) {
   return (
@@ -76,46 +92,53 @@ function issueStatusIdentity(issue) {
   );
 }
 
-const ISSUE_DISMISS_REASONS = [
+const ISSUE_FEEDBACK_BADGES = [
+  {
+    value: "useful",
+    labelEn: "Useful",
+    labelZh: "有用",
+    reason: "User marked issue useful / valid.",
+    falsePositive: false,
+    tone: "positive",
+  },
+  {
+    value: "false_positive",
+    labelEn: "False positive",
+    labelZh: "误报",
+    reason: "False positive.",
+    falsePositive: true,
+    status: "snoozed",
+    tone: "negative",
+  },
   {
     value: "not_relevant",
     labelEn: "Not relevant",
     labelZh: "不相关",
     reason: "Not relevant to this PR.",
+    status: "snoozed",
   },
   {
     value: "duplicate",
     labelEn: "Duplicate",
     labelZh: "重复",
     reason: "Duplicate issue.",
-  },
-  {
-    value: "expected_behavior",
-    labelEn: "Expected behavior",
-    labelZh: "预期行为",
-    reason: "Expected behavior.",
+    status: "snoozed",
   },
   {
     value: "too_speculative",
-    labelEn: "Too speculative",
-    labelZh: "过于推测",
+    labelEn: "Speculative",
+    labelZh: "猜测",
     reason: "Too speculative.",
+    status: "snoozed",
   },
   {
     value: "low_impact",
     labelEn: "Low impact",
     labelZh: "影响较低",
     reason: "Low impact.",
+    status: "snoozed",
   },
 ];
-const DEFAULT_ISSUE_DISMISS_REASON = ISSUE_DISMISS_REASONS[0].value;
-
-function issueDismissReason(value) {
-  return (
-    ISSUE_DISMISS_REASONS.find((reason) => reason.value === value) ||
-    ISSUE_DISMISS_REASONS[0]
-  );
-}
 
 function issueTotal(scan) {
   if (!scan?.issues) return 0;
@@ -976,7 +999,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [fixLoading, setFixLoading] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
   const [pageCopied, setPageCopied] = useState(false);
-  const [feedbackReason, setFeedbackReason] = useState(DEFAULT_ISSUE_DISMISS_REASON);
   const statusRequestRef = useRef(false);
   const fixRequestRef = useRef(0);
   const pageCopyResetRef = useRef(null);
@@ -1021,7 +1043,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setFixLoading("");
     setStatusLoading("");
     setPageCopied(false);
-    setFeedbackReason(DEFAULT_ISSUE_DISMISS_REASON);
     statusRequestRef.current = false;
     if (pageCopyResetRef.current) {
       clearTimeout(pageCopyResetRef.current);
@@ -1108,21 +1129,16 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     pullRequest?.issueId === issue.id
       ? pullRequest.value
       : issuePullRequestState(issue)?.value || null;
-  const selectedDismissReason = issueDismissReason(feedbackReason);
-  const markUseful = () =>
-    updateStatus(currentStatus || "open", {
-      falsePositive: false,
-      reason: "User marked issue useful / valid.",
-    });
-  const markFalsePositive = () =>
-    updateStatus("snoozed", {
-      falsePositive: true,
-      reason: "False positive.",
-    });
-  const dismissWithReason = () =>
-    updateStatus("snoozed", {
-      reason: selectedDismissReason.reason,
-    });
+  const submitFeedbackBadge = (feedback) => {
+    const payload = {
+      feedbackReason: feedback.value,
+      reason: feedback.reason,
+    };
+    if (typeof feedback.falsePositive === "boolean") {
+      payload.falsePositive = feedback.falsePositive;
+    }
+    updateStatus(feedback.status || currentStatus || "open", payload);
+  };
   const beginFixRequest = () => {
     const requestId = fixRequestRef.current + 1;
     fixRequestRef.current = requestId;
@@ -1416,43 +1432,18 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   <span className="muted">{T("Feedback", "反馈")}</span>
                   <span className="tag">{currentStatus || "open"}</span>
                 </div>
-                <div className="issue-action-row">
-                  <button
-                    className="btn sm"
-                    disabled={Boolean(statusLoading)}
-                    onClick={markUseful}
-                  >
-                    <I.Check size={13} /> {T("Useful", "有用")}
-                  </button>
-                  <button
-                    className="btn sm issue-feedback-negative"
-                    disabled={Boolean(statusLoading)}
-                    onClick={markFalsePositive}
-                  >
-                    <I.X size={13} /> {T("False positive", "误报")}
-                  </button>
-                </div>
-                <div className="issue-feedback-reason">
-                  <select
-                    className="issue-feedback-select"
-                    aria-label={T("Dismiss reason", "忽略原因")}
-                    disabled={Boolean(statusLoading)}
-                    value={feedbackReason}
-                    onChange={(event) => setFeedbackReason(event.target.value)}
-                  >
-                    {ISSUE_DISMISS_REASONS.map((reason) => (
-                      <option key={reason.value} value={reason.value}>
-                        {T(reason.labelEn, reason.labelZh)}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    className="btn sm"
-                    disabled={Boolean(statusLoading)}
-                    onClick={dismissWithReason}
-                  >
-                    <I.Clock size={13} /> {T("Dismiss", "忽略")}
-                  </button>
+                <div className="issue-feedback-badges" aria-label={T("Issue feedback", "问题反馈")}>
+                  {ISSUE_FEEDBACK_BADGES.map((feedback) => (
+                    <button
+                      key={feedback.value}
+                      type="button"
+                      className={"issue-feedback-badge " + (feedback.tone || "")}
+                      disabled={Boolean(statusLoading)}
+                      onClick={() => submitFeedbackBadge(feedback)}
+                    >
+                      {T(feedback.labelEn, feedback.labelZh)}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="divider" />
@@ -1723,6 +1714,9 @@ export function SettingsScreen({ go, setIssue = null }) {
   useLang();
   const [tab, setTab] = useState("profile");
   const [session, setSession] = useState(null);
+  const [settings, setSettings] = useState(null);
+  const [settingsError, setSettingsError] = useState("");
+  const [settingsSaving, setSettingsSaving] = useState("");
   const [integrations, setIntegrations] = useState(null);
   const [integrationError, setIntegrationError] = useState("");
   const [managingInstallationId, setManagingInstallationId] = useState("");
@@ -1732,15 +1726,17 @@ export function SettingsScreen({ go, setIssue = null }) {
     let cancelled = false;
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
-    Promise.all([pullwiseApi.auth.getSession(), pullwiseApi.integrations.list()])
-      .then(([sessionPayload, integrationsPayload]) => {
+    Promise.all([pullwiseApi.auth.getSession(), pullwiseApi.integrations.list(), pullwiseApi.settings.get()])
+      .then(([sessionPayload, integrationsPayload, settingsPayload]) => {
         if (cancelled) return;
         setSession(sessionPayload);
+        setSettings(settingsPayload);
         if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
       })
       .catch(() => {
         if (!cancelled) {
           setSession(null);
+          setSettings(null);
           if (requestId === integrationRequestIdRef.current) setIntegrations(null);
         }
       });
@@ -1780,6 +1776,28 @@ export function SettingsScreen({ go, setIssue = null }) {
   );
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
   const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
+  const reviewOutputLanguage = reviewOutputLanguageValue(settings);
+  const updateReviewOutputLanguage = async (event) => {
+    const outputLanguage = event.target.value;
+    const previousSettings = settings;
+    setSettingsError("");
+    setSettingsSaving("reviewOutputLanguage");
+    setSettings({
+      ...(settings || {}),
+      review: { ...(settings?.review || {}), outputLanguage },
+    });
+    try {
+      const settingsPayload = await pullwiseApi.settings.update({
+        review: { outputLanguage },
+      });
+      setSettings(settingsPayload);
+    } catch (error) {
+      setSettings(previousSettings);
+      setSettingsError(error?.message || "Unable to save review output language.");
+    } finally {
+      setSettingsSaving("");
+    }
+  };
   const authorizeRepositories = async () => {
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
@@ -1875,6 +1893,32 @@ export function SettingsScreen({ go, setIssue = null }) {
                       <input value={user?.email || ""} readOnly />
                     </div>
                   </label>
+                  <div className="set-pref">
+                    <div>
+                      <b>{T("Review output language", "产出语言偏好")}</b>
+                      <div className="muted">
+                        {T("Default is English.", "默认英语。")}
+                      </div>
+                    </div>
+                    <select
+                      className="set-select"
+                      aria-label={T("Review output language", "产出语言偏好")}
+                      disabled={!settings || settingsSaving === "reviewOutputLanguage"}
+                      value={reviewOutputLanguage}
+                      onChange={updateReviewOutputLanguage}
+                    >
+                      {REVIEW_OUTPUT_LANGUAGES.map((language) => (
+                        <option key={language.value} value={language.value}>
+                          {T(language.labelEn, language.labelZh)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {settingsError && (
+                    <div className="auth-error" role="alert">
+                      <I.X size={13} /> {settingsError}
+                    </div>
+                  )}
                   <div className="set-pref">
                     <div>
                       <b>{T("Session", "会话")}</b>

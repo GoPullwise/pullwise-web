@@ -2168,7 +2168,7 @@ button.dash-cat-row:hover {
   background: var(--bg);
 }
 .issue-feedback-h,
-.issue-feedback-reason {
+.issue-feedback-badges {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2176,28 +2176,44 @@ button.dash-cat-row:hover {
 .issue-feedback-h {
   justify-content: space-between;
 }
-.issue-feedback-reason {
+.issue-feedback-badges {
   flex-wrap: wrap;
 }
-.issue-feedback-select {
-  flex: 1 1 150px;
-  height: 28px;
+.issue-feedback-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  padding: 0 8px;
+  height: 26px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-2);
   background: var(--bg-elev);
   color: var(--text);
   font: 500 12px/1 var(--font-sans);
+  white-space: nowrap;
 }
-.issue-feedback-select:disabled {
+.issue-feedback-badge:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-soft);
+}
+.issue-feedback-badge:disabled {
   opacity: 0.4;
+  pointer-events: none;
 }
-.issue-feedback-negative {
+.issue-feedback-badge.positive {
+  color: #16a34a;
+  border-color: color-mix(in oklch, #16a34a 26%, var(--border));
+}
+.issue-feedback-badge.positive:hover {
+  border-color: color-mix(in oklch, #16a34a 40%, var(--border));
+  background: color-mix(in oklch, #16a34a 7%, var(--bg-elev));
+}
+.issue-feedback-badge.negative {
   color: var(--sev-critical);
   border-color: color-mix(in oklch, var(--sev-critical) 30%, var(--border));
 }
-.issue-feedback-negative:hover {
+.issue-feedback-badge.negative:hover {
   border-color: color-mix(in oklch, var(--sev-critical) 42%, var(--border));
   background: color-mix(in oklch, var(--sev-critical) 7%, var(--bg-elev));
 }
@@ -2687,6 +2703,24 @@ button.dash-cat-row:hover {
 .set-pref .muted {
   font-size: 12px;
   margin-top: 3px;
+}
+.set-select {
+  flex: 0 0 auto;
+  min-width: 170px;
+  height: 34px;
+  padding: 0 32px 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-elev);
+  color: var(--text);
+  font: 500 13px/1 var(--font-sans);
+}
+.set-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.set-select:disabled {
+  opacity: 0.55;
 }
 .switch {
   display: inline-flex;
@@ -4287,6 +4321,10 @@ button.dash-cat-row:hover {
 
   .set-row {
     align-items: flex-start;
+  }
+
+  .set-select {
+    width: 100%;
   }
 
   .int-row {

@@ -1103,6 +1103,7 @@ describe("IssueDetailScreen review detail", () => {
       "f_123",
       expect.objectContaining({
         status: "open",
+        feedbackReason: "useful",
         falsePositive: false,
         reason: "User marked issue useful / valid.",
         scanId: "sc_1",
@@ -1137,6 +1138,7 @@ describe("IssueDetailScreen review detail", () => {
       "f_123",
       expect.objectContaining({
         status: "snoozed",
+        feedbackReason: "false_positive",
         falsePositive: true,
         reason: "False positive.",
       })
@@ -1158,12 +1160,12 @@ describe("IssueDetailScreen review detail", () => {
 
     render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
 
-    await user.selectOptions(screen.getByRole("combobox", { name: /dismiss reason/i }), "duplicate");
-    await user.click(screen.getByRole("button", { name: /dismiss/i }));
+    await user.click(screen.getByRole("button", { name: /^duplicate$/i }));
 
     const payload = pullwiseApi.issues.updateStatus.mock.calls[0][1];
     expect(payload).toMatchObject({
       status: "snoozed",
+      feedbackReason: "duplicate",
       reason: "Duplicate issue.",
     });
     expect(payload).not.toHaveProperty("falsePositive");
