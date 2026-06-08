@@ -190,6 +190,38 @@ describe("ReposScreen scan selection", () => {
     ).toBeInTheDocument();
   });
 
+  it("assigns repository language colors with a fallback for unknown languages", () => {
+    useRepositories.mockReturnValue({
+      items: [
+        repoAlpha,
+        repoBeta,
+        {
+          ...repoAlpha,
+          id: "repo_unknown",
+          name: "unknown",
+          fullName: "octocat/unknown",
+          lang: "Zig",
+        },
+      ],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    const dots = document.querySelectorAll(".lang-dot");
+    expect(dots[0]).toHaveAttribute("data-lang-color", "javascript");
+    expect(dots[0]).toHaveStyle("--repo-lang-color: #f1e05a");
+    expect(dots[1]).toHaveAttribute("data-lang-color", "typescript");
+    expect(dots[1]).toHaveStyle("--repo-lang-color: #3178c6");
+    expect(dots[2]).toHaveAttribute("data-lang-color", "other");
+    expect(dots[2]).toHaveStyle("--repo-lang-color: #8b949e");
+  });
+
   it("hands every selected repository to the scanning screen", async () => {
     const go = vi.fn();
     const setActiveRepo = vi.fn();

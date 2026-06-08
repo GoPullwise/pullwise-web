@@ -96,6 +96,119 @@ function repoOwner(repo) {
   return fullName.includes("/") ? fullName.split("/")[0] : "";
 }
 
+const REPO_LANGUAGE_COLORS = {
+  javascript: "#f1e05a",
+  typescript: "#3178c6",
+  python: "#3572A5",
+  go: "#00ADD8",
+  java: "#b07219",
+  kotlin: "#A97BFF",
+  swift: "#F05138",
+  rust: "#dea584",
+  ruby: "#701516",
+  php: "#4F5D95",
+  c: "#555555",
+  cpp: "#f34b7d",
+  csharp: "#178600",
+  html: "#e34c26",
+  css: "#563d7c",
+  scss: "#c6538c",
+  shell: "#89e051",
+  powershell: "#012456",
+  vue: "#41b883",
+  svelte: "#ff3e00",
+  dart: "#00B4AB",
+  scala: "#c22d40",
+  r: "#198CE7",
+  elixir: "#6e4a7e",
+  hcl: "#844FBA",
+  dockerfile: "#384d54",
+  jupyter: "#da5b0b",
+  objectivec: "#438eff",
+  perl: "#0298c3",
+  lua: "#000080",
+  haskell: "#5e5086",
+  clojure: "#db5855",
+  other: "#8b949e",
+};
+
+const REPO_LANGUAGE_COLOR_ALIASES = new Map([
+  ["javascript", "javascript"],
+  ["js", "javascript"],
+  ["node", "javascript"],
+  ["typescript", "typescript"],
+  ["ts", "typescript"],
+  ["tsx", "typescript"],
+  ["javascript/typescript", "typescript"],
+  ["js/ts", "typescript"],
+  ["python", "python"],
+  ["py", "python"],
+  ["go", "go"],
+  ["golang", "go"],
+  ["java", "java"],
+  ["kotlin", "kotlin"],
+  ["swift", "swift"],
+  ["rust", "rust"],
+  ["ruby", "ruby"],
+  ["rb", "ruby"],
+  ["php", "php"],
+  ["c", "c"],
+  ["c++", "cpp"],
+  ["cpp", "cpp"],
+  ["cxx", "cpp"],
+  ["c#", "csharp"],
+  ["csharp", "csharp"],
+  ["c-sharp", "csharp"],
+  ["html", "html"],
+  ["css", "css"],
+  ["scss", "scss"],
+  ["sass", "scss"],
+  ["shell", "shell"],
+  ["bash", "shell"],
+  ["sh", "shell"],
+  ["zsh", "shell"],
+  ["powershell", "powershell"],
+  ["pwsh", "powershell"],
+  ["vue", "vue"],
+  ["vue.js", "vue"],
+  ["svelte", "svelte"],
+  ["dart", "dart"],
+  ["scala", "scala"],
+  ["r", "r"],
+  ["elixir", "elixir"],
+  ["hcl", "hcl"],
+  ["terraform", "hcl"],
+  ["dockerfile", "dockerfile"],
+  ["jupyter notebook", "jupyter"],
+  ["notebook", "jupyter"],
+  ["objective-c", "objectivec"],
+  ["objective c", "objectivec"],
+  ["objc", "objectivec"],
+  ["perl", "perl"],
+  ["lua", "lua"],
+  ["haskell", "haskell"],
+  ["clojure", "clojure"],
+]);
+
+function repoLanguageColorKey(language) {
+  const normalized = String(language || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  if (!normalized || normalized === "-") return "other";
+  const exact = REPO_LANGUAGE_COLOR_ALIASES.get(normalized);
+  if (exact) return exact;
+  const composite = normalized
+    .split(/[,&/]+/)
+    .map((part) => part.trim())
+    .find((part) => REPO_LANGUAGE_COLOR_ALIASES.has(part));
+  return composite ? REPO_LANGUAGE_COLOR_ALIASES.get(composite) : "other";
+}
+
+function repoLanguageColor(languageKey) {
+  return REPO_LANGUAGE_COLORS[languageKey] || REPO_LANGUAGE_COLORS.other;
+}
+
 function makeScanRequestId() {
   if (globalThis.crypto?.randomUUID) {
     return `scan_req_${globalThis.crypto.randomUUID()}`;
@@ -1282,6 +1395,7 @@ export function ReposScreen({
               const branchOptions = branchState?.branches?.length
                 ? branchState.branches
                 : [selectedBranch].filter(Boolean);
+              const languageColorKey = repoLanguageColorKey(repo.lang);
               return (
                 <div
                   key={repo.id}
@@ -1339,7 +1453,12 @@ export function ReposScreen({
                       </span>
                     )}
                     <span>
-                      <span className="lang-dot" data-lang={repo.lang}></span> {repo.lang}
+                      <span
+                        className="lang-dot"
+                        data-lang-color={languageColorKey}
+                        style={{ "--repo-lang-color": repoLanguageColor(languageColorKey) }}
+                      ></span>{" "}
+                      {repo.lang}
                     </span>
                     <span>
                       <I.Star size={12} /> {repo.stars}

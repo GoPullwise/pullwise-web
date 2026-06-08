@@ -831,7 +831,7 @@
   width: 8px;
   height: 8px;
   border-radius: 0;
-  background: #3178c6;
+  background: var(--repo-lang-color, #8b949e);
   display: inline-block;
 }
 .repo-quota.empty {
@@ -839,12 +839,6 @@
 }
 .repo-workspace {
   max-width: 180px;
-}
-.lang-dot[data-lang="Go"] {
-  background: #00add8;
-}
-.lang-dot[data-lang="Shell"] {
-  background: #89e051;
 }
 
 .repos-foot {
