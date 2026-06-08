@@ -78,7 +78,16 @@ function issueMatchesListFilters(issue, { status, severity, q }) {
     .some((value) => String(value).toLowerCase().includes(query));
 }
 
-const ISSUE_IDENTITY_FIELDS = ["id", "scanId", "jobId", "repo", "file", "line", "title", "createdAt"];
+const ISSUE_IDENTITY_FIELDS = [
+  "id",
+  "scanId",
+  "jobId",
+  "repo",
+  "file",
+  "line",
+  "title",
+  "createdAt",
+];
 const ISSUE_STATUS_IDENTITY_FIELDS = ISSUE_IDENTITY_FIELDS.filter((field) => field !== "id");
 
 function issueRowKey(issue) {
@@ -87,9 +96,9 @@ function issueRowKey(issue) {
 
 function issueStatusIdentity(issue) {
   return Object.fromEntries(
-    ISSUE_STATUS_IDENTITY_FIELDS
-      .map((field) => [field, issue?.[field]])
-      .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    ISSUE_STATUS_IDENTITY_FIELDS.map((field) => [field, issue?.[field]]).filter(
+      ([, value]) => value !== undefined && value !== null && value !== ""
+    )
   );
 }
 
@@ -444,7 +453,10 @@ function buildIssuePageMarkdown(issue, currentStatus) {
     );
   }
 
-  return `${lines.join("\n").replace(/\n{3,}/g, "\n\n").trim()}\n`;
+  return `${lines
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()}\n`;
 }
 
 function VerificationBadge({ issue }) {
@@ -482,10 +494,7 @@ function EvidenceChain({ issue }) {
   return (
     <div className="evidence-chain">
       {evidence.map((item, index) => (
-        <div
-          key={`${item.type}-${item.label}-${index}`}
-          className="evidence-item"
-        >
+        <div key={`${item.type}-${item.label}-${index}`} className="evidence-item">
           <div className="evidence-item-h">
             <span className="tag">{item.type.replaceAll("_", " ")}</span>
             <strong className="evidence-item-title">{item.label}</strong>
@@ -493,9 +502,7 @@ function EvidenceChain({ issue }) {
               <span className="tag">exit {item.exitCode}</span>
             )}
           </div>
-          {item.summary && (
-            <p className="muted evidence-summary">{item.summary}</p>
-          )}
+          {item.summary && <p className="muted evidence-summary">{item.summary}</p>}
           {(item.file || item.command || item.logPath || item.url) && (
             <div className="evidence-meta">
               {item.file && (
@@ -503,9 +510,7 @@ function EvidenceChain({ issue }) {
                   <I.FileCode size={11} /> {locationLabel(item)}
                 </span>
               )}
-              {item.command && (
-                <code className="tag evidence-command">{item.command}</code>
-              )}
+              {item.command && <code className="tag evidence-command">{item.command}</code>}
               {item.logPath && <span className="tag">log: {item.logPath}</span>}
               {item.url && (
                 <a className="auth-link" href={item.url} target="_blank" rel="noreferrer">
@@ -520,68 +525,130 @@ function EvidenceChain({ issue }) {
   );
 }
 
+// One icon per evidence stage, so the chain reads at a glance.
+const EVIDENCE_STAGE_ICONS = {
+  code: I.Code,
+  path: I.GitBranch,
+  trigger: I.Zap,
+  runtime: I.Terminal,
+  impact: I.Shield,
+  fix: I.Sparkle,
+};
+
+const EVIDENCE_STAGE_DESCRIPTIONS = {
+  code: { en: "Where the issue lives in the code", zh: "问题所在的代码位置" },
+  path: { en: "How the code is reached from user input", zh: "从用户输入到代码的可达性" },
+  trigger: { en: "What input or command triggers the issue", zh: "触发该问题的输入或命令" },
+  runtime: { en: "What the runtime or test observed", zh: "运行时或测试观察到的结果" },
+  impact: { en: "What the impact on users is", zh: "对用户产生的影响" },
+  fix: { en: "What fix or remediation is proposed", zh: "建议的修复或缓解措施" },
+};
+
+function evidenceStageDescription(stage) {
+  const entry = EVIDENCE_STAGE_DESCRIPTIONS[stage.key];
+  if (!entry) return "";
+  return T(entry.en, entry.zh);
+}
+
 function EvidenceTrace({ issue }) {
   const stages = Array.isArray(issue.evidenceTrace) ? issue.evidenceTrace : [];
   if (!stages.length) return null;
+  const presentCount = stages.filter((s) => s.status === "present").length;
+  const total = stages.length;
+  const percent = total > 0 ? Math.round((presentCount / total) * 100) : 0;
   return (
     <div className="evidence-trace-wrap">
+      <div className="trace-progress">
+        <div className="trace-progress-h">
+          <span className="trace-progress-title">
+            {T("Evidence trail", "证据链")}
+          </span>
+          <span className="trace-progress-count">
+            {presentCount} / {total} {T("stages captured", "个阶段已采集")} · {percent}%
+          </span>
+        </div>
+        <div className="trace-progress-bar" aria-hidden="true">
+          <div className="trace-progress-fill" style={{ width: `${percent}%` }} />
+        </div>
+      </div>
       <div className="trace-timeline" role="list">
         {stages.map((stage, index) => (
-          <EvidenceTraceNode
+          <EvidenceTraceStep
             key={`${stage.key || stage.label}-${index}`}
             stage={stage}
             index={index}
+            nextStatus={stages[index + 1]?.status}
+            isLast={index === stages.length - 1}
           />
         ))}
       </div>
-      <div className="evidence-trace-fallback">
-        {stages.map((stage, index) => (
-          <EvidenceTraceStage key={`${stage.key || stage.label}-${index}`} stage={stage} />
-        ))}
-      </div>
     </div>
   );
 }
 
-function EvidenceTraceNode({ stage, index }) {
+function EvidenceTraceStep({ stage, index, nextStatus, isLast }) {
+  const [open, setOpen] = useState(false);
   const items = (stage.items || []).filter((item) => item !== stage.summary);
   const status = stage.status === "present" ? "present" : "missing";
-  const summary = stage.summary || (items[0] || "");
+  const summary = stage.summary || items[0] || "";
+  const Icon = EVIDENCE_STAGE_ICONS[stage.key];
+  const description = evidenceStageDescription(stage);
   return (
     <div
-      className={`trace-node trace-node-${status}`}
+      className={`trace-step trace-step-${status}`}
       role="listitem"
-      title={summary}
       data-trace-key={stage.key || stage.label || `step-${index}`}
     >
-      <div className="trace-node-bullet" aria-hidden="true">
-        {status === "present" ? <I.Check size={13} /> : <I.X size={13} />}
-      </div>
-      <div className="trace-node-l">{stage.label || stage.key || `Step ${index + 1}`}</div>
-      <div className="trace-node-s">
-        {status === "present"
-          ? T("captured", "已采集")
-          : T("missing", "缺失")}
-      </div>
-    </div>
-  );
-}
-
-function EvidenceTraceStage({ stage }) {
-  const items = (stage.items || []).filter((item) => item !== stage.summary);
-  return (
-    <div className="evidence-item">
-      <div className="evidence-item-h">
-        <span className="tag">{stage.status}</span>
-        <strong className="evidence-item-title">{stage.label || stage.key}</strong>
-      </div>
-      {stage.summary && <p className="muted evidence-summary">{stage.summary}</p>}
-      {items.length > 0 && (
-        <ul className="legal-list-flat evidence-list">
-          {items.map((item, itemIndex) => (
-            <li key={`${stage.key}-${itemIndex}-${item}`}>{item}</li>
-          ))}
-        </ul>
+      <button
+        type="button"
+        className="trace-node"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        title={summary || description}
+      >
+        <span className="trace-node-bullet" aria-hidden="true">
+          {status === "present" ? <I.Check size={14} /> : <I.X size={14} />}
+        </span>
+        <span className="trace-node-l">
+          {Icon ? <Icon size={11} className="trace-node-glyph" /> : null}
+          {stage.label || stage.key || `Step ${index + 1}`}
+        </span>
+        <span className="trace-node-s">
+          {status === "present" ? T("captured", "已采集") : T("missing", "缺失")}
+        </span>
+        {(summary || description) && (
+          <span className="trace-node-summary" title={summary}>
+            {summary || description}
+          </span>
+        )}
+        <span className="trace-node-toggle" aria-hidden="true">
+          {open ? <I.X size={11} /> : <I.ChevD size={11} />}
+        </span>
+      </button>
+      {!isLast && (
+        <span
+          className={`trace-connector trace-connector-${nextStatus === "present" ? "present" : "missing"}`}
+          aria-hidden="true"
+        />
+      )}
+      {open && (
+        <div className="trace-node-detail">
+          {description && <p className="trace-node-detail-h">{description}</p>}
+          {items.length > 0 ? (
+            <ul className="trace-node-items">
+              {items.map((item, i) => (
+                <li key={`${stage.key}-${i}-${item}`}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted trace-node-empty">
+              {T(
+                "No additional items were captured for this stage.",
+                "此阶段未采集到其他条目。"
+              )}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -601,9 +668,7 @@ function ReproductionCenter({ issue }) {
   if (!hasStructuredRepro && !issue.reproductionPath) return null;
   return (
     <div className="repro-center">
-      {issue.reproductionPath && (
-        <p className="muted repro-note">{issue.reproductionPath}</p>
-      )}
+      {issue.reproductionPath && <p className="muted repro-note">{issue.reproductionPath}</p>}
       {commands.length > 0 && (
         <div className="docs-code repro-command">
           <div className="docs-code-h">
@@ -781,10 +846,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       }
       if (failureCount) {
         globalThis.alert?.(
-          T(
-            `${failureCount} issue status update failed.`,
-            `${failureCount} 个问题状态更新失败。`
-          )
+          T(`${failureCount} issue status update failed.`, `${failureCount} 个问题状态更新失败。`)
         );
       }
     } finally {
@@ -826,7 +888,10 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div className="sub">
                 {loading
                   ? T("Loading findings", "正在加载 findings")
-                  : T(`${filtered.length} of ${totalCount} items`, `${filtered.length} / ${totalCount} 项`)}
+                  : T(
+                      `${filtered.length} of ${totalCount} items`,
+                      `${filtered.length} / ${totalCount} 项`
+                    )}
               </div>
             </div>
             <div className="actions">
@@ -836,14 +901,15 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                 onClick={markAllFixed}
               >
                 <I.Check size={14} />{" "}
-                {bulkStatusLoading ? T("Marking...", "正在标记...") : T("Mark all fixed", "全部标记已修复")}
+                {bulkStatusLoading
+                  ? T("Marking...", "正在标记...")
+                  : T("Mark all fixed", "全部标记已修复")}
               </button>
               <button
                 className="btn"
                 onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}
               >
-                <I.Sort size={14} />{" "}
-                {sortBy === "severity" ? T("Severity", "严重度") : "Evidence"}
+                <I.Sort size={14} /> {sortBy === "severity" ? T("Severity", "严重度") : "Evidence"}
               </button>
             </div>
           </div>
@@ -928,11 +994,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div>Status</div>
               <div></div>
             </div>
-            {error && (
-              <div className="muted issues-table-message">
-                {error}
-              </div>
-            )}
+            {error && <div className="muted issues-table-message">{error}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="muted issues-table-empty">
                 {T("No findings are available yet.", "暂无 findings。")}
@@ -972,7 +1034,9 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                   <div>
                     <div className="issues-evidence-cell">
                       <VerificationBadge issue={issue} />
-                      <span className="issues-evidence-label">{confidenceEvidenceLabel(issue)}</span>
+                      <span className="issues-evidence-label">
+                        {confidenceEvidenceLabel(issue)}
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -1101,11 +1165,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   if (!activeIssue) {
     return (
       <div className="app fade-in">
-        <Topbar
-          go={go}
-          breadcrumbs={[{ label: T("Issue", "问题") }]}
-          setIssue={setIssue}
-        />
+        <Topbar go={go} breadcrumbs={[{ label: T("Issue", "问题") }]} setIssue={setIssue} />
         <div className="with-side">
           <Sidebar section="issues" go={go} />
           <div className="main">
@@ -1137,7 +1197,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
       setCurrentStatus(mergedIssue.status);
       if (typeof setIssue === "function") setIssue(mergedIssue);
-      notifyIssuesChanged({ issueId: issue.id, issueKey: issueRowKey(issue), status: mergedIssue.status });
+      notifyIssuesChanged({
+        issueId: issue.id,
+        issueKey: issueRowKey(issue),
+        status: mergedIssue.status,
+      });
     } catch (error) {
       setActionError(error?.message || "Unable to update issue status.");
     } finally {
@@ -1151,17 +1215,17 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const hasReproduction = Boolean(
     issue.reproductionPath ||
-      issue.reproduction?.commands?.length ||
-      issue.reproduction?.input ||
-      issue.reproduction?.expected ||
-      issue.reproduction?.actual ||
-      issue.reproduction?.testFile ||
-      issue.reproduction?.logPath
+    issue.reproduction?.commands?.length ||
+    issue.reproduction?.input ||
+    issue.reproduction?.expected ||
+    issue.reproduction?.actual ||
+    issue.reproduction?.testFile ||
+    issue.reproduction?.logPath
   );
   const hasReasoningBreakdown = Boolean(
     issue.reasoningBreakdown?.facts?.length ||
-      issue.reasoningBreakdown?.inferences?.length ||
-      issue.reasoningBreakdown?.recommendations?.length
+    issue.reasoningBreakdown?.inferences?.length ||
+    issue.reasoningBreakdown?.recommendations?.length
   );
   const hasEvidenceTrace = Boolean(issue.evidenceTrace?.length);
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
@@ -1235,10 +1299,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[
-          { label: T("Issues", "问题"), go: "issues" },
-          { label: issue.id },
-        ]}
+        breadcrumbs={[{ label: T("Issues", "问题"), go: "issues" }, { label: issue.id }]}
         setIssue={setIssue}
       />
       <div className="with-side">
@@ -1326,7 +1387,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 {issue.evidence?.length > 0 && <EvidenceChain issue={issue} />}
               </DetailSection>
 
-              <DetailSection title="Reproduction center" empty="No executable reproduction was provided.">
+              <DetailSection
+                title="Reproduction center"
+                empty="No executable reproduction was provided."
+              >
                 {hasReproduction && <ReproductionCenter issue={issue} />}
               </DetailSection>
 
@@ -1338,7 +1402,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 )}
               </DetailSection>
 
-              <DetailSection title={T("Impact", "影响")} empty={T("No impact statement was provided.", "未提供影响说明。")}>
+              <DetailSection
+                title={T("Impact", "影响")}
+                empty={T("No impact statement was provided.", "未提供影响说明。")}
+              >
                 {issue.impact && (
                   <p className="muted" style={{ color: "var(--text-2)" }}>
                     {issue.impact}
@@ -1346,7 +1413,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 )}
               </DetailSection>
 
-              <TextListSection title="Why this is not a false positive" items={issue.whyNotFalsePositive} />
+              <TextListSection
+                title="Why this is not a false positive"
+                items={issue.whyNotFalsePositive}
+              />
 
               <TextListSection title="When this may not apply" items={issue.limitations} />
 
@@ -1354,7 +1424,17 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 <DetailSection title={T("Fix impact analysis", "修复影响分析")}>
                   {issue.fixBenefits && (
                     <div style={{ marginBottom: issue.fixRisks ? 10 : 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, fontSize: 12, fontWeight: 600, color: "#16a34a" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          marginBottom: 4,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#16a34a",
+                        }}
+                      >
                         <I.Check size={12} /> {T("Benefits", "收益")}
                       </div>
                       <p className="muted" style={{ color: "var(--text-2)", margin: 0 }}>
@@ -1364,7 +1444,17 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   )}
                   {issue.fixRisks && (
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, fontSize: 12, fontWeight: 600, color: "var(--sev-high, #e97316)" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          marginBottom: 4,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "var(--sev-high, #e97316)",
+                        }}
+                      >
                         <I.X size={12} /> {T("Risks", "风险")}
                       </div>
                       <p className="muted" style={{ color: "var(--text-2)", margin: 0 }}>
@@ -1375,7 +1465,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 </DetailSection>
               )}
 
-              <DetailSection title={T("Remediation", "修复步骤")} empty={T("No remediation steps were provided.", "未提供修复步骤。")}>
+              <DetailSection
+                title={T("Remediation", "修复步骤")}
+                empty={T("No remediation steps were provided.", "未提供修复步骤。")}
+              >
                 {issue.steps?.length > 0 && (
                   <ol className="legal-list-flat" style={{ marginBottom: 0 }}>
                     {issue.steps.map((step, index) => (
@@ -1420,36 +1513,22 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               </div>
               <div className="audit-scope">
                 <div className="muted">Audit scope</div>
-                <div className="tag audit-tag">
-                  {issue.repo || "Repository unknown"}
-                </div>
+                <div className="tag audit-tag">{issue.repo || "Repository unknown"}</div>
                 <div className="tag audit-tag">
                   {issue.branch || issue.audit?.branch || "main"} @ {issue.commit || "pending"}
                 </div>
-                {issue.jobId && (
-                  <div className="tag audit-tag">
-                    job {issue.jobId}
-                  </div>
-                )}
+                {issue.jobId && <div className="tag audit-tag">job {issue.jobId}</div>}
                 {issue.auditSwarm?.protocol && (
-                  <div className="tag audit-tag">
-                    {issue.auditSwarm.protocol}
-                  </div>
+                  <div className="tag audit-tag">{issue.auditSwarm.protocol}</div>
                 )}
                 {issue.auditSwarm?.agentRole && (
-                  <div className="tag audit-tag">
-                    {issue.auditSwarm.agentRole}
-                  </div>
+                  <div className="tag audit-tag">{issue.auditSwarm.agentRole}</div>
                 )}
                 {issue.auditSwarm?.shardId && (
-                  <div className="tag audit-tag">
-                    shard {issue.auditSwarm.shardId}
-                  </div>
+                  <div className="tag audit-tag">shard {issue.auditSwarm.shardId}</div>
                 )}
                 {issue.auditSwarm?.verdict && (
-                  <div className="tag audit-tag">
-                    verdict {issue.auditSwarm.verdict}
-                  </div>
+                  <div className="tag audit-tag">verdict {issue.auditSwarm.verdict}</div>
                 )}
               </div>
               <div className="divider" />
@@ -1458,11 +1537,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   <I.X size={13} /> {actionError}
                 </div>
               )}
-              <button
-                className="btn sm"
-                onClick={copyPage}
-                aria-live="polite"
-              >
+              <button className="btn sm" onClick={copyPage} aria-live="polite">
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
                 {pageCopied ? T("Copied", "已复制") : "Copy Page"}
               </button>
@@ -1607,10 +1682,7 @@ function scanTimeLabel(scan) {
 
 function scanIssuesTotal(scan) {
   if (!scan?.issues) return 0;
-  return Object.values(scan.issues).reduce(
-    (sum, value) => sum + Number(value || 0),
-    0
-  );
+  return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
 function groupScansByDay(scans) {
@@ -1659,10 +1731,7 @@ function HistoryGroups({ scans, viewScan, viewScanIssues, downloadAuditBundle, b
                     {time}
                     {timeItems.length > 1 && (
                       <span className="scan-time-batch">
-                        {T(
-                          `${timeItems.length} scans`,
-                          `${timeItems.length} 次扫描`
-                        )}
+                        {T(`${timeItems.length} scans`, `${timeItems.length} 次扫描`)}
                       </span>
                     )}
                   </aside>
@@ -1761,18 +1830,13 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
           {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
             <span className="scan-badge scan-badge-muted">{scan.commit}</span>
           )}
-          <span className={`scan-badge scan-badge-status scan-badge-${status}`}>
-            {status}
-          </span>
+          <span className={`scan-badge scan-badge-status scan-badge-${status}`}>{status}</span>
           {scan.aiUsage?.model && (
             <span className="scan-badge scan-badge-muted">{scan.aiUsage.model}</span>
           )}
           {total > 0 && (
             <span className={`scan-issues-badge ${issuesBadgeTone}`}>
-              {T(
-                `${total} issue${total === 1 ? "" : "s"}`,
-                `${total} 个问题`
-              )}
+              {T(`${total} issue${total === 1 ? "" : "s"}`, `${total} 个问题`)}
             </span>
           )}
         </div>
@@ -1800,15 +1864,16 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
               })}
             </div>
             <div className="scan-severity-legend">
-              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map(
-                (s, i, arr) => (
-                  <span key={s.key} className={`scan-severity-legend-i scan-severity-${s.key}`}>
-                    <span className="scan-severity-legend-dot" style={{ background: "currentColor" }} />
-                    {T(s.labelEn, s.labelZh)} {breakdown[s.key]}
-                    {i < arr.length - 1 && <span className="scan-severity-legend-sep">·</span>}
-                  </span>
-                )
-              )}
+              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map((s, i, arr) => (
+                <span key={s.key} className={`scan-severity-legend-i scan-severity-${s.key}`}>
+                  <span
+                    className="scan-severity-legend-dot"
+                    style={{ background: "currentColor" }}
+                  />
+                  {T(s.labelEn, s.labelZh)} {breakdown[s.key]}
+                  {i < arr.length - 1 && <span className="scan-severity-legend-sep">·</span>}
+                </span>
+              ))}
             </div>
           </>
         )}
@@ -1849,9 +1914,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
               }}
             >
               <I.Download size={12} />
-              {isDownloading
-                ? T("Preparing...", "准备中...")
-                : T("Download zip", "下载 zip")}
+              {isDownloading ? T("Preparing...", "准备中...") : T("Download zip", "下载 zip")}
             </button>
           </div>
         )}
@@ -1906,9 +1969,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[
-          { label: T("Scan history", "扫描历史") },
-        ]}
+        breadcrumbs={[{ label: T("Scan history", "扫描历史") }]}
         setIssue={setIssue}
         loading={loading}
       />
@@ -1921,7 +1982,10 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
               <div className="sub">
                 {loading
                   ? T("Loading scans", "正在加载扫描")
-                  : T(`${filtered.length} of ${totalCount} scans`, `${filtered.length} / ${totalCount} 次扫描`)}
+                  : T(
+                      `${filtered.length} of ${totalCount} scans`,
+                      `${filtered.length} / ${totalCount} 次扫描`
+                    )}
               </div>
             </div>
             <div className="actions">
@@ -1999,7 +2063,11 @@ export function SettingsScreen({ go, setIssue = null }) {
     let cancelled = false;
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
-    Promise.all([pullwiseApi.auth.getSession(), pullwiseApi.integrations.list(), pullwiseApi.settings.get()])
+    Promise.all([
+      pullwiseApi.auth.getSession(),
+      pullwiseApi.integrations.list(),
+      pullwiseApi.settings.get(),
+    ])
       .then(([sessionPayload, integrationsPayload, settingsPayload]) => {
         if (cancelled) return;
         setSession(sessionPayload);
@@ -2110,11 +2178,7 @@ export function SettingsScreen({ go, setIssue = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar
-        go={go}
-        breadcrumbs={[{ label: T("Settings", "设置") }]}
-        setIssue={setIssue}
-      />
+      <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} setIssue={setIssue} />
       <div className="with-side">
         <Sidebar section="settings" go={go} />
         <div className="main">
@@ -2192,9 +2256,7 @@ export function SettingsScreen({ go, setIssue = null }) {
                   <div className="set-pref">
                     <div>
                       <b>{T("Review output language", "产出语言偏好")}</b>
-                      <div className="muted">
-                        {T("Default is English.", "默认英语。")}
-                      </div>
+                      <div className="muted">{T("Default is English.", "默认英语。")}</div>
                     </div>
                     <select
                       className="set-select"

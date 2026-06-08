@@ -414,7 +414,9 @@ describe("IssuesScreen list resilience", () => {
       resolveUpdate({ ...firstIssue, status: "fixed" });
     });
 
-    await waitFor(() => expect(screen.queryByText("First duplicate issue")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText("First duplicate issue")).not.toBeInTheDocument()
+    );
     expect(screen.getByText("Second duplicate issue")).toBeInTheDocument();
   });
 });
@@ -856,7 +858,9 @@ describe("IssueDetailScreen review detail", () => {
     expect(screen.getByText("Impact")).toBeInTheDocument();
     expect(screen.getByText("Attackers can abuse this for phishing.")).toBeInTheDocument();
     expect(screen.getByText("Confidence evidence")).toBeInTheDocument();
-    expect(screen.getByText("A focused request test reproduces the redirect behavior.")).toBeInTheDocument();
+    expect(
+      screen.getByText("A focused request test reproduces the redirect behavior.")
+    ).toBeInTheDocument();
     expect(screen.getByText("Fixed commit")).toBeInTheDocument();
     expect(screen.getByText("Evidence chain")).toBeInTheDocument();
     expect(screen.getByText("Redirect call")).toBeInTheDocument();
@@ -868,22 +872,32 @@ describe("IssueDetailScreen review detail", () => {
     );
     expect(screen.getByText("Evidence trace")).toBeInTheDocument();
     expect(screen.getByText("Affected code location: src/auth.py:L42")).toBeInTheDocument();
-    expect(screen.getByText("Reachability check: next_url is read from the request query.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Reachability check: next_url is read from the request query.")
+    ).toBeInTheDocument();
     expect(screen.getByText("No fix or validation evidence was captured.")).toBeInTheDocument();
     expect(screen.getByText("Facts, reasoning, recommendations")).toBeInTheDocument();
     expect(screen.getByText("Facts")).toBeInTheDocument();
-    expect(screen.getByText("Redirect call: The endpoint passes next_url directly into redirect.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Redirect call: The endpoint passes next_url directly into redirect.")
+    ).toBeInTheDocument();
     expect(screen.getByText("Inferences")).toBeInTheDocument();
     expect(screen.getByText("Impact: Attackers can abuse this for phishing.")).toBeInTheDocument();
     expect(screen.getByText("Recommendations")).toBeInTheDocument();
-    expect(screen.getByText("Validate redirect targets before returning a redirect.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Validate redirect targets before returning a redirect.")
+    ).toBeInTheDocument();
     expect(screen.getByText("Reproduction center")).toBeInTheDocument();
-    expect(screen.getAllByText("pytest tests/repro/test_redirect.py").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("pytest tests/repro/test_redirect.py").length
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("GET /login?next=https://evil.example")).toBeInTheDocument();
     expect(screen.getByText("Why this is not a false positive")).toBeInTheDocument();
     expect(screen.getByText("next_url is read from the request query.")).toBeInTheDocument();
     expect(screen.getByText("When this may not apply")).toBeInTheDocument();
-    expect(screen.getByText("A production gateway could block external next URLs first.")).toBeInTheDocument();
+    expect(
+      screen.getByText("A production gateway could block external next URLs first.")
+    ).toBeInTheDocument();
     expect(screen.getByText("Remediation")).toBeInTheDocument();
     expect(screen.getByText("Allow only same-origin redirect targets.")).toBeInTheDocument();
     expect(screen.getByText("Patch evidence")).toBeInTheDocument();
@@ -1042,7 +1056,9 @@ describe("IssueDetailScreen review detail", () => {
     await user.click(screen.getByRole("button", { name: /mark fixed/i }));
 
     await waitFor(() =>
-      expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123", status: "fixed" }))
+      expect(setIssue).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "f_123", status: "fixed" })
+      )
     );
   });
 

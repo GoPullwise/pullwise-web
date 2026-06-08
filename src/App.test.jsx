@@ -270,9 +270,12 @@ describe("App", () => {
 
     render(<App />);
 
-    await waitFor(() => {
-      expect(document.querySelector('[data-screen-label="login"]')).toBeInTheDocument();
-    }, { timeout: 3500 });
+    await waitFor(
+      () => {
+        expect(document.querySelector('[data-screen-label="login"]')).toBeInTheDocument();
+      },
+      { timeout: 3500 }
+    );
   });
 
   it("does not expose the workers admin screen in the public web app", async () => {
@@ -307,10 +310,13 @@ describe("App", () => {
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /sign in with github/i })).not.toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
-      expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
-    }, { timeout: 3500 });
+    await waitFor(
+      () => {
+        expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
+        expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
+      },
+      { timeout: 3500 }
+    );
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
@@ -429,10 +435,7 @@ describe("App", () => {
       setLang("zh");
     });
 
-    expect(screen.getByRole("button", { name: /回到顶部/i })).toHaveAttribute(
-      "title",
-      "回到顶部"
-    );
+    expect(screen.getByRole("button", { name: /回到顶部/i })).toHaveAttribute("title", "回到顶部");
   });
 
   it("renders GitHub-only login UI", () => {
@@ -532,9 +535,7 @@ describe("App", () => {
 
   it("explains missing GitHub App write permissions for private repository remediation", async () => {
     connectGitHubRepositories.mockRejectedValueOnce(
-      new Error(
-        "GitHub App installation must grant Contents: read access."
-      )
+      new Error("GitHub App installation must grant Contents: read access.")
     );
     const go = vi.fn();
     const user = userEvent.setup();
@@ -543,7 +544,9 @@ describe("App", () => {
 
     await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/Contents: write and Pull requests: write/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /Contents: write and Pull requests: write/i
+    );
     expect(go).not.toHaveBeenCalled();
   });
 
