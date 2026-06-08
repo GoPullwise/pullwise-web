@@ -158,7 +158,7 @@ function scanHistorySummary(scan) {
     );
     return ["queued", ...queueTags].join(" - ");
   }
-  if (scan.status === "cancelled") return "cancelled";
+  if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
   if (scan.issues) {
     const total = issueTotal(scan);
     const audit = scan.verificationAudit || {};
@@ -1666,7 +1666,7 @@ function HistoryTimelineRow({ scan, viewScan, viewScanIssues, downloadAuditBundl
   return (
     <div className="hist-timeline-row">
       <div className="hist-timeline-time">{scanTimeLabel(scan)}</div>
-      <div className="hist-timeline-content">
+      <div className="hist-timeline-content hist-row">
         <span className={`hist-timeline-dot hist-timeline-dot-${scan.status || "info"}`} />
         <div className="hist-timeline-h">
           <b>{scan.repo}</b>

@@ -595,7 +595,7 @@ function AuditFunnel({ audit }) {
             }}
           />
           <span className="audit-funnel-label">
-            {T("Reported", "已报告")}
+            {T("Reported issues", "已报告问题")}
             <b>{reportedCount}</b>
           </span>
         </div>
@@ -624,7 +624,7 @@ function AuditFunnel({ audit }) {
             }}
           />
           <span className="audit-funnel-label">
-            {T("Rejected", "已拒绝")}
+            {T("Rejected candidates", "已拒绝候选")}
             <b>{rejectedCount}</b>
           </span>
         </div>
