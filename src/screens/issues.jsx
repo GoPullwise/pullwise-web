@@ -1671,55 +1671,55 @@ function HistoryTimelineRow({ scan, viewScan, viewScanIssues, downloadAuditBundl
       <div className="hist-timeline-time">{scanTimeLabel(scan)}</div>
       <div className={`hist-timeline-marker hist-timeline-marker-${scan.status || "info"}`} aria-hidden="true" />
       <div className="hist-timeline-content hist-row">
-        <div className="hist-timeline-h">
-          <b>{scan.repo}</b>
-          <span className="tag">
-            <I.GitBranch size={10} /> {scan.branch}
-          </span>
-          {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
-            <span className="tag">{scan.commit}</span>
-          )}
-          <span className={`tag tag-${scan.status || "info"}`}>{scan.status || "unknown"}</span>
-          {scan.aiUsage?.model && <span className="tag">{scan.aiUsage.model}</span>}
-        </div>
-        <div className="muted" style={{ fontSize: 12 }}>
-          {scanHistorySummary(scan)}
-        </div>
-        {total > 0 && (
-          <div
-            className="hist-timeline-bar"
-            role="img"
-            aria-label={T(
-              `${total} issues: critical ${breakdown.critical || 0}, high ${breakdown.high || 0}, medium ${breakdown.medium || 0}, low ${breakdown.low || 0}`,
-              `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
+        <div className="hist-timeline-main">
+          <div className="hist-timeline-h">
+            <b>{scan.repo}</b>
+            <span className="tag">
+              <I.GitBranch size={10} /> {scan.branch}
+            </span>
+            {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
+              <span className="tag">{scan.commit}</span>
             )}
-          >
-            <span
-              style={{
-                width: `${(Number(breakdown.critical || 0) / maxBucket) * 100}%`,
-                background: "var(--sev-critical)",
-              }}
-            />
-            <span
-              style={{
-                width: `${(Number(breakdown.high || 0) / maxBucket) * 100}%`,
-                background: "var(--sev-high)",
-              }}
-            />
-            <span
-              style={{
-                width: `${(Number(breakdown.medium || 0) / maxBucket) * 100}%`,
-                background: "var(--sev-medium)",
-              }}
-            />
-            <span
-              style={{
-                width: `${(Number(breakdown.low || 0) / maxBucket) * 100}%`,
-                background: "var(--sev-low)",
-              }}
-            />
+            <span className={`tag tag-${scan.status || "info"}`}>{scan.status || "unknown"}</span>
+            {scan.aiUsage?.model && <span className="tag">{scan.aiUsage.model}</span>}
           </div>
-        )}
+          <div className="muted hist-timeline-summary">{scanHistorySummary(scan)}</div>
+          {total > 0 && (
+            <div
+              className="hist-timeline-bar"
+              role="img"
+              aria-label={T(
+                `${total} issues: critical ${breakdown.critical || 0}, high ${breakdown.high || 0}, medium ${breakdown.medium || 0}, low ${breakdown.low || 0}`,
+                `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
+              )}
+            >
+              <span
+                style={{
+                  width: `${(Number(breakdown.critical || 0) / maxBucket) * 100}%`,
+                  background: "var(--sev-critical)",
+                }}
+              />
+              <span
+                style={{
+                  width: `${(Number(breakdown.high || 0) / maxBucket) * 100}%`,
+                  background: "var(--sev-high)",
+                }}
+              />
+              <span
+                style={{
+                  width: `${(Number(breakdown.medium || 0) / maxBucket) * 100}%`,
+                  background: "var(--sev-medium)",
+                }}
+              />
+              <span
+                style={{
+                  width: `${(Number(breakdown.low || 0) / maxBucket) * 100}%`,
+                  background: "var(--sev-low)",
+                }}
+              />
+            </div>
+          )}
+        </div>
         <div className="hist-timeline-actions">
           <button className="btn sm" onClick={() => viewScan(scan)}>
             {T("View", "查看")} <I.ArrowR size={11} />

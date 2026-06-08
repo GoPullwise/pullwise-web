@@ -1125,6 +1125,7 @@ body {
   font-variant-numeric: tabular-nums;
   min-width: 32px;
   text-align: right;
+  margin-left: auto;
 }
 .disto-legend-click {
   cursor: pointer;
@@ -1537,12 +1538,12 @@ body {
 }
 /* Override screens.css .hist-row grid layout when used inside the
    new timeline so the card uses its own flex container. The card
-   hugs its content (width: max-content) rather than stretching
-   to fill the row — it can still shrink on narrow viewports. */
+   stretches to fill the row (flex: 1) so the long-strip layout uses
+   the full available width. It can still shrink on narrow viewports. */
 .hist-row.hist-timeline-content,
 .hist-timeline-content {
-  flex: 0 1 auto;
-  width: max-content;
+  flex: 1 1 auto;
+  width: auto;
   max-width: 100%;
   min-width: 0;
   background: var(--bg-elev, #fff);
@@ -1550,11 +1551,21 @@ body {
   border-radius: 10px;
   padding: 10px 14px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  gap: 16px;
   position: relative;
   grid-template-columns: none;
   align-items: stretch;
+}
+.hist-timeline-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hist-timeline-summary {
+  font-size: 12px;
 }
 .hist-row.hist-timeline-content:hover,
 .hist-timeline-content:hover {
@@ -1585,9 +1596,16 @@ body {
 }
 .hist-timeline-actions {
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: stretch;
+  min-width: 110px;
+}
+.hist-timeline-actions .btn {
+  white-space: nowrap;
+  justify-content: center;
 }
 @media (max-width: 540px) {
   /* Small screen: row layout is time(44) + gap(10) + marker(18) = marker
@@ -1605,5 +1623,14 @@ body {
   }
   .hist-timeline-row {
     gap: 10px;
+  }
+  .hist-timeline-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hist-timeline-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
   }
 }

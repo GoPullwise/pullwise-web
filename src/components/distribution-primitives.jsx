@@ -242,7 +242,6 @@ export function DistributionCard({
                 <span className="disto-legend-dot" style={{ background: bucket.color }} />
                 <span className="disto-legend-l">{bucket.label || bucket.key}</span>
                 <span className="disto-legend-pct">{pct}%</span>
-                <b>{value}</b>
               </li>
             );
           })}
