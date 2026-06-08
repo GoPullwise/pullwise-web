@@ -48,6 +48,20 @@ describe("public navigation links", () => {
     );
   });
 
+  it("summarizes implemented product capabilities on the landing page", () => {
+    render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
+
+    expect(screen.getByText("Batch scans and quota preflight")).toBeInTheDocument();
+    expect(screen.getByText("Preflight and audit evidence")).toBeInTheDocument();
+    expect(screen.getByText("Scoped REST API keys")).toBeInTheDocument();
+    expect(screen.getByText("Billing and quota controls")).toBeInTheDocument();
+    expect(screen.getByText("Multiple GitHub installations")).toBeInTheDocument();
+    expect(screen.getByText("Fix preview and pull requests")).toBeInTheDocument();
+    expect(
+      screen.getByText(/fixed, snoozed, false positive, duplicate, or not relevant/i)
+    ).toBeInTheDocument();
+  });
+
   it("opens landing footer legal pages from real links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

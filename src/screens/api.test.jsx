@@ -83,6 +83,17 @@ describe("API screens", () => {
     expect(quotaExample).toHaveTextContent(/"scope": "repository"[\s\S]*"limit": 3,/);
   });
 
+  it("documents the GitHub App write permissions required by implementation", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const repositoryResponse = screen.getByText("Repository response").closest(".docs-code");
+    const repositoryExample = repositoryResponse?.querySelector("pre");
+
+    expect(repositoryExample).toHaveTextContent(/"contents": "write"/);
+    expect(repositoryExample).toHaveTextContent(/"pull_requests": "write"/);
+    expect(repositoryExample).not.toHaveTextContent(/"contents": "read"/);
+  });
+
   it("exposes API docs navigation destinations as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

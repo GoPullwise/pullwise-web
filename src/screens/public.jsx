@@ -233,8 +233,8 @@ export function LandingScreen({ go, accent, auth }) {
             i: <I.Check />,
             h: T("Manual triage", "Manual triage"),
             p: T(
-              "Mark findings fixed or snoozed after reviewing the underlying code.",
-              "Mark findings fixed or snoozed after reviewing the underlying code."
+              "Mark findings fixed, snoozed, false positive, duplicate, or not relevant after review.",
+              "Mark findings fixed, snoozed, false positive, duplicate, or not relevant after review."
             ),
           },
           {
@@ -243,6 +243,54 @@ export function LandingScreen({ go, accent, auth }) {
             p: T(
               "Track queued, running, done, failed, and cancelled scans from server state.",
               "Track queued, running, done, failed, and cancelled scans from server state."
+            ),
+          },
+          {
+            i: <I.Refresh />,
+            h: T("Batch scans and quota preflight", "Batch scans and quota preflight"),
+            p: T(
+              "Select multiple repositories, check account and repository quota, then queue only the allowed scans.",
+              "Select multiple repositories, check account and repository quota, then queue only the allowed scans."
+            ),
+          },
+          {
+            i: <I.FileCode />,
+            h: T("Preflight and audit evidence", "Preflight and audit evidence"),
+            p: T(
+              "Show repository manifests, tool checks, verifier runs, candidate audit counts, and downloadable audit bundles.",
+              "Show repository manifests, tool checks, verifier runs, candidate audit counts, and downloadable audit bundles."
+            ),
+          },
+          {
+            i: <I.Code />,
+            h: T("Scoped REST API keys", "Scoped REST API keys"),
+            p: T(
+              "Create account-scoped API keys for repository listing, scan control, scan status, and quota checks.",
+              "Create account-scoped API keys for repository listing, scan control, scan status, and quota checks."
+            ),
+          },
+          {
+            i: <I.Package />,
+            h: T("Billing and quota controls", "Billing and quota controls"),
+            p: T(
+              "Surface account usage, repository quota, checkout, portal, and billing interval actions from the backend.",
+              "Surface account usage, repository quota, checkout, portal, and billing interval actions from the backend."
+            ),
+          },
+          {
+            i: <I.Github />,
+            h: T("Multiple GitHub installations", "Multiple GitHub installations"),
+            p: T(
+              "Manage personal and organization GitHub App installations without mixing repository access.",
+              "Manage personal and organization GitHub App installations without mixing repository access."
+            ),
+          },
+          {
+            i: <I.ArrowR />,
+            h: T("Fix preview and pull requests", "Fix preview and pull requests"),
+            p: T(
+              "Preview deterministic fixes, push Pullwise fix branches, and open GitHub pull requests when write permissions are available.",
+              "Preview deterministic fixes, push Pullwise fix branches, and open GitHub pull requests when write permissions are available."
             ),
           },
           {

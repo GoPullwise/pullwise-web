@@ -293,7 +293,10 @@ Content-Type: application/json
       "htmlUrl": "https://github.com/acme/api",
       "installationId": "123456",
       "installationAccount": "acme",
-      "permissions": { "contents": "read" },
+      "permissions": {
+        "contents": "write",
+        "pull_requests": "write"
+      },
       "quota": {
         "scope": "repository",
         "period": "2026-06",
