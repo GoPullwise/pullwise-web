@@ -354,4 +354,36 @@ describe("SettingsScreen", () => {
       expect(select).toHaveValue("zh-CN");
     });
   });
+
+  it("explains server origin configuration when review language save is rejected", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: false,
+        repositories: [],
+      },
+    });
+    pullwiseApi.settings.get.mockResolvedValueOnce({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
+    });
+    pullwiseApi.settings.update.mockRejectedValueOnce(
+      Object.assign(new Error("State-changing requests must come from a trusted origin."), {
+        status: 403,
+      })
+    );
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /preferences/i }));
+
+    const select = await screen.findByRole("combobox", { name: /review output language/i });
+
+    await user.selectOptions(select, "zh-CN");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /server origin configuration/i
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(/PULLWISE_ALLOWED_ORIGINS/);
+  });
 });

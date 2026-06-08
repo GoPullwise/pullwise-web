@@ -50,6 +50,14 @@ function withReviewOutputLanguage(settings, outputLanguage, fallback = null) {
   };
 }
 
+function reviewOutputLanguageSaveError(error) {
+  const message = String(error?.message || "");
+  if (error?.status === 403 && /trusted origin/i.test(message)) {
+    return "Unable to save review output language. Server origin configuration rejected this browser request. Add this web origin to PULLWISE_ALLOWED_ORIGINS or PULLWISE_APP_URL.";
+  }
+  return message || "Unable to save review output language.";
+}
+
 function evidenceSortRank(issue) {
   return (
     (VERIFICATION_RANK[issueVerificationStatus(issue)] ?? 0) * 10 +
@@ -2132,7 +2140,7 @@ export function SettingsScreen({ go, setIssue = null }) {
       setSettings(withReviewOutputLanguage(settingsPayload, outputLanguage, previousSettings));
     } catch (error) {
       setSettings(previousSettings);
-      setSettingsError(error?.message || "Unable to save review output language.");
+      setSettingsError(reviewOutputLanguageSaveError(error));
     } finally {
       setSettingsSaving("");
     }
