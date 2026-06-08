@@ -50,6 +50,10 @@ function baseStyles() {
   return readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
 }
 
+function screenStyles() {
+  return readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
+}
+
 describe("IssuesScreen list resilience", () => {
   it("shows the topbar loading spinner only while issues are loading", () => {
     useIssues.mockReturnValue({
@@ -744,6 +748,24 @@ describe("IssueDetailScreen review detail", () => {
     expect(crumbBlock).toMatch(/align-items:\s*center;/);
   });
 
+  it("keeps evidence trace text readable in full-width rows", () => {
+    const css = screenStyles();
+    const timelineBlock =
+      css.match(/\.trace-timeline\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const stepBlock = css.match(/\.trace-step\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const nodeBlock = css.match(/\.trace-node\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const summaryBlock =
+      css.match(/\.trace-node-summary\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+
+    expect(timelineBlock).toMatch(/display:\s*grid;/);
+    expect(timelineBlock).not.toMatch(/overflow-x:\s*auto;/);
+    expect(stepBlock).toMatch(/min-width:\s*0;/);
+    expect(stepBlock).not.toMatch(/min-width:\s*150px;/);
+    expect(nodeBlock).toMatch(/grid-template-columns:\s*32px minmax\(0,\s*1fr\) auto;/);
+    expect(summaryBlock).toMatch(/overflow-wrap:\s*anywhere;/);
+    expect(summaryBlock).not.toMatch(/-webkit-line-clamp:/);
+  });
+
   it("exposes issue detail recovery navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
@@ -886,12 +908,12 @@ describe("IssueDetailScreen review detail", () => {
       "href",
       "https://github.com/acme/api/blob/abc1234/src/auth.py#L42"
     );
-    expect(screen.queryByText("Evidence trace")).not.toBeInTheDocument();
-    expect(screen.queryByText("Affected code location: src/auth.py:L42")).not.toBeInTheDocument();
+    expect(screen.getByText("Evidence trace")).toBeInTheDocument();
+    expect(screen.getByText("Affected code location: src/auth.py:L42")).toBeInTheDocument();
     expect(
-      screen.queryByText("Reachability check: next_url is read from the request query.")
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText("No fix or validation evidence was captured.")).not.toBeInTheDocument();
+      screen.getByText("Reachability check: next_url is read from the request query.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("No fix or validation evidence was captured.")).toBeInTheDocument();
     expect(screen.getByText("Facts, reasoning, recommendations")).toBeInTheDocument();
     expect(screen.getByText("Facts")).toBeInTheDocument();
     expect(
@@ -1006,9 +1028,8 @@ describe("IssueDetailScreen review detail", () => {
       expect(markdown).toContain("- Status: open");
       expect(markdown).toContain("## Confidence evidence");
       expect(markdown).toContain("- [x] Precise file and line");
-      expect(markdown.includes("Trace-only runtime summary should stay hidden.")).toBe(
-        markdown.includes("## Evidence trace")
-      );
+      expect(markdown).toContain("## Evidence trace");
+      expect(markdown).toContain("Trace-only runtime summary should stay hidden.");
       expect(markdown).toContain("## Evidence chain");
       expect(markdown).toContain("Redirect call");
       expect(markdown).toContain("## Reproduction center");

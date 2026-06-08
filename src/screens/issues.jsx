@@ -353,6 +353,23 @@ function buildIssuePageMarkdown(issue, currentStatus) {
   }
   appendMarkdownSection(lines, "Confidence evidence", confidenceEvidence);
 
+  if (issue.evidenceTrace?.length) {
+    appendMarkdownSection(
+      lines,
+      "Evidence trace",
+      issue.evidenceTrace.flatMap((stage, index) => {
+        const label = markdownText(stage?.label || stage?.key || `Step ${index + 1}`);
+        const status = markdownText(stage?.status);
+        const stageLines = label ? [`### ${label}${status ? ` (${status})` : ""}`] : [];
+        if (stage?.summary) stageLines.push(markdownText(stage.summary));
+        if (stage?.items?.length) {
+          stageLines.push(...stage.items.map((item) => `- ${markdownText(item)}`).filter(Boolean));
+        }
+        return stageLines;
+      })
+    );
+  }
+
   const breakdown = issue.reasoningBreakdown || {};
   const reasoningLines = [
     ["Facts", breakdown.facts],
@@ -473,6 +490,86 @@ function EvidenceChecklist({ issue }) {
             <span className="muted evidence-check-label">{item.label}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function EvidenceTrace({ issue }) {
+  const stages = Array.isArray(issue?.evidenceTrace)
+    ? issue.evidenceTrace
+        .map((stage, index) => {
+          const label = String(stage?.label || stage?.key || `Step ${index + 1}`).trim();
+          const status =
+            String(stage?.status || "").toLowerCase() === "missing" ? "missing" : "present";
+          const summary = String(stage?.summary || "").trim();
+          const items = Array.isArray(stage?.items)
+            ? stage.items.map((item) => String(item || "").trim()).filter(Boolean)
+            : [];
+          return { key: stage?.key || stage?.label || index, label, status, summary, items };
+        })
+        .filter((stage) => stage.label || stage.summary || stage.items.length)
+    : [];
+  if (!stages.length) return null;
+
+  const presentCount = stages.filter((stage) => stage.status === "present").length;
+  const percent = Math.round((presentCount / stages.length) * 100);
+
+  return (
+    <div className="evidence-trace-wrap">
+      <div className="trace-progress">
+        <div className="trace-progress-h">
+          <span className="trace-progress-title">Trace coverage</span>
+          <span className="trace-progress-count">
+            {presentCount}/{stages.length} present
+          </span>
+        </div>
+        <span className="trace-progress-bar" aria-hidden="true">
+          <span className="trace-progress-fill" style={{ width: `${percent}%` }} />
+        </span>
+      </div>
+      <div className="trace-timeline" role="list">
+        {stages.map((stage, index) => {
+          const present = stage.status === "present";
+          const detailItems = stage.items.filter((item) => item !== stage.summary);
+          return (
+            <div
+              key={`${stage.key}-${index}`}
+              className={"trace-step " + (present ? "trace-step-present" : "trace-step-missing")}
+              role="listitem"
+            >
+              <div className="trace-node">
+                <span className="trace-node-bullet" aria-hidden="true">
+                  {present ? <I.Check size={14} /> : <I.X size={14} />}
+                </span>
+                <span className="trace-node-l">
+                  <I.Activity size={12} className="trace-node-glyph" /> {stage.label}
+                </span>
+                <span className="trace-node-s">{present ? "present" : "missing"}</span>
+                {stage.summary && <span className="trace-node-summary">{stage.summary}</span>}
+              </div>
+              {detailItems.length > 0 && (
+                <div className="trace-node-detail">
+                  <div className="trace-node-detail-h">Evidence</div>
+                  <ul className="trace-node-items">
+                    {detailItems.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {index < stages.length - 1 && (
+                <span
+                  className={
+                    "trace-connector " +
+                    (present ? "trace-connector-present" : "trace-connector-missing")
+                  }
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1096,6 +1193,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     issue.reasoningBreakdown?.inferences?.length ||
     issue.reasoningBreakdown?.recommendations?.length
   );
+  const hasEvidenceTrace = Array.isArray(issue.evidenceTrace) && issue.evidenceTrace.length > 0;
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
   const activePullRequest =
     pullRequest?.issueId === issue.id
@@ -1265,6 +1363,12 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     <p className="muted issue-section-note">{issue.verificationSummary}</p>
                   )}
                   <EvidenceChecklist issue={issue} />
+                </DetailSection>
+              )}
+
+              {hasEvidenceTrace && (
+                <DetailSection title="Evidence trace">
+                  <EvidenceTrace issue={issue} />
                 </DetailSection>
               )}
 
