@@ -1653,12 +1653,12 @@ body {
    `.hist-timeline*` long-strip layout. The structure is:
 
    .scan-list
-     .scan-day-group          (one per day, with a rounded card)
+     .scan-day-group          (one per day)
        .scan-day-title        (day name + scan count)
        .scan-day-body
          .scan-time-block     (one per unique time within the day)
            .scan-time         (left column with the time label)
-           .scan-row          (one card per scan, stacked via .scan-stack)
+           .scan-row          (one scan item, stacked via .scan-stack)
 
    Each scan row carries a status dot, a header with repo + badges
    (including a prominent issue-count badge), a full-width severity
@@ -1673,11 +1673,7 @@ body {
   padding: 4px 16px 16px 4px;
 }
 .scan-day-group {
-  background: var(--bg-elev, #fff);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   padding: 14px 16px 16px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
 }
 .scan-day-title {
   display: flex;
@@ -1685,8 +1681,6 @@ body {
   gap: 10px;
   font-size: 13px;
   color: var(--text-2);
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
   margin-bottom: 12px;
 }
 .scan-day-title strong {
@@ -1751,14 +1745,7 @@ body {
   border-radius: 0;
   background: transparent;
   border: 0;
-  border-top: 1px solid var(--border);
   transition: background 120ms var(--ease-out);
-}
-/* Suppress the top border on the very first row in its container so we
-   don't double up next to the day-title divider or stack-header. */
-.scan-stack > .scan-row:first-child,
-.scan-time-block > .scan-row:first-child {
-  border-top: 0;
 }
 .scan-row:hover {
   background: var(--bg-soft, rgba(0, 0, 0, 0.025));

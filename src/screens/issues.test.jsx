@@ -444,6 +444,22 @@ describe("IssueDetailScreen direct loading", () => {
 });
 
 describe("HistoryScreen queue state", () => {
+  it("keeps scan history groups visually flat without row separators", () => {
+    const css = baseStyles();
+    const dayGroupBlock = css.match(/\.scan-day-group\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
+    const dayTitleBlock = css.match(/\.scan-day-title\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
+    const scanRowBlock = css.match(/\.scan-row\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
+
+    expect(dayGroupBlock).toBeTruthy();
+    expect(dayTitleBlock).toBeTruthy();
+    expect(scanRowBlock).toBeTruthy();
+    expect(dayGroupBlock).not.toMatch(/\bbackground\s*:/);
+    expect(dayGroupBlock).not.toMatch(/\bborder\s*:/);
+    expect(dayGroupBlock).not.toMatch(/\bbox-shadow\s*:/);
+    expect(dayTitleBlock).not.toMatch(/\bborder-bottom\s*:/);
+    expect(scanRowBlock).not.toMatch(/\bborder-top\s*:/);
+  });
+
   it("shows the topbar loading spinner only while scan history is loading", () => {
     useScans.mockReturnValue({
       items: [],
