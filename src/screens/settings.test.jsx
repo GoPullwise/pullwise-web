@@ -302,6 +302,7 @@ describe("SettingsScreen", () => {
       expect(pullwiseApi.settings.update).toHaveBeenCalledWith({
         review: { outputLanguage: "zh-CN" },
       });
+      expect(select).toHaveValue("zh-CN");
     });
   });
 });
