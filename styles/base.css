@@ -1537,22 +1537,27 @@ body {
   gap: 12px;
   min-height: 78px;
   padding: 12px 14px;
-  background: var(--bg-elev, #fff);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  transition: border-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out),
-    transform 120ms var(--ease-out);
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--border);
+  transition: background 120ms var(--ease-out);
+}
+/* Suppress the top border on the very first row in its container so we
+   don't double up next to the day-title divider or stack-header. */
+.scan-stack > .scan-row:first-child,
+.scan-time-block > .scan-row:first-child {
+  border-top: 0;
 }
 .scan-row:hover {
-  border-color: var(--border-strong, rgba(0, 0, 0, 0.18));
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  background: var(--bg-soft, rgba(0, 0, 0, 0.025));
 }
 .scan-status-dot {
   width: 10px;
   height: 10px;
   border-radius: 999px;
   background: var(--sev-info, #6b7280);
-  box-shadow: 0 0 0 3px var(--bg-elev, #fff), 0 0 0 4px var(--border);
+  box-shadow: 0 0 0 2px var(--bg, #f8f7f6), 0 0 0 3px var(--border);
 }
 .scan-row-done .scan-status-dot {
   background: #16a34a;

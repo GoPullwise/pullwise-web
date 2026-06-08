@@ -1776,7 +1776,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
             </span>
           )}
         </div>
-        {total > 0 ? (
+        {total > 0 && (
           <>
             <div
               className="scan-severity-bar"
@@ -1811,20 +1811,17 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
               )}
             </div>
           </>
-        ) : (
-          <div className="scan-summary muted">{summary}</div>
         )}
+        {summary && <div className="scan-summary muted">{summary}</div>}
       </div>
       <div className="scan-row-actions" ref={menuRef}>
-        {total > 0 && (
-          <button
-            className="btn sm"
-            disabled={!scan.id || !hasResults}
-            onClick={() => viewScanIssues(scan)}
-          >
-            {T("Issues", "问题")}
-          </button>
-        )}
+        <button
+          className="btn sm"
+          disabled={!scan.id || !hasResults}
+          onClick={() => viewScanIssues(scan)}
+        >
+          {T("Issues", "问题")}
+        </button>
         <button className="btn sm" onClick={() => viewScan(scan)}>
           {T("View", "查看")}
         </button>

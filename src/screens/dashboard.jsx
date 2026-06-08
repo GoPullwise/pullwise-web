@@ -321,7 +321,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
                 />
               </div>
             </div>
-
           </div>
 
           <div className="dash-issues-h">

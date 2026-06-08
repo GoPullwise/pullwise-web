@@ -877,7 +877,7 @@ describe("App", () => {
 
     render(<App />);
 
-    const historyRow = (await screen.findByText("octocat/private-repo")).closest(".hist-row");
+    const historyRow = (await screen.findByText("octocat/private-repo")).closest(".scan-row");
     await user.click(within(historyRow).getByRole("button", { name: /^issues$/i }));
 
     await waitFor(() => {
