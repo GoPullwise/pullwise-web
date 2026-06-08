@@ -1425,7 +1425,7 @@ body {
 /* === History timeline (Scan history) === */
 .hist-timeline {
   position: relative;
-  padding: 8px 0 16px 0;
+  padding: 8px 16px 16px 0;
   margin: 0;
 }
 /* Vertical axis line drawn between the time column and the dot
