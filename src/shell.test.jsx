@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 import { Sidebar, Topbar } from "./shell.jsx";
@@ -59,6 +61,19 @@ describe("Topbar navigation", () => {
 });
 
 describe("Sidebar navigation", () => {
+  it("draws the desktop sidebar divider across the full layout height", () => {
+    const styles = readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
+
+    expect(styles).toMatch(/\.with-side\s*\{[^}]*position:\s*relative;/s);
+    expect(styles).toMatch(/\.with-side::before\s*\{[^}]*content:\s*"";/s);
+    expect(styles).toMatch(/\.with-side::before\s*\{[^}]*top:\s*0;/s);
+    expect(styles).toMatch(/\.with-side::before\s*\{[^}]*bottom:\s*0;/s);
+    expect(styles).toMatch(/\.with-side::before\s*\{[^}]*left:\s*220px;/s);
+    expect(styles).toMatch(/\.with-side::before\s*\{[^}]*background:\s*var\(--border\);/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*\.with-side::before\s*\{[^}]*display:\s*none;/s);
+    expect(styles).not.toMatch(/\.side\s*\{[^}]*border-right:\s*1px solid var\(--border\);/s);
+  });
+
   it("exposes navigation destinations as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

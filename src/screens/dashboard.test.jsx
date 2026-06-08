@@ -49,7 +49,9 @@ describe("DashboardScreen issue list", () => {
 
     expect(screen.getByRole("heading", { name: /overview/i })).toBeInTheDocument();
     expect(screen.getByText(/account overview/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /connected repositories/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /connected repositories/i })
+    ).not.toBeInTheDocument();
 
     const newScan = screen.getByRole("link", { name: /new scan/i });
     expect(newScan).toHaveAttribute("href", "/repos");

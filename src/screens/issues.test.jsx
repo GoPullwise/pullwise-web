@@ -595,13 +595,17 @@ describe("HistoryScreen queue state", () => {
 
     render(<HistoryScreen go={vi.fn()} openScanIssues={openScanIssues} />);
 
-    const row = screen.getByText("octocat/private-repo").closest(".hist-row");
+    const row = screen.getByText("octocat/private-repo").closest(".scan-row");
     expect(row).not.toBeNull();
     expect(within(row).getByText(/^cancelled$/i)).toBeInTheDocument();
     expect(within(row).queryByText(/^pending$/i)).not.toBeInTheDocument();
 
     const issues = within(row).getByRole("button", { name: /^issues$/i });
-    const downloadZip = within(row).getByRole("button", { name: /download audit bundle/i });
+    // Download zip moved into a more-actions menu, so open the menu first
+    // and grab the disabled download-zip item from there.
+    const more = within(row).getByRole("button", { name: /more actions/i });
+    await user.click(more);
+    const downloadZip = within(row).getByRole("menuitem", { name: /download zip/i });
     expect(issues).toBeDisabled();
     expect(downloadZip).toBeDisabled();
 
@@ -682,7 +686,9 @@ describe("HistoryScreen queue state", () => {
     try {
       render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
 
-      await user.click(screen.getByRole("button", { name: /bundle/i }));
+      // Download zip is now behind a more-actions menu, so open it first.
+      await user.click(screen.getByRole("button", { name: /more actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /download zip/i }));
 
       expect(pullwiseApi.scans.auditBundleArchive).toHaveBeenCalledWith("sc_done");
       expect(createObjectURL).toHaveBeenCalledTimes(1);

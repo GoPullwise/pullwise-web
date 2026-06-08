@@ -2,7 +2,7 @@ import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
-import { useIssues } from "./lib/pullwise-data.js";
+import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 
 export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
   useLang();

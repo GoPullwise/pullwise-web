@@ -154,8 +154,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
     [scans]
   );
 
-  const visibleRepos = repositories.slice(0, 6);
-  const hasRepos = visibleRepos.length > 0;
   const dashboardLoading = issuesLoading || scansLoading || reposLoading;
 
   return (
@@ -324,64 +322,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
               </div>
             </div>
 
-            <div className="card dash-cats">
-              <div className="dash-summary-head">
-                <h3>{T("Connected repositories", "已连接仓库")}</h3>
-                <a className="btn sm" {...screenLinkProps(go, "repos")}>
-                  {hasRepos
-                    ? <>
-                        {T(`View all (${repositories.length})`, `查看全部 (${repositories.length})`)}{" "}
-                        <I.ArrowR size={12} />
-                      </>
-                    : T("Connect", "连接")}
-                </a>
-              </div>
-              {hasRepos &&
-                visibleRepos.map((repo) => (
-                  <button
-                    key={repo.id}
-                    type="button"
-                    className="dash-cat-row"
-                    aria-label={T(
-                      `Open repository ${repo.fullName || repo.name}`,
-                      `打开仓库 ${repo.fullName || repo.name}`
-                    )}
-                    onClick={() => go("repos")}
-                  >
-                    <span
-                      style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}
-                    >
-                      <I.Folder size={13} style={{ flexShrink: 0 }} />{" "}
-                      {repo.fullName || repo.name}
-                    </span>
-                    {repo.private ? (
-                      <span className="tag" style={{ fontSize: 10.5 }}>
-                        <I.Lock size={9} /> {T("Private", "私有")}
-                      </span>
-                    ) : (
-                      <span className="tag" style={{ fontSize: 10.5 }}>
-                        {T("Public", "公开")}
-                      </span>
-                    )}
-                    <b style={{ minWidth: 18, textAlign: "right" }}>
-                      <I.ChevR size={12} />
-                    </b>
-                  </button>
-                ))}
-              {!reposLoading && !hasRepos && (
-                <div className="muted" style={{ padding: "20px 0", textAlign: "center" }}>
-                  <div style={{ marginBottom: 8 }}>
-                    {T(
-                      "No repositories connected yet.",
-                      "尚未连接任何仓库。",
-                    )}
-                  </div>
-                  <a className="btn sm" {...screenLinkProps(go, "repos")}>
-                    <I.Github size={13} /> {T("Connect GitHub", "连接 GitHub")}
-                  </a>
-                </div>
-              )}
-            </div>
           </div>
 
           <div className="dash-issues-h">

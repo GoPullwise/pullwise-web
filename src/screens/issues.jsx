@@ -1623,127 +1623,243 @@ function groupScansByDay(scans) {
   return Array.from(groups.entries());
 }
 
-function HistoryTimeline({ scans, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
-  const groups = useMemo(() => groupScansByDay(scans), [scans]);
+function groupScansByTime(scans) {
+  const groups = new Map();
+  for (const scan of scans) {
+    const time = scanTimeLabel(scan) || "—";
+    if (!groups.has(time)) groups.set(time, []);
+    groups.get(time).push(scan);
+  }
+  return Array.from(groups.entries());
+}
+
+function HistoryGroups({ scans, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+  const dayGroups = useMemo(() => groupScansByDay(scans), [scans]);
   if (scans.length === 0) return null;
   return (
-    <div className="hist-timeline" role="list">
-      <div className="hist-timeline-axis" aria-hidden="true" />
-      {groups.map(([key, items]) => (
-        <div className="hist-timeline-day" key={key} role="listitem">
-          <div className="hist-timeline-day-row">
-            <div className="hist-timeline-day-marker" aria-hidden="true" />
-            <div className="hist-timeline-day-label">
-              {dayLabel(key)}
-              <span className="hist-timeline-day-count">
-                {T(`${items.length} scan${items.length === 1 ? "" : "s"}`, `${items.length} 次扫描`)}
+    <div className="scan-list" role="list">
+      {dayGroups.map(([key, dayItems]) => {
+        const timeGroups = groupScansByTime(dayItems);
+        return (
+          <div className="scan-day-group" key={key} role="listitem">
+            <div className="scan-day-title">
+              <span className="scan-day-dot" aria-hidden="true" />
+              <strong>{dayLabel(key)}</strong>
+              <span className="scan-day-count">
+                {T(
+                  `${dayItems.length} scan${dayItems.length === 1 ? "" : "s"}`,
+                  `${dayItems.length} 次扫描`
+                )}
               </span>
             </div>
+            <div className="scan-day-body">
+              {timeGroups.map(([time, timeItems], tIndex) => (
+                <div className="scan-time-block" key={`${key}-${time}-${tIndex}`}>
+                  <aside className="scan-time">
+                    {time}
+                    {timeItems.length > 1 && (
+                      <span className="scan-time-batch">
+                        {T(
+                          `${timeItems.length} scans`,
+                          `${timeItems.length} 次扫描`
+                        )}
+                      </span>
+                    )}
+                  </aside>
+                  {timeItems.length === 1 ? (
+                    <ScanRow
+                      scan={timeItems[0]}
+                      viewScan={viewScan}
+                      viewScanIssues={viewScanIssues}
+                      downloadAuditBundle={downloadAuditBundle}
+                      bundleLoading={bundleLoading}
+                    />
+                  ) : (
+                    <div className="scan-stack">
+                      {timeItems.map((scan, sIndex) => (
+                        <ScanRow
+                          key={scan.id || `${scan.repo}-${scan.createdAt}-${sIndex}`}
+                          scan={scan}
+                          viewScan={viewScan}
+                          viewScanIssues={viewScanIssues}
+                          downloadAuditBundle={downloadAuditBundle}
+                          bundleLoading={bundleLoading}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          {items.map((scan) => (
-            <HistoryTimelineRow
-              key={scan.id || `${scan.repo}-${scan.createdAt}`}
-              scan={scan}
-              viewScan={viewScan}
-              viewScanIssues={viewScanIssues}
-              downloadAuditBundle={downloadAuditBundle}
-              bundleLoading={bundleLoading}
-            />
-          ))}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function HistoryTimelineRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+const SEVERITY_BAR_SEGMENTS = [
+  { key: "critical", color: "var(--sev-critical)" },
+  { key: "high", color: "var(--sev-high)" },
+  { key: "medium", color: "var(--sev-medium)" },
+  { key: "low", color: "var(--sev-low)" },
+];
+
+const SEVERITY_LEGEND = [
+  { key: "critical", labelEn: "Critical", labelZh: "关键" },
+  { key: "high", labelEn: "High", labelZh: "高" },
+  { key: "medium", labelEn: "Medium", labelZh: "中" },
+  { key: "low", labelEn: "Low", labelZh: "低" },
+];
+
+function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const total = scanIssuesTotal(scan);
   const breakdown = scan?.issues || {};
-  const maxBucket = Math.max(
-    Number(breakdown.critical || 0),
-    Number(breakdown.high || 0),
-    Number(breakdown.medium || 0),
-    Number(breakdown.low || 0),
-    1
-  );
+  const status = scan.status || "info";
+  const hasResults = scanHasResults(scan);
+  const isDownloading = bundleLoading === scan.id;
+  const summary = scanHistorySummary(scan);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const handleClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    const handleKey = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [menuOpen]);
+
+  const issuesBadgeTone =
+    total >= 5
+      ? "scan-issues-badge-danger"
+      : total > 0
+        ? "scan-issues-badge-warning"
+        : "scan-issues-badge-ok";
+
   return (
-    <div className="hist-timeline-row">
-      <div className="hist-timeline-time">{scanTimeLabel(scan)}</div>
-      <div className={`hist-timeline-marker hist-timeline-marker-${scan.status || "info"}`} aria-hidden="true" />
-      <div className="hist-timeline-content hist-row">
-        <div className="hist-timeline-main">
-          <div className="hist-timeline-h">
-            <b>{scan.repo}</b>
-            <span className="tag">
+    <article className={`scan-row scan-row-${status}`}>
+      <span className="scan-status-dot" aria-hidden="true" />
+      <div className="scan-info">
+        <div className="scan-main">
+          <strong className="scan-repo">{scan.repo}</strong>
+          {scan.branch && (
+            <span className="scan-badge">
               <I.GitBranch size={10} /> {scan.branch}
             </span>
-            {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
-              <span className="tag">{scan.commit}</span>
-            )}
-            <span className={`tag tag-${scan.status || "info"}`}>{scan.status || "unknown"}</span>
-            {scan.aiUsage?.model && <span className="tag">{scan.aiUsage.model}</span>}
-          </div>
-          <div className="muted hist-timeline-summary">{scanHistorySummary(scan)}</div>
+          )}
+          {scan.commit && scan.commit !== "pending" && scan.commit !== "-" && (
+            <span className="scan-badge scan-badge-muted">{scan.commit}</span>
+          )}
+          <span className={`scan-badge scan-badge-status scan-badge-${status}`}>
+            {status}
+          </span>
+          {scan.aiUsage?.model && (
+            <span className="scan-badge scan-badge-muted">{scan.aiUsage.model}</span>
+          )}
           {total > 0 && (
+            <span className={`scan-issues-badge ${issuesBadgeTone}`}>
+              {T(
+                `${total} issue${total === 1 ? "" : "s"}`,
+                `${total} 个问题`
+              )}
+            </span>
+          )}
+        </div>
+        {total > 0 ? (
+          <>
             <div
-              className="hist-timeline-bar"
+              className="scan-severity-bar"
               role="img"
               aria-label={T(
                 `${total} issues: critical ${breakdown.critical || 0}, high ${breakdown.high || 0}, medium ${breakdown.medium || 0}, low ${breakdown.low || 0}`,
                 `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
               )}
             >
-              <span
-                style={{
-                  width: `${(Number(breakdown.critical || 0) / maxBucket) * 100}%`,
-                  background: "var(--sev-critical)",
-                }}
-              />
-              <span
-                style={{
-                  width: `${(Number(breakdown.high || 0) / maxBucket) * 100}%`,
-                  background: "var(--sev-high)",
-                }}
-              />
-              <span
-                style={{
-                  width: `${(Number(breakdown.medium || 0) / maxBucket) * 100}%`,
-                  background: "var(--sev-medium)",
-                }}
-              />
-              <span
-                style={{
-                  width: `${(Number(breakdown.low || 0) / maxBucket) * 100}%`,
-                  background: "var(--sev-low)",
-                }}
-              />
+              {SEVERITY_BAR_SEGMENTS.map((seg) => {
+                const value = Number(breakdown[seg.key] || 0);
+                if (value <= 0) return null;
+                const pct = (value / total) * 100;
+                return (
+                  <span
+                    key={seg.key}
+                    className={`scan-severity-seg scan-severity-${seg.key}`}
+                    style={{ width: `${pct}%`, background: seg.color }}
+                  />
+                );
+              })}
             </div>
-          )}
-        </div>
-        <div className="hist-timeline-actions">
-          <button className="btn sm" onClick={() => viewScan(scan)}>
-            {T("View", "查看")} <I.ArrowR size={11} />
-          </button>
+            <div className="scan-severity-legend">
+              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map(
+                (s, i, arr) => (
+                  <span key={s.key} className={`scan-severity-legend-i scan-severity-${s.key}`}>
+                    <span className="scan-severity-legend-dot" style={{ background: "currentColor" }} />
+                    {T(s.labelEn, s.labelZh)} {breakdown[s.key]}
+                    {i < arr.length - 1 && <span className="scan-severity-legend-sep">·</span>}
+                  </span>
+                )
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="scan-summary muted">{summary}</div>
+        )}
+      </div>
+      <div className="scan-row-actions" ref={menuRef}>
+        {total > 0 && (
           <button
             className="btn sm"
-            disabled={!scan.id || !scanHasResults(scan)}
+            disabled={!scan.id || !hasResults}
             onClick={() => viewScanIssues(scan)}
           >
-            <I.Bug size={11} /> {T("Issues", "问题")}
+            {T("Issues", "问题")}
           </button>
-          <button
-            className="btn sm"
-            disabled={!scanHasResults(scan) || bundleLoading === scan.id}
-            onClick={() => downloadAuditBundle(scan)}
-            title={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
-            aria-label={T("Download audit bundle (zip)", "下载审计证据包（zip）")}
-          >
-            <I.Download size={11} />
-            {bundleLoading === scan.id ? T("Preparing", "准备中") : T("Download zip", "下载 zip")}
-          </button>
-        </div>
+        )}
+        <button className="btn sm" onClick={() => viewScan(scan)}>
+          {T("View", "查看")}
+        </button>
+        <button
+          type="button"
+          className="btn sm scan-row-more"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-label={T("More actions", "更多操作")}
+          title={T("More actions", "更多操作")}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          ⋯
+        </button>
+        {menuOpen && (
+          <div className="scan-row-menu" role="menu">
+            <button
+              type="button"
+              className="scan-row-menu-item"
+              role="menuitem"
+              disabled={!hasResults || isDownloading}
+              onClick={() => {
+                setMenuOpen(false);
+                downloadAuditBundle(scan);
+              }}
+            >
+              <I.Download size={12} />
+              {isDownloading
+                ? T("Preparing...", "准备中...")
+                : T("Download zip", "下载 zip")}
+            </button>
+          </div>
+        )}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -1848,7 +1964,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
               </div>
             )}
             {filtered.length > 0 && (
-              <HistoryTimeline
+              <HistoryGroups
                 scans={filtered}
                 viewScan={viewScan}
                 viewScanIssues={viewScanIssues}

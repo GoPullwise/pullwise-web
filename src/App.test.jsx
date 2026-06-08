@@ -793,25 +793,6 @@ describe("App", () => {
     expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
   });
 
-  it("starts GitHub repository authorization from the dashboard sidebar", async () => {
-    window.history.replaceState({}, "", "/dashboard");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
-    connectGitHubRepositories.mockResolvedValueOnce(undefined);
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await user.click(await screen.findByRole("button", { name: /connect github/i }));
-
-    await waitFor(() => {
-      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
-    });
-  });
-
   it("opens issue search results directly in the issue detail view", async () => {
     window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
@@ -915,26 +896,6 @@ describe("App", () => {
     });
     const latestIssueParams = pullwiseApi.issues.list.mock.calls.at(-1)?.[0] || {};
     expect(latestIssueParams.scanId).toBeUndefined();
-  });
-
-  it("keeps failed dashboard sidebar repository authorization in the repositories flow", async () => {
-    window.history.replaceState({}, "", "/dashboard");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
-    connectGitHubRepositories.mockRejectedValueOnce(new Error("authorization failed"));
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await user.click(await screen.findByRole("button", { name: /connect github/i }));
-
-    await waitFor(() => {
-      expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
-      expect(document.querySelector('[data-screen-label="repos"]')).toBeInTheDocument();
-    });
   });
 
   it("continues repository authorization after returning from GitHub login", async () => {
