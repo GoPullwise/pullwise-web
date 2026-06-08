@@ -129,7 +129,6 @@ const ISSUE_FEEDBACK_BADGES = [
     labelZh: "误报",
     reason: "False positive.",
     falsePositive: true,
-    status: "snoozed",
     tone: "negative",
   },
   {
@@ -137,28 +136,24 @@ const ISSUE_FEEDBACK_BADGES = [
     labelEn: "Not relevant",
     labelZh: "不相关",
     reason: "Not relevant to this PR.",
-    status: "snoozed",
   },
   {
     value: "duplicate",
     labelEn: "Duplicate",
     labelZh: "重复",
     reason: "Duplicate issue.",
-    status: "snoozed",
   },
   {
     value: "too_speculative",
     labelEn: "Speculative",
     labelZh: "猜测",
     reason: "Too speculative.",
-    status: "snoozed",
   },
   {
     value: "low_impact",
     labelEn: "Low impact",
     labelZh: "影响较低",
     reason: "Low impact.",
-    status: "snoozed",
   },
 ];
 
@@ -358,23 +353,6 @@ function buildIssuePageMarkdown(issue, currentStatus) {
   }
   appendMarkdownSection(lines, "Confidence evidence", confidenceEvidence);
 
-  if (issue.evidenceTrace?.length) {
-    appendMarkdownSection(
-      lines,
-      "Evidence trace",
-      issue.evidenceTrace.flatMap((stage) => {
-        const label = markdownText(stage.label || stage.key);
-        const status = markdownText(stage.status);
-        const stageLines = label ? [`### ${label}${status ? ` (${status})` : ""}`] : [];
-        if (stage.summary) stageLines.push(markdownText(stage.summary));
-        if (stage.items?.length) {
-          stageLines.push(...stage.items.map((item) => `- ${markdownText(item)}`).filter(Boolean));
-        }
-        return stageLines;
-      })
-    );
-  }
-
   const breakdown = issue.reasoningBreakdown || {};
   const reasoningLines = [
     ["Facts", breakdown.facts],
@@ -533,130 +511,6 @@ function EvidenceChain({ issue }) {
           )}
         </div>
       ))}
-    </div>
-  );
-}
-
-// One icon per evidence stage, so the chain reads at a glance.
-const EVIDENCE_STAGE_ICONS = {
-  code: I.Code,
-  path: I.GitBranch,
-  trigger: I.Zap,
-  runtime: I.Terminal,
-  impact: I.Shield,
-  fix: I.Sparkle,
-};
-
-const EVIDENCE_STAGE_DESCRIPTIONS = {
-  code: { en: "Where the issue lives in the code", zh: "问题所在的代码位置" },
-  path: { en: "How the code is reached from user input", zh: "从用户输入到代码的可达性" },
-  trigger: { en: "What input or command triggers the issue", zh: "触发该问题的输入或命令" },
-  runtime: { en: "What the runtime or test observed", zh: "运行时或测试观察到的结果" },
-  impact: { en: "What the impact on users is", zh: "对用户产生的影响" },
-  fix: { en: "What fix or remediation is proposed", zh: "建议的修复或缓解措施" },
-};
-
-function evidenceStageDescription(stage) {
-  const entry = EVIDENCE_STAGE_DESCRIPTIONS[stage.key];
-  if (!entry) return "";
-  return T(entry.en, entry.zh);
-}
-
-function EvidenceTrace({ issue }) {
-  const stages = Array.isArray(issue.evidenceTrace) ? issue.evidenceTrace : [];
-  if (!stages.length) return null;
-  const presentCount = stages.filter((s) => s.status === "present").length;
-  const total = stages.length;
-  const percent = total > 0 ? Math.round((presentCount / total) * 100) : 0;
-  return (
-    <div className="evidence-trace-wrap">
-      <div className="trace-progress">
-        <div className="trace-progress-h">
-          <span className="trace-progress-title">{T("Evidence trail", "证据链")}</span>
-          <span className="trace-progress-count">
-            {presentCount} / {total} {T("stages captured", "个阶段已采集")} · {percent}%
-          </span>
-        </div>
-        <div className="trace-progress-bar" aria-hidden="true">
-          <div className="trace-progress-fill" style={{ width: `${percent}%` }} />
-        </div>
-      </div>
-      <div className="trace-timeline" role="list">
-        {stages.map((stage, index) => (
-          <EvidenceTraceStep
-            key={`${stage.key || stage.label}-${index}`}
-            stage={stage}
-            index={index}
-            nextStatus={stages[index + 1]?.status}
-            isLast={index === stages.length - 1}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function EvidenceTraceStep({ stage, index, nextStatus, isLast }) {
-  const [open, setOpen] = useState(true);
-  const items = (stage.items || []).filter((item) => item !== stage.summary);
-  const status = stage.status === "present" ? "present" : "missing";
-  const summary = stage.summary || items[0] || "";
-  const Icon = EVIDENCE_STAGE_ICONS[stage.key];
-  const description = evidenceStageDescription(stage);
-  return (
-    <div
-      className={`trace-step trace-step-${status}`}
-      role="listitem"
-      data-trace-key={stage.key || stage.label || `step-${index}`}
-    >
-      <button
-        type="button"
-        className="trace-node"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        title={summary || description}
-      >
-        <span className="trace-node-bullet" aria-hidden="true">
-          {status === "present" ? <I.Check size={14} /> : <I.X size={14} />}
-        </span>
-        <span className="trace-node-l">
-          {Icon ? <Icon size={11} className="trace-node-glyph" /> : null}
-          {stage.label || stage.key || `Step ${index + 1}`}
-        </span>
-        <span className="trace-node-s">
-          {status === "present" ? T("captured", "已采集") : T("missing", "缺失")}
-        </span>
-        {(summary || description) && (
-          <span className="trace-node-summary" title={summary}>
-            {summary || description}
-          </span>
-        )}
-        <span className="trace-node-toggle" aria-hidden="true">
-          {open ? <I.X size={11} /> : <I.ChevD size={11} />}
-        </span>
-      </button>
-      {!isLast && (
-        <span
-          className={`trace-connector trace-connector-${nextStatus === "present" ? "present" : "missing"}`}
-          aria-hidden="true"
-        />
-      )}
-      {open && (
-        <div className="trace-node-detail">
-          {description && <p className="trace-node-detail-h">{description}</p>}
-          {items.length > 0 ? (
-            <ul className="trace-node-items">
-              {items.map((item, i) => (
-                <li key={`${stage.key}-${i}-${item}`}>{item}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted trace-node-empty">
-              {T("No additional items were captured for this stage.", "此阶段未采集到其他条目。")}
-            </p>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -1109,8 +963,12 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [pullRequest, setPullRequest] = useState(issuePullRequestState(activeIssue));
   const [fixLoading, setFixLoading] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
+  const [selectedFeedback, setSelectedFeedback] = useState(activeIssue?.feedbackReason || "");
+  const [feedbackLoading, setFeedbackLoading] = useState("");
+  const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [pageCopied, setPageCopied] = useState(false);
   const statusRequestRef = useRef(false);
+  const feedbackRequestRef = useRef(0);
   const fixRequestRef = useRef(0);
   const pageCopyResetRef = useRef(null);
 
@@ -1153,8 +1011,12 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setPullRequest(issuePullRequestState(activeIssue));
     setFixLoading("");
     setStatusLoading("");
+    setSelectedFeedback(activeIssue?.feedbackReason || "");
+    setFeedbackLoading("");
+    setFeedbackSaved(false);
     setPageCopied(false);
     statusRequestRef.current = false;
+    feedbackRequestRef.current += 1;
     if (pageCopyResetRef.current) {
       clearTimeout(pageCopyResetRef.current);
       pageCopyResetRef.current = null;
@@ -1162,6 +1024,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     return () => {
       fixRequestRef.current += 1;
       statusRequestRef.current = false;
+      feedbackRequestRef.current += 1;
       if (pageCopyResetRef.current) {
         clearTimeout(pageCopyResetRef.current);
         pageCopyResetRef.current = null;
@@ -1190,7 +1053,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
 
   const issue = activeIssue;
 
-  const updateStatus = async (nextStatus, feedback = {}) => {
+  const updateStatus = async (nextStatus) => {
     if (statusRequestRef.current) return;
     statusRequestRef.current = true;
     setActionError("");
@@ -1199,7 +1062,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       const updated = await pullwiseApi.issues.updateStatus(issue.id, {
         status: nextStatus,
         ...issueStatusIdentity(issue),
-        ...feedback,
       });
       const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
       setCurrentStatus(mergedIssue.status);
@@ -1234,13 +1096,17 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     issue.reasoningBreakdown?.inferences?.length ||
     issue.reasoningBreakdown?.recommendations?.length
   );
-  const hasEvidenceTrace = Boolean(issue.evidenceTrace?.length);
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
   const activePullRequest =
     pullRequest?.issueId === issue.id
       ? pullRequest.value
       : issuePullRequestState(issue)?.value || null;
-  const submitFeedbackBadge = (feedback) => {
+  const selectedFeedbackBadge = ISSUE_FEEDBACK_BADGES.find(
+    (feedback) => feedback.value === selectedFeedback
+  );
+  const submitFeedbackBadge = async (feedback) => {
+    const requestId = feedbackRequestRef.current + 1;
+    feedbackRequestRef.current = requestId;
     const payload = {
       feedbackReason: feedback.value,
       reason: feedback.reason,
@@ -1248,7 +1114,31 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     if (typeof feedback.falsePositive === "boolean") {
       payload.falsePositive = feedback.falsePositive;
     }
-    updateStatus(feedback.status || currentStatus || "open", payload);
+    setActionError("");
+    setSelectedFeedback(feedback.value);
+    setFeedbackSaved(false);
+    setFeedbackLoading(feedback.value);
+    try {
+      const updated = await pullwiseApi.issues.updateStatus(issue.id, {
+        ...issueStatusIdentity(issue),
+        ...payload,
+      });
+      if (feedbackRequestRef.current !== requestId) return;
+      const mergedIssue = {
+        ...issue,
+        ...updated,
+        status: updated?.status || currentStatus || issue.status || "open",
+        feedbackReason: feedback.value,
+      };
+      setCurrentStatus(mergedIssue.status);
+      if (typeof setIssue === "function") setIssue(mergedIssue);
+      setFeedbackSaved(true);
+    } catch (error) {
+      if (feedbackRequestRef.current !== requestId) return;
+      setActionError(error?.message || "Unable to submit issue feedback.");
+    } finally {
+      if (feedbackRequestRef.current === requestId) setFeedbackLoading("");
+    }
   };
   const beginFixRequest = () => {
     const requestId = fixRequestRef.current + 1;
@@ -1375,12 +1265,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     <p className="muted issue-section-note">{issue.verificationSummary}</p>
                   )}
                   <EvidenceChecklist issue={issue} />
-                </DetailSection>
-              )}
-
-              {hasEvidenceTrace && (
-                <DetailSection title="Evidence trace">
-                  <EvidenceTrace issue={issue} />
                 </DetailSection>
               )}
 
@@ -1552,15 +1436,25 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               <div className="issue-feedback">
                 <div className="issue-feedback-h">
                   <span className="muted">{T("Feedback", "反馈")}</span>
-                  <span className="tag">{currentStatus || "open"}</span>
+                  {selectedFeedbackBadge && (
+                    <span className="tag issue-feedback-selected" aria-live="polite">
+                      {feedbackLoading ? "Saving:" : feedbackSaved ? "Selected:" : "Selected:"}{" "}
+                      {T(selectedFeedbackBadge.labelEn, selectedFeedbackBadge.labelZh)}
+                    </span>
+                  )}
                 </div>
                 <div className="issue-feedback-badges" aria-label={T("Issue feedback", "问题反馈")}>
                   {ISSUE_FEEDBACK_BADGES.map((feedback) => (
                     <button
                       key={feedback.value}
                       type="button"
-                      className={"issue-feedback-badge " + (feedback.tone || "")}
-                      disabled={Boolean(statusLoading)}
+                      className={
+                        "issue-feedback-badge " +
+                        (feedback.tone || "") +
+                        (selectedFeedback === feedback.value ? " selected" : "")
+                      }
+                      disabled={Boolean(feedbackLoading)}
+                      aria-pressed={selectedFeedback === feedback.value}
                       onClick={() => submitFeedbackBadge(feedback)}
                     >
                       {T(feedback.labelEn, feedback.labelZh)}

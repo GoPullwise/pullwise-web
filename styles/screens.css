@@ -2266,6 +2266,15 @@ button.dash-cat-row:hover {
   border-color: var(--border-strong);
   background: var(--bg-soft);
 }
+.issue-feedback-selected {
+  border-color: var(--border-strong);
+  background: var(--bg-soft);
+}
+.issue-feedback-badge.selected {
+  color: var(--accent-strong);
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
+  background: color-mix(in oklch, var(--accent) 10%, var(--bg-elev));
+}
 .issue-feedback-badge:disabled {
   opacity: 0.4;
   pointer-events: none;
