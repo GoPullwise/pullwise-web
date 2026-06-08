@@ -387,6 +387,54 @@ describe("App", () => {
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
   });
 
+  it("shows the back-to-top button only after scrolling past the threshold", async () => {
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 0, writable: true });
+
+    render(<App />);
+
+    const findBackToTop = () => screen.getByRole("button", { name: /back to top/i });
+    expect(findBackToTop()).not.toHaveClass("visible");
+    expect(findBackToTop()).toHaveAttribute("tabindex", "-1");
+
+    window.scrollY = 400;
+    window.dispatchEvent(new Event("scroll"));
+    await waitFor(() => {
+      expect(findBackToTop()).toHaveClass("visible");
+    });
+    expect(findBackToTop()).toHaveAttribute("tabindex", "0");
+
+    fireEvent.click(findBackToTop());
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }));
+
+    window.scrollY = 0;
+    window.dispatchEvent(new Event("scroll"));
+    await waitFor(() => {
+      expect(findBackToTop()).not.toHaveClass("visible");
+    });
+
+    scrollTo.mockRestore();
+  });
+
+  it("localizes the back-to-top tooltip when the language changes", () => {
+    setLang("en");
+    render(<App />);
+
+    expect(screen.getByRole("button", { name: /back to top/i })).toHaveAttribute(
+      "title",
+      "Back to top"
+    );
+
+    act(() => {
+      setLang("zh");
+    });
+
+    expect(screen.getByRole("button", { name: /回到顶部/i })).toHaveAttribute(
+      "title",
+      "回到顶部"
+    );
+  });
+
   it("renders GitHub-only login UI", () => {
     render(<LoginScreen go={vi.fn()} />);
 

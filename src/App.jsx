@@ -24,6 +24,7 @@ const LAYOUT = "list";
 const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
 const SESSION_SIGNED_OUT_CONFIRM_DELAY_MS = 2000;
 const ACTIVE_REPO_STORAGE_KEY = "pw-active-repo";
+const BACK_TO_TOP_THRESHOLD_PX = 240;
 const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
@@ -136,6 +137,7 @@ export function App({ prototypeNav = false }) {
   const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const continuedRepositoryAuthorization = useRef(false);
 
   const go = (nextScreen, params = {}) => {
@@ -362,6 +364,23 @@ export function App({ prototypeNav = false }) {
     });
   }, [auth.status, auth.authenticated, screen]);
 
+  // Show the back-to-top button once the user has scrolled past the threshold,
+  // and hide it again when they return to the top. This lets long list pages
+  // (dashboard, repositories, issues, scan history) recover from deep scroll.
+  useEffect(() => {
+    const updateBackToTop = () => {
+      setShowBackToTop(window.scrollY > BACK_TO_TOP_THRESHOLD_PX);
+    };
+    updateBackToTop();
+    window.addEventListener("scroll", updateBackToTop, { passive: true });
+    return () => window.removeEventListener("scroll", updateBackToTop);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+  }, []);
+
   let body;
   if (auth.status === "checking" && shouldShowSessionCheck(screen)) {
     body = (
@@ -500,6 +519,16 @@ export function App({ prototypeNav = false }) {
         {body}
       </div>
 
+      <button
+        type="button"
+        className={"back-to-top" + (showBackToTop ? " visible" : "")}
+        onClick={scrollToTop}
+        title={T("Back to top", "回到顶部")}
+        aria-label={T("Back to top", "回到顶部")}
+        tabIndex={showBackToTop ? 0 : -1}
+      >
+        <I.ArrowUp size={16} />
+      </button>
       <button
         className="lang-toggle"
         onClick={() => setLang(lang === "en" ? "zh" : "en")}
