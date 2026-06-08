@@ -489,7 +489,7 @@ select {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.crumb-button {
+.topbar .crumbs .crumb-button {
   border: 0;
   background: transparent;
   color: inherit;

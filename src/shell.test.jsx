@@ -30,6 +30,19 @@ describe("Topbar navigation", () => {
     expect(screen.queryByRole("link", { name: /^issues$/i })).not.toBeInTheDocument();
   });
 
+  it("overrides generic topbar link padding for clickable breadcrumbs", () => {
+    const styles = readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
+    const genericTopbarLinkBlock = styles.match(
+      /\.topbar nav button,\s*\.topbar nav a\s*\{(?<body>[^}]*)\}/s
+    )?.groups?.body;
+    const breadcrumbButtonBlock = styles.match(
+      /\.topbar \.crumbs \.crumb-button\s*\{(?<body>[^}]*)\}/s
+    )?.groups?.body;
+
+    expect(genericTopbarLinkBlock).toMatch(/\bpadding:\s*0 10px;/);
+    expect(breadcrumbButtonBlock).toMatch(/\bpadding:\s*0;/);
+  });
+
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
