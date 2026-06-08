@@ -1628,14 +1628,17 @@ function HistoryTimeline({ scans, viewScan, viewScanIssues, downloadAuditBundle,
   if (scans.length === 0) return null;
   return (
     <div className="hist-timeline" role="list">
-      <div className="hist-timeline-axis" />
+      <div className="hist-timeline-axis" aria-hidden="true" />
       {groups.map(([key, items]) => (
         <div className="hist-timeline-day" key={key} role="listitem">
-          <div className="hist-timeline-day-label">
-            {dayLabel(key)}
-            <span className="hist-timeline-day-count">
-              {T(`${items.length} scan${items.length === 1 ? "" : "s"}`, `${items.length} 次扫描`)}
-            </span>
+          <div className="hist-timeline-day-row">
+            <div className="hist-timeline-day-marker" aria-hidden="true" />
+            <div className="hist-timeline-day-label">
+              {dayLabel(key)}
+              <span className="hist-timeline-day-count">
+                {T(`${items.length} scan${items.length === 1 ? "" : "s"}`, `${items.length} 次扫描`)}
+              </span>
+            </div>
           </div>
           {items.map((scan) => (
             <HistoryTimelineRow
@@ -1666,8 +1669,8 @@ function HistoryTimelineRow({ scan, viewScan, viewScanIssues, downloadAuditBundl
   return (
     <div className="hist-timeline-row">
       <div className="hist-timeline-time">{scanTimeLabel(scan)}</div>
+      <div className={`hist-timeline-marker hist-timeline-marker-${scan.status || "info"}`} aria-hidden="true" />
       <div className="hist-timeline-content hist-row">
-        <span className={`hist-timeline-dot hist-timeline-dot-${scan.status || "info"}`} />
         <div className="hist-timeline-h">
           <b>{scan.repo}</b>
           <span className="tag">
