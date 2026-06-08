@@ -89,6 +89,30 @@ describe("DashboardScreen issue list", () => {
     });
   });
 
+  it("shows a topbar loading spinner only while dashboard data is loading", () => {
+    useIssues.mockReturnValue({ items: [], loading: true, error: "" });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({ items: [], loading: false });
+
+    const { rerender } = render(
+      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
+    );
+
+    expect(screen.getByRole("status", { name: /loading dashboard/i })).toHaveClass(
+      "topbar-loading",
+      "spin"
+    );
+
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    rerender(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    expect(screen.queryByRole("status", { name: /loading dashboard/i })).not.toBeInTheDocument();
+  });
+
   it("pins KPI footnote text to a fixed slot above the sparkline", () => {
     const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
 

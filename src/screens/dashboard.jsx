@@ -125,6 +125,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
 
   const visibleRepos = repositories.slice(0, 6);
   const hasRepos = visibleRepos.length > 0;
+  const dashboardLoading = issuesLoading || scansLoading || reposLoading;
 
   return (
     <div className="app fade-in">
@@ -132,6 +133,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
         go={go}
         breadcrumbs={[{ label: T("Overview", "总览") }]}
         setIssue={setIssue}
+        loading={dashboardLoading}
       />
       <div className="with-side">
         <Sidebar section="dashboard" go={go} />

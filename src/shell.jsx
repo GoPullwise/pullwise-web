@@ -5,7 +5,7 @@ import { connectGitHubRepositories } from "./lib/auth.js";
 import { screenLinkProps } from "./lib/navigation.js";
 import { useIssues, useRepositories } from "./lib/pullwise-data.js";
 
-export function Topbar({ go, breadcrumbs, setIssue = null }) {
+export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
   useLang();
   const [searchOpen, setSearchOpen] = React.useState(false);
 
@@ -57,6 +57,16 @@ export function Topbar({ go, breadcrumbs, setIssue = null }) {
         )}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {loading && (
+          <span
+            className="topbar-loading spin"
+            role="status"
+            aria-label={T("Loading dashboard", "正在加载 dashboard")}
+            title={T("Loading dashboard", "正在加载 dashboard")}
+          >
+            <I.Refresh size={14} />
+          </span>
+        )}
         <button className="btn ghost sm" onClick={() => setSearchOpen(true)}>
           <I.Search size={14} />{" "}
           <span style={{ color: "var(--text-3)" }}>{T("Search...", "搜索...")}</span>{" "}

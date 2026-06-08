@@ -413,6 +413,12 @@ textarea {
   object-fit: contain;
   aspect-ratio: 1;
 }
+.topbar-loading {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  color: var(--text-3);
+}
 .topbar nav {
   display: flex;
   gap: 4px;
