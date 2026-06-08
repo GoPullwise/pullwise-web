@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -142,14 +142,27 @@ describe("SettingsScreen", () => {
 
     expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
     expect(screen.getByText("GoPullwise")).toBeInTheDocument();
-    expect(screen.getByText(/Organization .* selected .* 1 repository/i)).toBeInTheDocument();
+    const pullwiseMeta = screen
+      .getByText("GoPullwise")
+      .closest(".gh-install-row")
+      .querySelector(".gh-install-meta");
+    expect(within(pullwiseMeta).getByText("Organization")).toBeInTheDocument();
+    expect(within(pullwiseMeta).getByText("selected")).toBeInTheDocument();
+    expect(within(pullwiseMeta).getByText("1 repository")).toBeInTheDocument();
     expect(screen.getByText("GoTagma")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Organization .* all repositories .* 4 repositories/i)
-    ).toBeInTheDocument();
+    const tagmaMeta = screen
+      .getByText("GoTagma")
+      .closest(".gh-install-row")
+      .querySelector(".gh-install-meta");
+    expect(within(tagmaMeta).getByText("Organization")).toBeInTheDocument();
+    expect(within(tagmaMeta).getByText("all repositories")).toBeInTheDocument();
+    expect(within(tagmaMeta).getByText("4 repositories")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /manage gopullwise/i })).not.toBeInTheDocument();
     expect(screen.getByText("Last verified by @alice")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /manage gopullwise/i })).toBeInTheDocument();
+    expect(
+      screen.queryByText(/5 repositories authorized on GoPullwise, GoTagma/i)
+    ).not.toBeInTheDocument();
   });
 
   it("does not render negative installation repository counts", async () => {
@@ -176,7 +189,13 @@ describe("SettingsScreen", () => {
 
     expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("-2 repositories");
-    expect(screen.getByText(/Account .* selected .* 0 repositories/i)).toBeInTheDocument();
+    const meta = screen
+      .getByText("GoPullwise")
+      .closest(".gh-install-row")
+      .querySelector(".gh-install-meta");
+    expect(within(meta).getByText("Account")).toBeInTheDocument();
+    expect(within(meta).getByText("selected")).toBeInTheDocument();
+    expect(within(meta).getByText("0 repositories")).toBeInTheDocument();
   });
 
   it("syncs and refreshes installation repository counts after returning from GitHub management", async () => {
@@ -232,8 +251,9 @@ describe("SettingsScreen", () => {
         githubIdentityId: undefined,
         redirectTo: expect.any(String),
       });
-      expect(screen.getByText(/2 repositories authorized on GoPullwise/i)).toBeInTheDocument();
+      expect(screen.getByText("2 repositories")).toBeInTheDocument();
     });
+    expect(screen.queryByText(/2 repositories authorized on GoPullwise/i)).not.toBeInTheDocument();
     expect(screen.getAllByText(/2 repositories/i).length).toBeGreaterThan(0);
   });
 

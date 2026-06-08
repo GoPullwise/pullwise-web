@@ -1045,6 +1045,7 @@ export function ReposScreen({
     reload,
   } = useRepositories();
   const displayError = error || connectError || authorizationError;
+  const hasInstallationDetails = Array.isArray(installations) && installations.length > 0;
   const allLabel = T("All", "所有");
   const orgs = useMemo(
     () => [
@@ -1369,17 +1370,19 @@ export function ReposScreen({
           <div className="page-h">
             <div>
               <h1>{T("Choose repositories to scan", "选择要扫描的仓库")}</h1>
-              <div className="sub">
-                {needsAuthorization
-                  ? T(
-                      "GitHub repository access is not connected yet.",
-                      "尚未连接 GitHub 仓库权限。"
-                    )
-                  : T(
-                      `${availableRepos.length} authorized repos`,
-                      `${availableRepos.length} 个已授权仓库`
-                    )}
-              </div>
+              {(needsAuthorization || !hasInstallationDetails) && (
+                <div className="sub">
+                  {needsAuthorization
+                    ? T(
+                        "GitHub repository access is not connected yet.",
+                        "尚未连接 GitHub 仓库权限。"
+                      )
+                    : T(
+                        `${availableRepos.length} authorized repos`,
+                        `${availableRepos.length} 个已授权仓库`
+                      )}
+                </div>
+              )}
               {accountQuotaLabel && (
                 <div className="sub account-quota-summary">Account quota: {accountQuotaLabel}</div>
               )}
@@ -1405,7 +1408,7 @@ export function ReposScreen({
             </div>
           </div>
 
-          {!needsAuthorization && (
+          {!needsAuthorization && hasInstallationDetails && (
             <GitHubInstallationsList
               installations={installations}
               onManage={manageInstallation}

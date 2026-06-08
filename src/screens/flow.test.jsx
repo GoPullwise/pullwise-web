@@ -379,6 +379,33 @@ describe("ReposScreen scan selection", () => {
     );
   });
 
+  it("uses the installation list instead of a duplicate authorization summary", async () => {
+    useRepositories.mockReturnValue({
+      items: [repoAlpha, repoBeta],
+      installations: [
+        {
+          installationId: "130258770",
+          installationAccount: "octocat",
+          installationTargetType: "Organization",
+          repositorySelection: "selected",
+          repositoryCount: 2,
+        },
+      ],
+      installationAccounts: ["octocat"],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
+    expect(screen.getByText("octocat")).toBeInTheDocument();
+    expect(screen.getByText("selected")).toBeInTheDocument();
+    expect(screen.queryByText(/2 authorized repos/i)).not.toBeInTheDocument();
+  });
+
   it("blocks selecting beyond the current account quota with a clear reason", async () => {
     const user = userEvent.setup();
     useRepositories.mockReturnValue({

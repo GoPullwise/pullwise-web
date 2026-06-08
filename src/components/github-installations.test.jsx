@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GitHubInstallationsList } from "./github-installations.jsx";
 
@@ -27,7 +27,11 @@ describe("GitHubInstallationsList", () => {
 
     expect(screen.getByText("Authorized GitHub installations")).toBeInTheDocument();
     expect(screen.getByText("130258770")).toBeInTheDocument();
-    expect(screen.getByText(/Account .* selected .* 2 repositories/i)).toBeInTheDocument();
+    const row = screen.getByText("130258770").closest(".gh-install-row");
+    const meta = row.querySelector(".gh-install-meta");
+    expect(within(meta).getByText("Account")).toBeInTheDocument();
+    expect(within(meta).getByText("selected")).toBeInTheDocument();
+    expect(within(meta).getByText("2 repositories")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("[object Object]");
     expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
   });
@@ -70,6 +74,27 @@ describe("GitHubInstallationsList", () => {
     );
   });
 
+  it("renders installation metadata as wrapping segments", () => {
+    render(
+      <GitHubInstallationsList
+        installations={[
+          {
+            installationId: "130258770",
+            installationAccount: "GoPullwise",
+            installationTargetType: "Organization",
+            repositorySelection: "selected",
+            repositoryCount: 12,
+          },
+        ]}
+      />
+    );
+
+    const meta = screen.getByText("Organization").closest(".gh-install-meta");
+    expect(meta).toBeInTheDocument();
+    expect(within(meta).getByText("selected")).toBeInTheDocument();
+    expect(within(meta).getByText("12 repositories")).toBeInTheDocument();
+  });
+
   it("rejects installation management links with control characters", () => {
     render(
       <GitHubInstallationsList
@@ -105,9 +130,11 @@ describe("GitHubInstallationsList", () => {
     );
 
     expect(screen.getByText("GoPullwise")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Organization .* all repositories .* 2 repositories/i)
-    ).toBeInTheDocument();
+    const row = screen.getByText("GoPullwise").closest(".gh-install-row");
+    const meta = row.querySelector(".gh-install-meta");
+    expect(within(meta).getByText("Organization")).toBeInTheDocument();
+    expect(within(meta).getByText("all repositories")).toBeInTheDocument();
+    expect(within(meta).getByText("2 repositories")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /manage/i })).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("X-Injected");
   });

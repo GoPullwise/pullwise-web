@@ -703,11 +703,21 @@ describe("App", () => {
 
     expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
     expect(screen.getByText("GoPullwise")).toBeInTheDocument();
-    expect(screen.getByText(/Organization .* selected .* 1 repository/i)).toBeInTheDocument();
+    const pullwiseMeta = screen
+      .getByText("GoPullwise")
+      .closest(".gh-install-row")
+      .querySelector(".gh-install-meta");
+    expect(within(pullwiseMeta).getByText("Organization")).toBeInTheDocument();
+    expect(within(pullwiseMeta).getByText("selected")).toBeInTheDocument();
+    expect(within(pullwiseMeta).getByText("1 repository")).toBeInTheDocument();
     expect(screen.getByText("GoTagma")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Organization .* all repositories .* 4 repositories/i)
-    ).toBeInTheDocument();
+    const tagmaMeta = screen
+      .getByText("GoTagma")
+      .closest(".gh-install-row")
+      .querySelector(".gh-install-meta");
+    expect(within(tagmaMeta).getByText("Organization")).toBeInTheDocument();
+    expect(within(tagmaMeta).getByText("all repositories")).toBeInTheDocument();
+    expect(within(tagmaMeta).getByText("4 repositories")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /manage gopullwise/i })).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /manage gopullwise github app installation/i })

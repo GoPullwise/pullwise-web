@@ -2126,6 +2126,8 @@ export function SettingsScreen({ go, setIssue = null }) {
   );
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
   const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
+  const hasGitHubInstallationDetails =
+    Array.isArray(github?.installations) && github.installations.length > 0;
   const reviewOutputLanguage = reviewOutputLanguageValue(settings);
   const updateReviewOutputLanguage = async (event) => {
     const outputLanguage = event.target.value;
@@ -2294,17 +2296,19 @@ export function SettingsScreen({ go, setIssue = null }) {
                     <I.Github size={20} />
                     <div style={{ flex: 1 }}>
                       <b>{T("GitHub repository authorization", "GitHub 仓库授权")}</b>
-                      <div className="muted">
-                        {github?.connected
-                          ? T(
-                              `${githubRepoCount} repositories authorized${githubAccount}`,
-                              `${githubRepoCount} 个仓库已授权${githubAccountZh}`
-                            )
-                          : T(
-                              "Connect repositories when you are ready to scan. Pullwise uses GitHub App repository access for checkout, fix branches, and pull requests.",
-                              "准备扫描时再连接仓库。Pullwise 使用 GitHub App 仓库权限进行 checkout、修复分支和 PR 创建。"
-                            )}
-                      </div>
+                      {(!github?.connected || !hasGitHubInstallationDetails) && (
+                        <div className="muted">
+                          {github?.connected
+                            ? T(
+                                `${githubRepoCount} repositories authorized${githubAccount}`,
+                                `${githubRepoCount} 个仓库已授权${githubAccountZh}`
+                              )
+                            : T(
+                                "Connect repositories when you are ready to scan. Pullwise uses GitHub App repository access for checkout, fix branches, and pull requests.",
+                                "准备扫描时再连接仓库。Pullwise 使用 GitHub App 仓库权限进行 checkout、修复分支和 PR 创建。"
+                              )}
+                        </div>
+                      )}
                     </div>
                     <span
                       className="pill sev-bg-low"

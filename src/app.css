@@ -811,11 +811,21 @@ body.has-proto-nav {
   grid-template-columns: 24px minmax(0, 1fr) max-content;
 }
 
+.gh-install-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .gh-install-meta > span,
 .gh-install-meta > a,
 .gh-identities > * {
   min-width: 0;
   max-width: 100%;
+}
+
+.gh-install-meta-separator {
+  color: var(--text-3);
 }
 
 .filters-row > .repos-search {

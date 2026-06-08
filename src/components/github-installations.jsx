@@ -122,8 +122,15 @@ export function GitHubInstallationsList({ installations, onManage, managingInsta
             <div className="gh-install-main">
               <div className="gh-install-account">{installation.account || installation.id}</div>
               <div className="gh-install-meta">
-                {installation.targetType} / {installation.selection} /{" "}
-                {repositoryCountLabel(installation.repositoryCount)}
+                <span>{installation.targetType}</span>
+                <span className="gh-install-meta-separator" aria-hidden="true">
+                  /
+                </span>
+                <span>{installation.selection}</span>
+                <span className="gh-install-meta-separator" aria-hidden="true">
+                  /
+                </span>
+                <span>{repositoryCountLabel(installation.repositoryCount)}</span>
               </div>
               <div className="gh-install-status">{installation.status}</div>
             </div>
