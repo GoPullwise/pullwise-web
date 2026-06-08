@@ -22,6 +22,7 @@ import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 const ACCENT = "#6366f1";
 const LAYOUT = "list";
 const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
+const SESSION_SIGNED_OUT_CONFIRM_DELAY_MS = 2000;
 const ACTIVE_REPO_STORAGE_KEY = "pw-active-repo";
 const PUBLIC_SCREENS = new Set([
   "landing",
@@ -203,9 +204,32 @@ export function App({ prototypeNav = false }) {
   // an OAuth provider) and return with a new session cookie that the app must detect.
   const sessionAbortRef = useRef(null);
   const sessionCheckingRef = useRef(false);
+  const sessionConfirmTimeoutRef = useRef(null);
+  const authRef = useRef(auth);
+
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
+
+  const setAuthState = useCallback((nextAuth) => {
+    const resolvedAuth = typeof nextAuth === "function" ? nextAuth(authRef.current) : nextAuth;
+    authRef.current = resolvedAuth;
+    setAuth(resolvedAuth);
+  }, []);
+
+  const clearSessionConfirmTimer = useCallback(() => {
+    if (!sessionConfirmTimeoutRef.current) return;
+    clearTimeout(sessionConfirmTimeoutRef.current);
+    sessionConfirmTimeoutRef.current = null;
+  }, []);
 
   const checkSession = useCallback(
-    async ({ isRetry = false, deferUnauthenticated = false } = {}) => {
+    async ({
+      isRetry = false,
+      deferUnauthenticated = false,
+      confirmUnauthenticated = false,
+      preserveAuthenticatedOnError = false,
+    } = {}) => {
       if (sessionCheckingRef.current) return { skipped: true };
       sessionCheckingRef.current = true;
 
@@ -214,17 +238,22 @@ export function App({ prototypeNav = false }) {
       sessionAbortRef.current = controller;
 
       if (!isRetry) {
-        setAuth((prev) => ({ ...prev, status: "checking" }));
+        setAuthState((prev) => ({ ...prev, status: "checking" }));
       }
 
       try {
         const payload = await pullwiseApi.auth.getSession({ signal: controller.signal });
         if (controller.signal.aborted) return { aborted: true };
         const authenticated = Boolean(payload?.authenticated);
-        if (!authenticated && deferUnauthenticated) {
-          return { authenticated, payload: payload || null };
+        const wasAuthenticated = Boolean(authRef.current?.authenticated);
+        if (
+          !authenticated &&
+          (deferUnauthenticated || (confirmUnauthenticated && wasAuthenticated))
+        ) {
+          return { authenticated, payload: payload || null, needsConfirmation: true };
         }
-        setAuth({ status: "ready", authenticated, session: payload || null });
+        clearSessionConfirmTimer();
+        setAuthState({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
           if (authenticated && current === "login") {
             return "landing";
@@ -237,37 +266,52 @@ export function App({ prototypeNav = false }) {
         return { authenticated, payload: payload || null };
       } catch (error) {
         if (controller.signal.aborted) return { aborted: true };
-        if (deferUnauthenticated) {
-          return { authenticated: false, error };
+        const wasAuthenticated = Boolean(authRef.current?.authenticated);
+        if (preserveAuthenticatedOnError && wasAuthenticated) {
+          setAuthState((previous) => ({ ...previous, status: "ready" }));
+          return { authenticated: true, error, preserved: true };
         }
-        setAuth({ status: "ready", authenticated: false, session: null });
+        if (deferUnauthenticated || (confirmUnauthenticated && wasAuthenticated)) {
+          return { authenticated: false, error, needsConfirmation: true };
+        }
+        clearSessionConfirmTimer();
+        setAuthState({ status: "ready", authenticated: false, session: null });
         setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
         return { authenticated: false, error };
       } finally {
         sessionCheckingRef.current = false;
       }
     },
-    []
+    [clearSessionConfirmTimer, setAuthState]
   );
+
+  const scheduleSignedOutConfirmation = useCallback(() => {
+    clearSessionConfirmTimer();
+    sessionConfirmTimeoutRef.current = setTimeout(() => {
+      sessionConfirmTimeoutRef.current = null;
+      checkSession({ isRetry: true, preserveAuthenticatedOnError: true });
+    }, SESSION_SIGNED_OUT_CONFIRM_DELAY_MS);
+  }, [checkSession, clearSessionConfirmTimer]);
 
   // Initial session check on mount, with a single retry on failure.
   // Many transient issues (server cold start, brief network hiccup) resolve within seconds.
   useEffect(() => {
     let disposed = false;
-    checkSession({ deferUnauthenticated: true }).then((result) => {
+    checkSession({ deferUnauthenticated: true, preserveAuthenticatedOnError: true }).then((result) => {
       if (disposed) return;
       if (result?.authenticated || result?.aborted || result?.skipped) return;
       // Keep login actions disabled until a second check confirms that the browser is actually
       // signed out. This avoids a transient signed-out UI during cold starts or weak networks.
       setTimeout(() => {
-        if (!disposed) checkSession({ isRetry: true });
+        if (!disposed) checkSession({ isRetry: true, preserveAuthenticatedOnError: true });
       }, INITIAL_SESSION_RETRY_DELAY_MS);
     });
     return () => {
       disposed = true;
       if (sessionAbortRef.current) sessionAbortRef.current.abort();
+      clearSessionConfirmTimer();
     };
-  }, [checkSession]);
+  }, [checkSession, clearSessionConfirmTimer]);
 
   // Re-check session when the app becomes visible or regains focus.
   // This catches the case where the user navigated away (e.g. to GitHub OAuth), completed an
@@ -276,7 +320,13 @@ export function App({ prototypeNav = false }) {
   useEffect(() => {
     const recheck = () => {
       if (document.visibilityState === "hidden") return;
-      checkSession({ isRetry: true });
+      checkSession({
+        isRetry: true,
+        confirmUnauthenticated: true,
+        preserveAuthenticatedOnError: true,
+      }).then((result) => {
+        if (result?.needsConfirmation) scheduleSignedOutConfirmation();
+      });
     };
     window.addEventListener("focus", recheck);
     document.addEventListener("visibilitychange", recheck);
@@ -284,7 +334,7 @@ export function App({ prototypeNav = false }) {
       window.removeEventListener("focus", recheck);
       document.removeEventListener("visibilitychange", recheck);
     };
-  }, [checkSession]);
+  }, [checkSession, scheduleSignedOutConfirmation]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -334,7 +384,7 @@ export function App({ prototypeNav = false }) {
             style={{ marginTop: 16 }}
             onClick={() => {
               if (sessionAbortRef.current) sessionAbortRef.current.abort();
-              setAuth({ status: "ready", authenticated: false, session: null });
+              setAuthState({ status: "ready", authenticated: false, session: null });
               setScreen("login");
             }}
           >

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -51,6 +51,14 @@ function blockedStorage() {
   };
 }
 
+async function flushPromises() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -93,6 +101,7 @@ describe("App", () => {
 
   afterEach(() => {
     setLang("en");
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -303,6 +312,72 @@ describe("App", () => {
       expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
     }, { timeout: 3500 });
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
+  });
+
+  it("keeps an authenticated private screen while confirming a transient signed-out recheck", async () => {
+    window.history.replaceState({}, "", "/dashboard");
+    const session = {
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    };
+    pullwiseApi.auth.getSession
+      .mockResolvedValueOnce(session)
+      .mockResolvedValueOnce({ authenticated: false })
+      .mockResolvedValueOnce(session);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+    });
+
+    vi.useFakeTimers();
+    fireEvent.focus(window);
+    await flushPromises();
+
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
+    expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+    expect(document.querySelector('[data-screen-label="login"]')).not.toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    await flushPromises();
+
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(3);
+    expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+    expect(document.querySelector('[data-screen-label="login"]')).not.toBeInTheDocument();
+  });
+
+  it("sends an authenticated private screen to login after signed-out recheck is confirmed", async () => {
+    window.history.replaceState({}, "", "/dashboard");
+    pullwiseApi.auth.getSession
+      .mockResolvedValueOnce({
+        authenticated: true,
+        user: { name: "Dev", email: "dev@example.com" },
+      })
+      .mockResolvedValueOnce({ authenticated: false })
+      .mockResolvedValueOnce({ authenticated: false });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+    });
+
+    vi.useFakeTimers();
+    fireEvent.focus(window);
+    await flushPromises();
+
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
+    expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    await flushPromises();
+
+    expect(document.querySelector('[data-screen-label="login"]')).toBeInTheDocument();
   });
 
   it("shows signed-in actions on the landing page", () => {
