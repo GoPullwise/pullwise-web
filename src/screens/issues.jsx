@@ -587,7 +587,7 @@ function EvidenceTrace({ issue }) {
 }
 
 function EvidenceTraceStep({ stage, index, nextStatus, isLast }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const items = (stage.items || []).filter((item) => item !== stage.summary);
   const status = stage.status === "present" ? "present" : "missing";
   const summary = stage.summary || items[0] || "";
@@ -1841,41 +1841,41 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
           )}
         </div>
         {total > 0 && (
-          <>
-            <div
-              className="scan-severity-bar"
-              role="img"
-              aria-label={T(
-                `${total} issues: critical ${breakdown.critical || 0}, high ${breakdown.high || 0}, medium ${breakdown.medium || 0}, low ${breakdown.low || 0}`,
-                `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
-              )}
-            >
-              {SEVERITY_BAR_SEGMENTS.map((seg) => {
-                const value = Number(breakdown[seg.key] || 0);
-                if (value <= 0) return null;
-                const pct = (value / total) * 100;
-                return (
-                  <span
-                    key={seg.key}
-                    className={`scan-severity-seg scan-severity-${seg.key}`}
-                    style={{ width: `${pct}%`, background: seg.color }}
-                  />
-                );
-              })}
-            </div>
-            <div className="scan-severity-legend">
-              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map((s, i, arr) => (
-                <span key={s.key} className={`scan-severity-legend-i scan-severity-${s.key}`}>
-                  <span
-                    className="scan-severity-legend-dot"
-                    style={{ background: "currentColor" }}
-                  />
+          <div
+            className="scan-severity-strip"
+            role="img"
+            aria-label={T(
+              `${total} issues: critical ${breakdown.critical || 0}, high ${breakdown.high || 0}, medium ${breakdown.medium || 0}, low ${breakdown.low || 0}`,
+              `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
+            )}
+          >
+            {/* Default: severity capsules (no big colored bar — those get read as a progress meter) */}
+            <div className="scan-severity-capsules">
+              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map((s) => (
+                <span
+                  key={s.key}
+                  className={`scan-severity-capsule scan-severity-${s.key}`}
+                >
+                  <span className="scan-severity-capsule-dot" aria-hidden="true" />
                   {T(s.labelEn, s.labelZh)} {breakdown[s.key]}
-                  {i < arr.length - 1 && <span className="scan-severity-legend-sep">·</span>}
                 </span>
               ))}
             </div>
-          </>
+            {/* On hover/focus: one dot per issue, grouped by severity.
+                Replaces the capsule view for a more granular "issue cartridge" look. */}
+            <div className="scan-severity-dots" aria-hidden="true">
+              {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).flatMap(
+                (s) =>
+                  Array.from({ length: Number(breakdown[s.key] || 0) }, (_, i) => (
+                    <span
+                      key={`${s.key}-${i}`}
+                      className={`scan-issue-dot scan-severity-${s.key}`}
+                      title={`${T(s.labelEn, s.labelZh)} #${i + 1}`}
+                    />
+                  ))
+              )}
+            </div>
+          </div>
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
       </div>

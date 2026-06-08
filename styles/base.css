@@ -1862,57 +1862,131 @@ body {
   color: #b91c1c;
   background: color-mix(in oklch, var(--sev-critical, #dc2626) 16%, transparent);
 }
-.scan-severity-bar {
-  display: flex;
-  overflow: hidden;
-  width: 100%;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
-  margin-top: 2px;
+.scan-severity-bar,
+.scan-severity-seg,
+.scan-severity-legend,
+.scan-severity-legend-i,
+.scan-severity-legend-dot,
+.scan-severity-legend-sep {
+  display: none !important;
 }
-.scan-severity-seg {
-  height: 100%;
+
+/* === Scan row severity strip ===
+   Replaces the previous full-width colored bar, which read as a
+   progress meter. Default view is a row of small severity capsules
+   (one per non-zero severity). On hover/focus, the strip morphs into
+   a granular "issue cartridge" — one dot per issue, colored by
+   severity — so the user can count individual issues at a glance. */
+.scan-severity-strip {
+  position: relative;
+  margin-top: 4px;
+  min-height: 22px;
+  max-width: 100%;
 }
-.scan-severity-legend {
+.scan-severity-capsules {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 10px;
-  font-size: 11.5px;
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-  margin-top: 2px;
+  gap: 5px;
+  align-items: center;
+  transition: opacity 140ms ease;
 }
-.scan-severity-legend-i {
+.scan-severity-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+.scan-row:hover .scan-severity-capsules,
+.scan-row:focus-within .scan-severity-capsules {
+  opacity: 0;
+}
+.scan-row:hover .scan-severity-dots,
+.scan-row:focus-within .scan-severity-dots {
+  opacity: 1;
+}
+
+.scan-severity-capsule {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+  transition: filter 120ms ease, transform 120ms ease;
 }
-.scan-severity-legend-dot {
+.scan-severity-capsule:hover {
+  filter: brightness(0.97);
+}
+.scan-severity-capsule-dot {
   width: 7px;
   height: 7px;
   border-radius: 999px;
   display: inline-block;
+  flex-shrink: 0;
 }
-.scan-severity-legend-i.scan-severity-critical {
+.scan-severity-capsule.scan-severity-critical {
   color: var(--sev-critical, #dc2626);
-  font-weight: 600;
+  background: color-mix(in oklch, var(--sev-critical, #dc2626) 12%, transparent);
+  border-color: color-mix(in oklch, var(--sev-critical, #dc2626) 26%, transparent);
 }
-.scan-severity-legend-i.scan-severity-high {
+.scan-severity-capsule.scan-severity-critical .scan-severity-capsule-dot {
+  background: var(--sev-critical, #dc2626);
+}
+.scan-severity-capsule.scan-severity-high {
   color: var(--sev-high, #ea580c);
-  font-weight: 600;
+  background: color-mix(in oklch, var(--sev-high, #ea580c) 12%, transparent);
+  border-color: color-mix(in oklch, var(--sev-high, #ea580c) 26%, transparent);
 }
-.scan-severity-legend-i.scan-severity-medium {
+.scan-severity-capsule.scan-severity-high .scan-severity-capsule-dot {
+  background: var(--sev-high, #ea580c);
+}
+.scan-severity-capsule.scan-severity-medium {
   color: var(--sev-medium, #ca8a04);
-  font-weight: 600;
+  background: color-mix(in oklch, var(--sev-medium, #ca8a04) 14%, transparent);
+  border-color: color-mix(in oklch, var(--sev-medium, #ca8a04) 28%, transparent);
 }
-.scan-severity-legend-i.scan-severity-low {
-  color: var(--text-3);
+.scan-severity-capsule.scan-severity-medium .scan-severity-capsule-dot {
+  background: var(--sev-medium, #ca8a04);
 }
-.scan-severity-legend-sep {
-  margin-left: 10px;
-  color: var(--text-3);
-  font-weight: 400;
+.scan-severity-capsule.scan-severity-low {
+  color: var(--text-3, #6b7280);
+  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
+  border-color: var(--bg-2, rgba(0, 0, 0, 0.08));
+}
+.scan-severity-capsule.scan-severity-low .scan-severity-capsule-dot {
+  background: var(--text-3, #6b7280);
+}
+
+.scan-issue-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.scan-issue-dot.scan-severity-critical {
+  background: var(--sev-critical, #dc2626);
+}
+.scan-issue-dot.scan-severity-high {
+  background: var(--sev-high, #ea580c);
+}
+.scan-issue-dot.scan-severity-medium {
+  background: var(--sev-medium, #ca8a04);
+}
+.scan-issue-dot.scan-severity-low {
+  background: var(--text-3, #6b7280);
 }
 .scan-summary {
   font-size: 12px;
