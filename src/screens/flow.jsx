@@ -1091,6 +1091,51 @@ export function ReposScreen({
     toggle(repoId);
   };
 
+  const visibleRepoIds = useMemo(() => repos.map((repo) => repo.id), [repos]);
+  const visibleSelectedCount = useMemo(
+    () => visibleRepoIds.reduce((sum, id) => sum + (selected.includes(id) ? 1 : 0), 0),
+    [visibleRepoIds, selected]
+  );
+  const allVisibleSelected =
+    visibleRepoIds.length > 0 && visibleSelectedCount === visibleRepoIds.length;
+  const selectAllLabel = allVisibleSelected
+    ? T("Deselect all", "取消全选")
+    : T("Select all", "全选");
+
+  const toggleSelectAll = () => {
+    if (repos.length === 0) return;
+    if (allVisibleSelected) {
+      const visibleSet = new Set(visibleRepoIds);
+      setSelected((current) => current.filter((id) => !visibleSet.has(id)));
+      setSelectionNotice("");
+      return;
+    }
+    const blocked = [];
+    const next = [...selected];
+    for (const repo of repos) {
+      if (next.includes(repo.id)) continue;
+      const repoRemaining = quotaRemaining(repo?.quota);
+      if (repoRemaining !== null && repoRemaining <= 0) {
+        blocked.push(repositoryQuotaNotice(repo));
+        continue;
+      }
+      if (accountQuotaRemaining !== null && next.length >= accountQuotaRemaining) {
+        blocked.push(accountQuotaNotice(accountQuotaRemaining));
+        break;
+      }
+      next.push(repo.id);
+      loadRepoBranches(repo);
+    }
+    setSelected(next);
+    if (blocked.length > 0) {
+      const head = blocked[0];
+      const extra = blocked.length > 1 ? ` (+${blocked.length - 1})` : "";
+      setSelectionNotice(`${head}${extra}`);
+    } else {
+      setSelectionNotice("");
+    }
+  };
+
   const startScan = async () => {
     if (checkingQuota) return;
     const reposToScan = selectedRepoObjects;
@@ -1266,13 +1311,44 @@ export function ReposScreen({
           )}
 
           <div className="repos-toolbar">
-            <div className="repos-search">
-              <I.Search size={14} />
-              <input
-                placeholder={T("Search repositories...", "搜索仓库...")}
-                value={q}
-                onChange={(event) => setQ(event.target.value)}
-              />
+            <div className="repos-toolbar-row">
+              <div className="repos-search">
+                <I.Search size={14} />
+                <input
+                  placeholder={T("Search repositories...", "搜索仓库...")}
+                  value={q}
+                  onChange={(event) => setQ(event.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn repos-select-all"
+                onClick={toggleSelectAll}
+                disabled={repos.length === 0}
+                aria-pressed={allVisibleSelected}
+                aria-label={
+                  allVisibleSelected
+                    ? T("Deselect all visible repositories", "取消全选可见仓库")
+                    : T("Select all visible repositories", "全选可见仓库")
+                }
+                title={
+                  allVisibleSelected
+                    ? T("Deselect all visible repositories", "取消全选可见仓库")
+                    : T("Select all visible repositories", "全选可见仓库")
+                }
+              >
+                {allVisibleSelected ? (
+                  <I.X size={12} />
+                ) : (
+                  <I.Check size={12} />
+                )}
+                {selectAllLabel}
+                {!allVisibleSelected && visibleRepoIds.length > 0 && (
+                  <span className="repos-select-all-count">
+                    ({visibleRepoIds.length})
+                  </span>
+                )}
+              </button>
             </div>
             <div className="repos-orgs">
               {orgs.map((item) => (
