@@ -1855,6 +1855,11 @@ export function SettingsScreen({ go, setIssue = null }) {
             <aside className="set-side">
               {[
                 { k: "profile", t: T("Profile", "个人资料"), i: <I.User size={14} /> },
+                {
+                  k: "preferences",
+                  t: T("Preferences", "偏好"),
+                  i: <I.Sliders size={14} />,
+                },
                 { k: "integrations", t: T("Integrations", "集成"), i: <I.Github size={14} /> },
               ].map((item) => (
                 <button
@@ -1895,6 +1900,24 @@ export function SettingsScreen({ go, setIssue = null }) {
                   </label>
                   <div className="set-pref">
                     <div>
+                      <b>{T("Session", "会话")}</b>
+                      <div className="muted">
+                        {T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天。")}
+                      </div>
+                    </div>
+                    <button className="btn sm" onClick={signOut}>
+                      {T("Sign out", "退出登录")}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {tab === "preferences" && (
+                <div className="card section">
+                  <div className="section-h">
+                    <h3>{T("Preferences", "偏好")}</h3>
+                  </div>
+                  <div className="set-pref">
+                    <div>
                       <b>{T("Review output language", "产出语言偏好")}</b>
                       <div className="muted">
                         {T("Default is English.", "默认英语。")}
@@ -1919,17 +1942,6 @@ export function SettingsScreen({ go, setIssue = null }) {
                       <I.X size={13} /> {settingsError}
                     </div>
                   )}
-                  <div className="set-pref">
-                    <div>
-                      <b>{T("Session", "会话")}</b>
-                      <div className="muted">
-                        {T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天。")}
-                      </div>
-                    </div>
-                    <button className="btn sm" onClick={signOut}>
-                      {T("Sign out", "退出登录")}
-                    </button>
-                  </div>
                 </div>
               )}
               {tab === "integrations" && (

@@ -291,6 +291,8 @@ describe("SettingsScreen", () => {
 
     render(<SettingsScreen go={vi.fn()} />);
 
+    await user.click(screen.getByRole("button", { name: /preferences/i }));
+
     const select = await screen.findByRole("combobox", { name: /review output language/i });
     expect(screen.getByText("Review output language")).toBeInTheDocument();
 
