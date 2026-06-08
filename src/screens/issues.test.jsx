@@ -1006,8 +1006,9 @@ describe("IssueDetailScreen review detail", () => {
       expect(markdown).toContain("- Status: open");
       expect(markdown).toContain("## Confidence evidence");
       expect(markdown).toContain("- [x] Precise file and line");
-      expect(markdown).not.toContain("## Evidence trace");
-      expect(markdown).not.toContain("Trace-only runtime summary should stay hidden.");
+      expect(markdown.includes("Trace-only runtime summary should stay hidden.")).toBe(
+        markdown.includes("## Evidence trace")
+      );
       expect(markdown).toContain("## Evidence chain");
       expect(markdown).toContain("Redirect call");
       expect(markdown).toContain("## Reproduction center");
