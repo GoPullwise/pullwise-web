@@ -1430,9 +1430,12 @@ body {
 /* Vertical axis line drawn between the time column and the dot
    column. The line spans the full height of the timeline, including
    day dividers, so all rows are visually connected. */
+/* The axis is positioned so its center aligns with the row marker.
+   Row layout: time(50) + gap(14) + marker(18) -> marker center at 73px.
+   Axis is 2px wide, so its left edge sits at 72px. */
 .hist-timeline-axis {
   position: absolute;
-  left: 64px;
+  left: 72px;
   top: 0;
   bottom: 0;
   width: 2px;
@@ -1459,7 +1462,9 @@ body {
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
-  margin-left: 56px;
+  /* margin-left is chosen so the day-marker center matches the row marker
+     center (axis) — see .hist-timeline-axis comment. */
+  margin-left: 64px;
   border-radius: 999px;
   background: var(--bg-elev, #fff);
   border: 2px solid var(--text-3, #6b7280);
@@ -1531,10 +1536,14 @@ body {
   background: var(--sev-critical, #dc2626);
 }
 /* Override screens.css .hist-row grid layout when used inside the
-   new timeline so the card uses its own flex container. */
+   new timeline so the card uses its own flex container. The card
+   hugs its content (width: max-content) rather than stretching
+   to fill the row — it can still shrink on narrow viewports. */
 .hist-row.hist-timeline-content,
 .hist-timeline-content {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
   background: var(--bg-elev, #fff);
   border: 1px solid var(--border);
@@ -1581,15 +1590,18 @@ body {
   margin-top: 4px;
 }
 @media (max-width: 540px) {
+  /* Small screen: row layout is time(44) + gap(10) + marker(18) = marker
+     center at 63px. Axis is 2px wide, so its left edge sits at 62px.
+     Day-marker center must match the axis: margin-left 54px. */
   .hist-timeline-axis {
-    left: 56px;
+    left: 62px;
   }
   .hist-timeline-time {
     flex-basis: 44px;
     font-size: 10.5px;
   }
   .hist-timeline-day-marker {
-    margin-left: 48px;
+    margin-left: 54px;
   }
   .hist-timeline-row {
     gap: 10px;

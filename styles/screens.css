@@ -2612,7 +2612,13 @@ button.dash-cat-row:hover {
 .hist-actions .btn {
   flex: 0 0 auto;
 }
-.hist-row:last-child {
+/* The :last-child rule was for the old grid layout, where each .hist-row
+   was a direct child of .hist-list with a bottom divider. The new timeline
+   uses .hist-timeline-content (also tagged .hist-row) as the last child
+   of .hist-timeline-row, which would incorrectly remove its bottom
+   border. Scoping the selector to direct children of .hist-list prevents
+   the new timeline card from losing its bottom border. */
+.hist-list > .hist-row:last-child {
   border-bottom: 0;
 }
 .hist-row:hover {
