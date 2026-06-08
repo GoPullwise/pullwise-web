@@ -50,8 +50,10 @@
 
 [data-theme="dark"] {
   --bg: #080808;
-  --bg-elev: #121212;
-  --bg-soft: #1a1a1a;
+  --bg-elev: #0d0d0d;
+  --bg-soft: #141414;
+  --bg-1: #0d0d0d;
+  --bg-2: rgba(255, 255, 255, 0.04);
   --bg-tint: rgba(255, 255, 255, 0.02);
   --border: rgba(255, 255, 255, 0.06);
   --border-strong: rgba(255, 255, 255, 0.13);
@@ -1445,7 +1447,7 @@ body {
   text-align: center;
   gap: 4px;
   padding: 10px 6px 8px;
-  background: var(--bg-1, #fff);
+  background: var(--bg-elev, #fff);
   border: 1px solid var(--bg-2, rgba(0, 0, 0, 0.1));
   border-radius: 10px;
   cursor: pointer;
@@ -1496,7 +1498,7 @@ body {
   box-shadow: 0 0 0 4px var(--trace-present-soft);
 }
 .trace-step-missing .trace-node-bullet {
-  background: #fff;
+  background: var(--bg-elev, #fff);
   border-color: var(--trace-missing);
   color: var(--trace-missing);
   box-shadow: 0 0 0 4px var(--trace-missing-soft);
