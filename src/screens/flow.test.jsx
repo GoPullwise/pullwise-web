@@ -831,6 +831,60 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("pnpm test auth -- refresh-token-rotation")).toBeInTheDocument();
   });
 
+  it("keeps long audit evidence card text inside the card without clamping", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+
+    expect(styles).toMatch(/\.audit-card\s*{[^}]*min-width:\s*0;/s);
+    expect(styles).toMatch(/\.audit-card-row\s*{[^}]*grid-template-columns:\s*88px minmax\(0,\s*1fr\);/s);
+    expect(styles).toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*min-width:\s*0;/s);
+    expect(styles).toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*white-space:\s*normal;/s);
+    expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*overflow:\s*visible;/s);
+    expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*white-space:\s*normal;/s);
+    expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
+  });
+
+  it("renders the audit funnel as compact count metrics instead of colored progress bars", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 0, medium: 1, low: 0 },
+        verification: { verified: 1, static_proof: 1, potential_risk: 0, unverified: 0 },
+        verificationAudit: {
+          candidateCount: 2,
+          reportedCount: 2,
+          verifiedCount: 1,
+          staticProofCount: 1,
+          rejectedCount: 0,
+          downgradedCount: 0,
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    const funnel = screen.getByRole("img", { name: /audit funnel/i });
+    expect(funnel.querySelector(".audit-funnel-fill")).not.toBeInTheDocument();
+    expect(funnel.querySelectorAll(".audit-funnel-metric")).toHaveLength(4);
+    expect(funnel).toHaveTextContent("Candidates evaluated");
+    expect(funnel).toHaveTextContent("Verified / static proof");
+  });
+
   it("shows preflight evidence for a completed scan", () => {
     useScanRun.mockReturnValue({
       scan: {

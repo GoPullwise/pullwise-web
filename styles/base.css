@@ -1246,43 +1246,55 @@ body {
 
 /* === Audit funnel (Scanning screen) === */
 .audit-funnel {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
   margin: 8px 0 4px;
 }
-.audit-funnel-stage {
-  position: relative;
-  display: flex;
+.audit-funnel-metric {
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  row-gap: 2px;
   align-items: center;
-  height: 22px;
-  border-radius: 4px;
-  background: var(--bg-2, rgba(0, 0, 0, 0.04));
-  overflow: hidden;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  background: var(--bg, rgba(0, 0, 0, 0.18));
 }
-.audit-funnel-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 4px;
-  opacity: 0.92;
-  transition: width 0.4s ease;
+.audit-funnel-metric::before {
+  content: "";
+  grid-row: 1 / 3;
+  width: 3px;
+  min-height: 28px;
+  background: var(--audit-funnel-tone, var(--border-strong, rgba(255, 255, 255, 0.18)));
 }
-.audit-funnel-label {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
-  font-size: 11.5px;
+.audit-funnel-metric > b {
   color: var(--text-1);
-  font-weight: 500;
-  width: 100%;
-}
-.audit-funnel-label > b {
-  margin-left: auto;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1;
+}
+.audit-funnel-metric > span {
+  min-width: 0;
+  color: var(--text-3);
+  font-size: 10.5px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.audit-funnel-metric-candidates {
+  --audit-funnel-tone: var(--border-strong, rgba(255, 255, 255, 0.18));
+}
+.audit-funnel-metric-reported {
+  --audit-funnel-tone: color-mix(in oklch, var(--accent, #6366f1) 55%, var(--border));
+}
+.audit-funnel-metric-verified {
+  --audit-funnel-tone: color-mix(in oklch, var(--scan-verified, #16a34a) 55%, var(--border));
+}
+.audit-funnel-metric-rejected {
+  --audit-funnel-tone: color-mix(in oklch, var(--sev-critical, #dc2626) 45%, var(--border));
 }
 .audit-funnel-foot {
   display: flex;
@@ -1341,9 +1353,7 @@ body {
 .audit-funnel-sample-title {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 

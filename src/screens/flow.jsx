@@ -557,77 +557,48 @@ function AuditFunnel({ audit }) {
   ) {
     return null;
   }
-  const maxWidth = Math.max(
-    candidateCount,
-    reportedCount,
-    verifiedCount + staticProofCount,
-    rejectedCount,
-    1
-  );
-  const ratio = (value) => (maxWidth > 0 ? (value / maxWidth) * 100 : 0);
   const reasons = Array.isArray(audit.rejectedReasons) ? audit.rejectedReasons : [];
   const samples = Array.isArray(audit.rejectedSamples) ? audit.rejectedSamples : [];
   const topReasons = [...reasons]
     .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
     .slice(0, 5);
+  const metrics = [
+    {
+      key: "candidates",
+      label: T("Candidates evaluated", "评估候选"),
+      value: candidateCount,
+    },
+    {
+      key: "reported",
+      label: T("Reported issues", "已报告问题"),
+      value: reportedCount,
+    },
+    {
+      key: "verified",
+      label: T("Verified / static proof", "已验证 / 静态证明"),
+      value: staticProofCount ? `${verifiedCount} + ${staticProofCount}` : verifiedCount,
+    },
+    {
+      key: "rejected",
+      label: T("Rejected candidates", "已拒绝候选"),
+      value: rejectedCount,
+    },
+  ];
   return (
     <div className="audit-funnel-wrap">
       <div className="audit-funnel-h">
         {T("Audit funnel", "审计漏斗")}
       </div>
       <div className="audit-funnel" role="img" aria-label={T("Audit funnel", "审计漏斗")}>
-        <div className="audit-funnel-stage" style={{ background: "var(--bg-2, rgba(0,0,0,0.04))" }}>
-          <span
-            className="audit-funnel-fill"
-            style={{ width: ratio(candidateCount) + "%", background: "#94a3b8" }}
-          />
-          <span className="audit-funnel-label">
-            {T("Candidates evaluated", "评估候选")}
-            <b>{candidateCount}</b>
-          </span>
-        </div>
-        <div className="audit-funnel-stage">
-          <span
-            className="audit-funnel-fill"
-            style={{
-              width: ratio(reportedCount) + "%",
-              background: "var(--accent, #6366f1)",
-            }}
-          />
-          <span className="audit-funnel-label">
-            {T("Reported issues", "已报告问题")}
-            <b>{reportedCount}</b>
-          </span>
-        </div>
-        <div className="audit-funnel-stage">
-          <span
-            className="audit-funnel-fill"
-            style={{
-              width: ratio(verifiedCount + staticProofCount) + "%",
-              background: "#16a34a",
-            }}
-          />
-          <span className="audit-funnel-label">
-            {T("Verified / static proof", "已验证 / 静态证明")}
-            <b>
-              {verifiedCount}
-              {staticProofCount ? ` + ${staticProofCount}` : ""}
-            </b>
-          </span>
-        </div>
-        <div className="audit-funnel-stage">
-          <span
-            className="audit-funnel-fill"
-            style={{
-              width: ratio(rejectedCount) + "%",
-              background: "var(--sev-critical, #dc2626)",
-            }}
-          />
-          <span className="audit-funnel-label">
-            {T("Rejected candidates", "已拒绝候选")}
-            <b>{rejectedCount}</b>
-          </span>
-        </div>
+        {metrics.map((metric) => (
+          <div
+            key={metric.key}
+            className={`audit-funnel-metric audit-funnel-metric-${metric.key}`}
+          >
+            <b>{metric.value}</b>
+            <span>{metric.label}</span>
+          </div>
+        ))}
       </div>
       {(topReasons.length > 0 || potentialRiskCount > 0 || unverifiedCount > 0) && (
         <div className="audit-funnel-foot">
