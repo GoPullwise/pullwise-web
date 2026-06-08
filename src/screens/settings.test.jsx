@@ -16,6 +16,10 @@ vi.mock("../api/pullwise.js", () => ({
     repositories: {
       sync: vi.fn(),
     },
+    settings: {
+      get: vi.fn(),
+      update: vi.fn(),
+    },
   },
 }));
 
@@ -31,6 +35,14 @@ describe("SettingsScreen", () => {
     pullwiseApi.auth.getSession.mockResolvedValue({
       authenticated: true,
       user: { name: "Taylor", email: "taylor@example.com" },
+    });
+    pullwiseApi.settings.get.mockResolvedValue({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
+    });
+    pullwiseApi.settings.update.mockResolvedValue({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
     });
   });
 
@@ -258,5 +270,36 @@ describe("SettingsScreen", () => {
     await user.click(screen.getByRole("button", { name: /sign out/i }));
 
     expect(signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves the review output language preference from settings", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: false,
+        repositories: [],
+      },
+    });
+    pullwiseApi.settings.get.mockResolvedValueOnce({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
+    });
+    pullwiseApi.settings.update.mockResolvedValueOnce({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "zh-CN" },
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    const select = await screen.findByRole("combobox", { name: /review output language/i });
+    expect(screen.getByText("Review output language")).toBeInTheDocument();
+
+    await user.selectOptions(select, "zh-CN");
+
+    await waitFor(() => {
+      expect(pullwiseApi.settings.update).toHaveBeenCalledWith({
+        review: { outputLanguage: "zh-CN" },
+      });
+    });
   });
 });
