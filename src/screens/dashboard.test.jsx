@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -89,6 +89,84 @@ describe("DashboardScreen issue list", () => {
       expect(chart).toBeInTheDocument();
       expect(chart.querySelector("svg")).toHaveStyle({ height: "20px" });
     });
+  });
+
+  it("shows severity-weighted repository and file risk hotspots", () => {
+    const makeIssue = (overrides) => ({
+      id: overrides.id,
+      repo: overrides.repo,
+      severity: overrides.severity,
+      category: "Security",
+      title: overrides.title || overrides.id,
+      file: overrides.file,
+      line: 10,
+      confidence: 0.9,
+      effort: "S",
+      status: "open",
+    });
+    useIssues.mockReturnValue({
+      items: [
+        makeIssue({
+          id: "f_1",
+          repo: "acme/api",
+          severity: "critical",
+          file: "src/auth.js",
+        }),
+        makeIssue({
+          id: "f_2",
+          repo: "acme/api",
+          severity: "high",
+          file: "src/auth.js",
+        }),
+        makeIssue({
+          id: "f_3",
+          repo: "acme/api",
+          severity: "high",
+          file: "src/routes.js",
+        }),
+        makeIssue({
+          id: "f_4",
+          repo: "acme/web",
+          severity: "medium",
+          file: "src/cart.js",
+        }),
+        makeIssue({
+          id: "f_5",
+          repo: "acme/web",
+          severity: "low",
+          file: "src/cart.js",
+        }),
+      ],
+      loading: false,
+      error: "",
+    });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({ items: [], loading: false });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    expect(screen.getByRole("region", { name: /risk hotspots/i })).toBeInTheDocument();
+
+    const repoRows = within(
+      screen.getByRole("list", { name: /top risky repositories/i })
+    ).getAllByRole("listitem");
+    expect(repoRows[0]).toHaveTextContent("acme/api");
+    expect(repoRows[0]).toHaveTextContent("24 risk");
+    expect(repoRows[0]).toHaveTextContent("3 open issues");
+    expect(repoRows[1]).toHaveTextContent("acme/web");
+    expect(repoRows[1]).toHaveTextContent("6 risk");
+
+    const fileRows = within(screen.getByRole("list", { name: /top file hotspots/i })).getAllByRole(
+      "listitem"
+    );
+    expect(fileRows[0]).toHaveTextContent("src/auth.js");
+    expect(fileRows[0]).toHaveTextContent("acme/api");
+    expect(fileRows[0]).toHaveTextContent("17 risk");
+    expect(fileRows[1]).toHaveTextContent("src/routes.js");
   });
 
   it("shows a topbar loading spinner only while dashboard data is loading", () => {

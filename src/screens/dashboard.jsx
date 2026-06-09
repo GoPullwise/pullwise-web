@@ -63,6 +63,10 @@ function scanIssueTotal(scan) {
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
+const SEVERITY_WEIGHTS = { critical: 10, high: 7, medium: 4, low: 2, info: 1 };
+const SEVERITY_RANK = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
+const HOTSPOT_LIMIT = 5;
+
 const SEVERITY_LEVELS = [
   { key: "critical", en: "Critical", zh: "关键", color: "var(--sev-critical)" },
   { key: "high", en: "High", zh: "高", color: "var(--sev-high)" },
@@ -70,6 +74,138 @@ const SEVERITY_LEVELS = [
   { key: "low", en: "Low", zh: "低", color: "var(--sev-low)" },
   { key: "info", en: "Info", zh: "信息", color: "var(--sev-info)" },
 ];
+
+function issueSeverity(issue) {
+  const severity = String(issue?.severity || "info").toLowerCase();
+  return SEVERITY_WEIGHTS[severity] ? severity : "info";
+}
+
+function severityCounts() {
+  return { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+}
+
+function riskHotspots(issues, itemForIssue) {
+  const groups = new Map();
+  for (const issue of issues) {
+    const item = itemForIssue(issue);
+    if (!item?.key || !item?.label) continue;
+    const severity = issueSeverity(issue);
+    const current = groups.get(item.key) || {
+      key: item.key,
+      label: item.label,
+      context: item.context || "",
+      score: 0,
+      total: 0,
+      maxSeverity: severity,
+      counts: severityCounts(),
+    };
+    current.score += SEVERITY_WEIGHTS[severity];
+    current.total += 1;
+    current.counts[severity] += 1;
+    if (SEVERITY_RANK[severity] > SEVERITY_RANK[current.maxSeverity]) {
+      current.maxSeverity = severity;
+    }
+    groups.set(item.key, current);
+  }
+  const rows = Array.from(groups.values()).sort(
+    (left, right) =>
+      right.score - left.score ||
+      right.counts.critical - left.counts.critical ||
+      right.counts.high - left.counts.high ||
+      right.total - left.total ||
+      left.label.localeCompare(right.label)
+  );
+  const maxScore = rows[0]?.score || 1;
+  return rows.slice(0, HOTSPOT_LIMIT).map((row) => ({
+    ...row,
+    heat: Math.max(8, Math.round((row.score / maxScore) * 100)),
+  }));
+}
+
+function issueRepoLabel(issue) {
+  return String(issue?.repo || "").trim();
+}
+
+function issueFileLabel(issue) {
+  return String(issue?.file || "").trim();
+}
+
+function issueRiskHotspots(issues) {
+  return {
+    repos: riskHotspots(issues, (issue) => {
+      const repo = issueRepoLabel(issue);
+      return repo ? { key: repo, label: repo } : null;
+    }),
+    files: riskHotspots(issues, (issue) => {
+      const repo = issueRepoLabel(issue);
+      const file = issueFileLabel(issue);
+      if (!file) return null;
+      return {
+        key: `${repo || "unknown"}\u001f${file}`,
+        label: file,
+        context: repo,
+      };
+    }),
+  };
+}
+
+function severityCountLabel(level, count) {
+  return T(`${count} ${level.en.toLowerCase()}`, `${count} ${level.zh}`);
+}
+
+function RiskHotspotRow({ item, index }) {
+  return (
+    <div
+      className="risk-hotspot-row"
+      role="listitem"
+      style={{ "--risk-hotspot-color": `var(--sev-${item.maxSeverity})` }}
+    >
+      <div className={"risk-hotspot-rank sev-bg-" + item.maxSeverity}>{index + 1}</div>
+      <div className="risk-hotspot-main">
+        <div className="risk-hotspot-line">
+          <span className="risk-hotspot-label">{item.label}</span>
+          <span className="risk-hotspot-score">
+            {T(`${item.score} risk`, `${item.score} 风险`)}
+          </span>
+        </div>
+        {item.context && <div className="risk-hotspot-context">{item.context}</div>}
+        <div className="risk-hotspot-heat" aria-hidden="true">
+          <span style={{ width: `${item.heat}%` }} />
+        </div>
+        <div className="risk-hotspot-counts">
+          <span className="tag">
+            {T(`${item.total} open issues`, `${item.total} 个未解决问题`)}
+          </span>
+          {SEVERITY_LEVELS.filter((level) => item.counts[level.key] > 0).map((level) => (
+            <span key={level.key} className={"tag risk-hotspot-count sev-" + level.key}>
+              {severityCountLabel(level, item.counts[level.key])}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RiskHotspotList({ title, subtitle, items, empty }) {
+  return (
+    <div className="risk-hotspot-list">
+      <div className="risk-hotspot-list-h">
+        <h4>{title}</h4>
+        <span>{subtitle}</span>
+      </div>
+      {items.length > 0 ? (
+        <div className="risk-hotspot-rows" role="list" aria-label={title}>
+          {items.map((item, index) => (
+            <RiskHotspotRow key={item.key} item={item} index={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="risk-hotspot-empty muted">{empty}</div>
+      )}
+    </div>
+  );
+}
 
 function IssueRow({ issue, onClick }) {
   return (
@@ -100,16 +236,16 @@ function IssueRow({ issue, onClick }) {
 
 export function DashboardScreen({ go, setIssue, accent }) {
   useLang();
-  const { items: issues, loading: issuesLoading, error: issuesError } = useIssues({
+  const {
+    items: issues,
+    loading: issuesLoading,
+    error: issuesError,
+  } = useIssues({
     status: "open",
     limit: 50,
   });
   const { items: scans, loading: scansLoading } = useScans({ limit: 50 });
-  const {
-    items: repositories,
-    loading: reposLoading,
-    needsAuthorization,
-  } = useRepositories();
+  const { items: repositories, loading: reposLoading, needsAuthorization } = useRepositories();
 
   const openIssues = issues;
   const counts = issueCounts(openIssues);
@@ -134,23 +270,23 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const verifiedShare =
     Number(verificationCounts.verified || 0) + Number(verificationCounts.static_proof || 0);
   const highShare = Number(confidenceCounts.high || 0);
-  const verifiedPct = openIssues.length
-    ? Math.round((verifiedShare / openIssues.length) * 100)
-    : 0;
+  const verifiedPct = openIssues.length ? Math.round((verifiedShare / openIssues.length) * 100) : 0;
   const highPct = openIssues.length ? Math.round((highShare / openIssues.length) * 100) : 0;
   const latestScan = scans[0];
+  const hotspots = useMemo(() => issueRiskHotspots(openIssues), [openIssues]);
 
-  const issueTrend = useMemo(
-    () => scans.slice(0, 14).reverse().map(scanIssueTotal),
-    [scans]
-  );
+  const issueTrend = useMemo(() => scans.slice(0, 14).reverse().map(scanIssueTotal), [scans]);
   const issueDelta = useMemo(() => {
     if (issueTrend.length < 2) return 0;
     return issueTrend[issueTrend.length - 1] - issueTrend[0];
   }, [issueTrend]);
 
   const scanTrend = useMemo(
-    () => scans.slice(0, 14).reverse().map(() => 1),
+    () =>
+      scans
+        .slice(0, 14)
+        .reverse()
+        .map(() => 1),
     [scans]
   );
 
@@ -205,7 +341,10 @@ export function DashboardScreen({ go, setIssue, accent }) {
               <div className="kpi-h">
                 <span className="kpi-l">{T("Critical", "关键")}</span>
               </div>
-              <div className="kpi-v" style={{ color: counts.critical > 0 ? "var(--sev-critical)" : undefined }}>
+              <div
+                className="kpi-v"
+                style={{ color: counts.critical > 0 ? "var(--sev-critical)" : undefined }}
+              >
                 {counts.critical}
               </div>
               <div className="kpi-foot">
@@ -282,9 +421,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
             <div className="card dash-summary">
               <div className="dash-summary-head">
                 <h3>{T("Trust & evidence", "可信度与证据")}</h3>
-                <span className="sub">
-                  {T("Open issues only", "仅未解决问题")}
-                </span>
+                <span className="sub">{T("Open issues only", "仅未解决问题")}</span>
               </div>
               <div className="dash-donut-cards">
                 <DistributionCard
@@ -306,10 +443,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                 <DistributionCard
                   className="dash-donut-card"
                   title={T("Confidence", "置信度")}
-                  subtitle={T(
-                    `${highPct}% high-confidence findings`,
-                    `${highPct}% 高置信度发现`
-                  )}
+                  subtitle={T(`${highPct}% high-confidence findings`, `${highPct}% 高置信度发现`)}
                   counts={confidenceCounts}
                   buckets={CONFIDENCE_BUCKETS}
                   layout="donut"
@@ -322,6 +456,40 @@ export function DashboardScreen({ go, setIssue, accent }) {
               </div>
             </div>
           </div>
+
+          <section
+            className="card dash-summary risk-hotspots"
+            aria-labelledby="risk-hotspots-title"
+          >
+            <div className="dash-summary-head">
+              <div>
+                <h3 id="risk-hotspots-title">{T("Risk hotspots", "风险热区")}</h3>
+                <div className="sub">
+                  {T(
+                    "Top open issue concentrations by repository and file.",
+                    "按仓库和文件定位未解决问题最集中的位置。"
+                  )}
+                </div>
+              </div>
+              <a className="btn sm" {...screenLinkProps(go, "issues")}>
+                {T("All issues", "所有问题")} <I.ArrowR size={12} />
+              </a>
+            </div>
+            <div className="risk-hotspot-grid">
+              <RiskHotspotList
+                title={T("Top risky repositories", "高风险仓库")}
+                subtitle={T("Severity-weighted", "按严重度加权")}
+                items={hotspots.repos}
+                empty={T("No repository hotspots yet.", "暂无仓库风险聚集。")}
+              />
+              <RiskHotspotList
+                title={T("Top file hotspots", "文件热区")}
+                subtitle={T("Most concentrated files", "问题最集中的文件")}
+                items={hotspots.files}
+                empty={T("No file hotspots yet.", "暂无文件风险聚集。")}
+              />
+            </div>
+          </section>
 
           <div className="dash-issues-h">
             <div>
@@ -346,10 +514,16 @@ export function DashboardScreen({ go, setIssue, accent }) {
 
           {issuesError && <div className="card section muted">{issuesError}</div>}
           {!issuesLoading && openIssues.length === 0 && !issuesError && (
-            <div className="card section muted" style={{ textAlign: "center", padding: "32px 20px" }}>
+            <div
+              className="card section muted"
+              style={{ textAlign: "center", padding: "32px 20px" }}
+            >
               <div style={{ marginBottom: 8 }}>
                 {scans.length > 0
-                  ? T("No issues found — your repositories look clean.", "未发现问题 — 您的仓库看起来很干净。")
+                  ? T(
+                      "No issues found — your repositories look clean.",
+                      "未发现问题 — 您的仓库看起来很干净。"
+                    )
                   : T("Run your first scan to check for issues.", "运行第一次扫描以检查问题。")}
               </div>
               {scans.length === 0 && (
