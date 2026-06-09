@@ -114,24 +114,24 @@ function storedActiveRepo() {
 
 function PrototypeNav({ go, current }) {
   const screens = [
-    { k: "landing", t: "Landing" },
-    { k: "login", t: "登录" },
-    { k: "oauth", t: "GitHub 授权" },
-    { k: "repos", t: "选仓库" },
-    { k: "scanning", t: "扫描中" },
-    { k: "dashboard", t: "Dashboard" },
-    { k: "issues", t: "Issues" },
-    { k: "issue", t: "详情" },
-    { k: "history", t: "历史" },
-    { k: "apiKeys", t: "API Keys" },
-    { k: "settings", t: "设置" },
-    { k: "billing", t: "Billing" },
-    { k: "pricing", t: "Pricing" },
-    { k: "api", t: "API" },
-    { k: "privacy", t: "隐私" },
-    { k: "terms", t: "条款" },
-    { k: "security", t: "安全" },
-    { k: "status", t: "状态" },
+    { k: "landing", t: T("Landing", "首页") },
+    { k: "login", t: T("Sign in", "登录") },
+    { k: "oauth", t: T("GitHub OAuth", "GitHub 授权") },
+    { k: "repos", t: T("Repositories", "选仓库") },
+    { k: "scanning", t: T("Scanning…", "扫描中") },
+    { k: "dashboard", t: T("Dashboard", "工作台") },
+    { k: "issues", t: T("Issues", "问题") },
+    { k: "issue", t: T("Issue", "详情") },
+    { k: "history", t: T("Scan history", "历史") },
+    { k: "apiKeys", t: T("API Keys", "API Keys") },
+    { k: "settings", t: T("Settings", "设置") },
+    { k: "billing", t: T("Billing", "账单") },
+    { k: "pricing", t: T("Pricing", "价格") },
+    { k: "api", t: T("API docs", "API 文档") },
+    { k: "privacy", t: T("Privacy Policy", "隐私") },
+    { k: "terms", t: T("Terms of Service", "条款") },
+    { k: "security", t: T("Security", "安全") },
+    { k: "status", t: T("Status", "状态") },
     { k: "notfound", t: "404" },
   ];
 
@@ -152,7 +152,9 @@ function PrototypeNav({ go, current }) {
           </button>
         ))}
       </div>
-      <div className="proto-nav-hint">点击跳转任意原型页面</div>
+      <div className="proto-nav-hint">
+        {T("Click any prototype page to jump", "点击跳转任意原型页面")}
+      </div>
     </div>
   );
 }

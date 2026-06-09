@@ -31,30 +31,38 @@ function objectRecord(value) {
 const API_KEY_SCOPES = [
   {
     value: "repositories:read",
-    label: "Read repositories",
-    description: "List repositories authorized for this account.",
+    labelEn: "Read repositories",
+    labelZh: "读取仓库",
+    descEn: "List repositories authorized for this account.",
+    descZh: "列出此账户已授权的仓库。",
   },
   {
     value: "scans:write",
-    label: "Start repository scans",
-    description: "Create or stop scans for authorized repositories.",
+    labelEn: "Start repository scans",
+    labelZh: "启动仓库扫描",
+    descEn: "Create or stop scans for authorized repositories.",
+    descZh: "为已授权的仓库创建或停止扫描。",
   },
   {
     value: "scans:read",
-    label: "Read scans",
-    description: "Read scan status, findings, and history.",
+    labelEn: "Read scans",
+    labelZh: "读取扫描",
+    descEn: "Read scan status, findings, and history.",
+    descZh: "读取扫描状态、发现和历史。",
   },
   {
     value: "quota:read",
-    label: "Read quota",
-    description: "Check account and repository quota.",
+    labelEn: "Read quota",
+    labelZh: "读取配额",
+    descEn: "Check account and repository quota.",
+    descZh: "检查账户和仓库配额。",
   },
 ];
 
 const API_KEY_SCOPE_VALUES = API_KEY_SCOPES.map((scope) => scope.value);
 
 function formatDate(value) {
-  if (!value) return "Never";
+  if (!value) return T("Never", "从未");
   const date = new Date(typeof value === "number" ? value * 1000 : value);
   if (Number.isNaN(date.getTime())) return textValue(value);
   return date.toLocaleString();
@@ -71,7 +79,7 @@ function normalizeApiKey(key = {}) {
   return {
     ...record,
     id,
-    name: textValue(record.name) || "API key",
+    name: textValue(record.name) || T("API key", "API 密钥"),
     prefix: textValue(record.prefix),
     scopes,
     createdAt: record.createdAt || record.created_at,
@@ -521,7 +529,7 @@ Content-Type: application/json
 export function ApiKeysScreen({ go, setIssue = null }) {
   useLang();
   const [keys, setKeys] = useState([]);
-  const [name, setName] = useState("Account automation");
+  const [name, setName] = useState(T("Account automation", "账户自动化"));
   const [selectedScopes, setSelectedScopes] = useState(API_KEY_SCOPE_VALUES);
   const [createdToken, setCreatedToken] = useState("");
   const [loading, setLoading] = useState(true);
@@ -535,7 +543,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       const payload = await pullwiseApi.apiKeys.list();
       setKeys(itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey).filter(Boolean));
     } catch (err) {
-      setError(err?.message || "Unable to load API keys.");
+      setError(err?.message || T("Unable to load API keys.", "无法加载 API key。"));
       setKeys([]);
     } finally {
       setLoading(false);
@@ -564,18 +572,18 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     try {
       const scopes = API_KEY_SCOPE_VALUES.filter((scope) => selectedScopes.includes(scope));
       const payload = await pullwiseApi.apiKeys.create({
-        name: name.trim() || "API key",
+        name: name.trim() || T("API key", "API 密钥"),
         scopes,
       });
       const key = normalizeApiKey(createdApiKeyRecord(payload));
       const token = createdApiKeyToken(payload);
-      if (!key) throw new Error("API key response was malformed.");
+      if (!key) throw new Error(T("API key response was malformed.", "API key 响应格式错误。"));
       setCreatedToken(token);
       setKeys((current) => [key, ...current.filter((item) => item.id !== key.id)]);
-      setName("Account automation");
+      setName(T("Account automation", "账户自动化"));
       setSelectedScopes(API_KEY_SCOPE_VALUES);
     } catch (err) {
-      setError(err?.message || "Unable to create API key.");
+      setError(err?.message || T("Unable to create API key.", "无法创建 API key。"));
     } finally {
       setPending("");
     }
@@ -589,7 +597,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       await pullwiseApi.apiKeys.revoke(keyId);
       setKeys((current) => current.filter((key) => key.id !== keyId));
     } catch (err) {
-      setError(err?.message || "Unable to revoke API key.");
+      setError(err?.message || T("Unable to revoke API key.", "无法吊销 API key。"));
     } finally {
       setPending("");
     }
@@ -599,13 +607,23 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     if (!createdToken) return;
     setError("");
     if (!navigator.clipboard) {
-      setError("Unable to copy API key. Select and copy the token manually.");
+      setError(
+        T(
+          "Unable to copy API key. Select and copy the token manually.",
+          "无法复制 API key，请手动选择并复制令牌。"
+        )
+      );
       return;
     }
     try {
       await navigator.clipboard.writeText(createdToken);
     } catch {
-      setError("Unable to copy API key. Select and copy the token manually.");
+      setError(
+        T(
+          "Unable to copy API key. Select and copy the token manually.",
+          "无法复制 API key，请手动选择并复制令牌。"
+        )
+      );
     }
   };
 
@@ -613,7 +631,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     <div className="app fade-in">
       <Topbar
         go={go}
-        breadcrumbs={[{ label: "API Keys" }]}
+        breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
         setIssue={setIssue}
         loading={loading}
       />
@@ -622,14 +640,17 @@ export function ApiKeysScreen({ go, setIssue = null }) {
         <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
-              <h1>API Keys</h1>
+              <h1>{T("API Keys", "API 密钥")}</h1>
               <div className="sub">
-                REST credentials for account-scoped repository scans and quota checks.
+                {T(
+                  "REST credentials for account-scoped repository scans and quota checks.",
+                  "用于账户范围内仓库扫描和配额检查的 REST 凭据。"
+                )}
               </div>
             </div>
             <div className="actions">
               <a className="btn" {...screenLinkProps(go, "api")}>
-                <I.FileCode size={14} /> API docs
+                <I.FileCode size={14} /> {T("API docs", "API 文档")}
               </a>
             </div>
           </div>
@@ -643,13 +664,18 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             <div className="auth-success" role="status" style={{ marginBottom: 12 }}>
               <I.Check size={14} />
               <div>
-                <b>New key created</b>
-                <span>Copy it now. The full token is only shown once.</span>
+                <b>{T("New key created", "已创建新密钥")}</b>
+                <span>
+                  {T(
+                    "Copy it now. The full token is only shown once.",
+                    "请立即复制。完整令牌只显示一次。"
+                  )}
+                </span>
                 <div className="docs-code" style={{ marginBottom: 0 }}>
                   <div className="docs-code-h">
-                    <span>Bearer token</span>
+                    <span>{T("Bearer token", "Bearer 令牌")}</span>
                     <button className="docs-code-copy" type="button" onClick={copyToken}>
-                      <I.Copy size={12} /> Copy
+                      <I.Copy size={12} /> {T("Copy", "复制")}
                     </button>
                   </div>
                   <pre>{createdToken}</pre>
@@ -662,11 +688,11 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             <aside className="set-side">
               <button className="set-side-i active">
                 <I.Code size={14} />
-                <span>Keys</span>
+                <span>{T("Keys", "密钥")}</span>
               </button>
               <a className="set-side-i" {...screenLinkProps(go, "api")}>
                 <I.FileCode size={14} />
-                <span>Docs</span>
+                <span>{T("Docs", "文档")}</span>
               </a>
             </aside>
 
@@ -677,20 +703,25 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                     <I.Shield size={16} />
                   </div>
                   <div>
-                    <b>Create API key</b>
-                    <span>Name the key, choose scopes, then create the token.</span>
+                    <b>{T("Create API key", "创建 API key")}</b>
+                    <span>
+                      {T(
+                        "Name the key, choose scopes, then create the token.",
+                        "为密钥命名，选择权限范围，然后创建令牌。"
+                      )}
+                    </span>
                   </div>
                 </div>
                 <div className="api-key-create-main">
                   <div className="api-key-name-row">
                     <label className="auth-field">
-                      <span>Key name</span>
+                      <span>{T("Key name", "密钥名称")}</span>
                       <div className="auth-input">
                         <I.Code size={14} />
                         <input
                           value={name}
                           onChange={(event) => setName(event.target.value)}
-                          placeholder="CI scanner"
+                          placeholder={T("CI scanner", "CI 扫描器")}
                         />
                       </div>
                     </label>
@@ -704,22 +735,26 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                           <I.Refresh size={14} />
                         </span>
                       )}
-                      <I.Plus size={14} /> Create key
+                      <I.Plus size={14} /> {T("Create key", "创建密钥")}
                     </button>
                   </div>
                   <fieldset className="api-scope-panel" aria-describedby="api-scope-help">
-                    <legend className="api-scope-legend">Scopes</legend>
+                    <legend className="api-scope-legend">{T("Scopes", "权限")}</legend>
                     <div className="api-scope-head">
                       <div>
                         <span className="api-scope-kicker">
-                          <I.Shield size={13} /> Scopes
+                          <I.Shield size={13} /> {T("Scopes", "权限")}
                         </span>
                         <span id="api-scope-help" className="api-scope-help">
-                          Select the API routes this key can use.
+                          {T(
+                            "Select the API routes this key can use.",
+                            "选择此密钥可以使用的 API 路由。"
+                          )}
                         </span>
                       </div>
                       <span className="tag api-scope-count">
-                        {selectedScopes.length} / {API_KEY_SCOPES.length} selected
+                        {selectedScopes.length} / {API_KEY_SCOPES.length}{" "}
+                        {T("selected", "已选择")}
                       </span>
                     </div>
                     <div className="api-scope-list">
@@ -736,8 +771,8 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                               onChange={() => toggleScope(scope.value)}
                             />
                             <span className="api-scope-copy">
-                              <b>{scope.label}</b>
-                              <span>{scope.description}</span>
+                              <b>{T(scope.labelEn, scope.labelZh)}</b>
+                              <span>{T(scope.descEn, scope.descZh)}</span>
                             </span>
                             <code className="api-scope-value">{scope.value}</code>
                           </label>
@@ -752,14 +787,18 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                 {keys.map((key) => (
                   <div key={key.id || key.prefix || key.name} className="issue-row">
                     <div className="issue-sev sev-bg-info">
-                      <I.Code size={12} /> key
+                      <I.Code size={12} /> {T("key", "key")}
                     </div>
                     <div className="issue-id">{key.prefix || key.id || "-"}</div>
                     <div className="issue-main">
                       <div className="issue-t">{key.name}</div>
                       <div className="issue-meta">
-                        <span className="tag">Created {formatDate(key.createdAt)}</span>
-                        <span className="tag">Last used {formatDate(key.lastUsedAt)}</span>
+                        <span className="tag">
+                          {T("Created", "已创建")} {formatDate(key.createdAt)}
+                        </span>
+                        <span className="tag">
+                          {T("Last used", "最近使用")} {formatDate(key.lastUsedAt)}
+                        </span>
                         {key.scopes.map((scope) => (
                           <span className="tag" key={scope}>
                             {scope}
@@ -772,12 +811,14 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                       disabled={pending === key.id}
                       onClick={() => revokeKey(key.id)}
                     >
-                      <I.X size={13} /> Revoke
+                      <I.X size={13} /> {T("Revoke", "吊销")}
                     </button>
                   </div>
                 ))}
                 {!loading && keys.length === 0 && (
-                  <div className="card section muted">No API keys have been created yet.</div>
+                  <div className="card section muted">
+                    {T("No API keys have been created yet.", "尚未创建任何 API key。")}
+                  </div>
                 )}
               </div>
             </div>

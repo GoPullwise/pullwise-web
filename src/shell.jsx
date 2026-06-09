@@ -26,21 +26,21 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
         <a
           className="brand topbar-brand-button"
-          aria-label="Go to Pullwise home"
+          aria-label={T("Go to Pullwise home", "前往 Pullwise 首页")}
           {...screenLinkProps(go, "landing")}
         >
           <img className="brand-mark" src="/favicon.ico" alt="" aria-hidden="true" width="24" height="24" />
           <span>Pullwise</span>
         </a>
         {breadcrumbs && (
-          <nav className="crumbs" aria-label="Breadcrumbs">
+          <nav className="crumbs" aria-label={T("Breadcrumbs", "面包屑")}>
             {breadcrumbs.map((crumb, index) => (
               <React.Fragment key={`${crumb.label}-${index}`}>
                 {index > 0 && <span className="sep">/</span>}
                 {crumb.go && index !== breadcrumbs.length - 1 ? (
                   <a
                     className="crumb-button"
-                    aria-label={`Go to ${crumb.label}`}
+                    aria-label={T(`Go to ${crumb.label}`, `前往 ${crumb.label}`)}
                     {...screenLinkProps(go, crumb.go)}
                   >
                     {crumb.label}
@@ -75,7 +75,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
         </button>
         <a
           className="btn ghost sm"
-          aria-label="Open account settings"
+          aria-label={T("Open account settings", "打开账户设置")}
           {...screenLinkProps(go, "settings")}
         >
           <I.User size={14} />
@@ -195,7 +195,7 @@ function SearchModal({ close, go, setIssue }) {
                   </div>
                   {repo.private && (
                     <span className="tag">
-                      <I.Lock size={10} /> private
+                      <I.Lock size={10} /> {T("private", "私有")}
                     </span>
                   )}
                 </button>

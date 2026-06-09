@@ -30,9 +30,17 @@ function repoQuotaLabel(quota) {
     ? quotaNumber(quota.remaining)
     : Math.max(0, limit - used);
   const scope = quota.scope === "user" ? "account" : "repo";
-  if (!limit) return `${scope} quota unavailable`;
+  if (!limit) {
+    return scope === "account"
+      ? T("account quota unavailable", "账户配额不可用")
+      : T("repo quota unavailable", "仓库配额不可用");
+  }
   const reset = quotaResetText(quota);
-  return `${remaining} of ${limit} ${scope} scans left${reset ? ` - ${reset}` : ""}`;
+  const leftText =
+    scope === "account"
+      ? T(`${remaining} of ${limit} account scans left`, `账户扫描剩余 ${remaining} / ${limit}`)
+      : T(`${remaining} of ${limit} repo scans left`, `仓库扫描剩余 ${remaining} / ${limit}`);
+  return reset ? `${leftText} - ${reset}` : leftText;
 }
 
 function quotaRemaining(quota) {
@@ -50,19 +58,30 @@ function quotaRemaining(quota) {
 }
 
 function scansWord(count) {
-  return count === 1 ? "scan" : "scans";
+  return count === 1
+    ? T("scan", "次扫描")
+    : T("scans", "次扫描");
 }
 
 function accountQuotaNotice(remaining) {
   if (remaining === 0) {
-    return "Your account has 0 scans left for this billing period. Upgrade or wait for the quota reset before selecting a repository.";
+    return T(
+      "Your account has 0 scans left for this billing period. Upgrade or wait for the quota reset before selecting a repository.",
+      "此计费周期账户剩余 0 次扫描。请升级或等待配额重置后再选择仓库。"
+    );
   }
-  return `Your account has ${remaining} ${scansWord(remaining)} left for this billing period. Deselect another repository before selecting more.`;
+  return T(
+    `Your account has ${remaining} ${scansWord(remaining)} left for this billing period. Deselect another repository before selecting more.`,
+    `此计费周期账户剩余 ${remaining} ${scansWord(remaining)}。请先取消选择其他仓库，再选择更多仓库。`
+  );
 }
 
 function repositoryQuotaNotice(repo) {
-  const label = repo?.fullName || repo?.name || "This repository";
-  return `${label} has 0 repository scans left for this billing period.`;
+  const label = repo?.fullName || repo?.name || T("This repository", "此仓库");
+  return T(
+    `${label} has 0 repository scans left for this billing period.`,
+    `${label} 此计费周期仓库扫描剩余 0 次。`
+  );
 }
 
 function preflightAllowedCount(payload, fallback) {
@@ -292,22 +311,22 @@ function scanErrorAction(error) {
   const message = typeof error === "object" && error ? error.message : error;
   const text = `${code} ${String(message || "")}`.toLowerCase();
   if (code.startsWith("QUOTA_EXCEEDED")) {
-    return { label: "Open billing", screen: "billing" };
+    return { label: T("Open billing", "打开账单"), screen: "billing" };
   }
   if (
     text.includes("review provider") ||
     text.includes("cli") ||
     text.includes("not authenticated")
   ) {
-    return { label: "Open settings", screen: "settings" };
+    return { label: T("Open settings", "打开设置"), screen: "settings" };
   }
   if (
     text.includes("sync github repositories") ||
     ["REPOSITORY_SYNC_REQUIRED", "REPOSITORY_NOT_AUTHORIZED"].includes(code)
   ) {
-    return { label: "Sync repositories", screen: "repos" };
+    return { label: T("Sync repositories", "同步仓库"), screen: "repos" };
   }
-  return { label: "Retry", screen: "repos" };
+  return { label: T("Retry", "重试"), screen: "repos" };
 }
 
 const REVIEW_RUNNER_CLI_RE = /\b[A-Za-z][A-Za-z0-9_-]*\s+cli\b/gi;
@@ -315,8 +334,8 @@ const REVIEW_RUNNER_CLI_RE = /\b[A-Za-z][A-Za-z0-9_-]*\s+cli\b/gi;
 function publicScanErrorMessage(error) {
   const message = typeof error === "object" && error ? error.message : error;
   return String(message || "")
-    .replace(REVIEW_RUNNER_CLI_RE, "Review runner")
-    .replace(/\bcli\b/gi, "review runner");
+    .replace(REVIEW_RUNNER_CLI_RE, T("Review runner", "审查运行器"))
+    .replace(/\bcli\b/gi, T("review runner", "审查运行器"));
 }
 
 function scanIssueTotals(scans) {
@@ -556,16 +575,16 @@ function hasAuditSwarm(audit) {
 function auditSwarmBlockLabel(kind) {
   return (
     {
-      summary: "Summary",
-      claim: "Claim",
-      code_location: "Code location",
-      evidence: "Evidence",
-      command: "Command",
-      verifier_verdict: "Verifier verdict",
-      false_positive_check: "False-positive check",
-      invariant: "Invariant",
-      risk: "Risk",
-    }[kind] || "Evidence"
+      summary: T("Summary", "摘要"),
+      claim: T("Claim", "结论"),
+      code_location: T("Code location", "代码位置"),
+      evidence: T("Evidence", "证据"),
+      command: T("Command", "命令"),
+      verifier_verdict: T("Verifier verdict", "验证器结论"),
+      false_positive_check: T("False-positive check", "误报排除检查"),
+      invariant: T("Invariant", "不变量"),
+      risk: T("Risk", "风险"),
+    }[kind] || T("Evidence", "证据")
   );
 }
 
@@ -683,8 +702,9 @@ function auditSwarmLocation(item) {
   return file ? `${file}${line ? `:${line}` : ""}` : "";
 }
 
-function auditSwarmCountLabel(count, singular, plural = `${singular}s`) {
-  return `${count || 0} ${count === 1 ? singular : plural}`;
+function auditSwarmCountLabel(count, singular, plural) {
+  const safePlural = plural || `${singular}s`;
+  return `${count || 0} ${count === 1 ? singular : safePlural}`;
 }
 
 function auditSwarmBlockMeta(block) {
@@ -693,12 +713,17 @@ function auditSwarmBlockMeta(block) {
     auditSwarmBlockLabel(block?.kind),
     block?.severity,
     block?.role,
-    block?.shardId ? `shard ${block.shardId}` : "",
+    block?.shardId ? T(`shard ${block.shardId}`, `分片 ${block.shardId}`) : "",
     block?.verdict,
     block?.proofType,
     block?.status,
     location,
-    block?.confidence ? `${Math.round(Number(block.confidence) * 100)}% confidence` : "",
+    block?.confidence
+      ? T(
+          `${Math.round(Number(block.confidence) * 100)}% confidence`,
+          `${Math.round(Number(block.confidence) * 100)}% 置信度`
+        )
+      : "",
   ]);
 }
 
@@ -708,10 +733,10 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
   const rootClassName = ["scanning-audit", className].filter(Boolean).join(" ");
   const visibleEvidenceCount = Math.min(auditSwarm.evidenceBlocks.length, 8);
   const stats = [
-    { key: "candidates", value: auditSwarm.counts.candidateCount, label: "Candidates" },
-    { key: "reported", value: auditSwarm.counts.reportedCount, label: "Reported" },
-    { key: "rejected", value: auditSwarm.counts.rejectedCount, label: "Rejected" },
-    { key: "verified", value: auditSwarm.counts.verifiedCount, label: "Verified" },
+    { key: "candidates", value: auditSwarm.counts.candidateCount, label: T("Candidates", "候选") },
+    { key: "reported", value: auditSwarm.counts.reportedCount, label: T("Reported", "已报告") },
+    { key: "rejected", value: auditSwarm.counts.rejectedCount, label: T("Rejected", "已拒绝") },
+    { key: "verified", value: auditSwarm.counts.verifiedCount, label: T("Verified", "已验证") },
   ].filter((s) => typeof s.value === "number");
   const showStats = stats.some((s) => s.value > 0);
 
@@ -728,7 +753,11 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
         <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
       )}
       <div className="scan-preflight-tags">
-        {auditSwarm.stage && <span className="tag">stage {auditSwarm.stage}</span>}
+        {auditSwarm.stage && (
+          <span className="tag">
+            {T(`stage ${auditSwarm.stage}`, `阶段 ${auditSwarm.stage}`)}
+          </span>
+        )}
         {auditSwarm.adapter && <span className="tag">{auditSwarm.adapter}</span>}
         {auditSwarm.roles.slice(0, 4).map((role) => (
           <span className="tag" key={`audit-role-${role}`}>
@@ -737,7 +766,7 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
         ))}
         {auditSwarm.shards.slice(0, 3).map((shard) => (
           <span className="tag" key={`audit-shard-${shard}`}>
-            shard {shard}
+            {T(`shard ${shard}`, `分片 ${shard}`)}
           </span>
         ))}
       </div>
@@ -753,24 +782,48 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
       )}
       <div className="scan-preflight-meta audit-meta-fallback">
         {auditSwarm.counts.candidateCount > 0 && (
-          <span>{auditSwarm.counts.candidateCount} candidates evaluated</span>
+          <span>
+            {T(
+              `${auditSwarm.counts.candidateCount} candidates evaluated`,
+              `评估了 ${auditSwarm.counts.candidateCount} 个候选`
+            )}
+          </span>
         )}
         {auditSwarm.counts.rejectedCount > 0 && (
-          <span>{auditSwarm.counts.rejectedCount} rejected before reporting</span>
+          <span>
+            {T(
+              `${auditSwarm.counts.rejectedCount} rejected before reporting`,
+              `${auditSwarm.counts.rejectedCount} 个在报告前被拒绝`
+            )}
+          </span>
         )}
         {auditSwarm.counts.verifiedCount > 0 && (
-          <span>{auditSwarm.counts.verifiedCount} verified</span>
+          <span>
+            {T(
+              `${auditSwarm.counts.verifiedCount} verified`,
+              `${auditSwarm.counts.verifiedCount} 条已验证`
+            )}
+          </span>
         )}
         {auditSwarm.counts.staticProofCount > 0 && (
-          <span>{auditSwarm.counts.staticProofCount} static proof</span>
+          <span>
+            {T(
+              `${auditSwarm.counts.staticProofCount} static proof`,
+              `${auditSwarm.counts.staticProofCount} 条静态证明`
+            )}
+          </span>
         )}
       </div>
       {auditSwarm.evidenceBlocks.length > 0 && (
         <div className="audit-section">
           <div className="audit-section-h">
-            <span>{T("Evidence blocks", "Evidence blocks")}</span>
+            <span>{T("Evidence blocks", "证据块")}</span>
             <span className="audit-section-count">
-              {auditSwarmCountLabel(auditSwarm.counts.evidenceBlocks, "evidence block")}
+              {auditSwarmCountLabel(
+                auditSwarm.counts.evidenceBlocks,
+                T("evidence block", "条证据块"),
+                T("evidence blocks", "条证据块")
+              )}
             </span>
           </div>
           <div className="audit-card-list">
@@ -820,7 +873,11 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
           <div className="audit-section-h">
             <span>{T("Issue cards", "问题卡片")}</span>
             <span className="audit-section-count">
-              {auditSwarmCountLabel(auditSwarm.counts.issueCards, "issue card")}
+              {auditSwarmCountLabel(
+                auditSwarm.counts.issueCards,
+                T("issue card", "张问题卡片"),
+                T("issue cards", "张问题卡片")
+              )}
             </span>
           </div>
           <div className="audit-card-list">
@@ -877,7 +934,11 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
           <div className="audit-section-h">
             <span>{T("Verifier results", "验证结果")}</span>
             <span className="audit-section-count">
-              {auditSwarmCountLabel(auditSwarm.counts.verificationResults, "verifier result")}
+              {auditSwarmCountLabel(
+                auditSwarm.counts.verificationResults,
+                T("verifier result", "条验证结果"),
+                T("verifier results", "条验证结果")
+              )}
             </span>
           </div>
           <div className="audit-card-list">
@@ -887,7 +948,7 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
                 className="audit-card"
               >
                 <div className="audit-card-title">
-                  {result.verdict || "reviewed"}
+                  {result.verdict || T("reviewed", "已审查")}
                   {result.verifierRole ? ` · ${result.verifierRole}` : ""}
                 </div>
                 {result.summary && (
@@ -1290,8 +1351,14 @@ export function ReposScreen({
         const remaining = quotaRemaining(preflight?.userQuota);
         const notice =
           remaining !== null && remaining < reposToScan.length
-            ? `Your account currently has ${remaining} ${scansWord(remaining)} left. Choose up to ${allowedCount} repositories to scan now.`
-            : `Only ${allowedCount} of these repositories can be scanned right now based on current quota. Choose which repositories to scan.`;
+            ? T(
+                `Your account currently has ${remaining} ${scansWord(remaining)} left. Choose up to ${allowedCount} repositories to scan now.`,
+                `此账户当前剩余 ${remaining} ${scansWord(remaining)}。请最多选择 ${allowedCount} 个仓库进行扫描。`
+              )
+            : T(
+                `Only ${allowedCount} of these repositories can be scanned right now based on current quota. Choose which repositories to scan.`,
+                `根据当前配额，现在只能扫描这些仓库中的 ${allowedCount} 个。请选择要扫描的仓库。`
+              );
         setQuotaPreflight({ ...preflight, selectedRepos: reposToScan });
         setQuotaDialogSelected([]);
         setQuotaDialogNotice(notice);
@@ -1299,7 +1366,13 @@ export function ReposScreen({
       }
       runScanForRepos(reposToScan);
     } catch (quotaError) {
-      setConnectError(quotaError?.message || "Unable to verify scan quota before starting.");
+      setConnectError(
+        quotaError?.message ||
+          T(
+            "Unable to verify scan quota before starting.",
+            "无法在启动前验证扫描配额。"
+          )
+      );
     } finally {
       setCheckingQuota(false);
     }
@@ -1325,7 +1398,10 @@ export function ReposScreen({
       setQuotaDialogNotice(
         row.reason === "repository_quota_exceeded"
           ? repositoryQuotaNotice(repo)
-          : "This repository cannot be scanned with the current GitHub authorization."
+          : T(
+              "This repository cannot be scanned with the current GitHub authorization.",
+              "此仓库无法使用当前 GitHub 授权进行扫描。"
+            )
       );
       return;
     }
@@ -1335,7 +1411,10 @@ export function ReposScreen({
     }
     if (quotaDialogSelected.length >= quotaDialogAllowed) {
       setQuotaDialogNotice(
-        `You can choose ${quotaDialogAllowed} ${scansWord(quotaDialogAllowed)} because that is the current effective quota.`
+        T(
+          `You can choose ${quotaDialogAllowed} ${scansWord(quotaDialogAllowed)} because that is the current effective quota.`,
+          `当前有效配额下，你只能选择 ${quotaDialogAllowed} ${scansWord(quotaDialogAllowed)}。`
+        )
       );
       return;
     }
@@ -1358,7 +1437,13 @@ export function ReposScreen({
       await connectGitHubRepositories(options);
       await reload({ sync: true });
     } catch (authError) {
-      setConnectError(authError?.message || "Unable to connect GitHub repository access.");
+      setConnectError(
+        authError?.message ||
+          T(
+            "Unable to connect GitHub repository access.",
+            "无法连接 GitHub 仓库访问。"
+          )
+      );
     } finally {
       setConnecting(false);
     }
@@ -1376,7 +1461,9 @@ export function ReposScreen({
       });
       await reload();
     } catch (authError) {
-      setConnectError(authError?.message || "Unable to manage GitHub installation.");
+      setConnectError(
+        authError?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装。")
+      );
     } finally {
       setManagingInstallationId("");
     }
@@ -1416,7 +1503,9 @@ export function ReposScreen({
                 </div>
               )}
               {accountQuotaLabel && (
-                <div className="sub account-quota-summary">Account quota: {accountQuotaLabel}</div>
+                <div className="sub account-quota-summary">
+                  {T("Account quota", "账户配额")}: {accountQuotaLabel}
+                </div>
               )}
             </div>
             <div className="actions">
@@ -1435,7 +1524,8 @@ export function ReposScreen({
                 ) : (
                   <I.Play size={12} />
                 )}{" "}
-                {checkingQuota ? "Checking quota" : T("Start scan", "开始扫描")} ({selected.length})
+                {checkingQuota ? T("Checking quota", "正在检查配额") : T("Start scan", "开始扫描")}{" "}
+                ({selected.length})
               </button>
             </div>
           </div>
@@ -1517,7 +1607,7 @@ export function ReposScreen({
                 </div>
                 <div className="repo-main">
                   <div className="repo-name">
-                    <span>Scan quota limit</span>
+                    <span>{T("Scan quota limit", "扫描配额限制")}</span>
                   </div>
                   <div className="repo-desc">{selectionNotice}</div>
                 </div>
@@ -1726,7 +1816,7 @@ export function ReposScreen({
           >
             <div className="modal-h">
               <div>
-                <h2 id="quota-dialog-title">Choose repositories to scan</h2>
+                <h2 id="quota-dialog-title">{T("Choose repositories to scan", "选择要扫描的仓库")}</h2>
                 <p>{quotaDialogNotice}</p>
               </div>
               <button className="btn ghost icon" type="button" onClick={closeQuotaDialog}>
@@ -1734,7 +1824,10 @@ export function ReposScreen({
               </button>
             </div>
             <div className="quota-choice-count">
-              {quotaDialogSelected.length} of {quotaDialogAllowed} selected
+              {T(
+                `${quotaDialogSelected.length} of ${quotaDialogAllowed} selected`,
+                `已选 ${quotaDialogSelected.length} / ${quotaDialogAllowed}`
+              )}
             </div>
             <div className="quota-choice-list">
               {quotaDialogRepos.map((repo) => {
@@ -1756,7 +1849,11 @@ export function ReposScreen({
                     <span className="repo-check-box">{on && <I.Check size={11} />}</span>
                     <span className="quota-choice-copy">
                       <strong>{repo.fullName || repo.name}</strong>
-                      <span>{quotaLabel || repo.desc || "Authorized repository"}</span>
+                      <span>
+                        {quotaLabel ||
+                          repo.desc ||
+                          T("Authorized repository", "已授权仓库")}
+                      </span>
                     </span>
                   </button>
                 );
@@ -1772,11 +1869,11 @@ export function ReposScreen({
                     go("billing");
                   }}
                 >
-                  <I.Activity size={14} /> Open billing
+                  <I.Activity size={14} /> {T("Open billing", "打开账单")}
                 </button>
               )}
               <button className="btn ghost" type="button" onClick={closeQuotaDialog}>
-                Cancel
+                {T("Cancel", "取消")}
               </button>
               <button
                 className="btn primary"
@@ -1784,7 +1881,7 @@ export function ReposScreen({
                 disabled={!quotaDialogCanConfirm}
                 onClick={confirmQuotaDialogSelection}
               >
-                <I.Play size={12} /> Scan selected
+                <I.Play size={12} /> {T("Scan selected", "扫描所选")}
               </button>
             </div>
           </div>
@@ -2173,75 +2270,81 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
               <div className="scanning-counts-grid">
                 <div>
                   <b style={{ color: "var(--sev-critical)" }}>{found.critical || 0}</b>
-                  <span>Critical</span>
+                  <span>{T("Critical", "关键")}</span>
                 </div>
                 <div>
                   <b style={{ color: "var(--sev-high)" }}>{found.high || 0}</b>
-                  <span>High</span>
+                  <span>{T("High", "高")}</span>
                 </div>
                 <div>
                   <b style={{ color: "var(--sev-medium)" }}>{found.medium || 0}</b>
-                  <span>Medium</span>
+                  <span>{T("Medium", "中")}</span>
                 </div>
                 <div>
                   <b style={{ color: "var(--sev-low)" }}>{found.low || 0}</b>
-                  <span>Low</span>
+                  <span>{T("Low", "低")}</span>
                 </div>
               </div>
               {aiUsage?.model && (
                 <>
-                  <div className="scanning-counts-h scanning-counts-subh">Model usage</div>
+                  <div className="scanning-counts-h scanning-counts-subh">
+                    {T("Model usage", "模型用量")}
+                  </div>
                   <div className="scan-preflight-meta">
                     <span className="tag">{aiUsage.model}</span>
                   </div>
                 </>
               )}
-              <div className="scanning-counts-h scanning-counts-subh">Evidence status</div>
+              <div className="scanning-counts-h scanning-counts-subh">
+                {T("Evidence status", "证据状态")}
+              </div>
               <div className="scanning-counts-grid">
                 <div>
                   <b className="scan-verification-verified">{verificationFound.verified || 0}</b>
-                  <span>Verified</span>
+                  <span>{T("Verified", "已验证")}</span>
                 </div>
                 <div>
                   <b className="scan-verification-static">{verificationFound.static_proof || 0}</b>
-                  <span>Static</span>
+                  <span>{T("Static", "静态")}</span>
                 </div>
                 <div>
                   <b className="scan-verification-risk">{verificationFound.potential_risk || 0}</b>
-                  <span>Risk</span>
+                  <span>{T("Risk", "风险")}</span>
                 </div>
                 <div>
                   <b className="scan-verification-unverified">
                     {verificationFound.unverified || 0}
                   </b>
-                  <span>Unverified</span>
+                  <span>{T("Unverified", "未验证")}</span>
                 </div>
               </div>
               {hasVerificationAudit(verificationAuditFound) && (
                 <>
-                  <div className="scanning-counts-h scanning-counts-subh">Candidate audit</div>
+                  <div className="scanning-counts-h scanning-counts-subh">
+                    {T("Candidate audit", "候选审计")}
+                  </div>
                   <div className="scanning-counts-grid">
                     <div>
                       <b>{verificationAuditFound.candidateCount || 0}</b>
-                      <span>Candidates</span>
+                      <span>{T("Candidates", "候选")}</span>
                     </div>
                     <div>
                       <b className="scan-verification-verified">
                         {verificationAuditFound.reportedCount || 0}
                       </b>
-                      <span>Reported</span>
+                      <span>{T("Reported", "已报告")}</span>
                     </div>
                     <div>
                       <b className="scan-verification-risk">
                         {verificationAuditFound.rejectedCount || 0}
                       </b>
-                      <span>Rejected</span>
+                      <span>{T("Rejected", "已拒绝")}</span>
                     </div>
                     <div>
                       <b className="scan-verification-static">
                         {verificationAuditFound.downgradedCount || 0}
                       </b>
-                      <span>Downgraded</span>
+                      <span>{T("Downgraded", "已降级")}</span>
                     </div>
                   </div>
                   <AuditFunnel audit={verificationAuditFound} />
@@ -2270,20 +2373,50 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   ))}
                 </div>
                 <div className="scan-preflight-meta">
-                  <span>{preflight.manifestsCount || 0} manifests</span>
-                  <span>{preflight.toolCount || 0} tool checks</span>
+                  <span>
+                    {T(
+                      `${preflight.manifestsCount || 0} manifests`,
+                      `${preflight.manifestsCount || 0} 个清单`
+                    )}
+                  </span>
+                  <span>
+                    {T(
+                      `${preflight.toolCount || 0} tool checks`,
+                      `${preflight.toolCount || 0} 项工具检查`
+                    )}
+                  </span>
                   {preflight.environmentLabels.map((item) => (
                     <span key={`env-${item}`}>{item}</span>
                   ))}
-                  <span>{preflight.verifierRuns || 0} verifier runs</span>
+                  <span>
+                    {T(
+                      `${preflight.verifierRuns || 0} verifier runs`,
+                      `${preflight.verifierRuns || 0} 次验证器运行`
+                    )}
+                  </span>
                   {preflight.verifierFailed > 0 && (
-                    <span className="preflight-warn">{preflight.verifierFailed} failed</span>
+                    <span className="preflight-warn">
+                      {T(
+                        `${preflight.verifierFailed} failed`,
+                        `${preflight.verifierFailed} 次失败`
+                      )}
+                    </span>
                   )}
                   {preflight.verifierFlaky > 0 && (
-                    <span className="preflight-warn">{preflight.verifierFlaky} flaky</span>
+                    <span className="preflight-warn">
+                      {T(
+                        `${preflight.verifierFlaky} flaky`,
+                        `${preflight.verifierFlaky} 次不稳定`
+                      )}
+                    </span>
                   )}
                   {preflight.verifierTimeout > 0 && (
-                    <span className="preflight-warn">{preflight.verifierTimeout} timed out</span>
+                    <span className="preflight-warn">
+                      {T(
+                        `${preflight.verifierTimeout} timed out`,
+                        `${preflight.verifierTimeout} 次超时`
+                      )}
+                    </span>
                   )}
                   {preflight.availableScripts.length > 0 && (
                     <span>{preflight.availableScripts.join(", ")}</span>
@@ -2293,7 +2426,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
             )}
 
             <div className="card scanning-log">
-              <div className="scanning-counts-h">Live log</div>
+              <div className="scanning-counts-h">{T("Live log", "实时日志")}</div>
               <div className="scanning-log-body">
                 {logs.length === 0 && (
                   <div className="muted">{T("Waiting for engine…", "等待引擎启动…")}</div>

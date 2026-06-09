@@ -490,7 +490,7 @@ function configuredLabel(value, configured, missing) {
 }
 
 function reviewProviderDetail(value) {
-  return value && value !== "disabled" ? "Configured" : "Disabled";
+  return value && value !== "disabled" ? T("Configured", "已配置") : T("Disabled", "未启用");
 }
 
 function readinessAvailable(health) {
@@ -554,35 +554,54 @@ export function StatusScreen({ go, auth }) {
   );
   const githubDetail = github
     ? [
-        configuredLabel(github.oauthConfigured, "OAuth configured", "OAuth missing"),
+        configuredLabel(
+          github.oauthConfigured,
+          T("OAuth configured", "OAuth 已配置"),
+          T("OAuth missing", "OAuth 缺失")
+        ),
         configuredLabel(
           github.appInstallConfigured,
-          "App install configured",
-          "App install missing"
+          T("App install configured", "App 安装已配置"),
+          T("App install missing", "App 安装缺失")
         ),
-        configuredLabel(github.appApiConfigured, "App API configured", "App API missing"),
-        github.appVisibilityCheck ? "Visibility check on" : "Visibility check off",
+        configuredLabel(
+          github.appApiConfigured,
+          T("App API configured", "App API 已配置"),
+          T("App API missing", "App API 缺失")
+        ),
+        github.appVisibilityCheck
+          ? T("Visibility check on", "可见性检查开")
+          : T("Visibility check off", "可见性检查关"),
       ].join(" / ")
     : "";
   const billingDetail = billing
-    ? `${billing.provider || "unknown"} (${billing.enabled ? "enabled" : "not enabled"})`
+    ? `${billing.provider || "unknown"} (${billing.enabled ? T("enabled", "已启用") : T("not enabled", "未启用")})`
     : "";
   const limitsDetail = limits
     ? [
-        `${limits.maxConcurrentScansPerUser ?? "-"} per user running`,
-        `${limits.maxQueuedScansGlobal ?? "-"} global / ${limits.maxQueuedScansPerUser ?? "-"} per user queued`,
-        `Rate limiting ${limits.rateLimitEnabled ? "enabled" : "disabled"}`,
+        T(
+          `${limits.maxConcurrentScansPerUser ?? "-"} per user running`,
+          `${limits.maxConcurrentScansPerUser ?? "-"} 个每用户运行中`
+        ),
+        T(
+          `${limits.maxQueuedScansGlobal ?? "-"} global / ${limits.maxQueuedScansPerUser ?? "-"} per user queued`,
+          `全局 ${limits.maxQueuedScansGlobal ?? "-"} / 每用户排队 ${limits.maxQueuedScansPerUser ?? "-"}`
+        ),
+        `${T("Rate limiting", "限流")} ${limits.rateLimitEnabled ? T("enabled", "已启用") : T("disabled", "未启用")}`,
       ].join(" - ")
     : "";
   const databaseDetail = health?.database?.type
-    ? `${health.database.type}: ${health.database.path || "configured backend path"}`
+    ? `${health.database.type}: ${health.database.path || T("configured backend path", "已配置后端路径")}`
     : T("Waiting for backend health.", "等待后端健康检查。");
 
   const scanSystem = systemStatus || health?.scanSystem || null;
   const scanStatus = scanSystem?.scanSystemStatus || "down";
   const scanSystemDetail = scanSystem
-    ? `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`
-    : "Waiting for scan system status.";
+    ? T(
+        `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`,
+        `排队 ${scanSystem.queuedJobs ?? 0} / 运行中 ${scanSystem.runningJobs ?? 0} / 可用 ${scanSystem.availableCapacity ?? 0}`
+      )
+    : T("Waiting for scan system status.", "等待扫描系统状态。");
   const reviewProviderConfigured = Boolean(
     health?.reviewProvider && health.reviewProvider !== "disabled"
   );
@@ -628,7 +647,7 @@ export function StatusScreen({ go, auth }) {
           />
           <StatusRow
             icon={<I.Activity size={14} />}
-            title="Scan system"
+            title={T("Scan system", "扫描系统")}
             status={scanStatus === "ok" ? "operational" : scanStatus === "degraded" ? "degraded" : "incident"}
             detail={scanSystemDetail}
           />
@@ -642,19 +661,24 @@ export function StatusScreen({ go, auth }) {
         {readinessAvailable(health) && (
           <div className="status-card card" style={{ marginTop: 14 }}>
             <div className="status-card-h">
-              <h2>Backend readiness</h2>
-              <span className="muted">Configuration visible from safe /health fields</span>
+              <h2>{T("Backend readiness", "后端就绪状态")}</h2>
+              <span className="muted">
+                {T(
+                  "Configuration visible from safe /health fields",
+                  "从安全的 /health 字段可见的配置"
+                )}
+              </span>
             </div>
             <StatusRow
               icon={<I.Terminal size={14} />}
-              title="Review provider"
+              title={T("Review provider", "审查提供方")}
               status={reviewProviderConfigured ? "operational" : "degraded"}
               detail={reviewProviderDetail(health?.reviewProvider)}
             />
             {github && (
               <StatusRow
                 icon={<I.Github size={14} />}
-                title="GitHub integration"
+                title={T("GitHub integration", "GitHub 集成")}
                 status={githubReady ? "operational" : "degraded"}
                 detail={githubDetail}
               />
@@ -662,7 +686,7 @@ export function StatusScreen({ go, auth }) {
             {billing && (
               <StatusRow
                 icon={<I.Package size={14} />}
-                title="Billing provider"
+                title={T("Billing provider", "支付提供方")}
                 status={billing.enabled ? "operational" : "degraded"}
                 detail={billingDetail}
               />
@@ -670,7 +694,7 @@ export function StatusScreen({ go, auth }) {
             {limits && (
               <StatusRow
                 icon={<I.Activity size={14} />}
-                title="Runtime limits"
+                title={T("Runtime limits", "运行时限制")}
                 status={limits.maxConcurrentScansPerUser ? "operational" : "degraded"}
                 detail={limitsDetail}
               />

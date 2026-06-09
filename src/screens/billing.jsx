@@ -11,7 +11,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 function providerLabel(provider) {
   if (provider === "stripe") return "Stripe";
   if (provider === "creem") return "Creem";
-  return "Disabled";
+  return T("Disabled", "未启用");
 }
 
 function billingReturnUrl(kind, screen = "billing") {
@@ -66,12 +66,16 @@ function usagePercent(usage) {
 function usageText(usage) {
   const used = nonNegativeInteger(usage?.used);
   const limit = nonNegativeInteger(usage?.limit);
-  return `${used} / ${limit} reviews used`;
+  return T(`${used} / ${limit} reviews used`, `${used} / ${limit} 次审查已用`);
 }
 
 function billingAccount(plan) {
   if (plan?.account && typeof plan.account === "object") return plan.account;
   return { status: "none", plan: "free" };
+}
+
+function accountNameLabel(plan) {
+  return plan?.account?.name || T("Account", "账户");
 }
 
 export function BillingScreen({
@@ -106,7 +110,10 @@ export function BillingScreen({
       planById(plan, "free") || {
         id: "free",
         name: "Free",
-        description: "Try Pullwise with shared account and repository quota.",
+        description: T(
+          "Try Pullwise with shared account and repository quota.",
+          "使用共享账户和仓库配额试用 Pullwise。"
+        ),
         reviewLimit: 10,
         prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
       },
@@ -117,7 +124,9 @@ export function BillingScreen({
       planById(plan, "pro") || {
         id: "pro",
         name: plan?.name || "Pullwise Pro",
-        description: plan?.description || "Repository review for production teams.",
+        description:
+          plan?.description ||
+          T("Repository review for production teams.", "面向生产团队的仓库审查。"),
         reviewLimit: 100,
         prices: {
           month: {
@@ -139,7 +148,7 @@ export function BillingScreen({
 
   const account = billingAccount(plan);
   const accountStatus = account.status || "none";
-  const accountName = account.name || "Account";
+  const accountName = accountNameLabel(plan);
   const active = isActiveStatus(accountStatus);
   const activePro = active && account.plan === "pro";
   const proInterval = account.interval || "month";
@@ -218,7 +227,7 @@ export function BillingScreen({
             </div>
             <div className="actions">
               <a className="btn" {...screenLinkProps(go, "pricing")}>
-                <I.Trend size={14} /> View pricing
+                <I.Trend size={14} /> {T("View pricing", "查看价格")}
               </a>
             </div>
           </div>
@@ -250,7 +259,7 @@ export function BillingScreen({
                 <div className="billing-summary-main">
                   <I.Activity size={18} />
                   <div>
-                    <b>Account usage</b>
+                    <b>{T("Account usage", "账户用量")}</b>
                     <div className="muted">
                       {accountName} - {usageText(usage)}
                     </div>
@@ -261,7 +270,7 @@ export function BillingScreen({
                   <div className="usage-bar">
                     <div style={{ width: `${usagePercent(usage)}%` }} />
                   </div>
-                  <span className="tag">{currentPlan?.name || "Plan"}</span>
+                  <span className="tag">{currentPlan?.name || T("Plan", "套餐")}</span>
                 </div>
               </div>
 
@@ -269,10 +278,12 @@ export function BillingScreen({
                 <div className="billing-summary-main">
                   <I.Package size={18} />
                   <div>
-                    <b>{currentPlan?.name || "Free"}</b>
+                    <b>{currentPlan?.name || T("Free", "免费")}</b>
                     <div className="muted">
                       {accountStatus} -{" "}
-                      {activePro ? `Billed ${proInterval}` : "Upgrade from Pricing"}
+                      {activePro
+                        ? T(`Billed ${proInterval}`, `按 ${proInterval} 计费`)
+                        : T("Upgrade from Pricing", "前往价格页升级")}
                     </div>
                   </div>
                 </div>
@@ -289,7 +300,7 @@ export function BillingScreen({
                             <I.Refresh size={14} />
                           </span>
                         )}
-                        <I.Trend size={14} /> Switch to yearly
+                        <I.Trend size={14} /> {T("Switch to yearly", "切换为按年")}
                       </button>
                     )}
                     <button className="btn" disabled={Boolean(pendingAction)} onClick={openPortal}>
@@ -298,7 +309,7 @@ export function BillingScreen({
                           <I.Refresh size={14} />
                         </span>
                       )}
-                      <I.Settings size={14} /> Manage billing
+                      <I.Settings size={14} /> {T("Manage billing", "管理账单")}
                     </button>
                   </div>
                 )}
@@ -357,7 +368,10 @@ export function PricingScreen({
       planById(plan, "free") || {
         id: "free",
         name: "Free",
-        description: "Try Pullwise with shared account and repository quota.",
+        description: T(
+          "Try Pullwise with shared account and repository quota.",
+          "使用共享账户和仓库配额试用 Pullwise。"
+        ),
         reviewLimit: 10,
         prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
       },
@@ -368,7 +382,9 @@ export function PricingScreen({
       planById(plan, "pro") || {
         id: "pro",
         name: plan?.name || "Pullwise Pro",
-        description: plan?.description || "Repository review for production teams.",
+        description:
+          plan?.description ||
+          T("Repository review for production teams.", "面向生产团队的仓库审查。"),
         reviewLimit: 100,
         prices: {
           month: {
@@ -434,18 +450,19 @@ export function PricingScreen({
             "Choose review capacity for the account. Billing status and invoices stay on Billing."
           )}
         </p>
-        <div className="pricing-toggle" role="group" aria-label="Billing interval">
+        <div className="pricing-toggle" role="group" aria-label={T("Billing interval", "计费周期")}>
           <button
             className={"seg-i" + (interval === "month" ? " active" : "")}
             onClick={() => setInterval("month")}
           >
-            <I.Clock size={13} /> Monthly
+            <I.Clock size={13} /> {T("Monthly", "按月")}
           </button>
           <button
             className={"seg-i" + (interval === "year" ? " active" : "")}
             onClick={() => setInterval("year")}
           >
-            <I.Package size={13} /> Yearly <span className="pricing-save">save</span>
+            <I.Package size={13} /> {T("Yearly", "按年")}{" "}
+            <span className="pricing-save">{T("save", "节省")}</span>
           </button>
         </div>
       </section>
@@ -465,7 +482,8 @@ export function PricingScreen({
           featured={false}
           cta={
             <a className="btn" {...screenLinkProps(go, signedIn ? "dashboard" : "login")}>
-              <I.Check size={14} /> {signedIn ? "Open dashboard" : "Start free"}
+              <I.Check size={14} />{" "}
+              {signedIn ? T("Open dashboard", "打开工作台") : T("Start free", "免费开始")}
             </a>
           }
         />
@@ -480,7 +498,7 @@ export function PricingScreen({
             <div className="billing-actions">
               {activePro ? (
                 <a className="btn" {...screenLinkProps(go, "billing")}>
-                  <I.Settings size={14} /> Manage billing
+                  <I.Settings size={14} /> {T("Manage billing", "管理账单")}
                 </a>
               ) : (
                 <button
@@ -493,7 +511,8 @@ export function PricingScreen({
                       <I.Refresh size={14} />
                     </span>
                   )}
-                  <I.Package size={14} /> {signedIn ? "Start Pro" : "Sign in to subscribe"}
+                  <I.Package size={14} />{" "}
+                  {signedIn ? T("Start Pro", "升级 Pro") : T("Sign in to subscribe", "登录后订阅")}
                 </button>
               )}
             </div>
@@ -523,7 +542,7 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
     <div className={"pricing-card" + (featured ? " featured" : "")}>
       {featured && <div className="pricing-badge">PRO</div>}
       <div className="pricing-card-h">
-        <h3>{plan?.name || "Plan"}</h3>
+        <h3>{plan?.name || T("Plan", "套餐")}</h3>
         <div className="pricing-tag">{plan?.description || ""}</div>
       </div>
       <div className="pricing-price">
@@ -532,23 +551,35 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
           <span className="pricing-per">/{interval}</span>
         </div>
         {plan?.id === "pro" && interval === "year" && (
-          <div className="pricing-billed">2 months free</div>
+          <div className="pricing-billed">{T("2 months free", "免费 2 个月")}</div>
         )}
-        {active && <div className="pricing-billed">Current account plan</div>}
+        {active && (
+          <div className="pricing-billed">{T("Current account plan", "当前账户套餐")}</div>
+        )}
       </div>
       <ul className="pricing-feats">
         <li>
-          <I.Check size={13} /> {reviewLimit} shared account reviews / month
+          <I.Check size={13} />{" "}
+          {T(
+            `${reviewLimit} shared account reviews / month`,
+            `${reviewLimit} 次/月 共享账户审查`
+          )}
         </li>
         <li>
-          <I.Check size={13} /> Repository quota is shared by GitHub repo ID
+          <I.Check size={13} />{" "}
+          {T(
+            "Repository quota is shared by GitHub repo ID",
+            "仓库配额按 GitHub repo ID 共享"
+          )}
         </li>
         <li>
-          <I.Check size={13} /> GitHub repository review history
+          <I.Check size={13} />{" "}
+          {T("GitHub repository review history", "GitHub 仓库审查历史")}
         </li>
         {plan?.id === "pro" && (
           <li>
-            <I.Check size={13} /> Cancel from the billing portal
+            <I.Check size={13} />{" "}
+            {T("Cancel from the billing portal", "从账单门户取消")}
           </li>
         )}
       </ul>

@@ -64,11 +64,11 @@ function scanIssueTotal(scan) {
 }
 
 const SEVERITY_LEVELS = [
-  { key: "critical", label: "Critical", color: "var(--sev-critical)" },
-  { key: "high", label: "High", color: "var(--sev-high)" },
-  { key: "medium", label: "Medium", color: "var(--sev-medium)" },
-  { key: "low", label: "Low", color: "var(--sev-low)" },
-  { key: "info", label: "Info", color: "var(--sev-info)" },
+  { key: "critical", en: "Critical", zh: "关键", color: "var(--sev-critical)" },
+  { key: "high", en: "High", zh: "高", color: "var(--sev-high)" },
+  { key: "medium", en: "Medium", zh: "中", color: "var(--sev-medium)" },
+  { key: "low", en: "Low", zh: "低", color: "var(--sev-low)" },
+  { key: "info", en: "Info", zh: "信息", color: "var(--sev-info)" },
 ];
 
 function IssueRow({ issue, onClick }) {
@@ -203,7 +203,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
             </div>
             <div className="kpi card">
               <div className="kpi-h">
-                <span className="kpi-l">Critical</span>
+                <span className="kpi-l">{T("Critical", "关键")}</span>
               </div>
               <div className="kpi-v" style={{ color: counts.critical > 0 ? "var(--sev-critical)" : undefined }}>
                 {counts.critical}
@@ -267,7 +267,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                 {SEVERITY_LEVELS.map((item) => (
                   <div key={item.key} className="dash-donut-row">
                     <span className="dash-donut-dot" style={{ background: item.color }}></span>
-                    <span>{item.label}</span>
+                    <span>{T(item.en, item.zh)}</span>
                     <b>{counts[item.key]}</b>
                   </div>
                 ))}

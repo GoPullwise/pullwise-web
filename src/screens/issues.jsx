@@ -180,7 +180,7 @@ function scanHistorySummary(scan) {
     const queueTags = queueSummary.tags.filter(
       (tag) => !tag.startsWith("Global") && !tag.startsWith("Per user")
     );
-    return ["queued", ...queueTags].join(" - ");
+    return [T("queued", "排队中"), ...queueTags].join(" - ");
   }
   if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
   if (scan.issues) {
@@ -250,16 +250,16 @@ function CodeEvidence({ title, lines }) {
 }
 
 const VERIFICATION_LABELS = {
-  verified: "Verified",
-  static_proof: "Static proof",
-  potential_risk: "Potential risk",
-  unverified: "Unverified",
+  verified: { en: "Verified", zh: "已验证" },
+  static_proof: { en: "Static proof", zh: "静态证明" },
+  potential_risk: { en: "Potential risk", zh: "潜在风险" },
+  unverified: { en: "Unverified", zh: "未验证" },
 };
 
 const CONFIDENCE_LABELS = {
-  high: "High evidence",
-  medium: "Medium evidence",
-  low: "Low evidence",
+  high: { en: "High evidence", zh: "高置信度证据" },
+  medium: { en: "Medium evidence", zh: "中等置信度证据" },
+  low: { en: "Low evidence", zh: "低置信度证据" },
 };
 
 function issueVerificationStatus(issue) {
@@ -271,11 +271,15 @@ function issueConfidenceLevel(issue) {
 }
 
 function verificationLabel(issue) {
-  return VERIFICATION_LABELS[issueVerificationStatus(issue)] || "Potential risk";
+  const label = VERIFICATION_LABELS[issueVerificationStatus(issue)];
+  if (!label) return T("Potential risk", "潜在风险");
+  return T(label.en, label.zh);
 }
 
 function confidenceEvidenceLabel(issue) {
-  return CONFIDENCE_LABELS[issueConfidenceLevel(issue)] || "Low evidence";
+  const label = CONFIDENCE_LABELS[issueConfidenceLevel(issue)];
+  if (!label) return T("Low evidence", "低置信度证据");
+  return T(label.en, label.zh);
 }
 
 function locationLabel(item) {
@@ -527,9 +531,9 @@ function EvidenceTrace({ issue }) {
     <div className="evidence-trace-wrap">
       <div className="trace-progress">
         <div className="trace-progress-h">
-          <span className="trace-progress-title">Trace coverage</span>
+          <span className="trace-progress-title">{T("Trace coverage", "追溯覆盖")}</span>
           <span className="trace-progress-count">
-            {presentCount}/{stages.length} present
+            {T(`${presentCount}/${stages.length} present`, `${presentCount}/${stages.length} 已提供`)}
           </span>
         </div>
         <span className="trace-progress-bar" aria-hidden="true">
@@ -553,12 +557,14 @@ function EvidenceTrace({ issue }) {
                 <span className="trace-node-l">
                   <I.Activity size={12} className="trace-node-glyph" /> {stage.label}
                 </span>
-                <span className="trace-node-s">{present ? "present" : "missing"}</span>
+                <span className="trace-node-s">
+                  {present ? T("present", "已提供") : T("missing", "缺失")}
+                </span>
                 {stage.summary && <span className="trace-node-summary">{stage.summary}</span>}
               </div>
               {detailItems.length > 0 && (
                 <div className="trace-node-detail">
-                  <div className="trace-node-detail-h">Evidence</div>
+                  <div className="trace-node-detail-h">{T("Evidence", "证据")}</div>
                   <ul className="trace-node-items">
                     {detailItems.map((item) => (
                       <li key={item}>{item}</li>
@@ -609,7 +615,7 @@ function EvidenceChain({ issue }) {
               {item.logPath && <span className="tag">log: {item.logPath}</span>}
               {item.url && (
                 <a className="auth-link" href={item.url} target="_blank" rel="noreferrer">
-                  Open evidence line
+                  {T("Open evidence line", "打开证据行")}
                 </a>
               )}
             </div>
@@ -638,9 +644,9 @@ function ReproductionCenter({ issue }) {
       {commands.length > 0 && (
         <div className="docs-code repro-command">
           <div className="docs-code-h">
-            <span>Reproduction command</span>
+            <span>{T("Reproduction command", "复现命令")}</span>
             <button className="docs-code-copy" type="button" onClick={() => copyText(commandText)}>
-              <I.Copy size={12} /> Copy
+              <I.Copy size={12} /> {T("Copy", "复制")}
             </button>
           </div>
           <pre>{commandText}</pre>
@@ -650,19 +656,19 @@ function ReproductionCenter({ issue }) {
         <div className="repro-fields">
           {reproduction.input && (
             <div className="repro-field">
-              <b className="repro-field-title">Input</b>
+              <b className="repro-field-title">{T("Input", "输入")}</b>
               <p className="muted repro-field-text">{reproduction.input}</p>
             </div>
           )}
           {reproduction.expected && (
             <div className="repro-field">
-              <b className="repro-field-title">Expected</b>
+              <b className="repro-field-title">{T("Expected", "预期")}</b>
               <p className="muted repro-field-text">{reproduction.expected}</p>
             </div>
           )}
           {reproduction.actual && (
             <div className="repro-field">
-              <b className="repro-field-title">Actual</b>
+              <b className="repro-field-title">{T("Actual", "实际")}</b>
               <p className="muted repro-field-text">{reproduction.actual}</p>
             </div>
           )}
@@ -812,7 +818,10 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       }
       if (failureCount) {
         globalThis.alert?.(
-          T(`${failureCount} issue status update failed.`, `${failureCount} 个问题状态更新失败。`)
+          T(
+            `${failureCount} issue status update failed.`,
+            `${failureCount} 个问题状态更新失败。`
+          )
         );
       }
     } finally {
@@ -875,7 +884,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                 className="btn"
                 onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}
               >
-                <I.Sort size={14} /> {sortBy === "severity" ? T("Severity", "严重度") : "Evidence"}
+                <I.Sort size={14} />{" "}
+                {sortBy === "severity" ? T("Severity", "严重度") : T("Evidence", "证据")}
               </button>
             </div>
           </div>
@@ -904,7 +914,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             </div>
             <div className="filters-row">
               <div className="filter-pills">
-                <span className="filter-l">Severity</span>
+                <span className="filter-l">{T("Severity", "严重度")}</span>
                 {["all", "critical", "high", "medium", "low", "info"].map((item) => (
                   <button
                     key={item}
@@ -926,9 +936,9 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             {scanId && (
               <div className="filters-row">
                 <div className="filter-pills">
-                  <span className="filter-l">Scan</span>
+                  <span className="filter-l">{T("Scan", "扫描")}</span>
                   <span className="tag">
-                    <I.Activity size={11} /> Scan {scanId}
+                    <I.Activity size={11} /> {T("Scan", "扫描")} {scanId}
                   </span>
                   {scanFilter?.repo && <span className="tag">{scanFilter.repo}</span>}
                   {scanFilter?.branch && (
@@ -953,11 +963,11 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
           <div className="issues-table card">
             <div className="issues-thead">
               <div></div>
-              <div>Issue</div>
-              <div>File</div>
-              <div>Category</div>
-              <div>Evidence</div>
-              <div>Status</div>
+              <div>{T("Issue", "问题")}</div>
+              <div>{T("File", "文件")}</div>
+              <div>{T("Category", "类别")}</div>
+              <div>{T("Evidence", "证据")}</div>
+              <div>{T("Status", "状态")}</div>
               <div></div>
             </div>
             {error && <div className="muted issues-table-message">{error}</div>}
@@ -1098,7 +1108,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       })
       .catch((error) => {
         if (cancelled) return;
-        setLoadError(error?.message || "Unable to load issue.");
+        setLoadError(error?.message || T("Unable to load issue.", "无法加载问题。"));
       })
       .finally(() => {
         if (!cancelled) setLoadingIssue(false);
@@ -1177,7 +1187,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         status: mergedIssue.status,
       });
     } catch (error) {
-      setActionError(error?.message || "Unable to update issue status.");
+      setActionError(error?.message || T("Unable to update issue status.", "无法更新问题状态。"));
     } finally {
       statusRequestRef.current = false;
       setStatusLoading("");
@@ -1241,7 +1251,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       setFeedbackSaved(true);
     } catch (error) {
       if (feedbackRequestRef.current !== requestId) return;
-      setActionError(error?.message || "Unable to submit issue feedback.");
+      setActionError(error?.message || T("Unable to submit issue feedback.", "无法提交问题反馈。"));
     } finally {
       if (feedbackRequestRef.current === requestId) setFeedbackLoading("");
     }
@@ -1264,7 +1274,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       setFixPreview({ issueId: issue.id, value: preview });
     } catch (error) {
       if (!isCurrentFixRequest(requestId)) return;
-      setActionError(error?.message || "Unable to preview fix.");
+      setActionError(error?.message || T("Unable to preview fix.", "无法预览修复。"));
     } finally {
       if (isCurrentFixRequest(requestId)) setFixLoading("");
     }
@@ -1282,7 +1292,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       });
     } catch (error) {
       if (!isCurrentFixRequest(requestId)) return;
-      setActionError(error?.message || "Unable to open pull request.");
+      setActionError(error?.message || T("Unable to open pull request.", "无法打开拉取请求。"));
     } finally {
       if (isCurrentFixRequest(requestId)) setFixLoading("");
     }
@@ -1344,11 +1354,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 style={{ display: "flex", gap: 10, fontSize: 12.5, marginTop: 6, flexWrap: "wrap" }}
               >
                 <span>
-                  <I.Folder size={12} /> {issue.repo || "Repository unknown"}
+                  <I.Folder size={12} /> {issue.repo || T("Repository unknown", "未知仓库")}
                 </span>
                 <span>
                   <I.FileCode size={12} />{" "}
-                  {primaryLocation ? locationLabel(primaryLocation) : issue.file || "File unknown"}
+                  {primaryLocation
+                    ? locationLabel(primaryLocation)
+                    : issue.file || T("File unknown", "未知文件")}
                 </span>
                 {issue.scanId && (
                   <span>
@@ -1366,7 +1378,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           <div className="issue-detail-grid">
             <div className="issue-detail-main-col">
               {issue.evidenceChecklist?.length > 0 && (
-                <DetailSection title="Confidence evidence">
+                <DetailSection title={T("Confidence evidence", "置信度证据")}>
                   {issue.verificationSummary && (
                     <p className="muted issue-section-note">{issue.verificationSummary}</p>
                   )}
@@ -1375,24 +1387,27 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
 
               {hasEvidenceTrace && (
-                <DetailSection title="Evidence trace">
+                <DetailSection title={T("Evidence trace", "证据追溯")}>
                   <EvidenceTrace issue={issue} />
                 </DetailSection>
               )}
 
               {hasReasoningBreakdown && (
-                <DetailSection title="Facts, reasoning, recommendations">
+                <DetailSection title={T("Facts, reasoning, recommendations", "事实、推理与建议")}>
                   <ReasoningBreakdown issue={issue} />
                 </DetailSection>
               )}
 
-              <DetailSection title="Evidence chain" empty="No structured evidence was provided.">
+              <DetailSection
+                title={T("Evidence chain", "证据链")}
+                empty={T("No structured evidence was provided.", "未提供结构化证据。")}
+              >
                 {issue.evidence?.length > 0 && <EvidenceChain issue={issue} />}
               </DetailSection>
 
               <DetailSection
-                title="Reproduction center"
-                empty="No executable reproduction was provided."
+                title={T("Reproduction center", "复现中心")}
+                empty={T("No executable reproduction was provided.", "未提供可执行复现。")}
               >
                 {hasReproduction && <ReproductionCenter issue={issue} />}
               </DetailSection>
@@ -1417,11 +1432,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               </DetailSection>
 
               <TextListSection
-                title="Why this is not a false positive"
+                title={T("Why this is not a false positive", "为什么这不是误报")}
                 items={issue.whyNotFalsePositive}
               />
 
-              <TextListSection title="When this may not apply" items={issue.limitations} />
+              <TextListSection
+                title={T("When this may not apply", "何时可能不适用")}
+                items={issue.limitations}
+              />
 
               {(issue.fixBenefits || issue.fixRisks) && (
                 <DetailSection title={T("Fix impact analysis", "修复影响分析")}>
@@ -1481,11 +1499,17 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 )}
               </DetailSection>
 
-              <DetailSection title="Patch evidence" empty="No patch evidence was provided.">
+              <DetailSection
+                title={T("Patch evidence", "补丁证据")}
+                empty={T("No patch evidence was provided.", "未提供补丁证据。")}
+              >
                 {hasEvidence && (
                   <>
-                    <CodeEvidence title="Current code" lines={issue.badCode || []} />
-                    <CodeEvidence title="Suggested code" lines={issue.goodCode || []} />
+                    <CodeEvidence title={T("Current code", "当前代码")} lines={issue.badCode || []} />
+                    <CodeEvidence
+                      title={T("Suggested code", "建议代码")}
+                      lines={issue.goodCode || []}
+                    />
                   </>
                 )}
               </DetailSection>
@@ -1512,15 +1536,21 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
 
             <div className="card section issue-actions">
               <div className="section-h">
-                <h3>Actions</h3>
+                <h3>{T("Actions", "操作")}</h3>
               </div>
               <div className="audit-scope">
-                <div className="muted">Audit scope</div>
-                <div className="tag audit-tag">{issue.repo || "Repository unknown"}</div>
+                <div className="muted">{T("Audit scope", "审计范围")}</div>
+                <div className="tag audit-tag">
+                  {issue.repo || T("Repository unknown", "未知仓库")}
+                </div>
                 <div className="tag audit-tag">
                   {issue.branch || issue.audit?.branch || "main"} @ {issue.commit || "pending"}
                 </div>
-                {issue.jobId && <div className="tag audit-tag">job {issue.jobId}</div>}
+                {issue.jobId && (
+                  <div className="tag audit-tag">
+                    {T(`job ${issue.jobId}`, `任务 ${issue.jobId}`)}
+                  </div>
+                )}
                 {issue.auditSwarm?.protocol && (
                   <div className="tag audit-tag">{issue.auditSwarm.protocol}</div>
                 )}
@@ -1528,10 +1558,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   <div className="tag audit-tag">{issue.auditSwarm.agentRole}</div>
                 )}
                 {issue.auditSwarm?.shardId && (
-                  <div className="tag audit-tag">shard {issue.auditSwarm.shardId}</div>
+                  <div className="tag audit-tag">
+                    {T(`shard ${issue.auditSwarm.shardId}`, `分片 ${issue.auditSwarm.shardId}`)}
+                  </div>
                 )}
                 {issue.auditSwarm?.verdict && (
-                  <div className="tag audit-tag">verdict {issue.auditSwarm.verdict}</div>
+                  <div className="tag audit-tag">
+                    {T(`verdict ${issue.auditSwarm.verdict}`, `结论 ${issue.auditSwarm.verdict}`)}
+                  </div>
                 )}
               </div>
               <div className="divider" />
@@ -1542,7 +1576,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
               <button className="btn sm" onClick={copyPage} aria-live="polite">
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
-                {pageCopied ? T("Copied", "已复制") : "Copy Page"}
+                {pageCopied ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
               </button>
               <div className="divider" />
               <div className="issue-feedback">
@@ -1550,7 +1584,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   <span className="muted">{T("Feedback", "反馈")}</span>
                   {selectedFeedbackBadge && (
                     <span className="tag issue-feedback-selected" aria-live="polite">
-                      {feedbackLoading ? "Saving:" : feedbackSaved ? "Selected:" : "Selected:"}{" "}
+                      {feedbackLoading
+                        ? T("Saving:", "保存中：")
+                        : feedbackSaved
+                          ? T("Selected:", "已选择：")
+                          : T("Selected:", "已选择：")}{" "}
                       {T(selectedFeedbackBadge.labelEn, selectedFeedbackBadge.labelZh)}
                     </span>
                   )}
@@ -1582,14 +1620,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     disabled={Boolean(statusLoading)}
                     onClick={() => updateStatus("fixed")}
                   >
-                    <I.Check size={13} /> Mark fixed
+                    <I.Check size={13} /> {T("Mark fixed", "标记已修复")}
                   </button>
                   <button
                     className="btn sm"
                     disabled={Boolean(statusLoading)}
                     onClick={() => updateStatus("snoozed")}
                   >
-                    <I.Clock size={13} /> Snooze
+                    <I.Clock size={13} /> {T("Snooze", "推迟")}
                   </button>
                 </div>
               ) : (
@@ -1598,7 +1636,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   disabled={Boolean(statusLoading)}
                   onClick={() => updateStatus("open")}
                 >
-                  <I.Refresh size={13} /> Reopen
+                  <I.Refresh size={13} /> {T("Reopen", "重新打开")}
                 </button>
               )}
               <div className="divider" />
@@ -1607,25 +1645,29 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 disabled={!autoFixable || Boolean(fixLoading)}
                 onClick={previewFix}
               >
-                <I.Sparkle size={13} /> {fixLoading === "preview" ? "Previewing..." : "Preview fix"}
+                <I.Sparkle size={13} />{" "}
+                {fixLoading === "preview" ? T("Previewing...", "正在预览...") : T("Preview fix", "预览修复")}
               </button>
               <button
                 className="btn sm"
                 disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
                 onClick={openPullRequest}
               >
-                <I.GitBranch size={13} /> {fixLoading === "pr" ? "Opening..." : "Open PR"}
+                <I.GitBranch size={13} />{" "}
+                {fixLoading === "pr" ? T("Opening...", "正在打开...") : T("Open PR", "打开 PR")}
               </button>
               {!autoFixable && (
                 <div className="muted" style={{ fontSize: 12 }}>
-                  This issue is not auto-fixable.
+                  {T("This issue is not auto-fixable.", "此问题无法自动修复。")}
                 </div>
               )}
               {activeFixPreview && (
                 <div className="fix-preview">
                   <div className="fix-preview-h">
                     <b>{activeFixPreview.file}</b>
-                    <span className="tag">{activeFixPreview.valid ? "validated" : "blocked"}</span>
+                    <span className="tag">
+                      {activeFixPreview.valid ? T("validated", "已验证") : T("blocked", "已阻止")}
+                    </span>
                   </div>
                   {activeFixPreview.message && (
                     <div className="muted">{activeFixPreview.message}</div>
@@ -1642,7 +1684,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Pull request #{activePullRequest.number}
+                  {T("Pull request", "拉取请求")} #{activePullRequest.number}
                 </a>
               )}
             </div>
@@ -1794,6 +1836,10 @@ const SEVERITY_LEGEND = [
   { key: "low", labelEn: "Low", labelZh: "低" },
 ];
 
+function severityLabel(legend) {
+  return T(legend.labelEn, legend.labelZh);
+}
+
 function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -1885,7 +1931,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
               {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map((s) => (
                 <span key={s.key} className={`scan-severity-capsule scan-severity-${s.key}`}>
                   <span className="scan-severity-capsule-dot" aria-hidden="true" />
-                  {T(s.labelEn, s.labelZh)} {breakdown[s.key]}
+                  {severityLabel(s)} {breakdown[s.key]}
                 </span>
               ))}
             </div>
@@ -1897,7 +1943,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
                   <span
                     key={`${s.key}-${i}`}
                     className={`scan-issue-dot scan-severity-${s.key}`}
-                    title={`${T(s.labelEn, s.labelZh)} #${i + 1}`}
+                    title={`${severityLabel(s)} #${i + 1}`}
                   />
                 ))
               )}
@@ -1986,7 +2032,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
       const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
       downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
     } catch (error) {
-      globalThis.alert?.(error?.message || "Unable to download audit bundle.");
+      globalThis.alert?.(error?.message || T("Unable to download audit bundle.", "无法下载审计包。"));
     } finally {
       setBundleLoading("");
     }
@@ -2123,7 +2169,10 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
     } catch (error) {
       if (requestId === integrationRequestIdRef.current) {
-        setIntegrationError(error?.message || "Unable to refresh GitHub repository access.");
+        setIntegrationError(
+          error?.message ||
+            T("Unable to refresh GitHub repository access.", "无法刷新 GitHub 仓库访问。")
+        );
       }
       throw error;
     }
@@ -2175,7 +2224,10 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
     } catch (error) {
       if (requestId === integrationRequestIdRef.current) {
-        setIntegrationError(error?.message || "Unable to connect GitHub repository access.");
+        setIntegrationError(
+          error?.message ||
+            T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问。")
+        );
       }
     }
   };
@@ -2195,7 +2247,9 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
     } catch (error) {
       if (requestId === integrationRequestIdRef.current) {
-        setIntegrationError(error?.message || "Unable to manage GitHub installation.");
+        setIntegrationError(
+          error?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装。")
+        );
       }
     } finally {
       if (requestId === integrationRequestIdRef.current) setManagingInstallationId("");

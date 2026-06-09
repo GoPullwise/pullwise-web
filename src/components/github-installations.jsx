@@ -45,7 +45,9 @@ function installationSelection(installation) {
 
 function repositoryCountLabel(count) {
   const value = normalizedRepositoryCount(count);
-  return value === 1 ? "1 repository" : `${value} repositories`;
+  return value === 1
+    ? T("1 repository", "1 个仓库")
+    : T(`${value} repositories`, `${value} 个仓库`);
 }
 
 function normalizedRepositoryCount(count) {
@@ -73,16 +75,20 @@ function installationManage(installation) {
 
 function installationStatusLabel(manage, account) {
   if (manage.mode === "verified_identity" && manage.githubLogin) {
-    return T(`Last verified by @${manage.githubLogin}`, `Last verified by @${manage.githubLogin}`);
+    return T(
+      `Last verified by @${manage.githubLogin}`,
+      `最近由 @${manage.githubLogin} 验证`
+    );
   }
-  if (manage.mode === "needs_reauth") return T("GitHub account needs reconnect", "GitHub account needs reconnect");
+  if (manage.mode === "needs_reauth")
+    return T("GitHub account needs reconnect", "GitHub 账户需要重新连接");
   if (manage.mode === "needs_identity") {
     return T(
       `Needs a GitHub account with access to ${account || "this installation"}`,
-      `Needs a GitHub account with access to ${account || "this installation"}`
+      `需要有权访问 ${account || "该安装"} 的 GitHub 账户`
     );
   }
-  return T("GitHub manage access is unknown", "GitHub manage access is unknown");
+  return T("GitHub manage access is unknown", "GitHub 管理访问状态未知");
 }
 
 function normalizedInstallations(installations) {
@@ -140,7 +146,10 @@ export function GitHubInstallationsList({ installations, onManage, managingInsta
                 className="btn sm ghost"
                 disabled={managingInstallationId === installation.id}
                 onClick={() => onManage(installation)}
-                aria-label={`Manage ${installation.account || installation.id} GitHub App installation`}
+                aria-label={T(
+                  `Manage ${installation.account || installation.id} GitHub App installation`,
+                  `管理 ${installation.account || installation.id} 的 GitHub App 安装`
+                )}
               >
                 {managingInstallationId === installation.id ? (
                   <span className="spin" style={{ display: "inline-block" }}>
