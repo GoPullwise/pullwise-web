@@ -9,7 +9,6 @@ export async function onRequest(context) {
   const headers = withoutClientProxyHeaders(context.request.headers);
   headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
   headers.set("X-Forwarded-Host", incomingUrl.host);
-  headers.set("X-Forwarded-Prefix", "/api");
   const methodHasBody = hasBody(context.request.method);
 
   const response = await fetch(targetUrl, {
