@@ -443,6 +443,7 @@ describe("IssueDetailScreen direct loading", () => {
       title: "Validate redirect targets",
       file: "src/auth.py",
       status: "open",
+      feedbackReason: "useful",
     });
 
     render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={setIssue} />);
@@ -450,6 +451,11 @@ describe("IssueDetailScreen direct loading", () => {
     expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
     expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
     expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
+    expect(screen.getByRole("button", { name: /useful/i })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
   });
 });
 
@@ -774,6 +780,23 @@ describe("IssueDetailScreen review detail", () => {
     expect(nodeBlock).toMatch(/grid-template-columns:\s*32px minmax\(0,\s*1fr\) auto;/);
     expect(summaryBlock).toMatch(/overflow-wrap:\s*anywhere;/);
     expect(summaryBlock).not.toMatch(/-webkit-line-clamp:/);
+  });
+
+  it("keeps issue feedback aligned with action controls", () => {
+    const css = screenStyles();
+    const feedbackBlock = css.match(/\.issue-feedback\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const badgesBlock = Array.from(
+      css.matchAll(/\.issue-feedback-badges\s*\{(?<body>[^}]*)\}/gs)
+    )
+      .map((match) => match.groups?.body || "")
+      .join("\n");
+    const badgeBlock =
+      css.match(/\.issue-feedback-badge\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+
+    expect(feedbackBlock).not.toMatch(/\bborder\s*:/);
+    expect(feedbackBlock).not.toMatch(/\bbackground\s*:/);
+    expect(badgesBlock).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
+    expect(badgeBlock).toMatch(/justify-content:\s*flex-start;/);
   });
 
   it("exposes issue detail recovery navigation as real screen links", async () => {

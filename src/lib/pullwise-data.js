@@ -328,6 +328,27 @@ function normalizeIssueStatus(value) {
   return ["open", "fixed", "snoozed"].includes(status) ? status : "open";
 }
 
+const ISSUE_FEEDBACK_REASON_ALIASES = {
+  valid: "useful",
+  speculative: "too_speculative",
+};
+const ISSUE_FEEDBACK_REASONS = new Set([
+  "useful",
+  "false_positive",
+  "not_relevant",
+  "duplicate",
+  "expected_behavior",
+  "too_speculative",
+  "low_impact",
+  "already_fixed",
+]);
+
+function normalizeIssueFeedbackReason(value) {
+  const reason = textValue(value).toLowerCase().replace(/[-\s]+/g, "_");
+  const normalized = ISSUE_FEEDBACK_REASON_ALIASES[reason] || reason;
+  return ISSUE_FEEDBACK_REASONS.has(normalized) ? normalized : "";
+}
+
 function normalizeVerificationStatus(value) {
   const status = textValue(value);
   return ["verified", "static_proof", "potential_risk", "unverified"].includes(status)
@@ -978,6 +999,7 @@ export function normalizeIssue(issue = {}) {
     severity: normalizeSeverity(issue.severity),
     category: textValue(issue.category) || "General",
     status: normalizeIssueStatus(issue.status),
+    feedbackReason: normalizeIssueFeedbackReason(issue.feedbackReason ?? issue.feedback_reason),
     file: textValue(issue.file),
     line: normalizeLineNumber(issue.line),
     confidence: normalizeConfidence(issue.confidence),

@@ -662,6 +662,19 @@ describe("normalizeIssue", () => {
     ).not.toThrow();
   });
 
+  it("normalizes saved issue feedback reasons", () => {
+    expect(normalizeIssue({ id: "f_useful", feedbackReason: "valid" }).feedbackReason).toBe(
+      "useful"
+    );
+    expect(normalizeIssue({ id: "f_fp", feedback_reason: "False Positive" }).feedbackReason).toBe(
+      "false_positive"
+    );
+    expect(normalizeIssue({ id: "f_spec", feedbackReason: "speculative" }).feedbackReason).toBe(
+      "too_speculative"
+    );
+    expect(normalizeIssue({ id: "f_bad", feedbackReason: "<script>" }).feedbackReason).toBe("");
+  });
+
   it("normalizes issue line numbers for display-safe file labels", () => {
     expect(normalizeIssue({ id: "f_line", line: "42" }).line).toBe("42");
     expect(normalizeIssue({ id: "f_float_line", line: 42.8 }).line).toBe("42");

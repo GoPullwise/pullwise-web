@@ -2443,69 +2443,38 @@ button.dash-cat-row:hover {
 }
 .issue-feedback {
   display: grid;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  gap: 10px;
+  min-width: 0;
 }
 .issue-feedback-h,
 .issue-feedback-badges {
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 .issue-feedback-h {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  min-width: 0;
 }
 .issue-feedback-badges {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .issue-feedback-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
-  height: 26px;
-  padding: 0 9px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-2);
-  background: var(--bg-elev);
-  color: var(--text);
-  font: 500 12px/1 var(--font-sans);
-  white-space: nowrap;
-}
-.issue-feedback-badge:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-soft);
+  width: 100%;
+  color: var(--text-2);
 }
 .issue-feedback-selected {
   border-color: var(--border-strong);
   background: var(--bg-soft);
+  min-width: 0;
 }
 .issue-feedback-badge.selected {
-  color: var(--accent-strong);
+  color: var(--text);
   border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
   background: color-mix(in oklch, var(--accent) 10%, var(--bg-elev));
-}
-.issue-feedback-badge:disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-.issue-feedback-badge.positive {
-  color: #16a34a;
-  border-color: color-mix(in oklch, #16a34a 26%, var(--border));
-}
-.issue-feedback-badge.positive:hover {
-  border-color: color-mix(in oklch, #16a34a 40%, var(--border));
-  background: color-mix(in oklch, #16a34a 7%, var(--bg-elev));
-}
-.issue-feedback-badge.negative {
-  color: var(--sev-critical);
-  border-color: color-mix(in oklch, var(--sev-critical) 30%, var(--border));
-}
-.issue-feedback-badge.negative:hover {
-  border-color: color-mix(in oklch, var(--sev-critical) 42%, var(--border));
-  background: color-mix(in oklch, var(--sev-critical) 7%, var(--bg-elev));
 }
 .audit-scope {
   gap: 6px;

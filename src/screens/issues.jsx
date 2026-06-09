@@ -1593,21 +1593,24 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     </span>
                   )}
                 </div>
-                <div className="issue-feedback-badges" aria-label={T("Issue feedback", "问题反馈")}>
+                <div
+                  className="issue-feedback-badges"
+                  role="group"
+                  aria-label={T("Issue feedback", "问题反馈")}
+                >
                   {ISSUE_FEEDBACK_BADGES.map((feedback) => (
                     <button
                       key={feedback.value}
                       type="button"
                       className={
-                        "issue-feedback-badge " +
-                        (feedback.tone || "") +
+                        "btn sm issue-feedback-badge" +
                         (selectedFeedback === feedback.value ? " selected" : "")
                       }
                       disabled={Boolean(feedbackLoading)}
                       aria-pressed={selectedFeedback === feedback.value}
                       onClick={() => submitFeedbackBadge(feedback)}
                     >
-                      {T(feedback.labelEn, feedback.labelZh)}
+                      <span>{T(feedback.labelEn, feedback.labelZh)}</span>
                     </button>
                   ))}
                 </div>
