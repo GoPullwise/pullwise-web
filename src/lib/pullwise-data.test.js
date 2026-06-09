@@ -520,6 +520,48 @@ describe("normalizeIssue", () => {
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
   });
 
+  it("normalizes repository graph nodes, edges, and architecture summary", () => {
+    const scan = normalizeScan({
+      id: "sc_graph",
+      repository_graph: {
+        version: "repository-graph/0.1",
+        stats: { nodes: 3, edges: 2, languages: ["JavaScript"], truncated: true },
+        nodes: [
+          {
+            id: "file:src/App.jsx",
+            label: "App.jsx",
+            type: "entrypoint",
+            path: "src/App.jsx",
+            importance: 0.9,
+            tags: ["frontend"],
+          },
+          { id: "dir:src/screens", label: "src/screens", type: "module", path: "src/screens" },
+          { id: "bad", label: "bad", type: "unknown", path: "C:\\repo\\bad.js" },
+        ],
+        edges: [
+          { id: "e1", source: "file:src/App.jsx", target: "dir:src/screens", type: "imports", weight: 2 },
+          { id: "bad-edge", source: "bad", target: "missing", type: "unknown" },
+        ],
+        architectureSummary: {
+          entrypoints: ["src/App.jsx"],
+          modules: ["src/screens"],
+          reviewHints: ["Review scan UI."],
+          promptText: "Repository architecture: UI entrypoint.",
+        },
+      },
+    });
+
+    expect(scan.repositoryGraph.version).toBe("repository-graph/0.1");
+    expect(scan.repositoryGraph.nodes).toHaveLength(2);
+    expect(scan.repositoryGraph.edges).toHaveLength(1);
+    expect(scan.repositoryGraph.stats.nodes).toBe(2);
+    expect(scan.repositoryGraph.stats.edges).toBe(1);
+    expect(scan.repositoryGraph.stats.languages).toEqual(["JavaScript"]);
+    expect(scan.repositoryGraph.stats.truncated).toBe(true);
+    expect(scan.repositoryGraph.architectureSummary.entrypoints).toEqual(["src/App.jsx"]);
+    expect(scan.repositoryGraph.architectureSummary.reviewHints).toEqual(["Review scan UI."]);
+  });
+
   it("normalizes repository text fields for search-safe rendering", () => {
     const repo = normalizeRepo({
       id: 42,

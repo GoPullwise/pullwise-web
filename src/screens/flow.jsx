@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import cytoscape from "cytoscape";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
@@ -1677,6 +1678,210 @@ function scanPhasesForPhase(phase) {
   return LEGACY_ONLY_SCAN_PHASE_KEYS.has(phase) ? LEGACY_SCAN_PHASES : PRODUCTION_SCAN_PHASES;
 }
 
+function graphCountLabel(count, singular, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function repositoryGraphTypeLabel(type) {
+  const labels = {
+    entrypoint: "Entrypoints",
+    file: "Files",
+    manifest: "Manifests",
+    module: "Modules",
+    test: "Tests",
+    workflow: "Workflows",
+  };
+  return labels[type] || type;
+}
+
+function RepositoryGraphPanel({ graph }) {
+  const containerRef = useRef(null);
+  const cyRef = useRef(null);
+  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
+  const edges = Array.isArray(graph?.edges) ? graph.edges : [];
+  const typeList = useMemo(
+    () => [...new Set(nodes.map((node) => node.type).filter(Boolean))].sort(),
+    [nodes]
+  );
+  const typeKey = typeList.join("|");
+  const [activeTypes, setActiveTypes] = useState(() => new Set(typeList));
+  const [selectedNodeId, setSelectedNodeId] = useState(nodes[0]?.id || "");
+
+  useEffect(() => {
+    setActiveTypes(new Set(typeList));
+  }, [typeKey]);
+
+  useEffect(() => {
+    if (!nodes.some((node) => node.id === selectedNodeId)) {
+      setSelectedNodeId(nodes[0]?.id || "");
+    }
+  }, [nodes, selectedNodeId]);
+
+  const visibleNodes = useMemo(
+    () => nodes.filter((node) => activeTypes.size === 0 || activeTypes.has(node.type)),
+    [activeTypes, nodes]
+  );
+  const visibleNodeIds = useMemo(() => new Set(visibleNodes.map((node) => node.id)), [visibleNodes]);
+  const visibleEdges = useMemo(
+    () => edges.filter((edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)),
+    [edges, visibleNodeIds]
+  );
+  const cytoscapeElements = useMemo(
+    () => [
+      ...visibleNodes.map((node) => ({
+        data: {
+          id: node.id,
+          label: node.label || node.path || node.id,
+          type: node.type || "file",
+        },
+      })),
+      ...visibleEdges.map((edge) => ({
+        data: {
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          label: edge.type,
+          weight: edge.weight || 1,
+        },
+      })),
+    ],
+    [visibleEdges, visibleNodes]
+  );
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) || visibleNodes[0] || null;
+  const reviewHints = Array.isArray(graph?.architectureSummary?.reviewHints)
+    ? graph.architectureSummary.reviewHints
+    : [];
+
+  useEffect(() => {
+    if (!containerRef.current || cytoscapeElements.length === 0) return undefined;
+    const cy = cytoscape({
+      container: containerRef.current,
+      elements: cytoscapeElements,
+      style: [
+        {
+          selector: "node",
+          style: {
+            "background-color": "#2563eb",
+            "border-color": "#eff6ff",
+            "border-width": 1,
+            color: "#0f172a",
+            content: "data(label)",
+            "font-size": 10,
+            height: 18,
+            label: "data(label)",
+            "text-background-color": "#ffffff",
+            "text-background-opacity": 0.82,
+            "text-background-padding": 2,
+            "text-valign": "bottom",
+            "text-wrap": "wrap",
+            width: 18,
+          },
+        },
+        { selector: 'node[type = "entrypoint"]', style: { "background-color": "#16a34a", height: 24, width: 24 } },
+        { selector: 'node[type = "module"]', style: { "background-color": "#7c3aed" } },
+        { selector: 'node[type = "test"]', style: { "background-color": "#d97706" } },
+        { selector: 'node[type = "workflow"]', style: { "background-color": "#0891b2" } },
+        {
+          selector: "edge",
+          style: {
+            "curve-style": "bezier",
+            "line-color": "#94a3b8",
+            "target-arrow-color": "#94a3b8",
+            "target-arrow-shape": "triangle",
+            width: 1.2,
+          },
+        },
+      ],
+      layout: { name: "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 },
+      userZoomingEnabled: true,
+      userPanningEnabled: true,
+    });
+    cy.on("tap", "node", (event) => setSelectedNodeId(event.target.id()));
+    cyRef.current = cy;
+    cy.layout({ name: "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 }).run();
+    return () => {
+      cyRef.current = null;
+      cy.destroy();
+    };
+  }, [cytoscapeElements]);
+
+  if (!nodes.length) return null;
+
+  const toggleType = (type) => {
+    setActiveTypes((current) => {
+      const next = new Set(current);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+  };
+
+  return (
+    <div className="repository-graph">
+      <div className="repository-graph-head">
+        <div className="scanning-counts-h">
+          <I.Layers size={14} /> {T("Repository graph", "Repository graph")}
+        </div>
+        <div className="repository-graph-stats">
+          <span>{graphCountLabel(nodes.length, "node")}</span>
+          <span>{graphCountLabel(edges.length, "edge")}</span>
+          {graph?.stats?.truncated && <span>{T("capped", "capped")}</span>}
+          <button
+            type="button"
+            className="btn ghost sm repository-graph-fit"
+            onClick={() => cyRef.current?.fit(undefined, 24)}
+          >
+            <I.Grid size={12} /> {T("Fit graph", "Fit graph")}
+          </button>
+        </div>
+      </div>
+      {typeList.length > 1 && (
+        <div className="repository-graph-toolbar" aria-label={T("Repository graph filters", "Repository graph filters")}>
+          {typeList.map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`repository-graph-filter${activeTypes.has(type) ? " active" : ""}`}
+              aria-pressed={activeTypes.has(type)}
+              onClick={() => toggleType(type)}
+            >
+              {repositoryGraphTypeLabel(type)}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="repository-graph-canvas" ref={containerRef} role="img" aria-label={T("Repository dependency graph", "Repository dependency graph")} />
+      <div className="repository-graph-node-list" aria-label={T("Repository graph nodes", "Repository graph nodes")}>
+        {visibleNodes.map((node) => (
+          <button
+            key={node.id}
+            type="button"
+            className={`repository-graph-node${selectedNode?.id === node.id ? " active" : ""}`}
+            onClick={() => setSelectedNodeId(node.id)}
+          >
+            <span>{node.label || node.path || node.id}</span>
+            <small>{node.type}</small>
+          </button>
+        ))}
+      </div>
+      {selectedNode && (
+        <div className="repository-graph-details">
+          <b>{selectedNode.label || selectedNode.path}</b>
+          <span>{selectedNode.path}</span>
+          <span className="tag">{selectedNode.type}</span>
+        </div>
+      )}
+      {reviewHints.length > 0 && (
+        <div className="repository-graph-hints">
+          {reviewHints.slice(0, 3).map((hint) => (
+            <span key={hint}>{hint}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
@@ -1755,6 +1960,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
   const auditSwarm = scanAuditSwarmSummary(scans);
+  const repositoryGraph = batchMode ? null : scan?.repositoryGraph || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const terminal = batchMode
     ? expectedBatchCount > 0 &&
@@ -1994,6 +2200,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                 );
               })}
             </div>
+
+            {repositoryGraph && <RepositoryGraphPanel graph={repositoryGraph} />}
           </div>
 
           <div className="scanning-side">

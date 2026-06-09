@@ -285,6 +285,151 @@ function normalizeAiUsage(value) {
   return model ? { model } : null;
 }
 
+const REPOSITORY_GRAPH_PROTOCOL_VERSION = "repository-graph/0.1";
+const REPOSITORY_GRAPH_MAX_NODES = 120;
+const REPOSITORY_GRAPH_MAX_EDGES = 240;
+const REPOSITORY_GRAPH_MAX_PROMPT_CHARS = 2048;
+const REPOSITORY_GRAPH_NODE_TYPES = new Set([
+  "entrypoint",
+  "module",
+  "test",
+  "manifest",
+  "workflow",
+  "file",
+]);
+const REPOSITORY_GRAPH_EDGE_TYPES = new Set([
+  "imports",
+  "contains",
+  "calls",
+  "configures",
+  "depends_on",
+]);
+const REPOSITORY_GRAPH_ID_RE = /^[A-Za-z0-9_.:/@-]{1,180}$/;
+
+function normalizeRepositoryGraph(value) {
+  if (!objectRecord(value)) return null;
+  const version = textValue(value.version);
+  if (version !== REPOSITORY_GRAPH_PROTOCOL_VERSION) return null;
+  const nodes = [];
+  const nodeIds = new Set();
+  const rawNodes = Array.isArray(value.nodes) ? value.nodes : [];
+  for (const item of rawNodes) {
+    const node = normalizeRepositoryGraphNode(item);
+    if (!node || nodeIds.has(node.id)) continue;
+    nodeIds.add(node.id);
+    nodes.push(node);
+    if (nodes.length >= REPOSITORY_GRAPH_MAX_NODES) break;
+  }
+  const edges = [];
+  const edgeIds = new Set();
+  const rawEdges = Array.isArray(value.edges) ? value.edges : [];
+  for (const item of rawEdges) {
+    const edge = normalizeRepositoryGraphEdge(item, nodeIds);
+    if (!edge || edgeIds.has(edge.id)) continue;
+    edgeIds.add(edge.id);
+    edges.push(edge);
+    if (edges.length >= REPOSITORY_GRAPH_MAX_EDGES) break;
+  }
+  const graph = {
+    version,
+    generatedAt: normalizeQuotaCount(value.generatedAt, 0),
+    repo: textValue(value.repo),
+    branch: textValue(value.branch) || "main",
+    commit: textValue(value.commit) || "pending",
+    summary: textValue(value.summary),
+    stats: normalizeRepositoryGraphStats(value.stats, nodes, edges, rawNodes.length, rawEdges.length),
+    nodes,
+    edges,
+    architectureSummary: normalizeRepositoryGraphArchitectureSummary(
+      value.architectureSummary ?? value.architecture_summary
+    ),
+  };
+  if (!graph.summary) delete graph.summary;
+  if (!Object.keys(graph.architectureSummary).length) delete graph.architectureSummary;
+  return graph;
+}
+
+function normalizeRepositoryGraphNode(value) {
+  if (!objectRecord(value)) return null;
+  const id = textValue(value.id);
+  const type = textValue(value.type);
+  const path = normalizeRepositoryGraphPath(value.path);
+  if (!id || !REPOSITORY_GRAPH_ID_RE.test(id) || !REPOSITORY_GRAPH_NODE_TYPES.has(type) || !path) {
+    return null;
+  }
+  const node = {
+    id,
+    label: textValue(value.label).slice(0, 80) || path.split("/").pop() || id,
+    type,
+    path,
+  };
+  const importance = Number(value.importance);
+  if (Number.isFinite(importance)) node.importance = Math.max(0, Math.min(1, importance));
+  const tags = normalizeTextList(value.tags).slice(0, 10);
+  if (tags.length) node.tags = tags;
+  return node;
+}
+
+function normalizeRepositoryGraphEdge(value, nodeIds) {
+  if (!objectRecord(value)) return null;
+  const source = textValue(value.source);
+  const target = textValue(value.target);
+  const type = textValue(value.type);
+  if (
+    !nodeIds.has(source) ||
+    !nodeIds.has(target) ||
+    source === target ||
+    !REPOSITORY_GRAPH_EDGE_TYPES.has(type)
+  ) {
+    return null;
+  }
+  const fallbackId = `${type}:${source}->${target}`.slice(0, 180);
+  const id = REPOSITORY_GRAPH_ID_RE.test(textValue(value.id)) ? textValue(value.id) : fallbackId;
+  const edge = { id, source, target, type };
+  const weight = Number(value.weight);
+  if (Number.isFinite(weight) && weight > 0) edge.weight = Math.min(100, Math.trunc(weight));
+  return edge;
+}
+
+function normalizeRepositoryGraphStats(value, nodes, edges, rawNodeCount, rawEdgeCount) {
+  const source = objectRecord(value) ? value : {};
+  return {
+    files: normalizeQuotaCount(source.files, 0),
+    nodes: nodes.length,
+    edges: edges.length,
+    languages: normalizeTextList(source.languages).slice(0, 8),
+    truncated:
+      Boolean(source.truncated) || rawNodeCount > nodes.length || rawEdgeCount > edges.length,
+  };
+}
+
+function normalizeRepositoryGraphArchitectureSummary(value) {
+  if (!objectRecord(value)) return {};
+  const summary = {};
+  for (const key of ["entrypoints", "modules", "tests", "workflows"]) {
+    const items = (Array.isArray(value[key]) ? value[key] : [])
+      .map(normalizeRepositoryGraphPath)
+      .filter(Boolean)
+      .slice(0, 20);
+    if (items.length) summary[key] = items;
+  }
+  const reviewHints = normalizeTextList(value.reviewHints ?? value.review_hints).slice(0, 20);
+  if (reviewHints.length) summary.reviewHints = reviewHints;
+  const promptText = multilineTextValue(value.promptText ?? value.prompt_text, REPOSITORY_GRAPH_MAX_PROMPT_CHARS);
+  if (promptText) summary.promptText = promptText;
+  return summary;
+}
+
+function normalizeRepositoryGraphPath(value) {
+  const text = firstLineText(value).replaceAll("\\", "/");
+  if (!text || text.startsWith("/") || text.startsWith("//") || /^[A-Za-z]:/.test(text)) return "";
+  const parts = text.split("/");
+  if (parts.some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) {
+    return "";
+  }
+  return parts.join("/");
+}
+
 function normalizeDisplayCount(...values) {
   for (const value of values) {
     if (value === undefined || value === null || value === "") continue;
@@ -1049,6 +1194,7 @@ export function normalizeScan(scan = {}) {
     aiUsage: normalizeAiUsage(scan.aiUsage ?? scan.ai_usage),
     preflight: normalizePreflight(scan.preflight),
     auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
+    repositoryGraph: normalizeRepositoryGraph(scan.repositoryGraph ?? scan.repository_graph),
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,

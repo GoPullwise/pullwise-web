@@ -23,6 +23,15 @@ vi.mock("../api/pullwise.js", () => ({
   },
 }));
 
+vi.mock("cytoscape", () => ({
+  default: vi.fn(() => ({
+    destroy: vi.fn(),
+    fit: vi.fn(),
+    layout: vi.fn(() => ({ run: vi.fn() })),
+    on: vi.fn(),
+  })),
+}));
+
 vi.mock("../lib/pullwise-data.js", () => ({
   isTerminalScan: (scan) => ["done", "failed", "cancelled"].includes(scan?.status),
   scanQueueSummary: (scan) =>
@@ -68,6 +77,29 @@ const repoBeta = {
   branches: 4,
   updated: "Yesterday",
   defaultBranch: "develop",
+};
+
+const repositoryGraphFixture = {
+  version: "repository-graph/0.1",
+  stats: { nodes: 2, edges: 1, languages: ["JavaScript"], truncated: false },
+  nodes: [
+    {
+      id: "file:src/App.jsx",
+      label: "App.jsx",
+      type: "entrypoint",
+      path: "src/App.jsx",
+      importance: 0.9,
+      tags: ["frontend"],
+    },
+    { id: "dir:src/screens", label: "src/screens", type: "module", path: "src/screens" },
+  ],
+  edges: [{ id: "e1", source: "file:src/App.jsx", target: "dir:src/screens", type: "imports", weight: 1 }],
+  architectureSummary: {
+    entrypoints: ["src/App.jsx"],
+    modules: ["src/screens"],
+    reviewHints: ["Review scan UI."],
+    promptText: "Repository architecture: UI entrypoint.",
+  },
 };
 
 beforeEach(() => {
@@ -847,6 +879,38 @@ describe("ScanningScreen queue state", () => {
     expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*overflow:\s*visible;/s);
     expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*white-space:\s*normal;/s);
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
+  });
+
+  it("shows the repository graph for scans that include graph data", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_graph",
+        repo: "octocat/graph",
+        branch: "main",
+        commit: "abc123",
+        status: "running",
+        phase: "index",
+        progress: 35,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        repositoryGraph: repositoryGraphFixture,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_graph", fullName: "octocat/graph", defaultBranch: "main" }}
+      />
+    );
+
+    expect(screen.getByText("Repository graph")).toBeInTheDocument();
+    expect(screen.getByText("2 nodes")).toBeInTheDocument();
+    expect(screen.getByText("1 edge")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /fit graph/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /App.jsx/i })).toBeInTheDocument();
+    expect(screen.getByText("Review scan UI.")).toBeInTheDocument();
   });
 
   it("does not render the retired audit funnel for completed scans", () => {
