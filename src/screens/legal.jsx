@@ -6,7 +6,7 @@ import { screenLinkProps } from "../lib/navigation.js";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const CONTACT_EMAIL = "contact@pull-wise.com";
-const SECURITY_EMAIL = "security@pull-wise.com";
+const SECURITY_EMAIL = CONTACT_EMAIL;
 const LAST_UPDATED = "2026-06-09";
 const STATUS_REFRESH_MS = 30_000;
 

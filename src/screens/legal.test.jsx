@@ -75,12 +75,12 @@ describe("legal pages", () => {
     expect(go).toHaveBeenCalledWith("landing");
   });
 
-  it("exposes the security report address as a real mail link", () => {
+  it("exposes the contact address as the security report mail link", () => {
     render(<SecurityScreen go={vi.fn()} />);
 
-    expect(screen.getByRole("link", { name: /security@pull-wise\.com/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /contact@pull-wise\.com/i })).toHaveAttribute(
       "href",
-      "mailto:security@pull-wise.com"
+      "mailto:contact@pull-wise.com"
     );
   });
 });
