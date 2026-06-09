@@ -1,8 +1,11 @@
-.lang-toggle {
+.lang-picker {
   position: fixed;
   right: 66px;
   bottom: 18px;
   z-index: 60;
+}
+
+.lang-toggle {
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -21,10 +24,54 @@
     box-shadow 150ms var(--ease-out);
 }
 
-.lang-toggle:hover {
+.lang-toggle:hover,
+.lang-toggle.active {
   transform: translateY(-2px) scale(1.05);
   background: var(--bg-soft);
   box-shadow: var(--shadow-3);
+}
+
+.lang-menu {
+  position: absolute;
+  right: 0;
+  bottom: 52px;
+  width: 168px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  box-shadow: var(--shadow-3);
+}
+
+.lang-menu-i {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  text-align: left;
+  font-size: 13px;
+}
+
+.lang-menu-i:hover,
+.lang-menu-i.active {
+  background: var(--bg-soft);
+  color: var(--text);
+}
+
+.lang-menu-i.active {
+  font-weight: 600;
+}
+
+.lang-menu-code {
+  width: 24px;
+  flex: 0 0 24px;
+  font: 700 11px/1 var(--font-mono);
+  color: var(--text-3);
 }
 
 .theme-toggle {
@@ -102,6 +149,16 @@
 
 .back-to-top svg {
   display: block;
+}
+
+@media (max-width: 420px) {
+  .lang-picker {
+    right: 62px;
+  }
+
+  .lang-menu {
+    width: min(168px, calc(100vw - 88px));
+  }
 }
 
 .proto-nav {

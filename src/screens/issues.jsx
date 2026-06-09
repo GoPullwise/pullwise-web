@@ -1829,8 +1829,26 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
         ? "scan-issues-badge-warning"
         : "scan-issues-badge-ok";
 
+  const handleRowActivate = () => {
+    viewScan(scan);
+  };
+  const handleRowKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleRowActivate();
+    }
+  };
+  const stopRowClick = (event) => event.stopPropagation();
+
   return (
-    <article className={`scan-row scan-row-${status}`}>
+    <article
+      className={`scan-row scan-row-${status}`}
+      role="button"
+      tabIndex={0}
+      aria-label={T(`View scan ${scan.repo || ""}`, `查看扫描 ${scan.repo || ""}`)}
+      onClick={handleRowActivate}
+      onKeyDown={handleRowKeyDown}
+    >
       <span className="scan-status-dot" aria-hidden="true" />
       <div className="scan-info">
         <div className="scan-main">
@@ -1888,7 +1906,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
       </div>
-      <div className="scan-row-actions" ref={menuRef}>
+      <div className="scan-row-actions" ref={menuRef} onClick={stopRowClick}>
         <button
           className="btn sm"
           disabled={!scan.id || !hasResults}

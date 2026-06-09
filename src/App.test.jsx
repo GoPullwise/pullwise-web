@@ -438,6 +438,36 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: /回到顶部/i })).toHaveAttribute("title", "回到顶部");
   });
 
+  it("opens a language dropdown and changes language from a selected option", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const languageButton = screen.getByRole("button", { name: /select language/i });
+    expect(languageButton).toHaveTextContent("EN");
+    expect(languageButton).toHaveAttribute("aria-expanded", "false");
+    expect(localStorage.getItem("pw-lang")).toBe("en");
+
+    await user.click(languageButton);
+
+    expect(languageButton).toHaveAttribute("aria-expanded", "true");
+    expect(localStorage.getItem("pw-lang")).toBe("en");
+    expect(screen.getByRole("menuitemradio", { name: /English/i })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
+    expect(screen.getByRole("menuitemradio", { name: /中文/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: /日本語/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: /한국어/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: /Français/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: /Español/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("menuitemradio", { name: /日本語/i }));
+
+    expect(localStorage.getItem("pw-lang")).toBe("ja");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /言語を選択/i })).toHaveTextContent("日");
+  });
+
   it("renders GitHub-only login UI", () => {
     render(<LoginScreen go={vi.fn()} />);
 

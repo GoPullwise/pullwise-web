@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
-import { T, setLang, useLang } from "./i18n.jsx";
+import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
@@ -138,7 +138,9 @@ export function App({ prototypeNav = false }) {
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const continuedRepositoryAuthorization = useRef(false);
+  const languageMenuRef = useRef(null);
 
   const go = (nextScreen, params = {}) => {
     const path = pathFromScreen(nextScreen, params);
@@ -192,6 +194,23 @@ export function App({ prototypeNav = false }) {
   useEffect(() => {
     document.title = T("Pullwise - AI Review", "Pullwise - AI审查");
   }, [lang]);
+
+  useEffect(() => {
+    if (!languageMenuOpen) return;
+    const closeLanguageMenu = (event) => {
+      if (languageMenuRef.current?.contains(event.target)) return;
+      setLanguageMenuOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setLanguageMenuOpen(false);
+    };
+    document.addEventListener("mousedown", closeLanguageMenu);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeLanguageMenu);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [languageMenuOpen]);
 
   useEffect(() => {
     if (auth.status !== "ready") return;
@@ -529,14 +548,39 @@ export function App({ prototypeNav = false }) {
       >
         <I.ArrowUp size={16} />
       </button>
-      <button
-        className="lang-toggle"
-        onClick={() => setLang(lang === "en" ? "zh" : "en")}
-        title={lang === "en" ? "切换到中文" : "Switch to English"}
-        aria-label="Switch language"
-      >
-        {lang === "en" ? "中" : "EN"}
-      </button>
+      <div className="lang-picker" ref={languageMenuRef}>
+        {languageMenuOpen && (
+          <div className="lang-menu" role="menu" aria-label={T("Select language", "选择语言")}>
+            {LANGUAGES.map((language) => (
+              <button
+                key={language.code}
+                type="button"
+                className={"lang-menu-i" + (lang === language.code ? " active" : "")}
+                role="menuitemradio"
+                aria-checked={lang === language.code}
+                onClick={() => {
+                  setLang(language.code);
+                  setLanguageMenuOpen(false);
+                }}
+              >
+                <span className="lang-menu-code">{language.shortLabel}</span>
+                <span>{language.nativeLabel}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <button
+          type="button"
+          className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
+          onClick={() => setLanguageMenuOpen((open) => !open)}
+          title={T("Select language", "选择语言")}
+          aria-label={T("Select language", "选择语言")}
+          aria-haspopup="menu"
+          aria-expanded={languageMenuOpen}
+        >
+          {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+        </button>
+      </div>
       <button
         className="theme-toggle"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
