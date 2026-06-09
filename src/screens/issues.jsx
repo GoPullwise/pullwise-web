@@ -718,7 +718,7 @@ function TextListSection({ title, items }) {
 export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilter = null }) {
   useLang();
   const [sev, setSev] = useState("all");
-  const [status, setStatus] = useState("open");
+  const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState("severity");
   const [statusUpdating, setStatusUpdating] = useState({});

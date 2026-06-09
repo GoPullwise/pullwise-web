@@ -245,7 +245,7 @@ describe("IssuesScreen list resilience", () => {
     pullwiseApi.issues.updateStatus.mockReset();
     pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "fixed" });
     useIssues.mockImplementation(({ status } = {}) => ({
-      items: status === "open" ? [issue] : [],
+      items: status === "open" || status === "all" ? [issue] : [],
       loading: false,
       loadingMore: false,
       error: "",
@@ -255,6 +255,8 @@ describe("IssuesScreen list resilience", () => {
     }));
 
     render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^open$/i }));
 
     expect(screen.getByRole("button", { name: /open issue f_123/i })).toBeInTheDocument();
 
@@ -312,6 +314,8 @@ describe("IssuesScreen list resilience", () => {
     });
 
     render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^open$/i }));
 
     await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
 
@@ -394,6 +398,8 @@ describe("IssuesScreen list resilience", () => {
     });
 
     render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^open$/i }));
 
     const markFixedButtons = screen.getAllByRole("button", { name: /mark fixed/i });
     await user.click(markFixedButtons[0]);
