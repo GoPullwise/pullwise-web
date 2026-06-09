@@ -61,7 +61,8 @@ describe("BillingScreen", () => {
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
-    expect(await screen.findByText("Creem")).toBeInTheDocument();
+    expect(await screen.findByText("Account plans")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("Creem");
     await user.click(screen.getByRole("button", { name: /start pro/i }));
 
     await waitFor(() => {

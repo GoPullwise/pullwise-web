@@ -8,11 +8,6 @@ import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
-function providerLabel(provider) {
-  if (provider === "creem") return "Creem";
-  return T("Disabled", "未启用");
-}
-
 function billingReturnUrl(kind, screen = "billing") {
   const url = new URL(window.location.href);
   url.searchParams.set("screen", screen);
@@ -438,7 +433,7 @@ export function PricingScreen({
       <section className="pricing-hero">
         <div className="lp-hero-tag">
           <span className="dot" style={{ background: "var(--accent)" }} />
-          <span>{providerLabel(plan?.provider)}</span>
+          <span>{T("Account plans", "Account plans")}</span>
           <I.ArrowR size={12} />
         </div>
         <h1 className="lp-title">{T("Pricing", "Pricing")}</h1>
