@@ -569,7 +569,9 @@ describe("HistoryScreen queue state", () => {
 
     render(<HistoryScreen go={go} openScan={openScan} />);
 
-    await user.click(screen.getByRole("button", { name: /^view\b/i }));
+    const row = screen.getByText("octocat/private-repo").closest(".scan-row");
+    expect(row).not.toBeNull();
+    await user.click(within(row).getByRole("button", { name: /^view$/i }));
     expect(openScan).toHaveBeenCalledWith(scan);
     expect(go).not.toHaveBeenCalledWith("dashboard");
   });
@@ -673,7 +675,9 @@ describe("HistoryScreen queue state", () => {
 
     render(<HistoryScreen go={go} openScan={openScan} />);
 
-    await user.click(screen.getByRole("button", { name: /^view\b/i }));
+    const row = screen.getByText("octocat/private-repo").closest(".scan-row");
+    expect(row).not.toBeNull();
+    await user.click(within(row).getByRole("button", { name: /^view$/i }));
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
 

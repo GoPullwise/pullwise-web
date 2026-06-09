@@ -1,6 +1,52 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 
+const successfulListCache = new Map();
+
+function stableCacheKey(name, params = {}) {
+  return [
+    name,
+    ...Object.entries(params)
+      .filter(([, value]) => value !== "" && value !== undefined && value !== null)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value]) => `${key}:${String(value)}`),
+  ].join("|");
+}
+
+function cloneListState(state) {
+  return {
+    ...state,
+    items: Array.isArray(state.items) ? [...state.items] : [],
+    installations: Array.isArray(state.installations)
+      ? [...state.installations]
+      : state.installations,
+    installationAccounts: Array.isArray(state.installationAccounts)
+      ? [...state.installationAccounts]
+      : state.installationAccounts,
+    meta: state.meta ? { ...state.meta } : state.meta,
+  };
+}
+
+function cachedListState(key) {
+  const cached = successfulListCache.get(key);
+  return cached ? cloneListState(cached) : null;
+}
+
+function rememberListState(key, state) {
+  successfulListCache.set(
+    key,
+    cloneListState({ ...state, loading: false, loadingMore: false, error: "" })
+  );
+}
+
+export function clearPullwiseDataCache() {
+  successfulListCache.clear();
+}
+
+if (import.meta.env?.MODE === "test") {
+  globalThis.__clearPullwiseDataCache = clearPullwiseDataCache;
+}
+
 function itemsFrom(payload, ...keys) {
   for (const key of keys) {
     if (Array.isArray(payload?.[key])) return payload[key];
@@ -102,9 +148,7 @@ function normalizePreflight(preflight) {
   const manifests = Array.isArray(preflight.manifests)
     ? preflight.manifests
         .map((item) =>
-          objectRecord(item)
-            ? { file: textValue(item.file), type: textValue(item.type) }
-            : null
+          objectRecord(item) ? { file: textValue(item.file), type: textValue(item.type) } : null
         )
         .filter((item) => item?.file && item?.type)
     : [];
@@ -143,7 +187,8 @@ function normalizePreflight(preflight) {
                     exitCode: normalizeCount(attempt.exitCode),
                     durationMs: normalizeCount(attempt.durationMs),
                     outputRedacted:
-                      normalizeBoolean(attempt.outputRedacted) || Boolean(textValue(attempt.output)),
+                      normalizeBoolean(attempt.outputRedacted) ||
+                      Boolean(textValue(attempt.output)),
                   };
                 })
                 .filter(Boolean)
@@ -159,7 +204,8 @@ function normalizePreflight(preflight) {
             confirmedFailure: normalizeBoolean(item.confirmedFailure),
             attempts,
             logPath: textValue(item.logPath),
-            outputRedacted: normalizeBoolean(item.outputRedacted) || Boolean(textValue(item.output)),
+            outputRedacted:
+              normalizeBoolean(item.outputRedacted) || Boolean(textValue(item.output)),
           };
         })
         .filter((item) => item?.script || item?.command)
@@ -268,7 +314,9 @@ const AUDIT_SWARM_SEVERITY_ALIASES = {
 
 function normalizeSeverityValue(value) {
   const severity = textValue(value).toLowerCase();
-  return AUDIT_SWARM_SEVERITY_ALIASES[severity] || (NORMALIZED_SEVERITIES.has(severity) ? severity : "");
+  return (
+    AUDIT_SWARM_SEVERITY_ALIASES[severity] || (NORMALIZED_SEVERITIES.has(severity) ? severity : "")
+  );
 }
 
 function normalizeSeverity(value) {
@@ -411,7 +459,9 @@ function normalizeLocations(locations) {
       if (!objectRecord(location)) return null;
       const file = textValue(location.file);
       if (!file) return null;
-      const startLine = normalizeLineNumber(location.startLine ?? location.start_line ?? location.line);
+      const startLine = normalizeLineNumber(
+        location.startLine ?? location.start_line ?? location.line
+      );
       const endLine = normalizeLineNumber(location.endLine ?? location.end_line ?? startLine);
       return {
         file,
@@ -570,7 +620,9 @@ function normalizeAuditSwarmIssueCards(value) {
         ),
         reproductionIdea: textValue(card.reproductionIdea, card.reproduction_idea),
         suggestedTest: textValue(card.suggestedTest, card.suggested_test),
-        falsePositiveChecks: normalizeTextList(card.falsePositiveChecks ?? card.false_positive_checks),
+        falsePositiveChecks: normalizeTextList(
+          card.falsePositiveChecks ?? card.false_positive_checks
+        ),
         violatedInvariants: normalizeTextList(card.violatedInvariants ?? card.violated_invariants),
       };
     })
@@ -583,7 +635,9 @@ function normalizeAuditSwarmVerificationResults(value) {
   return value
     .map((result) => {
       if (!objectRecord(result)) return null;
-      const commands = normalizeTextList(result.commandsRun ?? result.commands_run ?? result.commands);
+      const commands = normalizeTextList(
+        result.commandsRun ?? result.commands_run ?? result.commands
+      );
       const command = textValue(result.command);
       if (command && !commands.includes(command)) commands.unshift(command);
       const evidence = normalizeAuditSwarmTextList(result.evidence);
@@ -610,7 +664,10 @@ function normalizeAuditSwarmVerificationResults(value) {
         notesForFix: normalizeTextList(result.notesForFix ?? result.notes_for_fix),
       };
     })
-    .filter((result) => result && (result.issueId || result.verdict || result.summary || result.commands.length))
+    .filter(
+      (result) =>
+        result && (result.issueId || result.verdict || result.summary || result.commands.length)
+    )
     .slice(0, 30);
 }
 
@@ -631,7 +688,13 @@ function normalizeAuditSwarmEvidenceBlocks(value) {
         issueId: textValue(block.issueId, block.issue_id),
         severity: normalizeSeverityValue(block.severity),
         category: textValue(block.category),
-        role: textValue(block.role, block.agentRole, block.agent_role, block.verifierRole, block.verifier_role),
+        role: textValue(
+          block.role,
+          block.agentRole,
+          block.agent_role,
+          block.verifierRole,
+          block.verifier_role
+        ),
         shardId: textValue(block.shardId, block.shard_id),
         stage: textValue(block.stage),
         status: textValue(block.status),
@@ -666,13 +729,16 @@ function normalizeAuditSwarm(value) {
   const verificationResults = normalizeAuditSwarmVerificationResults(
     value.verificationResults ?? value.verification_results
   );
-  const evidenceBlocks = normalizeAuditSwarmEvidenceBlocks(value.evidenceBlocks ?? value.evidence_blocks);
+  const evidenceBlocks = normalizeAuditSwarmEvidenceBlocks(
+    value.evidenceBlocks ?? value.evidence_blocks
+  );
   const counts = normalizeAuditSwarmCounts(value.counts);
   if (issueCards.length) counts.issueCards = Math.max(counts.issueCards, issueCards.length);
   if (verificationResults.length) {
     counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
   }
-  if (evidenceBlocks.length) counts.evidenceBlocks = Math.max(counts.evidenceBlocks, evidenceBlocks.length);
+  if (evidenceBlocks.length)
+    counts.evidenceBlocks = Math.max(counts.evidenceBlocks, evidenceBlocks.length);
   return {
     protocol: textValue(value.protocol),
     stage: textValue(value.stage),
@@ -928,7 +994,9 @@ export function normalizeScan(scan = {}) {
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
     verification: normalizeVerificationCounts(scan.verification),
-    verificationAudit: normalizeVerificationAudit(scan.verificationAudit ?? scan.verification_audit),
+    verificationAudit: normalizeVerificationAudit(
+      scan.verificationAudit ?? scan.verification_audit
+    ),
     aiUsage: normalizeAiUsage(scan.aiUsage ?? scan.ai_usage),
     preflight: normalizePreflight(scan.preflight),
     auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
@@ -942,15 +1010,17 @@ export function normalizeScan(scan = {}) {
 
 export function useRepositories() {
   const requestIdRef = useRef(0);
-  const [state, setState] = useState({
+  const cacheKey = "repositories";
+  const [state, setState] = useState(() => ({
     items: [],
     installations: [],
     installationAccounts: [],
     userQuota: null,
+    needsAuthorization: false,
+    ...cachedListState(cacheKey),
     loading: true,
     error: "",
-    needsAuthorization: false,
-  });
+  }));
 
   const load = useCallback(async ({ sync = false } = {}) => {
     const requestId = requestIdRef.current + 1;
@@ -961,7 +1031,7 @@ export function useRepositories() {
         ? await pullwiseApi.repositories.sync()
         : await pullwiseApi.repositories.list();
       if (requestId !== requestIdRef.current) return;
-      setState({
+      const nextState = {
         items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
         installations: itemsFrom(payload, "installations"),
         installationAccounts: itemsFrom(payload, "installationAccounts"),
@@ -969,18 +1039,16 @@ export function useRepositories() {
         loading: false,
         error: "",
         needsAuthorization: normalizeBoolean(payload?.needsAuthorization),
-      });
+      };
+      rememberListState(cacheKey, nextState);
+      setState(nextState);
     } catch (error) {
       if (requestId !== requestIdRef.current) return;
-      setState({
-        items: [],
-        installations: [],
-        installationAccounts: [],
-        userQuota: null,
+      setState((current) => ({
+        ...current,
         loading: false,
         error: error?.message || "Unable to load repositories.",
-        needsAuthorization: false,
-      });
+      }));
     }
   }, []);
 
@@ -993,7 +1061,9 @@ export function useRepositories() {
 
 function pageMeta(payload, fallbackLimit) {
   return {
-    total: Number.isFinite(Number(payload?.total)) ? Number(payload.total) : itemsFrom(payload, "items").length,
+    total: Number.isFinite(Number(payload?.total))
+      ? Number(payload.total)
+      : itemsFrom(payload, "items").length,
     limit: Number.isFinite(Number(payload?.limit)) ? Number(payload.limit) : fallbackLimit,
     offset: Number.isFinite(Number(payload?.offset)) ? Number(payload.offset) : 0,
     hasMore: Boolean(payload?.hasMore),
@@ -1029,39 +1099,56 @@ export function useIssues({
   refreshOnChange = true,
 } = {}) {
   const requestIdRef = useRef(0);
-  const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
+  const cacheKey = stableCacheKey("issues", { limit, status, severity, q, scanId });
+  const [state, setState] = useState(() => ({
+    items: [],
+    meta: pageMeta({}, limit),
+    ...cachedListState(cacheKey),
+    loading: true,
+    loadingMore: false,
+    error: "",
+  }));
 
-  const load = useCallback(async ({ append = false, offset = 0, quiet = false } = {}) => {
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-    setState((current) => ({
-      ...current,
-      loading: append || quiet ? current.loading : true,
-      loadingMore: append,
-      error: "",
-    }));
-    try {
-      const payload = await pullwiseApi.issues.list(listParams({ limit, offset, status, severity, q, scanId }));
-      if (requestId !== requestIdRef.current) return;
-      const nextItems = itemsFrom(payload, "items", "issues").map(normalizeIssue);
+  const load = useCallback(
+    async ({ append = false, offset = 0, quiet = false } = {}) => {
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
       setState((current) => ({
-        items: append ? [...current.items, ...nextItems] : nextItems,
-        loading: false,
-        loadingMore: false,
+        ...current,
+        loading: append || quiet ? current.loading : true,
+        loadingMore: append,
         error: "",
-        meta: pageMeta(payload, limit),
       }));
-    } catch (error) {
-      if (requestId !== requestIdRef.current) return;
-      setState((current) => ({
-        items: append ? current.items : [],
-        loading: false,
-        loadingMore: false,
-        error: error?.message || "Unable to load issues.",
-        meta: append ? current.meta : pageMeta({}, limit),
-      }));
-    }
-  }, [limit, status, severity, q, scanId]);
+      try {
+        const payload = await pullwiseApi.issues.list(
+          listParams({ limit, offset, status, severity, q, scanId })
+        );
+        if (requestId !== requestIdRef.current) return;
+        const nextItems = itemsFrom(payload, "items", "issues").map(normalizeIssue);
+        setState((current) => {
+          const nextState = {
+            items: append ? [...current.items, ...nextItems] : nextItems,
+            loading: false,
+            loadingMore: false,
+            error: "",
+            meta: pageMeta(payload, limit),
+          };
+          rememberListState(cacheKey, nextState);
+          return nextState;
+        });
+      } catch (error) {
+        if (requestId !== requestIdRef.current) return;
+        setState((current) => ({
+          items: current.items,
+          loading: false,
+          loadingMore: false,
+          error: error?.message || "Unable to load issues.",
+          meta: current.meta,
+        }));
+      }
+    },
+    [cacheKey, limit, status, severity, q, scanId]
+  );
 
   useEffect(() => {
     load();
@@ -1114,35 +1201,55 @@ export function scanQueueSummary(scan) {
 
 export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
-  const [state, setState] = useState({ items: [], loading: true, loadingMore: false, error: "", meta: pageMeta({}, limit) });
+  const cacheKey = stableCacheKey("scans", { limit, status, repo });
+  const [state, setState] = useState(() => ({
+    items: [],
+    meta: pageMeta({}, limit),
+    ...cachedListState(cacheKey),
+    loading: true,
+    loadingMore: false,
+    error: "",
+  }));
 
-  const load = useCallback(async ({ quiet = false, append = false, offset = 0 } = {}) => {
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-    setState((current) => ({ ...current, loading: quiet || append ? current.loading : true, loadingMore: append, error: "" }));
-    try {
-      const payload = await pullwiseApi.scans.list(listParams({ limit, offset, status, repo }));
-      if (requestId !== requestIdRef.current) return;
-      const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
+  const load = useCallback(
+    async ({ quiet = false, append = false, offset = 0 } = {}) => {
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
       setState((current) => ({
-        items: append ? [...current.items, ...nextItems] : nextItems,
-        loading: false,
-        loadingMore: false,
+        ...current,
+        loading: quiet || append ? current.loading : true,
+        loadingMore: append,
         error: "",
-        meta: pageMeta(payload, limit),
       }));
-    } catch (error) {
-      if (requestId !== requestIdRef.current) return;
-      const message = error?.message || "Unable to load scans.";
-      setState((current) => ({
-        items: quiet ? current.items : [],
-        loading: false,
-        loadingMore: false,
-        error: message,
-        meta: quiet ? current.meta : pageMeta({}, limit),
-      }));
-    }
-  }, [limit, status, repo]);
+      try {
+        const payload = await pullwiseApi.scans.list(listParams({ limit, offset, status, repo }));
+        if (requestId !== requestIdRef.current) return;
+        const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
+        setState((current) => {
+          const nextState = {
+            items: append ? [...current.items, ...nextItems] : nextItems,
+            loading: false,
+            loadingMore: false,
+            error: "",
+            meta: pageMeta(payload, limit),
+          };
+          rememberListState(cacheKey, nextState);
+          return nextState;
+        });
+      } catch (error) {
+        if (requestId !== requestIdRef.current) return;
+        const message = error?.message || "Unable to load scans.";
+        setState((current) => ({
+          items: current.items,
+          loading: false,
+          loadingMore: false,
+          error: message,
+          meta: current.meta,
+        }));
+      }
+    },
+    [cacheKey, limit, status, repo]
+  );
 
   useEffect(() => {
     load();

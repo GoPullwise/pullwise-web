@@ -4,6 +4,7 @@ import { afterEach } from "vitest";
 
 afterEach(() => {
   cleanup();
+  globalThis.__clearPullwiseDataCache?.();
 });
 
 Object.defineProperty(window, "scrollTo", {

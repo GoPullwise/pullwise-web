@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
+  clearPullwiseDataCache,
   normalizeIssue,
   normalizeRepo,
   normalizeScan,
@@ -39,6 +40,10 @@ function deferred() {
   });
   return { promise, resolve, reject };
 }
+
+beforeEach(() => {
+  clearPullwiseDataCache();
+});
 
 describe("useRepositories", () => {
   beforeEach(() => {
@@ -78,6 +83,36 @@ describe("useRepositories", () => {
 
     await waitFor(() => expect(next.result.current.loading).toBe(false));
     expect(next.result.current.needsAuthorization).toBe(true);
+    next.unmount();
+  });
+
+  it("shows cached repositories while refreshing after remount", async () => {
+    const refresh = deferred();
+    pullwiseApi.repositories.list
+      .mockResolvedValueOnce({
+        items: [{ id: "repo_1", fullName: "owner/old" }],
+        needsAuthorization: false,
+      })
+      .mockReturnValueOnce(refresh.promise);
+
+    const first = renderHook(() => useRepositories());
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.items.map((repo) => repo.fullName)).toEqual(["owner/old"]);
+    first.unmount();
+
+    const next = renderHook(() => useRepositories());
+    expect(next.result.current.loading).toBe(true);
+    expect(next.result.current.items.map((repo) => repo.fullName)).toEqual(["owner/old"]);
+
+    await act(async () => {
+      refresh.resolve({
+        items: [{ id: "repo_2", fullName: "owner/new" }],
+        needsAuthorization: false,
+      });
+    });
+
+    await waitFor(() => expect(next.result.current.loading).toBe(false));
+    expect(next.result.current.items.map((repo) => repo.fullName)).toEqual(["owner/new"]);
     next.unmount();
   });
 });
@@ -149,6 +184,30 @@ describe("useScans", () => {
       status: "done",
       repo: "owner/repo",
     });
+  });
+
+  it("shows cached scans while refreshing after remount", async () => {
+    const refresh = deferred();
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({ items: [{ id: "sc_old", status: "done" }] })
+      .mockReturnValueOnce(refresh.promise);
+
+    const first = renderHook(() => useScans({ pollIntervalMs: 10000, limit: 1 }));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.items.map((scan) => scan.id)).toEqual(["sc_old"]);
+    first.unmount();
+
+    const next = renderHook(() => useScans({ pollIntervalMs: 10000, limit: 1 }));
+    expect(next.result.current.loading).toBe(true);
+    expect(next.result.current.items.map((scan) => scan.id)).toEqual(["sc_old"]);
+
+    await act(async () => {
+      refresh.resolve({ items: [{ id: "sc_new", status: "done" }] });
+    });
+
+    await waitFor(() => expect(next.result.current.loading).toBe(false));
+    expect(next.result.current.items.map((scan) => scan.id)).toEqual(["sc_new"]);
+    next.unmount();
   });
 
   it("includes the scan request id when creating a scan", async () => {
@@ -340,6 +399,30 @@ describe("useIssues", () => {
     });
   });
 
+  it("shows cached issues while refreshing after remount", async () => {
+    const refresh = deferred();
+    pullwiseApi.issues.list
+      .mockResolvedValueOnce({ items: [{ id: "iss_old", status: "open", severity: "high" }] })
+      .mockReturnValueOnce(refresh.promise);
+
+    const first = renderHook(() => useIssues({ limit: 1, status: "open", refreshOnChange: false }));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.items.map((issue) => issue.id)).toEqual(["iss_old"]);
+    first.unmount();
+
+    const next = renderHook(() => useIssues({ limit: 1, status: "open", refreshOnChange: false }));
+    expect(next.result.current.loading).toBe(true);
+    expect(next.result.current.items.map((issue) => issue.id)).toEqual(["iss_old"]);
+
+    await act(async () => {
+      refresh.resolve({ items: [{ id: "iss_new", status: "open", severity: "medium" }] });
+    });
+
+    await waitFor(() => expect(next.result.current.loading).toBe(false));
+    expect(next.result.current.items.map((issue) => issue.id)).toEqual(["iss_new"]);
+    next.unmount();
+  });
+
   it("ignores late scan-list responses from older filters", async () => {
     const slowAll = deferred();
     const fastDone = deferred();
@@ -412,7 +495,9 @@ describe("useIssues", () => {
     await act(async () => {
       fastFixed.resolve({ items: [{ id: "iss_fixed", status: "fixed" }] });
     });
-    await waitFor(() => expect(result.current.items.map((issue) => issue.id)).toEqual(["iss_fixed"]));
+    await waitFor(() =>
+      expect(result.current.items.map((issue) => issue.id)).toEqual(["iss_fixed"])
+    );
 
     await act(async () => {
       slowOpen.resolve({ items: [{ id: "iss_open", status: "open" }] });
@@ -966,7 +1051,13 @@ describe("normalizeIssue", () => {
           { file: "", type: "bad" },
         ],
         toolVersions: [
-          { name: "git", command: "git --version", available: true, exitCode: "0", output: "git ok" },
+          {
+            name: "git",
+            command: "git --version",
+            available: true,
+            exitCode: "0",
+            output: "git ok",
+          },
           { name: "", command: "bad", available: true },
         ],
         verifier: {
@@ -992,8 +1083,20 @@ describe("normalizeIssue", () => {
               logPath: "verification/job/lint.log",
               output: "first attempt failed, second passed",
               attempts: [
-                { attempt: "1", status: "failed", exitCode: "1", durationMs: "400", output: "FAIL" },
-                { attempt: "2", status: "passed", exitCode: "0", durationMs: "300", output: "PASS" },
+                {
+                  attempt: "1",
+                  status: "failed",
+                  exitCode: "1",
+                  durationMs: "400",
+                  output: "FAIL",
+                },
+                {
+                  attempt: "2",
+                  status: "passed",
+                  exitCode: "0",
+                  durationMs: "300",
+                  output: "PASS",
+                },
               ],
             },
             { script: "", command: "", status: "bad" },
@@ -1082,8 +1185,12 @@ describe("normalizeIssue", () => {
             confidence: "0.83",
             locations: [{ file: "src/auth/refresh.ts", startLine: "42", endLine: "81" }],
             claim: "Token invalidation and issuance are not in one transaction.",
-            evidence: [{ summary: "createRefreshToken runs before old-token invalidation is confirmed." }],
-            false_positive_checks: ["Check whether the caller wraps this service in a transaction."],
+            evidence: [
+              { summary: "createRefreshToken runs before old-token invalidation is confirmed." },
+            ],
+            false_positive_checks: [
+              "Check whether the caller wraps this service in a transaction.",
+            ],
             suggested_test: "Mock a failure between issuance and invalidation.",
           },
         ],
