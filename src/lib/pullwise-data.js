@@ -673,6 +673,7 @@ function normalizeAuditSwarmVerificationResults(value) {
 
 function normalizeAuditSwarmEvidenceBlocks(value) {
   if (!Array.isArray(value)) return [];
+  const seen = new Set();
   return value
     .map((block) => {
       if (!objectRecord(block)) return null;
@@ -720,6 +721,32 @@ function normalizeAuditSwarmEvidenceBlocks(value) {
           block.verdict ||
           block.issueId)
     )
+    .filter((block) => {
+      const key = [
+        block.kind,
+        block.title,
+        block.summary,
+        block.issueId,
+        block.severity,
+        block.category,
+        block.role,
+        block.shardId,
+        block.stage,
+        block.status,
+        block.verdict,
+        block.proofType,
+        block.command,
+        block.file,
+        block.startLine,
+        block.endLine,
+        block.items.join("\n"),
+      ]
+        .map((part) => String(part || "").trim().toLowerCase())
+        .join("\x1f");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .slice(0, 40);
 }
 

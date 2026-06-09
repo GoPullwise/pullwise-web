@@ -1416,6 +1416,50 @@ describe("normalizeIssue", () => {
     ]);
   });
 
+  it("deduplicates repeated Audit Swarm evidence blocks by rendered content", () => {
+    const scan = normalizeScan({
+      id: "sc_audit_swarm_duplicate_evidence",
+      audit_swarm: {
+        counts: { evidence_blocks: 3 },
+        evidence_blocks: [
+          {
+            id: "issue-command:location:0",
+            kind: "code_location",
+            title: "Code location",
+            summary: "Primary audited location.",
+            file: "src/screens/workers.jsx",
+            start_line: "421",
+            role: "auditor",
+            shard_id: "workers-ui",
+          },
+          {
+            id: "issue-command:location:1",
+            kind: "code_location",
+            title: "Code location",
+            summary: "Primary audited location.",
+            file: "src/screens/workers.jsx",
+            start_line: "421",
+            role: "auditor",
+            shard_id: "workers-ui",
+          },
+          {
+            id: "issue-command:evidence:0",
+            kind: "evidence",
+            title: "Discovery evidence",
+            summary: "Distinct supporting evidence.",
+          },
+        ],
+      },
+    });
+
+    expect(scan.auditSwarm.evidenceBlocks).toHaveLength(2);
+    expect(scan.auditSwarm.counts.evidenceBlocks).toBe(3);
+    expect(scan.auditSwarm.evidenceBlocks.map((block) => block.title)).toEqual([
+      "Code location",
+      "Discovery evidence",
+    ]);
+  });
+
   it("normalizes scan progress into a finite percentage range", () => {
     expect(normalizeScan({ id: "sc_invalid", progress: "not-a-number" }).progress).toBe(0);
     expect(normalizeScan({ id: "sc_low", progress: -12 }).progress).toBe(0);

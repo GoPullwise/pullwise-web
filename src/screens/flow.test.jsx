@@ -772,6 +772,14 @@ describe("ScanningScreen queue state", () => {
               summary: "Primary audited location.",
             },
             {
+              id: "issue-refresh:location:duplicate",
+              kind: "code_location",
+              title: "Code location",
+              file: "src/auth/refresh.ts",
+              startLine: "42",
+              summary: "Primary audited location.",
+            },
+            {
               id: "issue-refresh:evidence:0",
               kind: "evidence",
               title: "Discovery evidence",
@@ -837,6 +845,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Claim")).toBeInTheDocument();
     expect(screen.getAllByText("Code location").length).toBeGreaterThan(0);
     expect(screen.getByText("src/auth/refresh.ts:42")).toBeInTheDocument();
+    expect(screen.getAllByText("Primary audited location.")).toHaveLength(1);
     expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
     expect(
       screen.getByText("Token invalidation and issuance are not in one transaction.")

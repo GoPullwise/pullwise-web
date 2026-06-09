@@ -386,6 +386,36 @@ function uniqueStrings(values) {
   return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
+function uniqueAuditSwarmEvidenceBlocks(blocks) {
+  const seen = new Set();
+  return blocks.filter((block) => {
+    const key = [
+      block?.kind,
+      block?.title,
+      block?.summary,
+      block?.issueId,
+      block?.severity,
+      block?.category,
+      block?.role,
+      block?.shardId,
+      block?.stage,
+      block?.status,
+      block?.verdict,
+      block?.proofType,
+      block?.command,
+      block?.file,
+      block?.startLine,
+      block?.endLine,
+      (block?.items || []).join("\n"),
+    ]
+      .map((part) => String(part || "").trim().toLowerCase())
+      .join("\x1f");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function scanPreflightSummary(scans) {
   const preflights = scans.map((scan) => scan?.preflight).filter(Boolean);
   if (!preflights.length) return null;
@@ -444,7 +474,9 @@ function scanAuditSwarmSummary(scans) {
   const verificationResults = audits
     .flatMap((audit) => audit.verificationResults || [])
     .slice(0, 12);
-  const evidenceBlocks = audits.flatMap((audit) => audit.evidenceBlocks || []).slice(0, 12);
+  const evidenceBlocks = uniqueAuditSwarmEvidenceBlocks(
+    audits.flatMap((audit) => audit.evidenceBlocks || [])
+  ).slice(0, 12);
   const counts = audits.reduce(
     (totals, audit) => {
       for (const key of Object.keys(totals)) {
