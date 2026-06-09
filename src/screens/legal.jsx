@@ -165,8 +165,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="sharing" title={sections[4].title}>
         <p>
           {T(
-            "Pullwise uses service providers only as needed to operate the product. These may include hosting and database infrastructure, GitHub, payment processors such as Stripe or Creem when enabled, support systems, and configured review providers.",
-            "Pullwise 仅在运营产品所需范围内使用服务提供方。这些提供方可能包括托管和数据库基础设施、GitHub、启用时的 Stripe 或 Creem 等支付处理方、支持系统，以及已配置的审查提供方。"
+            "Pullwise uses service providers only as needed to operate the product. These may include hosting and database infrastructure, GitHub, Creem payments when enabled, support systems, and configured review providers.",
+            "Pullwise 仅在运营产品所需范围内使用服务提供方。这些提供方可能包括托管和数据库基础设施、GitHub、启用时的 Creem 支付、支持系统，以及已配置的审查提供方。"
           )}
         </p>
         <p>
@@ -298,8 +298,8 @@ export function TermsScreen({ go, auth }) {
       <Section id="billing" title={sections[4].title}>
         <p>
           {T(
-            "Paid subscriptions, if available, are billed through the configured payment provider, such as Stripe or Creem. Prices, quotas, plan limits, renewal terms, taxes, and cancellation options are shown in the product or payment flow before purchase.",
-            "如提供付费订阅，订阅将通过已配置的支付提供方收费，例如 Stripe 或 Creem。价格、配额、套餐限制、续费条款、税费和取消选项会在购买前于产品或支付流程中展示。"
+            "Paid subscriptions, if available, are billed through Creem. Prices, quotas, plan limits, renewal terms, taxes, and cancellation options are shown in the product or payment flow before purchase.",
+            "如提供付费订阅，订阅将通过 Creem 收费。价格、配额、套餐限制、续费条款、税费和取消选项会在购买前于产品或支付流程中展示。"
           )}
         </p>
         <p>

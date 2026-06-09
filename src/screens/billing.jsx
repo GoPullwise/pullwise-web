@@ -9,7 +9,6 @@ import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 function providerLabel(provider) {
-  if (provider === "stripe") return "Stripe";
   if (provider === "creem") return "Creem";
   return T("Disabled", "未启用");
 }
@@ -342,7 +341,6 @@ export function PricingScreen({
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const signedIn = Boolean(auth?.authenticated);
-  const adminBypass = signedIn && Boolean(auth?.session?.admin || auth?.admin);
 
   useEffect(() => {
     let cancelled = false;
@@ -409,7 +407,7 @@ export function PricingScreen({
   const selectedProPrice = priceFor(proPlan, interval);
   const billingEnabled = Boolean(plan?.enabled);
   const proConfigured = Boolean(selectedProPrice?.configured);
-  const canStartPro = adminBypass || (billingEnabled && proConfigured);
+  const canStartPro = billingEnabled && proConfigured;
 
   const startCheckout = async () => {
     if (!signedIn) {

@@ -5,8 +5,6 @@ const TRUSTED_GITHUB_API_ORIGINS = new Set(["https://api.pull-wise.com"]);
 const GITHUB_INTEGRATION_PATH_PREFIXES = ["/integrations/github/", "/api/integrations/github/"];
 
 const TRUSTED_BILLING_PROVIDER_HOSTS = new Set([
-  "checkout.stripe.com",
-  "billing.stripe.com",
   "checkout.creem.io",
   "creem.io",
   "www.creem.io",

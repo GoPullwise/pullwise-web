@@ -10,7 +10,7 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 - Rich issue review plus manual triage/status changes
 - Deterministic fix preview and GitHub pull request creation for auto-fixable issues
 - Workspace-aware GitHub integration settings
-- Stripe or Creem workspace billing through backend-created checkout and portal sessions
+- Creem workspace billing through backend-created checkout and portal sessions
 - Legal, privacy, security, and live status/readiness pages
 
 Stage 2 remediation is intentionally narrow in this build. The browser can ask
@@ -223,18 +223,16 @@ GitHub OAuth callback: https://app.your-domain.com/api/auth/github/callback
 GitHub App setup URL: https://app.your-domain.com/api/integrations/github/callback
 ```
 
-Stripe and Creem webhooks can point either to the backend directly or through
+Creem webhooks can point either to the backend directly or through
 the Worker proxy:
 
 ```text
-https://api.your-domain.com/webhooks/stripe
 https://api.your-domain.com/webhooks/creem
 ```
 
 or:
 
 ```text
-https://app.your-domain.com/api/webhooks/stripe
 https://app.your-domain.com/api/webhooks/creem
 ```
 

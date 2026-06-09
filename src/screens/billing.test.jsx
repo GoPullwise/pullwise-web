@@ -18,7 +18,7 @@ vi.mock("../api/pullwise.js", () => ({
 describe("BillingScreen", () => {
   const billingCatalog = {
     enabled: true,
-    provider: "stripe",
+    provider: "creem",
     currency: "USD",
     plans: [
       {
@@ -53,15 +53,15 @@ describe("BillingScreen", () => {
       account: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
-      provider: "stripe",
-      url: "https://checkout.stripe.com/cs/test",
+      provider: "creem",
+      url: "https://creem.io/checkout/chk_test",
     });
     const navigate = vi.fn();
     const user = userEvent.setup();
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
-    expect(await screen.findByText("Stripe")).toBeInTheDocument();
+    expect(await screen.findByText("Creem")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /start pro/i }));
 
     await waitFor(() => {
@@ -72,11 +72,11 @@ describe("BillingScreen", () => {
           interval: "month",
         })
       );
-      expect(navigate).toHaveBeenCalledWith("https://checkout.stripe.com/cs/test");
+      expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_test");
     });
   });
 
-  it("lets an admin start Pro even when provider billing is disabled", async () => {
+  it("does not let an admin start Pro when provider billing is disabled", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       enabled: false,
@@ -93,13 +93,7 @@ describe("BillingScreen", () => {
       ],
       account: { status: "none", plan: "free" },
     });
-    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
-      provider: "admin",
-      granted: true,
-      url: "https://app.pullwise.dev/?screen=pricing&billing=success",
-    });
     const navigate = vi.fn();
-    const user = userEvent.setup();
 
     render(
       <PricingScreen
@@ -110,15 +104,9 @@ describe("BillingScreen", () => {
     );
 
     const startPro = await screen.findByRole("button", { name: /start pro/i });
-    expect(startPro).not.toBeDisabled();
-    await user.click(startPro);
-
-    await waitFor(() => {
-      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(
-        expect.objectContaining({ plan: "pro", interval: "month" })
-      );
-      expect(navigate).toHaveBeenCalledWith("https://app.pullwise.dev/?screen=pricing&billing=success");
-    });
+    expect(startPro).toBeDisabled();
+    expect(pullwiseApi.billing.createCheckoutSession).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it("exposes billing legal side navigation as real screen links", async () => {
@@ -207,7 +195,7 @@ describe("BillingScreen", () => {
       account: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       url: "javascript:alert(1)",
     });
     const navigate = vi.fn();
@@ -227,8 +215,8 @@ describe("BillingScreen", () => {
       account: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
-      provider: "stripe",
-      url: "https://checkout.stripe.com/cs/test\r\nX-Injected: bad",
+      provider: "creem",
+      url: "https://creem.io/checkout/chk_test\r\nX-Injected: bad",
     });
     const navigate = vi.fn();
     const user = userEvent.setup();
@@ -247,7 +235,7 @@ describe("BillingScreen", () => {
       account: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       url: "https://evil.example/checkout",
     });
     const navigate = vi.fn();
@@ -367,8 +355,8 @@ describe("BillingScreen", () => {
       },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
-      provider: "stripe",
-      url: "https://checkout.stripe.com/cs/yearly",
+      provider: "creem",
+      url: "https://creem.io/checkout/chk_yearly",
     });
     const navigate = vi.fn();
     const user = userEvent.setup();
@@ -385,7 +373,7 @@ describe("BillingScreen", () => {
           interval: "year",
         })
       );
-      expect(navigate).toHaveBeenCalledWith("https://checkout.stripe.com/cs/yearly");
+      expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_yearly");
     });
   });
 
@@ -400,9 +388,9 @@ describe("BillingScreen", () => {
       },
     });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       interval: "year",
-      url: "https://billing.stripe.com/session",
+      status: "active",
     });
     const navigate = vi.fn();
     const user = userEvent.setup();
@@ -417,7 +405,10 @@ describe("BillingScreen", () => {
           interval: "year",
         })
       );
-      expect(navigate).toHaveBeenCalledWith("https://billing.stripe.com/session");
+      expect(navigate).not.toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /switch to yearly/i })).not.toBeInTheDocument();
     });
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();
   });
@@ -433,7 +424,7 @@ describe("BillingScreen", () => {
       },
     });
     pullwiseApi.billing.createPortalSession.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       url: "javascript:alert(1)",
     });
     const navigate = vi.fn();
@@ -458,7 +449,7 @@ describe("BillingScreen", () => {
       },
     });
     pullwiseApi.billing.createPortalSession.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       url: "https://evil.example/portal",
     });
     const navigate = vi.fn();
@@ -483,7 +474,7 @@ describe("BillingScreen", () => {
       },
     });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       interval: "year",
       url: "javascript:alert(1)",
     });
@@ -509,7 +500,7 @@ describe("BillingScreen", () => {
       },
     });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
-      provider: "stripe",
+      provider: "creem",
       interval: "year",
       url: "https://evil.example/change",
     });
