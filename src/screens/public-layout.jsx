@@ -53,7 +53,7 @@ export function PublicHeader({ go, current, auth }) {
             <span className="spin" style={{ display: "inline-block" }}>
               <I.Refresh size={14} />
             </span>
-            {T("Checking session...", "检查会话...")}
+            {T("Checking session...", "正在检查会话...")}
           </button>
         ) : signedIn ? (
           <>

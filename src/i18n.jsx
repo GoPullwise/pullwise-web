@@ -23,6 +23,9 @@ const LANGUAGE_ALIASES = {
   cn: "zh",
 };
 
+// Existing inline translation data contains intentional later overrides for a few common keys.
+// Keep the table order stable and let the final duplicate win.
+/* eslint-disable no-dupe-keys */
 const PHRASE_TRANSLATIONS = {
   "Account overview": {
     zh: "账户总览",
@@ -1891,6 +1894,7 @@ const PHRASE_TRANSLATIONS = {
     es: "escaneo: crítico N, alto N, medio N, bajo N",
   },
 };
+/* eslint-enable no-dupe-keys */
 
 function normalizeLang(nextLang) {
   const code = String(nextLang || "en").trim().toLowerCase();

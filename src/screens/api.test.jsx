@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useRepositories } from "../lib/pullwise-data.js";
-import { ApiDocsScreen, ApiKeysScreen } from "./api.jsx";
+import { ApiKeysScreen } from "./api.jsx";
+import { ApiDocsScreen } from "./api-docs.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
