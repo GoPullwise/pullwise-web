@@ -9,6 +9,7 @@ import {
   manageGitHubInstallation,
   startGitHubLogin,
 } from "./lib/auth.js";
+import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({
@@ -62,6 +63,7 @@ async function flushPromises() {
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    clearPullwiseDataCache();
     setLang("en");
     document.title = "";
     window.history.replaceState({}, "", "/");
@@ -353,6 +355,37 @@ describe("App", () => {
     expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(3);
     expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
     expect(document.querySelector('[data-screen-label="login"]')).not.toBeInTheDocument();
+  });
+
+  it("does not keep showing cached repositories after the session user changes", async () => {
+    window.history.replaceState({}, "", "/repos");
+    pullwiseApi.auth.getSession
+      .mockResolvedValueOnce({
+        authenticated: true,
+        user: { name: "User A", email: "a@example.com" },
+      })
+      .mockResolvedValueOnce({
+        authenticated: true,
+        user: { name: "User B", email: "b@example.com" },
+      });
+    pullwiseApi.repositories.list
+      .mockResolvedValueOnce({
+        items: [{ id: "repo_a", fullName: "user-a/private-repo" }],
+        needsAuthorization: false,
+      })
+      .mockReturnValueOnce(new Promise(() => {}));
+
+    render(<App />);
+
+    expect(await screen.findByText("user-a/private-repo")).toBeInTheDocument();
+
+    fireEvent.focus(window);
+
+    await waitFor(() => {
+      expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
+      expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2);
+      expect(screen.queryByText("user-a/private-repo")).not.toBeInTheDocument();
+    });
   });
 
   it("sends an authenticated private screen to login after signed-out recheck is confirmed", async () => {

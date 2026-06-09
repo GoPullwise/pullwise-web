@@ -5,6 +5,7 @@ import {
 } from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 import { pathFromScreen } from "./navigation.js";
+import { clearPullwiseDataCache } from "./pullwise-data.js";
 import { safeGitHubInstallationUrl, safeHttpUrl } from "./trusted-redirects.js";
 
 function getScreenRedirectUrl(screen) {
@@ -203,5 +204,6 @@ export async function manageGitHubInstallation(
 
 export async function signOut() {
   await pullwiseApi.auth.signOut();
+  clearPullwiseDataCache();
   window.location.assign("/");
 }

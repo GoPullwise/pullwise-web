@@ -5,6 +5,7 @@ import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
 import { issueIdFromPath, pathFromScreen, screenFromPath } from "./lib/navigation.js";
+import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
 import { ApiDocsScreen, ApiKeysScreen } from "./screens/api.jsx";
 import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
@@ -62,6 +63,36 @@ function shouldShowSessionCheck(screen) {
 
 function isObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function sessionFingerprint(session) {
+  try {
+    return JSON.stringify(session ?? {});
+  } catch {
+    return "unknown";
+  }
+}
+
+function sessionIdentity(authenticated, session) {
+  if (!authenticated) return "signed-out";
+  const user = isObject(session?.user) ? session.user : {};
+  const profile = isObject(session?.profile) ? session.profile : {};
+  const identity =
+    session?.userId ||
+    session?.id ||
+    user.id ||
+    user.userId ||
+    user.email ||
+    user.login ||
+    user.username ||
+    user.githubLogin ||
+    profile.id ||
+    profile.userId ||
+    profile.email ||
+    profile.login ||
+    profile.username ||
+    profile.githubLogin;
+  return identity ? `user:${String(identity)}` : `session:${sessionFingerprint(session)}`;
 }
 
 function isUsableActiveRepo(value) {
@@ -227,6 +258,7 @@ export function App({ prototypeNav = false }) {
   const sessionCheckingRef = useRef(false);
   const sessionConfirmTimeoutRef = useRef(null);
   const authRef = useRef(auth);
+  const authIdentityRef = useRef(null);
 
   useEffect(() => {
     authRef.current = auth;
@@ -234,6 +266,15 @@ export function App({ prototypeNav = false }) {
 
   const setAuthState = useCallback((nextAuth) => {
     const resolvedAuth = typeof nextAuth === "function" ? nextAuth(authRef.current) : nextAuth;
+    const nextIdentity = sessionIdentity(resolvedAuth.authenticated, resolvedAuth.session);
+    if (authIdentityRef.current !== nextIdentity) {
+      clearPullwiseDataCache();
+      if (authIdentityRef.current !== null) {
+        setIssue(null);
+        setIssueScanFilter(null);
+      }
+      authIdentityRef.current = nextIdentity;
+    }
     authRef.current = resolvedAuth;
     setAuth(resolvedAuth);
   }, []);
@@ -534,7 +575,14 @@ export function App({ prototypeNav = false }) {
         </>
       )}
 
-      <div data-screen-label={screen} key={screen}>
+      <div
+        data-screen-label={screen}
+        key={
+          PUBLIC_SCREENS.has(screen)
+            ? screen
+            : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}`
+        }
+      >
         {body}
       </div>
 
