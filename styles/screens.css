@@ -3560,7 +3560,7 @@ button.dash-cat-row:hover {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 @media (max-width: 640px) {
   .pricing-tiers {
@@ -3607,6 +3607,9 @@ button.dash-cat-row:hover {
   letter-spacing: 0;
   margin-bottom: 4px;
 }
+.pricing-card-h {
+  min-height: 96px;
+}
 .pricing-tag {
   color: var(--text-3);
   font-size: 12.5px;
@@ -3616,6 +3619,7 @@ button.dash-cat-row:hover {
 .pricing-price {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
+  min-height: 88px;
 }
 .pricing-num {
   font-family: var(--font-display);
