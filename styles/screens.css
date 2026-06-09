@@ -3810,6 +3810,16 @@ button.dash-cat-row:hover {
   flex: 0 0 auto;
 }
 
+/* Make both card CTAs span the full card content width so the Free
+   anchor and the Pro button/wrapper render at identical widths. */
+.pricing-card > .btn,
+.pricing-card > .billing-actions {
+  width: 100%;
+}
+.pricing-card > .billing-actions .btn {
+  width: 100%;
+}
+
 /* Fallback for browsers without CSS subgrid: revert to flex cards
    with min-height floors so the price/feature/CTA rows roughly align. */
 @supports not (grid-template-rows: subgrid) {
