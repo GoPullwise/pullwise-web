@@ -1010,6 +1010,13 @@ const PHRASE_TRANSLATIONS = {
     fr: "Blocs de preuves",
     es: "Bloques de evidencia",
   },
+  "${count} evidence blocks in the downloaded audit bundle": {
+    zh: "下载的审计包中包含 ${count} 个证据块",
+    ja: "ダウンロードした監査バンドルに ${count} 件の証拠ブロックが含まれます",
+    ko: "다운로드한 감사 번들에 ${count}개의 증거 블록이 포함되어 있습니다",
+    fr: "${count} blocs de preuves dans le bundle d'audit téléchargé",
+    es: "${count} bloques de evidencia en el paquete de auditoría descargado",
+  },
   "Issue cards": {
     zh: "问题卡片",
     ja: "問題カード",

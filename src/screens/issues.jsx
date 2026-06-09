@@ -1651,14 +1651,27 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 <I.Sparkle size={13} />{" "}
                 {fixLoading === "preview" ? T("Previewing...", "正在预览...") : T("Preview fix", "预览修复")}
               </button>
-              <button
-                className="btn sm"
-                disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
-                onClick={openPullRequest}
-              >
-                <I.GitBranch size={13} />{" "}
-                {fixLoading === "pr" ? T("Opening...", "正在打开...") : T("Open PR", "打开 PR")}
-              </button>
+              {activePullRequest?.url ? (
+                <a
+                  className="btn sm"
+                  href={activePullRequest.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <I.GitBranch size={13} /> {T("Open PR", "打开 PR")}
+                  {activePullRequest.number ? ` #${activePullRequest.number}` : ""}
+                </a>
+              ) : (
+                <button
+                  className="btn sm"
+                  disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
+                  onClick={openPullRequest}
+                  title={!activeFixPreview?.valid ? T("Preview fix first.", "请先预览修复。") : undefined}
+                >
+                  <I.GitBranch size={13} />{" "}
+                  {fixLoading === "pr" ? T("Opening...", "正在打开...") : T("Open PR", "打开 PR")}
+                </button>
+              )}
               {!autoFixable && (
                 <div className="muted" style={{ fontSize: 12 }}>
                   {T("This issue is not auto-fixable.", "此问题无法自动修复。")}
@@ -1679,16 +1692,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     <pre className="diff-block">{activeFixPreview.diff}</pre>
                   )}
                 </div>
-              )}
-              {activePullRequest?.url && (
-                <a
-                  className="auth-link"
-                  href={activePullRequest.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {T("Pull request", "拉取请求")} #{activePullRequest.number}
-                </a>
               )}
             </div>
           </div>

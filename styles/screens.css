@@ -959,6 +959,11 @@
   grid-template-columns: minmax(0, 1fr) 240px;
   gap: 20px;
 }
+.scanning.scanning-wide {
+  grid-template-columns: minmax(0, 1fr) 280px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
 .scanning-card {
   padding: 28px;
   border-radius: 0;
@@ -1325,6 +1330,46 @@
 
 .audit-meta-fallback {
   display: none;
+}
+
+.audit-evidence-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: left;
+  cursor: default;
+  transition: border-color 120ms var(--ease-out), background 120ms var(--ease-out);
+}
+
+.audit-evidence-link.is-interactive {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.audit-evidence-link.is-interactive:hover {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 6%, var(--bg));
+}
+
+.audit-evidence-link:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.audit-evidence-link > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .audit-section {

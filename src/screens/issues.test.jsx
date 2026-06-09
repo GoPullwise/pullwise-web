@@ -1357,7 +1357,7 @@ describe("IssueDetailScreen review detail", () => {
     expect(screen.getByText(/\+return redirect\(safe_redirect\(next_url\)\)/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /open pr/i }));
-    expect(await screen.findByRole("link", { name: /pull request #42/i })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: /open pr #42/i })).toHaveAttribute(
       "href",
       "https://github.com/acme/api/pull/42"
     );
@@ -1395,7 +1395,7 @@ describe("IssueDetailScreen review detail", () => {
 
     await user.click(screen.getByRole("button", { name: /open pr/i }));
 
-    expect(screen.queryByRole("link", { name: /pull request/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /open pr/i })).not.toBeInTheDocument();
     expect(document.body).not.toContainHTML("javascript:alert");
   });
 
@@ -1438,7 +1438,7 @@ describe("IssueDetailScreen review detail", () => {
       flushSync(() => {
         root.render(<IssueDetailScreen go={vi.fn()} issue={issueA} />);
       });
-      expect(screen.getByRole("link", { name: /pull request #42/i })).toHaveAttribute(
+      expect(screen.getByRole("link", { name: /open pr #42/i })).toHaveAttribute(
         "href",
         "https://github.com/acme/api/pull/42"
       );
@@ -1447,12 +1447,41 @@ describe("IssueDetailScreen review detail", () => {
         root.render(<IssueDetailScreen go={vi.fn()} issue={issueB} />);
       });
 
-      expect(screen.queryByRole("link", { name: /pull request/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /open pr/i })).not.toBeInTheDocument();
       expect(document.body).not.toContainHTML("javascript:alert");
     } finally {
       root.unmount();
       host.remove();
     }
+  });
+
+  it("uses the Open PR action for an existing pull request", () => {
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{
+          id: "f_123",
+          repo: "acme/api",
+          severity: "high",
+          category: "Security",
+          title: "Validate redirect targets",
+          status: "open",
+          autoFix: true,
+          pullRequest: {
+            url: "https://github.com/acme/api/pull/42",
+            number: 42,
+            branch: "pullwise/fix-f_123-a1b2c3",
+            title: "Fix Validate redirect targets",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByRole("link", { name: /open pr #42/i })).toHaveAttribute(
+      "href",
+      "https://github.com/acme/api/pull/42"
+    );
+    expect(screen.queryByRole("button", { name: /open pr/i })).not.toBeInTheDocument();
   });
 
   it("ignores preview responses from a previous issue", async () => {

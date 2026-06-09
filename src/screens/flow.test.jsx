@@ -668,7 +668,7 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
-  it("shows evidence status totals for a completed scan", () => {
+  it("shows compact findings and model usage for a completed scan", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -678,20 +678,12 @@ describe("ScanningScreen queue state", () => {
         status: "done",
         progress: 100,
         issues: { critical: 0, high: 1, medium: 0, low: 0 },
-        verification: { verified: 1, static_proof: 2, potential_risk: 3, unverified: 4 },
         aiUsage: {
           provider: "codex",
           model: "gpt-5.5",
           inputTokens: 123,
           outputTokens: 45,
           totalTokens: 168,
-        },
-        verificationAudit: {
-          candidateCount: 6,
-          reportedCount: 4,
-          rejectedCount: 2,
-          downgradedCount: 1,
-          rejectedSamples: [{ reason: "missing_evidence", title: "Only a vague model guess" }],
         },
       },
       error: "",
@@ -709,24 +701,17 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    expect(screen.getByText("Evidence status")).toBeInTheDocument();
-    expect(screen.getByText("Verified")).toBeInTheDocument();
-    expect(screen.getByText("Static")).toBeInTheDocument();
-    expect(screen.getByText("Risk")).toBeInTheDocument();
-    expect(screen.getByText("Unverified")).toBeInTheDocument();
+    expect(screen.getByText("Live findings")).toBeInTheDocument();
+    expect(screen.getByText("High")).toBeInTheDocument();
+    expect(screen.getByText("Model usage")).toBeInTheDocument();
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
     expect(screen.queryByText("codex")).not.toBeInTheDocument();
-    expect(screen.getByText("Candidate audit")).toBeInTheDocument();
-    expect(screen.getByText("Candidates")).toBeInTheDocument();
-    expect(screen.getByText("Reported")).toBeInTheDocument();
-    expect(screen.getByText("Rejected")).toBeInTheDocument();
-    expect(screen.getByText("Downgraded")).toBeInTheDocument();
-    expect(screen.getByText("missing_evidence")).toBeInTheDocument();
-    expect(screen.getByText("Only a vague model guess")).toBeInTheDocument();
+    expect(screen.queryByText("Evidence status")).not.toBeInTheDocument();
+    expect(screen.queryByText("Candidate audit")).not.toBeInTheDocument();
   });
 
-  it("shows user-readable Audit Swarm evidence from the worker scan payload", () => {
+  it("shows compact Audit Swarm evidence from the worker scan payload", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -839,31 +824,17 @@ describe("ScanningScreen queue state", () => {
     expect(auditEvidence.previousElementSibling).toHaveTextContent("Audit Swarm review");
     expect(auditEvidence.nextElementSibling).toHaveTextContent("Uploading report");
     expect(screen.getByText("audit-swarm/0.1")).toBeInTheDocument();
-    expect(screen.getByText("stage report")).toBeInTheDocument();
-    expect(screen.getByText("7 evidence blocks")).toBeInTheDocument();
-    expect(screen.getByText("2 candidates evaluated")).toBeInTheDocument();
-    expect(screen.getByText("Claim")).toBeInTheDocument();
-    expect(screen.getAllByText("Code location").length).toBeGreaterThan(0);
-    expect(screen.getByText("src/auth/refresh.ts:42")).toBeInTheDocument();
-    expect(screen.getAllByText("Primary audited location.")).toHaveLength(1);
-    expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
+    expect(screen.getByText("7 evidence blocks in the downloaded audit bundle")).toBeInTheDocument();
+    expect(screen.getByText("Candidates")).toBeInTheDocument();
+    expect(screen.getByText("Reported")).toBeInTheDocument();
+    expect(screen.getByText("Rejected")).toBeInTheDocument();
+    expect(screen.getByText("Verified")).toBeInTheDocument();
+    expect(screen.queryByText("Claim")).not.toBeInTheDocument();
+    expect(screen.queryByText("src/auth/refresh.ts:42")).not.toBeInTheDocument();
+    expect(screen.queryByText("Refresh token rotation may not be atomic")).not.toBeInTheDocument();
     expect(
-      screen.getByText("Token invalidation and issuance are not in one transaction.")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("createRefreshToken runs before old-token invalidation is confirmed.")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Check whether the caller wraps this service in a transaction.")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Mock a failure between issuance and invalidation.")
-    ).toBeInTheDocument();
-    expect(screen.getAllByText("Verifier verdict").length).toBeGreaterThan(0);
-    expect(screen.getByText("confirmed")).toBeInTheDocument();
-    expect(screen.getAllByText("prover").length).toBeGreaterThan(0);
-    expect(screen.getByText("A mocked failure leaves both tokens valid.")).toBeInTheDocument();
-    expect(screen.getByText("pnpm test auth -- refresh-token-rotation")).toBeInTheDocument();
+      screen.queryByText("pnpm test auth -- refresh-token-rotation")
+    ).not.toBeInTheDocument();
   });
 
   it("keeps long audit evidence card text inside the card without clamping", () => {
@@ -878,7 +849,7 @@ describe("ScanningScreen queue state", () => {
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
   });
 
-  it("renders the audit funnel as compact count metrics instead of colored progress bars", () => {
+  it("does not render the retired audit funnel for completed scans", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -888,15 +859,6 @@ describe("ScanningScreen queue state", () => {
         status: "done",
         progress: 100,
         issues: { critical: 0, high: 0, medium: 1, low: 0 },
-        verification: { verified: 1, static_proof: 1, potential_risk: 0, unverified: 0 },
-        verificationAudit: {
-          candidateCount: 2,
-          reportedCount: 2,
-          verifiedCount: 1,
-          staticProofCount: 1,
-          rejectedCount: 0,
-          downgradedCount: 0,
-        },
       },
       error: "",
       cancel: vi.fn(),
@@ -913,11 +875,9 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    const funnel = screen.getByRole("img", { name: /audit funnel/i });
-    expect(funnel.querySelector(".audit-funnel-fill")).not.toBeInTheDocument();
-    expect(funnel.querySelectorAll(".audit-funnel-metric")).toHaveLength(4);
-    expect(funnel).toHaveTextContent("Candidates evaluated");
-    expect(funnel).toHaveTextContent("Verified / static proof");
+    expect(screen.queryByRole("img", { name: /audit funnel/i })).not.toBeInTheDocument();
+    expect(document.querySelector(".audit-funnel-fill")).not.toBeInTheDocument();
+    expect(document.querySelector(".audit-funnel-metric")).not.toBeInTheDocument();
   });
 
   it("shows preflight evidence for a completed scan", () => {

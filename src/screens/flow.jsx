@@ -6,6 +6,7 @@ import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
+import { downloadBlob } from "../lib/download.js";
 import {
   isTerminalScan,
   scanQueueSummary,
@@ -353,54 +354,6 @@ function scanIssueTotals(scans) {
   );
 }
 
-function scanVerificationTotals(scans) {
-  return scans.reduce(
-    (totals, scan) => {
-      const verification = scan?.verification || {};
-      return {
-        verified: totals.verified + Number(verification.verified || 0),
-        static_proof: totals.static_proof + Number(verification.static_proof || 0),
-        potential_risk: totals.potential_risk + Number(verification.potential_risk || 0),
-        unverified: totals.unverified + Number(verification.unverified || 0),
-      };
-    },
-    { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 }
-  );
-}
-
-function scanVerificationAuditTotals(scans) {
-  return scans.reduce(
-    (totals, scan) => {
-      const audit = scan?.verificationAudit || {};
-      return {
-        candidateCount: totals.candidateCount + Number(audit.candidateCount || 0),
-        reportedCount: totals.reportedCount + Number(audit.reportedCount || 0),
-        rejectedCount: totals.rejectedCount + Number(audit.rejectedCount || 0),
-        downgradedCount: totals.downgradedCount + Number(audit.downgradedCount || 0),
-        rejectedSamples: [...totals.rejectedSamples, ...(audit.rejectedSamples || [])].slice(0, 5),
-      };
-    },
-    {
-      candidateCount: 0,
-      reportedCount: 0,
-      rejectedCount: 0,
-      downgradedCount: 0,
-      rejectedSamples: [],
-    }
-  );
-}
-
-function hasVerificationAudit(audit) {
-  return Boolean(
-    audit &&
-    (audit.candidateCount ||
-      audit.reportedCount ||
-      audit.rejectedCount ||
-      audit.downgradedCount ||
-      audit.rejectedSamples?.length)
-  );
-}
-
 function uniqueStrings(values) {
   return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
@@ -572,129 +525,6 @@ function hasAuditSwarm(audit) {
   );
 }
 
-function auditSwarmBlockLabel(kind) {
-  return (
-    {
-      summary: T("Summary", "摘要"),
-      claim: T("Claim", "结论"),
-      code_location: T("Code location", "代码位置"),
-      evidence: T("Evidence", "证据"),
-      command: T("Command", "命令"),
-      verifier_verdict: T("Verifier verdict", "验证器结论"),
-      false_positive_check: T("False-positive check", "误报排除检查"),
-      invariant: T("Invariant", "不变量"),
-      risk: T("Risk", "风险"),
-    }[kind] || T("Evidence", "证据")
-  );
-}
-
-function AuditFunnel({ audit }) {
-  if (!audit) return null;
-  const candidateCount = Number(audit.candidateCount || 0);
-  const reportedCount = Number(audit.reportedCount || 0);
-  const verifiedCount = Number(audit.verifiedCount || 0);
-  const staticProofCount = Number(audit.staticProofCount || 0);
-  const potentialRiskCount = Number(audit.potentialRiskCount || 0);
-  const unverifiedCount = Number(audit.unverifiedCount || 0);
-  const rejectedCount = Number(audit.rejectedCount || 0);
-  const downgradedCount = Number(audit.downgradedCount || 0);
-  if (
-    !candidateCount &&
-    !reportedCount &&
-    !verifiedCount &&
-    !staticProofCount &&
-    !rejectedCount &&
-    !downgradedCount
-  ) {
-    return null;
-  }
-  const reasons = Array.isArray(audit.rejectedReasons) ? audit.rejectedReasons : [];
-  const samples = Array.isArray(audit.rejectedSamples) ? audit.rejectedSamples : [];
-  const topReasons = [...reasons]
-    .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
-    .slice(0, 5);
-  const metrics = [
-    {
-      key: "candidates",
-      label: T("Candidates evaluated", "评估候选"),
-      value: candidateCount,
-    },
-    {
-      key: "reported",
-      label: T("Reported issues", "已报告问题"),
-      value: reportedCount,
-    },
-    {
-      key: "verified",
-      label: T("Verified / static proof", "已验证 / 静态证明"),
-      value: staticProofCount ? `${verifiedCount} + ${staticProofCount}` : verifiedCount,
-    },
-    {
-      key: "rejected",
-      label: T("Rejected candidates", "已拒绝候选"),
-      value: rejectedCount,
-    },
-  ];
-  return (
-    <div className="audit-funnel-wrap">
-      <div className="audit-funnel-h">
-        {T("Audit funnel", "审计漏斗")}
-      </div>
-      <div className="audit-funnel" role="img" aria-label={T("Audit funnel", "审计漏斗")}>
-        {metrics.map((metric) => (
-          <div
-            key={metric.key}
-            className={`audit-funnel-metric audit-funnel-metric-${metric.key}`}
-          >
-            <b>{metric.value}</b>
-            <span>{metric.label}</span>
-          </div>
-        ))}
-      </div>
-      {(topReasons.length > 0 || potentialRiskCount > 0 || unverifiedCount > 0) && (
-        <div className="audit-funnel-foot">
-          {potentialRiskCount > 0 && (
-            <span className="audit-funnel-reason">
-              <b>{potentialRiskCount}</b> {T("potential risk", "潜在风险")}
-            </span>
-          )}
-          {unverifiedCount > 0 && (
-            <span className="audit-funnel-reason">
-              <b>{unverifiedCount}</b> {T("unverified", "未验证")}
-            </span>
-          )}
-          {downgradedCount > 0 && (
-            <span className="audit-funnel-reason">
-              <b>{downgradedCount}</b> {T("downgraded", "已降级")}
-            </span>
-          )}
-          {topReasons.map((reason) => (
-            <span className="audit-funnel-reason" key={`reason-${reason.reason}`}>
-              <b>{reason.count}</b> {reason.reason}
-            </span>
-          ))}
-        </div>
-      )}
-      {samples.length > 0 && (
-        <ul className="audit-funnel-samples" aria-label={T("Recent rejections", "最近被拒的样本")}>
-          {samples.slice(0, 3).map((sample, index) => (
-            <li key={`${sample.reason || "reason"}-${index}-${sample.title || ""}`}>
-              <span className="audit-funnel-sample-reason">{sample.reason}</span>
-              {sample.title && <span className="audit-funnel-sample-title">{sample.title}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function auditSwarmBlockLocation(block) {
-  const file = block?.file || "";
-  const line = block?.startLine || "";
-  return file ? `${file}${line ? `:${line}` : ""}` : "";
-}
-
 function auditSwarmLocation(item) {
   const location = item?.location && typeof item.location === "object" ? item.location : {};
   const file = item?.file || location.file || "";
@@ -707,31 +537,11 @@ function auditSwarmCountLabel(count, singular, plural) {
   return `${count || 0} ${count === 1 ? singular : safePlural}`;
 }
 
-function auditSwarmBlockMeta(block) {
-  const location = auditSwarmBlockLocation(block);
-  return uniqueStrings([
-    auditSwarmBlockLabel(block?.kind),
-    block?.severity,
-    block?.role,
-    block?.shardId ? T(`shard ${block.shardId}`, `分片 ${block.shardId}`) : "",
-    block?.verdict,
-    block?.proofType,
-    block?.status,
-    location,
-    block?.confidence
-      ? T(
-          `${Math.round(Number(block.confidence) * 100)}% confidence`,
-          `${Math.round(Number(block.confidence) * 100)}% 置信度`
-        )
-      : "",
-  ]);
-}
-
-function AuditSwarmEvidence({ auditSwarm, className = "" }) {
+function AuditSwarmEvidence({ auditSwarm, className = "", onDownload = null, downloading = false }) {
   if (!hasAuditSwarm(auditSwarm)) return null;
 
   const rootClassName = ["scanning-audit", className].filter(Boolean).join(" ");
-  const visibleEvidenceCount = Math.min(auditSwarm.evidenceBlocks.length, 8);
+  const evidenceTotal = auditSwarm.counts.evidenceBlocks || 0;
   const stats = [
     { key: "candidates", value: auditSwarm.counts.candidateCount, label: T("Candidates", "候选") },
     { key: "reported", value: auditSwarm.counts.reportedCount, label: T("Reported", "已报告") },
@@ -739,6 +549,10 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
     { key: "verified", value: auditSwarm.counts.verifiedCount, label: T("Verified", "已验证") },
   ].filter((s) => typeof s.value === "number");
   const showStats = stats.some((s) => s.value > 0);
+  const handleEvidenceClick = () => {
+    if (onDownload && evidenceTotal > 0) onDownload();
+  };
+  const evidenceInteractive = Boolean(onDownload) && evidenceTotal > 0;
 
   return (
     <div className={rootClassName}>
@@ -752,24 +566,6 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
       {auditSwarm.summary && (
         <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
       )}
-      <div className="scan-preflight-tags">
-        {auditSwarm.stage && (
-          <span className="tag">
-            {T(`stage ${auditSwarm.stage}`, `阶段 ${auditSwarm.stage}`)}
-          </span>
-        )}
-        {auditSwarm.adapter && <span className="tag">{auditSwarm.adapter}</span>}
-        {auditSwarm.roles.slice(0, 4).map((role) => (
-          <span className="tag" key={`audit-role-${role}`}>
-            {role}
-          </span>
-        ))}
-        {auditSwarm.shards.slice(0, 3).map((shard) => (
-          <span className="tag" key={`audit-shard-${shard}`}>
-            {T(`shard ${shard}`, `分片 ${shard}`)}
-          </span>
-        ))}
-      </div>
       {showStats && (
         <div className="audit-stat-strip">
           {stats.map((s) => (
@@ -780,93 +576,22 @@ function AuditSwarmEvidence({ auditSwarm, className = "" }) {
           ))}
         </div>
       )}
-      <div className="scan-preflight-meta audit-meta-fallback">
-        {auditSwarm.counts.candidateCount > 0 && (
+      {evidenceTotal > 0 && (
+        <button
+          type="button"
+          className={"audit-evidence-link" + (evidenceInteractive ? " is-interactive" : "")}
+          onClick={handleEvidenceClick}
+          disabled={!evidenceInteractive || downloading}
+          aria-busy={downloading || undefined}
+        >
           <span>
             {T(
-              `${auditSwarm.counts.candidateCount} candidates evaluated`,
-              `评估了 ${auditSwarm.counts.candidateCount} 个候选`
+              `${evidenceTotal} evidence blocks in the downloaded audit bundle`,
+              `下载的审计包中包含 ${evidenceTotal} 个证据块`
             )}
           </span>
-        )}
-        {auditSwarm.counts.rejectedCount > 0 && (
-          <span>
-            {T(
-              `${auditSwarm.counts.rejectedCount} rejected before reporting`,
-              `${auditSwarm.counts.rejectedCount} 个在报告前被拒绝`
-            )}
-          </span>
-        )}
-        {auditSwarm.counts.verifiedCount > 0 && (
-          <span>
-            {T(
-              `${auditSwarm.counts.verifiedCount} verified`,
-              `${auditSwarm.counts.verifiedCount} 条已验证`
-            )}
-          </span>
-        )}
-        {auditSwarm.counts.staticProofCount > 0 && (
-          <span>
-            {T(
-              `${auditSwarm.counts.staticProofCount} static proof`,
-              `${auditSwarm.counts.staticProofCount} 条静态证明`
-            )}
-          </span>
-        )}
-      </div>
-      {auditSwarm.evidenceBlocks.length > 0 && (
-        <div className="audit-section">
-          <div className="audit-section-h">
-            <span>{T("Evidence blocks", "证据块")}</span>
-            <span className="audit-section-count">
-              {auditSwarmCountLabel(
-                auditSwarm.counts.evidenceBlocks,
-                T("evidence block", "条证据块"),
-                T("evidence blocks", "条证据块")
-              )}
-            </span>
-          </div>
-          <div className="audit-card-list">
-            {auditSwarm.evidenceBlocks.slice(0, 8).map((block, index) => (
-              <div key={block.id || `${block.kind}-${block.title}-${index}`} className="audit-card">
-                <div className="audit-card-title">
-                  {block.title || auditSwarmBlockLabel(block.kind)}
-                </div>
-                <div className="audit-card-meta">
-                  {auditSwarmBlockMeta(block).map((item) => (
-                    <span key={`${block.id || index}-${item}`}>{item}</span>
-                  ))}
-                </div>
-                {block.summary && (
-                  <div className="audit-card-row">
-                    <b>{T("Summary", "Summary")}</b>
-                    <span>{block.summary}</span>
-                  </div>
-                )}
-                {block.command && (
-                  <div className="audit-card-row">
-                    <b>{T("Command", "Command")}</b>
-                    <code className="tag evidence-command">{block.command}</code>
-                  </div>
-                )}
-                {block.items?.length > 0 && (
-                  <div className="audit-card-row">
-                    <b>{T("Details", "Details")}</b>
-                    <span>{block.items.join("; ")}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          {auditSwarm.counts.evidenceBlocks > visibleEvidenceCount && (
-            <div className="audit-card-more">
-              {T(
-                `+${auditSwarm.counts.evidenceBlocks - visibleEvidenceCount} more evidence blocks in the downloaded audit bundle`,
-                `+${auditSwarm.counts.evidenceBlocks - visibleEvidenceCount} more evidence blocks in the downloaded audit bundle`
-              )}
-            </div>
-          )}
-        </div>
+          <I.Download size={13} />
+        </button>
       )}
       {auditSwarm.issueCards.length > 0 && (
         <div className="audit-section">
@@ -1955,6 +1680,7 @@ function scanPhasesForPhase(phase) {
 export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
+  const [bundleLoading, setBundleLoading] = useState(false);
   const selectedRepos = useMemo(
     () => (Array.isArray(activeRepo?.selectedRepos) ? activeRepo.selectedRepos : []),
     [activeRepo?.selectedRepos]
@@ -2025,18 +1751,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   const found = batchMode
     ? scanIssueTotals(scans)
     : scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
-  const verificationFound = batchMode
-    ? scanVerificationTotals(scans)
-    : scan?.verification || { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 };
-  const verificationAuditFound = batchMode
-    ? scanVerificationAuditTotals(scans)
-    : scan?.verificationAudit || {
-        candidateCount: 0,
-        reportedCount: 0,
-        rejectedCount: 0,
-        downgradedCount: 0,
-        rejectedSamples: [],
-      };
   const preflight = batchMode
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
@@ -2063,6 +1777,22 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   };
   const handleBack = () => {
     go("history");
+  };
+
+  const handleDownloadBundle = async () => {
+    const targetScanId = batchMode ? "" : scanId;
+    if (!targetScanId || bundleLoading) return;
+    setBundleLoading(true);
+    try {
+      const bundle = await pullwiseApi.scans.auditBundleArchive(targetScanId);
+      downloadBlob(`pullwise-audit-${targetScanId}.zip`, bundle, "application/zip");
+    } catch (error) {
+      globalThis.alert?.(
+        error?.message || T("Unable to download audit bundle.", "无法下载审计包。")
+      );
+    } finally {
+      setBundleLoading(false);
+    }
   };
 
   const headerLabel =
@@ -2098,8 +1828,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
   return (
     <div className="app fade-in">
       <Topbar go={go} breadcrumbs={[{ label: T("Scan", "扫描") }]} setIssue={setIssue} />
-      <div className="main narrow" style={{ margin: "0 auto" }}>
-        <div className="scanning">
+      <div className="main" style={{ margin: "0 auto", maxWidth: "none" }}>
+        <div className="scanning scanning-wide">
           <div className="scanning-card card">
             <div className="scanning-h">
               <div className="scanning-icon">{headerIcon}</div>
@@ -2256,6 +1986,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                       <AuditSwarmEvidence
                         auditSwarm={auditSwarm}
                         className="scanning-audit-inline"
+                        onDownload={batchMode ? null : handleDownloadBundle}
+                        downloading={bundleLoading}
                       />
                     )}
                   </Fragment>
@@ -2293,61 +2025,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                   <div className="scan-preflight-meta">
                     <span className="tag">{aiUsage.model}</span>
                   </div>
-                </>
-              )}
-              <div className="scanning-counts-h scanning-counts-subh">
-                {T("Evidence status", "证据状态")}
-              </div>
-              <div className="scanning-counts-grid">
-                <div>
-                  <b className="scan-verification-verified">{verificationFound.verified || 0}</b>
-                  <span>{T("Verified", "已验证")}</span>
-                </div>
-                <div>
-                  <b className="scan-verification-static">{verificationFound.static_proof || 0}</b>
-                  <span>{T("Static", "静态")}</span>
-                </div>
-                <div>
-                  <b className="scan-verification-risk">{verificationFound.potential_risk || 0}</b>
-                  <span>{T("Risk", "风险")}</span>
-                </div>
-                <div>
-                  <b className="scan-verification-unverified">
-                    {verificationFound.unverified || 0}
-                  </b>
-                  <span>{T("Unverified", "未验证")}</span>
-                </div>
-              </div>
-              {hasVerificationAudit(verificationAuditFound) && (
-                <>
-                  <div className="scanning-counts-h scanning-counts-subh">
-                    {T("Candidate audit", "候选审计")}
-                  </div>
-                  <div className="scanning-counts-grid">
-                    <div>
-                      <b>{verificationAuditFound.candidateCount || 0}</b>
-                      <span>{T("Candidates", "候选")}</span>
-                    </div>
-                    <div>
-                      <b className="scan-verification-verified">
-                        {verificationAuditFound.reportedCount || 0}
-                      </b>
-                      <span>{T("Reported", "已报告")}</span>
-                    </div>
-                    <div>
-                      <b className="scan-verification-risk">
-                        {verificationAuditFound.rejectedCount || 0}
-                      </b>
-                      <span>{T("Rejected", "已拒绝")}</span>
-                    </div>
-                    <div>
-                      <b className="scan-verification-static">
-                        {verificationAuditFound.downgradedCount || 0}
-                      </b>
-                      <span>{T("Downgraded", "已降级")}</span>
-                    </div>
-                  </div>
-                  <AuditFunnel audit={verificationAuditFound} />
                 </>
               )}
             </div>
