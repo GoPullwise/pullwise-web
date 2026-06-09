@@ -743,6 +743,59 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText("Candidate audit")).not.toBeInTheDocument();
   });
 
+  it("hides Audit Swarm evidence and download until the review phase finishes", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "ai",
+        progress: 75,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        auditSwarm: {
+          protocol: "audit-swarm/0.1",
+          stage: "discovery",
+          summary: "Reviewer agents are still evaluating candidates.",
+          counts: {
+            evidenceBlocks: 3,
+            candidateCount: 2,
+            reportedCount: 1,
+          },
+          evidenceBlocks: [
+            {
+              id: "issue-refresh:evidence:0",
+              kind: "evidence",
+              title: "Discovery evidence",
+              summary: "createRefreshToken runs before old-token invalidation is confirmed.",
+            },
+          ],
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_running",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(
+      screen.getAllByText("Audit Swarm review").find((node) => node.closest(".scanning-phase"))
+    ).toBeTruthy();
+    expect(screen.queryByText("Audit evidence")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /evidence blocks/i })).not.toBeInTheDocument();
+    expect(pullwiseApi.scans.auditBundleArchive).not.toHaveBeenCalled();
+  });
+
   it("shows compact Audit Swarm evidence from the worker scan payload", () => {
     useScanRun.mockReturnValue({
       scan: {

@@ -303,6 +303,57 @@ function markdownText(value) {
   return String(value ?? "").trim();
 }
 
+const AUDIT_SWARM_DONE_PHASES = new Set(["report", "done", "complete", "completed"]);
+const AUDIT_SWARM_PENDING_PHASES = new Set(["clone", "checkout", "index", "secrets", "deps", "ai"]);
+const AUDIT_SWARM_DONE_STAGES = new Set(["report", "done", "complete", "completed"]);
+const AUDIT_SWARM_PENDING_STAGES = new Set([
+  "candidate",
+  "candidates",
+  "discovery",
+  "review",
+  "reviewing",
+  "running",
+  "ai",
+]);
+
+function lifecycleText(...values) {
+  for (const value of values) {
+    const text = markdownText(value).toLowerCase();
+    if (text) return text;
+  }
+  return "";
+}
+
+function issueAuditSwarmReviewComplete(issue) {
+  if (typeof issue?.auditSwarm?.reviewComplete === "boolean") {
+    return issue.auditSwarm.reviewComplete;
+  }
+  if (typeof issue?.audit?.auditSwarmReviewComplete === "boolean") {
+    return issue.audit.auditSwarmReviewComplete;
+  }
+
+  const phase = lifecycleText(
+    issue?.scanPhase,
+    issue?.phase,
+    issue?.scan?.phase,
+    issue?.audit?.scanPhase,
+    issue?.audit?.phase,
+    issue?.auditSwarm?.phase
+  );
+  if (AUDIT_SWARM_DONE_PHASES.has(phase)) return true;
+  if (AUDIT_SWARM_PENDING_PHASES.has(phase)) return false;
+
+  const stage = lifecycleText(issue?.auditSwarm?.stage, issue?.audit?.auditSwarmStage);
+  if (AUDIT_SWARM_DONE_STAGES.has(stage)) return true;
+  if (AUDIT_SWARM_PENDING_STAGES.has(stage)) return false;
+
+  const status = lifecycleText(issue?.scanStatus, issue?.scan?.status, issue?.audit?.scanStatus);
+  if (["done", "complete", "completed"].includes(status)) return true;
+  if (["queued", "running", "failed", "cancelled", "canceled"].includes(status)) return false;
+
+  return true;
+}
+
 function appendMarkdownSection(lines, title, content) {
   const body = Array.isArray(content)
     ? content.map(markdownText).filter(Boolean).join("\n")
@@ -325,7 +376,7 @@ function codeLinesMarkdown(lines = []) {
     .join("\n");
 }
 
-function buildIssuePageMarkdown(issue, currentStatus) {
+function buildIssuePageMarkdown(issue, currentStatus, { includeAuditEvidence = true } = {}) {
   const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const lines = [`# ${title}`];
@@ -350,86 +401,90 @@ function buildIssuePageMarkdown(issue, currentStatus) {
   appendMarkdownSection(lines, "Metadata", metadata);
   appendMarkdownSection(lines, "Summary", issue.summary);
 
-  const confidenceEvidence = [];
-  if (issue.verificationSummary) confidenceEvidence.push(markdownText(issue.verificationSummary));
-  if (issue.evidenceChecklist?.length) {
-    confidenceEvidence.push(
-      ...issue.evidenceChecklist
-        .map((item) => {
-          const label = markdownText(item?.label);
-          if (!label) return "";
-          return `- [${item?.met ? "x" : " "}] ${label}`;
+  if (includeAuditEvidence) {
+    const confidenceEvidence = [];
+    if (issue.verificationSummary) confidenceEvidence.push(markdownText(issue.verificationSummary));
+    if (issue.evidenceChecklist?.length) {
+      confidenceEvidence.push(
+        ...issue.evidenceChecklist
+          .map((item) => {
+            const label = markdownText(item?.label);
+            if (!label) return "";
+            return `- [${item?.met ? "x" : " "}] ${label}`;
+          })
+          .filter(Boolean)
+      );
+    }
+    appendMarkdownSection(lines, "Confidence evidence", confidenceEvidence);
+
+    if (issue.evidenceTrace?.length) {
+      appendMarkdownSection(
+        lines,
+        "Evidence trace",
+        issue.evidenceTrace.flatMap((stage, index) => {
+          const label = markdownText(stage?.label || stage?.key || `Step ${index + 1}`);
+          const status = markdownText(stage?.status);
+          const stageLines = label ? [`### ${label}${status ? ` (${status})` : ""}`] : [];
+          if (stage?.summary) stageLines.push(markdownText(stage.summary));
+          if (stage?.items?.length) {
+            stageLines.push(
+              ...stage.items.map((item) => `- ${markdownText(item)}`).filter(Boolean)
+            );
+          }
+          return stageLines;
         })
-        .filter(Boolean)
-    );
-  }
-  appendMarkdownSection(lines, "Confidence evidence", confidenceEvidence);
+      );
+    }
 
-  if (issue.evidenceTrace?.length) {
-    appendMarkdownSection(
-      lines,
-      "Evidence trace",
-      issue.evidenceTrace.flatMap((stage, index) => {
-        const label = markdownText(stage?.label || stage?.key || `Step ${index + 1}`);
-        const status = markdownText(stage?.status);
-        const stageLines = label ? [`### ${label}${status ? ` (${status})` : ""}`] : [];
-        if (stage?.summary) stageLines.push(markdownText(stage.summary));
-        if (stage?.items?.length) {
-          stageLines.push(...stage.items.map((item) => `- ${markdownText(item)}`).filter(Boolean));
-        }
-        return stageLines;
-      })
-    );
-  }
+    const breakdown = issue.reasoningBreakdown || {};
+    const reasoningLines = [
+      ["Facts", breakdown.facts],
+      ["Inferences", breakdown.inferences],
+      ["Recommendations", breakdown.recommendations],
+    ].flatMap(([label, items]) => {
+      if (!items?.length) return [];
+      return [`### ${label}`, ...items.map((item) => `- ${markdownText(item)}`).filter(Boolean)];
+    });
+    appendMarkdownSection(lines, "Facts, reasoning, recommendations", reasoningLines);
 
-  const breakdown = issue.reasoningBreakdown || {};
-  const reasoningLines = [
-    ["Facts", breakdown.facts],
-    ["Inferences", breakdown.inferences],
-    ["Recommendations", breakdown.recommendations],
-  ].flatMap(([label, items]) => {
-    if (!items?.length) return [];
-    return [`### ${label}`, ...items.map((item) => `- ${markdownText(item)}`).filter(Boolean)];
-  });
-  appendMarkdownSection(lines, "Facts, reasoning, recommendations", reasoningLines);
+    if (issue.evidence?.length) {
+      appendMarkdownSection(
+        lines,
+        "Evidence chain",
+        issue.evidence.flatMap((item) => {
+          const itemLines = [`### ${markdownText(item.label || item.type)}`];
+          if (item.type) itemLines.push(`- Type: ${markdownText(item.type).replaceAll("_", " ")}`);
+          if (item.summary) itemLines.push(markdownText(item.summary));
+          if (item.file) itemLines.push(`- File: ${locationLabel(item)}`);
+          if (item.command) itemLines.push(`- Command: ${markdownText(item.command)}`);
+          if (item.logPath) itemLines.push(`- Log: ${markdownText(item.logPath)}`);
+          if (item.url) itemLines.push(`- URL: ${markdownText(item.url)}`);
+          if (item.exitCode !== null && item.exitCode !== undefined) {
+            itemLines.push(`- Exit code: ${item.exitCode}`);
+          }
+          return itemLines.filter(Boolean);
+        })
+      );
+    }
 
-  if (issue.evidence?.length) {
-    appendMarkdownSection(
-      lines,
-      "Evidence chain",
-      issue.evidence.flatMap((item) => {
-        const itemLines = [`### ${markdownText(item.label || item.type)}`];
-        if (item.type) itemLines.push(`- Type: ${markdownText(item.type).replaceAll("_", " ")}`);
-        if (item.summary) itemLines.push(markdownText(item.summary));
-        if (item.file) itemLines.push(`- File: ${locationLabel(item)}`);
-        if (item.command) itemLines.push(`- Command: ${markdownText(item.command)}`);
-        if (item.logPath) itemLines.push(`- Log: ${markdownText(item.logPath)}`);
-        if (item.url) itemLines.push(`- URL: ${markdownText(item.url)}`);
-        if (item.exitCode !== null && item.exitCode !== undefined) {
-          itemLines.push(`- Exit code: ${item.exitCode}`);
-        }
-        return itemLines.filter(Boolean);
-      })
-    );
+    const reproduction = issue.reproduction || {};
+    const reproductionLines = [];
+    if (issue.reproductionPath) reproductionLines.push(markdownText(issue.reproductionPath));
+    if (reproduction.commands?.length) {
+      reproductionLines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
+    }
+    [
+      ["Input", reproduction.input],
+      ["Expected", reproduction.expected],
+      ["Actual", reproduction.actual],
+      ["Test file", reproduction.testFile],
+      ["Log", reproduction.logPath],
+    ].forEach(([label, value]) => {
+      const text = markdownText(value);
+      if (text) reproductionLines.push(`- ${label}: ${text}`);
+    });
+    appendMarkdownSection(lines, "Reproduction center", reproductionLines);
   }
-
-  const reproduction = issue.reproduction || {};
-  const reproductionLines = [];
-  if (issue.reproductionPath) reproductionLines.push(markdownText(issue.reproductionPath));
-  if (reproduction.commands?.length) {
-    reproductionLines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
-  }
-  [
-    ["Input", reproduction.input],
-    ["Expected", reproduction.expected],
-    ["Actual", reproduction.actual],
-    ["Test file", reproduction.testFile],
-    ["Log", reproduction.logPath],
-  ].forEach(([label, value]) => {
-    const text = markdownText(value);
-    if (text) reproductionLines.push(`- ${label}: ${text}`);
-  });
-  appendMarkdownSection(lines, "Reproduction center", reproductionLines);
 
   appendMarkdownSection(lines, "Detection reasoning", issue.detectionReasoning);
   appendMarkdownSection(lines, "Impact", issue.impact);
@@ -449,8 +504,8 @@ function buildIssuePageMarkdown(issue, currentStatus) {
     );
   }
 
-  const badCode = codeLinesMarkdown(issue.badCode || []);
-  const goodCode = codeLinesMarkdown(issue.goodCode || []);
+  const badCode = includeAuditEvidence ? codeLinesMarkdown(issue.badCode || []) : "";
+  const goodCode = includeAuditEvidence ? codeLinesMarkdown(issue.goodCode || []) : "";
   if (badCode || goodCode) {
     lines.push("", "## Patch evidence");
     appendMarkdownCodeBlock(lines, "Current code", badCode);
@@ -1193,25 +1248,31 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       setStatusLoading("");
     }
   };
-  const hasEvidence = issue.badCode?.length || issue.goodCode?.length;
+  const auditEvidenceReady = issueAuditSwarmReviewComplete(issue);
+  const hasEvidence = auditEvidenceReady && (issue.badCode?.length || issue.goodCode?.length);
   const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
   const severity = issue.severity || "info";
   const primaryLocation = issue.affectedLocations?.[0] || null;
-  const hasReproduction = Boolean(
-    issue.reproductionPath ||
-    issue.reproduction?.commands?.length ||
-    issue.reproduction?.input ||
-    issue.reproduction?.expected ||
-    issue.reproduction?.actual ||
-    issue.reproduction?.testFile ||
-    issue.reproduction?.logPath
-  );
-  const hasReasoningBreakdown = Boolean(
-    issue.reasoningBreakdown?.facts?.length ||
-    issue.reasoningBreakdown?.inferences?.length ||
-    issue.reasoningBreakdown?.recommendations?.length
-  );
-  const hasEvidenceTrace = Array.isArray(issue.evidenceTrace) && issue.evidenceTrace.length > 0;
+  const hasReproduction =
+    auditEvidenceReady &&
+    Boolean(
+      issue.reproductionPath ||
+        issue.reproduction?.commands?.length ||
+        issue.reproduction?.input ||
+        issue.reproduction?.expected ||
+        issue.reproduction?.actual ||
+        issue.reproduction?.testFile ||
+        issue.reproduction?.logPath
+    );
+  const hasReasoningBreakdown =
+    auditEvidenceReady &&
+    Boolean(
+      issue.reasoningBreakdown?.facts?.length ||
+        issue.reasoningBreakdown?.inferences?.length ||
+        issue.reasoningBreakdown?.recommendations?.length
+    );
+  const hasEvidenceTrace =
+    auditEvidenceReady && Array.isArray(issue.evidenceTrace) && issue.evidenceTrace.length > 0;
   const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
   const activePullRequest =
     pullRequest?.issueId === issue.id
@@ -1298,7 +1359,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     }
   };
   const copyPage = async () => {
-    const copied = await copyText(buildIssuePageMarkdown(issue, currentStatus));
+    const copied = await copyText(
+      buildIssuePageMarkdown(issue, currentStatus, { includeAuditEvidence: auditEvidenceReady })
+    );
     if (!copied) return;
     setPageCopied(true);
     if (pageCopyResetRef.current) clearTimeout(pageCopyResetRef.current);
@@ -1377,7 +1440,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           </div>
           <div className="issue-detail-grid">
             <div className="issue-detail-main-col">
-              {issue.evidenceChecklist?.length > 0 && (
+              {auditEvidenceReady && issue.evidenceChecklist?.length > 0 && (
                 <DetailSection title={T("Confidence evidence", "置信度证据")}>
                   {issue.verificationSummary && (
                     <p className="muted issue-section-note">{issue.verificationSummary}</p>
@@ -1398,19 +1461,23 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 </DetailSection>
               )}
 
-              <DetailSection
-                title={T("Evidence chain", "证据链")}
-                empty={T("No structured evidence was provided.", "未提供结构化证据。")}
-              >
-                {issue.evidence?.length > 0 && <EvidenceChain issue={issue} />}
-              </DetailSection>
+              {auditEvidenceReady && (
+                <DetailSection
+                  title={T("Evidence chain", "证据链")}
+                  empty={T("No structured evidence was provided.", "未提供结构化证据。")}
+                >
+                  {issue.evidence?.length > 0 && <EvidenceChain issue={issue} />}
+                </DetailSection>
+              )}
 
-              <DetailSection
-                title={T("Reproduction center", "复现中心")}
-                empty={T("No executable reproduction was provided.", "未提供可执行复现。")}
-              >
-                {hasReproduction && <ReproductionCenter issue={issue} />}
-              </DetailSection>
+              {auditEvidenceReady && (
+                <DetailSection
+                  title={T("Reproduction center", "复现中心")}
+                  empty={T("No executable reproduction was provided.", "未提供可执行复现。")}
+                >
+                  {hasReproduction && <ReproductionCenter issue={issue} />}
+                </DetailSection>
+              )}
 
               <DetailSection title={T("Detection reasoning", "检测推理")} empty="">
                 {issue.detectionReasoning && (
@@ -1499,20 +1566,22 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 )}
               </DetailSection>
 
-              <DetailSection
-                title={T("Patch evidence", "补丁证据")}
-                empty={T("No patch evidence was provided.", "未提供补丁证据。")}
-              >
-                {hasEvidence && (
-                  <>
-                    <CodeEvidence title={T("Current code", "当前代码")} lines={issue.badCode || []} />
-                    <CodeEvidence
-                      title={T("Suggested code", "建议代码")}
-                      lines={issue.goodCode || []}
-                    />
-                  </>
-                )}
-              </DetailSection>
+              {auditEvidenceReady && (
+                <DetailSection
+                  title={T("Patch evidence", "补丁证据")}
+                  empty={T("No patch evidence was provided.", "未提供补丁证据。")}
+                >
+                  {hasEvidence && (
+                    <>
+                      <CodeEvidence title={T("Current code", "当前代码")} lines={issue.badCode || []} />
+                      <CodeEvidence
+                        title={T("Suggested code", "建议代码")}
+                        lines={issue.goodCode || []}
+                      />
+                    </>
+                  )}
+                </DetailSection>
+              )}
 
               {issue.references?.length > 0 && (
                 <DetailSection title={T("References", "参考资料")}>

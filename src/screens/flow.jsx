@@ -1967,6 +1967,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
       batchRows.length === expectedBatchCount &&
       batchRows.every(isTerminalBatchRow)
     : isTerminalScan(scan);
+  const auditSwarmPhaseIndex = scanPhases.findIndex((phase) => phase.k === "ai");
+  const auditSwarmReviewComplete = auditSwarmPhaseIndex >= 0 && phaseIdx > auditSwarmPhaseIndex;
   const queueSummary = scanQueueSummary(scan);
   const canCancel = batchMode
     ? scans.some((item) => item?.id && !isTerminalScan(item))
@@ -1987,7 +1989,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
 
   const handleDownloadBundle = async () => {
     const targetScanId = batchMode ? "" : scanId;
-    if (!targetScanId || bundleLoading) return;
+    if (!targetScanId || bundleLoading || !auditSwarmReviewComplete) return;
     setBundleLoading(true);
     try {
       const bundle = await pullwiseApi.scans.auditBundleArchive(targetScanId);
@@ -2188,7 +2190,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                         <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
                       </div>
                     </div>
-                    {p.k === "ai" && (
+                    {p.k === "ai" && auditSwarmReviewComplete && (
                       <AuditSwarmEvidence
                         auditSwarm={auditSwarm}
                         className="scanning-audit-inline"

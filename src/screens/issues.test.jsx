@@ -828,6 +828,92 @@ describe("IssueDetailScreen review detail", () => {
     expect(go).toHaveBeenCalledWith("issues");
   });
 
+  it("hides issue audit evidence while the Audit Swarm review is running", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const issue = {
+      id: "f_123",
+      scanId: "sc_running",
+      scanStatus: "running",
+      scanPhase: "ai",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      summary: "The redirect endpoint accepts arbitrary URLs.",
+      status: "open",
+      verificationSummary: "A focused request test reproduces the redirect behavior.",
+      evidenceChecklist: [{ label: "Precise file and line", met: true }],
+      evidence: [
+        {
+          type: "code",
+          label: "Redirect call",
+          summary: "The endpoint passes next_url directly into redirect.",
+          file: "src/auth.py",
+          startLine: "42",
+          endLine: "42",
+        },
+      ],
+      evidenceTrace: [
+        {
+          key: "code",
+          label: "Code",
+          status: "present",
+          summary: "Affected code location: src/auth.py:L42",
+          items: ["Code evidence links the redirect call to src/auth.py:L42."],
+        },
+      ],
+      reproduction: {
+        commands: ["pytest tests/repro/test_redirect.py"],
+      },
+      reasoningBreakdown: {
+        facts: ["Redirect call: The endpoint passes next_url directly into redirect."],
+      },
+      badCode: [{ ln: 42, code: "return redirect(next_url)", t: "del" }],
+      goodCode: [{ ln: 42, code: "return redirect(safe_redirect(next_url))", t: "add" }],
+    };
+
+    try {
+      render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
+
+      expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
+      expect(screen.queryByText("Confidence evidence")).not.toBeInTheDocument();
+      expect(screen.queryByText("Evidence trace")).not.toBeInTheDocument();
+      expect(screen.queryByText("Facts, reasoning, recommendations")).not.toBeInTheDocument();
+      expect(screen.queryByText("Evidence chain")).not.toBeInTheDocument();
+      expect(screen.queryByText("Reproduction center")).not.toBeInTheDocument();
+      expect(screen.queryByText("Patch evidence")).not.toBeInTheDocument();
+      expect(screen.queryByText("Redirect call")).not.toBeInTheDocument();
+      expect(screen.queryByText("return redirect(next_url)")).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: /copy page/i }));
+
+      const markdown = writeText.mock.calls[0][0];
+      expect(markdown).toContain("# Validate redirect targets");
+      expect(markdown).not.toContain("## Confidence evidence");
+      expect(markdown).not.toContain("## Evidence trace");
+      expect(markdown).not.toContain("## Evidence chain");
+      expect(markdown).not.toContain("## Reproduction center");
+      expect(markdown).not.toContain("## Patch evidence");
+      expect(markdown).not.toContain("Redirect call");
+      expect(markdown).not.toContain("return redirect(next_url)");
+    } finally {
+      if (originalClipboard) {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
+      } else {
+        delete navigator.clipboard;
+      }
+    }
+  });
+
   it("renders impact, remediation, evidence, references, and fix actions", () => {
     const issue = {
       id: "f_123",
