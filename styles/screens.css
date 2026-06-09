@@ -3559,7 +3559,9 @@ button.dash-cat-row:hover {
   padding: 24px 36px 60px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: 16px;
+  row-gap: 18px;
   align-items: stretch;
 }
 @media (max-width: 640px) {
@@ -3574,9 +3576,10 @@ button.dash-cat-row:hover {
   border: 1px solid var(--border);
   border-radius: 0;
   padding: 32px 24px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  row-gap: 18px;
   transition: border-color 120ms var(--ease-out);
 }
 .pricing-card:hover {
@@ -3607,9 +3610,6 @@ button.dash-cat-row:hover {
   letter-spacing: 0;
   margin-bottom: 4px;
 }
-.pricing-card-h {
-  min-height: 96px;
-}
 .pricing-tag {
   color: var(--text-3);
   font-size: 12.5px;
@@ -3619,7 +3619,6 @@ button.dash-cat-row:hover {
 .pricing-price {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
-  min-height: 88px;
 }
 .pricing-num {
   font-family: var(--font-display);
@@ -3672,6 +3671,28 @@ button.dash-cat-row:hover {
 .pricing-feats svg {
   margin-top: 3px;
   flex: 0 0 auto;
+}
+
+/* Fallback for browsers without CSS subgrid: revert to flex cards
+   with min-height floors so the price/feature/CTA rows roughly align. */
+@supports not (grid-template-rows: subgrid) {
+  .pricing-tiers {
+    grid-template-rows: none;
+    row-gap: 16px;
+  }
+  .pricing-card {
+    display: flex;
+    flex-direction: column;
+    grid-row: auto;
+    grid-template-rows: none;
+    gap: 18px;
+  }
+  .pricing-card-h {
+    min-height: 96px;
+  }
+  .pricing-price {
+    min-height: 88px;
+  }
 }
 
 .pricing-compare {
