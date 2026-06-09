@@ -720,10 +720,10 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Candidate audit")).toBeInTheDocument();
     expect(screen.getByText("Candidates")).toBeInTheDocument();
     expect(screen.getByText("Reported")).toBeInTheDocument();
-    expect(screen.getAllByText("Rejected").length).toBeGreaterThan(0);
+    expect(screen.getByText("Rejected")).toBeInTheDocument();
     expect(screen.getByText("Downgraded")).toBeInTheDocument();
-    expect(screen.getAllByText("missing_evidence").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Only a vague model guess").length).toBeGreaterThan(0);
+    expect(screen.getByText("missing_evidence")).toBeInTheDocument();
+    expect(screen.getByText("Only a vague model guess")).toBeInTheDocument();
   });
 
   it("shows user-readable Audit Swarm evidence from the worker scan payload", () => {

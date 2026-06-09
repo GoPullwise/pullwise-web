@@ -2212,30 +2212,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
                       <span>Downgraded</span>
                     </div>
                   </div>
-                  {verificationAuditFound.rejectedSamples?.length > 0 && (
-                    <div className="audit-rejected-samples">
-                      {verificationAuditFound.rejectedSamples.slice(0, 5).map((sample, index) => (
-                        <div
-                          key={`${sample.reason || "reason"}-${sample.title || index}`}
-                          className="audit-rejected-sample"
-                        >
-                          <span className="audit-rejected-sample-head">
-                            <span className="audit-rejected-sample-tag">
-                              {T("Rejected", "已拒绝")}
-                            </span>
-                            <span className="audit-rejected-sample-reason">
-                              {sample.reason}
-                            </span>
-                          </span>
-                          {sample.title && (
-                            <span className="audit-rejected-sample-title">
-                              {sample.title}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                   <AuditFunnel audit={verificationAuditFound} />
                 </>
               )}
