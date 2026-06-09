@@ -63,6 +63,25 @@ function usageText(usage) {
   return T(`${used} / ${limit} reviews used`, `${used} / ${limit} 次审查已用`);
 }
 
+function subscriptionRecords(account) {
+  return Array.isArray(account?.subscriptions)
+    ? account.subscriptions.filter((record) => record && typeof record === "object")
+    : [];
+}
+
+function subscriptionRecordId(record) {
+  return record?.subscriptionId || record?.customerId || T("Subscription", "Subscription");
+}
+
+function subscriptionRecordMeta(record) {
+  return [record?.status || "none", record?.interval || "month"].filter(Boolean).join(" - ");
+}
+
+function subscriptionEventText(record) {
+  const event = record?.lastEventType || T("billing update", "billing update");
+  return record?.lastEventId ? `${event} - ${record.lastEventId}` : event;
+}
+
 function billingAccount(plan) {
   if (plan?.account && typeof plan.account === "object") return plan.account;
   return { status: "none", plan: "free" };
@@ -153,6 +172,7 @@ export function BillingScreen({
     remaining: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
     period: "",
   };
+  const subscriptions = subscriptionRecords(account);
   const usageResetText = quotaResetText(usage, "Monthly quota resets");
   const billingEnabled = Boolean(plan?.enabled);
 
@@ -308,6 +328,29 @@ export function BillingScreen({
                   </div>
                 )}
               </div>
+
+              {subscriptions.length > 0 && (
+                <div className="bill-card">
+                  <div className="billing-summary-main" style={{ marginBottom: 12 }}>
+                    <I.FileCode size={18} />
+                    <div>
+                      <b>{T("Subscription records", "Subscription records")}</b>
+                    </div>
+                  </div>
+                  <div className="stack" style={{ gap: 10 }}>
+                    {subscriptions.map((record, index) => (
+                      <div className="repo-row" key={`${subscriptionRecordId(record)}-${index}`}>
+                        <div>
+                          <b>{subscriptionRecordId(record)}</b>
+                          <div className="muted">{subscriptionRecordMeta(record)}</div>
+                          <div className="muted">{subscriptionEventText(record)}</div>
+                        </div>
+                        <span className="tag">{record?.plan || account.plan || "free"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {!billingEnabled && !error && (
                 <div className="muted">

@@ -414,6 +414,40 @@ describe("BillingScreen", () => {
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();
   });
 
+  it("shows the user's subscription records on Billing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        subscriptions: [
+          {
+            provider: "creem",
+            subscriptionId: "sub_1",
+            customerId: "cust_1",
+            status: "active",
+            plan: "pro",
+            interval: "month",
+            currentPeriodStart: 1780963200,
+            currentPeriodEnd: 1783555200,
+            lastEventType: "checkout.completed",
+            lastEventId: "evt_1",
+            updatedAt: 1780963210,
+          },
+        ],
+      },
+    });
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findByText("Subscription records")).toBeInTheDocument();
+    expect(screen.getByText("sub_1")).toBeInTheDocument();
+    expect(screen.getByText(/active - month/i)).toBeInTheDocument();
+    expect(screen.getByText(/checkout\.completed/)).toBeInTheDocument();
+  });
+
   it("rejects unsafe billing portal URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
