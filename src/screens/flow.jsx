@@ -1901,6 +1901,7 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   );
   const typeKey = typeList.join("|");
   const [activeTypes, setActiveTypes] = useState(() => new Set(typeList));
+  const [selectedNodeId, setSelectedNodeId] = useState(nodes[0]?.id || "");
 
   useEffect(() => {
     if (activeView === "files" && !fileGraph && codeGraph) setActiveView("code");
@@ -1910,6 +1911,12 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   useEffect(() => {
     setActiveTypes(new Set(typeKey ? typeKey.split("|") : []));
   }, [activeView, typeKey]);
+
+  useEffect(() => {
+    if (!nodes.some((node) => node.id === selectedNodeId)) {
+      setSelectedNodeId(nodes[0]?.id || "");
+    }
+  }, [activeView, nodes, selectedNodeId]);
 
   const visibleNodes = useMemo(
     () => nodes.filter((node) => activeTypes.size === 0 || activeTypes.has(node.type)),
@@ -1950,6 +1957,7 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
     cytoscapeElementCacheRef.current = { key: cytoscapeElementKey, elements };
     return elements;
   }, [cytoscapeElementKey, visibleEdges, visibleNodes]);
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) || visibleNodes[0] || null;
   const viewIsCode = activeView === "code" && Boolean(codeGraph);
 
   useEffect(() => {
@@ -2020,6 +2028,7 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
       userZoomingEnabled: true,
       userPanningEnabled: true,
     });
+    cy.on("tap", "node", (event) => setSelectedNodeId(event.target.id()));
     cyRef.current = cy;
     return () => {
       cyRef.current = null;
@@ -2117,6 +2126,13 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
         role="img"
         aria-label={viewIsCode ? T("Code semantic graph", "Code semantic graph") : T("Repository dependency graph", "Repository dependency graph")}
       />
+      {selectedNode && (
+        <div className="repository-graph-details">
+          <b>{selectedNode.signature || selectedNode.label || selectedNode.path}</b>
+          <span>{selectedNode.path}{selectedNode.line ? `:${selectedNode.line}` : ""}</span>
+          <span className="tag">{selectedNode.type}</span>
+        </div>
+      )}
     </div>
   );
 }

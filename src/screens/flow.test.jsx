@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import cytoscape from "cytoscape";
@@ -1054,8 +1054,11 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByRole("button", { name: /App\.jsx/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Review scan UI.")).not.toBeInTheDocument();
     expect(document.querySelector(".repository-graph-node-list")).not.toBeInTheDocument();
-    expect(document.querySelector(".repository-graph-details")).not.toBeInTheDocument();
     expect(document.querySelector(".repository-graph-hints")).not.toBeInTheDocument();
+    const fileDetails = document.querySelector(".repository-graph-details");
+    expect(fileDetails).toHaveTextContent("App.jsx");
+    expect(fileDetails).toHaveTextContent("src/App.jsx");
+    expect(fileDetails).toHaveTextContent("entrypoint");
 
     const fileGraphConfig = cytoscape.mock.calls[0][0];
     expect(fileGraphConfig.elements).toEqual(
@@ -1074,6 +1077,15 @@ describe("ScanningScreen queue state", () => {
       animationDuration: 650,
       animationEasing: "ease-out-cubic",
     });
+    const cy = cytoscape.mock.results[0].value;
+    const nodeTapHandler = cy.on.mock.calls.find(
+      ([eventName, selector]) => eventName === "tap" && selector === "node"
+    )?.[2];
+    expect(typeof nodeTapHandler).toBe("function");
+    act(() => {
+      nodeTapHandler({ target: { id: () => "dir:src/screens" } });
+    });
+    expect(document.querySelector(".repository-graph-details")).toHaveTextContent("src/screens");
 
     const viewTrigger = screen.getByRole("button", { name: /graph view/i });
     expect(viewTrigger).toHaveTextContent(/file graph/i);
@@ -1085,6 +1097,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("static")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /App component/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Review component call flow.")).not.toBeInTheDocument();
+    expect(document.querySelector(".repository-graph-details")).toHaveTextContent("App()");
     const semanticGraphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
     expect(semanticGraphConfig.elements).toEqual(
       expect.arrayContaining([
@@ -1095,14 +1108,15 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
-  it("keeps the repository graph canvas tall enough for interaction", () => {
+  it("renders the repository graph canvas as a square", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
     const canvasBlock = styles.match(/\.repository-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups
       ?.body;
 
     expect(canvasBlock).toBeTruthy();
-    expect(canvasBlock).toMatch(/min-height:\s*420px;/);
-    expect(canvasBlock).toMatch(/height:\s*clamp\(420px,\s*52vh,\s*640px\);/);
+    expect(canvasBlock).toMatch(/aspect-ratio:\s*1\s*\/\s*1;/);
+    expect(canvasBlock).toMatch(/width:\s*min\(100%,\s*760px\);/);
+    expect(canvasBlock).not.toMatch(/height:\s*clamp/);
   });
 
   it("keeps the repository graph instance stable across running scan refreshes", () => {

@@ -1736,9 +1736,9 @@
 }
 
 .repository-graph-canvas {
-  min-height: 420px;
-  height: clamp(420px, 52vh, 640px);
-  width: 100%;
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+  width: min(100%, 760px);
   border: 1px solid var(--border);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--border) 32%, transparent) 1px, transparent 1px),
@@ -1746,6 +1746,22 @@
     var(--bg);
   background-size: 28px 28px;
   overflow: hidden;
+}
+
+.repository-graph-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.repository-graph-details b,
+.repository-graph-details span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .scanning-log {
