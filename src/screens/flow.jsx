@@ -1967,6 +1967,17 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
 
   useEffect(() => {
     if (!containerRef.current || cytoscapeElements.length === 0) return undefined;
+    const layoutOptions = {
+      name: viewIsCode ? "cose" : "breadthfirst",
+      directed: true,
+      padding: 18,
+      spacingFactor: 1.1,
+      animate: true,
+      animationDuration: 2200,
+      animationEasing: "ease-in-out-cubic",
+      randomize: true,
+      fit: true,
+    };
     const cy = cytoscape({
       container: containerRef.current,
       elements: cytoscapeElements,
@@ -1978,15 +1989,11 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
             "border-color": "#eff6ff",
             "border-width": 1,
             color: "#0f172a",
-            content: "data(label)",
+            content: "",
             "font-size": 10,
             height: 18,
-            label: "data(label)",
-            "text-background-color": "#ffffff",
-            "text-background-opacity": 0.82,
-            "text-background-padding": 2,
-            "text-valign": "bottom",
-            "text-wrap": "wrap",
+            label: "",
+            "text-opacity": 0,
             width: 18,
           },
         },
@@ -2011,13 +2018,13 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
           },
         },
       ],
-      layout: { name: viewIsCode ? "cose" : "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 },
+      layout: layoutOptions,
       userZoomingEnabled: true,
       userPanningEnabled: true,
     });
     cy.on("tap", "node", (event) => setSelectedNodeId(event.target.id()));
     cyRef.current = cy;
-    cy.layout({ name: viewIsCode ? "cose" : "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 }).run();
+    cy.layout(layoutOptions).run();
     return () => {
       cyRef.current = null;
       cy.destroy();
