@@ -43,6 +43,23 @@ export function clearPullwiseDataCache() {
   successfulListCache.clear();
 }
 
+function useInitialCachedListState(cacheKey) {
+  const initialCacheRef = useRef(null);
+  if (!initialCacheRef.current) {
+    const state = cachedListState(cacheKey);
+    initialCacheRef.current = {
+      cacheKey,
+      state,
+      hasState: Boolean(state),
+    };
+  }
+  const isInitialCacheKey = initialCacheRef.current.cacheKey === cacheKey;
+  return {
+    initialCachedState: isInitialCacheKey ? initialCacheRef.current.state : null,
+    shouldRefreshQuietly: isInitialCacheKey && initialCacheRef.current.hasState,
+  };
+}
+
 if (import.meta.env?.MODE === "test") {
   globalThis.__clearPullwiseDataCache = clearPullwiseDataCache;
 }
@@ -1626,21 +1643,22 @@ export function normalizeScan(scan = {}) {
 export function useRepositories() {
   const requestIdRef = useRef(0);
   const cacheKey = "repositories";
+  const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
     items: [],
     installations: [],
     installationAccounts: [],
     userQuota: null,
     needsAuthorization: false,
-    ...cachedListState(cacheKey),
-    loading: true,
+    ...(initialCachedState || {}),
+    loading: !shouldRefreshQuietly,
     error: "",
   }));
 
-  const load = useCallback(async ({ sync = false } = {}) => {
+  const load = useCallback(async ({ sync = false, quiet = false } = {}) => {
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
-    setState((current) => ({ ...current, loading: true, error: "" }));
+    setState((current) => ({ ...current, loading: quiet ? current.loading : true, error: "" }));
     try {
       const payload = sync
         ? await pullwiseApi.repositories.sync()
@@ -1668,8 +1686,8 @@ export function useRepositories() {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load({ quiet: shouldRefreshQuietly });
+  }, [load, shouldRefreshQuietly]);
 
   return { ...state, reload: load };
 }
@@ -1715,11 +1733,12 @@ export function useIssues({
 } = {}) {
   const requestIdRef = useRef(0);
   const cacheKey = stableCacheKey("issues", { limit, status, severity, q, scanId });
+  const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
     items: [],
     meta: pageMeta({}, limit),
-    ...cachedListState(cacheKey),
-    loading: true,
+    ...(initialCachedState || {}),
+    loading: !shouldRefreshQuietly,
     loadingMore: false,
     error: "",
   }));
@@ -1766,8 +1785,8 @@ export function useIssues({
   );
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load({ quiet: shouldRefreshQuietly });
+  }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
     if (!refreshOnChange || typeof window === "undefined") return undefined;
@@ -1817,11 +1836,12 @@ export function scanQueueSummary(scan) {
 export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
   const cacheKey = stableCacheKey("scans", { limit, status, repo });
+  const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
     items: [],
     meta: pageMeta({}, limit),
-    ...cachedListState(cacheKey),
-    loading: true,
+    ...(initialCachedState || {}),
+    loading: !shouldRefreshQuietly,
     loadingMore: false,
     error: "",
   }));
@@ -1867,8 +1887,8 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
   );
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load({ quiet: shouldRefreshQuietly });
+  }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
     if (!state.items.some(isActiveScan)) return undefined;

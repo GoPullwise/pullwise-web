@@ -87,7 +87,7 @@ describe("useRepositories", () => {
     next.unmount();
   });
 
-  it("shows cached repositories while refreshing after remount", async () => {
+  it("shows cached repositories without blocking loading while refreshing after remount", async () => {
     const refresh = deferred();
     pullwiseApi.repositories.list
       .mockResolvedValueOnce({
@@ -102,7 +102,7 @@ describe("useRepositories", () => {
     first.unmount();
 
     const next = renderHook(() => useRepositories());
-    expect(next.result.current.loading).toBe(true);
+    expect(next.result.current.loading).toBe(false);
     expect(next.result.current.items.map((repo) => repo.fullName)).toEqual(["owner/old"]);
 
     await act(async () => {
@@ -115,6 +115,27 @@ describe("useRepositories", () => {
     await waitFor(() => expect(next.result.current.loading).toBe(false));
     expect(next.result.current.items.map((repo) => repo.fullName)).toEqual(["owner/new"]);
     next.unmount();
+  });
+
+  it("blocks with loading when repositories have no cached state", async () => {
+    const refresh = deferred();
+    pullwiseApi.repositories.list.mockReturnValueOnce(refresh.promise);
+
+    const { result, unmount } = renderHook(() => useRepositories());
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.items).toEqual([]);
+
+    await act(async () => {
+      refresh.resolve({
+        items: [{ id: "repo_1", fullName: "owner/repo" }],
+        needsAuthorization: false,
+      });
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/repo"]);
+    unmount();
   });
 });
 
@@ -187,7 +208,7 @@ describe("useScans", () => {
     });
   });
 
-  it("shows cached scans while refreshing after remount", async () => {
+  it("shows cached scans without blocking loading while refreshing after remount", async () => {
     const refresh = deferred();
     pullwiseApi.scans.list
       .mockResolvedValueOnce({ items: [{ id: "sc_old", status: "done" }] })
@@ -199,7 +220,7 @@ describe("useScans", () => {
     first.unmount();
 
     const next = renderHook(() => useScans({ pollIntervalMs: 10000, limit: 1 }));
-    expect(next.result.current.loading).toBe(true);
+    expect(next.result.current.loading).toBe(false);
     expect(next.result.current.items.map((scan) => scan.id)).toEqual(["sc_old"]);
 
     await act(async () => {
@@ -209,6 +230,26 @@ describe("useScans", () => {
     await waitFor(() => expect(next.result.current.loading).toBe(false));
     expect(next.result.current.items.map((scan) => scan.id)).toEqual(["sc_new"]);
     next.unmount();
+  });
+
+  it("blocks with loading when scans have no cached state", async () => {
+    const refresh = deferred();
+    pullwiseApi.scans.list.mockReturnValueOnce(refresh.promise);
+
+    const { result, unmount } = renderHook(() =>
+      useScans({ pollIntervalMs: 10000, limit: 1 })
+    );
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.items).toEqual([]);
+
+    await act(async () => {
+      refresh.resolve({ items: [{ id: "sc_1", status: "done" }] });
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_1"]);
+    unmount();
   });
 
   it("includes the scan request id when creating a scan", async () => {
@@ -400,7 +441,7 @@ describe("useIssues", () => {
     });
   });
 
-  it("shows cached issues while refreshing after remount", async () => {
+  it("shows cached issues without blocking loading while refreshing after remount", async () => {
     const refresh = deferred();
     pullwiseApi.issues.list
       .mockResolvedValueOnce({ items: [{ id: "iss_old", status: "open", severity: "high" }] })
@@ -412,7 +453,7 @@ describe("useIssues", () => {
     first.unmount();
 
     const next = renderHook(() => useIssues({ limit: 1, status: "open", refreshOnChange: false }));
-    expect(next.result.current.loading).toBe(true);
+    expect(next.result.current.loading).toBe(false);
     expect(next.result.current.items.map((issue) => issue.id)).toEqual(["iss_old"]);
 
     await act(async () => {
@@ -422,6 +463,26 @@ describe("useIssues", () => {
     await waitFor(() => expect(next.result.current.loading).toBe(false));
     expect(next.result.current.items.map((issue) => issue.id)).toEqual(["iss_new"]);
     next.unmount();
+  });
+
+  it("blocks with loading when issues have no cached state", async () => {
+    const refresh = deferred();
+    pullwiseApi.issues.list.mockReturnValueOnce(refresh.promise);
+
+    const { result, unmount } = renderHook(() =>
+      useIssues({ limit: 1, status: "open", refreshOnChange: false })
+    );
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.items).toEqual([]);
+
+    await act(async () => {
+      refresh.resolve({ items: [{ id: "iss_1", status: "open", severity: "high" }] });
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.items.map((issue) => issue.id)).toEqual(["iss_1"]);
+    unmount();
   });
 
   it("ignores late scan-list responses from older filters", async () => {
