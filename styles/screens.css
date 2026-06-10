@@ -3389,6 +3389,53 @@ button.dash-cat-row:hover {
   flex: 0 0 auto;
 }
 
+.bill-card.bill-card-list {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.bill-card.bill-card-list > .billing-summary-main {
+  flex: 0 0 auto;
+  width: 100%;
+}
+.sub-record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.sub-record-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  min-width: 0;
+}
+.sub-record-row > * {
+  min-width: 0;
+}
+.sub-record-main b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.sub-record-main .muted {
+  font-size: 12px;
+  margin-top: 2px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.sub-record-row > .tag {
+  flex: 0 0 auto;
+  justify-self: end;
+}
+
 .api-key-create {
   display: grid;
   gap: 0;

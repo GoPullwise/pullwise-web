@@ -330,17 +330,20 @@ export function BillingScreen({
               </div>
 
               {subscriptions.length > 0 && (
-                <div className="bill-card">
-                  <div className="billing-summary-main" style={{ marginBottom: 12 }}>
+                <div className="bill-card bill-card-list">
+                  <div className="billing-summary-main">
                     <I.FileCode size={18} />
                     <div>
                       <b>{T("Subscription records", "Subscription records")}</b>
                     </div>
                   </div>
-                  <div className="stack" style={{ gap: 10 }}>
+                  <div className="sub-record-list">
                     {subscriptions.map((record, index) => (
-                      <div className="repo-row" key={`${subscriptionRecordId(record)}-${index}`}>
-                        <div>
+                      <div
+                        className="sub-record-row"
+                        key={`${subscriptionRecordId(record)}-${index}`}
+                      >
+                        <div className="sub-record-main">
                           <b>{subscriptionRecordId(record)}</b>
                           <div className="muted">{subscriptionRecordMeta(record)}</div>
                           <div className="muted">{subscriptionEventText(record)}</div>
