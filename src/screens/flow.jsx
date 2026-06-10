@@ -1700,13 +1700,13 @@ function repositoryGraphTypeLabel(type) {
   return labels[type] || type;
 }
 
-function RepositoryGraphPanel({ graph }) {
+function RepositoryGraphPanel({ graph, semanticGraph }) {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
-  const semanticGraph =
-    graph?.semanticGraph && Array.isArray(graph.semanticGraph.nodes) ? graph.semanticGraph : null;
-  const [activeView, setActiveView] = useState("files");
-  const activeGraph = activeView === "code" && semanticGraph ? semanticGraph : graph;
+  const fileGraph = graph && Array.isArray(graph.nodes) ? graph : null;
+  const codeGraph = semanticGraph && Array.isArray(semanticGraph.nodes) ? semanticGraph : null;
+  const [activeView, setActiveView] = useState(() => (fileGraph ? "files" : "code"));
+  const activeGraph = activeView === "code" && codeGraph ? codeGraph : fileGraph || codeGraph;
   const nodes = Array.isArray(activeGraph?.nodes) ? activeGraph.nodes : [];
   const edges = Array.isArray(activeGraph?.edges) ? activeGraph.edges : [];
   const activeStats = activeGraph?.stats || {};
@@ -1719,8 +1719,9 @@ function RepositoryGraphPanel({ graph }) {
   const [selectedNodeId, setSelectedNodeId] = useState(nodes[0]?.id || "");
 
   useEffect(() => {
-    if (activeView === "code" && !semanticGraph) setActiveView("files");
-  }, [activeView, semanticGraph]);
+    if (activeView === "files" && !fileGraph && codeGraph) setActiveView("code");
+    if (activeView === "code" && !codeGraph && fileGraph) setActiveView("files");
+  }, [activeView, codeGraph, fileGraph]);
 
   useEffect(() => {
     setActiveTypes(new Set(typeList));
@@ -1769,7 +1770,7 @@ function RepositoryGraphPanel({ graph }) {
     : Array.isArray(graph?.architectureSummary?.reviewHints)
     ? graph.architectureSummary.reviewHints
     : [];
-  const viewIsCode = activeView === "code" && Boolean(semanticGraph);
+  const viewIsCode = activeView === "code" && Boolean(codeGraph);
 
   useEffect(() => {
     if (!containerRef.current || cytoscapeElements.length === 0) return undefined;
@@ -1845,7 +1846,7 @@ function RepositoryGraphPanel({ graph }) {
     <div className="repository-graph">
       <div className="repository-graph-head">
         <div className="scanning-counts-h">
-          <I.Layers size={14} /> {T("Repository graph", "Repository graph")}
+          <I.Layers size={14} /> {viewIsCode ? T("Semantic graph", "Semantic graph") : T("Repository graph", "Repository graph")}
         </div>
         <div className="repository-graph-stats">
           <span>{graphCountLabel(nodes.length, viewIsCode ? "symbol" : "node")}</span>
@@ -1861,7 +1862,7 @@ function RepositoryGraphPanel({ graph }) {
           </button>
         </div>
       </div>
-      {semanticGraph && (
+      {fileGraph && codeGraph && (
         <div className="repository-graph-tabs" role="tablist" aria-label={T("Repository graph views", "Repository graph views")}>
           <button
             type="button"
@@ -2020,6 +2021,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     : scanPreflightSummary(scan ? [scan] : []);
   const auditSwarm = scanAuditSwarmSummary(scans);
   const repositoryGraph = batchMode ? null : scan?.repositoryGraph || null;
+  const semanticGraph = batchMode ? null : scan?.semanticGraph || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const terminal = batchMode
     ? expectedBatchCount > 0 &&
@@ -2262,7 +2264,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               })}
             </div>
 
-            {repositoryGraph && <RepositoryGraphPanel graph={repositoryGraph} />}
+            {(repositoryGraph || semanticGraph) && (
+              <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
+            )}
           </div>
 
           <div className="scanning-side">

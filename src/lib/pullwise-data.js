@@ -363,11 +363,9 @@ function normalizeRepositoryGraph(value) {
     architectureSummary: normalizeRepositoryGraphArchitectureSummary(
       value.architectureSummary ?? value.architecture_summary
     ),
-    semanticGraph: normalizeRepositorySemanticGraph(value.semanticGraph ?? value.semantic_graph),
   };
   if (!graph.summary) delete graph.summary;
   if (!Object.keys(graph.architectureSummary).length) delete graph.architectureSummary;
-  if (!graph.semanticGraph) delete graph.semanticGraph;
   return graph;
 }
 
@@ -1296,14 +1294,16 @@ export function normalizeScan(scan = {}) {
   const billingUsage = normalizeQuotaUsage(scan.billingUsage);
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
-  const repositoryGraph = normalizeRepositoryGraph(scan.repositoryGraph ?? scan.repository_graph);
+  const rawRepositoryGraph = scan.repositoryGraph ?? scan.repository_graph;
+  const repositoryGraph = normalizeRepositoryGraph(rawRepositoryGraph);
   const semanticGraph =
     normalizeRepositorySemanticGraph(scan.semanticGraph ?? scan.semantic_graph) ||
-    repositoryGraph?.semanticGraph ||
+    normalizeRepositorySemanticGraph(
+      objectRecord(rawRepositoryGraph)
+        ? rawRepositoryGraph.semanticGraph ?? rawRepositoryGraph.semantic_graph
+        : null
+    ) ||
     null;
-  if (repositoryGraph && semanticGraph && !repositoryGraph.semanticGraph) {
-    repositoryGraph.semanticGraph = semanticGraph;
-  }
   return {
     ...scan,
     id: textValue(scan.id),

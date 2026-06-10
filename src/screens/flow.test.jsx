@@ -100,40 +100,41 @@ const repositoryGraphFixture = {
     reviewHints: ["Review scan UI."],
     promptText: "Repository architecture: UI entrypoint.",
   },
-  semanticGraph: {
-    version: "semantic-code-graph/0.1",
-    summary: "UI semantic graph",
-    stats: { files: 1, symbols: 2, relationships: 1, routes: 0, source: "static", truncated: false },
-    nodes: [
-      {
-        id: "symbol:src/App.jsx:App",
-        label: "App",
-        type: "component",
-        path: "src/App.jsx",
-        line: 1,
-        signature: "App()",
-        importance: 0.9,
-      },
-      {
-        id: "symbol:src/App.jsx:Flow",
-        label: "Flow",
-        type: "function",
-        path: "src/App.jsx",
-        line: 4,
-        signature: "Flow()",
-      },
-    ],
-    edges: [
-      {
-        id: "calls:symbol:src/App.jsx:App-symbol:src/App.jsx:Flow",
-        source: "symbol:src/App.jsx:App",
-        target: "symbol:src/App.jsx:Flow",
-        type: "calls",
-        weight: 1,
-      },
-    ],
-    reviewHints: ["Review component call flow."],
-  },
+};
+
+const semanticGraphFixture = {
+  version: "semantic-code-graph/0.1",
+  summary: "UI semantic graph",
+  stats: { files: 1, symbols: 2, relationships: 1, routes: 0, source: "static", truncated: false },
+  nodes: [
+    {
+      id: "symbol:src/App.jsx:App",
+      label: "App",
+      type: "component",
+      path: "src/App.jsx",
+      line: 1,
+      signature: "App()",
+      importance: 0.9,
+    },
+    {
+      id: "symbol:src/App.jsx:Flow",
+      label: "Flow",
+      type: "function",
+      path: "src/App.jsx",
+      line: 4,
+      signature: "Flow()",
+    },
+  ],
+  edges: [
+    {
+      id: "calls:symbol:src/App.jsx:App-symbol:src/App.jsx:Flow",
+      source: "symbol:src/App.jsx:App",
+      target: "symbol:src/App.jsx:Flow",
+      type: "calls",
+      weight: 1,
+    },
+  ],
+  reviewHints: ["Review component call flow."],
 };
 
 beforeEach(() => {
@@ -1009,6 +1010,7 @@ describe("ScanningScreen queue state", () => {
         progress: 35,
         issues: { critical: 0, high: 0, medium: 0, low: 0 },
         repositoryGraph: repositoryGraphFixture,
+        semanticGraph: semanticGraphFixture,
       },
       error: "",
       cancel: vi.fn(),

@@ -548,36 +548,36 @@ describe("normalizeIssue", () => {
           reviewHints: ["Review scan UI."],
           promptText: "Repository architecture: UI entrypoint.",
         },
-        semanticGraph: {
-          version: "semantic-code-graph/0.1",
-          summary: "UI semantic graph",
-          stats: { files: 1, symbols: 3, relationships: 2, routes: 0, source: "static", truncated: true },
-          nodes: [
-            {
-              id: "symbol:src/App.jsx:App",
-              label: "App",
-              type: "component",
-              path: "src/App.jsx",
-              line: 1,
-              signature: "App()",
-              importance: 0.9,
-              tags: ["frontend"],
-            },
-            { id: "symbol:src/App.jsx:Flow", label: "Flow", type: "function", path: "src/App.jsx", line: 4 },
-            { id: "bad", label: "bad", type: "unknown", path: "src/App.jsx" },
-          ],
-          edges: [
-            {
-              id: "calls:symbol:src/App.jsx:App-symbol:src/App.jsx:Flow",
-              source: "symbol:src/App.jsx:App",
-              target: "symbol:src/App.jsx:Flow",
-              type: "calls",
-              weight: 2,
-            },
-            { id: "bad-edge", source: "bad", target: "missing", type: "unknown" },
-          ],
-          reviewHints: ["Review component flow."],
-        },
+      },
+      semantic_graph: {
+        version: "semantic-code-graph/0.1",
+        summary: "UI semantic graph",
+        stats: { files: 1, symbols: 3, relationships: 2, routes: 0, source: "static", truncated: true },
+        nodes: [
+          {
+            id: "symbol:src/App.jsx:App",
+            label: "App",
+            type: "component",
+            path: "src/App.jsx",
+            line: 1,
+            signature: "App()",
+            importance: 0.9,
+            tags: ["frontend"],
+          },
+          { id: "symbol:src/App.jsx:Flow", label: "Flow", type: "function", path: "src/App.jsx", line: 4 },
+          { id: "bad", label: "bad", type: "unknown", path: "src/App.jsx" },
+        ],
+        edges: [
+          {
+            id: "calls:symbol:src/App.jsx:App-symbol:src/App.jsx:Flow",
+            source: "symbol:src/App.jsx:App",
+            target: "symbol:src/App.jsx:Flow",
+            type: "calls",
+            weight: 2,
+          },
+          { id: "bad-edge", source: "bad", target: "missing", type: "unknown" },
+        ],
+        reviewHints: ["Review component flow."],
       },
     });
 
@@ -590,15 +590,13 @@ describe("normalizeIssue", () => {
     expect(scan.repositoryGraph.stats.truncated).toBe(true);
     expect(scan.repositoryGraph.architectureSummary.entrypoints).toEqual(["src/App.jsx"]);
     expect(scan.repositoryGraph.architectureSummary.reviewHints).toEqual(["Review scan UI."]);
-    expect(scan.repositoryGraph.semanticGraph.nodes).toHaveLength(2);
-    expect(scan.repositoryGraph.semanticGraph.edges).toHaveLength(1);
-    expect(scan.repositoryGraph.semanticGraph.stats.source).toBe("static");
-    expect(scan.repositoryGraph.semanticGraph.reviewHints).toEqual(["Review component flow."]);
+    expect(scan.repositoryGraph.semanticGraph).toBeUndefined();
     expect(scan.semanticGraph.nodes).toHaveLength(2);
     expect(scan.semanticGraph.stats.source).toBe("static");
+    expect(scan.semanticGraph.reviewHints).toEqual(["Review component flow."]);
   });
 
-  it("normalizes top-level semantic graph aliases onto scans and repository graphs", () => {
+  it("normalizes top-level semantic graph aliases onto scans", () => {
     const scan = normalizeScan({
       id: "sc_semantic",
       repositoryGraph: {
@@ -623,8 +621,8 @@ describe("normalizeIssue", () => {
     });
 
     expect(scan.semanticGraph.nodes).toHaveLength(1);
-    expect(scan.repositoryGraph.semanticGraph.nodes).toHaveLength(1);
-    expect(scan.repositoryGraph.semanticGraph.stats.source).toBe("static");
+    expect(scan.repositoryGraph.semanticGraph).toBeUndefined();
+    expect(scan.semanticGraph.stats.source).toBe("static");
   });
 
   it("normalizes repository text fields for search-safe rendering", () => {
