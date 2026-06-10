@@ -538,7 +538,7 @@ body.has-proto-nav {
 }
 
 .issue-row {
-  grid-template-columns: minmax(76px, auto) 150px minmax(0, 1fr) minmax(64px, auto) 14px;
+  grid-template-columns: 76px 150px minmax(0, 1fr) minmax(64px, auto) 14px;
 }
 
 .issue-row > *,
@@ -557,6 +557,7 @@ body.has-proto-nav {
 }
 
 .issue-id {
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
