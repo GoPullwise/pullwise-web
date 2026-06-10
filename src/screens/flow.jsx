@@ -1901,7 +1901,6 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   );
   const typeKey = typeList.join("|");
   const [activeTypes, setActiveTypes] = useState(() => new Set(typeList));
-  const [selectedNodeId, setSelectedNodeId] = useState(nodes[0]?.id || "");
 
   useEffect(() => {
     if (activeView === "files" && !fileGraph && codeGraph) setActiveView("code");
@@ -1911,12 +1910,6 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   useEffect(() => {
     setActiveTypes(new Set(typeKey ? typeKey.split("|") : []));
   }, [activeView, typeKey]);
-
-  useEffect(() => {
-    if (!nodes.some((node) => node.id === selectedNodeId)) {
-      setSelectedNodeId(nodes[0]?.id || "");
-    }
-  }, [activeView, nodes, selectedNodeId]);
 
   const visibleNodes = useMemo(
     () => nodes.filter((node) => activeTypes.size === 0 || activeTypes.has(node.type)),
@@ -1957,12 +1950,6 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
     cytoscapeElementCacheRef.current = { key: cytoscapeElementKey, elements };
     return elements;
   }, [cytoscapeElementKey, visibleEdges, visibleNodes]);
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId) || visibleNodes[0] || null;
-  const reviewHints = Array.isArray(activeGraph?.reviewHints)
-    ? activeGraph.reviewHints
-    : Array.isArray(graph?.architectureSummary?.reviewHints)
-    ? graph.architectureSummary.reviewHints
-    : [];
   const viewIsCode = activeView === "code" && Boolean(codeGraph);
 
   useEffect(() => {
@@ -1970,11 +1957,11 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
     const layoutOptions = {
       name: viewIsCode ? "cose" : "breadthfirst",
       directed: true,
-      padding: 18,
-      spacingFactor: 1.1,
+      padding: 28,
+      spacingFactor: viewIsCode ? 1.22 : 1.14,
       animate: true,
-      animationDuration: 2200,
-      animationEasing: "ease-in-out-cubic",
+      animationDuration: 650,
+      animationEasing: "ease-out-cubic",
       randomize: true,
       fit: true,
     };
@@ -1989,11 +1976,22 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
             "border-color": "#eff6ff",
             "border-width": 1,
             color: "#0f172a",
-            content: "",
+            content: "data(label)",
             "font-size": 10,
             height: 18,
-            label: "",
-            "text-opacity": 0,
+            label: "data(label)",
+            "text-background-color": "#ffffff",
+            "text-background-opacity": 0.86,
+            "text-background-padding": 2,
+            "text-border-color": "#dbeafe",
+            "text-border-opacity": 0.9,
+            "text-border-width": 1,
+            "text-halign": "center",
+            "text-margin-y": 7,
+            "text-max-width": 112,
+            "text-opacity": 1,
+            "text-valign": "bottom",
+            "text-wrap": "ellipsis",
             width: 18,
           },
         },
@@ -2022,9 +2020,7 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
       userZoomingEnabled: true,
       userPanningEnabled: true,
     });
-    cy.on("tap", "node", (event) => setSelectedNodeId(event.target.id()));
     cyRef.current = cy;
-    cy.layout(layoutOptions).run();
     return () => {
       cyRef.current = null;
       cy.destroy();
@@ -2121,33 +2117,6 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
         role="img"
         aria-label={viewIsCode ? T("Code semantic graph", "Code semantic graph") : T("Repository dependency graph", "Repository dependency graph")}
       />
-      <div className="repository-graph-node-list" aria-label={T("Repository graph nodes", "Repository graph nodes")}>
-        {visibleNodes.map((node) => (
-          <button
-            key={node.id}
-            type="button"
-            className={`repository-graph-node${selectedNode?.id === node.id ? " active" : ""}`}
-            onClick={() => setSelectedNodeId(node.id)}
-          >
-            <span>{node.label || node.path || node.id}</span>
-            <small>{node.type}</small>
-          </button>
-        ))}
-      </div>
-      {selectedNode && (
-        <div className="repository-graph-details">
-          <b>{selectedNode.signature || selectedNode.label || selectedNode.path}</b>
-          <span>{selectedNode.path}{selectedNode.line ? `:${selectedNode.line}` : ""}</span>
-          <span className="tag">{selectedNode.type}</span>
-        </div>
-      )}
-      {reviewHints.length > 0 && (
-        <div className="repository-graph-hints">
-          {reviewHints.slice(0, 3).map((hint) => (
-            <span key={hint}>{hint}</span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

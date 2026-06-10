@@ -1051,8 +1051,29 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("2 nodes")).toBeInTheDocument();
     expect(screen.getByText("1 edge")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /fit graph/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /App.jsx/i })).toBeInTheDocument();
-    expect(screen.getByText("Review scan UI.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /App\.jsx/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Review scan UI.")).not.toBeInTheDocument();
+    expect(document.querySelector(".repository-graph-node-list")).not.toBeInTheDocument();
+    expect(document.querySelector(".repository-graph-details")).not.toBeInTheDocument();
+    expect(document.querySelector(".repository-graph-hints")).not.toBeInTheDocument();
+
+    const fileGraphConfig = cytoscape.mock.calls[0][0];
+    expect(fileGraphConfig.elements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          data: expect.objectContaining({ id: "file:src/App.jsx", label: "App.jsx" }),
+        }),
+      ])
+    );
+    expect(fileGraphConfig.style.find((entry) => entry.selector === "node").style).toMatchObject({
+      content: "data(label)",
+      label: "data(label)",
+      "text-opacity": 1,
+    });
+    expect(fileGraphConfig.layout).toMatchObject({
+      animationDuration: 650,
+      animationEasing: "ease-out-cubic",
+    });
 
     const viewTrigger = screen.getByRole("button", { name: /graph view/i });
     expect(viewTrigger).toHaveTextContent(/file graph/i);
@@ -1062,8 +1083,16 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("2 symbols")).toBeInTheDocument();
     expect(screen.getByText("1 relationship")).toBeInTheDocument();
     expect(screen.getByText("static")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /App component/i })).toBeInTheDocument();
-    expect(screen.getByText("Review component call flow.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /App component/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Review component call flow.")).not.toBeInTheDocument();
+    const semanticGraphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
+    expect(semanticGraphConfig.elements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          data: expect.objectContaining({ id: "symbol:src/App.jsx:App", label: "App" }),
+        }),
+      ])
+    );
   });
 
   it("keeps the repository graph canvas tall enough for interaction", () => {
@@ -1119,7 +1148,7 @@ describe("ScanningScreen queue state", () => {
 
     expect(cytoscape).toHaveBeenCalledTimes(1);
     expect(cy.destroy).not.toHaveBeenCalled();
-    expect(cy.layout).toHaveBeenCalledTimes(1);
+    expect(cy.layout).not.toHaveBeenCalled();
   });
 
   it("does not render the retired audit funnel for completed scans", () => {

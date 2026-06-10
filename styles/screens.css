@@ -1577,9 +1577,7 @@
 }
 
 .repository-graph-stats,
-.repository-graph-controls,
-.repository-graph-node-list,
-.repository-graph-hints {
+.repository-graph-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1748,57 +1746,6 @@
     var(--bg);
   background-size: 28px 28px;
   overflow: hidden;
-}
-
-.repository-graph-node-list {
-  align-items: stretch;
-}
-
-.repository-graph-node {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  max-width: 100%;
-  padding: 7px 9px;
-  font-size: 12px;
-  text-align: left;
-}
-
-.repository-graph-node span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.repository-graph-node small {
-  color: var(--text-3);
-  font: 600 10.5px/1 var(--font-mono);
-  text-transform: uppercase;
-}
-
-.repository-graph-details {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-  color: var(--text-2);
-  font-size: 12px;
-}
-
-.repository-graph-details b,
-.repository-graph-details span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.repository-graph-hints span {
-  color: var(--text-2);
-  font-size: 12px;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
 }
 
 .scanning-log {
