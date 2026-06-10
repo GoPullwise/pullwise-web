@@ -1235,14 +1235,16 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
-  it("renders the repository graph canvas as a full-width square", () => {
+  it("renders the repository graph canvas as a full-width landscape panel", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
     const canvasBlock = styles.match(/\.repository-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups
       ?.body;
 
     expect(canvasBlock).toBeTruthy();
-    expect(canvasBlock).toMatch(/aspect-ratio:\s*1\s*\/\s*1;/);
+    expect(canvasBlock).toMatch(/aspect-ratio:\s*16\s*\/\s*9;/);
     expect(canvasBlock).toMatch(/width:\s*100%;/);
+    expect(canvasBlock).toMatch(/min-height:\s*320px;/);
+    expect(canvasBlock).not.toMatch(/aspect-ratio:\s*1\s*\/\s*1;/);
     expect(canvasBlock).not.toMatch(/width:\s*min/);
     expect(canvasBlock).not.toMatch(/height:\s*clamp/);
   });

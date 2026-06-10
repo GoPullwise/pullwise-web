@@ -1773,8 +1773,9 @@
 }
 
 .repository-graph-canvas {
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 16 / 9;
   width: 100%;
+  min-height: 320px;
   border: 1px solid var(--border);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--border) 32%, transparent) 1px, transparent 1px),
