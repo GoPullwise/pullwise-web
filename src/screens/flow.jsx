@@ -1751,6 +1751,139 @@ function repositoryGraphTypeLabel(type) {
   return labels[type] || type;
 }
 
+function GraphMenuPicker({
+  className = "",
+  triggerClassName = "",
+  triggerIcon = null,
+  triggerLabel,
+  ariaLabel,
+  width = 180,
+  multiSelect = false,
+  options,
+}) {
+  const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0, minWidth: 0 });
+  const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const minWidth = Math.max(rect.width, width);
+    const maxLeft = viewportWidth - minWidth - 8;
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: Math.max(8, Math.min(rect.left, maxLeft)),
+      minWidth,
+    });
+  }, [width]);
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    updateMenuPosition();
+    const handlePointerDown = (event) => {
+      const container = containerRef.current;
+      const menu = menuRef.current;
+      const target = event.target;
+      if (container && container.contains(target)) return;
+      if (menu && menu.contains(target)) return;
+      setOpen(false);
+    };
+    const handleKey = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        if (triggerRef.current) triggerRef.current.focus();
+      }
+    };
+    const handleScrollOrResize = () => updateMenuPosition();
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKey);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKey);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [open, updateMenuPosition]);
+
+  return (
+    <span
+      ref={containerRef}
+      className={`graph-menu-picker ${className}`.trim()}
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        className={`graph-menu-trigger ${triggerClassName}`.trim()}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => {
+          if (!open) updateMenuPosition();
+          setOpen((prev) => !prev);
+        }}
+      >
+        {triggerIcon}
+        <span className="graph-menu-trigger-label">{triggerLabel}</span>
+        <I.ChevD size={11} className="graph-menu-chev" aria-hidden="true" />
+      </button>
+      {open && (
+        <ul
+          ref={menuRef}
+          role="listbox"
+          aria-multiselectable={multiSelect || undefined}
+          className="graph-menu"
+          aria-label={ariaLabel}
+          style={{
+            position: "fixed",
+            top: menuPos.top,
+            left: menuPos.left,
+            minWidth: menuPos.minWidth,
+          }}
+        >
+          {options.map((option) => (
+            <li
+              key={option.value}
+              role="option"
+              aria-selected={!!option.selected}
+              className={"graph-menu-option" + (option.selected ? " selected" : "")}
+              onClick={() => {
+                option.onSelect();
+                if (!multiSelect) setOpen(false);
+              }}
+            >
+              {option.icon ? (
+                <span className="graph-menu-option-icon" aria-hidden="true">
+                  {option.icon}
+                </span>
+              ) : null}
+              <span className="graph-menu-option-label">{option.label}</span>
+              {option.selected ? (
+                <I.Check size={11} className="graph-menu-option-check" aria-hidden="true" />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </span>
+  );
+}
+
+function graphTypeFilterLabel(activeCount, totalCount) {
+  if (!totalCount) return T("No types", "No types");
+  if (activeCount === 0 || activeCount === totalCount) {
+    return T("All types", "All types");
+  }
+  return T(`${activeCount} of ${totalCount} types`, `${activeCount} / ${totalCount} 个类型`);
+}
+
 function RepositoryGraphPanel({ graph, semanticGraph }) {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
@@ -1922,41 +2055,59 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
           </button>
         </div>
       </div>
-      {fileGraph && codeGraph && (
-        <div className="repository-graph-tabs" role="tablist" aria-label={T("Repository graph views", "Repository graph views")}>
-          <button
-            type="button"
-            className={`repository-graph-tab${activeView === "files" ? " active" : ""}`}
-            aria-selected={activeView === "files"}
-            onClick={() => setActiveView("files")}
-          >
-            <I.FileCode size={12} /> {T("File graph", "File graph")}
-          </button>
-          <button
-            type="button"
-            className={`repository-graph-tab${activeView === "code" ? " active" : ""}`}
-            aria-selected={activeView === "code"}
-            onClick={() => setActiveView("code")}
-          >
-            <I.Code size={12} /> {T("Semantic graph", "Semantic graph")}
-          </button>
+      {(fileGraph && codeGraph) || typeList.length > 1 ? (
+        <div className="repository-graph-controls" aria-label={T("Repository graph controls", "Repository graph controls")}>
+          {fileGraph && codeGraph && (
+            <GraphMenuPicker
+              className="repository-graph-view-picker"
+              triggerClassName="repository-graph-view-trigger"
+              triggerIcon={
+                activeView === "code" ? <I.Code size={12} aria-hidden="true" /> : <I.FileCode size={12} aria-hidden="true" />
+              }
+              triggerLabel={
+                activeView === "code"
+                  ? T("Semantic graph", "Semantic graph")
+                  : T("File graph", "File graph")
+              }
+              ariaLabel={T("Graph view", "Graph view")}
+              width={160}
+              options={[
+                {
+                  value: "files",
+                  label: T("File graph", "File graph"),
+                  icon: <I.FileCode size={11} aria-hidden="true" />,
+                  selected: activeView === "files",
+                  onSelect: () => setActiveView("files"),
+                },
+                {
+                  value: "code",
+                  label: T("Semantic graph", "Semantic graph"),
+                  icon: <I.Code size={11} aria-hidden="true" />,
+                  selected: activeView === "code",
+                  onSelect: () => setActiveView("code"),
+                },
+              ]}
+            />
+          )}
+          {typeList.length > 1 && (
+            <GraphMenuPicker
+              className="repository-graph-type-picker"
+              triggerClassName="repository-graph-type-trigger"
+              triggerIcon={<I.Filter size={12} aria-hidden="true" />}
+              triggerLabel={graphTypeFilterLabel(activeTypes.size, typeList.length)}
+              ariaLabel={T("Node type filter", "Node type filter")}
+              width={200}
+              multiSelect
+              options={typeList.map((type) => ({
+                value: type,
+                label: repositoryGraphTypeLabel(type),
+                selected: activeTypes.has(type),
+                onSelect: () => toggleType(type),
+              }))}
+            />
+          )}
         </div>
-      )}
-      {typeList.length > 1 && (
-        <div className="repository-graph-toolbar" aria-label={T("Repository graph filters", "Repository graph filters")}>
-          {typeList.map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={`repository-graph-filter${activeTypes.has(type) ? " active" : ""}`}
-              aria-pressed={activeTypes.has(type)}
-              onClick={() => toggleType(type)}
-            >
-              {repositoryGraphTypeLabel(type)}
-            </button>
-          ))}
-        </div>
-      )}
+      ) : null}
       <div
         className="repository-graph-canvas"
         ref={containerRef}

@@ -1577,8 +1577,7 @@
 }
 
 .repository-graph-stats,
-.repository-graph-tabs,
-.repository-graph-toolbar,
+.repository-graph-controls,
 .repository-graph-node-list,
 .repository-graph-hints {
   display: flex;
@@ -1597,61 +1596,145 @@
   min-height: 28px;
 }
 
-.repository-graph-tabs {
-  align-items: stretch;
+.repository-graph-controls {
+  gap: 8px;
+  align-items: center;
 }
 
-.repository-graph-tab {
-  min-height: 30px;
+/* ── Graph menu picker (view + type dropdowns) ─────────────── */
+.graph-menu-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   min-width: 0;
+}
+
+.graph-menu-trigger {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-2);
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 1.25;
-  padding: 6px 10px;
-  transition:
-    border-color 120ms var(--ease-out),
-    color 120ms var(--ease-out),
-    background 120ms var(--ease-out);
-}
-
-.repository-graph-tab.active {
-  border-color: var(--accent);
-  color: var(--text);
-  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
-}
-
-.repository-graph-filter,
-.repository-graph-node {
+  min-height: 30px;
   min-width: 0;
+  max-width: 100%;
+  padding: 5px 10px;
   border: 1px solid var(--border);
   background: var(--bg);
-  color: var(--text-2);
+  color: var(--text-1);
   cursor: pointer;
+  font-size: 12px;
+  line-height: 1.25;
+  border-radius: 0;
   transition:
     border-color 120ms var(--ease-out),
     color 120ms var(--ease-out),
     background 120ms var(--ease-out);
 }
 
-.repository-graph-filter {
-  min-height: 28px;
-  padding: 5px 9px;
-  font-size: 12px;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
+.graph-menu-trigger:hover,
+.graph-menu-trigger:focus-visible {
+  border-color: var(--accent);
+  color: var(--text);
+  outline: none;
 }
 
-.repository-graph-filter.active,
-.repository-graph-node.active {
+.graph-menu-trigger[aria-expanded="true"] {
   border-color: var(--accent);
   color: var(--text);
   background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+}
+
+.graph-menu-trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
+.graph-menu-chev {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  transition: transform 150ms var(--ease-out, ease);
+}
+
+.graph-menu-trigger[aria-expanded="true"] .graph-menu-chev {
+  transform: rotate(180deg);
+}
+
+.graph-menu {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg-elev, var(--surface-1));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-3, 0 8px 24px rgba(0, 0, 0, 0.18));
+  z-index: 60;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.graph-menu-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 9px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: var(--text-1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.graph-menu-option:hover,
+.graph-menu-option:focus-visible {
+  background: var(--bg-soft, color-mix(in srgb, var(--accent) 6%, var(--surface-1)));
+  outline: 0;
+}
+
+.graph-menu-option.selected {
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev, var(--surface-1)));
+  color: var(--text);
+}
+
+.graph-menu-option-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-3);
+}
+
+.graph-menu-option.selected .graph-menu-option-icon {
+  color: var(--accent);
+}
+
+.graph-menu-option-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-menu-option-check {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.repository-graph-view-trigger,
+.repository-graph-type-trigger {
+  font-weight: 500;
+}
+
+.repository-graph-view-trigger {
+  min-width: 132px;
+  justify-content: space-between;
+}
+
+.repository-graph-type-trigger {
+  min-width: 168px;
+  justify-content: space-between;
 }
 
 .repository-graph-canvas {
