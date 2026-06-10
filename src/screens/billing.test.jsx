@@ -47,6 +47,30 @@ describe("BillingScreen", () => {
     vi.clearAllMocks();
   });
 
+  it("shows the topbar loading spinner only while billing data is loading", async () => {
+    let resolvePlan;
+    pullwiseApi.billing.getPlan.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePlan = resolve;
+      })
+    );
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
+      "topbar-loading",
+      "spin"
+    );
+
+    resolvePlan({
+      ...billingCatalog,
+      account: { status: "none", plan: "free" },
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+    });
+  });
+
   it("starts checkout through the configured backend billing provider", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

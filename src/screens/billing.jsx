@@ -99,10 +99,12 @@ export function BillingScreen({
   useLang();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState("");
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     pullwiseApi.billing
       .getPlan()
       .then((payload) => {
@@ -112,6 +114,9 @@ export function BillingScreen({
       })
       .catch((err) => {
         if (!cancelled) setError(err?.message || "Unable to load billing.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -225,6 +230,7 @@ export function BillingScreen({
         go={go}
         breadcrumbs={[{ label: T("Billing", "Billing") }]}
         setIssue={setIssue}
+        loading={loading}
       />
       <div className="with-side">
         <Sidebar section="billing" go={go} />
