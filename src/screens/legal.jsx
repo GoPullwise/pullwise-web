@@ -486,6 +486,35 @@ function reviewProviderDetail(value) {
   return value && value !== "disabled" ? T("Configured", "已配置") : T("Disabled", "未启用");
 }
 
+function statusCount(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.trunc(number)).toLocaleString();
+}
+
+function statusBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  const rounded = size >= 10 ? Math.round(size) : Math.round(size * 10) / 10;
+  return `${rounded.toLocaleString()} ${units[unitIndex]}`;
+}
+
+function repositoryLimitDetail(limits) {
+  const repository = limits?.repository;
+  if (!repository) return "";
+  return T(
+    `Repo checkout ${statusCount(repository.maxFiles)} files / ${statusBytes(repository.maxBytes)}`,
+    `仓库 checkout ${statusCount(repository.maxFiles)} 个文件 / ${statusBytes(repository.maxBytes)}`
+  );
+}
+
 function readinessAvailable(health) {
   return Boolean(health?.reviewProvider || health?.github || health?.billing || health?.limits);
 }
@@ -566,8 +595,9 @@ export function StatusScreen({ go, auth }) {
           `${limits.maxQueuedScansGlobal ?? "-"} global / ${limits.maxQueuedScansPerUser ?? "-"} per user queued`,
           `全局 ${limits.maxQueuedScansGlobal ?? "-"} / 每用户排队 ${limits.maxQueuedScansPerUser ?? "-"}`
         ),
+        repositoryLimitDetail(limits),
         `${T("Rate limiting", "限流")} ${limits.rateLimitEnabled ? T("enabled", "已启用") : T("disabled", "未启用")}`,
-      ].join(" - ")
+      ].filter(Boolean).join(" - ")
     : "";
   const databaseDetail = health?.database?.type
     ? `${health.database.type}: ${health.database.path || T("configured backend path", "已配置后端路径")}`

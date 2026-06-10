@@ -67,6 +67,7 @@ describe("StatusScreen", () => {
         maxConcurrentScansPerUser: 1,
         maxQueuedScansGlobal: 1000,
         maxQueuedScansPerUser: 20,
+        repository: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
         rateLimitEnabled: true,
       },
     });
@@ -81,6 +82,7 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/disabled \(not enabled\)/i)).toBeInTheDocument();
     expect(screen.getByText(/1 per user running/i)).toBeInTheDocument();
     expect(screen.getByText(/1000 global \/ 20 per user queued/i)).toBeInTheDocument();
+    expect(screen.getByText(/Repo checkout 2,000 files \/ 50 MB/i)).toBeInTheDocument();
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
   });
 

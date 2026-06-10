@@ -10,6 +10,7 @@ import { HistoryScreen, IssueDetailScreen, IssuesScreen } from "./issues.jsx";
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
+      get: vi.fn(() => Promise.resolve({})),
       auditBundle: vi.fn(),
       auditBundleArchive: vi.fn(),
     },
@@ -456,6 +457,86 @@ describe("IssueDetailScreen direct loading", () => {
       "true"
     );
     expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
+  });
+
+  it("shows impact context for the current issue file from its scan graph", async () => {
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_impact",
+      impactGraph: {
+        version: "impact-graph/0.1",
+        mode: "repository",
+        targets: [
+          {
+            id: "file:src/auth/session.ts",
+            path: "src/auth/session.ts",
+            label: "session.ts",
+            type: "file",
+            relations: {
+              tests: [{ path: "tests/auth/session.test.ts" }],
+              documents: [{ path: "docs/auth.md" }],
+              configures: [{ path: "package.json", type: "npm-script" }],
+              ci: [{ path: ".github/workflows/ci.yml" }],
+              importedBy: [{ path: "src/auth/index.ts" }],
+            },
+            gaps: ["no_direct_docs"],
+          },
+        ],
+        coverage: {},
+      },
+    });
+
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{
+          id: "f_impact",
+          scanId: "sc_impact",
+          repo: "acme/api",
+          severity: "high",
+          category: "Quality",
+          title: "Session regression",
+          file: "src/auth/session.ts",
+          status: "open",
+        }}
+      />
+    );
+
+    expect(await screen.findByText("Impact context")).toBeInTheDocument();
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_impact"));
+    expect(await screen.findByText("tests/auth/session.test.ts")).toBeInTheDocument();
+    expect(screen.getByText("docs/auth.md")).toBeInTheDocument();
+    expect(screen.getByText("package.json")).toBeInTheDocument();
+    expect(screen.getByText(".github/workflows/ci.yml")).toBeInTheDocument();
+    expect(screen.getByText("src/auth/index.ts")).toBeInTheDocument();
+    expect(screen.getByText("no direct docs")).toBeInTheDocument();
+  });
+
+  it("shows a graceful impact fallback when the scan has no impact graph", async () => {
+    pullwiseApi.scans.get.mockReset();
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_no_impact",
+      status: "done",
+    });
+
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{
+          id: "f_no_impact",
+          scanId: "sc_no_impact",
+          repo: "acme/api",
+          severity: "medium",
+          category: "Quality",
+          title: "Missing impact graph",
+          file: "src/auth/session.ts",
+          status: "open",
+        }}
+      />
+    );
+
+    expect(await screen.findByText("Impact context")).toBeInTheDocument();
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_no_impact"));
+    expect(await screen.findByText("Impact graph unavailable for this scan.")).toBeInTheDocument();
   });
 });
 

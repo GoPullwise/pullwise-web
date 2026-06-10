@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
   clearPullwiseDataCache,
+  normalizeImpactGraph,
   normalizeIssue,
   normalizeRepo,
   normalizeScan,
@@ -596,6 +597,162 @@ describe("normalizeIssue", () => {
     expect(scan.semanticGraph.reviewHints).toEqual(["Review component flow."]);
   });
 
+  it("preserves repository graph 0.2 traceability fields and impact graph context", () => {
+    const impactGraphPayload = {
+      version: "impact-graph/0.1",
+      mode: "changeset",
+      summary: "Impact graph: auth session has tests, docs, and config.",
+      stats: {
+        targets: 1,
+        testedTargets: 1,
+        documentedTargets: 1,
+        configuredTargets: 1,
+        testsEdges: 1,
+        documentsEdges: 1,
+        configuresEdges: 2,
+        changedFiles: 1,
+      },
+      changedFiles: ["src/auth/session.ts", "C:\\repo\\bad.ts"],
+      targets: [
+        {
+          id: "file:src/auth/session.ts",
+          path: "src/auth/session.ts",
+          label: "session.ts",
+          type: "file",
+          risk: "1.4",
+          relations: {
+            tests: [
+              {
+                id: "file:C:/checkout/tests/auth/session.test.ts",
+                path: "tests/auth/session.test.ts",
+                confidence: 0.95,
+                evidence: [
+                  {
+                    kind: "import",
+                    file: "tests/auth/session.test.ts",
+                    line: "3",
+                    text: "import { createSession } from '../../src/auth/session'",
+                  },
+                ],
+              },
+            ],
+            docs: ["docs/auth.md"],
+            config: [{ path: "package.json", type: "npm-script" }],
+            ci: [{ path: ".github/workflows/ci.yml", type: "workflow" }],
+            imported_by: [{ path: "src/auth/index.ts" }],
+          },
+          gaps: ["no_direct_docs", ""],
+        },
+        { id: "bad", path: "/tmp/session.ts" },
+      ],
+      coverage: {
+        source_files_without_tests: ["src/no-test.ts", "../escape.ts"],
+        sourceFilesWithoutDocs: ["src/auth/session.ts"],
+        testsWithoutTargets: ["tests/orphan.test.ts"],
+        docsWithoutTargets: ["docs/unused.md"],
+      },
+      promptText: "Impact context:\n- src/auth/session.ts",
+    };
+    const scan = normalizeScan({
+      id: "sc_impact",
+      repositoryGraph: {
+        version: "repository-graph/0.2",
+        nodes: [
+          { id: "file:src/auth/session.ts", label: "session.ts", type: "file", path: "src/auth/session.ts" },
+          { id: "file:tests/auth/session.test.ts", label: "session.test.ts", type: "test", path: "tests/auth/session.test.ts" },
+          { id: "file:docs/auth.md", label: "auth.md", type: "doc", path: "docs/auth.md" },
+          { id: "file:package.json", label: "package.json", type: "config", path: "package.json" },
+        ],
+        edges: [
+          {
+            source: "file:tests/auth/session.test.ts",
+            target: "file:src/auth/session.ts",
+            type: "tests",
+            confidence: "0.94",
+            evidence: [
+              {
+                kind: "import",
+                file: "tests/auth/session.test.ts",
+                line: "3",
+                text: "import { createSession } from '../../src/auth/session'",
+              },
+              { kind: "bad", file: "C:\\repo\\secret.ts", text: "bad" },
+            ],
+          },
+          {
+            source: "file:docs/auth.md",
+            target: "file:src/auth/session.ts",
+            type: "documents",
+          },
+          {
+            source: "file:package.json",
+            target: "file:src/auth/session.ts",
+            type: "configures",
+          },
+        ],
+        impactGraph: impactGraphPayload,
+      },
+    });
+
+    expect(scan.repositoryGraph.version).toBe("repository-graph/0.2");
+    expect(scan.repositoryGraph.nodes.map((node) => node.type)).toEqual([
+      "file",
+      "test",
+      "doc",
+      "config",
+    ]);
+    expect(scan.repositoryGraph.edges.map((edge) => edge.type)).toEqual([
+      "tests",
+      "documents",
+      "configures",
+    ]);
+    expect(scan.repositoryGraph.edges[0]).toMatchObject({
+      confidence: 0.94,
+      evidence: [
+        {
+          kind: "import",
+          file: "tests/auth/session.test.ts",
+          line: 3,
+          text: "import { createSession } from '../../src/auth/session'",
+        },
+        { kind: "bad", text: "bad" },
+      ],
+    });
+    expect(scan.impactGraph).toMatchObject({
+      version: "impact-graph/0.1",
+      mode: "changeset",
+      changedFiles: ["src/auth/session.ts"],
+      targets: [
+        {
+          path: "src/auth/session.ts",
+          risk: 1,
+          relations: {
+            tests: [
+              {
+                id: "file:tests/auth/session.test.ts",
+                path: "tests/auth/session.test.ts",
+                confidence: 0.95,
+              },
+            ],
+            documents: [{ path: "docs/auth.md" }],
+            configures: [{ path: "package.json", type: "npm-script" }],
+            ci: [{ path: ".github/workflows/ci.yml", type: "workflow" }],
+            importedBy: [{ path: "src/auth/index.ts" }],
+          },
+          gaps: ["no_direct_docs"],
+        },
+      ],
+      coverage: {
+        sourceFilesWithoutTests: ["src/no-test.ts"],
+        sourceFilesWithoutDocs: ["src/auth/session.ts"],
+        testsWithoutTargets: ["tests/orphan.test.ts"],
+        docsWithoutTargets: ["docs/unused.md"],
+      },
+    });
+    expect(scan.repositoryGraph.impactGraph).toEqual(scan.impactGraph);
+    expect(normalizeImpactGraph({ impactGraph: impactGraphPayload })?.targets).toHaveLength(1);
+  });
+
   it("normalizes top-level semantic graph aliases onto scans", () => {
     const scan = normalizeScan({
       id: "sc_semantic",
@@ -1164,6 +1321,14 @@ describe("normalizeIssue", () => {
           pythonVersion: "3.12.3",
           checkoutRoot: "/srv/pullwise/checkouts/job",
         },
+        repositoryStats: {
+          fileCount: "2001",
+          totalBytes: String(50 * 1024 * 1024 + 1),
+          scanStoppedEarly: true,
+        },
+        repositoryLimits: { maxFiles: "2000", maxBytes: String(50 * 1024 * 1024) },
+        repositoryLimitExceeded: true,
+        repositoryLimitReasons: ["file_count", "total_bytes"],
         manifests: [
           { file: "package.json", type: "node" },
           { file: "", type: "bad" },
@@ -1237,6 +1402,14 @@ describe("normalizeIssue", () => {
         machine: "x86_64",
         pythonVersion: "3.12.3",
       },
+      repositoryStats: {
+        fileCount: 2001,
+        totalBytes: 50 * 1024 * 1024 + 1,
+        scanStoppedEarly: true,
+      },
+      repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
+      repositoryLimitExceeded: true,
+      repositoryLimitReasons: ["file_count", "total_bytes"],
       manifests: [{ file: "package.json", type: "node" }],
       toolVersions: [
         { name: "git", command: "git --version", available: true, exitCode: 0, output: "git ok" },

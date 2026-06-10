@@ -38,6 +38,9 @@ export const pullwiseApi = {
     create: (payload) => request("/scans", { method: "POST", body: payload }),
     get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
     auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
+    impactGraph: (scanId) => request(`/scans/${pathSegment(scanId)}/impact-graph`),
+    impactFocus: (scanId, params = {}) =>
+      request(withSearchParams(`/scans/${pathSegment(scanId)}/impact-graph/focus`, params)),
     auditBundleArchive: (scanId) =>
       request(`/scans/${pathSegment(scanId)}/audit-bundle.zip`, {
         responseType: "blob",

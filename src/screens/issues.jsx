@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { ImpactEvidenceDrawer } from "../components/impact/ImpactEvidenceDrawer.jsx";
+import { ImpactTargetCard } from "../components/impact/ImpactTargetCard.jsx";
+import { findImpactTargetByPath } from "../components/impact/impact-utils.js";
 import { IssueDistributionBand } from "../components/issue-distribution-band.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -11,6 +14,7 @@ import { screenLinkProps } from "../lib/navigation.js";
 import {
   normalizeIssue,
   normalizeIssuePullRequest,
+  normalizeScan,
   notifyIssuesChanged,
   scanQueueSummary,
   useIssues,
@@ -301,6 +305,10 @@ function copyText(value) {
 
 function markdownText(value) {
   return String(value ?? "").trim();
+}
+
+function plainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 const AUDIT_SWARM_DONE_PHASES = new Set(["report", "done", "complete", "completed"]);
@@ -1137,6 +1145,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [feedbackLoading, setFeedbackLoading] = useState("");
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [pageCopied, setPageCopied] = useState(false);
+  const [impactScan, setImpactScan] = useState(null);
+  const [impactScanLoading, setImpactScanLoading] = useState(false);
+  const [impactDrawer, setImpactDrawer] = useState(null);
   const statusRequestRef = useRef(false);
   const feedbackRequestRef = useRef(0);
   const fixRequestRef = useRef(0);
@@ -1173,6 +1184,45 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     };
   }, [issueId, initialIssue, setIssue]);
 
+  const embeddedImpactScan = useMemo(() => {
+    if (plainObject(activeIssue?.scan)) return normalizeScan(activeIssue.scan);
+    if (plainObject(activeIssue?.impactGraph)) {
+      return normalizeScan({ id: activeIssue.scanId, impactGraph: activeIssue.impactGraph });
+    }
+    return null;
+  }, [activeIssue]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setImpactScan(null);
+    setImpactScanLoading(false);
+    if (
+      embeddedImpactScan?.impactGraph ||
+      !activeIssue?.scanId ||
+      !activeIssue?.file ||
+      typeof pullwiseApi.scans?.get !== "function"
+    ) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    setImpactScanLoading(true);
+    pullwiseApi.scans
+      .get(activeIssue.scanId)
+      .then((payload) => {
+        if (!cancelled) setImpactScan(normalizeScan(payload));
+      })
+      .catch(() => {
+        if (!cancelled) setImpactScan(null);
+      })
+      .finally(() => {
+        if (!cancelled) setImpactScanLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeIssue?.id, activeIssue?.scanId, activeIssue?.file, embeddedImpactScan]);
+
   useEffect(() => {
     fixRequestRef.current += 1;
     setCurrentStatus(activeIssue?.status || "open");
@@ -1185,6 +1235,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setFeedbackLoading("");
     setFeedbackSaved(false);
     setPageCopied(false);
+    setImpactDrawer(null);
     statusRequestRef.current = false;
     feedbackRequestRef.current += 1;
     if (pageCopyResetRef.current) {
@@ -1222,6 +1273,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   }
 
   const issue = activeIssue;
+  const impactGraph = embeddedImpactScan?.impactGraph || impactScan?.impactGraph || null;
+  const impactTarget = findImpactTargetByPath(impactGraph, issue.file);
+  const showImpactContext = Boolean(issue.scanId || impactGraph || impactScanLoading);
 
   const updateStatus = async (nextStatus) => {
     if (statusRequestRef.current) return;
@@ -1498,6 +1552,30 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 )}
               </DetailSection>
 
+              {showImpactContext && (
+                <DetailSection
+                  title={T("Impact context", "Impact context")}
+                  empty={T("No impact context is available for this issue file.", "No impact context is available for this issue file.")}
+                >
+                  {impactScanLoading && !impactGraph ? (
+                    <div className="muted">{T("Loading impact context...", "Loading impact context...")}</div>
+                  ) : impactTarget ? (
+                    <ImpactTargetCard target={impactTarget} onEvidence={setImpactDrawer} />
+                  ) : impactGraph ? (
+                    <div className="muted">
+                      {T(
+                        `No impact target matched ${issue.file || "this issue file"}.`,
+                        `No impact target matched ${issue.file || "this issue file"}.`
+                      )}
+                    </div>
+                  ) : (
+                    <div className="muted">
+                      {T("Impact graph unavailable for this scan.", "Impact graph unavailable for this scan.")}
+                    </div>
+                  )}
+                </DetailSection>
+              )}
+
               <TextListSection
                 title={T("Why this is not a false positive", "为什么这不是误报")}
                 items={issue.whyNotFalsePositive}
@@ -1764,6 +1842,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
             </div>
           </div>
+          <ImpactEvidenceDrawer
+            title={impactDrawer?.title || T("Impact evidence", "Impact evidence")}
+            evidence={impactDrawer?.evidence || []}
+            onClose={() => setImpactDrawer(null)}
+          />
         </div>
       </div>
     </div>

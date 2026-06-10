@@ -22,6 +22,9 @@ vi.mock("../api/pullwise.js", () => ({
     repositories: {
       branches: vi.fn(),
     },
+    system: {
+      health: vi.fn(),
+    },
   },
 }));
 
@@ -139,6 +142,63 @@ const semanticGraphFixture = {
   reviewHints: ["Review component call flow."],
 };
 
+const impactGraphFixture = {
+  version: "impact-graph/0.1",
+  mode: "changeset",
+  summary: "Impact graph: auth session has direct tests, docs, config, and CI.",
+  stats: {
+    targets: 1,
+    testedTargets: 1,
+    documentedTargets: 1,
+    configuredTargets: 1,
+    testsEdges: 1,
+    documentsEdges: 1,
+    configuresEdges: 2,
+    changedFiles: 1,
+    truncated: false,
+  },
+  changedFiles: ["src/auth/session.ts"],
+  targets: [
+    {
+      id: "file:src/auth/session.ts",
+      path: "src/auth/session.ts",
+      label: "session.ts",
+      type: "file",
+      risk: 0.74,
+      relations: {
+        tests: [
+          {
+            id: "file:tests/auth/session.test.ts",
+            path: "tests/auth/session.test.ts",
+            confidence: 0.95,
+            evidence: [
+              {
+                kind: "import",
+                file: "tests/auth/session.test.ts",
+                line: 3,
+                text: "import { createSession } from '../../src/auth/session'",
+              },
+            ],
+          },
+        ],
+        documents: [{ id: "file:docs/auth.md", path: "docs/auth.md" }],
+        configures: [{ id: "file:package.json", path: "package.json", type: "npm-script" }],
+        ci: [{ id: "file:.github/workflows/ci.yml", path: ".github/workflows/ci.yml" }],
+        importedBy: [{ id: "file:src/auth/index.ts", path: "src/auth/index.ts" }],
+        imports: [],
+        symbols: [],
+      },
+      gaps: ["no_direct_docs"],
+    },
+  ],
+  coverage: {
+    sourceFilesWithoutTests: ["src/no-test.ts"],
+    sourceFilesWithoutDocs: ["src/auth/session.ts"],
+    testsWithoutTargets: [],
+    docsWithoutTargets: [],
+  },
+};
+
 function cloneFixture(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -174,6 +234,12 @@ beforeEach(() => {
   pullwiseApi.repositories.branches.mockResolvedValue({
     defaultBranch: "main",
     branches: ["main", "develop"],
+  });
+  pullwiseApi.system.health.mockReset();
+  pullwiseApi.system.health.mockResolvedValue({
+    limits: {
+      repository: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
+    },
   });
   useRepositories.mockReset();
   useScanBatchRun.mockReset();
@@ -452,7 +518,7 @@ describe("ReposScreen scan selection", () => {
   it("shows account quota reset time on the repository selection screen", async () => {
     const resetAt = Date.UTC(2026, 5, 1, 0, 0, 0) / 1000;
     useRepositories.mockReturnValue({
-      items: [repoAlpha],
+      items: [{ ...repoAlpha, fork: true }],
       installations: [],
       installationAccounts: [],
       userQuota: { scope: "user", used: 9, limit: 10, remaining: 1, resetAt },
@@ -468,6 +534,32 @@ describe("ReposScreen scan selection", () => {
     expect(screen.getByText(/account quota/i)).toHaveTextContent(
       /1 of 10 account scans left - resets 2026-06-01 00:00 UTC/i
     );
+  });
+
+  it("explains repository scan eligibility before starting a scan", async () => {
+    useRepositories.mockReturnValue({
+      items: [{ ...repoAlpha, fork: true }],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(await screen.findByText("Which repositories can be scanned")).toBeInTheDocument();
+    expect(
+      screen.getByText(/GitHub authorization.*account and repository quota.*worker checkout size limits/i)
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Current checkout limit: 2,000 files / 50 MB.")).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => element?.classList.contains("tag") && content.includes("fork"))
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Forks share repository quota with their source repository/i)).toBeInTheDocument();
+    expect(screen.getByText(/language is detected for context and is not an allowlist/i)).toBeInTheDocument();
+    expect(screen.getByText(/selected branch must exist in GitHub/i)).toBeInTheDocument();
   });
 
   it("uses the installation list instead of a duplicate authorization summary", async () => {
@@ -592,6 +684,7 @@ describe("ReposScreen scan selection", () => {
     render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
     expect(await screen.findByText("选择要扫描的仓库")).toBeInTheDocument();
+    expect(screen.getByText("哪些仓库可以扫描")).toBeInTheDocument();
     expect(screen.getByText("1 个已授权仓库")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /同步/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /开始扫描/i })).toBeInTheDocument();
@@ -1120,6 +1213,92 @@ describe("ScanningScreen queue state", () => {
     expect(canvasBlock).not.toMatch(/height:\s*clamp/);
   });
 
+  it("shows impact graph summary, target relations, coverage gaps, and graph canvas", async () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_impact",
+        repo: "octocat/impact",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        impactGraph: impactGraphFixture,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_impact", fullName: "octocat/impact", defaultBranch: "main" }}
+      />
+    );
+
+    expect(screen.getByText("Impact context")).toBeInTheDocument();
+    expect(screen.getByText("impact-graph/0.1")).toBeInTheDocument();
+    expect(screen.getByText("changeset")).toBeInTheDocument();
+    expect(screen.getAllByText("src/auth/session.ts").length).toBeGreaterThan(0);
+    expect(screen.getByText("tests/auth/session.test.ts")).toBeInTheDocument();
+    expect(screen.getByText("docs/auth.md")).toBeInTheDocument();
+    expect(screen.getByText("package.json")).toBeInTheDocument();
+    expect(screen.getByText(".github/workflows/ci.yml")).toBeInTheDocument();
+    expect(screen.getByText("src/no-test.ts")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("tab", { name: /graph/i }));
+
+    expect(screen.getByText("Tests, docs, config, and CI")).toBeInTheDocument();
+    expect(cytoscape).toHaveBeenCalled();
+    const graphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
+    expect(graphConfig.elements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          data: expect.objectContaining({ id: "file:src/auth/session.ts", role: "target" }),
+        }),
+        expect.objectContaining({
+          data: expect.objectContaining({ label: "tests/auth/session.test.ts", role: "tests" }),
+        }),
+      ])
+    );
+  });
+
+  it("shows a graceful impact fallback when a terminal scan has no impact graph", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_no_impact",
+        repo: "octocat/no-impact",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_no_impact",
+          fullName: "octocat/no-impact",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Impact graph unavailable")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "This scan did not return an impact graph. Repository graph and issue evidence remain available."
+      )
+    ).toBeInTheDocument();
+  });
+
   it("keeps the repository graph instance stable across running scan refreshes", () => {
     const go = vi.fn();
     const cancel = vi.fn();
@@ -1215,6 +1394,14 @@ describe("ScanningScreen queue state", () => {
           packageManagers: ["pnpm"],
           languages: ["JavaScript/TypeScript"],
           availableScripts: ["build", "test"],
+          repositoryStats: {
+            fileCount: 2001,
+            totalBytes: 50 * 1024 * 1024 + 1,
+            scanStoppedEarly: true,
+          },
+          repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
+          repositoryLimitExceeded: true,
+          repositoryLimitReasons: ["file_count", "total_bytes"],
           environment: {
             os: "Linux",
             osRelease: "6.8.0",
@@ -1250,6 +1437,11 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Preflight evidence")).toBeInTheDocument();
     expect(screen.getByText("allowlisted_verifier_scripts")).toBeInTheDocument();
     expect(screen.getByText("pnpm")).toBeInTheDocument();
+    expect(screen.getByText("Repository scan limits")).toBeInTheDocument();
+    expect(screen.getByText("Checkout: 2,001 files / 50 MB")).toBeInTheDocument();
+    expect(screen.getByText("Limit: 2,000 files / 50 MB")).toBeInTheDocument();
+    expect(screen.getByText("Reasons: file count, total size")).toBeInTheDocument();
+    expect(screen.getByText("Counting stopped after a limit was reached.")).toBeInTheDocument();
     expect(screen.getByText("1 manifests")).toBeInTheDocument();
     expect(screen.getByText("1 tool checks")).toBeInTheDocument();
     expect(screen.getByText("Linux 6.8.0 x86_64")).toBeInTheDocument();

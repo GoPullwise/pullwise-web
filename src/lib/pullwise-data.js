@@ -226,6 +226,8 @@ function normalizePreflight(preflight) {
         pythonVersion: textValue(preflight.environment.pythonVersion),
       }
     : null;
+  const repositoryStats = normalizePreflightRepositoryStats(preflight.repositoryStats);
+  const repositoryLimits = normalizePreflightRepositoryLimits(preflight.repositoryLimits);
   return {
     mode: textValue(preflight.mode),
     execution: textValue(preflight.execution),
@@ -240,10 +242,33 @@ function normalizePreflight(preflight) {
     packageManagers: normalizeTextList(preflight.packageManagers),
     availableScripts: normalizeTextList(preflight.availableScripts),
     limitations: normalizeTextList(preflight.limitations),
+    repositoryStats,
+    repositoryLimits,
+    repositoryLimitExceeded: normalizeBoolean(preflight.repositoryLimitExceeded),
+    repositoryLimitReasons: normalizeTextList(preflight.repositoryLimitReasons),
     manifests,
     toolVersions,
     verifier,
   };
+}
+
+function normalizePreflightRepositoryStats(value) {
+  if (!objectRecord(value)) return null;
+  const stats = {
+    fileCount: normalizeCount(value.fileCount),
+    totalBytes: normalizeCount(value.totalBytes),
+  };
+  if (normalizeBoolean(value.scanStoppedEarly)) stats.scanStoppedEarly = true;
+  return stats.fileCount || stats.totalBytes || stats.scanStoppedEarly ? stats : null;
+}
+
+function normalizePreflightRepositoryLimits(value) {
+  if (!objectRecord(value)) return null;
+  const limits = {
+    maxFiles: normalizeCount(value.maxFiles),
+    maxBytes: normalizeCount(value.maxBytes),
+  };
+  return limits.maxFiles || limits.maxBytes ? limits : null;
 }
 
 function normalizeProgress(value) {
@@ -285,19 +310,29 @@ function normalizeAiUsage(value) {
   return model ? { model } : null;
 }
 
-const REPOSITORY_GRAPH_PROTOCOL_VERSION = "repository-graph/0.1";
+const REPOSITORY_GRAPH_PROTOCOL_VERSIONS = new Set([
+  "repository-graph/0.1",
+  "repository-graph/0.2",
+]);
+const REPOSITORY_IMPACT_GRAPH_PROTOCOL_VERSION = "impact-graph/0.1";
 const REPOSITORY_SEMANTIC_GRAPH_PROTOCOL_VERSION = "semantic-code-graph/0.1";
 const REPOSITORY_GRAPH_MAX_NODES = 120;
 const REPOSITORY_GRAPH_MAX_EDGES = 240;
 const REPOSITORY_GRAPH_MAX_SEMANTIC_NODES = 120;
 const REPOSITORY_GRAPH_MAX_SEMANTIC_EDGES = 240;
 const REPOSITORY_GRAPH_MAX_PROMPT_CHARS = 2048;
+const REPOSITORY_GRAPH_MAX_EVIDENCE = 4;
+const IMPACT_GRAPH_MAX_TARGETS = 120;
+const IMPACT_GRAPH_MAX_RELATIONS = 40;
+const IMPACT_GRAPH_MAX_COVERAGE_ITEMS = 80;
 const REPOSITORY_GRAPH_NODE_TYPES = new Set([
   "entrypoint",
   "module",
   "test",
   "manifest",
   "workflow",
+  "doc",
+  "config",
   "file",
 ]);
 const REPOSITORY_GRAPH_EDGE_TYPES = new Set([
@@ -306,7 +341,10 @@ const REPOSITORY_GRAPH_EDGE_TYPES = new Set([
   "calls",
   "configures",
   "depends_on",
+  "tests",
+  "documents",
 ]);
+const IMPACT_GRAPH_MODES = new Set(["repository", "changeset", "issue"]);
 const REPOSITORY_SEMANTIC_NODE_TYPES = new Set([
   "class",
   "component",
@@ -326,10 +364,17 @@ const REPOSITORY_SEMANTIC_EDGE_TYPES = new Set([
 ]);
 const REPOSITORY_GRAPH_ID_RE = /^[A-Za-z0-9_.:/@-]{1,180}$/;
 
+function isSafeRepositoryGraphId(value) {
+  const id = textValue(value);
+  if (!REPOSITORY_GRAPH_ID_RE.test(id)) return false;
+  if (/^[A-Za-z]:\//.test(id) || id.startsWith("/")) return false;
+  return !/(^|:)(file|dir|symbol):([A-Za-z]:\/|\/)/i.test(id);
+}
+
 function normalizeRepositoryGraph(value) {
   if (!objectRecord(value)) return null;
   const version = textValue(value.version);
-  if (version !== REPOSITORY_GRAPH_PROTOCOL_VERSION) return null;
+  if (!REPOSITORY_GRAPH_PROTOCOL_VERSIONS.has(version)) return null;
   const nodes = [];
   const nodeIds = new Set();
   const rawNodes = Array.isArray(value.nodes) ? value.nodes : [];
@@ -364,6 +409,8 @@ function normalizeRepositoryGraph(value) {
       value.architectureSummary ?? value.architecture_summary
     ),
   };
+  const impactGraph = normalizeImpactGraph(value.impactGraph ?? value.impact_graph);
+  if (impactGraph) graph.impactGraph = impactGraph;
   if (!graph.summary) delete graph.summary;
   if (!Object.keys(graph.architectureSummary).length) delete graph.architectureSummary;
   return graph;
@@ -374,7 +421,7 @@ function normalizeRepositoryGraphNode(value) {
   const id = textValue(value.id);
   const type = textValue(value.type);
   const path = normalizeRepositoryGraphPath(value.path);
-  if (!id || !REPOSITORY_GRAPH_ID_RE.test(id) || !REPOSITORY_GRAPH_NODE_TYPES.has(type) || !path) {
+  if (!id || !isSafeRepositoryGraphId(id) || !REPOSITORY_GRAPH_NODE_TYPES.has(type) || !path) {
     return null;
   }
   const node = {
@@ -404,10 +451,14 @@ function normalizeRepositoryGraphEdge(value, nodeIds) {
     return null;
   }
   const fallbackId = `${type}:${source}->${target}`.slice(0, 180);
-  const id = REPOSITORY_GRAPH_ID_RE.test(textValue(value.id)) ? textValue(value.id) : fallbackId;
+  const id = isSafeRepositoryGraphId(value.id) ? textValue(value.id) : fallbackId;
   const edge = { id, source, target, type };
   const weight = Number(value.weight);
   if (Number.isFinite(weight) && weight > 0) edge.weight = Math.min(100, Math.trunc(weight));
+  const confidence = optionalUnitNumber(value.confidence);
+  if (confidence !== null) edge.confidence = confidence;
+  const evidence = normalizeRepositoryGraphEvidence(value.evidence);
+  if (evidence.length) edge.evidence = evidence;
   return edge;
 }
 
@@ -438,6 +489,233 @@ function normalizeRepositoryGraphArchitectureSummary(value) {
   const promptText = multilineTextValue(value.promptText ?? value.prompt_text, REPOSITORY_GRAPH_MAX_PROMPT_CHARS);
   if (promptText) summary.promptText = promptText;
   return summary;
+}
+
+function optionalUnitNumber(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.max(0, Math.min(1, number));
+}
+
+function normalizeRepositoryGraphEvidence(value, { maxItems = REPOSITORY_GRAPH_MAX_EVIDENCE } = {}) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!objectRecord(item)) {
+        const text = firstLineText(item).slice(0, 180);
+        return text ? { text } : null;
+      }
+      const evidence = {};
+      const kind = textValue(item.kind, item.type).slice(0, 40);
+      const file = normalizeRepositoryGraphPath(item.file ?? item.path);
+      const line = normalizeQuotaCount(item.line ?? item.startLine ?? item.start_line, 0);
+      const text = firstLineText(item.text ?? item.summary ?? item.label ?? item.command).slice(
+        0,
+        180
+      );
+      if (kind) evidence.kind = kind;
+      if (file) evidence.file = file;
+      if (line) evidence.line = line;
+      if (text) evidence.text = text;
+      return Object.keys(evidence).length ? evidence : null;
+    })
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+export function normalizeImpactGraph(value) {
+  const source =
+    objectRecord(value?.impactGraph) && !textValue(value.version) ? value.impactGraph : value;
+  if (!objectRecord(source)) return null;
+  const version = textValue(source.version);
+  if (version !== REPOSITORY_IMPACT_GRAPH_PROTOCOL_VERSION) return null;
+  const targets = [];
+  const targetIds = new Set();
+  const rawTargets = Array.isArray(source.targets) ? source.targets : [];
+  for (const item of rawTargets) {
+    const target = normalizeImpactTarget(item);
+    if (!target || targetIds.has(target.id)) continue;
+    targetIds.add(target.id);
+    targets.push(target);
+    if (targets.length >= IMPACT_GRAPH_MAX_TARGETS) break;
+  }
+  const changedFiles = normalizeImpactPathList(source.changedFiles ?? source.changed_files).slice(
+    0,
+    IMPACT_GRAPH_MAX_COVERAGE_ITEMS
+  );
+  const mode = textValue(source.mode);
+  const graph = {
+    version,
+    mode: IMPACT_GRAPH_MODES.has(mode) ? mode : "repository",
+    summary: textValue(source.summary),
+    stats: normalizeImpactStats(source.stats, targets, changedFiles),
+    changedFiles,
+    targets,
+    coverage: normalizeImpactCoverage(source.coverage),
+    promptText: multilineTextValue(
+      source.promptText ?? source.prompt_text,
+      REPOSITORY_GRAPH_MAX_PROMPT_CHARS
+    ),
+  };
+  if (!graph.summary) delete graph.summary;
+  if (!graph.promptText) delete graph.promptText;
+  return graph;
+}
+
+export function normalizeImpactTarget(value) {
+  if (!objectRecord(value)) return null;
+  const rawId = textValue(value.id);
+  let path = normalizeRepositoryGraphPath(value.path ?? value.file);
+  if (!path && rawId.startsWith("file:")) {
+    path = normalizeRepositoryGraphPath(rawId.slice(5));
+  }
+  if (!path) return null;
+  const fallbackId = `file:${path}`.slice(0, 180);
+  const id = isSafeRepositoryGraphId(rawId) ? rawId : fallbackId;
+  const target = {
+    id,
+    path,
+    label: textValue(value.label).slice(0, 80) || path.split("/").pop() || path,
+    type: textValue(value.type) || "file",
+    relations: normalizeImpactRelations(value.relations),
+    gaps: normalizeTextList(value.gaps).slice(0, 20),
+  };
+  const risk = optionalUnitNumber(value.risk);
+  if (risk !== null) target.risk = risk;
+  const evidence = normalizeRepositoryGraphEvidence(value.evidence, { maxItems: 8 });
+  if (evidence.length) target.evidence = evidence;
+  return target;
+}
+
+function normalizeImpactRelations(value) {
+  const source = objectRecord(value) ? value : {};
+  return {
+    tests: normalizeImpactRelationList(source.tests ?? source.test),
+    documents: normalizeImpactRelationList(
+      source.documents ?? source.docs ?? source.documentation
+    ),
+    configures: normalizeImpactRelationList(source.configures ?? source.config ?? source.configs),
+    ci: normalizeImpactRelationList(source.ci ?? source.CI ?? source.workflows),
+    imports: normalizeImpactRelationList(source.imports),
+    importedBy: normalizeImpactRelationList(source.importedBy ?? source.imported_by),
+    symbols: normalizeImpactRelationList(source.symbols),
+  };
+}
+
+function normalizeImpactRelationList(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(normalizeImpactRelation).filter(Boolean).slice(0, IMPACT_GRAPH_MAX_RELATIONS);
+}
+
+export function normalizeImpactRelation(value) {
+  if (!objectRecord(value)) {
+    const path = normalizeRepositoryGraphPath(value);
+    if (!path) return null;
+    return {
+      id: `file:${path}`.slice(0, 180),
+      path,
+      label: path.split("/").pop() || path,
+    };
+  }
+  const path = normalizeRepositoryGraphPath(
+    value.path ??
+      value.file ??
+      value.targetPath ??
+      value.target_path ??
+      value.sourcePath ??
+      value.source_path
+  );
+  const label = textValue(value.label, value.name).slice(0, 100);
+  const rawId = textValue(value.id);
+  const fallbackId = (path ? `file:${path}` : label ? `relation:${label}` : "").slice(0, 180);
+  const id = isSafeRepositoryGraphId(rawId) ? rawId : fallbackId;
+  if (!id && !path && !label) return null;
+  const relation = {
+    id: id || label,
+    label: label || path.split("/").pop() || id,
+  };
+  if (path) relation.path = path;
+  const type = textValue(value.type, value.kind);
+  if (type) relation.type = type;
+  const line = normalizeLineNumber(value.line ?? value.startLine ?? value.start_line);
+  if (line) relation.line = line;
+  const confidence = optionalUnitNumber(value.confidence);
+  if (confidence !== null) relation.confidence = confidence;
+  const evidence = normalizeRepositoryGraphEvidence(value.evidence);
+  if (evidence.length) relation.evidence = evidence;
+  return relation;
+}
+
+function normalizeImpactPathList(values) {
+  if (!Array.isArray(values)) return [];
+  return [
+    ...new Set(
+      values
+        .map((item) =>
+          objectRecord(item)
+            ? normalizeRepositoryGraphPath(item.path ?? item.file)
+            : normalizeRepositoryGraphPath(item)
+        )
+        .filter(Boolean)
+    ),
+  ];
+}
+
+export function normalizeImpactCoverage(value) {
+  const source = objectRecord(value) ? value : {};
+  return {
+    sourceFilesWithoutTests: normalizeImpactPathList(
+      source.sourceFilesWithoutTests ?? source.source_files_without_tests
+    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
+    sourceFilesWithoutDocs: normalizeImpactPathList(
+      source.sourceFilesWithoutDocs ?? source.source_files_without_docs
+    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
+    testsWithoutTargets: normalizeImpactPathList(
+      source.testsWithoutTargets ?? source.tests_without_targets
+    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
+    docsWithoutTargets: normalizeImpactPathList(
+      source.docsWithoutTargets ?? source.docs_without_targets
+    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
+  };
+}
+
+function normalizeImpactStats(value, targets, changedFiles) {
+  const source = objectRecord(value) ? value : {};
+  const relationCount = (key) =>
+    targets.reduce((total, target) => total + (target.relations?.[key]?.length || 0), 0);
+  const configuredRelationCount = relationCount("configures") + relationCount("ci");
+  return {
+    targets: normalizeQuotaCount(source.targets, targets.length),
+    testedTargets: normalizeQuotaCount(
+      source.testedTargets ?? source.tested_targets,
+      targets.filter((target) => target.relations.tests.length > 0).length
+    ),
+    documentedTargets: normalizeQuotaCount(
+      source.documentedTargets ?? source.documented_targets,
+      targets.filter((target) => target.relations.documents.length > 0).length
+    ),
+    configuredTargets: normalizeQuotaCount(
+      source.configuredTargets ?? source.configured_targets,
+      targets.filter(
+        (target) => target.relations.configures.length > 0 || target.relations.ci.length > 0
+      ).length
+    ),
+    testsEdges: normalizeQuotaCount(source.testsEdges ?? source.tests_edges, relationCount("tests")),
+    documentsEdges: normalizeQuotaCount(
+      source.documentsEdges ?? source.documents_edges,
+      relationCount("documents")
+    ),
+    configuresEdges: normalizeQuotaCount(
+      source.configuresEdges ?? source.configures_edges,
+      configuredRelationCount
+    ),
+    changedFiles: normalizeQuotaCount(
+      source.changedFiles ?? source.changed_files,
+      changedFiles.length
+    ),
+    truncated: normalizeBoolean(source.truncated),
+  };
 }
 
 function normalizeRepositorySemanticGraph(value) {
@@ -483,7 +761,7 @@ function normalizeRepositorySemanticNode(value) {
   const id = textValue(value.id);
   const type = textValue(value.type);
   const path = normalizeRepositoryGraphPath(value.path);
-  if (!id || !REPOSITORY_GRAPH_ID_RE.test(id) || !REPOSITORY_SEMANTIC_NODE_TYPES.has(type) || !path) {
+  if (!id || !isSafeRepositoryGraphId(id) || !REPOSITORY_SEMANTIC_NODE_TYPES.has(type) || !path) {
     return null;
   }
   const node = {
@@ -517,10 +795,14 @@ function normalizeRepositorySemanticEdge(value, nodeIds) {
     return null;
   }
   const fallbackId = `${type}:${source}->${target}`.slice(0, 180);
-  const id = REPOSITORY_GRAPH_ID_RE.test(textValue(value.id)) ? textValue(value.id) : fallbackId;
+  const id = isSafeRepositoryGraphId(value.id) ? textValue(value.id) : fallbackId;
   const edge = { id, source, target, type };
   const weight = Number(value.weight);
   if (Number.isFinite(weight) && weight > 0) edge.weight = Math.min(100, Math.trunc(weight));
+  const confidence = optionalUnitNumber(value.confidence);
+  if (confidence !== null) edge.confidence = confidence;
+  const evidence = normalizeRepositoryGraphEvidence(value.evidence);
+  if (evidence.length) edge.evidence = evidence;
   return edge;
 }
 
@@ -1304,6 +1586,13 @@ export function normalizeScan(scan = {}) {
         : null
     ) ||
     null;
+  const rawImpactGraph =
+    scan.impactGraph ??
+    scan.impact_graph ??
+    (objectRecord(rawRepositoryGraph)
+      ? rawRepositoryGraph.impactGraph ?? rawRepositoryGraph.impact_graph
+      : null);
+  const impactGraph = normalizeImpactGraph(rawImpactGraph) || repositoryGraph?.impactGraph || null;
   return {
     ...scan,
     id: textValue(scan.id),
@@ -1325,6 +1614,7 @@ export function normalizeScan(scan = {}) {
     auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
     repositoryGraph,
     semanticGraph,
+    impactGraph,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,

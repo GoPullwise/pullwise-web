@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import cytoscape from "cytoscape";
+import { ImpactGraphPanel } from "../components/impact/ImpactGraphPanel.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
@@ -43,6 +44,64 @@ function repoQuotaLabel(quota) {
       ? T(`${remaining} of ${limit} account scans left`, `账户扫描剩余 ${remaining} / ${limit}`)
       : T(`${remaining} of ${limit} repo scans left`, `仓库扫描剩余 ${remaining} / ${limit}`);
   return reset ? `${leftText} - ${reset}` : leftText;
+}
+
+function formatCount(value) {
+  return String(quotaNumber(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatBytes(value) {
+  const bytes = quotaNumber(value);
+  if (bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  const rounded = size >= 10 ? Math.round(size) : Math.round(size * 10) / 10;
+  return `${rounded.toLocaleString()} ${units[unitIndex]}`;
+}
+
+function repositoryLimitReasonLabel(reason) {
+  switch (reason) {
+    case "file_count":
+      return T("file count", "文件数量");
+    case "total_bytes":
+      return T("total size", "总大小");
+    default:
+      return String(reason || "").replace(/_/g, " ");
+  }
+}
+
+function hasRepositoryLimitEvidence(preflight) {
+  return Boolean(
+    preflight?.repositoryStats ||
+      preflight?.repositoryLimits ||
+      preflight?.repositoryLimitExceeded ||
+      preflight?.repositoryLimitReasons?.length
+  );
+}
+
+function normalizeRepositoryScanPolicyLimits(value) {
+  if (!value || typeof value !== "object") return null;
+  const maxFiles = quotaNumber(value.maxFiles);
+  const maxBytes = quotaNumber(value.maxBytes);
+  return maxFiles || maxBytes ? { maxFiles, maxBytes } : null;
+}
+
+function repositoryScanPolicyLimitText(limits) {
+  if (!limits) {
+    return T(
+      "Current checkout limits are confirmed during scan preflight and shown with the measured repository size.",
+      "当前 checkout 限制会在扫描预检中确认，并和实际仓库大小一起展示。"
+    );
+  }
+  return T(
+    `Current checkout limit: ${formatCount(limits.maxFiles)} files / ${formatBytes(limits.maxBytes)}.`,
+    `当前 checkout 限制：${formatCount(limits.maxFiles)} 个文件 / ${formatBytes(limits.maxBytes)}。`
+  );
 }
 
 function quotaRemaining(quota) {
@@ -409,6 +468,12 @@ function scanPreflightSummary(scans) {
       preflights.length === 1
         ? preflights[0].summary
         : `${preflights.length} repository preflights captured without running project scripts.`,
+    repositoryStats: preflights.length === 1 ? preflights[0].repositoryStats || null : null,
+    repositoryLimits: preflights.find((preflight) => preflight.repositoryLimits)?.repositoryLimits || null,
+    repositoryLimitExceeded: preflights.some((preflight) => preflight.repositoryLimitExceeded),
+    repositoryLimitReasons: uniqueStrings(
+      preflights.flatMap((preflight) => preflight.repositoryLimitReasons || [])
+    ),
     languages: uniqueStrings(preflights.flatMap((preflight) => preflight.languages || [])).slice(
       0,
       6
@@ -865,6 +930,7 @@ export function ReposScreen({
   } = useRepositories();
   const displayError = error || connectError || authorizationError;
   const hasInstallationDetails = Array.isArray(installations) && installations.length > 0;
+  const [scanPolicyLimits, setScanPolicyLimits] = useState(null);
   const allLabel = T("All", "所有");
   const orgs = useMemo(
     () => [
@@ -881,6 +947,23 @@ export function ReposScreen({
   const refreshGitHubRepositoryAccess = useCallback(async () => {
     await reload({ sync: true });
   }, [reload]);
+  useEffect(() => {
+    if (typeof pullwiseApi.system?.health !== "function") return undefined;
+    let cancelled = false;
+    pullwiseApi.system
+      .health()
+      .then((payload) => {
+        if (!cancelled) {
+          setScanPolicyLimits(normalizeRepositoryScanPolicyLimits(payload?.limits?.repository));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setScanPolicyLimits(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const repos = availableRepos.filter((repo) => {
     const matchesOrg = !activeOwner || repoOwner(repo) === activeOwner;
     const matchesQuery =
@@ -1355,6 +1438,29 @@ export function ReposScreen({
           </div>
 
           <div className="repos-list">
+            <div className="repo-row repo-row-status repo-scan-policy">
+              <div className="repo-icon">
+                <I.Shield size={16} />
+              </div>
+              <div className="repo-main">
+                <div className="repo-name">
+                  <span>{T("Which repositories can be scanned", "哪些仓库可以扫描")}</span>
+                </div>
+                <div className="repo-desc">
+                  {T(
+                    "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before verifier and AI review and shows the measured size.",
+                    "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。"
+                  )}
+                </div>
+                <div className="repo-desc">{repositoryScanPolicyLimitText(scanPolicyLimits)}</div>
+                <div className="repo-desc">
+                  {T(
+                    "Private repositories and forks can be scanned when authorized. Forks share repository quota with their source repository; language is detected for context and is not an allowlist. The selected branch must exist in GitHub.",
+                    "私有仓库和 fork 仓库只要已授权即可扫描。fork 会与源仓库共享仓库配额；语言只作为上下文识别，不是允许名单。所选分支必须存在于 GitHub。"
+                  )}
+                </div>
+              </div>
+            </div>
             {selectionNotice && (
               <div className="repo-row repo-row-status quota-selection-alert" role="alert">
                 <div className="repo-icon">
@@ -1486,6 +1592,11 @@ export function ReposScreen({
                       {repo.private && (
                         <span className="tag">
                           <I.Lock size={10} /> private
+                        </span>
+                      )}
+                      {repo.fork && (
+                        <span className="tag">
+                          <I.GitBranch size={10} /> fork
                         </span>
                       )}
                     </div>
@@ -2225,6 +2336,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const auditSwarm = scanAuditSwarmSummary(scans);
   const repositoryGraph = batchMode ? null : scan?.repositoryGraph || null;
   const semanticGraph = batchMode ? null : scan?.semanticGraph || null;
+  const impactGraph = batchMode ? null : scan?.impactGraph || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const terminal = batchMode
     ? expectedBatchCount > 0 &&
@@ -2467,6 +2579,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               })}
             </div>
 
+            {!batchMode && (impactGraph || terminal) && <ImpactGraphPanel impactGraph={impactGraph} />}
+
             {(repositoryGraph || semanticGraph) && (
               <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
             )}
@@ -2525,6 +2639,67 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     </span>
                   ))}
                 </div>
+                {hasRepositoryLimitEvidence(preflight) && (
+                  <div
+                    className={
+                      "scan-repository-limits" +
+                      (preflight.repositoryLimitExceeded ? " exceeded" : "")
+                    }
+                  >
+                    <div className="scan-repository-limits-head">
+                      <I.Database size={13} />
+                      <span>{T("Repository scan limits", "仓库扫描限制")}</span>
+                    </div>
+                    <div className="muted scan-preflight-summary">
+                      {preflight.repositoryLimitExceeded
+                        ? T(
+                            "This checkout exceeded the worker limits, so verifier commands and AI review were not run.",
+                            "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。"
+                          )
+                        : T(
+                            "This checkout was within the worker limits used for this scan.",
+                            "此仓库 checkout 未超过本次扫描使用的 worker 限制。"
+                          )}
+                    </div>
+                    <div className="scan-preflight-meta">
+                      {preflight.repositoryStats && (
+                        <span className={preflight.repositoryLimitExceeded ? "preflight-warn" : ""}>
+                          {T(
+                            `Checkout: ${formatCount(preflight.repositoryStats.fileCount)} files / ${formatBytes(preflight.repositoryStats.totalBytes)}`,
+                            `检出规模：${formatCount(preflight.repositoryStats.fileCount)} 个文件 / ${formatBytes(preflight.repositoryStats.totalBytes)}`
+                          )}
+                        </span>
+                      )}
+                      {preflight.repositoryLimits && (
+                        <span>
+                          {T(
+                            `Limit: ${formatCount(preflight.repositoryLimits.maxFiles)} files / ${formatBytes(preflight.repositoryLimits.maxBytes)}`,
+                            `限制：${formatCount(preflight.repositoryLimits.maxFiles)} 个文件 / ${formatBytes(preflight.repositoryLimits.maxBytes)}`
+                          )}
+                        </span>
+                      )}
+                      {preflight.repositoryLimitReasons?.length > 0 &&
+                        (() => {
+                          const reasons = uniqueStrings(
+                            preflight.repositoryLimitReasons.map(repositoryLimitReasonLabel)
+                          ).join(", ");
+                          return (
+                            <span className="preflight-warn">
+                              {T(`Reasons: ${reasons}`, `命中限制：${reasons}`)}
+                            </span>
+                          );
+                        })()}
+                      {preflight.repositoryStats?.scanStoppedEarly && (
+                        <span className="preflight-warn">
+                          {T(
+                            "Counting stopped after a limit was reached.",
+                            "达到限制后已停止继续计数。"
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <div className="scan-preflight-meta">
                   <span>
                     {T(
