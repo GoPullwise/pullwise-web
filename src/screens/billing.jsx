@@ -32,6 +32,14 @@ function priceLabel(price) {
   return `${currencySymbol(price.currency)}${amount}`;
 }
 
+function priceLabelWithInterval(plan, interval) {
+  return `${priceLabel(priceFor(plan, interval))}/${intervalUnit(interval)}`;
+}
+
+function intervalUnit(interval) {
+  return interval === "year" ? "year" : "month";
+}
+
 function currencySymbol(currency) {
   return String(currency || "USD").toUpperCase() === "USD" ? "$" : `${currency || "USD"} `;
 }
@@ -40,6 +48,112 @@ function priceAmount(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount) || amount < 0) return null;
   return amount;
+}
+
+function normalizedCurrency(price) {
+  return String(price?.currency || "USD").toUpperCase();
+}
+
+function formattedAmount(value) {
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function moneyLabel(value, currency) {
+  return `${currencySymbol(currency)}${formattedAmount(Math.abs(value))}`;
+}
+
+function annualizedPriceAmount(amount, interval) {
+  return interval === "year" ? amount : amount * 12;
+}
+
+function billingChangeDeltaText(currentPlan, currentInterval, targetPlan, targetInterval) {
+  const currentPrice = priceFor(currentPlan, currentInterval);
+  const targetPrice = priceFor(targetPlan, targetInterval);
+  const currentAmount = priceAmount(currentPrice?.amount);
+  const targetAmount = priceAmount(targetPrice?.amount);
+  if (
+    currentAmount == null ||
+    targetAmount == null ||
+    normalizedCurrency(currentPrice) !== normalizedCurrency(targetPrice)
+  ) {
+    return T("Final amount is calculated by Creem.", "Final amount is calculated by Creem.");
+  }
+
+  const currency = normalizedCurrency(targetPrice);
+  if (currentInterval === targetInterval) {
+    const delta = targetAmount - currentAmount;
+    if (delta > 0) {
+      return T(
+        `${moneyLabel(delta, currency)} more per ${intervalUnit(targetInterval)}`,
+        `${moneyLabel(delta, currency)} more per ${intervalUnit(targetInterval)}`
+      );
+    }
+    if (delta < 0) {
+      return T(
+        `${moneyLabel(delta, currency)} less per ${intervalUnit(targetInterval)}`,
+        `${moneyLabel(delta, currency)} less per ${intervalUnit(targetInterval)}`
+      );
+    }
+    return T("No listed price change.", "No listed price change.");
+  }
+
+  const annualDelta =
+    annualizedPriceAmount(targetAmount, targetInterval) -
+    annualizedPriceAmount(currentAmount, currentInterval);
+  if (annualDelta > 0) {
+    return T(
+      `${moneyLabel(annualDelta, currency)} more per year`,
+      `${moneyLabel(annualDelta, currency)} more per year`
+    );
+  }
+  if (annualDelta < 0) {
+    return T(
+      `${moneyLabel(annualDelta, currency)} less per year`,
+      `${moneyLabel(annualDelta, currency)} less per year`
+    );
+  }
+  return T("No listed annual price change.", "No listed annual price change.");
+}
+
+function planRank(plan) {
+  const ranks = { free: 0, pro: 1, max: 2 };
+  if (Object.prototype.hasOwnProperty.call(ranks, plan?.id)) return ranks[plan.id];
+  return nonNegativeInteger(plan?.reviewLimit);
+}
+
+function billingChangeDirection(currentPlan, currentInterval, targetPlan, targetInterval) {
+  if (targetPlan?.id !== currentPlan?.id) {
+    return planRank(targetPlan) < planRank(currentPlan) ? "downgrade" : "upgrade";
+  }
+  if (currentInterval !== targetInterval) return "upgrade";
+
+  const currentAmount = priceAmount(priceFor(currentPlan, currentInterval)?.amount);
+  const targetAmount = priceAmount(priceFor(targetPlan, targetInterval)?.amount);
+  if (currentAmount != null && targetAmount != null) {
+    const currentAnnual = annualizedPriceAmount(currentAmount, currentInterval);
+    const targetAnnual = annualizedPriceAmount(targetAmount, targetInterval);
+    if (targetAnnual < currentAnnual) return "downgrade";
+    if (targetAnnual > currentAnnual) return "upgrade";
+  }
+  return "change";
+}
+
+function billingChangeImpactText(direction) {
+  if (direction === "downgrade") {
+    return T(
+      "Your plan changes now. Unused time and tax may be refunded to the original payment method. Final refund is calculated by Creem.",
+      "Your plan changes now. Unused time and tax may be refunded to the original payment method. Final refund is calculated by Creem."
+    );
+  }
+  return T(
+    "Your plan changes now. Creem may charge the prorated difference immediately. Final tax and proration are calculated by Creem.",
+    "Your plan changes now. Creem may charge the prorated difference immediately. Final tax and proration are calculated by Creem."
+  );
+}
+
+function subscriptionChangeActionKey(targetPlan, targetInterval) {
+  return `change-${targetPlan}-${targetInterval}`;
 }
 
 function isActiveStatus(status) {
@@ -238,6 +352,7 @@ export function BillingScreen({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState("");
+  const [changeDraft, setChangeDraft] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -285,6 +400,33 @@ export function BillingScreen({
   const usageResetText = quotaResetText(usage, "Monthly quota resets");
   const billingEnabled = Boolean(plan?.enabled);
   const alternatePaidPlans = paidPlans.filter((paidPlan) => paidPlan.id !== account.plan);
+  const changeDetails = useMemo(() => {
+    if (!changeDraft) return null;
+    const targetPlan = paidPlanById[changeDraft.targetPlan] || currentPlan;
+    const targetInterval = changeDraft.targetInterval || subscriptionInterval;
+    const direction = billingChangeDirection(
+      currentPlan,
+      subscriptionInterval,
+      targetPlan,
+      targetInterval
+    );
+    return {
+      currentPlan,
+      currentInterval: subscriptionInterval,
+      currentPrice: priceLabelWithInterval(currentPlan, subscriptionInterval),
+      targetPlan,
+      targetInterval,
+      targetPrice: priceLabelWithInterval(targetPlan, targetInterval),
+      deltaText: billingChangeDeltaText(
+        currentPlan,
+        subscriptionInterval,
+        targetPlan,
+        targetInterval
+      ),
+      impactText: billingChangeImpactText(direction),
+      actionKey: subscriptionChangeActionKey(targetPlan.id, targetInterval),
+    };
+  }, [changeDraft, currentPlan, paidPlanById, subscriptionInterval]);
 
   const openPortal = async () => {
     setPendingAction("portal");
@@ -305,7 +447,7 @@ export function BillingScreen({
     targetPlan = account.plan,
     targetInterval = subscriptionInterval,
   }) => {
-    const actionKey = `change-${targetPlan}-${targetInterval}`;
+    const actionKey = subscriptionChangeActionKey(targetPlan, targetInterval);
     setPendingAction(actionKey);
     setError("");
     try {
@@ -329,11 +471,35 @@ export function BillingScreen({
           status: result?.status || accountStatus,
         },
       }));
+      setChangeDraft(null);
       setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to change subscription.");
       setPendingAction("");
     }
+  };
+
+  const requestSubscriptionChange = ({
+    targetPlan = account.plan,
+    targetInterval = subscriptionInterval,
+  }) => {
+    setError("");
+    setChangeDraft({
+      targetPlan,
+      targetInterval,
+    });
+  };
+
+  const closeChangeConfirmation = () => {
+    if (!pendingAction) setChangeDraft(null);
+  };
+
+  const confirmSubscriptionChange = () => {
+    if (!changeDetails) return;
+    changeSubscription({
+      targetPlan: changeDetails.targetPlan.id,
+      targetInterval: changeDetails.targetInterval,
+    });
   };
 
   const cancelSubscription = async () => {
@@ -457,7 +623,7 @@ export function BillingScreen({
                           className="btn primary"
                           disabled={Boolean(pendingAction)}
                           onClick={() =>
-                            changeSubscription({
+                            requestSubscriptionChange({
                               targetPlan: paidPlan.id,
                               targetInterval: subscriptionInterval,
                             })
@@ -476,7 +642,7 @@ export function BillingScreen({
                         <button
                           className="btn"
                           disabled={Boolean(pendingAction)}
-                          onClick={() => changeSubscription({ targetInterval: "year" })}
+                          onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
                         >
                           {pendingAction === `change-${account.plan}-year` && (
                             <span className="spin" style={{ display: "inline-block" }}>
@@ -489,7 +655,7 @@ export function BillingScreen({
                         <button
                           className="btn"
                           disabled={Boolean(pendingAction)}
-                          onClick={() => changeSubscription({ targetInterval: "month" })}
+                          onClick={() => requestSubscriptionChange({ targetInterval: "month" })}
                         >
                           {pendingAction === `change-${account.plan}-month` && (
                             <span className="spin" style={{ display: "inline-block" }}>
@@ -568,6 +734,95 @@ export function BillingScreen({
           </div>
         </div>
       </div>
+      {changeDetails && (
+        <div className="modal-back billing-change-back" onClick={closeChangeConfirmation}>
+          <div
+            className="modal billing-change-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="billing-change-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-h">
+              <div>
+                <h3 id="billing-change-title">
+                  <I.Package size={15} /> {T("Confirm billing change", "Confirm billing change")}
+                </h3>
+                <p>
+                  {T(
+                    "Review the plan and billing impact before anything changes.",
+                    "Review the plan and billing impact before anything changes."
+                  )}
+                </p>
+              </div>
+              <button
+                className="btn ghost icon"
+                type="button"
+                aria-label={T(
+                  "Close billing change confirmation",
+                  "Close billing change confirmation"
+                )}
+                disabled={Boolean(pendingAction)}
+                onClick={closeChangeConfirmation}
+              >
+                <I.X size={14} />
+              </button>
+            </div>
+            <div className="modal-body billing-change-body">
+              <div className="billing-change-grid">
+                <div className="billing-change-box">
+                  <span>{T("Current", "Current")}</span>
+                  <b>{planName(changeDetails.currentPlan)}</b>
+                  <em>{changeDetails.currentPrice}</em>
+                </div>
+                <I.ArrowR className="billing-change-arrow" size={16} />
+                <div className="billing-change-box">
+                  <span>{T("New", "New")}</span>
+                  <b>{planName(changeDetails.targetPlan)}</b>
+                  <em>{changeDetails.targetPrice}</em>
+                </div>
+              </div>
+              <div className="billing-change-delta">
+                <I.Trend size={15} />
+                <span>{changeDetails.deltaText}</span>
+              </div>
+              <div className="billing-change-notice">
+                <I.Clock size={15} />
+                <span>{changeDetails.impactText}</span>
+              </div>
+              <p className="muted billing-change-copy">
+                {T(
+                  "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem.",
+                  "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem."
+                )}
+              </p>
+            </div>
+            <div className="modal-foot">
+              <button
+                className="btn ghost"
+                type="button"
+                disabled={Boolean(pendingAction)}
+                onClick={closeChangeConfirmation}
+              >
+                {T("Cancel", "Cancel")}
+              </button>
+              <button
+                className="btn primary"
+                type="button"
+                disabled={Boolean(pendingAction)}
+                onClick={confirmSubscriptionChange}
+              >
+                {pendingAction === changeDetails.actionKey && (
+                  <span className="spin" style={{ display: "inline-block" }}>
+                    <I.Refresh size={14} />
+                  </span>
+                )}
+                <I.Check size={14} /> {T("Confirm change", "Confirm change")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

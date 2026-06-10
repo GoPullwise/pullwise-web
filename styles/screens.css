@@ -4066,7 +4066,88 @@ button.dash-cat-row:hover {
   flex: 1 1 auto;
   justify-content: center;
 }
+.billing-change-modal .modal-h {
+  align-items: flex-start;
+  gap: 12px;
+}
+.billing-change-modal .modal-h h3 {
+  gap: 8px;
+}
+.billing-change-modal .modal-h p {
+  margin: 6px 0 0;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.billing-change-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.billing-change-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+.billing-change-box {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.billing-change-box span {
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.billing-change-box b,
+.billing-change-box em {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.billing-change-box em {
+  color: var(--text-2);
+  font-size: 13px;
+  font-style: normal;
+}
+.billing-change-arrow {
+  align-self: center;
+  color: var(--text-3);
+}
+.billing-change-delta,
+.billing-change-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: flex-start;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.billing-change-delta {
+  color: var(--text);
+}
+.billing-change-copy {
+  margin: 0;
+  line-height: 1.5;
+}
 @media (max-width: 720px) {
+  .billing-change-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .billing-change-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
   .api-key-name-row {
     grid-template-columns: minmax(0, 1fr);
   }

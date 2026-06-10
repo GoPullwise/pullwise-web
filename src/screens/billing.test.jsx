@@ -496,7 +496,7 @@ describe("BillingScreen", () => {
     });
   });
 
-  it("lets active monthly subscribers switch to yearly or manage billing", async () => {
+  it("asks active monthly subscribers to confirm yearly switching before changing billing", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {
@@ -518,6 +518,16 @@ describe("BillingScreen", () => {
 
     await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
 
+    expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
+    const dialog = await screen.findByRole("dialog", { name: /confirm billing change/i });
+    expect(dialog).toHaveTextContent("Pullwise Pro");
+    expect(dialog).toHaveTextContent("$29/month");
+    expect(dialog).toHaveTextContent("$290/year");
+    expect(dialog).toHaveTextContent("$58 less per year");
+    expect(dialog).toHaveTextContent(/Creem may charge the prorated difference immediately/i);
+
+    await user.click(screen.getByRole("button", { name: /confirm change/i }));
+
     await waitFor(() => {
       expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -532,7 +542,7 @@ describe("BillingScreen", () => {
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();
   });
 
-  it("lets active Pro subscribers switch to Max through subscription update", async () => {
+  it("asks active Pro subscribers to confirm Max switching before changing billing", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       plans: [
@@ -567,6 +577,17 @@ describe("BillingScreen", () => {
 
     await user.click(await screen.findByRole("button", { name: /switch to max/i }));
 
+    expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
+    const dialog = await screen.findByRole("dialog", { name: /confirm billing change/i });
+    expect(dialog).toHaveTextContent("Pullwise Pro");
+    expect(dialog).toHaveTextContent("Pullwise Max");
+    expect(dialog).toHaveTextContent("$29/month");
+    expect(dialog).toHaveTextContent("$49/month");
+    expect(dialog).toHaveTextContent("$20 more per month");
+    expect(dialog).toHaveTextContent(/Creem may charge the prorated difference immediately/i);
+
+    await user.click(screen.getByRole("button", { name: /confirm change/i }));
+
     await waitFor(() => {
       expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -580,7 +601,7 @@ describe("BillingScreen", () => {
     });
   });
 
-  it("lets active Max subscribers switch down to Pro through subscription update", async () => {
+  it("asks active Max subscribers to confirm Pro switching before changing billing", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       plans: [
@@ -614,6 +635,17 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: /switch to pro/i }));
+
+    expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
+    const dialog = await screen.findByRole("dialog", { name: /confirm billing change/i });
+    expect(dialog).toHaveTextContent("Pullwise Max");
+    expect(dialog).toHaveTextContent("Pullwise Pro");
+    expect(dialog).toHaveTextContent("$490/year");
+    expect(dialog).toHaveTextContent("$290/year");
+    expect(dialog).toHaveTextContent("$200 less per year");
+    expect(dialog).toHaveTextContent(/unused time and tax may be refunded/i);
+
+    await user.click(screen.getByRole("button", { name: /confirm change/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
@@ -766,6 +798,7 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={vi.fn()} navigate={navigate} />);
 
     await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm change/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing interval URL/i);
     expect(navigate).not.toHaveBeenCalled();
@@ -792,6 +825,7 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={vi.fn()} navigate={navigate} />);
 
     await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm change/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing interval URL/i);
     expect(navigate).not.toHaveBeenCalled();
