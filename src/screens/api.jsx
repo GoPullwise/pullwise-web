@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -73,9 +74,7 @@ function normalizeApiKey(key = {}) {
   const record = key;
   const id = textValue(record.id, record.keyId, record.key_id);
   if (!id) return null;
-  const scopes = Array.isArray(record.scopes)
-    ? record.scopes.map(textValue).filter(Boolean)
-    : [];
+  const scopes = Array.isArray(record.scopes) ? record.scopes.map(textValue).filter(Boolean) : [];
   return {
     ...record,
     id,
@@ -245,7 +244,9 @@ X-Pullwise-Api-Key: pwk_live_example`}
               "API key 管理页面使用你的 Pullwise 浏览器会话认证。下面的公开 REST API 端点需要 API key，并要求以下权限之一：repositories:read、scans:write、scans:read、quota:read。"
             )}
           </p>
-          <DocsCode title={T("Create a key from the signed-in web app", "在已登录 Web 应用中创建密钥")}>
+          <DocsCode
+            title={T("Create a key from the signed-in web app", "在已登录 Web 应用中创建密钥")}
+          >
             {`POST /api-keys
 Content-Type: application/json
 
@@ -475,15 +476,57 @@ Content-Type: application/json
           </h2>
           <div className="docs-table">
             {[
-              ["400", T("Malformed JSON, invalid repoId, invalid scope, or invalid request body.", "JSON 格式错误、repoId 无效、scope 无效或请求 body 无效。")],
+              [
+                "400",
+                T(
+                  "Malformed JSON, invalid repoId, invalid scope, or invalid request body.",
+                  "JSON 格式错误、repoId 无效、scope 无效或请求 body 无效。"
+                ),
+              ],
               ["401", T("Missing or invalid API key.", "缺少 API key 或 API key 无效。")],
-              ["403", T("The API key is valid but does not include the required scope.", "API key 有效，但不包含所需权限。")],
-              ["404", T("The route does not exist, the repository is not authorized, or no active scan can be stopped.", "路由不存在、仓库未授权，或没有可停止的活动扫描。")],
-              ["409", T("requestId was already used for a different repository.", "requestId 已被另一个仓库使用。")],
+              [
+                "403",
+                T(
+                  "The API key is valid but does not include the required scope.",
+                  "API key 有效，但不包含所需权限。"
+                ),
+              ],
+              [
+                "404",
+                T(
+                  "The route does not exist, the repository is not authorized, or no active scan can be stopped.",
+                  "路由不存在、仓库未授权，或没有可停止的活动扫描。"
+                ),
+              ],
+              [
+                "409",
+                T(
+                  "requestId was already used for a different repository.",
+                  "requestId 已被另一个仓库使用。"
+                ),
+              ],
               ["402", T("Scan quota is exhausted.", "扫描配额已耗尽。")],
-              ["413", T("Request body exceeds the configured server limit.", "请求 body 超出服务端配置限制。")],
-              ["429", T("Rate limit exceeded. Responses include X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset when rate limiting is enabled.", "超过限流。启用限流时，响应包含 X-RateLimit-Limit、X-RateLimit-Remaining 和 X-RateLimit-Reset。")],
-              ["503", T("Review provider is not configured, so real scans cannot start.", "审查提供方尚未配置，因此无法启动真实扫描。")],
+              [
+                "413",
+                T(
+                  "Request body exceeds the configured server limit.",
+                  "请求 body 超出服务端配置限制。"
+                ),
+              ],
+              [
+                "429",
+                T(
+                  "Rate limit exceeded. Responses include X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset when rate limiting is enabled.",
+                  "超过限流。启用限流时，响应包含 X-RateLimit-Limit、X-RateLimit-Remaining 和 X-RateLimit-Reset。"
+                ),
+              ],
+              [
+                "503",
+                T(
+                  "Review provider is not configured, so real scans cannot start.",
+                  "审查提供方尚未配置，因此无法启动真实扫描。"
+                ),
+              ],
             ].map(([code, text]) => (
               <div key={code} className="docs-table-r">
                 <b>{code}</b>
@@ -520,7 +563,67 @@ Content-Type: application/json
             </div>
           </div>
         </main>
+      </div>
+    </div>
+  );
+}
 
+function ApiKeysSkeleton() {
+  return (
+    <div className="set-body api-keys-skeleton" aria-busy="true">
+      <div className="bill-card api-key-create">
+        <div className="api-key-create-head">
+          <SkeletonLine className="sk-square sk-size-36" />
+          <div className="skeleton-stack">
+            <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
+            <SkeletonLine className="sk-line sk-w-65" />
+          </div>
+        </div>
+        <div className="api-key-create-main">
+          <div className="api-key-name-row">
+            <SkeletonLine className="sk-line sk-w-60 sk-h-40" />
+            <SkeletonLine className="sk-line sk-w-22 sk-h-40" />
+          </div>
+          <div className="api-scope-panel">
+            <div className="api-scope-head">
+              <div className="skeleton-stack">
+                <SkeletonLine className="sk-line sk-w-28" />
+                <SkeletonLine className="sk-line sk-w-62" />
+              </div>
+              <SkeletonLine className="sk-line sk-w-18 sk-h-20" />
+            </div>
+            <div className="api-scope-list">
+              {Array.from({ length: 4 }, (_, index) => (
+                <div className="api-scope-row skeleton-row" key={`api-scope-skeleton-${index}`}>
+                  <SkeletonLine className="sk-square sk-size-16" />
+                  <div className="api-scope-copy">
+                    <SkeletonLine className="sk-line sk-w-34" />
+                    <SkeletonLine className="sk-line sk-w-70" />
+                  </div>
+                  <SkeletonLine className="sk-line sk-w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="issue-list">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div className="issue-row skeleton-row" key={`api-key-row-skeleton-${index}`}>
+            <SkeletonLine className="sk-line sk-w-12 sk-h-22" />
+            <SkeletonLine className="sk-line sk-w-16" />
+            <div className="issue-main">
+              <SkeletonLine className="sk-line sk-w-45 sk-h-16" />
+              <div className="issue-meta">
+                <SkeletonLine className="sk-line sk-w-26" />
+                <SkeletonLine className="sk-line sk-w-24" />
+                <SkeletonLine className="sk-line sk-w-18" />
+              </div>
+            </div>
+            <SkeletonLine className="sk-line sk-w-18 sk-h-28" />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -696,136 +799,135 @@ export function ApiKeysScreen({ go, setIssue = null }) {
               </a>
             </aside>
 
-            <div className="set-body">
-              <form className="bill-card api-key-create" onSubmit={createKey}>
-                <div className="api-key-create-head">
-                  <div className="api-key-create-icon">
-                    <I.Shield size={16} />
-                  </div>
-                  <div>
-                    <b>{T("Create API key", "创建 API key")}</b>
-                    <span>
-                      {T(
-                        "Name the key, choose scopes, then create the token.",
-                        "为密钥命名，选择权限范围，然后创建令牌。"
-                      )}
-                    </span>
-                  </div>
-                </div>
-                <div className="api-key-create-main">
-                  <div className="api-key-name-row">
-                    <label className="auth-field">
-                      <span>{T("Key name", "密钥名称")}</span>
-                      <div className="auth-input">
-                        <I.Code size={14} />
-                        <input
-                          value={name}
-                          onChange={(event) => setName(event.target.value)}
-                          placeholder={T("CI scanner", "CI 扫描器")}
-                        />
-                      </div>
-                    </label>
-                    <button
-                      className="btn primary"
-                      type="submit"
-                      disabled={pending === "create"}
-                    >
-                      {pending === "create" && (
-                        <span className="spin" style={{ display: "inline-block" }}>
-                          <I.Refresh size={14} />
-                        </span>
-                      )}
-                      <I.Plus size={14} /> {T("Create key", "创建密钥")}
-                    </button>
-                  </div>
-                  <fieldset className="api-scope-panel" aria-describedby="api-scope-help">
-                    <legend className="api-scope-legend">{T("Scopes", "权限")}</legend>
-                    <div className="api-scope-head">
-                      <div>
-                        <span className="api-scope-kicker">
-                          <I.Shield size={13} /> {T("Scopes", "权限")}
-                        </span>
-                        <span id="api-scope-help" className="api-scope-help">
-                          {T(
-                            "Select the API routes this key can use.",
-                            "选择此密钥可以使用的 API 路由。"
-                          )}
-                        </span>
-                      </div>
-                      <span className="tag api-scope-count">
-                        {selectedScopes.length} / {API_KEY_SCOPES.length}{" "}
-                        {T("selected", "已选择")}
+            {loading ? (
+              <ApiKeysSkeleton />
+            ) : (
+              <div className="set-body">
+                <form className="bill-card api-key-create" onSubmit={createKey}>
+                  <div className="api-key-create-head">
+                    <div className="api-key-create-icon">
+                      <I.Shield size={16} />
+                    </div>
+                    <div>
+                      <b>{T("Create API key", "创建 API key")}</b>
+                      <span>
+                        {T(
+                          "Name the key, choose scopes, then create the token.",
+                          "为密钥命名，选择权限范围，然后创建令牌。"
+                        )}
                       </span>
                     </div>
-                    <div className="api-scope-list">
-                      {API_KEY_SCOPES.map((scope) => {
-                        const checked = selectedScopes.includes(scope.value);
-                        return (
-                          <label
-                            key={scope.value}
-                            className={"api-scope-row" + (checked ? " selected" : "")}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => toggleScope(scope.value)}
-                            />
-                            <span className="api-scope-copy">
-                              <b>{T(scope.labelEn, scope.labelZh)}</b>
-                              <span>{T(scope.descEn, scope.descZh)}</span>
-                            </span>
-                            <code className="api-scope-value">{scope.value}</code>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                </div>
-              </form>
-
-              <div className="issue-list">
-                {keys.map((key) => (
-                  <div key={key.id || key.prefix || key.name} className="issue-row">
-                    <div className="issue-sev sev-bg-info">
-                      <I.Code size={12} /> {T("key", "key")}
-                    </div>
-                    <div className="issue-id">{key.prefix || key.id || "-"}</div>
-                    <div className="issue-main">
-                      <div className="issue-t">{key.name}</div>
-                      <div className="issue-meta">
-                        <span className="tag">
-                          {T("Created", "已创建")} {formatDate(key.createdAt)}
-                        </span>
-                        <span className="tag">
-                          {T("Last used", "最近使用")} {formatDate(key.lastUsedAt)}
-                        </span>
-                        {key.scopes.map((scope) => (
-                          <span className="tag" key={scope}>
-                            {scope}
+                  </div>
+                  <div className="api-key-create-main">
+                    <div className="api-key-name-row">
+                      <label className="auth-field">
+                        <span>{T("Key name", "密钥名称")}</span>
+                        <div className="auth-input">
+                          <I.Code size={14} />
+                          <input
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            placeholder={T("CI scanner", "CI 扫描器")}
+                          />
+                        </div>
+                      </label>
+                      <button className="btn primary" type="submit" disabled={pending === "create"}>
+                        {pending === "create" && (
+                          <span className="spin" style={{ display: "inline-block" }}>
+                            <I.Refresh size={14} />
                           </span>
-                        ))}
-                      </div>
+                        )}
+                        <I.Plus size={14} /> {T("Create key", "创建密钥")}
+                      </button>
                     </div>
-                    <button
-                      className="btn sm"
-                      disabled={pending === key.id}
-                      onClick={() => revokeKey(key.id)}
-                    >
-                      <I.X size={13} /> {T("Revoke", "吊销")}
-                    </button>
+                    <fieldset className="api-scope-panel" aria-describedby="api-scope-help">
+                      <legend className="api-scope-legend">{T("Scopes", "权限")}</legend>
+                      <div className="api-scope-head">
+                        <div>
+                          <span className="api-scope-kicker">
+                            <I.Shield size={13} /> {T("Scopes", "权限")}
+                          </span>
+                          <span id="api-scope-help" className="api-scope-help">
+                            {T(
+                              "Select the API routes this key can use.",
+                              "选择此密钥可以使用的 API 路由。"
+                            )}
+                          </span>
+                        </div>
+                        <span className="tag api-scope-count">
+                          {selectedScopes.length} / {API_KEY_SCOPES.length}{" "}
+                          {T("selected", "已选择")}
+                        </span>
+                      </div>
+                      <div className="api-scope-list">
+                        {API_KEY_SCOPES.map((scope) => {
+                          const checked = selectedScopes.includes(scope.value);
+                          return (
+                            <label
+                              key={scope.value}
+                              className={"api-scope-row" + (checked ? " selected" : "")}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleScope(scope.value)}
+                              />
+                              <span className="api-scope-copy">
+                                <b>{T(scope.labelEn, scope.labelZh)}</b>
+                                <span>{T(scope.descEn, scope.descZh)}</span>
+                              </span>
+                              <code className="api-scope-value">{scope.value}</code>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
                   </div>
-                ))}
-                {!loading && keys.length === 0 && (
-                  <div className="card section muted">
-                    {T("No API keys have been created yet.", "尚未创建任何 API key。")}
-                  </div>
-                )}
+                </form>
+
+                <div className="issue-list">
+                  {keys.map((key) => (
+                    <div key={key.id || key.prefix || key.name} className="issue-row">
+                      <div className="issue-sev sev-bg-info">
+                        <I.Code size={12} /> {T("key", "key")}
+                      </div>
+                      <div className="issue-id">{key.prefix || key.id || "-"}</div>
+                      <div className="issue-main">
+                        <div className="issue-t">{key.name}</div>
+                        <div className="issue-meta">
+                          <span className="tag">
+                            {T("Created", "已创建")} {formatDate(key.createdAt)}
+                          </span>
+                          <span className="tag">
+                            {T("Last used", "最近使用")} {formatDate(key.lastUsedAt)}
+                          </span>
+                          {key.scopes.map((scope) => (
+                            <span className="tag" key={scope}>
+                              {scope}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        className="btn sm"
+                        disabled={pending === key.id}
+                        onClick={() => revokeKey(key.id)}
+                      >
+                        <I.X size={13} /> {T("Revoke", "吊销")}
+                      </button>
+                    </div>
+                  ))}
+                  {!loading && keys.length === 0 && (
+                    <div className="card section muted">
+                      {T("No API keys have been created yet.", "尚未创建任何 API key。")}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
-

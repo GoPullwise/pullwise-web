@@ -1,7 +1,16 @@
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cytoscape from "cytoscape";
 import { ImpactGraphPanel } from "../components/impact/ImpactGraphPanel.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { SkeletonLine } from "../components/skeleton.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -78,9 +87,9 @@ function repositoryLimitReasonLabel(reason) {
 function hasRepositoryLimitEvidence(preflight) {
   return Boolean(
     preflight?.repositoryStats ||
-      preflight?.repositoryLimits ||
-      preflight?.repositoryLimitExceeded ||
-      preflight?.repositoryLimitReasons?.length
+    preflight?.repositoryLimits ||
+    preflight?.repositoryLimitExceeded ||
+    preflight?.repositoryLimitReasons?.length
   );
 }
 
@@ -119,9 +128,7 @@ function quotaRemaining(quota) {
 }
 
 function scansWord(count) {
-  return count === 1
-    ? T("scan", "次扫描")
-    : T("scans", "次扫描");
+  return count === 1 ? T("scan", "次扫描") : T("scans", "次扫描");
 }
 
 function accountQuotaNotice(remaining) {
@@ -440,7 +447,11 @@ function uniqueAuditSwarmEvidenceBlocks(blocks) {
       block?.endLine,
       (block?.items || []).join("\n"),
     ]
-      .map((part) => String(part || "").trim().toLowerCase())
+      .map((part) =>
+        String(part || "")
+          .trim()
+          .toLowerCase()
+      )
       .join("\x1f");
     if (seen.has(key)) return false;
     seen.add(key);
@@ -469,7 +480,8 @@ function scanPreflightSummary(scans) {
         ? preflights[0].summary
         : `${preflights.length} repository preflights captured without running project scripts.`,
     repositoryStats: preflights.length === 1 ? preflights[0].repositoryStats || null : null,
-    repositoryLimits: preflights.find((preflight) => preflight.repositoryLimits)?.repositoryLimits || null,
+    repositoryLimits:
+      preflights.find((preflight) => preflight.repositoryLimits)?.repositoryLimits || null,
     repositoryLimitExceeded: preflights.some((preflight) => preflight.repositoryLimitExceeded),
     repositoryLimitReasons: uniqueStrings(
       preflights.flatMap((preflight) => preflight.repositoryLimitReasons || [])
@@ -603,7 +615,12 @@ function auditSwarmCountLabel(count, singular, plural) {
   return `${count || 0} ${count === 1 ? singular : safePlural}`;
 }
 
-function AuditSwarmEvidence({ auditSwarm, className = "", onDownload = null, downloading = false }) {
+function AuditSwarmEvidence({
+  auditSwarm,
+  className = "",
+  onDownload = null,
+  downloading = false,
+}) {
   if (!hasAuditSwarm(auditSwarm)) return null;
 
   const rootClassName = ["scanning-audit", className].filter(Boolean).join(" ");
@@ -895,6 +912,38 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         </ul>
       )}
     </span>
+  );
+}
+
+function RepositoriesSkeleton() {
+  return (
+    <div className="repos-skeleton" aria-busy="true">
+      {Array.from({ length: 5 }, (_, index) => (
+        <div className="repo-row skeleton-row" key={`repo-row-skeleton-${index}`}>
+          <div className="repo-check">
+            <SkeletonLine className="sk-square sk-size-18" />
+          </div>
+          <div className="repo-icon">
+            <SkeletonLine className="sk-square sk-size-28" />
+          </div>
+          <div className="repo-main">
+            <div className="repo-name">
+              <SkeletonLine className="sk-line sk-w-42 sk-h-16" />
+              <SkeletonLine className="sk-line sk-w-14 sk-h-20" />
+            </div>
+            <div className="repo-desc">
+              <SkeletonLine className="sk-line sk-w-80" />
+            </div>
+          </div>
+          <div className="repo-meta">
+            <SkeletonLine className="sk-line sk-w-28" />
+            <SkeletonLine className="sk-line sk-w-18" />
+            <SkeletonLine className="sk-line sk-w-16" />
+            <SkeletonLine className="sk-line sk-w-24" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -1277,10 +1326,7 @@ export function ReposScreen({
     } catch (authError) {
       setConnectError(
         authError?.message ||
-          T(
-            "Unable to connect GitHub repository access.",
-            "无法连接 GitHub 仓库访问。"
-          )
+          T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问。")
       );
     } finally {
       setConnecting(false);
@@ -1403,25 +1449,15 @@ export function ReposScreen({
                     : T("Select all visible repositories", "全选可见仓库")
                 }
               >
-                {hasVisibleSelection ? (
-                  <I.X size={12} />
-                ) : (
-                  <I.Check size={12} />
-                )}
+                {hasVisibleSelection ? <I.X size={12} /> : <I.Check size={12} />}
                 {selectAllLabel}
-                {hasVisibleSelection ? (
-                  visibleSelectedCount > 0 && (
-                    <span className="repos-select-all-count">
-                      ({visibleSelectedCount})
-                    </span>
-                  )
-                ) : (
-                  visibleRepoIds.length > 0 && (
-                    <span className="repos-select-all-count">
-                      ({visibleRepoIds.length})
-                    </span>
-                  )
-                )}
+                {hasVisibleSelection
+                  ? visibleSelectedCount > 0 && (
+                      <span className="repos-select-all-count">({visibleSelectedCount})</span>
+                    )
+                  : visibleRepoIds.length > 0 && (
+                      <span className="repos-select-all-count">({visibleRepoIds.length})</span>
+                    )}
               </button>
             </div>
             <div className="repos-orgs">
@@ -1438,224 +1474,232 @@ export function ReposScreen({
           </div>
 
           <div className="repos-list">
-            <div className="repo-row repo-row-status repo-scan-policy">
-              <div className="repo-icon">
-                <I.Shield size={16} />
-              </div>
-              <div className="repo-main">
-                <div className="repo-name">
-                  <span>{T("Which repositories can be scanned", "哪些仓库可以扫描")}</span>
-                </div>
-                <div className="repo-desc">
-                  {T(
-                    "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before verifier and AI review and shows the measured size.",
-                    "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。"
-                  )}
-                </div>
-                <div className="repo-desc">{repositoryScanPolicyLimitText(scanPolicyLimits)}</div>
-                <div className="repo-desc">
-                  {T(
-                    "Private repositories and forks can be scanned when authorized. Forks share repository quota with their source repository; language is detected for context and is not an allowlist. The selected branch must exist in GitHub.",
-                    "私有仓库和 fork 仓库只要已授权即可扫描。fork 会与源仓库共享仓库配额；语言只作为上下文识别，不是允许名单。所选分支必须存在于 GitHub。"
-                  )}
-                </div>
-              </div>
-            </div>
-            {selectionNotice && (
-              <div className="repo-row repo-row-status quota-selection-alert" role="alert">
-                <div className="repo-icon">
-                  <I.Activity size={16} />
-                </div>
-                <div className="repo-main">
-                  <div className="repo-name">
-                    <span>{T("Scan quota limit", "扫描配额限制")}</span>
-                  </div>
-                  <div className="repo-desc">{selectionNotice}</div>
-                </div>
-              </div>
-            )}
-            {needsAuthorization && (
-              <div
-                className="repo-row repo-row-status"
-                role="button"
-                tabIndex={0}
-                onClick={() => connectRepositories()}
-                onKeyDown={activateConnectRepositories}
-              >
-                <div className="repo-icon">
-                  {connecting ? (
-                    <span className="spin" style={{ display: "inline-block" }}>
-                      <I.Refresh size={16} />
-                    </span>
-                  ) : (
-                    <I.Github size={16} />
-                  )}
-                </div>
-                <div className="repo-main">
-                  <div className="repo-name">
-                    <span>
-                      {connecting
-                        ? T("Opening GitHub...", "Opening GitHub...")
-                        : T("Connect GitHub repositories", "连接 GitHub 仓库")}
-                    </span>
-                  </div>
-                  <div className="repo-desc">
-                    {T(
-                      "Choose the repositories Pullwise can read for this scan.",
-                      "选择 Pullwise 可只读访问并扫描的仓库。"
-                    )}
-                  </div>
-                </div>
-                <I.ArrowR size={14} />
-              </div>
-            )}
-            {displayError && (
-              <div className="repo-row repo-row-status">
-                <div className="repo-icon">
-                  <I.X size={16} />
-                </div>
-                <div className="repo-main">
-                  <div className="repo-name">
-                    <span>{T("Unable to load repositories", "无法加载仓库")}</span>
-                  </div>
-                  <div className="repo-desc">{displayError}</div>
-                </div>
-              </div>
-            )}
-            {loading && (
-              <div className="repo-row repo-row-status">
-                <div className="repo-icon">
-                  <span className="spin" style={{ display: "inline-block" }}>
-                    <I.Refresh size={16} />
-                  </span>
-                </div>
-                <div className="repo-main">
-                  <div className="repo-name">
-                    <span>{T("Loading repositories", "正在加载仓库")}</span>
-                  </div>
-                  <div className="repo-desc">
-                    {T("Reading GitHub App authorization.", "正在读取 GitHub App 授权。")}
-                  </div>
-                </div>
-              </div>
-            )}
-            {!loading && !error && !needsAuthorization && repos.length === 0 && (
-              <div className="repo-row repo-row-status">
-                <div className="repo-icon">
-                  <I.Folder size={16} />
-                </div>
-                <div className="repo-main">
-                  <div className="repo-name">
-                    <span>{T("No authorized repositories", "没有已授权仓库")}</span>
-                  </div>
-                  <div className="repo-desc">
-                    {T(
-                      "Authorize repositories in GitHub, then sync again.",
-                      "请先在 GitHub 授权仓库，然后重新同步。"
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            {repos.map((repo) => {
-              const on = selected.includes(repo.id);
-              const quotaLabel = repoQuotaLabel(repo.quota);
-              const quotaEmpty = repo.quota && quotaNumber(repo.quota.remaining) <= 0;
-              const repoLabel = repo.fullName || repo.name;
-              const branchKey = repoBranchKey(repo);
-              const branchState = repoBranches[branchKey] || null;
-              const selectedBranch = branchForRepo(repo);
-              const branchOptions = branchState?.branches?.length
-                ? branchState.branches
-                : [selectedBranch].filter(Boolean);
-              const languageColorKey = repoLanguageColorKey(repo.lang);
-              return (
-                <div
-                  key={repo.id}
-                  className={"repo-row" + (on ? " on" : "")}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={on}
-                  aria-label={`Select repository ${repoLabel}`}
-                  onClick={() => toggle(repo.id)}
-                  onKeyDown={(event) => activateRepositorySelection(event, repo.id)}
-                >
-                  <div className="repo-check">
-                    <span className="repo-check-box">{on && <I.Check size={11} />}</span>
-                  </div>
+            {loading ? (
+              <RepositoriesSkeleton />
+            ) : (
+              <>
+                <div className="repo-row repo-row-status repo-scan-policy">
                   <div className="repo-icon">
-                    <I.Folder size={16} />
+                    <I.Shield size={16} />
                   </div>
                   <div className="repo-main">
                     <div className="repo-name">
-                      <span>{repo.fullName || repo.name}</span>
-                      {repo.private && (
-                        <span className="tag">
-                          <I.Lock size={10} /> private
-                        </span>
-                      )}
-                      {repo.fork && (
-                        <span className="tag">
-                          <I.GitBranch size={10} /> fork
-                        </span>
+                      <span>{T("Which repositories can be scanned", "哪些仓库可以扫描")}</span>
+                    </div>
+                    <div className="repo-desc">
+                      {T(
+                        "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before verifier and AI review and shows the measured size.",
+                        "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。"
                       )}
                     </div>
-                    <div className="repo-desc">{repo.desc}</div>
-                  </div>
-                  <div className="repo-meta">
-                    {on ? (
-                      <BranchPicker
-                        repoLabel={repoLabel}
-                        value={selectedBranch}
-                        options={branchOptions}
-                        loading={!!branchState?.loading}
-                        error={branchState?.error || ""}
-                        disabled={!!branchState?.loading}
-                        onChange={(nextBranch) => {
-                          setSelectedBranches((current) => ({
-                            ...current,
-                            [branchKey]: nextBranch,
-                          }));
-                        }}
-                      />
-                    ) : (
-                      <span
-                        className="repo-branch-picker repo-branch-placeholder"
-                        aria-hidden="true"
-                      >
-                        <span className="repo-branch-trigger">
-                          <I.GitBranch size={12} />
-                          <span className="repo-branch-value">{selectedBranch}</span>
-                          <I.ChevD size={11} className="repo-branch-chev" />
-                        </span>
-                      </span>
-                    )}
-                    <span className="repo-meta-lang">
-                      <span
-                        className="lang-dot"
-                        data-lang-color={languageColorKey}
-                        style={{ "--repo-lang-color": repoLanguageColor(languageColorKey) }}
-                      ></span>{" "}
-                      {repo.lang}
-                    </span>
-                    <span>
-                      <I.Star size={12} /> {repo.stars}
-                    </span>
-                    <span>
-                      <I.GitBranch size={12} /> {repo.branches}
-                    </span>
-                    <span>
-                      <I.Clock size={12} /> {repo.updated}
-                    </span>
-                    {quotaLabel && (
-                      <span className={"repo-quota" + (quotaEmpty ? " empty" : "")}>
-                        <I.Activity size={12} /> {quotaLabel}
-                      </span>
-                    )}
+                    <div className="repo-desc">
+                      {repositoryScanPolicyLimitText(scanPolicyLimits)}
+                    </div>
+                    <div className="repo-desc">
+                      {T(
+                        "Private repositories and forks can be scanned when authorized. Forks share repository quota with their source repository; language is detected for context and is not an allowlist. The selected branch must exist in GitHub.",
+                        "私有仓库和 fork 仓库只要已授权即可扫描。fork 会与源仓库共享仓库配额；语言只作为上下文识别，不是允许名单。所选分支必须存在于 GitHub。"
+                      )}
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+                {selectionNotice && (
+                  <div className="repo-row repo-row-status quota-selection-alert" role="alert">
+                    <div className="repo-icon">
+                      <I.Activity size={16} />
+                    </div>
+                    <div className="repo-main">
+                      <div className="repo-name">
+                        <span>{T("Scan quota limit", "扫描配额限制")}</span>
+                      </div>
+                      <div className="repo-desc">{selectionNotice}</div>
+                    </div>
+                  </div>
+                )}
+                {needsAuthorization && (
+                  <div
+                    className="repo-row repo-row-status"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => connectRepositories()}
+                    onKeyDown={activateConnectRepositories}
+                  >
+                    <div className="repo-icon">
+                      {connecting ? (
+                        <span className="spin" style={{ display: "inline-block" }}>
+                          <I.Refresh size={16} />
+                        </span>
+                      ) : (
+                        <I.Github size={16} />
+                      )}
+                    </div>
+                    <div className="repo-main">
+                      <div className="repo-name">
+                        <span>
+                          {connecting
+                            ? T("Opening GitHub...", "Opening GitHub...")
+                            : T("Connect GitHub repositories", "连接 GitHub 仓库")}
+                        </span>
+                      </div>
+                      <div className="repo-desc">
+                        {T(
+                          "Choose the repositories Pullwise can read for this scan.",
+                          "选择 Pullwise 可只读访问并扫描的仓库。"
+                        )}
+                      </div>
+                    </div>
+                    <I.ArrowR size={14} />
+                  </div>
+                )}
+                {displayError && (
+                  <div className="repo-row repo-row-status">
+                    <div className="repo-icon">
+                      <I.X size={16} />
+                    </div>
+                    <div className="repo-main">
+                      <div className="repo-name">
+                        <span>{T("Unable to load repositories", "无法加载仓库")}</span>
+                      </div>
+                      <div className="repo-desc">{displayError}</div>
+                    </div>
+                  </div>
+                )}
+                {loading && (
+                  <div className="repo-row repo-row-status">
+                    <div className="repo-icon">
+                      <span className="spin" style={{ display: "inline-block" }}>
+                        <I.Refresh size={16} />
+                      </span>
+                    </div>
+                    <div className="repo-main">
+                      <div className="repo-name">
+                        <span>{T("Loading repositories", "正在加载仓库")}</span>
+                      </div>
+                      <div className="repo-desc">
+                        {T("Reading GitHub App authorization.", "正在读取 GitHub App 授权。")}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {!loading && !error && !needsAuthorization && repos.length === 0 && (
+                  <div className="repo-row repo-row-status">
+                    <div className="repo-icon">
+                      <I.Folder size={16} />
+                    </div>
+                    <div className="repo-main">
+                      <div className="repo-name">
+                        <span>{T("No authorized repositories", "没有已授权仓库")}</span>
+                      </div>
+                      <div className="repo-desc">
+                        {T(
+                          "Authorize repositories in GitHub, then sync again.",
+                          "请先在 GitHub 授权仓库，然后重新同步。"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {repos.map((repo) => {
+                  const on = selected.includes(repo.id);
+                  const quotaLabel = repoQuotaLabel(repo.quota);
+                  const quotaEmpty = repo.quota && quotaNumber(repo.quota.remaining) <= 0;
+                  const repoLabel = repo.fullName || repo.name;
+                  const branchKey = repoBranchKey(repo);
+                  const branchState = repoBranches[branchKey] || null;
+                  const selectedBranch = branchForRepo(repo);
+                  const branchOptions = branchState?.branches?.length
+                    ? branchState.branches
+                    : [selectedBranch].filter(Boolean);
+                  const languageColorKey = repoLanguageColorKey(repo.lang);
+                  return (
+                    <div
+                      key={repo.id}
+                      className={"repo-row" + (on ? " on" : "")}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={on}
+                      aria-label={`Select repository ${repoLabel}`}
+                      onClick={() => toggle(repo.id)}
+                      onKeyDown={(event) => activateRepositorySelection(event, repo.id)}
+                    >
+                      <div className="repo-check">
+                        <span className="repo-check-box">{on && <I.Check size={11} />}</span>
+                      </div>
+                      <div className="repo-icon">
+                        <I.Folder size={16} />
+                      </div>
+                      <div className="repo-main">
+                        <div className="repo-name">
+                          <span>{repo.fullName || repo.name}</span>
+                          {repo.private && (
+                            <span className="tag">
+                              <I.Lock size={10} /> private
+                            </span>
+                          )}
+                          {repo.fork && (
+                            <span className="tag">
+                              <I.GitBranch size={10} /> fork
+                            </span>
+                          )}
+                        </div>
+                        <div className="repo-desc">{repo.desc}</div>
+                      </div>
+                      <div className="repo-meta">
+                        {on ? (
+                          <BranchPicker
+                            repoLabel={repoLabel}
+                            value={selectedBranch}
+                            options={branchOptions}
+                            loading={!!branchState?.loading}
+                            error={branchState?.error || ""}
+                            disabled={!!branchState?.loading}
+                            onChange={(nextBranch) => {
+                              setSelectedBranches((current) => ({
+                                ...current,
+                                [branchKey]: nextBranch,
+                              }));
+                            }}
+                          />
+                        ) : (
+                          <span
+                            className="repo-branch-picker repo-branch-placeholder"
+                            aria-hidden="true"
+                          >
+                            <span className="repo-branch-trigger">
+                              <I.GitBranch size={12} />
+                              <span className="repo-branch-value">{selectedBranch}</span>
+                              <I.ChevD size={11} className="repo-branch-chev" />
+                            </span>
+                          </span>
+                        )}
+                        <span className="repo-meta-lang">
+                          <span
+                            className="lang-dot"
+                            data-lang-color={languageColorKey}
+                            style={{ "--repo-lang-color": repoLanguageColor(languageColorKey) }}
+                          ></span>{" "}
+                          {repo.lang}
+                        </span>
+                        <span>
+                          <I.Star size={12} /> {repo.stars}
+                        </span>
+                        <span>
+                          <I.GitBranch size={12} /> {repo.branches}
+                        </span>
+                        <span>
+                          <I.Clock size={12} /> {repo.updated}
+                        </span>
+                        {quotaLabel && (
+                          <span className={"repo-quota" + (quotaEmpty ? " empty" : "")}>
+                            <I.Activity size={12} /> {quotaLabel}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </div>
 
           <div className="repos-foot">
@@ -1682,7 +1726,9 @@ export function ReposScreen({
           >
             <div className="modal-h">
               <div>
-                <h2 id="quota-dialog-title">{T("Choose repositories to scan", "选择要扫描的仓库")}</h2>
+                <h2 id="quota-dialog-title">
+                  {T("Choose repositories to scan", "选择要扫描的仓库")}
+                </h2>
                 <p>{quotaDialogNotice}</p>
               </div>
               <button className="btn ghost icon" type="button" onClick={closeQuotaDialog}>
@@ -1716,9 +1762,7 @@ export function ReposScreen({
                     <span className="quota-choice-copy">
                       <strong>{repo.fullName || repo.name}</strong>
                       <span>
-                        {quotaLabel ||
-                          repo.desc ||
-                          T("Authorized repository", "已授权仓库")}
+                        {quotaLabel || repo.desc || T("Authorized repository", "已授权仓库")}
                       </span>
                     </span>
                   </button>
@@ -1833,13 +1877,7 @@ function repositoryGraphElementsKey(nodes, edges) {
     ])
     .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
   const edgeKeys = edges
-    .map((edge) => [
-      edge.id,
-      edge.source,
-      edge.target,
-      edge.type,
-      edge.weight || 1,
-    ])
+    .map((edge) => [edge.id, edge.source, edge.target, edge.type, edge.weight || 1])
     .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
   return JSON.stringify({ nodes: nodeKeys, edges: edgeKeys });
 }
@@ -2003,8 +2041,12 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   const codeGraph = semanticGraph && Array.isArray(semanticGraph.nodes) ? semanticGraph : null;
   const [activeView, setActiveView] = useState(() => (fileGraph ? "files" : "code"));
   const activeGraph = activeView === "code" && codeGraph ? codeGraph : fileGraph || codeGraph;
-  const nodes = Array.isArray(activeGraph?.nodes) ? activeGraph.nodes : EMPTY_REPOSITORY_GRAPH_ITEMS;
-  const edges = Array.isArray(activeGraph?.edges) ? activeGraph.edges : EMPTY_REPOSITORY_GRAPH_ITEMS;
+  const nodes = Array.isArray(activeGraph?.nodes)
+    ? activeGraph.nodes
+    : EMPTY_REPOSITORY_GRAPH_ITEMS;
+  const edges = Array.isArray(activeGraph?.edges)
+    ? activeGraph.edges
+    : EMPTY_REPOSITORY_GRAPH_ITEMS;
   const activeStats = activeGraph?.stats || {};
   const typeList = useMemo(
     () => [...new Set(nodes.map((node) => node.type).filter(Boolean))].sort(),
@@ -2033,9 +2075,13 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
     () => nodes.filter((node) => activeTypes.size === 0 || activeTypes.has(node.type)),
     [activeTypes, nodes]
   );
-  const visibleNodeIds = useMemo(() => new Set(visibleNodes.map((node) => node.id)), [visibleNodes]);
+  const visibleNodeIds = useMemo(
+    () => new Set(visibleNodes.map((node) => node.id)),
+    [visibleNodes]
+  );
   const visibleEdges = useMemo(
-    () => edges.filter((edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)),
+    () =>
+      edges.filter((edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)),
     [edges, visibleNodeIds]
   );
   const cytoscapeElementKey = useMemo(
@@ -2114,12 +2160,21 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
             width: 18,
           },
         },
-        { selector: 'node[type = "entrypoint"]', style: { "background-color": "#16a34a", height: 24, width: 24 } },
+        {
+          selector: 'node[type = "entrypoint"]',
+          style: { "background-color": "#16a34a", height: 24, width: 24 },
+        },
         { selector: 'node[type = "module"]', style: { "background-color": "#7c3aed" } },
         { selector: 'node[type = "test"]', style: { "background-color": "#d97706" } },
         { selector: 'node[type = "workflow"]', style: { "background-color": "#0891b2" } },
-        { selector: 'node[type = "route"]', style: { "background-color": "#dc2626", height: 24, width: 24 } },
-        { selector: 'node[type = "component"]', style: { "background-color": "#16a34a", height: 22, width: 22 } },
+        {
+          selector: 'node[type = "route"]',
+          style: { "background-color": "#dc2626", height: 24, width: 24 },
+        },
+        {
+          selector: 'node[type = "component"]',
+          style: { "background-color": "#16a34a", height: 22, width: 22 },
+        },
         { selector: 'node[type = "class"]', style: { "background-color": "#7c3aed" } },
         { selector: 'node[type = "function"]', style: { "background-color": "#2563eb" } },
         { selector: 'node[type = "method"]', style: { "background-color": "#0891b2" } },
@@ -2162,7 +2217,10 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
     <div className="repository-graph">
       <div className="repository-graph-head">
         <div className="scanning-counts-h">
-          <I.Layers size={14} /> {viewIsCode ? T("Semantic graph", "Semantic graph") : T("Repository graph", "Repository graph")}
+          <I.Layers size={14} />{" "}
+          {viewIsCode
+            ? T("Semantic graph", "Semantic graph")
+            : T("Repository graph", "Repository graph")}
         </div>
         <div className="repository-graph-stats">
           <span>{graphCountLabel(nodes.length, viewIsCode ? "symbol" : "node")}</span>
@@ -2179,13 +2237,20 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
         </div>
       </div>
       {(fileGraph && codeGraph) || typeList.length > 1 ? (
-        <div className="repository-graph-controls" aria-label={T("Repository graph controls", "Repository graph controls")}>
+        <div
+          className="repository-graph-controls"
+          aria-label={T("Repository graph controls", "Repository graph controls")}
+        >
           {fileGraph && codeGraph && (
             <GraphMenuPicker
               className="repository-graph-view-picker"
               triggerClassName="repository-graph-view-trigger"
               triggerIcon={
-                activeView === "code" ? <I.Code size={12} aria-hidden="true" /> : <I.FileCode size={12} aria-hidden="true" />
+                activeView === "code" ? (
+                  <I.Code size={12} aria-hidden="true" />
+                ) : (
+                  <I.FileCode size={12} aria-hidden="true" />
+                )
               }
               triggerLabel={
                 activeView === "code"
@@ -2235,12 +2300,19 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
         className="repository-graph-canvas"
         ref={containerRef}
         role="img"
-        aria-label={viewIsCode ? T("Code semantic graph", "Code semantic graph") : T("Repository dependency graph", "Repository dependency graph")}
+        aria-label={
+          viewIsCode
+            ? T("Code semantic graph", "Code semantic graph")
+            : T("Repository dependency graph", "Repository dependency graph")
+        }
       />
       {selectedNode && (
         <div className="repository-graph-details">
           <b>{selectedNode.signature || selectedNode.label || selectedNode.path}</b>
-          <span>{selectedNode.path}{selectedNode.line ? `:${selectedNode.line}` : ""}</span>
+          <span>
+            {selectedNode.path}
+            {selectedNode.line ? `:${selectedNode.line}` : ""}
+          </span>
           <span className="tag">{selectedNode.type}</span>
         </div>
       )}
@@ -2579,7 +2651,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               })}
             </div>
 
-            {!batchMode && (impactGraph || terminal) && <ImpactGraphPanel impactGraph={impactGraph} />}
+            {!batchMode && (impactGraph || terminal) && (
+              <ImpactGraphPanel impactGraph={impactGraph} />
+            )}
 
             {(repositoryGraph || semanticGraph) && (
               <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
@@ -2732,10 +2806,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   )}
                   {preflight.verifierFlaky > 0 && (
                     <span className="preflight-warn">
-                      {T(
-                        `${preflight.verifierFlaky} flaky`,
-                        `${preflight.verifierFlaky} 次不稳定`
-                      )}
+                      {T(`${preflight.verifierFlaky} flaky`, `${preflight.verifierFlaky} 次不稳定`)}
                     </span>
                   )}
                   {preflight.verifierTimeout > 0 && (

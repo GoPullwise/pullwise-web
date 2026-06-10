@@ -88,6 +88,24 @@ describe("IssuesScreen list resilience", () => {
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
+  it("renders issue table skeleton rows while issues are loading", () => {
+    useIssues.mockReturnValue({
+      items: [],
+      loading: true,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    const { container } = render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    expect(container.querySelector(".issues-table-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".issues-table-skeleton .issues-trow")).toHaveLength(6);
+    expect(screen.queryByText(/no findings are available/i)).not.toBeInTheDocument();
+  });
+
   it("does not leak NaN when issue evidence metadata is missing", () => {
     useIssues.mockReturnValue({
       items: [
@@ -452,10 +470,7 @@ describe("IssueDetailScreen direct loading", () => {
     expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
     expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
     expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
-    expect(screen.getByRole("button", { name: /useful/i })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(screen.getByRole("button", { name: /useful/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
   });
 
@@ -585,6 +600,23 @@ describe("HistoryScreen queue state", () => {
     rerender(<HistoryScreen go={vi.fn()} />);
 
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+  });
+
+  it("renders scan history skeleton rows while scans are loading", () => {
+    useScans.mockReturnValue({
+      items: [],
+      loading: true,
+      loadingMore: false,
+      error: "",
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    const { container } = render(<HistoryScreen go={vi.fn()} />);
+
+    expect(container.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".history-skeleton .scan-row")).toHaveLength(5);
+    expect(screen.queryByText(/no scans yet/i)).not.toBeInTheDocument();
   });
 
   it("exposes the history new scan action as a real screen link", async () => {
@@ -847,8 +879,7 @@ describe("IssueDetailScreen review detail", () => {
 
   it("keeps evidence trace text readable in full-width rows", () => {
     const css = screenStyles();
-    const timelineBlock =
-      css.match(/\.trace-timeline\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const timelineBlock = css.match(/\.trace-timeline\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
     const stepBlock = css.match(/\.trace-step\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
     const nodeBlock = css.match(/\.trace-node\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
     const summaryBlock =
@@ -866,9 +897,7 @@ describe("IssueDetailScreen review detail", () => {
   it("keeps issue feedback aligned with action controls", () => {
     const css = screenStyles();
     const feedbackBlock = css.match(/\.issue-feedback\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
-    const badgesBlock = Array.from(
-      css.matchAll(/\.issue-feedback-badges\s*\{(?<body>[^}]*)\}/gs)
-    )
+    const badgesBlock = Array.from(css.matchAll(/\.issue-feedback-badges\s*\{(?<body>[^}]*)\}/gs))
       .map((match) => match.groups?.body || "")
       .join("\n");
     const badgeBlock =

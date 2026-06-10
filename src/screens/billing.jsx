@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -87,7 +88,21 @@ function billingAccount(plan) {
   return { status: "none", plan: "free" };
 }
 
-function fallbackPaidPlan(id, payload) {
+function fallbackFreePlan(loading = false) {
+  return {
+    id: "free",
+    name: "Free",
+    description: T(
+      "Try Pullwise with shared account and repository quota.",
+      "使用共享账户和仓库配额试用 Pullwise。"
+    ),
+    reviewLimit: 10,
+    loading,
+    prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
+  };
+}
+
+function fallbackPaidPlan(id, payload, loading = false) {
   const max = id === "max";
   return {
     id,
@@ -95,21 +110,25 @@ function fallbackPaidPlan(id, payload) {
     description:
       payload?.description ||
       (max
-        ? T("Higher-capacity repository review for production teams.", "Higher-capacity repository review for production teams.")
+        ? T(
+            "Higher-capacity repository review for production teams.",
+            "Higher-capacity repository review for production teams."
+          )
         : T("Repository review for production teams.", "面向生产团队的仓库审查。")),
     reviewLimit: max ? 90 : 60,
+    loading,
     prices: {
       month: {
         amount: max ? null : payload?.amount || "29",
         currency: payload?.currency || "USD",
         interval: "month",
-        configured: Boolean(payload?.enabled) && !max,
+        configured: !loading && Boolean(payload?.enabled) && !max,
       },
       year: {
         amount: max ? null : "290",
         currency: payload?.currency || "USD",
         interval: "year",
-        configured: Boolean(payload?.enabled) && !max,
+        configured: !loading && Boolean(payload?.enabled) && !max,
       },
     },
   };
@@ -119,6 +138,28 @@ function paidPlansFromPayload(payload) {
   const plans = Array.isArray(payload?.plans) ? payload.plans : [];
   const paid = plans.filter((item) => item && item.id && item.id !== "free");
   return paid.length ? paid : [fallbackPaidPlan("pro", payload)];
+}
+
+const PRICING_PLAN_IDS = ["free", "pro", "max"];
+
+function pricingPlanWithFallback(payload, id, loading) {
+  const fallback =
+    id === "free" ? fallbackFreePlan(loading) : fallbackPaidPlan(id, payload, loading);
+  const loaded = planById(payload, id);
+  if (!loaded) return fallback;
+  return {
+    ...fallback,
+    ...loaded,
+    loading: false,
+    prices: {
+      ...fallback.prices,
+      ...(loaded.prices || {}),
+    },
+  };
+}
+
+function pricingPlansFromPayload(payload, loading = false) {
+  return PRICING_PLAN_IDS.map((id) => pricingPlanWithFallback(payload, id, loading));
 }
 
 function planName(plan) {
@@ -131,6 +172,60 @@ function planLabel(plan) {
 
 function accountNameLabel(plan) {
   return plan?.account?.name || T("Account", "账户");
+}
+
+function BillingSkeleton() {
+  return (
+    <div className="set-body billing-skeleton" aria-busy="true">
+      <div className="bill-card billing-summary">
+        <div className="billing-summary-main">
+          <SkeletonLine className="sk-square sk-size-32" />
+          <div className="skeleton-stack">
+            <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
+            <SkeletonLine className="sk-line sk-w-60" />
+            <SkeletonLine className="sk-line sk-w-44" />
+          </div>
+        </div>
+        <div className="billing-summary-meter">
+          <SkeletonLine className="sk-line sk-w-100 sk-h-10" />
+          <SkeletonLine className="sk-line sk-w-24 sk-h-20" />
+        </div>
+      </div>
+
+      <div className="bill-card billing-summary">
+        <div className="billing-summary-main">
+          <SkeletonLine className="sk-square sk-size-32" />
+          <div className="skeleton-stack">
+            <SkeletonLine className="sk-line sk-w-34 sk-h-16" />
+            <SkeletonLine className="sk-line sk-w-52" />
+          </div>
+        </div>
+        <div className="billing-actions">
+          <SkeletonLine className="sk-line sk-w-26 sk-h-34" />
+          <SkeletonLine className="sk-line sk-w-24 sk-h-34" />
+          <SkeletonLine className="sk-line sk-w-22 sk-h-34" />
+        </div>
+      </div>
+
+      <div className="bill-card bill-card-list">
+        <div className="billing-summary-main">
+          <SkeletonLine className="sk-square sk-size-32" />
+          <SkeletonLine className="sk-line sk-w-32 sk-h-16" />
+        </div>
+        <div className="sub-record-list">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div className="sub-record-row skeleton-row" key={`billing-record-skeleton-${index}`}>
+              <div className="sub-record-main">
+                <SkeletonLine className="sk-line sk-w-42 sk-h-16" />
+                <SkeletonLine className="sk-line sk-w-56" />
+              </div>
+              <SkeletonLine className="sk-line sk-w-16 sk-h-20" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function BillingScreen({
@@ -165,20 +260,7 @@ export function BillingScreen({
     };
   }, []);
 
-  const freePlan = useMemo(
-    () =>
-      planById(plan, "free") || {
-        id: "free",
-        name: "Free",
-        description: T(
-          "Try Pullwise with shared account and repository quota.",
-          "使用共享账户和仓库配额试用 Pullwise。"
-        ),
-        reviewLimit: 10,
-        prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
-      },
-    [plan]
-  );
+  const freePlan = useMemo(() => planById(plan, "free") || fallbackFreePlan(), [plan]);
   const paidPlans = useMemo(() => paidPlansFromPayload(plan), [plan]);
   const paidPlanById = useMemo(
     () => Object.fromEntries(paidPlans.map((paidPlan) => [paidPlan.id, paidPlan])),
@@ -219,7 +301,10 @@ export function BillingScreen({
     }
   };
 
-  const changeSubscription = async ({ targetPlan = account.plan, targetInterval = subscriptionInterval }) => {
+  const changeSubscription = async ({
+    targetPlan = account.plan,
+    targetInterval = subscriptionInterval,
+  }) => {
     const actionKey = `change-${targetPlan}-${targetInterval}`;
     setPendingAction(actionKey);
     setError("");
@@ -328,149 +413,158 @@ export function BillingScreen({
               </a>
             </aside>
 
-            <div className="set-body">
-              <div className="bill-card billing-summary">
-                <div className="billing-summary-main">
-                  <I.Activity size={18} />
-                  <div>
-                    <b>{T("Account usage", "账户用量")}</b>
-                    <div className="muted">
-                      {accountName} - {usageText(usage)}
+            {loading ? (
+              <BillingSkeleton />
+            ) : (
+              <div className="set-body">
+                <div className="bill-card billing-summary">
+                  <div className="billing-summary-main">
+                    <I.Activity size={18} />
+                    <div>
+                      <b>{T("Account usage", "账户用量")}</b>
+                      <div className="muted">
+                        {accountName} - {usageText(usage)}
+                      </div>
+                      {usageResetText && <div className="muted">{usageResetText}</div>}
                     </div>
-                    {usageResetText && <div className="muted">{usageResetText}</div>}
+                  </div>
+                  <div className="billing-summary-meter">
+                    <div className="usage-bar">
+                      <div style={{ width: `${usagePercent(usage)}%` }} />
+                    </div>
+                    <span className="tag">{currentPlan?.name || T("Plan", "套餐")}</span>
                   </div>
                 </div>
-                <div className="billing-summary-meter">
-                  <div className="usage-bar">
-                    <div style={{ width: `${usagePercent(usage)}%` }} />
-                  </div>
-                  <span className="tag">{currentPlan?.name || T("Plan", "套餐")}</span>
-                </div>
-              </div>
 
-              <div className="bill-card billing-summary">
-                <div className="billing-summary-main">
-                  <I.Package size={18} />
-                  <div>
-                    <b>{planName(currentPlan) || T("Free", "免费")}</b>
-                    <div className="muted">
-                      {accountStatus} -{" "}
-                      {activePaid
-                        ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
-                        : T("Upgrade from Pricing", "前往价格页升级")}
+                <div className="bill-card billing-summary">
+                  <div className="billing-summary-main">
+                    <I.Package size={18} />
+                    <div>
+                      <b>{planName(currentPlan) || T("Free", "免费")}</b>
+                      <div className="muted">
+                        {accountStatus} -{" "}
+                        {activePaid
+                          ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
+                          : T("Upgrade from Pricing", "前往价格页升级")}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {activePaid && (
-                  <div className="billing-actions">
-                    {alternatePaidPlans.map((paidPlan) => (
-                      <button
-                        key={paidPlan.id}
-                        className="btn primary"
-                        disabled={Boolean(pendingAction)}
-                        onClick={() =>
-                          changeSubscription({
-                            targetPlan: paidPlan.id,
-                            targetInterval: subscriptionInterval,
-                          })
-                        }
-                      >
-                        {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
-                          <span className="spin" style={{ display: "inline-block" }}>
-                            <I.Refresh size={14} />
-                          </span>
-                        )}
-                        <I.Trend size={14} /> {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
-                      </button>
-                    ))}
-                    {subscriptionInterval === "month" ? (
-                      <button
-                        className="btn"
-                        disabled={Boolean(pendingAction)}
-                        onClick={() => changeSubscription({ targetInterval: "year" })}
-                      >
-                        {pendingAction === `change-${account.plan}-year` && (
-                          <span className="spin" style={{ display: "inline-block" }}>
-                            <I.Refresh size={14} />
-                          </span>
-                        )}
-                        <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
-                      </button>
-                    ) : (
-                      <button
-                        className="btn"
-                        disabled={Boolean(pendingAction)}
-                        onClick={() => changeSubscription({ targetInterval: "month" })}
-                      >
-                        {pendingAction === `change-${account.plan}-month` && (
-                          <span className="spin" style={{ display: "inline-block" }}>
-                            <I.Refresh size={14} />
-                          </span>
-                        )}
-                        <I.Clock size={14} /> {T("Switch to monthly", "切换为按月")}
-                      </button>
-                    )}
-                    <button className="btn" disabled={Boolean(pendingAction)} onClick={openPortal}>
-                      {pendingAction === "portal" && (
-                        <span className="spin" style={{ display: "inline-block" }}>
-                          <I.Refresh size={14} />
-                        </span>
+                  {activePaid && (
+                    <div className="billing-actions">
+                      {alternatePaidPlans.map((paidPlan) => (
+                        <button
+                          key={paidPlan.id}
+                          className="btn primary"
+                          disabled={Boolean(pendingAction)}
+                          onClick={() =>
+                            changeSubscription({
+                              targetPlan: paidPlan.id,
+                              targetInterval: subscriptionInterval,
+                            })
+                          }
+                        >
+                          {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
+                            <span className="spin" style={{ display: "inline-block" }}>
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.Trend size={14} />{" "}
+                          {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
+                        </button>
+                      ))}
+                      {subscriptionInterval === "month" ? (
+                        <button
+                          className="btn"
+                          disabled={Boolean(pendingAction)}
+                          onClick={() => changeSubscription({ targetInterval: "year" })}
+                        >
+                          {pendingAction === `change-${account.plan}-year` && (
+                            <span className="spin" style={{ display: "inline-block" }}>
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
+                        </button>
+                      ) : (
+                        <button
+                          className="btn"
+                          disabled={Boolean(pendingAction)}
+                          onClick={() => changeSubscription({ targetInterval: "month" })}
+                        >
+                          {pendingAction === `change-${account.plan}-month` && (
+                            <span className="spin" style={{ display: "inline-block" }}>
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.Clock size={14} /> {T("Switch to monthly", "切换为按月")}
+                        </button>
                       )}
-                      <I.Settings size={14} /> {T("Manage billing", "管理账单")}
-                    </button>
-                    {accountStatus !== "canceling" && (
                       <button
                         className="btn"
                         disabled={Boolean(pendingAction)}
-                        onClick={cancelSubscription}
+                        onClick={openPortal}
                       >
-                        {pendingAction === "cancel" && (
+                        {pendingAction === "portal" && (
                           <span className="spin" style={{ display: "inline-block" }}>
                             <I.Refresh size={14} />
                           </span>
                         )}
-                        <I.X size={14} /> {T("Cancel renewal", "取消续订")}
+                        <I.Settings size={14} /> {T("Manage billing", "管理账单")}
                       </button>
+                      {accountStatus !== "canceling" && (
+                        <button
+                          className="btn"
+                          disabled={Boolean(pendingAction)}
+                          onClick={cancelSubscription}
+                        >
+                          {pendingAction === "cancel" && (
+                            <span className="spin" style={{ display: "inline-block" }}>
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.X size={14} /> {T("Cancel renewal", "取消续订")}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {subscriptions.length > 0 && (
+                  <div className="bill-card bill-card-list">
+                    <div className="billing-summary-main">
+                      <I.FileCode size={18} />
+                      <div>
+                        <b>{T("Subscription records", "Subscription records")}</b>
+                      </div>
+                    </div>
+                    <div className="sub-record-list">
+                      {subscriptions.map((record, index) => (
+                        <div
+                          className="sub-record-row"
+                          key={`${subscriptionRecordId(record)}-${index}`}
+                        >
+                          <div className="sub-record-main">
+                            <b>{subscriptionRecordId(record)}</b>
+                            <div className="muted">{subscriptionRecordMeta(record)}</div>
+                            <div className="muted">{subscriptionEventText(record)}</div>
+                          </div>
+                          <span className="tag">{record?.plan || account.plan || "free"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!billingEnabled && !error && (
+                  <div className="muted">
+                    {T(
+                      "Billing is not configured on the backend yet.",
+                      "Billing is not configured on the backend yet."
                     )}
                   </div>
                 )}
               </div>
-
-              {subscriptions.length > 0 && (
-                <div className="bill-card bill-card-list">
-                  <div className="billing-summary-main">
-                    <I.FileCode size={18} />
-                    <div>
-                      <b>{T("Subscription records", "Subscription records")}</b>
-                    </div>
-                  </div>
-                  <div className="sub-record-list">
-                    {subscriptions.map((record, index) => (
-                      <div
-                        className="sub-record-row"
-                        key={`${subscriptionRecordId(record)}-${index}`}
-                      >
-                        <div className="sub-record-main">
-                          <b>{subscriptionRecordId(record)}</b>
-                          <div className="muted">{subscriptionRecordMeta(record)}</div>
-                          <div className="muted">{subscriptionEventText(record)}</div>
-                        </div>
-                        <span className="tag">{record?.plan || account.plan || "free"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {!billingEnabled && !error && (
-                <div className="muted">
-                  {T(
-                    "Billing is not configured on the backend yet.",
-                    "Billing is not configured on the backend yet."
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -509,21 +603,12 @@ export function PricingScreen({
     };
   }, []);
 
-  const freePlan = useMemo(
-    () =>
-      planById(plan, "free") || {
-        id: "free",
-        name: "Free",
-        description: T(
-          "Try Pullwise with shared account and repository quota.",
-          "使用共享账户和仓库配额试用 Pullwise。"
-        ),
-        reviewLimit: 10,
-        prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
-      },
-    [plan]
+  const pricingLoading = plan === null && !error;
+  const pricingPlans = useMemo(
+    () => pricingPlansFromPayload(plan, pricingLoading),
+    [plan, pricingLoading]
   );
-  const paidPlans = useMemo(() => paidPlansFromPayload(plan), [plan]);
+  const [freePlan, ...paidPlans] = pricingPlans;
 
   const account = billingAccount(plan);
   const activePaid = isActiveStatus(account.status) && account.plan && account.plan !== "free";
@@ -665,21 +750,42 @@ export function PricingScreen({
   );
 }
 
+function PricingSkeletonLine({ className = "" }) {
+  return <SkeletonLine className={["pricing-skeleton", className].filter(Boolean).join(" ")} />;
+}
+
 function PlanCard({ plan, price, interval, active, featured, cta }) {
+  const loading = Boolean(plan?.loading);
   const reviewLimit = nonNegativeInteger(plan?.reviewLimit);
+  const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
       {featured && <div className="pricing-badge">{planLabel(plan)}</div>}
       <div className="pricing-card-h">
         <h3>{plan?.name || T("Plan", "套餐")}</h3>
-        <div className="pricing-tag">{plan?.description || ""}</div>
+        <div className="pricing-tag">
+          {loading ? (
+            <PricingSkeletonLine className="pricing-skeleton-desc" />
+          ) : (
+            plan?.description || ""
+          )}
+        </div>
       </div>
       <div className="pricing-price">
         <div className="pricing-num">
-          <span>{priceLabel(price)}</span>
-          <span className="pricing-per">/{interval}</span>
+          {loading ? (
+            <>
+              <PricingSkeletonLine className="pricing-skeleton-price" />
+              <PricingSkeletonLine className="pricing-skeleton-per" />
+            </>
+          ) : (
+            <>
+              <span>{priceLabel(price)}</span>
+              <span className="pricing-per">/{interval}</span>
+            </>
+          )}
         </div>
-        {plan?.id === "pro" && interval === "year" && (
+        {!loading && yearlySavings && (
           <div className="pricing-billed">{T("2 months free", "免费 2 个月")}</div>
         )}
         {active && (
@@ -689,26 +795,27 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
       <ul className="pricing-feats">
         <li>
           <I.Check size={13} />{" "}
-          {T(
-            `${reviewLimit} shared account reviews / month`,
-            `${reviewLimit} 次/月 共享账户审查`
+          {loading ? (
+            <PricingSkeletonLine className="pricing-skeleton-feature" />
+          ) : (
+            T(`${reviewLimit} shared account reviews / month`, `${reviewLimit} 次/月 共享账户审查`)
           )}
         </li>
         <li>
           <I.Check size={13} />{" "}
-          {T(
-            "Repository quota is shared by GitHub repo ID",
-            "仓库配额按 GitHub repo ID 共享"
-          )}
+          {T("Repository quota is shared by GitHub repo ID", "仓库配额按 GitHub repo ID 共享")}
         </li>
         <li>
-          <I.Check size={13} />{" "}
-          {T("GitHub repository review history", "GitHub 仓库审查历史")}
+          <I.Check size={13} /> {T("GitHub repository review history", "GitHub 仓库审查历史")}
         </li>
+        {plan?.id === "max" && (
+          <li>
+            <I.Check size={13} /> {T("Deeper reasoning", "更深的思考")}
+          </li>
+        )}
         {plan?.id && plan.id !== "free" && (
           <li>
-            <I.Check size={13} />{" "}
-            {T("Cancel from the billing portal", "从账单门户取消")}
+            <I.Check size={13} /> {T("Cancel from the billing portal", "从账单门户取消")}
           </li>
         )}
       </ul>

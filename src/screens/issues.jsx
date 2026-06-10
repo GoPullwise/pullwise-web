@@ -5,6 +5,7 @@ import { ImpactEvidenceDrawer } from "../components/impact/ImpactEvidenceDrawer.
 import { ImpactTargetCard } from "../components/impact/ImpactTargetCard.jsx";
 import { findImpactTargetByPath } from "../components/impact/impact-utils.js";
 import { IssueDistributionBand } from "../components/issue-distribution-band.jsx";
+import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
@@ -596,7 +597,10 @@ function EvidenceTrace({ issue }) {
         <div className="trace-progress-h">
           <span className="trace-progress-title">{T("Trace coverage", "追溯覆盖")}</span>
           <span className="trace-progress-count">
-            {T(`${presentCount}/${stages.length} present`, `${presentCount}/${stages.length} 已提供`)}
+            {T(
+              `${presentCount}/${stages.length} present`,
+              `${presentCount}/${stages.length} 已提供`
+            )}
           </span>
         </div>
         <span className="trace-progress-bar" aria-hidden="true">
@@ -784,6 +788,45 @@ function TextListSection({ title, items }) {
   );
 }
 
+function IssuesTableSkeleton() {
+  return (
+    <div className="issues-table-skeleton" aria-busy="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div className="issues-trow skeleton-row" key={`issues-row-skeleton-${index}`}>
+          <div></div>
+          <div className="issues-title-c">
+            <div className="issues-title-meta">
+              <SkeletonLine className="sk-line sk-w-18 sk-h-20" />
+              <SkeletonLine className="sk-line sk-w-16" />
+            </div>
+            <SkeletonLine className="sk-line sk-w-70 sk-h-16" />
+            <SkeletonLine className="sk-line sk-w-42" />
+          </div>
+          <div className="issues-file">
+            <SkeletonLine className="sk-line sk-w-80" />
+          </div>
+          <div>
+            <SkeletonLine className="sk-line sk-w-48 sk-h-20" />
+          </div>
+          <div>
+            <div className="issues-evidence-cell">
+              <SkeletonLine className="sk-line sk-w-36 sk-h-20" />
+              <SkeletonLine className="sk-line sk-w-44" />
+            </div>
+          </div>
+          <div>
+            <SkeletonLine className="sk-line sk-w-36 sk-h-20" />
+          </div>
+          <div className="issues-row-actions">
+            <SkeletonLine className="sk-line sk-w-40 sk-h-28" />
+            <SkeletonLine className="sk-line sk-w-28 sk-h-28" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilter = null }) {
   useLang();
   const [sev, setSev] = useState("all");
@@ -881,10 +924,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       }
       if (failureCount) {
         globalThis.alert?.(
-          T(
-            `${failureCount} issue status update failed.`,
-            `${failureCount} 个问题状态更新失败。`
-          )
+          T(`${failureCount} issue status update failed.`, `${failureCount} 个问题状态更新失败。`)
         );
       }
     } finally {
@@ -924,12 +964,14 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             <div>
               <h1>{T("Issues", "问题")}</h1>
               <div className="sub">
-                {loading
-                  ? T("Loading findings", "正在加载 findings")
-                  : T(
-                      `${filtered.length} of ${totalCount} items`,
-                      `${filtered.length} / ${totalCount} 项`
-                    )}
+                {loading ? (
+                  <SkeletonLine className="sk-line sk-w-36" />
+                ) : (
+                  T(
+                    `${filtered.length} of ${totalCount} items`,
+                    `${filtered.length} / ${totalCount} 项`
+                  )
+                )}
               </div>
             </div>
             <div className="actions">
@@ -1033,88 +1075,90 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div>{T("Status", "状态")}</div>
               <div></div>
             </div>
+            {loading && <IssuesTableSkeleton />}
             {error && <div className="muted issues-table-message">{error}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="muted issues-table-empty">
                 {T("No findings are available yet.", "暂无 findings。")}
               </div>
             )}
-            {filtered.map((issue) => {
-              const rowKey = issueRowKey(issue);
-              const updatingStatus = Boolean(statusUpdating[rowKey]);
-              return (
-                <div key={rowKey} className="issues-trow">
-                  <div></div>
-                  <div
-                    className="issues-title-c"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Open issue ${issue.id}`}
-                    onClick={() => openIssue(issue)}
-                    onKeyDown={(event) => activateIssue(event, issue)}
-                  >
-                    <div className="issues-title-meta">
-                      <span className={"sev sev-" + issue.severity}>
-                        <span className="dot" style={{ background: "currentColor" }}></span>
-                        {issue.severity}
-                      </span>
-                      <span className="issue-id">{issue.id}</span>
+            {!loading &&
+              filtered.map((issue) => {
+                const rowKey = issueRowKey(issue);
+                const updatingStatus = Boolean(statusUpdating[rowKey]);
+                return (
+                  <div key={rowKey} className="issues-trow">
+                    <div></div>
+                    <div
+                      className="issues-title-c"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Open issue ${issue.id}`}
+                      onClick={() => openIssue(issue)}
+                      onKeyDown={(event) => activateIssue(event, issue)}
+                    >
+                      <div className="issues-title-meta">
+                        <span className={"sev sev-" + issue.severity}>
+                          <span className="dot" style={{ background: "currentColor" }}></span>
+                          {issue.severity}
+                        </span>
+                        <span className="issue-id">{issue.id}</span>
+                      </div>
+                      <div className="issue-t">{issue.title}</div>
+                      <div className="muted">{issue.repo}</div>
                     </div>
-                    <div className="issue-t">{issue.title}</div>
-                    <div className="muted">{issue.repo}</div>
-                  </div>
-                  <div className="issues-file">
-                    {issue.file}
-                    {issue.line ? ":" + issue.line : ""}
-                  </div>
-                  <div>
-                    <span className="tag">{issue.category}</span>
-                  </div>
-                  <div>
-                    <div className="issues-evidence-cell">
-                      <VerificationBadge issue={issue} />
-                      <span className="issues-evidence-label">
-                        {confidenceEvidenceLabel(issue)}
-                      </span>
+                    <div className="issues-file">
+                      {issue.file}
+                      {issue.line ? ":" + issue.line : ""}
                     </div>
-                  </div>
-                  <div>
-                    <span className="tag">{issue.status}</span>
-                  </div>
-                  <div className="issues-row-actions">
-                    {issue.status === "open" && (
+                    <div>
+                      <span className="tag">{issue.category}</span>
+                    </div>
+                    <div>
+                      <div className="issues-evidence-cell">
+                        <VerificationBadge issue={issue} />
+                        <span className="issues-evidence-label">
+                          {confidenceEvidenceLabel(issue)}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="tag">{issue.status}</span>
+                    </div>
+                    <div className="issues-row-actions">
+                      {issue.status === "open" && (
+                        <button
+                          className="btn sm"
+                          disabled={updatingStatus}
+                          onClick={() => updateStatus(issue, "snoozed")}
+                        >
+                          {T("Snooze", "推迟")}
+                        </button>
+                      )}
+                      {issue.status !== "fixed" && (
+                        <button
+                          className="btn sm primary"
+                          disabled={updatingStatus}
+                          onClick={() => updateStatus(issue, "fixed")}
+                        >
+                          {T("Mark fixed", "标记已修复")}
+                        </button>
+                      )}
                       <button
                         className="btn sm"
-                        disabled={updatingStatus}
-                        onClick={() => updateStatus(issue, "snoozed")}
+                        onClick={() => {
+                          openIssue(issue);
+                        }}
+                        title={T(`View issue ${issue.id}`, `查看问题 ${issue.id}`)}
+                        aria-label={T(`View issue ${issue.id}`, `查看问题 ${issue.id}`)}
                       >
-                        {T("Snooze", "推迟")}
+                        <I.ArrowR size={11} />
                       </button>
-                    )}
-                    {issue.status !== "fixed" && (
-                      <button
-                        className="btn sm primary"
-                        disabled={updatingStatus}
-                        onClick={() => updateStatus(issue, "fixed")}
-                      >
-                        {T("Mark fixed", "标记已修复")}
-                      </button>
-                    )}
-                    <button
-                      className="btn sm"
-                      onClick={() => {
-                        openIssue(issue);
-                      }}
-                      title={T(`View issue ${issue.id}`, `查看问题 ${issue.id}`)}
-                      aria-label={T(`View issue ${issue.id}`, `查看问题 ${issue.id}`)}
-                    >
-                      <I.ArrowR size={11} />
-                    </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-            {meta.hasMore && (
+                );
+              })}
+            {!loading && meta.hasMore && (
               <div className="issues-load-more">
                 <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
                   {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}
@@ -1311,19 +1355,19 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     auditEvidenceReady &&
     Boolean(
       issue.reproductionPath ||
-        issue.reproduction?.commands?.length ||
-        issue.reproduction?.input ||
-        issue.reproduction?.expected ||
-        issue.reproduction?.actual ||
-        issue.reproduction?.testFile ||
-        issue.reproduction?.logPath
+      issue.reproduction?.commands?.length ||
+      issue.reproduction?.input ||
+      issue.reproduction?.expected ||
+      issue.reproduction?.actual ||
+      issue.reproduction?.testFile ||
+      issue.reproduction?.logPath
     );
   const hasReasoningBreakdown =
     auditEvidenceReady &&
     Boolean(
       issue.reasoningBreakdown?.facts?.length ||
-        issue.reasoningBreakdown?.inferences?.length ||
-        issue.reasoningBreakdown?.recommendations?.length
+      issue.reasoningBreakdown?.inferences?.length ||
+      issue.reasoningBreakdown?.recommendations?.length
     );
   const hasEvidenceTrace =
     auditEvidenceReady && Array.isArray(issue.evidenceTrace) && issue.evidenceTrace.length > 0;
@@ -1555,10 +1599,15 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               {showImpactContext && (
                 <DetailSection
                   title={T("Impact context", "Impact context")}
-                  empty={T("No impact context is available for this issue file.", "No impact context is available for this issue file.")}
+                  empty={T(
+                    "No impact context is available for this issue file.",
+                    "No impact context is available for this issue file."
+                  )}
                 >
                   {impactScanLoading && !impactGraph ? (
-                    <div className="muted">{T("Loading impact context...", "Loading impact context...")}</div>
+                    <div className="muted">
+                      {T("Loading impact context...", "Loading impact context...")}
+                    </div>
                   ) : impactTarget ? (
                     <ImpactTargetCard target={impactTarget} onEvidence={setImpactDrawer} />
                   ) : impactGraph ? (
@@ -1570,7 +1619,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     </div>
                   ) : (
                     <div className="muted">
-                      {T("Impact graph unavailable for this scan.", "Impact graph unavailable for this scan.")}
+                      {T(
+                        "Impact graph unavailable for this scan.",
+                        "Impact graph unavailable for this scan."
+                      )}
                     </div>
                   )}
                 </DetailSection>
@@ -1651,7 +1703,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 >
                   {hasEvidence && (
                     <>
-                      <CodeEvidence title={T("Current code", "当前代码")} lines={issue.badCode || []} />
+                      <CodeEvidence
+                        title={T("Current code", "当前代码")}
+                        lines={issue.badCode || []}
+                      />
                       <CodeEvidence
                         title={T("Suggested code", "建议代码")}
                         lines={issue.goodCode || []}
@@ -1796,15 +1851,12 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 onClick={previewFix}
               >
                 <I.Sparkle size={13} />{" "}
-                {fixLoading === "preview" ? T("Previewing...", "正在预览...") : T("Preview fix", "预览修复")}
+                {fixLoading === "preview"
+                  ? T("Previewing...", "正在预览...")
+                  : T("Preview fix", "预览修复")}
               </button>
               {activePullRequest?.url ? (
-                <a
-                  className="btn sm"
-                  href={activePullRequest.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a className="btn sm" href={activePullRequest.url} target="_blank" rel="noreferrer">
                   <I.GitBranch size={13} /> {T("Open PR", "打开 PR")}
                   {activePullRequest.number ? ` #${activePullRequest.number}` : ""}
                 </a>
@@ -1813,7 +1865,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   className="btn sm"
                   disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
                   onClick={openPullRequest}
-                  title={!activeFixPreview?.valid ? T("Preview fix first.", "请先预览修复。") : undefined}
+                  title={
+                    !activeFixPreview?.valid ? T("Preview fix first.", "请先预览修复。") : undefined
+                  }
                 >
                   <I.GitBranch size={13} />{" "}
                   {fixLoading === "pr" ? T("Opening...", "正在打开...") : T("Open PR", "打开 PR")}
@@ -2154,6 +2208,36 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
   );
 }
 
+function HistorySkeleton() {
+  return (
+    <div className="history-skeleton" aria-busy="true">
+      <div className="scan-day-group">
+        <div className="scan-day-title">
+          <SkeletonLine className="sk-line sk-w-20" />
+        </div>
+        {Array.from({ length: 5 }, (_, index) => (
+          <article className="scan-row skeleton-row" key={`history-row-skeleton-${index}`}>
+            <span className="scan-status-dot" aria-hidden="true" />
+            <div className="scan-info">
+              <div className="scan-main">
+                <SkeletonLine className="sk-line sk-w-36 sk-h-18" />
+                <SkeletonLine className="sk-line sk-w-18 sk-h-20" />
+                <SkeletonLine className="sk-line sk-w-14 sk-h-20" />
+              </div>
+              <SkeletonLine className="sk-line sk-w-70" />
+            </div>
+            <div className="scan-row-actions">
+              <SkeletonLine className="sk-line sk-w-26 sk-h-28" />
+              <SkeletonLine className="sk-line sk-w-22 sk-h-28" />
+              <SkeletonLine className="sk-line sk-w-10 sk-h-28" />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function HistoryScreen({ go, openScan = null, openScanIssues = null, setIssue = null }) {
   useLang();
   const [status, setStatus] = useState("all");
@@ -2190,7 +2274,9 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
       const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
       downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
     } catch (error) {
-      globalThis.alert?.(error?.message || T("Unable to download audit bundle.", "无法下载审计包。"));
+      globalThis.alert?.(
+        error?.message || T("Unable to download audit bundle.", "无法下载审计包。")
+      );
     } finally {
       setBundleLoading("");
     }
@@ -2211,12 +2297,14 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
             <div>
               <h1>{T("Scan history", "扫描历史")}</h1>
               <div className="sub">
-                {loading
-                  ? T("Loading scans", "正在加载扫描")
-                  : T(
-                      `${filtered.length} of ${totalCount} scans`,
-                      `${filtered.length} / ${totalCount} 次扫描`
-                    )}
+                {loading ? (
+                  <SkeletonLine className="sk-line sk-w-36" />
+                ) : (
+                  T(
+                    `${filtered.length} of ${totalCount} scans`,
+                    `${filtered.length} / ${totalCount} 次扫描`
+                  )
+                )}
               </div>
             </div>
             <div className="actions">
@@ -2243,6 +2331,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 {error}
               </div>
             )}
+            {loading && <HistorySkeleton />}
             {!loading && !error && filtered.length === 0 && (
               <div
                 style={{
@@ -2255,7 +2344,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 {T("No scans yet.", "暂无扫描。")}
               </div>
             )}
-            {filtered.length > 0 && (
+            {!loading && filtered.length > 0 && (
               <HistoryGroups
                 scans={filtered}
                 viewScan={viewScan}
@@ -2264,7 +2353,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 bundleLoading={bundleLoading}
               />
             )}
-            {meta.hasMore && (
+            {!loading && meta.hasMore && (
               <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
                 <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
                   {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}

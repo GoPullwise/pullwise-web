@@ -58,8 +58,12 @@ describe("API screens", () => {
 
     expect(document.querySelector(".docs-toc")).not.toBeInTheDocument();
     expect(styles).toMatch(/\.docs-shell\s*{[^}]*max-width:\s*1120px;/);
-    expect(styles).toMatch(/\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/);
-    expect(appStyles).toMatch(/\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/);
+    expect(styles).toMatch(
+      /\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/
+    );
+    expect(appStyles).toMatch(
+      /\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/
+    );
     expect(styles).toMatch(/\.docs-side\s*{[^}]*justify-self:\s*start;/);
     expect(styles).toMatch(/\.docs-side-h\s*{[^}]*text-align:\s*left;/);
     expect(styles).toMatch(/\.docs-side-i\s*{[^}]*text-align:\s*left;/);
@@ -159,6 +163,16 @@ describe("API screens", () => {
     });
   });
 
+  it("renders API key management skeletons while keys are loading", () => {
+    pullwiseApi.apiKeys.list.mockReturnValue(new Promise(() => {}));
+
+    const { container } = render(<ApiKeysScreen go={vi.fn()} />);
+
+    expect(container.querySelector(".api-keys-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".api-keys-skeleton .issue-row")).toHaveLength(3);
+    expect(screen.queryByText(/no api keys have been created/i)).not.toBeInTheDocument();
+  });
+
   it("creates and revokes account-scoped API keys", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({
       apiKeys: [{ id: "key_1", name: "Old key", prefix: "pwk_old" }],
@@ -234,8 +248,12 @@ describe("API screens", () => {
 
     expect(screen.queryByText("Permission model")).not.toBeInTheDocument();
     expect(screen.queryByText(/^REST scopes$/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Keys inherit the creator Pullwise account role/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Choose only the REST scopes each key needs/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Keys inherit the creator Pullwise account role/i)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Choose only the REST scopes each key needs/i)
+    ).not.toBeInTheDocument();
     expect(createForm).toHaveClass("api-key-create");
     expect(createForm.querySelector(".api-key-create-main")).toBeInTheDocument();
     expect(createForm.querySelector(".api-key-name-row")).toContainElement(
@@ -246,7 +264,9 @@ describe("API screens", () => {
     expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("4 / 4 selected");
     expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(4);
     expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(4);
-    expect(styles).toMatch(/\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/);
+    expect(styles).toMatch(
+      /\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/
+    );
     expect(styles).toMatch(/\.api-scope-panel\s*{[^}]*border:\s*1px solid var\(--border\);/);
     expect(styles).toMatch(
       /\.api-scope-row\s*{[^}]*grid-template-columns:\s*18px minmax\(0,\s*1fr\) auto;/
@@ -284,11 +304,7 @@ describe("API screens", () => {
 
   it("keeps valid API keys visible when the API returns malformed key rows", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({
-      apiKeys: [
-        null,
-        "bad key",
-        { id: "key_1", name: "Old key", prefix: "pwk_old" },
-      ],
+      apiKeys: [null, "bad key", { id: "key_1", name: "Old key", prefix: "pwk_old" }],
     });
 
     render(<ApiKeysScreen go={vi.fn()} />);

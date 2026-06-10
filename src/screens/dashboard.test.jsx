@@ -193,6 +193,25 @@ describe("DashboardScreen issue list", () => {
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
+  it("renders overview layout skeletons while dashboard data is loading", () => {
+    useIssues.mockReturnValue({ items: [], loading: true, error: "" });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: true,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({ items: [], loading: true });
+
+    const { container } = render(
+      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
+    );
+
+    expect(container.querySelector(".dashboard-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".dashboard-skeleton .kpi.card")).toHaveLength(4);
+    expect(container.querySelectorAll(".dashboard-skeleton .issue-row")).toHaveLength(4);
+    expect(screen.queryByText(/loading issues/i)).not.toBeInTheDocument();
+  });
+
   it("pins KPI footnote text to a fixed slot above the sparkline", () => {
     const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
 

@@ -48,6 +48,19 @@ describe("BillingScreen", () => {
     vi.clearAllMocks();
   });
 
+  it("renders all pricing tiers immediately with skeletons while pricing loads", () => {
+    pullwiseApi.billing.getPlan.mockReturnValue(new Promise(() => {}));
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    expect(document.querySelectorAll(".pricing-card")).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: "Free" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Pullwise Pro" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Pullwise Max" })).toBeInTheDocument();
+    expect(document.querySelectorAll(".pricing-skeleton").length).toBeGreaterThanOrEqual(6);
+    expect(screen.getByRole("button", { name: /start max/i })).toBeDisabled();
+  });
+
   it("shows the topbar loading spinner only while billing data is loading", async () => {
     let resolvePlan;
     pullwiseApi.billing.getPlan.mockReturnValue(
@@ -70,6 +83,16 @@ describe("BillingScreen", () => {
     await waitFor(() => {
       expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
     });
+  });
+
+  it("renders billing account skeletons while billing data is loading", () => {
+    pullwiseApi.billing.getPlan.mockReturnValue(new Promise(() => {}));
+
+    const { container } = render(<BillingScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    expect(container.querySelector(".billing-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".billing-skeleton .bill-card")).toHaveLength(3);
+    expect(screen.queryByText(/billing is not configured/i)).not.toBeInTheDocument();
   });
 
   it("starts checkout through the configured backend billing provider", async () => {
@@ -140,6 +163,36 @@ describe("BillingScreen", () => {
       );
       expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_max");
     });
+  });
+
+  it("shows Max-specific reasoning and yearly savings", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        ...billingCatalog.plans,
+        {
+          id: "max",
+          name: "Pullwise Max",
+          description: "Higher-capacity repository review for production teams.",
+          reviewLimit: 90,
+          prices: {
+            month: { amount: "49", currency: "USD", interval: "month", configured: true },
+            year: { amount: "490", currency: "USD", interval: "year", configured: true },
+          },
+        },
+      ],
+      account: { status: "none", plan: "free" },
+    });
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    expect(await screen.findByText("Pullwise Max")).toBeInTheDocument();
+    expect(screen.getByText("Deeper reasoning")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /yearly/i }));
+
+    expect(screen.getAllByText("2 months free")).toHaveLength(2);
   });
 
   it("does not let an admin start Pro when provider billing is disabled", async () => {
@@ -357,7 +410,7 @@ describe("BillingScreen", () => {
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 
     expect(screen.getByText("$290")).toBeInTheDocument();
-    expect(screen.getByText(/2 months free/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/2 months free/i)).toHaveLength(2);
   });
 
   it("does not leak NaN when billing usage numbers are malformed", async () => {

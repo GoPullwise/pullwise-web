@@ -1383,7 +1383,9 @@
   border-radius: 8px;
   text-align: left;
   cursor: default;
-  transition: border-color 120ms var(--ease-out), background 120ms var(--ease-out);
+  transition:
+    border-color 120ms var(--ease-out),
+    background 120ms var(--ease-out);
 }
 
 .audit-evidence-link.is-interactive {
@@ -4216,6 +4218,13 @@ button.dash-cat-row:hover {
   line-height: 1.45;
   text-wrap: pretty;
 }
+.pricing-skeleton {
+  display: block;
+}
+.pricing-skeleton-desc {
+  width: min(100%, 230px);
+  height: 34px;
+}
 .pricing-price {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
@@ -4228,6 +4237,14 @@ button.dash-cat-row:hover {
   display: flex;
   align-items: baseline;
   gap: 4px;
+}
+.pricing-skeleton-price {
+  width: 92px;
+  height: 42px;
+}
+.pricing-skeleton-per {
+  width: 48px;
+  height: 14px;
 }
 .pricing-cur {
   font-size: 22px;
@@ -4267,6 +4284,11 @@ button.dash-cat-row:hover {
   align-items: flex-start;
   gap: 8px;
   line-height: 1.45;
+}
+.pricing-skeleton-feature {
+  flex: 1;
+  height: 14px;
+  margin-top: 3px;
 }
 .pricing-feats svg {
   margin-top: 3px;

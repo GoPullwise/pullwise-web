@@ -98,7 +98,9 @@ const repositoryGraphFixture = {
     },
     { id: "dir:src/screens", label: "src/screens", type: "module", path: "src/screens" },
   ],
-  edges: [{ id: "e1", source: "file:src/App.jsx", target: "dir:src/screens", type: "imports", weight: 1 }],
+  edges: [
+    { id: "e1", source: "file:src/App.jsx", target: "dir:src/screens", type: "imports", weight: 1 },
+  ],
   architectureSummary: {
     entrypoints: ["src/App.jsx"],
     modules: ["src/screens"],
@@ -297,6 +299,24 @@ describe("ReposScreen scan selection", () => {
     rerender(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+  });
+
+  it("renders repository list skeleton rows while repositories are loading", () => {
+    useRepositories.mockReturnValue({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      loading: true,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    const { container } = render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(container.querySelector(".repos-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".repos-skeleton .repo-row")).toHaveLength(5);
+    expect(screen.queryByText(/loading repositories/i)).not.toBeInTheDocument();
   });
 
   it("keeps scan list metadata in two rows before selection", () => {
@@ -551,14 +571,24 @@ describe("ReposScreen scan selection", () => {
 
     expect(await screen.findByText("Which repositories can be scanned")).toBeInTheDocument();
     expect(
-      screen.getByText(/GitHub authorization.*account and repository quota.*worker checkout size limits/i)
+      screen.getByText(
+        /GitHub authorization.*account and repository quota.*worker checkout size limits/i
+      )
     ).toBeInTheDocument();
-    expect(await screen.findByText("Current checkout limit: 2,000 files / 50 MB.")).toBeInTheDocument();
     expect(
-      screen.getByText((content, element) => element?.classList.contains("tag") && content.includes("fork"))
+      await screen.findByText("Current checkout limit: 2,000 files / 50 MB.")
     ).toBeInTheDocument();
-    expect(screen.getByText(/Forks share repository quota with their source repository/i)).toBeInTheDocument();
-    expect(screen.getByText(/language is detected for context and is not an allowlist/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (content, element) => element?.classList.contains("tag") && content.includes("fork")
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Forks share repository quota with their source repository/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/language is detected for context and is not an allowlist/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/selected branch must exist in GitHub/i)).toBeInTheDocument();
   });
 
@@ -1090,7 +1120,9 @@ describe("ScanningScreen queue state", () => {
     expect(auditEvidence.previousElementSibling).toHaveTextContent("Audit Swarm review");
     expect(auditEvidence.nextElementSibling).toHaveTextContent("Uploading report");
     expect(screen.getByText("audit-swarm/0.1")).toBeInTheDocument();
-    expect(screen.getByText("7 evidence blocks in the downloaded audit bundle")).toBeInTheDocument();
+    expect(
+      screen.getByText("7 evidence blocks in the downloaded audit bundle")
+    ).toBeInTheDocument();
     expect(screen.getByText("Candidates")).toBeInTheDocument();
     expect(screen.getByText("Reported")).toBeInTheDocument();
     expect(screen.getByText("Rejected")).toBeInTheDocument();
@@ -1098,18 +1130,20 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText("Claim")).not.toBeInTheDocument();
     expect(screen.queryByText("src/auth/refresh.ts:42")).not.toBeInTheDocument();
     expect(screen.queryByText("Refresh token rotation may not be atomic")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("pnpm test auth -- refresh-token-rotation")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("pnpm test auth -- refresh-token-rotation")).not.toBeInTheDocument();
   });
 
   it("keeps long audit evidence card text inside the card without clamping", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 
     expect(styles).toMatch(/\.audit-card\s*{[^}]*min-width:\s*0;/s);
-    expect(styles).toMatch(/\.audit-card-row\s*{[^}]*grid-template-columns:\s*88px minmax\(0,\s*1fr\);/s);
+    expect(styles).toMatch(
+      /\.audit-card-row\s*{[^}]*grid-template-columns:\s*88px minmax\(0,\s*1fr\);/s
+    );
     expect(styles).toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*min-width:\s*0;/s);
-    expect(styles).toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*white-space:\s*normal;/s);
+    expect(styles).toMatch(
+      /\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*white-space:\s*normal;/s
+    );
     expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*overflow:\s*visible;/s);
     expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*white-space:\s*normal;/s);
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);

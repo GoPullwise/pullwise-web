@@ -9,6 +9,7 @@ import {
   VERIFICATION_BUCKETS,
   countBy,
 } from "../components/distribution-primitives.jsx";
+import { SkeletonLine } from "../components/skeleton.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function Sparkline({ data, color, height = 28 }) {
@@ -234,6 +235,106 @@ function IssueRow({ issue, onClick }) {
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div className="dashboard-skeleton" aria-busy="true">
+      <div className="kpi-row">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div className="kpi card" key={`dashboard-kpi-skeleton-${index}`}>
+            <div className="kpi-h">
+              <SkeletonLine className="sk-line sk-w-45" />
+            </div>
+            <div className="kpi-v">
+              <SkeletonLine className="sk-line sk-w-35 sk-h-32" />
+            </div>
+            <div className="kpi-foot">
+              <SkeletonLine className="sk-line sk-w-70" />
+            </div>
+            <div className="kpi-chart">
+              <SkeletonLine className="sk-block sk-h-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="dash-grid">
+        {Array.from({ length: 2 }, (_, index) => (
+          <div className="card dash-summary" key={`dashboard-summary-skeleton-${index}`}>
+            <div className="dash-summary-head">
+              <SkeletonLine className="sk-line sk-w-35 sk-h-18" />
+              <SkeletonLine className="sk-line sk-w-20" />
+            </div>
+            <div className="dash-donut-cards">
+              {Array.from({ length: 2 }, (_, cardIndex) => (
+                <div
+                  className="dash-donut-card skeleton-panel"
+                  key={`dashboard-donut-skeleton-${index}-${cardIndex}`}
+                >
+                  <SkeletonLine className="sk-circle sk-size-72" />
+                  <div className="skeleton-stack">
+                    <SkeletonLine className="sk-line sk-w-55" />
+                    <SkeletonLine className="sk-line sk-w-80" />
+                    <SkeletonLine className="sk-line sk-w-45" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <section className="card dash-summary risk-hotspots">
+        <div className="dash-summary-head">
+          <div>
+            <SkeletonLine className="sk-line sk-w-30 sk-h-18" />
+            <SkeletonLine className="sk-line sk-w-65" />
+          </div>
+          <SkeletonLine className="sk-line sk-w-20" />
+        </div>
+        <div className="risk-hotspot-grid">
+          {Array.from({ length: 2 }, (_, listIndex) => (
+            <div className="risk-hotspot-list" key={`dashboard-risk-skeleton-${listIndex}`}>
+              <SkeletonLine className="sk-line sk-w-45" />
+              <div className="skeleton-stack">
+                {Array.from({ length: 3 }, (_, rowIndex) => (
+                  <SkeletonLine
+                    className="sk-line sk-w-100 sk-h-24"
+                    key={`dashboard-risk-row-skeleton-${listIndex}-${rowIndex}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="dash-issues-h">
+        <div>
+          <SkeletonLine className="sk-line sk-w-30 sk-h-18" />
+          <SkeletonLine className="sk-line sk-w-50" />
+        </div>
+        <SkeletonLine className="sk-line sk-w-20" />
+      </div>
+      <div className="issue-list">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div className="issue-row skeleton-row" key={`dashboard-issue-skeleton-${index}`}>
+            <SkeletonLine className="sk-line sk-w-12 sk-h-22" />
+            <SkeletonLine className="sk-line sk-w-16" />
+            <div className="issue-main">
+              <SkeletonLine className="sk-line sk-w-60 sk-h-16" />
+              <div className="issue-meta">
+                <SkeletonLine className="sk-line sk-w-35" />
+                <SkeletonLine className="sk-line sk-w-18" />
+              </div>
+            </div>
+            <SkeletonLine className="sk-line sk-w-10" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function DashboardScreen({ go, setIssue, accent }) {
   useLang();
   const {
@@ -315,237 +416,248 @@ export function DashboardScreen({ go, setIssue, accent }) {
             </div>
           </div>
 
-          <div className="kpi-row">
-            <div className="kpi card">
-              <div className="kpi-h">
-                <span className="kpi-l">{T("Open issues", "未解决问题")}</span>
-                {issueDelta !== 0 && (
-                  <span
-                    className="kpi-d"
-                    style={{ color: issueDelta > 0 ? "var(--sev-high)" : "var(--sev-low)" }}
+          {dashboardLoading ? (
+            <DashboardSkeleton />
+          ) : (
+            <>
+              <div className="kpi-row">
+                <div className="kpi card">
+                  <div className="kpi-h">
+                    <span className="kpi-l">{T("Open issues", "未解决问题")}</span>
+                    {issueDelta !== 0 && (
+                      <span
+                        className="kpi-d"
+                        style={{ color: issueDelta > 0 ? "var(--sev-high)" : "var(--sev-low)" }}
+                      >
+                        {issueDelta > 0 ? "+" : ""}
+                        {issueDelta}
+                      </span>
+                    )}
+                  </div>
+                  <div className="kpi-v">{openIssues.length}</div>
+                  <div className="kpi-foot" aria-hidden="true">
+                    &nbsp;
+                  </div>
+                  <div className="kpi-chart">
+                    <Sparkline data={issueTrend} color={accent} height={20} />
+                  </div>
+                </div>
+                <div className="kpi card">
+                  <div className="kpi-h">
+                    <span className="kpi-l">{T("Critical", "关键")}</span>
+                  </div>
+                  <div
+                    className="kpi-v"
+                    style={{ color: counts.critical > 0 ? "var(--sev-critical)" : undefined }}
                   >
-                    {issueDelta > 0 ? "+" : ""}
-                    {issueDelta}
-                  </span>
-                )}
-              </div>
-              <div className="kpi-v">{openIssues.length}</div>
-              <div className="kpi-foot" aria-hidden="true">
-                &nbsp;
-              </div>
-              <div className="kpi-chart">
-                <Sparkline data={issueTrend} color={accent} height={20} />
-              </div>
-            </div>
-            <div className="kpi card">
-              <div className="kpi-h">
-                <span className="kpi-l">{T("Critical", "关键")}</span>
-              </div>
-              <div
-                className="kpi-v"
-                style={{ color: counts.critical > 0 ? "var(--sev-critical)" : undefined }}
-              >
-                {counts.critical}
-              </div>
-              <div className="kpi-foot">
-                {counts.critical > 0
-                  ? T("Requires immediate attention", "需要立即处理")
-                  : T("No critical issues found", "未发现关键问题")}
-              </div>
-              <div className="kpi-chart">
-                <Sparkline
-                  data={issueTrend.map(() => counts.critical)}
-                  color="var(--sev-critical)"
-                  height={20}
-                />
-              </div>
-            </div>
-            <div className="kpi card">
-              <div className="kpi-h">
-                <span className="kpi-l">{T("Repositories", "仓库")}</span>
-              </div>
-              <div className="kpi-v">{reposLoading ? "-" : repositories.length}</div>
-              <div className="kpi-foot">
-                {needsAuthorization
-                  ? T("Connect GitHub to add repositories", "连接 GitHub 以添加仓库")
-                  : T("Connected to your account", "已连接到您的账户")}
-              </div>
-              <div className="kpi-chart">
-                <Sparkline
-                  data={scanTrend.map(() => repositories.length)}
-                  color="var(--text-3)"
-                  height={20}
-                />
-              </div>
-            </div>
-            <div className="kpi card">
-              <div className="kpi-h">
-                <span className="kpi-l">{T("Scans", "扫描")}</span>
-              </div>
-              <div className="kpi-v">{scansLoading ? "-" : scans.length}</div>
-              <div className="kpi-foot">
-                {latestScan
-                  ? T(`Last: ${latestScan.time}`, `最近：${latestScan.time}`)
-                  : T("No scans yet", "暂无扫描记录")}
-              </div>
-              <div className="kpi-chart">
-                <Sparkline data={scanTrend} color={accent} height={20} />
-              </div>
-            </div>
-          </div>
-
-          <div className="dash-grid">
-            <div className="card dash-summary">
-              <div className="dash-summary-head">
-                <h3>{T("Severity breakdown", "严重程度分布")}</h3>
-                <a className="btn sm" {...screenLinkProps(go, "issues")}>
-                  {T("All issues", "所有问题")} <I.ArrowR size={12} />
-                </a>
-              </div>
-              <div className="dash-donut-legend" style={{ marginTop: 8 }}>
-                {SEVERITY_LEVELS.map((item) => (
-                  <div key={item.key} className="dash-donut-row">
-                    <span className="dash-donut-dot" style={{ background: item.color }}></span>
-                    <span>{T(item.en, item.zh)}</span>
-                    <b>{counts[item.key]}</b>
+                    {counts.critical}
                   </div>
-                ))}
-                {openIssues.length === 0 && !issuesLoading && (
-                  <div className="muted" style={{ padding: "8px 0", fontSize: 12.5 }}>
-                    {T("No open issues to display.", "暂无未解决问题。")}
+                  <div className="kpi-foot">
+                    {counts.critical > 0
+                      ? T("Requires immediate attention", "需要立即处理")
+                      : T("No critical issues found", "未发现关键问题")}
                   </div>
-                )}
-              </div>
-            </div>
-
-            <div className="card dash-summary">
-              <div className="dash-summary-head">
-                <h3>{T("Trust & evidence", "可信度与证据")}</h3>
-                <span className="sub">{T("Open issues only", "仅未解决问题")}</span>
-              </div>
-              <div className="dash-donut-cards">
-                <DistributionCard
-                  className="dash-donut-card"
-                  title={T("Verification", "验证状态")}
-                  subtitle={T(
-                    `${verifiedPct}% verified or static proof`,
-                    `${verifiedPct}% 已验证或静态证明`
-                  )}
-                  counts={verificationCounts}
-                  buckets={VERIFICATION_BUCKETS}
-                  layout="donut"
-                  donutCenterTop={verifiedPct + "%"}
-                  donutCenterBottom={T(
-                    `${verifiedShare}/${openIssues.length}`,
-                    `${verifiedShare}/${openIssues.length}`
-                  )}
-                />
-                <DistributionCard
-                  className="dash-donut-card"
-                  title={T("Confidence", "置信度")}
-                  subtitle={T(`${highPct}% high-confidence findings`, `${highPct}% 高置信度发现`)}
-                  counts={confidenceCounts}
-                  buckets={CONFIDENCE_BUCKETS}
-                  layout="donut"
-                  donutCenterTop={highPct + "%"}
-                  donutCenterBottom={T(
-                    `${highShare}/${openIssues.length}`,
-                    `${highShare}/${openIssues.length}`
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-
-          <section
-            className="card dash-summary risk-hotspots"
-            aria-labelledby="risk-hotspots-title"
-          >
-            <div className="dash-summary-head">
-              <div>
-                <h3 id="risk-hotspots-title">{T("Risk hotspots", "风险热区")}</h3>
-                <div className="sub">
-                  {T(
-                    "Top open issue concentrations by repository and file.",
-                    "按仓库和文件定位未解决问题最集中的位置。"
-                  )}
+                  <div className="kpi-chart">
+                    <Sparkline
+                      data={issueTrend.map(() => counts.critical)}
+                      color="var(--sev-critical)"
+                      height={20}
+                    />
+                  </div>
+                </div>
+                <div className="kpi card">
+                  <div className="kpi-h">
+                    <span className="kpi-l">{T("Repositories", "仓库")}</span>
+                  </div>
+                  <div className="kpi-v">{reposLoading ? "-" : repositories.length}</div>
+                  <div className="kpi-foot">
+                    {needsAuthorization
+                      ? T("Connect GitHub to add repositories", "连接 GitHub 以添加仓库")
+                      : T("Connected to your account", "已连接到您的账户")}
+                  </div>
+                  <div className="kpi-chart">
+                    <Sparkline
+                      data={scanTrend.map(() => repositories.length)}
+                      color="var(--text-3)"
+                      height={20}
+                    />
+                  </div>
+                </div>
+                <div className="kpi card">
+                  <div className="kpi-h">
+                    <span className="kpi-l">{T("Scans", "扫描")}</span>
+                  </div>
+                  <div className="kpi-v">{scansLoading ? "-" : scans.length}</div>
+                  <div className="kpi-foot">
+                    {latestScan
+                      ? T(`Last: ${latestScan.time}`, `最近：${latestScan.time}`)
+                      : T("No scans yet", "暂无扫描记录")}
+                  </div>
+                  <div className="kpi-chart">
+                    <Sparkline data={scanTrend} color={accent} height={20} />
+                  </div>
                 </div>
               </div>
-              <a className="btn sm" {...screenLinkProps(go, "issues")}>
-                {T("All issues", "所有问题")} <I.ArrowR size={12} />
-              </a>
-            </div>
-            <div className="risk-hotspot-grid">
-              <RiskHotspotList
-                title={T("Top risky repositories", "高风险仓库")}
-                subtitle={T("Severity-weighted", "按严重度加权")}
-                items={hotspots.repos}
-                empty={T("No repository hotspots yet.", "暂无仓库风险聚集。")}
-              />
-              <RiskHotspotList
-                title={T("Top file hotspots", "文件热区")}
-                subtitle={T("Most concentrated files", "问题最集中的文件")}
-                items={hotspots.files}
-                empty={T("No file hotspots yet.", "暂无文件风险聚集。")}
-              />
-            </div>
-          </section>
 
-          <div className="dash-issues-h">
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600 }}>{T("Needs attention", "需要关注")}</h2>
-              <div className="sub" style={{ fontSize: 12.5 }}>
-                {issuesLoading
-                  ? T("Loading issues...", "正在加载问题...")
-                  : openIssues.length > 0
-                    ? T(
-                        `Showing ${Math.min(openIssues.length, 8)} of ${openIssues.length} open issues`,
-                        `显示 ${Math.min(openIssues.length, 8)} / ${openIssues.length} 个未解决问题`
-                      )
-                    : T("No open issues", "暂无未解决问题")}
-              </div>
-            </div>
-            {openIssues.length > 0 && (
-              <a className="btn sm" {...screenLinkProps(go, "issues")}>
-                {T("All issues", "所有问题")} <I.ArrowR size={12} />
-              </a>
-            )}
-          </div>
+              <div className="dash-grid">
+                <div className="card dash-summary">
+                  <div className="dash-summary-head">
+                    <h3>{T("Severity breakdown", "严重程度分布")}</h3>
+                    <a className="btn sm" {...screenLinkProps(go, "issues")}>
+                      {T("All issues", "所有问题")} <I.ArrowR size={12} />
+                    </a>
+                  </div>
+                  <div className="dash-donut-legend" style={{ marginTop: 8 }}>
+                    {SEVERITY_LEVELS.map((item) => (
+                      <div key={item.key} className="dash-donut-row">
+                        <span className="dash-donut-dot" style={{ background: item.color }}></span>
+                        <span>{T(item.en, item.zh)}</span>
+                        <b>{counts[item.key]}</b>
+                      </div>
+                    ))}
+                    {openIssues.length === 0 && !issuesLoading && (
+                      <div className="muted" style={{ padding: "8px 0", fontSize: 12.5 }}>
+                        {T("No open issues to display.", "暂无未解决问题。")}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-          {issuesError && <div className="card section muted">{issuesError}</div>}
-          {!issuesLoading && openIssues.length === 0 && !issuesError && (
-            <div
-              className="card section muted"
-              style={{ textAlign: "center", padding: "32px 20px" }}
-            >
-              <div style={{ marginBottom: 8 }}>
-                {scans.length > 0
-                  ? T(
-                      "No issues found — your repositories look clean.",
-                      "未发现问题 — 您的仓库看起来很干净。"
-                    )
-                  : T("Run your first scan to check for issues.", "运行第一次扫描以检查问题。")}
+                <div className="card dash-summary">
+                  <div className="dash-summary-head">
+                    <h3>{T("Trust & evidence", "可信度与证据")}</h3>
+                    <span className="sub">{T("Open issues only", "仅未解决问题")}</span>
+                  </div>
+                  <div className="dash-donut-cards">
+                    <DistributionCard
+                      className="dash-donut-card"
+                      title={T("Verification", "验证状态")}
+                      subtitle={T(
+                        `${verifiedPct}% verified or static proof`,
+                        `${verifiedPct}% 已验证或静态证明`
+                      )}
+                      counts={verificationCounts}
+                      buckets={VERIFICATION_BUCKETS}
+                      layout="donut"
+                      donutCenterTop={verifiedPct + "%"}
+                      donutCenterBottom={T(
+                        `${verifiedShare}/${openIssues.length}`,
+                        `${verifiedShare}/${openIssues.length}`
+                      )}
+                    />
+                    <DistributionCard
+                      className="dash-donut-card"
+                      title={T("Confidence", "置信度")}
+                      subtitle={T(
+                        `${highPct}% high-confidence findings`,
+                        `${highPct}% 高置信度发现`
+                      )}
+                      counts={confidenceCounts}
+                      buckets={CONFIDENCE_BUCKETS}
+                      layout="donut"
+                      donutCenterTop={highPct + "%"}
+                      donutCenterBottom={T(
+                        `${highShare}/${openIssues.length}`,
+                        `${highShare}/${openIssues.length}`
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
-              {scans.length === 0 && (
-                <a className="btn sm" {...screenLinkProps(go, "repos")}>
-                  <I.Refresh size={13} /> {T("Start a scan", "开始扫描")}
-                </a>
+
+              <section
+                className="card dash-summary risk-hotspots"
+                aria-labelledby="risk-hotspots-title"
+              >
+                <div className="dash-summary-head">
+                  <div>
+                    <h3 id="risk-hotspots-title">{T("Risk hotspots", "风险热区")}</h3>
+                    <div className="sub">
+                      {T(
+                        "Top open issue concentrations by repository and file.",
+                        "按仓库和文件定位未解决问题最集中的位置。"
+                      )}
+                    </div>
+                  </div>
+                  <a className="btn sm" {...screenLinkProps(go, "issues")}>
+                    {T("All issues", "所有问题")} <I.ArrowR size={12} />
+                  </a>
+                </div>
+                <div className="risk-hotspot-grid">
+                  <RiskHotspotList
+                    title={T("Top risky repositories", "高风险仓库")}
+                    subtitle={T("Severity-weighted", "按严重度加权")}
+                    items={hotspots.repos}
+                    empty={T("No repository hotspots yet.", "暂无仓库风险聚集。")}
+                  />
+                  <RiskHotspotList
+                    title={T("Top file hotspots", "文件热区")}
+                    subtitle={T("Most concentrated files", "问题最集中的文件")}
+                    items={hotspots.files}
+                    empty={T("No file hotspots yet.", "暂无文件风险聚集。")}
+                  />
+                </div>
+              </section>
+
+              <div className="dash-issues-h">
+                <div>
+                  <h2 style={{ fontSize: 16, fontWeight: 600 }}>
+                    {T("Needs attention", "需要关注")}
+                  </h2>
+                  <div className="sub" style={{ fontSize: 12.5 }}>
+                    {issuesLoading
+                      ? T("Loading issues...", "正在加载问题...")
+                      : openIssues.length > 0
+                        ? T(
+                            `Showing ${Math.min(openIssues.length, 8)} of ${openIssues.length} open issues`,
+                            `显示 ${Math.min(openIssues.length, 8)} / ${openIssues.length} 个未解决问题`
+                          )
+                        : T("No open issues", "暂无未解决问题")}
+                  </div>
+                </div>
+                {openIssues.length > 0 && (
+                  <a className="btn sm" {...screenLinkProps(go, "issues")}>
+                    {T("All issues", "所有问题")} <I.ArrowR size={12} />
+                  </a>
+                )}
+              </div>
+
+              {issuesError && <div className="card section muted">{issuesError}</div>}
+              {!issuesLoading && openIssues.length === 0 && !issuesError && (
+                <div
+                  className="card section muted"
+                  style={{ textAlign: "center", padding: "32px 20px" }}
+                >
+                  <div style={{ marginBottom: 8 }}>
+                    {scans.length > 0
+                      ? T(
+                          "No issues found — your repositories look clean.",
+                          "未发现问题 — 您的仓库看起来很干净。"
+                        )
+                      : T("Run your first scan to check for issues.", "运行第一次扫描以检查问题。")}
+                  </div>
+                  {scans.length === 0 && (
+                    <a className="btn sm" {...screenLinkProps(go, "repos")}>
+                      <I.Refresh size={13} /> {T("Start a scan", "开始扫描")}
+                    </a>
+                  )}
+                </div>
               )}
-            </div>
-          )}
-          {openIssues.length > 0 && (
-            <div className="issue-list">
-              {openIssues.slice(0, 8).map((issue) => (
-                <IssueRow
-                  key={issue.id}
-                  issue={issue}
-                  onClick={() => {
-                    setIssue(issue);
-                    go("issue");
-                  }}
-                />
-              ))}
-            </div>
+              {openIssues.length > 0 && (
+                <div className="issue-list">
+                  {openIssues.slice(0, 8).map((issue) => (
+                    <IssueRow
+                      key={issue.id}
+                      issue={issue}
+                      onClick={() => {
+                        setIssue(issue);
+                        go("issue");
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
