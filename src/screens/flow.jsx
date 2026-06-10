@@ -1684,11 +1684,17 @@ function graphCountLabel(count, singular, plural = `${singular}s`) {
 
 function repositoryGraphTypeLabel(type) {
   const labels = {
+    class: "Classes",
+    component: "Components",
     entrypoint: "Entrypoints",
     file: "Files",
+    function: "Functions",
     manifest: "Manifests",
+    method: "Methods",
     module: "Modules",
+    route: "Routes",
     test: "Tests",
+    variable: "Variables",
     workflow: "Workflows",
   };
   return labels[type] || type;
@@ -1697,8 +1703,13 @@ function repositoryGraphTypeLabel(type) {
 function RepositoryGraphPanel({ graph }) {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
-  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
-  const edges = Array.isArray(graph?.edges) ? graph.edges : [];
+  const semanticGraph =
+    graph?.semanticGraph && Array.isArray(graph.semanticGraph.nodes) ? graph.semanticGraph : null;
+  const [activeView, setActiveView] = useState("files");
+  const activeGraph = activeView === "code" && semanticGraph ? semanticGraph : graph;
+  const nodes = Array.isArray(activeGraph?.nodes) ? activeGraph.nodes : [];
+  const edges = Array.isArray(activeGraph?.edges) ? activeGraph.edges : [];
+  const activeStats = activeGraph?.stats || {};
   const typeList = useMemo(
     () => [...new Set(nodes.map((node) => node.type).filter(Boolean))].sort(),
     [nodes]
@@ -1708,14 +1719,18 @@ function RepositoryGraphPanel({ graph }) {
   const [selectedNodeId, setSelectedNodeId] = useState(nodes[0]?.id || "");
 
   useEffect(() => {
+    if (activeView === "code" && !semanticGraph) setActiveView("files");
+  }, [activeView, semanticGraph]);
+
+  useEffect(() => {
     setActiveTypes(new Set(typeList));
-  }, [typeKey]);
+  }, [activeView, typeKey]);
 
   useEffect(() => {
     if (!nodes.some((node) => node.id === selectedNodeId)) {
       setSelectedNodeId(nodes[0]?.id || "");
     }
-  }, [nodes, selectedNodeId]);
+  }, [activeView, nodes, selectedNodeId]);
 
   const visibleNodes = useMemo(
     () => nodes.filter((node) => activeTypes.size === 0 || activeTypes.has(node.type)),
@@ -1733,6 +1748,7 @@ function RepositoryGraphPanel({ graph }) {
           id: node.id,
           label: node.label || node.path || node.id,
           type: node.type || "file",
+          line: node.line || 0,
         },
       })),
       ...visibleEdges.map((edge) => ({
@@ -1748,9 +1764,12 @@ function RepositoryGraphPanel({ graph }) {
     [visibleEdges, visibleNodes]
   );
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) || visibleNodes[0] || null;
-  const reviewHints = Array.isArray(graph?.architectureSummary?.reviewHints)
+  const reviewHints = Array.isArray(activeGraph?.reviewHints)
+    ? activeGraph.reviewHints
+    : Array.isArray(graph?.architectureSummary?.reviewHints)
     ? graph.architectureSummary.reviewHints
     : [];
+  const viewIsCode = activeView === "code" && Boolean(semanticGraph);
 
   useEffect(() => {
     if (!containerRef.current || cytoscapeElements.length === 0) return undefined;
@@ -1781,6 +1800,12 @@ function RepositoryGraphPanel({ graph }) {
         { selector: 'node[type = "module"]', style: { "background-color": "#7c3aed" } },
         { selector: 'node[type = "test"]', style: { "background-color": "#d97706" } },
         { selector: 'node[type = "workflow"]', style: { "background-color": "#0891b2" } },
+        { selector: 'node[type = "route"]', style: { "background-color": "#dc2626", height: 24, width: 24 } },
+        { selector: 'node[type = "component"]', style: { "background-color": "#16a34a", height: 22, width: 22 } },
+        { selector: 'node[type = "class"]', style: { "background-color": "#7c3aed" } },
+        { selector: 'node[type = "function"]', style: { "background-color": "#2563eb" } },
+        { selector: 'node[type = "method"]', style: { "background-color": "#0891b2" } },
+        { selector: 'node[type = "variable"]', style: { "background-color": "#64748b" } },
         {
           selector: "edge",
           style: {
@@ -1792,18 +1817,18 @@ function RepositoryGraphPanel({ graph }) {
           },
         },
       ],
-      layout: { name: "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 },
+      layout: { name: viewIsCode ? "cose" : "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 },
       userZoomingEnabled: true,
       userPanningEnabled: true,
     });
     cy.on("tap", "node", (event) => setSelectedNodeId(event.target.id()));
     cyRef.current = cy;
-    cy.layout({ name: "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 }).run();
+    cy.layout({ name: viewIsCode ? "cose" : "breadthfirst", directed: true, padding: 18, spacingFactor: 1.1 }).run();
     return () => {
       cyRef.current = null;
       cy.destroy();
     };
-  }, [cytoscapeElements]);
+  }, [cytoscapeElements, viewIsCode]);
 
   if (!nodes.length) return null;
 
@@ -1823,9 +1848,10 @@ function RepositoryGraphPanel({ graph }) {
           <I.Layers size={14} /> {T("Repository graph", "Repository graph")}
         </div>
         <div className="repository-graph-stats">
-          <span>{graphCountLabel(nodes.length, "node")}</span>
-          <span>{graphCountLabel(edges.length, "edge")}</span>
-          {graph?.stats?.truncated && <span>{T("capped", "capped")}</span>}
+          <span>{graphCountLabel(nodes.length, viewIsCode ? "symbol" : "node")}</span>
+          <span>{graphCountLabel(edges.length, viewIsCode ? "relationship" : "edge")}</span>
+          {viewIsCode && activeStats.source && <span>{activeStats.source}</span>}
+          {activeStats.truncated && <span>{T("capped", "capped")}</span>}
           <button
             type="button"
             className="btn ghost sm repository-graph-fit"
@@ -1835,6 +1861,26 @@ function RepositoryGraphPanel({ graph }) {
           </button>
         </div>
       </div>
+      {semanticGraph && (
+        <div className="repository-graph-tabs" role="tablist" aria-label={T("Repository graph views", "Repository graph views")}>
+          <button
+            type="button"
+            className={`repository-graph-tab${activeView === "files" ? " active" : ""}`}
+            aria-selected={activeView === "files"}
+            onClick={() => setActiveView("files")}
+          >
+            <I.FileCode size={12} /> {T("File graph", "File graph")}
+          </button>
+          <button
+            type="button"
+            className={`repository-graph-tab${activeView === "code" ? " active" : ""}`}
+            aria-selected={activeView === "code"}
+            onClick={() => setActiveView("code")}
+          >
+            <I.Code size={12} /> {T("Code graph", "Code graph")}
+          </button>
+        </div>
+      )}
       {typeList.length > 1 && (
         <div className="repository-graph-toolbar" aria-label={T("Repository graph filters", "Repository graph filters")}>
           {typeList.map((type) => (
@@ -1850,7 +1896,12 @@ function RepositoryGraphPanel({ graph }) {
           ))}
         </div>
       )}
-      <div className="repository-graph-canvas" ref={containerRef} role="img" aria-label={T("Repository dependency graph", "Repository dependency graph")} />
+      <div
+        className="repository-graph-canvas"
+        ref={containerRef}
+        role="img"
+        aria-label={viewIsCode ? T("Code semantic graph", "Code semantic graph") : T("Repository dependency graph", "Repository dependency graph")}
+      />
       <div className="repository-graph-node-list" aria-label={T("Repository graph nodes", "Repository graph nodes")}>
         {visibleNodes.map((node) => (
           <button
@@ -1866,8 +1917,8 @@ function RepositoryGraphPanel({ graph }) {
       </div>
       {selectedNode && (
         <div className="repository-graph-details">
-          <b>{selectedNode.label || selectedNode.path}</b>
-          <span>{selectedNode.path}</span>
+          <b>{selectedNode.signature || selectedNode.label || selectedNode.path}</b>
+          <span>{selectedNode.path}{selectedNode.line ? `:${selectedNode.line}` : ""}</span>
           <span className="tag">{selectedNode.type}</span>
         </div>
       )}

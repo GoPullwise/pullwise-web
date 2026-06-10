@@ -286,8 +286,11 @@ function normalizeAiUsage(value) {
 }
 
 const REPOSITORY_GRAPH_PROTOCOL_VERSION = "repository-graph/0.1";
+const REPOSITORY_SEMANTIC_GRAPH_PROTOCOL_VERSION = "semantic-code-graph/0.1";
 const REPOSITORY_GRAPH_MAX_NODES = 120;
 const REPOSITORY_GRAPH_MAX_EDGES = 240;
+const REPOSITORY_GRAPH_MAX_SEMANTIC_NODES = 120;
+const REPOSITORY_GRAPH_MAX_SEMANTIC_EDGES = 240;
 const REPOSITORY_GRAPH_MAX_PROMPT_CHARS = 2048;
 const REPOSITORY_GRAPH_NODE_TYPES = new Set([
   "entrypoint",
@@ -303,6 +306,23 @@ const REPOSITORY_GRAPH_EDGE_TYPES = new Set([
   "calls",
   "configures",
   "depends_on",
+]);
+const REPOSITORY_SEMANTIC_NODE_TYPES = new Set([
+  "class",
+  "component",
+  "function",
+  "method",
+  "route",
+  "variable",
+]);
+const REPOSITORY_SEMANTIC_EDGE_TYPES = new Set([
+  "calls",
+  "defines",
+  "extends",
+  "handles",
+  "imports",
+  "implements",
+  "uses",
 ]);
 const REPOSITORY_GRAPH_ID_RE = /^[A-Za-z0-9_.:/@-]{1,180}$/;
 
@@ -343,9 +363,11 @@ function normalizeRepositoryGraph(value) {
     architectureSummary: normalizeRepositoryGraphArchitectureSummary(
       value.architectureSummary ?? value.architecture_summary
     ),
+    semanticGraph: normalizeRepositorySemanticGraph(value.semanticGraph ?? value.semantic_graph),
   };
   if (!graph.summary) delete graph.summary;
   if (!Object.keys(graph.architectureSummary).length) delete graph.architectureSummary;
+  if (!graph.semanticGraph) delete graph.semanticGraph;
   return graph;
 }
 
@@ -418,6 +440,105 @@ function normalizeRepositoryGraphArchitectureSummary(value) {
   const promptText = multilineTextValue(value.promptText ?? value.prompt_text, REPOSITORY_GRAPH_MAX_PROMPT_CHARS);
   if (promptText) summary.promptText = promptText;
   return summary;
+}
+
+function normalizeRepositorySemanticGraph(value) {
+  if (!objectRecord(value)) return null;
+  const version = textValue(value.version);
+  if (version !== REPOSITORY_SEMANTIC_GRAPH_PROTOCOL_VERSION) return null;
+  const nodes = [];
+  const nodeIds = new Set();
+  const rawNodes = Array.isArray(value.nodes) ? value.nodes : [];
+  for (const item of rawNodes) {
+    const node = normalizeRepositorySemanticNode(item);
+    if (!node || nodeIds.has(node.id)) continue;
+    nodeIds.add(node.id);
+    nodes.push(node);
+    if (nodes.length >= REPOSITORY_GRAPH_MAX_SEMANTIC_NODES) break;
+  }
+  if (!nodes.length) return null;
+  const edges = [];
+  const edgeIds = new Set();
+  const rawEdges = Array.isArray(value.edges) ? value.edges : [];
+  for (const item of rawEdges) {
+    const edge = normalizeRepositorySemanticEdge(item, nodeIds);
+    if (!edge || edgeIds.has(edge.id)) continue;
+    edgeIds.add(edge.id);
+    edges.push(edge);
+    if (edges.length >= REPOSITORY_GRAPH_MAX_SEMANTIC_EDGES) break;
+  }
+  const graph = {
+    version,
+    summary: textValue(value.summary),
+    stats: normalizeRepositorySemanticStats(value.stats, nodes, edges, rawNodes.length, rawEdges.length),
+    nodes,
+    edges,
+    reviewHints: normalizeTextList(value.reviewHints ?? value.review_hints).slice(0, 20),
+  };
+  if (!graph.summary) delete graph.summary;
+  if (!graph.reviewHints.length) delete graph.reviewHints;
+  return graph;
+}
+
+function normalizeRepositorySemanticNode(value) {
+  if (!objectRecord(value)) return null;
+  const id = textValue(value.id);
+  const type = textValue(value.type);
+  const path = normalizeRepositoryGraphPath(value.path);
+  if (!id || !REPOSITORY_GRAPH_ID_RE.test(id) || !REPOSITORY_SEMANTIC_NODE_TYPES.has(type) || !path) {
+    return null;
+  }
+  const node = {
+    id,
+    label: textValue(value.label).slice(0, 80) || path.split("/").pop() || id,
+    type,
+    path,
+    line: normalizeQuotaCount(value.line, 0),
+  };
+  if (!node.line) delete node.line;
+  const signature = textValue(value.signature).slice(0, 180);
+  if (signature) node.signature = signature;
+  const importance = Number(value.importance);
+  if (Number.isFinite(importance)) node.importance = Math.max(0, Math.min(1, importance));
+  const tags = normalizeTextList(value.tags).slice(0, 10);
+  if (tags.length) node.tags = tags;
+  return node;
+}
+
+function normalizeRepositorySemanticEdge(value, nodeIds) {
+  if (!objectRecord(value)) return null;
+  const source = textValue(value.source);
+  const target = textValue(value.target);
+  const type = textValue(value.type);
+  if (
+    !nodeIds.has(source) ||
+    !nodeIds.has(target) ||
+    source === target ||
+    !REPOSITORY_SEMANTIC_EDGE_TYPES.has(type)
+  ) {
+    return null;
+  }
+  const fallbackId = `${type}:${source}->${target}`.slice(0, 180);
+  const id = REPOSITORY_GRAPH_ID_RE.test(textValue(value.id)) ? textValue(value.id) : fallbackId;
+  const edge = { id, source, target, type };
+  const weight = Number(value.weight);
+  if (Number.isFinite(weight) && weight > 0) edge.weight = Math.min(100, Math.trunc(weight));
+  return edge;
+}
+
+function normalizeRepositorySemanticStats(value, nodes, edges, rawNodeCount, rawEdgeCount) {
+  const source = objectRecord(value) ? value : {};
+  const stats = {
+    files: normalizeQuotaCount(source.files, 0),
+    symbols: nodes.length,
+    relationships: edges.length,
+    routes: nodes.filter((node) => node.type === "route").length,
+    truncated:
+      Boolean(source.truncated) || rawNodeCount > nodes.length || rawEdgeCount > edges.length,
+  };
+  const graphSource = textValue(source.source);
+  if (["agent_fallback", "static"].includes(graphSource)) stats.source = graphSource;
+  return stats;
 }
 
 function normalizeRepositoryGraphPath(value) {

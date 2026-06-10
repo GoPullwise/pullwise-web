@@ -100,6 +100,40 @@ const repositoryGraphFixture = {
     reviewHints: ["Review scan UI."],
     promptText: "Repository architecture: UI entrypoint.",
   },
+  semanticGraph: {
+    version: "semantic-code-graph/0.1",
+    summary: "UI semantic graph",
+    stats: { files: 1, symbols: 2, relationships: 1, routes: 0, source: "static", truncated: false },
+    nodes: [
+      {
+        id: "symbol:src/App.jsx:App",
+        label: "App",
+        type: "component",
+        path: "src/App.jsx",
+        line: 1,
+        signature: "App()",
+        importance: 0.9,
+      },
+      {
+        id: "symbol:src/App.jsx:Flow",
+        label: "Flow",
+        type: "function",
+        path: "src/App.jsx",
+        line: 4,
+        signature: "Flow()",
+      },
+    ],
+    edges: [
+      {
+        id: "calls:symbol:src/App.jsx:App-symbol:src/App.jsx:Flow",
+        source: "symbol:src/App.jsx:App",
+        target: "symbol:src/App.jsx:Flow",
+        type: "calls",
+        weight: 1,
+      },
+    ],
+    reviewHints: ["Review component call flow."],
+  },
 };
 
 beforeEach(() => {
@@ -963,7 +997,7 @@ describe("ScanningScreen queue state", () => {
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
   });
 
-  it("shows the repository graph for scans that include graph data", () => {
+  it("shows the repository graph for scans that include graph data", async () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_graph",
@@ -993,6 +1027,14 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByRole("button", { name: /fit graph/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /App.jsx/i })).toBeInTheDocument();
     expect(screen.getByText("Review scan UI.")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /code graph/i }));
+
+    expect(screen.getByText("2 symbols")).toBeInTheDocument();
+    expect(screen.getByText("1 relationship")).toBeInTheDocument();
+    expect(screen.getByText("static")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /App component/i })).toBeInTheDocument();
+    expect(screen.getByText("Review component call flow.")).toBeInTheDocument();
   });
 
   it("does not render the retired audit funnel for completed scans", () => {

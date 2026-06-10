@@ -1577,6 +1577,7 @@
 }
 
 .repository-graph-stats,
+.repository-graph-tabs,
 .repository-graph-toolbar,
 .repository-graph-node-list,
 .repository-graph-hints {
@@ -1594,6 +1595,35 @@
 
 .repository-graph-fit {
   min-height: 28px;
+}
+
+.repository-graph-tabs {
+  align-items: stretch;
+}
+
+.repository-graph-tab {
+  min-height: 30px;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.25;
+  padding: 6px 10px;
+  transition:
+    border-color 120ms var(--ease-out),
+    color 120ms var(--ease-out),
+    background 120ms var(--ease-out);
+}
+
+.repository-graph-tab.active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
 }
 
 .repository-graph-filter,
