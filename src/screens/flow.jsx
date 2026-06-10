@@ -1882,10 +1882,11 @@ function RepositoryGraphPanel({ graph }) {
   );
 }
 
-export function ScanningScreen({ go, activeRepo, setIssue = null }) {
+export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
   const [bundleLoading, setBundleLoading] = useState(false);
+  const resolvedScanIdRef = useRef("");
   const selectedRepos = useMemo(
     () => (Array.isArray(activeRepo?.selectedRepos) ? activeRepo.selectedRepos : []),
     [activeRepo?.selectedRepos]
@@ -1937,6 +1938,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null }) {
       return [...prev.slice(-9), line];
     });
   }, [scan?.phase]);
+
+  useEffect(() => {
+    if (batchMode || !scan?.id || typeof onScanResolved !== "function") return;
+    if (resolvedScanIdRef.current === scan.id) return;
+    resolvedScanIdRef.current = scan.id;
+    onScanResolved(scan);
+  }, [batchMode, scan, onScanResolved]);
 
   const expectedBatchCount = batchRepositories.length;
   const status = batchMode

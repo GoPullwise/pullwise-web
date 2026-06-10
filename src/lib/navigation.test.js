@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { issueIdFromPath, pathFromScreen, screenFromPath, screenLinkProps } from "./navigation.js";
+import {
+  issueIdFromPath,
+  pathFromScreen,
+  scanIdFromPath,
+  screenFromPath,
+  screenLinkProps,
+} from "./navigation.js";
 
 function fakeClick(overrides = {}) {
   return {
@@ -67,5 +73,16 @@ describe("issue detail routes", () => {
     );
     expect(screenFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue");
     expect(issueIdFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue/with spaces#1");
+  });
+});
+
+describe("scan detail routes", () => {
+  it("encodes scan identity in the URL so scan pages can reload", () => {
+    expect(pathFromScreen("scanning", { scanId: "scan/with spaces#1" })).toBe(
+      "/scanning/scan%2Fwith%20spaces%231"
+    );
+    expect(pathFromScreen("scanning")).toBe("/scanning");
+    expect(screenFromPath("/scanning/scan%2Fwith%20spaces%231")).toBe("scanning");
+    expect(scanIdFromPath("/scanning/scan%2Fwith%20spaces%231")).toBe("scan/with spaces#1");
   });
 });

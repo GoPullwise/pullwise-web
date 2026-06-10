@@ -27,6 +27,7 @@ for (const [screen, path] of Object.entries(SCREEN_TO_PATH)) {
 PATH_TO_SCREEN["/dashboard"] = "dashboard";
 
 const ISSUE_DETAIL_PREFIX = "/issues/";
+const SCAN_DETAIL_PREFIX = "/scanning/";
 
 function cleanPathname(pathname) {
   const raw = String(pathname || "/").split(/[?#]/, 1)[0] || "/";
@@ -49,6 +50,18 @@ export function issueIdFromPath(pathname) {
   }
 }
 
+export function scanIdFromPath(pathname) {
+  const clean = cleanPathname(pathname);
+  if (!clean.startsWith(SCAN_DETAIL_PREFIX)) return "";
+  const encodedScanId = clean.slice(SCAN_DETAIL_PREFIX.length);
+  if (!encodedScanId) return "";
+  try {
+    return decodeURIComponent(encodedScanId);
+  } catch {
+    return "";
+  }
+}
+
 export function screenHref(screen, params = {}) {
   return pathFromScreen(screen, params);
 }
@@ -57,12 +70,16 @@ export function screenFromPath(pathname) {
   if (!pathname || pathname === "/") return "landing";
   const clean = cleanPathname(pathname);
   if (clean.startsWith(ISSUE_DETAIL_PREFIX)) return "issue";
+  if (clean.startsWith(SCAN_DETAIL_PREFIX)) return "scanning";
   return PATH_TO_SCREEN[clean] || null;
 }
 
 export function pathFromScreen(screen, params = {}) {
   if (screen === "issue" && params?.issueId) {
     return `${ISSUE_DETAIL_PREFIX}${encodeURIComponent(params.issueId)}`;
+  }
+  if (screen === "scanning" && params?.scanId) {
+    return `${SCAN_DETAIL_PREFIX}${encodeURIComponent(params.scanId)}`;
   }
   return SCREEN_TO_PATH[screen] || "/404";
 }

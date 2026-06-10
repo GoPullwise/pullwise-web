@@ -4,7 +4,12 @@ import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
-import { issueIdFromPath, pathFromScreen, screenFromPath } from "./lib/navigation.js";
+import {
+  issueIdFromPath,
+  pathFromScreen,
+  scanIdFromPath,
+  screenFromPath,
+} from "./lib/navigation.js";
 import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
 import { ApiKeysScreen } from "./screens/api.jsx";
 import { ApiDocsScreen } from "./screens/api-docs.jsx";
@@ -113,6 +118,40 @@ function storedActiveRepo() {
   }
 }
 
+function activeRepoForScanRoute(activeRepo, routeScanId) {
+  if (!routeScanId) return activeRepo;
+  if (Array.isArray(activeRepo?.selectedRepos)) {
+    const selectedRepo = activeRepo.selectedRepos.length === 1 ? activeRepo.selectedRepos[0] : null;
+    if (selectedRepo?.scanId === routeScanId || selectedRepo?.initialScan?.id === routeScanId) {
+      return activeRepo;
+    }
+    return { scanId: routeScanId };
+  }
+  if (activeRepo?.scanId === routeScanId) return activeRepo;
+  if (activeRepo?.initialScan?.id === routeScanId) return { ...activeRepo, scanId: routeScanId };
+  return { scanId: routeScanId };
+}
+
+function activeRepoWithResolvedScan(activeRepo, scan) {
+  if (!scan?.id) return activeRepo;
+  const scanContext = {
+    scanId: scan.id,
+    fullName: scan.repo,
+    name: scan.repo,
+    defaultBranch: scan.branch || "main",
+    commit: scan.commit || "pending",
+    initialScan: scan,
+  };
+  if (Array.isArray(activeRepo?.selectedRepos)) {
+    if (activeRepo.selectedRepos.length !== 1) return activeRepo;
+    return {
+      ...activeRepo,
+      selectedRepos: [{ ...activeRepo.selectedRepos[0], ...scanContext }],
+    };
+  }
+  return { ...activeRepo, ...scanContext };
+}
+
 function PrototypeNav({ go, current }) {
   const screens = [
     { k: "landing", t: T("Landing", "首页") },
@@ -167,6 +206,7 @@ export function App({ prototypeNav = false }) {
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [issue, setIssue] = useState(null);
   const [routeIssueId, setRouteIssueId] = useState(() => issueIdFromPath(window.location.pathname));
+  const [routeScanId, setRouteScanId] = useState(() => scanIdFromPath(window.location.pathname));
   const [issueScanFilter, setIssueScanFilter] = useState(null);
   const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
   const [navOpen, setNavOpen] = useState(true);
@@ -179,10 +219,16 @@ export function App({ prototypeNav = false }) {
   const go = (nextScreen, params = {}) => {
     const path = pathFromScreen(nextScreen, params);
     const nextIssueId = nextScreen === "issue" ? issueIdFromPath(path) : "";
+    const nextScanId = nextScreen === "scanning" ? scanIdFromPath(path) : "";
     if (window.location.pathname !== path) {
-      window.history.pushState({ screen: nextScreen, issueId: nextIssueId }, "", path);
+      window.history.pushState(
+        { screen: nextScreen, issueId: nextIssueId, scanId: nextScanId },
+        "",
+        path
+      );
     }
     setRouteIssueId(nextIssueId);
+    setRouteScanId(nextScanId);
     setScreen(nextScreen);
     window.scrollTo({ top: 0 });
   };
@@ -191,6 +237,7 @@ export function App({ prototypeNav = false }) {
     const onPopState = () => {
       const nextScreen = screenFromPath(window.location.pathname) || "landing";
       setRouteIssueId(nextScreen === "issue" ? issueIdFromPath(window.location.pathname) : "");
+      setRouteScanId(nextScreen === "scanning" ? scanIdFromPath(window.location.pathname) : "");
       setScreen(nextScreen);
     };
     window.addEventListener("popstate", onPopState);
@@ -198,15 +245,16 @@ export function App({ prototypeNav = false }) {
   }, []);
 
   const openScan = (scan) => {
+    const scanId = scan?.id || "";
     setActiveRepo({
-      scanId: scan.id,
-      fullName: scan.repo,
-      name: scan.repo,
-      defaultBranch: scan.branch || "main",
-      commit: scan.commit || "pending",
+      scanId,
+      fullName: scan?.repo,
+      name: scan?.repo,
+      defaultBranch: scan?.branch || "main",
+      commit: scan?.commit || "pending",
       initialScan: scan,
     });
-    go("scanning");
+    go("scanning", scanId ? { scanId } : {});
   };
 
   const openScanIssues = (scan) => {
@@ -220,6 +268,20 @@ export function App({ prototypeNav = false }) {
     });
     go("issues");
   };
+
+  const handleScanResolved = useCallback(
+    (scan) => {
+      if (!scan?.id || screen !== "scanning") return;
+      setActiveRepo((current) => activeRepoWithResolvedScan(current, scan));
+      const path = pathFromScreen("scanning", { scanId: scan.id });
+      if (window.location.pathname !== path) {
+        window.history.replaceState({ screen: "scanning", issueId: "", scanId: scan.id }, "", path);
+      }
+      setRouteIssueId("");
+      setRouteScanId(scan.id);
+    },
+    [screen]
+  );
 
   useEffect(() => {
     document.body.classList.toggle("has-proto-nav", prototypeNav && navOpen);
@@ -444,6 +506,8 @@ export function App({ prototypeNav = false }) {
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
   }, []);
 
+  const scanningActiveRepo = activeRepoForScanRoute(activeRepo, routeScanId);
+
   let body;
   if (auth.status === "checking" && shouldShowSessionCheck(screen)) {
     body = (
@@ -498,7 +562,14 @@ export function App({ prototypeNav = false }) {
         );
         break;
       case "scanning":
-        body = <ScanningScreen go={go} activeRepo={activeRepo} setIssue={setIssue} />;
+        body = (
+          <ScanningScreen
+            go={go}
+            activeRepo={scanningActiveRepo}
+            setIssue={setIssue}
+            onScanResolved={handleScanResolved}
+          />
+        );
         break;
       case "dashboard":
         body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} accent={ACCENT} />;

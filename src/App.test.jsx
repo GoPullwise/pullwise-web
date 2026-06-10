@@ -181,6 +181,70 @@ describe("App", () => {
     expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
   });
 
+  it("loads a scan detail page directly from the scan id in the route", async () => {
+    window.history.replaceState({}, "", "/scanning/sc_route");
+    localStorage.removeItem("pw-active-repo");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_route",
+      repo: "GoPullwise/pullwise-server",
+      branch: "main",
+      commit: "def456",
+      status: "done",
+      phase: "report",
+      progress: 100,
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_route");
+    });
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+    expect(screen.getByText("GoPullwise/pullwise-server")).toBeInTheDocument();
+  });
+
+  it("replaces a new scan route with the created scan id", async () => {
+    window.history.replaceState({}, "", "/scanning");
+    localStorage.setItem(
+      "pw-active-repo",
+      JSON.stringify({
+        fullName: "GoPullwise/pullwise-web",
+        name: "pullwise-web",
+        defaultBranch: "main",
+        commit: "pending",
+      })
+    );
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const createdScan = {
+      id: "sc_created_route",
+      repo: "GoPullwise/pullwise-web",
+      branch: "main",
+      commit: "pending",
+      status: "queued",
+      phase: "clone",
+      progress: 0,
+    };
+    pullwiseApi.scans.create.mockResolvedValueOnce(createdScan);
+    pullwiseApi.scans.get.mockResolvedValue(createdScan);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/scanning/sc_created_route");
+    });
+    expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(JSON.parse(localStorage.getItem("pw-active-repo")).scanId).toBe("sc_created_route");
+    });
+  });
+
   it("clears invalid persisted scan context instead of passing it to the scanning route", async () => {
     window.history.replaceState({}, "", "/scanning");
     localStorage.setItem("pw-active-repo", "[object Object]");
@@ -972,6 +1036,42 @@ describe("App", () => {
     });
     const latestIssueParams = pullwiseApi.issues.list.mock.calls.at(-1)?.[0] || {};
     expect(latestIssueParams.scanId).toBeUndefined();
+  });
+
+  it("opens scan history details on a URL with the scan id", async () => {
+    window.history.replaceState({}, "", "/history");
+    localStorage.removeItem("pw-active-repo");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const scan = {
+      id: "sc_history_1",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "abc123",
+      status: "done",
+      createdAt: 1710000000,
+      time: "Today",
+      by: "you",
+      phase: "report",
+      progress: 100,
+      issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
+    };
+    pullwiseApi.scans.list.mockResolvedValue({ items: [scan] });
+    pullwiseApi.scans.get.mockResolvedValueOnce(scan);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    const historyRow = (await screen.findByText("octocat/private-repo")).closest(".scan-row");
+    await user.click(within(historyRow).getByRole("button", { name: /^view$/i }));
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/scanning/sc_history_1");
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_history_1");
+    });
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
   it("continues repository authorization after returning from GitHub login", async () => {

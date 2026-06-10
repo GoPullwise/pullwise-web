@@ -700,6 +700,35 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
+  it("notifies the parent when a single scan id is resolved", async () => {
+    const onScanResolved = vi.fn();
+    const scan = {
+      id: "sc_created",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "pending",
+      status: "queued",
+      progress: 0,
+    };
+    useScanRun.mockReturnValue({
+      scan,
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        onScanResolved={onScanResolved}
+      />
+    );
+
+    await waitFor(() => {
+      expect(onScanResolved).toHaveBeenCalledWith(scan);
+    });
+  });
+
   it("shows compact findings and model usage for a completed scan", () => {
     useScanRun.mockReturnValue({
       scan: {
