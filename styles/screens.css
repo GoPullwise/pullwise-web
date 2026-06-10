@@ -728,15 +728,49 @@
   background: transparent;
   font-size: 13px;
 }
+.repos-orgs-shell {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+}
 .repos-orgs {
   display: flex;
   gap: 4px;
   max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   padding: 3px;
   background: var(--bg-soft);
   border-radius: 0;
   border: 1px solid var(--border);
+  scroll-behavior: smooth;
+  scroll-padding: 3px;
+  scroll-snap-type: x proximity;
+}
+.repos-org-scroll {
+  width: 30px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+.repos-org-scroll:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.repos-org-scroll:disabled {
+  color: var(--text-3);
+  opacity: 0.45;
+  cursor: default;
 }
 
 .repos-list {
@@ -756,6 +790,7 @@
   color: var(--text-2);
   background: transparent;
   border: 0;
+  scroll-snap-align: start;
 }
 .repos-org:hover {
   color: var(--text);
@@ -5355,6 +5390,10 @@ button.dash-cat-row:hover {
 
   .repos-search {
     flex-basis: auto;
+    width: 100%;
+  }
+
+  .repos-orgs-shell {
     width: 100%;
   }
 

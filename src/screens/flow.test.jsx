@@ -319,6 +319,50 @@ describe("ReposScreen scan selection", () => {
     expect(screen.queryByText(/loading repositories/i)).not.toBeInTheDocument();
   });
 
+  it("lets long repository owner tab sets slide horizontally", async () => {
+    const user = userEvent.setup();
+    const owners = ["GoAlpha", "GoBeta", "GoGamma", "GoDelta", "GoEpsilon", "GoZeta"];
+    useRepositories.mockReturnValue({
+      items: owners.map((owner, index) => ({
+        ...repoAlpha,
+        id: `repo_${index}`,
+        name: `repo-${index}`,
+        fullName: `${owner}/repo-${index}`,
+      })),
+      installations: [],
+      installationAccounts: owners,
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    const tablist = screen.getByRole("tablist", { name: /repository owner filters/i });
+    const scrollBy = vi.fn();
+    tablist.scrollBy = scrollBy;
+    Object.defineProperty(tablist, "clientWidth", { configurable: true, value: 300 });
+
+    expect(tablist).toHaveClass("repos-orgs");
+    expect(tablist).toHaveAttribute("aria-orientation", "horizontal");
+    expect(tablist).toHaveAttribute("data-scrollable", "true");
+    expect(within(tablist).getAllByRole("tab")).toHaveLength(owners.length + 1);
+
+    await user.click(screen.getByRole("button", { name: /scroll repository filters right/i }));
+
+    expect(scrollBy).toHaveBeenCalledWith(
+      expect.objectContaining({ left: 240, behavior: "smooth" })
+    );
+
+    await user.click(screen.getByRole("tab", { name: "@GoDelta" }));
+
+    expect(screen.getByRole("tab", { name: "@GoDelta" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+  });
+
   it("keeps scan list metadata in two rows before selection", () => {
     const appStyles = readFileSync("src/app.css", "utf8");
 

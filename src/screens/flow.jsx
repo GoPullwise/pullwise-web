@@ -992,6 +992,27 @@ export function ReposScreen({
   );
   const [org, setOrg] = useState(allLabel);
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
+  const ownerTabsRef = useRef(null);
+  const ownerTabsScrollable = orgs.length > 4;
+  const scrollOwnerTabs = useCallback((direction) => {
+    const track = ownerTabsRef.current;
+    if (!track) return;
+    const distance = Math.max(Math.round(track.clientWidth * 0.8), 160);
+    const left = direction * distance;
+    if (typeof track.scrollBy === "function") {
+      track.scrollBy({ left, behavior: "smooth" });
+      return;
+    }
+    track.scrollLeft += left;
+  }, []);
+  const selectOwnerTab = useCallback((event, item) => {
+    setOrg(item);
+    event.currentTarget.scrollIntoView?.({
+      block: "nearest",
+      inline: "center",
+      behavior: "smooth",
+    });
+  }, []);
   const query = q.trim().toLowerCase();
   const refreshGitHubRepositoryAccess = useCallback(async () => {
     await reload({ sync: true });
@@ -1460,16 +1481,46 @@ export function ReposScreen({
                     )}
               </button>
             </div>
-            <div className="repos-orgs">
-              {orgs.map((item) => (
-                <button
-                  key={item}
-                  className={"repos-org" + (org === item ? " active" : "")}
-                  onClick={() => setOrg(item)}
-                >
-                  {item}
-                </button>
-              ))}
+            <div className="repos-orgs-shell">
+              <button
+                type="button"
+                className="repos-org-scroll"
+                aria-label={T("Scroll repository filters left", "向左滑动仓库筛选")}
+                onClick={() => scrollOwnerTabs(-1)}
+                disabled={!ownerTabsScrollable}
+              >
+                <I.ArrowL size={13} />
+              </button>
+              <div
+                ref={ownerTabsRef}
+                className="repos-orgs"
+                role="tablist"
+                aria-label={T("Repository owner filters", "仓库所有者筛选")}
+                aria-orientation="horizontal"
+                data-scrollable={ownerTabsScrollable ? "true" : "false"}
+              >
+                {orgs.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    role="tab"
+                    aria-selected={org === item}
+                    className={"repos-org" + (org === item ? " active" : "")}
+                    onClick={(event) => selectOwnerTab(event, item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="repos-org-scroll"
+                aria-label={T("Scroll repository filters right", "向右滑动仓库筛选")}
+                onClick={() => scrollOwnerTabs(1)}
+                disabled={!ownerTabsScrollable}
+              >
+                <I.ArrowR size={13} />
+              </button>
             </div>
           </div>
 
