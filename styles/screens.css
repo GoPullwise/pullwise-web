@@ -1655,8 +1655,8 @@
 }
 
 .repository-graph-canvas {
-  min-height: 280px;
-  height: clamp(280px, 34vh, 420px);
+  min-height: 420px;
+  height: clamp(420px, 52vh, 640px);
   width: 100%;
   border: 1px solid var(--border);
   background:

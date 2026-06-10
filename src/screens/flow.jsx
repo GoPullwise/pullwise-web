@@ -1698,6 +1698,7 @@ const LEGACY_SCAN_PHASES = [
 
 const LEGACY_ONLY_SCAN_PHASE_KEYS = new Set(["secrets", "deps"]);
 const SCAN_PHASE_BY_KEY = new Map(LEGACY_SCAN_PHASES.map((phase) => [phase.k, phase]));
+const EMPTY_REPOSITORY_GRAPH_ITEMS = Object.freeze([]);
 
 function scanPhaseDefinition(phase) {
   return SCAN_PHASE_BY_KEY.get(phase);
@@ -1709,6 +1710,27 @@ function scanPhasesForPhase(phase) {
 
 function graphCountLabel(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function repositoryGraphElementsKey(nodes, edges) {
+  const nodeKeys = nodes
+    .map((node) => [
+      node.id,
+      node.label || node.path || node.id,
+      node.type || "file",
+      node.line || 0,
+    ])
+    .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
+  const edgeKeys = edges
+    .map((edge) => [
+      edge.id,
+      edge.source,
+      edge.target,
+      edge.type,
+      edge.weight || 1,
+    ])
+    .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
+  return JSON.stringify({ nodes: nodeKeys, edges: edgeKeys });
 }
 
 function repositoryGraphTypeLabel(type) {
@@ -1732,12 +1754,13 @@ function repositoryGraphTypeLabel(type) {
 function RepositoryGraphPanel({ graph, semanticGraph }) {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
+  const cytoscapeElementCacheRef = useRef({ key: "", elements: [] });
   const fileGraph = graph && Array.isArray(graph.nodes) ? graph : null;
   const codeGraph = semanticGraph && Array.isArray(semanticGraph.nodes) ? semanticGraph : null;
   const [activeView, setActiveView] = useState(() => (fileGraph ? "files" : "code"));
   const activeGraph = activeView === "code" && codeGraph ? codeGraph : fileGraph || codeGraph;
-  const nodes = Array.isArray(activeGraph?.nodes) ? activeGraph.nodes : [];
-  const edges = Array.isArray(activeGraph?.edges) ? activeGraph.edges : [];
+  const nodes = Array.isArray(activeGraph?.nodes) ? activeGraph.nodes : EMPTY_REPOSITORY_GRAPH_ITEMS;
+  const edges = Array.isArray(activeGraph?.edges) ? activeGraph.edges : EMPTY_REPOSITORY_GRAPH_ITEMS;
   const activeStats = activeGraph?.stats || {};
   const typeList = useMemo(
     () => [...new Set(nodes.map((node) => node.type).filter(Boolean))].sort(),
@@ -1753,7 +1776,7 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   }, [activeView, codeGraph, fileGraph]);
 
   useEffect(() => {
-    setActiveTypes(new Set(typeList));
+    setActiveTypes(new Set(typeKey ? typeKey.split("|") : []));
   }, [activeView, typeKey]);
 
   useEffect(() => {
@@ -1771,8 +1794,15 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
     () => edges.filter((edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)),
     [edges, visibleNodeIds]
   );
-  const cytoscapeElements = useMemo(
-    () => [
+  const cytoscapeElementKey = useMemo(
+    () => repositoryGraphElementsKey(visibleNodes, visibleEdges),
+    [visibleEdges, visibleNodes]
+  );
+  const cytoscapeElements = useMemo(() => {
+    if (cytoscapeElementCacheRef.current.key === cytoscapeElementKey) {
+      return cytoscapeElementCacheRef.current.elements;
+    }
+    const elements = [
       ...visibleNodes.map((node) => ({
         data: {
           id: node.id,
@@ -1790,9 +1820,10 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
           weight: edge.weight || 1,
         },
       })),
-    ],
-    [visibleEdges, visibleNodes]
-  );
+    ];
+    cytoscapeElementCacheRef.current = { key: cytoscapeElementKey, elements };
+    return elements;
+  }, [cytoscapeElementKey, visibleEdges, visibleNodes]);
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) || visibleNodes[0] || null;
   const reviewHints = Array.isArray(activeGraph?.reviewHints)
     ? activeGraph.reviewHints

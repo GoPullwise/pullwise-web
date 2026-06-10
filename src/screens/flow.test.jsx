@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import cytoscape from "cytoscape";
 import { setLang } from "../i18n.jsx";
 import { ReposScreen, ScanningScreen } from "./flow.jsx";
 
@@ -138,8 +139,13 @@ const semanticGraphFixture = {
   reviewHints: ["Review component call flow."],
 };
 
+function cloneFixture(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 beforeEach(() => {
   setLang("en");
+  cytoscape.mockClear();
   connectGitHubRepositories.mockReset();
   connectGitHubRepositories.mockResolvedValue(undefined);
   manageGitHubInstallation.mockReset();
@@ -1055,6 +1061,62 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("static")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /App component/i })).toBeInTheDocument();
     expect(screen.getByText("Review component call flow.")).toBeInTheDocument();
+  });
+
+  it("keeps the repository graph canvas tall enough for interaction", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+    const canvasBlock = styles.match(/\.repository-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups
+      ?.body;
+
+    expect(canvasBlock).toBeTruthy();
+    expect(canvasBlock).toMatch(/min-height:\s*420px;/);
+    expect(canvasBlock).toMatch(/height:\s*clamp\(420px,\s*52vh,\s*640px\);/);
+  });
+
+  it("keeps the repository graph instance stable across running scan refreshes", () => {
+    const go = vi.fn();
+    const cancel = vi.fn();
+    const activeRepo = { scanId: "sc_graph", fullName: "octocat/graph", defaultBranch: "main" };
+    const scan = {
+      id: "sc_graph",
+      repo: "octocat/graph",
+      branch: "main",
+      commit: "abc123",
+      status: "running",
+      phase: "index",
+      progress: 35,
+      issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      repositoryGraph: repositoryGraphFixture,
+      semanticGraph: semanticGraphFixture,
+    };
+    useScanRun.mockReturnValue({ scan, error: "", cancel });
+
+    const { rerender } = render(<ScanningScreen go={go} activeRepo={activeRepo} />);
+
+    expect(cytoscape).toHaveBeenCalledTimes(1);
+    expect(cytoscape.mock.calls[0][0]).toMatchObject({
+      userPanningEnabled: true,
+      userZoomingEnabled: true,
+    });
+    const cy = cytoscape.mock.results[0].value;
+
+    useScanRun.mockReturnValue({
+      scan: {
+        ...scan,
+        phase: "ai",
+        progress: 62,
+        repositoryGraph: cloneFixture(repositoryGraphFixture),
+        semanticGraph: cloneFixture(semanticGraphFixture),
+      },
+      error: "",
+      cancel,
+    });
+
+    rerender(<ScanningScreen go={go} activeRepo={activeRepo} />);
+
+    expect(cytoscape).toHaveBeenCalledTimes(1);
+    expect(cy.destroy).not.toHaveBeenCalled();
+    expect(cy.layout).toHaveBeenCalledTimes(1);
   });
 
   it("does not render the retired audit funnel for completed scans", () => {
