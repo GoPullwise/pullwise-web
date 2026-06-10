@@ -90,6 +90,8 @@ export const pullwiseApi = {
       request("/billing/portal-sessions", { method: "POST", body: payload }),
     changeSubscriptionInterval: (payload = {}) =>
       request("/billing/change-interval", { method: "POST", body: payload }),
+    cancelSubscription: (payload = {}) =>
+      request("/billing/cancel-subscription", { method: "POST", body: payload }),
   },
 
   apiKeys: {

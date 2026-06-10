@@ -4154,11 +4154,11 @@ button.dash-cat-row:hover {
 }
 
 .pricing-tiers {
-  max-width: 820px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 24px 36px 60px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   grid-template-rows: auto auto 1fr auto;
   column-gap: 16px;
   row-gap: 18px;

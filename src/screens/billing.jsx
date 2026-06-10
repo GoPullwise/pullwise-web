@@ -87,6 +87,48 @@ function billingAccount(plan) {
   return { status: "none", plan: "free" };
 }
 
+function fallbackPaidPlan(id, payload) {
+  const max = id === "max";
+  return {
+    id,
+    name: max ? "Pullwise Max" : payload?.name || "Pullwise Pro",
+    description:
+      payload?.description ||
+      (max
+        ? T("Higher-capacity repository review for production teams.", "Higher-capacity repository review for production teams.")
+        : T("Repository review for production teams.", "面向生产团队的仓库审查。")),
+    reviewLimit: max ? 90 : 60,
+    prices: {
+      month: {
+        amount: max ? null : payload?.amount || "29",
+        currency: payload?.currency || "USD",
+        interval: "month",
+        configured: Boolean(payload?.enabled) && !max,
+      },
+      year: {
+        amount: max ? null : "290",
+        currency: payload?.currency || "USD",
+        interval: "year",
+        configured: Boolean(payload?.enabled) && !max,
+      },
+    },
+  };
+}
+
+function paidPlansFromPayload(payload) {
+  const plans = Array.isArray(payload?.plans) ? payload.plans : [];
+  const paid = plans.filter((item) => item && item.id && item.id !== "free");
+  return paid.length ? paid : [fallbackPaidPlan("pro", payload)];
+}
+
+function planName(plan) {
+  return plan?.name || T("Plan", "套餐");
+}
+
+function planLabel(plan) {
+  return String(plan?.id || "").toUpperCase() || T("Plan", "套餐");
+}
+
 function accountNameLabel(plan) {
   return plan?.account?.name || T("Account", "账户");
 }
@@ -137,49 +179,30 @@ export function BillingScreen({
       },
     [plan]
   );
-  const proPlan = useMemo(
-    () =>
-      planById(plan, "pro") || {
-        id: "pro",
-        name: plan?.name || "Pullwise Pro",
-        description:
-          plan?.description ||
-          T("Repository review for production teams.", "面向生产团队的仓库审查。"),
-        reviewLimit: 100,
-        prices: {
-          month: {
-            amount: plan?.amount || "29",
-            currency: plan?.currency || "USD",
-            interval: "month",
-            configured: plan?.enabled,
-          },
-          year: {
-            amount: "290",
-            currency: plan?.currency || "USD",
-            interval: "year",
-            configured: plan?.enabled,
-          },
-        },
-      },
-    [plan]
+  const paidPlans = useMemo(() => paidPlansFromPayload(plan), [plan]);
+  const paidPlanById = useMemo(
+    () => Object.fromEntries(paidPlans.map((paidPlan) => [paidPlan.id, paidPlan])),
+    [paidPlans]
   );
+  const proPlan = paidPlanById.pro || fallbackPaidPlan("pro", plan);
 
   const account = billingAccount(plan);
   const accountStatus = account.status || "none";
   const accountName = accountNameLabel(plan);
   const active = isActiveStatus(accountStatus);
-  const activePro = active && account.plan === "pro";
-  const proInterval = account.interval || "month";
-  const currentPlan = activePro ? proPlan : freePlan;
+  const activePaid = active && account.plan && account.plan !== "free";
+  const subscriptionInterval = account.interval || "month";
+  const currentPlan = activePaid ? paidPlanById[account.plan] || proPlan : freePlan;
   const usage = account.usage || {
     used: 0,
-    limit: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
-    remaining: activePro ? proPlan.reviewLimit : freePlan.reviewLimit,
+    limit: activePaid ? currentPlan.reviewLimit : freePlan.reviewLimit,
+    remaining: activePaid ? currentPlan.reviewLimit : freePlan.reviewLimit,
     period: "",
   };
   const subscriptions = subscriptionRecords(account);
   const usageResetText = quotaResetText(usage, "Monthly quota resets");
   const billingEnabled = Boolean(plan?.enabled);
+  const alternatePaidPlans = paidPlans.filter((paidPlan) => paidPlan.id !== account.plan);
 
   const openPortal = async () => {
     setPendingAction("portal");
@@ -196,30 +219,61 @@ export function BillingScreen({
     }
   };
 
-  const switchToYearly = async () => {
-    setPendingAction("switch-yearly");
+  const changeSubscription = async ({ targetPlan = account.plan, targetInterval = subscriptionInterval }) => {
+    const actionKey = `change-${targetPlan}-${targetInterval}`;
+    setPendingAction(actionKey);
     setError("");
     try {
       const result = await pullwiseApi.billing.changeSubscriptionInterval({
-        interval: "year",
+        plan: targetPlan,
+        interval: targetInterval,
         returnUrl: billingReturnUrl("return"),
       });
       if (result?.url) {
         navigate(safeBillingRedirectUrl(result.url, "billing interval URL"));
         return;
       }
+      const nextPlan = result?.plan || targetPlan;
+      const nextInterval = result?.interval || targetInterval;
       setPlan((current) => ({
         ...current,
         account: {
           ...(billingAccount(current) || {}),
-          plan: "pro",
-          interval: "year",
+          plan: nextPlan,
+          interval: nextInterval,
           status: result?.status || accountStatus,
         },
       }));
       setPendingAction("");
     } catch (err) {
-      setError(err?.message || "Unable to switch billing interval.");
+      setError(err?.message || "Unable to change subscription.");
+      setPendingAction("");
+    }
+  };
+
+  const cancelSubscription = async () => {
+    setPendingAction("cancel");
+    setError("");
+    try {
+      const result = await pullwiseApi.billing.cancelSubscription({
+        mode: "scheduled",
+        returnUrl: billingReturnUrl("return"),
+      });
+      if (result?.url) {
+        navigate(safeBillingRedirectUrl(result.url, "billing portal URL"));
+        return;
+      }
+      setPlan((current) => ({
+        ...current,
+        account: {
+          ...(billingAccount(current) || {}),
+          status: result?.status || "canceling",
+          cancelAtPeriodEnd: result?.cancelAtPeriodEnd ?? true,
+        },
+      }));
+      setPendingAction("");
+    } catch (err) {
+      setError(err?.message || "Unable to cancel subscription.");
       setPendingAction("");
     }
   };
@@ -298,29 +352,62 @@ export function BillingScreen({
                 <div className="billing-summary-main">
                   <I.Package size={18} />
                   <div>
-                    <b>{currentPlan?.name || T("Free", "免费")}</b>
+                    <b>{planName(currentPlan) || T("Free", "免费")}</b>
                     <div className="muted">
                       {accountStatus} -{" "}
-                      {activePro
-                        ? T(`Billed ${proInterval}`, `按 ${proInterval} 计费`)
+                      {activePaid
+                        ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
                         : T("Upgrade from Pricing", "前往价格页升级")}
                     </div>
                   </div>
                 </div>
-                {activePro && (
+                {activePaid && (
                   <div className="billing-actions">
-                    {proInterval === "month" && (
+                    {alternatePaidPlans.map((paidPlan) => (
                       <button
+                        key={paidPlan.id}
                         className="btn primary"
                         disabled={Boolean(pendingAction)}
-                        onClick={switchToYearly}
+                        onClick={() =>
+                          changeSubscription({
+                            targetPlan: paidPlan.id,
+                            targetInterval: subscriptionInterval,
+                          })
+                        }
                       >
-                        {pendingAction === "switch-yearly" && (
+                        {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
                           <span className="spin" style={{ display: "inline-block" }}>
                             <I.Refresh size={14} />
                           </span>
                         )}
-                        <I.Trend size={14} /> {T("Switch to yearly", "切换为按年")}
+                        <I.Trend size={14} /> {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
+                      </button>
+                    ))}
+                    {subscriptionInterval === "month" ? (
+                      <button
+                        className="btn"
+                        disabled={Boolean(pendingAction)}
+                        onClick={() => changeSubscription({ targetInterval: "year" })}
+                      >
+                        {pendingAction === `change-${account.plan}-year` && (
+                          <span className="spin" style={{ display: "inline-block" }}>
+                            <I.Refresh size={14} />
+                          </span>
+                        )}
+                        <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn"
+                        disabled={Boolean(pendingAction)}
+                        onClick={() => changeSubscription({ targetInterval: "month" })}
+                      >
+                        {pendingAction === `change-${account.plan}-month` && (
+                          <span className="spin" style={{ display: "inline-block" }}>
+                            <I.Refresh size={14} />
+                          </span>
+                        )}
+                        <I.Clock size={14} /> {T("Switch to monthly", "切换为按月")}
                       </button>
                     )}
                     <button className="btn" disabled={Boolean(pendingAction)} onClick={openPortal}>
@@ -331,6 +418,20 @@ export function BillingScreen({
                       )}
                       <I.Settings size={14} /> {T("Manage billing", "管理账单")}
                     </button>
+                    {accountStatus !== "canceling" && (
+                      <button
+                        className="btn"
+                        disabled={Boolean(pendingAction)}
+                        onClick={cancelSubscription}
+                      >
+                        {pendingAction === "cancel" && (
+                          <span className="spin" style={{ display: "inline-block" }}>
+                            <I.Refresh size={14} />
+                          </span>
+                        )}
+                        <I.X size={14} /> {T("Cancel renewal", "取消续订")}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -422,50 +523,22 @@ export function PricingScreen({
       },
     [plan]
   );
-  const proPlan = useMemo(
-    () =>
-      planById(plan, "pro") || {
-        id: "pro",
-        name: plan?.name || "Pullwise Pro",
-        description:
-          plan?.description ||
-          T("Repository review for production teams.", "面向生产团队的仓库审查。"),
-        reviewLimit: 100,
-        prices: {
-          month: {
-            amount: plan?.amount || "29",
-            currency: plan?.currency || "USD",
-            interval: "month",
-            configured: plan?.enabled,
-          },
-          year: {
-            amount: "290",
-            currency: plan?.currency || "USD",
-            interval: "year",
-            configured: plan?.enabled,
-          },
-        },
-      },
-    [plan]
-  );
+  const paidPlans = useMemo(() => paidPlansFromPayload(plan), [plan]);
 
   const account = billingAccount(plan);
-  const activePro = isActiveStatus(account.status) && account.plan === "pro";
-  const selectedProPrice = priceFor(proPlan, interval);
+  const activePaid = isActiveStatus(account.status) && account.plan && account.plan !== "free";
   const billingEnabled = Boolean(plan?.enabled);
-  const proConfigured = Boolean(selectedProPrice?.configured);
-  const canStartPro = billingEnabled && proConfigured;
 
-  const startCheckout = async () => {
+  const startCheckout = async (targetPlan) => {
     if (!signedIn) {
       go("login");
       return;
     }
-    setPendingAction("checkout");
+    setPendingAction(`checkout-${targetPlan.id}`);
     setError("");
     try {
       const session = await pullwiseApi.billing.createCheckoutSession({
-        plan: "pro",
+        plan: targetPlan.id,
         interval,
         successUrl: billingReturnUrl("success", "pricing"),
         cancelUrl: billingReturnUrl("cancel", "pricing"),
@@ -523,7 +596,7 @@ export function PricingScreen({
           plan={freePlan}
           price={priceFor(freePlan, "month")}
           interval="month"
-          active={account.plan === "free" || !activePro}
+          active={account.plan === "free" || !activePaid}
           featured={false}
           cta={
             <a className="btn" {...screenLinkProps(go, signedIn ? "dashboard" : "login")}>
@@ -533,36 +606,47 @@ export function PricingScreen({
           }
         />
 
-        <PlanCard
-          plan={proPlan}
-          price={selectedProPrice}
-          interval={interval}
-          active={activePro}
-          featured
-          cta={
-            <div className="billing-actions">
-              {activePro ? (
-                <a className="btn" {...screenLinkProps(go, "billing")}>
-                  <I.Settings size={14} /> {T("Manage billing", "管理账单")}
-                </a>
-              ) : (
-                <button
-                  className="btn primary"
-                  disabled={!canStartPro || Boolean(pendingAction)}
-                  onClick={startCheckout}
-                >
-                  {pendingAction === "checkout" && (
-                    <span className="spin" style={{ display: "inline-block" }}>
-                      <I.Refresh size={14} />
-                    </span>
+        {paidPlans.map((paidPlan) => {
+          const selectedPrice = priceFor(paidPlan, interval);
+          const activePlan = activePaid && account.plan === paidPlan.id;
+          const canStartPlan = billingEnabled && Boolean(selectedPrice?.configured) && !activePaid;
+          const hasMax = paidPlans.some((candidate) => candidate.id === "max");
+          return (
+            <PlanCard
+              key={paidPlan.id}
+              plan={paidPlan}
+              price={selectedPrice}
+              interval={interval}
+              active={activePlan}
+              featured={hasMax ? paidPlan.id === "max" : paidPlan.id === "pro"}
+              cta={
+                <div className="billing-actions">
+                  {activePaid ? (
+                    <a className="btn" {...screenLinkProps(go, "billing")}>
+                      <I.Settings size={14} /> {T("Manage billing", "管理账单")}
+                    </a>
+                  ) : (
+                    <button
+                      className="btn primary"
+                      disabled={!canStartPlan || Boolean(pendingAction)}
+                      onClick={() => startCheckout(paidPlan)}
+                    >
+                      {pendingAction === `checkout-${paidPlan.id}` && (
+                        <span className="spin" style={{ display: "inline-block" }}>
+                          <I.Refresh size={14} />
+                        </span>
+                      )}
+                      <I.Package size={14} />{" "}
+                      {signedIn
+                        ? T(`Start ${planLabel(paidPlan)}`, `升级 ${planLabel(paidPlan)}`)
+                        : T("Sign in to subscribe", "登录后订阅")}
+                    </button>
                   )}
-                  <I.Package size={14} />{" "}
-                  {signedIn ? T("Start Pro", "升级 Pro") : T("Sign in to subscribe", "登录后订阅")}
-                </button>
-              )}
-            </div>
-          }
-        />
+                </div>
+              }
+            />
+          );
+        })}
       </section>
 
       {!billingEnabled && !error && (
@@ -585,7 +669,7 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
   const reviewLimit = nonNegativeInteger(plan?.reviewLimit);
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
-      {featured && <div className="pricing-badge">PRO</div>}
+      {featured && <div className="pricing-badge">{planLabel(plan)}</div>}
       <div className="pricing-card-h">
         <h3>{plan?.name || T("Plan", "套餐")}</h3>
         <div className="pricing-tag">{plan?.description || ""}</div>
@@ -621,7 +705,7 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
           <I.Check size={13} />{" "}
           {T("GitHub repository review history", "GitHub 仓库审查历史")}
         </li>
-        {plan?.id === "pro" && (
+        {plan?.id && plan.id !== "free" && (
           <li>
             <I.Check size={13} />{" "}
             {T("Cancel from the billing portal", "从账单门户取消")}

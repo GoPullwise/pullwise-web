@@ -11,6 +11,7 @@ vi.mock("../api/pullwise.js", () => ({
       createCheckoutSession: vi.fn(),
       createPortalSession: vi.fn(),
       changeSubscriptionInterval: vi.fn(),
+      cancelSubscription: vi.fn(),
     },
   },
 }));
@@ -98,6 +99,46 @@ describe("BillingScreen", () => {
         })
       );
       expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_test");
+    });
+  });
+
+  it("starts Max checkout when Max is selected from pricing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        ...billingCatalog.plans,
+        {
+          id: "max",
+          name: "Pullwise Max",
+          description: "Higher-capacity repository review for production teams.",
+          reviewLimit: 90,
+          prices: {
+            month: { amount: "49", currency: "USD", interval: "month", configured: true },
+            year: { amount: "490", currency: "USD", interval: "year", configured: true },
+          },
+        },
+      ],
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "creem",
+      url: "https://creem.io/checkout/chk_max",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+
+    await user.click(await screen.findByRole("button", { name: /start max/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: "max",
+          interval: "month",
+        })
+      );
+      expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_max");
     });
   });
 
@@ -436,6 +477,135 @@ describe("BillingScreen", () => {
       expect(screen.queryByRole("button", { name: /switch to yearly/i })).not.toBeInTheDocument();
     });
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();
+  });
+
+  it("lets active Pro subscribers switch to Max through subscription update", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        ...billingCatalog.plans,
+        {
+          id: "max",
+          name: "Pullwise Max",
+          description: "Higher-capacity repository review for production teams.",
+          reviewLimit: 90,
+          prices: {
+            month: { amount: "49", currency: "USD", interval: "month", configured: true },
+            year: { amount: "490", currency: "USD", interval: "year", configured: true },
+          },
+        },
+      ],
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+      },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      provider: "creem",
+      plan: "max",
+      interval: "month",
+      status: "active",
+    });
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /switch to max/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: "max",
+          interval: "month",
+        })
+      );
+    });
+    await waitFor(() => {
+      expect(screen.getAllByText("Pullwise Max").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("lets active Max subscribers switch down to Pro through subscription update", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        ...billingCatalog.plans,
+        {
+          id: "max",
+          name: "Pullwise Max",
+          description: "Higher-capacity repository review for production teams.",
+          reviewLimit: 90,
+          prices: {
+            month: { amount: "49", currency: "USD", interval: "month", configured: true },
+            year: { amount: "490", currency: "USD", interval: "year", configured: true },
+          },
+        },
+      ],
+      account: {
+        status: "active",
+        plan: "max",
+        interval: "year",
+        usage: { period: "2026-05", used: 12, limit: 90, remaining: 78 },
+      },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      provider: "creem",
+      plan: "pro",
+      interval: "year",
+      status: "active",
+    });
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /switch to pro/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: "pro",
+          interval: "year",
+        })
+      );
+    });
+    await waitFor(() => {
+      expect(screen.getAllByText("Pullwise Pro").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("schedules subscription cancellation from Billing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "year",
+        usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+      },
+    });
+    pullwiseApi.billing.cancelSubscription.mockResolvedValue({
+      provider: "creem",
+      plan: "pro",
+      interval: "year",
+      status: "canceling",
+      cancelAtPeriodEnd: true,
+    });
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /cancel renewal/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: "scheduled",
+        })
+      );
+    });
+    expect(screen.queryByRole("button", { name: /cancel renewal/i })).not.toBeInTheDocument();
   });
 
   it("shows the user's subscription records on Billing", async () => {
