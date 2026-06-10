@@ -6,7 +6,7 @@ import {
 import { openGitHubInstallPopup } from "./install-popup.js";
 import { pathFromScreen } from "./navigation.js";
 import { clearPullwiseDataCache } from "./pullwise-data.js";
-import { safeGitHubInstallationUrl, safeHttpUrl } from "./trusted-redirects.js";
+import { safeGitHubAuthorizeUrl, safeGitHubInstallationUrl } from "./trusted-redirects.js";
 
 function getScreenRedirectUrl(screen) {
   const redirectUrl = new URL(window.location.href);
@@ -102,7 +102,7 @@ export async function startGitHubLogin({ redirectTo, signal } = {}) {
     throw new Error("GitHub authorize URL is missing from the auth response.");
   }
 
-  window.location.assign(safeHttpUrl(result.url, "GitHub authorize URL"));
+  window.location.assign(safeGitHubAuthorizeUrl(result.url, "GitHub authorize URL"));
 }
 
 export async function connectGitHubRepositories({
@@ -144,10 +144,7 @@ export async function connectGitHubRepositories({
     );
   }
 
-  const authorizeUrl = safeGitHubInstallationUrl(
-    result.url,
-    "GitHub repository authorization URL"
-  );
+  const authorizeUrl = safeGitHubInstallationUrl(result.url, "GitHub repository authorization URL");
   markGitHubRepositoryAccessRefreshNeeded();
   const completion = openGitHubInstallPopup(authorizeUrl);
   if (!completion) {

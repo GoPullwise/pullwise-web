@@ -95,6 +95,14 @@ describe("auth redirects", () => {
     await expect(startGitHubLogin()).rejects.toThrow(/safe GitHub authorize URL/i);
   });
 
+  it("rejects non-trusted GitHub login authorize hosts before navigating", async () => {
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      url: "https://evil.example/phish",
+    });
+
+    await expect(startGitHubLogin()).rejects.toThrow(/safe GitHub authorize URL/i);
+  });
+
   it("rejects unsafe repository authorization URLs before opening a popup", async () => {
     pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
       url: "javascript:alert(1)",

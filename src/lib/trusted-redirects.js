@@ -1,14 +1,12 @@
 import { env } from "../config/env.js";
 
 const TRUSTED_GITHUB_HOST = "github.com";
+const TRUSTED_GITHUB_OAUTH_AUTHORIZE_PATH = "/login/oauth/authorize";
 const TRUSTED_GITHUB_API_ORIGINS = new Set(["https://api.pull-wise.com"]);
+const GITHUB_AUTH_PATHS = new Set(["/auth/github/authorize", "/api/auth/github/authorize"]);
 const GITHUB_INTEGRATION_PATH_PREFIXES = ["/integrations/github/", "/api/integrations/github/"];
 
-const TRUSTED_BILLING_PROVIDER_HOSTS = new Set([
-  "checkout.creem.io",
-  "creem.io",
-  "www.creem.io",
-]);
+const TRUSTED_BILLING_PROVIDER_HOSTS = new Set(["checkout.creem.io", "creem.io", "www.creem.io"]);
 const TRUSTED_BILLING_FIRST_PARTY_HOSTS = new Set(["pull-wise.com", "app.pullwise.dev"]);
 
 function currentOrigin() {
@@ -38,6 +36,10 @@ function hasGitHubIntegrationPath(parsed) {
   return GITHUB_INTEGRATION_PATH_PREFIXES.some((prefix) => parsed.pathname.startsWith(prefix));
 }
 
+function hasGitHubAuthPath(parsed) {
+  return GITHUB_AUTH_PATHS.has(parsed.pathname);
+}
+
 function isSameOrigin(parsed) {
   const origin = currentOrigin();
   return Boolean(origin) && parsed.origin === origin;
@@ -60,6 +62,23 @@ export function safeHttpUrl(value, label) {
   } catch {
     // handled by the common error below
   }
+  throw new Error(`A safe ${label} is required.`);
+}
+
+export function safeGitHubAuthorizeUrl(value, label) {
+  const url = safeHttpUrl(value, label);
+  const parsed = new URL(url);
+  const hostname = parsed.hostname.toLowerCase();
+
+  if (
+    parsed.protocol === "https:" &&
+    hostname === TRUSTED_GITHUB_HOST &&
+    parsed.pathname === TRUSTED_GITHUB_OAUTH_AUTHORIZE_PATH
+  ) {
+    return url;
+  }
+  if (hasGitHubAuthPath(parsed) && trustedGitHubApiOrigins().has(parsed.origin)) return url;
+
   throw new Error(`A safe ${label} is required.`);
 }
 
