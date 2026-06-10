@@ -1296,6 +1296,14 @@ export function normalizeScan(scan = {}) {
   const billingUsage = normalizeQuotaUsage(scan.billingUsage);
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
+  const repositoryGraph = normalizeRepositoryGraph(scan.repositoryGraph ?? scan.repository_graph);
+  const semanticGraph =
+    normalizeRepositorySemanticGraph(scan.semanticGraph ?? scan.semantic_graph) ||
+    repositoryGraph?.semanticGraph ||
+    null;
+  if (repositoryGraph && semanticGraph && !repositoryGraph.semanticGraph) {
+    repositoryGraph.semanticGraph = semanticGraph;
+  }
   return {
     ...scan,
     id: textValue(scan.id),
@@ -1315,7 +1323,8 @@ export function normalizeScan(scan = {}) {
     aiUsage: normalizeAiUsage(scan.aiUsage ?? scan.ai_usage),
     preflight: normalizePreflight(scan.preflight),
     auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
-    repositoryGraph: normalizeRepositoryGraph(scan.repositoryGraph ?? scan.repository_graph),
+    repositoryGraph,
+    semanticGraph,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,

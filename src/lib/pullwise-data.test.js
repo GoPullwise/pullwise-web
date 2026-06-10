@@ -594,6 +594,37 @@ describe("normalizeIssue", () => {
     expect(scan.repositoryGraph.semanticGraph.edges).toHaveLength(1);
     expect(scan.repositoryGraph.semanticGraph.stats.source).toBe("static");
     expect(scan.repositoryGraph.semanticGraph.reviewHints).toEqual(["Review component flow."]);
+    expect(scan.semanticGraph.nodes).toHaveLength(2);
+    expect(scan.semanticGraph.stats.source).toBe("static");
+  });
+
+  it("normalizes top-level semantic graph aliases onto scans and repository graphs", () => {
+    const scan = normalizeScan({
+      id: "sc_semantic",
+      repositoryGraph: {
+        version: "repository-graph/0.1",
+        nodes: [{ id: "file:src/App.jsx", label: "App.jsx", type: "entrypoint", path: "src/App.jsx" }],
+        edges: [],
+      },
+      semanticGraph: {
+        version: "semantic-code-graph/0.1",
+        stats: { files: 1, source: "static" },
+        nodes: [
+          {
+            id: "symbol:src/App.jsx:App",
+            label: "App",
+            type: "component",
+            path: "src/App.jsx",
+            line: 1,
+          },
+        ],
+        edges: [],
+      },
+    });
+
+    expect(scan.semanticGraph.nodes).toHaveLength(1);
+    expect(scan.repositoryGraph.semanticGraph.nodes).toHaveLength(1);
+    expect(scan.repositoryGraph.semanticGraph.stats.source).toBe("static");
   });
 
   it("normalizes repository text fields for search-safe rendering", () => {

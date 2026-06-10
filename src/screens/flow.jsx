@@ -1877,7 +1877,7 @@ function RepositoryGraphPanel({ graph }) {
             aria-selected={activeView === "code"}
             onClick={() => setActiveView("code")}
           >
-            <I.Code size={12} /> {T("Code graph", "Code graph")}
+            <I.Code size={12} /> {T("Semantic graph", "Semantic graph")}
           </button>
         </div>
       )}

@@ -1028,7 +1028,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByRole("button", { name: /App.jsx/i })).toBeInTheDocument();
     expect(screen.getByText("Review scan UI.")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /code graph/i }));
+    await userEvent.click(screen.getByRole("button", { name: /semantic graph/i }));
 
     expect(screen.getByText("2 symbols")).toBeInTheDocument();
     expect(screen.getByText("1 relationship")).toBeInTheDocument();
