@@ -975,12 +975,27 @@ export function ReposScreen({
 
   useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
 
-  const runScanForRepos = (reposToScan) => {
+  const runScanForRepos = async (reposToScan) => {
     if (!reposToScan.length) return;
     const selectedRepos = reposToScan.map((repo) => ({
       ...repo,
       scanRequestId: makeScanRequestId(),
     }));
+    if (selectedRepos.length > 1) {
+      const requests = selectedRepos
+        .map(scanInputFromRepo)
+        .filter((request) => request.repo || request.repoId);
+      const results = await Promise.allSettled(
+        requests.map((request) => pullwiseApi.scans.create(request))
+      );
+      const createdCount = results.filter((result) => result.status === "fulfilled").length;
+      if (createdCount === 0) {
+        const failed = results.find((result) => result.status === "rejected");
+        throw failed?.reason || new Error(T("Unable to start scans.", "无法启动扫描。"));
+      }
+      go("history");
+      return;
+    }
     setActiveRepo({ ...selectedRepos[0], selectedRepos });
     go("scanning");
   };
@@ -1090,13 +1105,13 @@ export function ReposScreen({
         setQuotaDialogNotice(notice);
         return;
       }
-      runScanForRepos(reposToScan);
-    } catch (quotaError) {
+      await runScanForRepos(reposToScan);
+    } catch (scanError) {
       setConnectError(
-        quotaError?.message ||
+        scanError?.message ||
           T(
-            "Unable to verify scan quota before starting.",
-            "无法在启动前验证扫描配额。"
+            "Unable to start scan. Check quota and repository access, then try again.",
+            "无法启动扫描。请检查配额和仓库访问权限后重试。"
           )
       );
     } finally {
@@ -1147,11 +1162,25 @@ export function ReposScreen({
     setQuotaDialogSelected((current) => [...current, repo.id]);
   };
 
-  const confirmQuotaDialogSelection = () => {
+  const confirmQuotaDialogSelection = async () => {
     if (!quotaDialogCanConfirm) return;
     const reposToScan = quotaDialogRepos.filter((repo) => quotaDialogSelected.includes(repo.id));
     closeQuotaDialog();
-    runScanForRepos(reposToScan);
+    setCheckingQuota(true);
+    setConnectError("");
+    try {
+      await runScanForRepos(reposToScan);
+    } catch (scanError) {
+      setConnectError(
+        scanError?.message ||
+          T(
+            "Unable to start scan. Check quota and repository access, then try again.",
+            "无法启动扫描。请检查配额和仓库访问权限后重试。"
+          )
+      );
+    } finally {
+      setCheckingQuota(false);
+    }
   };
 
   const connectRepositories = async (options = {}) => {

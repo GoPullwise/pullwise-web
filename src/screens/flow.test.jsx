@@ -14,6 +14,7 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
       preflight: vi.fn(),
+      create: vi.fn(),
       auditBundle: vi.fn(),
       auditBundleArchive: vi.fn(),
     },
@@ -150,6 +151,17 @@ beforeEach(() => {
     userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
     repositories: [],
   });
+  pullwiseApi.scans.create.mockReset();
+  pullwiseApi.scans.create.mockImplementation((payload) =>
+    Promise.resolve({
+      id: `sc_${String(payload.repo || payload.repoId || "repo").replace(/\W+/g, "_")}`,
+      repo: payload.repo || payload.repoId,
+      branch: payload.branch || "main",
+      commit: payload.commit || "pending",
+      status: "queued",
+      progress: 0,
+    })
+  );
   pullwiseApi.scans.auditBundle.mockReset();
   pullwiseApi.scans.auditBundleArchive.mockReset();
   pullwiseApi.repositories.branches.mockReset();
@@ -289,7 +301,7 @@ describe("ReposScreen scan selection", () => {
     expect(dots[2]).toHaveStyle("--repo-lang-color: #8b949e");
   });
 
-  it("hands every selected repository to the scanning screen", async () => {
+  it("submits multiple selected repositories and opens scan history", async () => {
     const go = vi.fn();
     const setActiveRepo = vi.fn();
     const user = userEvent.setup();
@@ -309,22 +321,31 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
-    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
-    const activeRepo = setActiveRepo.mock.calls[0][0];
-    expect(activeRepo.selectedRepos).toHaveLength(2);
-    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual([
-      "octocat/alpha",
-      "octocat/beta",
-    ]);
-    expect(activeRepo.selectedRepos[0].scanRequestId).toMatch(/^scan_req_/);
-    expect(activeRepo.selectedRepos[1].scanRequestId).toMatch(/^scan_req_/);
-    expect(activeRepo.selectedRepos[1].scanRequestId).not.toBe(
-      activeRepo.selectedRepos[0].scanRequestId
+    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
+    const alphaRequest = pullwiseApi.scans.create.mock.calls[0][0];
+    const betaRequest = pullwiseApi.scans.create.mock.calls[1][0];
+    expect(alphaRequest).toEqual(
+      expect.objectContaining({
+        repo: "octocat/alpha",
+        branch: "main",
+        commit: "pending",
+        requestId: expect.stringMatching(/^scan_req_/),
+      })
     );
-    expect(go).toHaveBeenCalledWith("scanning");
+    expect(betaRequest).toEqual(
+      expect.objectContaining({
+        repo: "octocat/beta",
+        commit: "pending",
+        requestId: expect.stringMatching(/^scan_req_/),
+      })
+    );
+    expect(betaRequest.requestId).not.toBe(alphaRequest.requestId);
+    expect(setActiveRepo).not.toHaveBeenCalled();
+    expect(go).toHaveBeenCalledWith("history");
+    expect(go).not.toHaveBeenCalledWith("scanning");
   });
 
-  it("selects repositories from the keyboard before scanning", async () => {
+  it("selects repositories from the keyboard before opening scan history", async () => {
     const go = vi.fn();
     const setActiveRepo = vi.fn();
     const user = userEvent.setup();
@@ -348,13 +369,10 @@ describe("ReposScreen scan selection", () => {
     await user.keyboard(" ");
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
-    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
-    const activeRepo = setActiveRepo.mock.calls[0][0];
-    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual([
-      "octocat/alpha",
-      "octocat/beta",
-    ]);
-    expect(go).toHaveBeenCalledWith("scanning");
+    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
+    expect(setActiveRepo).not.toHaveBeenCalled();
+    expect(go).toHaveBeenCalledWith("history");
+    expect(go).not.toHaveBeenCalledWith("scanning");
   });
 
   it("loads repository branches and scans the selected branch", async () => {

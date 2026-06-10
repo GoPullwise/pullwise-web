@@ -19,9 +19,11 @@ vi.mock("./api/pullwise.js", () => ({
     },
     repositories: {
       list: vi.fn(),
+      branches: vi.fn(),
       sync: vi.fn(),
     },
     scans: {
+      preflight: vi.fn(),
       create: vi.fn(),
       get: vi.fn(),
       list: vi.fn(),
@@ -69,7 +71,17 @@ describe("App", () => {
     window.history.replaceState({}, "", "/");
     pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
     pullwiseApi.repositories.list.mockResolvedValue({ items: [] });
+    pullwiseApi.repositories.branches.mockResolvedValue({
+      defaultBranch: "main",
+      branches: ["main"],
+    });
     pullwiseApi.repositories.sync.mockResolvedValue({ items: [] });
+    pullwiseApi.scans.preflight.mockResolvedValue({
+      requestedCount: 0,
+      allowedCount: 99,
+      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
+      repositories: [],
+    });
     pullwiseApi.scans.create.mockResolvedValue({
       id: "sc_created",
       repo: "GoPullwise/pullwise-web",
@@ -931,6 +943,72 @@ describe("App", () => {
       expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
     });
     expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
+  });
+
+  it("submits a repository batch directly to scan history", async () => {
+    window.history.replaceState({}, "", "/repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const repoAlpha = {
+      id: "repo_alpha",
+      name: "alpha",
+      fullName: "octocat/alpha",
+      desc: "Alpha service",
+      defaultBranch: "main",
+    };
+    const repoBeta = {
+      id: "repo_beta",
+      name: "beta",
+      fullName: "octocat/beta",
+      desc: "Beta service",
+      defaultBranch: "develop",
+    };
+    const scanAlpha = {
+      id: "sc_alpha",
+      repo: "octocat/alpha",
+      branch: "main",
+      commit: "pending",
+      status: "queued",
+      progress: 0,
+    };
+    const scanBeta = {
+      id: "sc_beta",
+      repo: "octocat/beta",
+      branch: "develop",
+      commit: "pending",
+      status: "queued",
+      progress: 0,
+    };
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [repoAlpha, repoBeta],
+      needsAuthorization: false,
+    });
+    pullwiseApi.scans.preflight.mockResolvedValueOnce({
+      requestedCount: 2,
+      allowedCount: 2,
+      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
+      repositories: [],
+    });
+    pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
+    pullwiseApi.scans.list.mockResolvedValue({ items: [scanAlpha, scanBeta] });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/history");
+    });
+    expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2);
+    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
+    expect(screen.queryByText(/scan batch/i)).not.toBeInTheDocument();
+    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
+    expect(screen.getByText("octocat/beta")).toBeInTheDocument();
   });
 
   it("opens issue search results directly in the issue detail view", async () => {
