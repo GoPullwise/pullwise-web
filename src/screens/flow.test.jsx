@@ -1320,15 +1320,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Impact context")).toBeInTheDocument();
     expect(screen.getByText("impact-graph/0.1")).toBeInTheDocument();
     expect(screen.getByText("changeset")).toBeInTheDocument();
-    expect(screen.getAllByText("src/auth/session.ts").length).toBeGreaterThan(0);
-    expect(screen.getByText("tests/auth/session.test.ts")).toBeInTheDocument();
-    expect(screen.getByText("docs/auth.md")).toBeInTheDocument();
-    expect(screen.getByText("package.json")).toBeInTheDocument();
-    expect(screen.getByText(".github/workflows/ci.yml")).toBeInTheDocument();
-    expect(screen.getByText("src/no-test.ts")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("tab", { name: /graph/i }));
-
+    expect(screen.getByRole("tab", { name: /graph/i })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Tests, docs, config, and CI")).toBeInTheDocument();
     expect(cytoscape).toHaveBeenCalled();
     const graphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
@@ -1342,6 +1334,15 @@ describe("ScanningScreen queue state", () => {
         }),
       ])
     );
+
+    await userEvent.click(screen.getByRole("tab", { name: /summary/i }));
+
+    expect(screen.getAllByText("src/auth/session.ts").length).toBeGreaterThan(0);
+    expect(screen.getByText("tests/auth/session.test.ts")).toBeInTheDocument();
+    expect(screen.getByText("docs/auth.md")).toBeInTheDocument();
+    expect(screen.getByText("package.json")).toBeInTheDocument();
+    expect(screen.getByText(".github/workflows/ci.yml")).toBeInTheDocument();
+    expect(screen.getByText("src/no-test.ts")).toBeInTheDocument();
   });
 
   it("shows a graceful impact fallback when a terminal scan has no impact graph", () => {

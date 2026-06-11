@@ -25,7 +25,7 @@ function statCards(impactGraph) {
 }
 
 export function ImpactGraphPanel({ impactGraph }) {
-  const [tab, setTab] = useState("summary");
+  const [tab, setTab] = useState("graph");
   const [drawer, setDrawer] = useState(null);
   const targets = Array.isArray(impactGraph?.targets) ? impactGraph.targets : [];
   const changedFiles = Array.isArray(impactGraph?.changedFiles) ? impactGraph.changedFiles : [];
