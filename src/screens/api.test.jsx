@@ -17,6 +17,7 @@ vi.mock("../api/pullwise.js", () => ({
     },
     docs: {
       getSubscriptionPlanConfigs: vi.fn(),
+      getServerConfig: vi.fn(),
     },
   },
 }));
@@ -30,6 +31,7 @@ describe("API screens", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({ plans: [] });
+    pullwiseApi.docs.getServerConfig.mockResolvedValue({ groups: [] });
     useIssues.mockReturnValue({ items: [] });
     useRepositories.mockReturnValue({
       items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
@@ -164,13 +166,18 @@ describe("API screens", () => {
     ]);
   });
 
-  it("accepts map-shaped subscription plan config payloads", async () => {
+  it("accepts canonical map-shaped subscription plan config payloads", async () => {
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
       plans: {
         max: {
-          agent_cli: "map-cli-max",
-          model: "map-model-max",
-          reasoning_effort: "map-effort-max",
+          agentConfig: {
+            plan: "max",
+            agent: {
+              cli: "map-cli-max",
+              model: "map-model-max",
+              reasoningEffort: "map-effort-max",
+            },
+          },
         },
       },
     });
@@ -180,6 +187,142 @@ describe("API screens", () => {
     expect(await screen.findByText("map-cli-max")).toBeInTheDocument();
     expect(screen.getByText("map-model-max")).toBeInTheDocument();
     expect(screen.getByText("map-effort-max")).toBeInTheDocument();
+  });
+
+  it("renders public server configuration groups while filtering private fields", async () => {
+    pullwiseApi.docs.getServerConfig.mockResolvedValue({
+      groups: [
+        {
+          id: "plans",
+          title: "Plan quotas",
+          description: "Monthly scan quotas enforced by the server.",
+          fields: [
+            {
+              path: "plans.free.userReviewLimit",
+              label: "Free user monthly scans",
+              value: 5,
+              description: "Maximum scans one Free user can start in a billing cycle.",
+            },
+            {
+              path: "plans.free.repositoryReviewLimit",
+              label: "Free repository monthly scans",
+              value: 3,
+              description: "Maximum scans one repository can receive in a billing cycle.",
+            },
+            {
+              path: "secrets.apiToken",
+              label: "API token",
+              value: "pw_secret_docs",
+              description: "This must never be rendered.",
+            },
+          ],
+        },
+        {
+          id: "scan",
+          title: "Scan limits",
+          fields: [
+            {
+              path: "scan.maxQueuedScansPerUser",
+              label: "Queued scans per user",
+              value: 4,
+              description: "Maximum queued scans one user may hold.",
+            },
+            {
+              path: "scan.maxRepoBytes",
+              label: "Repository byte limit",
+              value: 1048576,
+              description: "Repository checkouts above this size stop before review.",
+            },
+          ],
+        },
+        {
+          id: "rateLimit",
+          title: "API rate limit",
+          fields: [
+            {
+              path: "rateLimit.requests",
+              label: "Requests per window",
+              value: 120,
+              description: "Allowed requests per subject in one window.",
+            },
+          ],
+        },
+        {
+          id: "billing",
+          title: "Billing catalog",
+          fields: [
+            {
+              path: "billing.creemProProductCount",
+              label: "Creem Pro products",
+              value: 2,
+              description: "Configured product IDs are counted by the server, not displayed.",
+            },
+            {
+              path: "billing.webhookSecret",
+              label: "Webhook secret",
+              value: "whsec_docs",
+            },
+          ],
+        },
+        {
+          id: "worker",
+          title: "Worker private config",
+          fields: [{ path: "worker.claimToken", label: "Worker token", value: "token_docs" }],
+        },
+      ],
+    });
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const quotaLabel = await screen.findByText("Free user monthly scans");
+    expect(within(quotaLabel.closest(".docs-config-row")).getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("Free repository monthly scans")).toBeInTheDocument();
+    expect(screen.getByText("Queued scans per user")).toBeInTheDocument();
+    expect(screen.getByText("1,048,576 bytes (1.0 MiB)")).toBeInTheDocument();
+    expect(screen.getByText("Requests per window")).toBeInTheDocument();
+    expect(screen.getByText("2 products configured")).toBeInTheDocument();
+    expect(screen.queryByText("prod_pro_a")).not.toBeInTheDocument();
+    expect(screen.queryByText("pw_secret_docs")).not.toBeInTheDocument();
+    expect(screen.queryByText("whsec_docs")).not.toBeInTheDocument();
+    expect(screen.queryByText("Worker private config")).not.toBeInTheDocument();
+  });
+
+  it("accepts settings-shaped server config payloads", async () => {
+    pullwiseApi.docs.getServerConfig.mockResolvedValue({
+      settings: {
+        plans: {
+          free: { userReviewLimit: 8, repositoryReviewLimit: 2 },
+        },
+        rateLimit: { enabled: true, requests: 90, windowSeconds: 60 },
+        billing: { creemProProductCount: 1, creemMaxProductCount: 0 },
+      },
+    });
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const freeQuota = await screen.findByText("Free user monthly scans");
+    expect(within(freeQuota.closest(".docs-config-row")).getByText("8")).toBeInTheDocument();
+    expect(screen.getByText("Rate limiting enabled")).toBeInTheDocument();
+    expect(screen.getByText("Enabled")).toBeInTheDocument();
+    expect(screen.getByText("60 seconds")).toBeInTheDocument();
+    expect(screen.getByText("1 product configured")).toBeInTheDocument();
+  });
+
+  it("keeps Docs usable when the server config endpoint is missing", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [{ plan: "free", agentCli: "endpoint-missing-cli" }],
+    });
+    pullwiseApi.docs.getServerConfig.mockRejectedValue(
+      Object.assign(new Error("Not found"), { status: 404 })
+    );
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(await screen.findByText("endpoint-missing-cli")).toBeInTheDocument();
+    expect(
+      screen.getByText("Server configuration docs are not available from this backend yet.")
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("shows Docs loading, empty, and error states", async () => {

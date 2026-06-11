@@ -65,6 +65,36 @@ describe("DashboardScreen issue list", () => {
     expect(go).toHaveBeenCalledWith("repos");
   });
 
+  it("shows the latest scan worker agent configuration in the scans KPI", () => {
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "scan_1",
+          repo: "acme/api",
+          branch: "main",
+          commit: "abc123",
+          time: "now",
+          aiUsage: {
+            agentCli: "codex",
+            model: "gpt-5.5",
+            reasoningEffort: "high",
+          },
+        },
+      ],
+      loading: false,
+    });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    expect(screen.getByText("Last: now · codex · gpt-5.5 · reasoning: high")).toBeInTheDocument();
+  });
+
   it("keeps overview KPI sparklines aligned across all cards", () => {
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({

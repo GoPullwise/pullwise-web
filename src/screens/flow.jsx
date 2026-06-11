@@ -582,11 +582,37 @@ function scanAuditSwarmSummary(scans) {
 function scanAiUsageSummary(scans) {
   const usages = scans.map((scan) => scan?.aiUsage).filter(Boolean);
   if (!usages.length) return null;
-  const models = uniqueStrings(usages.map((usage) => usage.model));
   const usage = {};
-  if (models.length === 1) usage.model = models[0];
-  else if (models.length > 1) usage.model = `${models.length} models`;
-  return usage.model ? usage : null;
+  const summarize = (key, label) => {
+    const values = uniqueStrings(usages.map((item) => item?.[key]));
+    if (values.length === 1) return values[0];
+    if (values.length > 1) return `${values.length} ${label}`;
+    return "";
+  };
+  const agentCli = summarize("agentCli", "agents");
+  const provider = summarize("provider", "providers");
+  const model = summarize("model", "models");
+  const reasoningEffort = summarize("reasoningEffort", "reasoning levels");
+  if (agentCli) usage.agentCli = agentCli;
+  if (provider) usage.provider = provider;
+  if (model) usage.model = model;
+  if (reasoningEffort) usage.reasoningEffort = reasoningEffort;
+  return Object.keys(usage).length ? usage : null;
+}
+
+function scanAiUsageTags(aiUsage) {
+  if (!aiUsage) return [];
+  const tags = [];
+  const push = (value) => {
+    const text = String(value || "").trim();
+    if (text && !tags.includes(text)) tags.push(text);
+  };
+  push(aiUsage.agentCli || aiUsage.provider);
+  push(aiUsage.model);
+  if (aiUsage.reasoningEffort) {
+    push(T(`reasoning: ${aiUsage.reasoningEffort}`, `推理：${aiUsage.reasoningEffort}`));
+  }
+  return tags;
 }
 
 function hasAuditSwarm(audit) {
@@ -774,6 +800,144 @@ function AuditSwarmEvidence({
               </div>
             ))}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
+const STATUS_SUCCESS = new Set(["done", "complete", "completed", "passed", "ok", "verified"]);
+const STATUS_WARNING = new Set(["queued", "running", "pending", "warning", "partial", "skipped"]);
+const STATUS_DANGER = new Set([
+  "failed",
+  "cancelled",
+  "canceled",
+  "lost",
+  "blocked",
+  "error",
+]);
+
+function compactStatusLabel(status) {
+  const text = String(status || "")
+    .trim()
+    .replace(/[_-]+/g, " ");
+  return text ? text[0].toUpperCase() + text.slice(1) : "";
+}
+
+function compactStatusTone(status) {
+  const value = String(status || "").trim().toLowerCase();
+  if (STATUS_SUCCESS.has(value)) return "ok";
+  if (STATUS_DANGER.has(value)) return "danger";
+  if (STATUS_WARNING.has(value)) return "warn";
+  return "neutral";
+}
+
+function scanHasRetryableTrace(scan) {
+  return Boolean(
+    scan?.jobTrace?.checkpoints?.some((checkpoint) => RETRYABLE_SCAN_STATUSES.has(checkpoint.status))
+  );
+}
+
+function isRetryableScan(scan) {
+  return Boolean(
+    scan?.id && (RETRYABLE_SCAN_STATUSES.has(scan.status) || scanHasRetryableTrace(scan))
+  );
+}
+
+function CompactStatusChip({ status }) {
+  const label = compactStatusLabel(status);
+  if (!label) return null;
+  return <span className={`scan-compact-status tone-${compactStatusTone(status)}`}>{label}</span>;
+}
+
+function CompactAuditList({ title, items }) {
+  if (!items?.length) return null;
+  return (
+    <div className="scan-compact-group">
+      <div className="scan-compact-group-h">
+        <span>{title}</span>
+        <span>{items.length}</span>
+      </div>
+      <div className="scan-compact-list">
+        {items.map((item) => (
+          <div key={item.key} className="scan-compact-item">
+            <div className="scan-compact-item-head">
+              <span className="scan-compact-item-title">{item.label}</span>
+              <CompactStatusChip status={item.status} />
+            </div>
+            {item.summary && <div className="scan-compact-item-summary muted">{item.summary}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompletionAuditPanel({ audit }) {
+  if (!audit) return null;
+  return (
+    <div className="card scanning-preflight scan-compact-panel">
+      <div className="scan-compact-head">
+        <div className="scanning-counts-h">
+          <I.Check size={14} /> {T("Completion audit", "完成审计")}
+        </div>
+        <CompactStatusChip status={audit.status || audit.outcome} />
+      </div>
+      {audit.summary && <div className="muted scan-preflight-summary">{audit.summary}</div>}
+      <div className="scan-preflight-meta">
+        {audit.completedAt && <span>{T(`Completed: ${audit.completedAt}`, `完成于：${audit.completedAt}`)}</span>}
+        {audit.updatedAt && <span>{T(`Updated: ${audit.updatedAt}`, `更新于：${audit.updatedAt}`)}</span>}
+        {audit.outcome && <span>{T(`Outcome: ${audit.outcome}`, `结果：${audit.outcome}`)}</span>}
+      </div>
+      <CompactAuditList title={T("Blockers", "阻塞项")} items={audit.blockers} />
+      <CompactAuditList title={T("Warnings", "警告")} items={audit.warnings} />
+      <CompactAuditList title={T("Checks", "检查项")} items={audit.checks} />
+    </div>
+  );
+}
+
+function JobTracePanel({ trace }) {
+  if (!trace) return null;
+  const checkpoints = trace.checkpoints || [];
+  return (
+    <div className="card scanning-preflight scan-compact-panel">
+      <div className="scan-compact-head">
+        <div className="scanning-counts-h">
+          <I.Clock size={14} /> {T("Job trace", "任务轨迹")}
+        </div>
+        <CompactStatusChip status={trace.status} />
+      </div>
+      {trace.summary && <div className="muted scan-preflight-summary">{trace.summary}</div>}
+      <div className="scan-preflight-meta">
+        {trace.currentJobId && <span>{T(`Job: ${trace.currentJobId}`, `任务：${trace.currentJobId}`)}</span>}
+        {trace.workerId && <span>{T(`Worker: ${trace.workerId}`, `Worker：${trace.workerId}`)}</span>}
+        {trace.updatedAt && <span>{T(`Updated: ${trace.updatedAt}`, `更新于：${trace.updatedAt}`)}</span>}
+      </div>
+      {checkpoints.length > 0 && (
+        <div className="scan-trace-list" role="list" aria-label={T("Job trace checkpoints", "任务轨迹检查点")}>
+          {checkpoints.slice(0, 8).map((checkpoint) => (
+            <div key={checkpoint.key} className="scan-trace-item" role="listitem">
+              <div className="scan-trace-item-head">
+                <span className="scan-trace-item-title">{checkpoint.label}</span>
+                <CompactStatusChip status={checkpoint.status} />
+              </div>
+              <div className="scan-trace-item-meta">
+                {checkpoint.at && <span>{checkpoint.at}</span>}
+                {checkpoint.jobId && <span>{checkpoint.jobId}</span>}
+                {checkpoint.workerId && <span>{checkpoint.workerId}</span>}
+                {checkpoint.attempt && <span>{T(`Attempt ${checkpoint.attempt}`, `第 ${checkpoint.attempt} 次`)}</span>}
+              </div>
+              {checkpoint.summary && (
+                <div className="scan-compact-item-summary muted">{checkpoint.summary}</div>
+              )}
+            </div>
+          ))}
+          {checkpoints.length > 8 && (
+            <div className="muted scan-trace-more">
+              {T(`+${checkpoints.length - 8} more checkpoints`, `还有 ${checkpoints.length - 8} 个检查点`)}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -2413,6 +2577,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const error = batchMode ? batchRun.error : singleRun.error;
   const errorCode = batchMode ? batchRun.errorCode : singleRun.errorCode;
   const cancel = batchMode ? batchRun.cancel : singleRun.cancel;
+  const retry = batchMode ? null : singleRun.retry;
+  const retrying = batchMode ? false : Boolean(singleRun.retrying);
 
   // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
@@ -2461,6 +2627,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const semanticGraph = batchMode ? null : scan?.semanticGraph || null;
   const impactGraph = batchMode ? null : scan?.impactGraph || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
+  const aiUsageTags = scanAiUsageTags(aiUsage);
   const terminal = batchMode
     ? expectedBatchCount > 0 &&
       batchRows.length === expectedBatchCount &&
@@ -2472,6 +2639,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const canCancel = batchMode
     ? scans.some((item) => item?.id && !isTerminalScan(item))
     : Boolean(scan && !terminal);
+  const canRetry = !batchMode && isRetryableScan(scan);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
   const publicError = error ? publicScanErrorMessage(error) : "";
   const batchSummary = batchMode
@@ -2484,6 +2652,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   };
   const handleBack = () => {
     go("history");
+  };
+  const handleRetry = async () => {
+    if (!canRetry || typeof retry !== "function") return;
+    const nextScan = await retry();
+    if (nextScan?.id && nextScan.id !== scan?.id) {
+      go("scanning", { scanId: nextScan.id });
+    }
   };
 
   const handleDownloadBundle = async () => {
@@ -2511,7 +2686,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         ? batchMode
           ? T("Scan batch failed", "批量扫描失败")
           : T("Scan failed", "扫描失败")
-        : status === "cancelled"
+        : status === "lost"
+          ? T("Scan lost", "Scan lost")
+          : status === "cancelled"
           ? batchMode
             ? T("Scan batch cancelled", "批量扫描已取消")
             : T("Scan cancelled", "扫描已取消")
@@ -2524,7 +2701,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const headerIcon =
     status === "done" ? (
       <I.Check size={18} />
-    ) : status === "failed" || status === "cancelled" ? (
+    ) : status === "failed" || status === "cancelled" || status === "lost" ? (
       <I.X size={18} />
     ) : (
       <span className="spin" style={{ display: "inline-block" }}>
@@ -2600,6 +2777,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     <span className="scanning-actions-sep" aria-hidden="true" />
                     <button className="btn ghost" onClick={handleCancel}>
                       <I.X size={13} /> {T("Cancel", "取消")}
+                    </button>
+                  </>
+                )}
+                {canRetry && (
+                  <>
+                    <span className="scanning-actions-sep" aria-hidden="true" />
+                    <button className="btn ghost" disabled={retrying} onClick={handleRetry}>
+                      <I.Refresh size={13} />{" "}
+                      {retrying ? T("Retrying...", "正在重试...") : T("Retry", "重试")}
                     </button>
                   </>
                 )}
@@ -2732,17 +2918,25 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   <span>{T("Low", "低")}</span>
                 </div>
               </div>
-              {aiUsage?.model && (
+              {aiUsageTags.length > 0 && (
                 <>
                   <div className="scanning-counts-h scanning-counts-subh">
-                    {T("Model usage", "模型用量")}
+                    {T("Review agent", "审查代理")}
                   </div>
                   <div className="scan-preflight-meta">
-                    <span className="tag">{aiUsage.model}</span>
+                    {aiUsageTags.map((tag) => (
+                      <span key={tag} className="tag">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </>
               )}
             </div>
+
+            <CompletionAuditPanel audit={scan?.completionAudit || null} />
+
+            <JobTracePanel trace={scan?.jobTrace || null} />
 
             {preflight && (
               <div className="card scanning-preflight">

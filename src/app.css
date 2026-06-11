@@ -331,6 +331,12 @@ body.has-proto-nav {
   .docs-plan-card,
   .docs-plan-card-h,
   .docs-plan-kv,
+  .docs-config-grid,
+  .docs-config-group,
+  .docs-config-group-h,
+  .docs-config-row,
+  .docs-config-copy,
+  .docs-config-value,
   .docs-endpoint-list,
   .docs-endpoint-card,
   .docs-endpoint-card-h,
@@ -584,6 +590,9 @@ body.has-proto-nav {
 .legal-list li,
 .legal-list-flat li,
 .docs-plan-kv code,
+.docs-config-copy p,
+.docs-config-path,
+.docs-config-value code,
 .docs-card p {
   overflow-wrap: anywhere;
 }
@@ -1545,6 +1554,12 @@ body.has-proto-nav {
 .docs-plan-card,
 .docs-plan-card-h,
 .docs-plan-kv,
+.docs-config-grid,
+.docs-config-group,
+.docs-config-group-h,
+.docs-config-row,
+.docs-config-copy,
+.docs-config-value,
 .billing-change-callout,
 .billing-change-callout-text,
 .billing-change-features,
@@ -1565,6 +1580,9 @@ body.has-proto-nav {
 .docs-plan-key,
 .docs-plan-kv b,
 .docs-plan-kv code,
+.docs-config-copy b,
+.docs-config-path,
+.docs-config-value code,
 .lp-title,
 .lp-title-em,
 .lp-sub,
@@ -1693,6 +1711,15 @@ body.has-proto-nav {
   .docs-plan-kv {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
+  }
+
+  .docs-config-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .docs-config-value {
+    justify-self: start;
+    text-align: left;
   }
 
   .docs-foot-actions {

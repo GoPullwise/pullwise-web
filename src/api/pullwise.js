@@ -37,6 +37,8 @@ export const pullwiseApi = {
     preflight: (payload) => request("/scans/preflight", { method: "POST", body: payload }),
     create: (payload) => request("/scans", { method: "POST", body: payload }),
     get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
+    retry: (scanId, payload = {}) =>
+      request(`/scans/${pathSegment(scanId)}/retry`, { method: "POST", body: payload }),
     auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
     impactGraph: (scanId) => request(`/scans/${pathSegment(scanId)}/impact-graph`),
     impactFocus: (scanId, params = {}) =>
@@ -101,6 +103,7 @@ export const pullwiseApi = {
   docs: {
     getSubscriptionPlanConfigs: (options = {}) =>
       request("/docs/subscription-plans", { signal: options.signal }),
+    getServerConfig: (options = {}) => request("/docs/server-config", { signal: options.signal }),
   },
 
   system: {

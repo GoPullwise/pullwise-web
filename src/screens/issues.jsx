@@ -2052,6 +2052,21 @@ function severityLabel(legend) {
   return T(legend.labelEn, legend.labelZh);
 }
 
+function scanAiUsageBadges(aiUsage) {
+  if (!aiUsage) return [];
+  const badges = [];
+  const push = (value) => {
+    const text = String(value || "").trim();
+    if (text && !badges.includes(text)) badges.push(text);
+  };
+  push(aiUsage.agentCli || aiUsage.provider);
+  push(aiUsage.model);
+  if (aiUsage.reasoningEffort) {
+    push(T(`reasoning: ${aiUsage.reasoningEffort}`, `推理：${aiUsage.reasoningEffort}`));
+  }
+  return badges;
+}
+
 function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -2061,6 +2076,7 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
   const hasResults = scanHasResults(scan);
   const isDownloading = bundleLoading === scan.id;
   const summary = scanHistorySummary(scan);
+  const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -2120,9 +2136,11 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
             <span className="scan-badge scan-badge-muted">{scan.commit}</span>
           )}
           <span className={`scan-badge scan-badge-status scan-badge-${status}`}>{status}</span>
-          {scan.aiUsage?.model && (
-            <span className="scan-badge scan-badge-muted">{scan.aiUsage.model}</span>
-          )}
+          {aiUsageBadges.map((badge) => (
+            <span key={badge} className="scan-badge scan-badge-muted">
+              {badge}
+            </span>
+          ))}
           {total > 0 && (
             <span className={`scan-issues-badge ${issuesBadgeTone}`}>
               {T(`${total} issue${total === 1 ? "" : "s"}`, `${total} 个问题`)}

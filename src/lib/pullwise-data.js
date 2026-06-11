@@ -269,6 +269,174 @@ function normalizePreflight(preflight) {
   };
 }
 
+function normalizeLooseStatus(value) {
+  const status = textValue(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+  return status;
+}
+
+function normalizeListEntry(value, index, { fallbackLabel = "" } = {}) {
+  if (objectRecord(value)) {
+    const label = textValue(
+      value.label,
+      value.title,
+      value.name,
+      value.check,
+      value.checkpoint,
+      value.phase,
+      value.stage,
+      value.job,
+      value.id
+    );
+    const summary = textValue(
+      value.summary,
+      value.message,
+      value.detail,
+      value.reason,
+      value.description
+    );
+    const status = normalizeLooseStatus(
+      value.status ?? value.state ?? value.result ?? value.verdict ?? value.outcome
+    );
+    const at = formatTime(
+      value.at ??
+        value.time ??
+        value.timestamp ??
+        value.createdAt ??
+        value.created_at ??
+        value.updatedAt ??
+        value.updated_at ??
+        value.finishedAt ??
+        value.finished_at
+    );
+    const item = {
+      key:
+        textValue(value.key, value.id, value.name, value.label, value.title) ||
+        `${fallbackLabel || "item"}_${index}`,
+      label: label || summary || fallbackLabel,
+      summary: label && summary && summary !== label ? summary : "",
+      status,
+      at,
+      jobId: textValue(value.jobId, value.job_id, value.scanJobId, value.scan_job_id),
+      workerId: textValue(
+        value.workerId,
+        value.worker_id,
+        value.workerName,
+        value.worker_name,
+        value.claimId,
+        value.claim_id
+      ),
+      attempt: normalizeQueueCount(value.attempt, { positive: true }),
+      kind: textValue(value.kind, value.type),
+    };
+    if (!item.label && !item.summary && !item.status && !item.at && !item.jobId && !item.workerId) {
+      return null;
+    }
+    return item;
+  }
+  const label = firstLineText(value);
+  if (!label) return null;
+  return {
+    key: `${fallbackLabel || "item"}_${index}`,
+    label,
+    summary: "",
+    status: "",
+    at: "",
+    jobId: "",
+    workerId: "",
+    attempt: null,
+    kind: "",
+  };
+}
+
+function normalizeCompletionAudit(value) {
+  if (!objectRecord(value)) return null;
+  const blockers = itemsFrom(value, "blockers", "blockingChecks", "blocking_checks", "gates")
+    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "blocker" }))
+    .filter(Boolean)
+    .slice(0, 8);
+  const warnings = itemsFrom(value, "warnings", "warningChecks", "warning_checks")
+    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "warning" }))
+    .filter(Boolean)
+    .slice(0, 8);
+  const checks = itemsFrom(value, "checks", "results", "items")
+    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "check" }))
+    .filter(Boolean)
+    .slice(0, 12);
+  const audit = {
+    status: normalizeLooseStatus(value.status ?? value.state ?? value.result ?? value.verdict),
+    outcome: textValue(value.outcome),
+    summary: textValue(value.summary, value.message, value.resultSummary, value.result_summary),
+    blockers,
+    warnings,
+    checks,
+    completedAt: formatTime(
+      value.completedAt ?? value.completed_at ?? value.finishedAt ?? value.finished_at
+    ),
+    updatedAt: formatTime(value.updatedAt ?? value.updated_at ?? value.lastUpdatedAt),
+  };
+  return audit.status ||
+    audit.outcome ||
+    audit.summary ||
+    audit.completedAt ||
+    audit.updatedAt ||
+    blockers.length ||
+    warnings.length ||
+    checks.length
+    ? audit
+    : null;
+}
+
+function normalizeJobTrace(value) {
+  const source = Array.isArray(value) ? { checkpoints: value } : objectRecord(value) ? value : null;
+  if (!source) return null;
+  const checkpoints = itemsFrom(
+    source,
+    "checkpoints",
+    "steps",
+    "entries",
+    "events",
+    "jobs",
+    "trace"
+  )
+    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "checkpoint" }))
+    .filter(Boolean)
+    .slice(0, 16);
+  const trace = {
+    status: normalizeLooseStatus(source.status ?? source.state ?? source.result),
+    summary: textValue(source.summary, source.message),
+    currentJobId: textValue(source.currentJobId, source.current_job_id, source.jobId, source.job_id),
+    workerId: textValue(
+      source.workerId,
+      source.worker_id,
+      source.workerName,
+      source.worker_name,
+      source.claimId,
+      source.claim_id
+    ),
+    updatedAt: formatTime(
+      source.updatedAt ??
+        source.updated_at ??
+        source.lastSeenAt ??
+        source.last_seen_at ??
+        source.finishedAt ??
+        source.finished_at
+    ),
+    checkpoints,
+  };
+  return trace.status ||
+    trace.summary ||
+    trace.currentJobId ||
+    trace.workerId ||
+    trace.updatedAt ||
+    checkpoints.length
+    ? trace
+    : null;
+}
+
 function normalizePreflightRepositoryStats(value) {
   if (!objectRecord(value)) return null;
   const stats = {
@@ -321,10 +489,78 @@ function normalizeQueueCount(value, { positive = false } = {}) {
   return normalized;
 }
 
-function normalizeAiUsage(value) {
+function objectValue(...values) {
+  for (const value of values) {
+    if (objectRecord(value)) return value;
+  }
+  return {};
+}
+
+function normalizeAiUsage(value, scan = {}) {
   const source = objectRecord(value) ? value : {};
-  const model = textValue(source.model, source.modelName, source.model_name);
-  return model ? { model } : null;
+  const scanSource = objectRecord(scan) ? scan : {};
+  const reviewAgent = objectValue(scanSource.reviewAgent, source.reviewAgent);
+  const agent = objectValue(reviewAgent.agent, reviewAgent.agentConfig, source.agent, source.agentConfig);
+  const config = objectValue(reviewAgent.config, source.config, scanSource.config);
+  const agentCli = textValue(
+    reviewAgent.agentCli,
+    reviewAgent.cli,
+    reviewAgent.command,
+    agent.agentCli,
+    agent.cli,
+    agent.command,
+    config.agentCli,
+    config.cli,
+    config.command,
+    source.agentCli,
+    source.cli,
+    source.command,
+    scanSource.agentCli,
+    scanSource.cli,
+    scanSource.command
+  );
+  const provider = textValue(
+    reviewAgent.provider,
+    reviewAgent.providerName,
+    agent.provider,
+    agent.providerName,
+    config.provider,
+    config.providerName,
+    source.provider,
+    source.providerName,
+    scanSource.provider,
+    scanSource.providerName
+  );
+  const model = textValue(
+    reviewAgent.model,
+    reviewAgent.modelName,
+    agent.model,
+    agent.modelName,
+    config.model,
+    config.modelName,
+    source.model,
+    source.modelName,
+    scanSource.model,
+    scanSource.modelName
+  );
+  const reasoningEffort = textValue(
+    reviewAgent.reasoningEffort,
+    reviewAgent.reasoning,
+    agent.reasoningEffort,
+    agent.reasoning,
+    config.reasoningEffort,
+    config.reasoning,
+    source.reasoningEffort,
+    source.reasoning,
+    scanSource.reasoningEffort,
+    scanSource.reasoning
+  );
+  const usage = {};
+  if (agentCli || provider) usage.agentCli = agentCli || provider;
+  if (provider) usage.provider = provider;
+  if (model) usage.model = model;
+  if (reasoningEffort) usage.reasoningEffort = reasoningEffort;
+  return Object.keys(usage).length ? usage : null;
 }
 
 const REPOSITORY_GRAPH_PROTOCOL_VERSIONS = new Set([
@@ -925,8 +1161,16 @@ function normalizeConfidenceLevel(value) {
 }
 
 function normalizeScanStatus(value) {
-  const status = textValue(value);
-  return ["queued", "running", "done", "failed", "cancelled"].includes(status) ? status : "queued";
+  const status = textValue(value).toLowerCase();
+  const normalized =
+    {
+      canceled: "cancelled",
+      complete: "done",
+      completed: "done",
+    }[status] || status;
+  return ["queued", "running", "done", "failed", "cancelled", "lost"].includes(normalized)
+    ? normalized
+    : "queued";
 }
 
 function scalarText(value) {
@@ -1354,7 +1598,7 @@ function normalizeAuditSwarm(value) {
     protocol: textValue(value.protocol),
     stage: textValue(value.stage),
     adapter: textValue(value.adapter),
-    providerChain: normalizeTextList(value.providerChain ?? value.provider_chain),
+    providerChain: normalizeTextList(value.providerChain),
     summary: textValue(value.summary),
     logsSummary: textValue(value.logsSummary, value.logs_summary),
     counts,
@@ -1626,7 +1870,9 @@ export function normalizeScan(scan = {}) {
     verificationAudit: normalizeVerificationAudit(
       scan.verificationAudit ?? scan.verification_audit
     ),
-    aiUsage: normalizeAiUsage(scan.aiUsage ?? scan.ai_usage),
+    aiUsage: normalizeAiUsage(scan.aiUsage, scan),
+    completionAudit: normalizeCompletionAudit(scan.completionAudit ?? scan.completion_audit),
+    jobTrace: normalizeJobTrace(scan.jobTrace ?? scan.job_trace),
     preflight: normalizePreflight(scan.preflight),
     auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
     repositoryGraph,
@@ -1906,10 +2152,31 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
   return { ...state, reload: load, loadMore };
 }
 
-const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled"]);
+const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled", "lost"]);
 
 export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
+}
+
+function retryResponseScanPayload(payload) {
+  if (objectRecord(payload?.scan)) return payload.scan;
+  if (objectRecord(payload?.data?.scan)) return payload.data.scan;
+  if (objectRecord(payload?.result?.scan)) return payload.result.scan;
+  if (objectRecord(payload?.retry)) return payload.retry;
+  return objectRecord(payload) ? payload : null;
+}
+
+function retryResponseScanId(payload, fallback = "") {
+  return textValue(
+    payload?.scanId,
+    payload?.scan_id,
+    payload?.retryScanId,
+    payload?.retry_scan_id,
+    payload?.newScanId,
+    payload?.new_scan_id,
+    payload?.id,
+    fallback
+  );
 }
 
 function scanCreatePayload({ repoId = "", repo, branch, commit = "pending", requestId = "" }) {
@@ -1935,6 +2202,7 @@ export function useScanRun({
   const [scan, setScan] = useState(null);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
+  const [retrying, setRetrying] = useState(false);
   const initialScanRef = useRef(initialScan);
 
   useEffect(() => {
@@ -2017,7 +2285,34 @@ export function useScanRun({
     }
   };
 
-  return { scan, error, errorCode, cancel };
+  const retry = async () => {
+    if (!scan?.id || !["failed", "cancelled", "lost"].includes(scan.status)) return null;
+    setRetrying(true);
+    setError("");
+    setErrorCode("");
+    try {
+      const payload = await pullwiseApi.scans.retry(scan.id);
+      const inlinePayload = retryResponseScanPayload(payload);
+      if (inlinePayload && textValue(inlinePayload.id, inlinePayload.scanId)) {
+        const normalized = normalizeScan(inlinePayload);
+        setScan(normalized);
+        return normalized;
+      }
+      const targetScanId = retryResponseScanId(payload, scan.id);
+      if (!targetScanId) return null;
+      const refreshed = normalizeScan(await pullwiseApi.scans.get(targetScanId));
+      setScan(refreshed);
+      return refreshed;
+    } catch (err) {
+      setError(err?.message || "Retry failed.");
+      setErrorCode(textValue(err?.code, err?.payload?.code));
+      return null;
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  return { scan, error, errorCode, cancel, retry, retrying };
 }
 
 function scanRequestKey(request) {

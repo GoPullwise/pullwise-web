@@ -64,6 +64,22 @@ function scanIssueTotal(scan) {
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
+function scanAgentConfigLabel(scan) {
+  const usage = scan?.aiUsage;
+  if (!usage) return "";
+  const parts = [];
+  const push = (value) => {
+    const text = String(value || "").trim();
+    if (text && !parts.includes(text)) parts.push(text);
+  };
+  push(usage.agentCli || usage.provider);
+  push(usage.model);
+  if (usage.reasoningEffort) {
+    push(T(`reasoning: ${usage.reasoningEffort}`, `推理：${usage.reasoningEffort}`));
+  }
+  return parts.join(" · ");
+}
+
 const SEVERITY_WEIGHTS = { critical: 10, high: 7, medium: 4, low: 2, info: 1 };
 const SEVERITY_RANK = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
 const HOTSPOT_LIMIT = 5;
@@ -374,6 +390,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const verifiedPct = openIssues.length ? Math.round((verifiedShare / openIssues.length) * 100) : 0;
   const highPct = openIssues.length ? Math.round((highShare / openIssues.length) * 100) : 0;
   const latestScan = scans[0];
+  const latestScanAgentLabel = scanAgentConfigLabel(latestScan);
   const hotspots = useMemo(() => issueRiskHotspots(openIssues), [openIssues]);
 
   const issueTrend = useMemo(() => scans.slice(0, 14).reverse().map(scanIssueTotal), [scans]);
@@ -490,7 +507,12 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   <div className="kpi-v">{scansLoading ? "-" : scans.length}</div>
                   <div className="kpi-foot">
                     {latestScan
-                      ? T(`Last: ${latestScan.time}`, `最近：${latestScan.time}`)
+                      ? latestScanAgentLabel
+                        ? T(
+                            `Last: ${latestScan.time} · ${latestScanAgentLabel}`,
+                            `最近：${latestScan.time} · ${latestScanAgentLabel}`
+                          )
+                        : T(`Last: ${latestScan.time}`, `最近：${latestScan.time}`)
                       : T("No scans yet", "暂无扫描记录")}
                   </div>
                   <div className="kpi-chart">

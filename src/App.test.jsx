@@ -35,6 +35,7 @@ vi.mock("./api/pullwise.js", () => ({
     },
     docs: {
       getSubscriptionPlanConfigs: vi.fn(),
+      getServerConfig: vi.fn(),
     },
   },
 }));
@@ -124,6 +125,7 @@ describe("App", () => {
         },
       ],
     });
+    pullwiseApi.docs.getServerConfig.mockResolvedValue({ groups: [] });
   });
 
   afterEach(() => {

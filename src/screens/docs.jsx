@@ -35,6 +35,133 @@ function titleCase(value) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+const PUBLIC_SERVER_GROUP_IDS = new Set([
+  "plans",
+  "planquotas",
+  "subscriptionplans",
+  "scan",
+  "scanlimits",
+  "ratelimit",
+  "billing",
+  "billingcatalog",
+]);
+
+const SENSITIVE_CONFIG_FIELD_PATTERN =
+  /secret|token|password|private\s*key|private_key|webhook|cookie|oauth|database|sqlite|worker|credential|internal\s*path|internal_path|local\s*path|local_path|filesystem/i;
+
+const FALLBACK_SERVER_CONFIG_GROUPS = [
+  {
+    id: "plans",
+    title: "Plan quotas",
+    description: "Monthly scan quotas enforced by the server for each subscription plan.",
+    fields: PLAN_ORDER.flatMap((plan) => [
+      {
+        path: `plans.${plan}.userReviewLimit`,
+        candidates: [`plans.${plan}.userReviewLimit`],
+        label: `${PLAN_LABELS[plan]} user monthly scans`,
+        description: `Maximum scans one ${PLAN_LABELS[plan]} user can start in a billing cycle.`,
+      },
+      {
+        path: `plans.${plan}.repositoryReviewLimit`,
+        candidates: [`plans.${plan}.repositoryReviewLimit`],
+        label: `${PLAN_LABELS[plan]} repository monthly scans`,
+        description: `Maximum scans one repository can receive in a billing cycle for ${PLAN_LABELS[plan]} users.`,
+      },
+    ]),
+  },
+  {
+    id: "scan",
+    title: "Scan limits",
+    description:
+      "Queue and repository-size limits visible to users when scans are accepted or rejected.",
+    fields: [
+      {
+        path: "scan.maxRunningScansPerUser",
+        candidates: ["scan.maxRunningScansPerUser"],
+        label: "Concurrent scans per user",
+        description: "Maximum scans one user can have running at the same time.",
+      },
+      {
+        path: "scan.maxQueuedScansPerUser",
+        candidates: ["scan.maxQueuedScansPerUser"],
+        label: "Queued scans per user",
+        description: "Maximum queued scans one user may hold before the server asks them to wait.",
+      },
+      {
+        path: "scan.maxQueuedScansGlobal",
+        candidates: ["scan.maxQueuedScansGlobal"],
+        label: "Global queued scans",
+        description: "Maximum queued scans across the service.",
+      },
+      {
+        path: "scan.maxRepoFiles",
+        candidates: ["scan.maxRepoFiles"],
+        label: "Repository file limit",
+        description:
+          "Repository checkouts above this file count stop before verifier or AI review.",
+      },
+      {
+        path: "scan.maxRepoBytes",
+        candidates: ["scan.maxRepoBytes"],
+        label: "Repository byte limit",
+        description: "Repository checkouts above this size stop before verifier or AI review.",
+      },
+    ],
+  },
+  {
+    id: "rateLimit",
+    title: "API rate limit",
+    description: "Request rate limiting applied by the server to browser and API-key traffic.",
+    fields: [
+      {
+        path: "rateLimit.enabled",
+        candidates: ["rateLimit.enabled"],
+        label: "Rate limiting enabled",
+        description: "Whether non-exempt user/API requests are rate limited.",
+      },
+      {
+        path: "rateLimit.requests",
+        candidates: ["rateLimit.requests"],
+        label: "Requests per window",
+        description: "Allowed requests per subject in one rate-limit window.",
+      },
+      {
+        path: "rateLimit.windowSeconds",
+        candidates: ["rateLimit.windowSeconds"],
+        label: "Rate-limit window",
+        description: "Rate-limit accounting window in seconds.",
+      },
+    ],
+  },
+  {
+    id: "billing",
+    title: "Billing catalog",
+    description:
+      "Non-secret billing catalog status. API keys and webhook secrets are not displayed.",
+    fields: [
+      {
+        path: "billing.creemProProductCount",
+        candidates: ["billing.creemProProductCount"],
+        label: "Creem Pro products",
+        description: "Number of Creem product IDs configured to grant Pro access.",
+      },
+      {
+        path: "billing.creemMaxProductCount",
+        candidates: ["billing.creemMaxProductCount"],
+        label: "Creem Max products",
+        description: "Number of Creem product IDs configured to grant Max access.",
+      },
+      {
+        path: "billing.creemTestMode",
+        candidates: ["billing.creemTestMode"],
+        label: "Creem test mode",
+        description:
+          "Whether the server uses Creem's test API host when no custom base URL is configured.",
+      },
+    ],
+  },
+];
+
 function recordsFromMap(value) {
   if (!objectRecord(value)) return [];
   return Object.entries(value)
@@ -49,9 +176,7 @@ function recordsFromPayload(payload) {
   const containers = [
     payload.plans,
     payload.subscriptionPlans,
-    payload.subscription_plans,
     payload.agentConfigs,
-    payload.agent_configs,
     payload.configs,
     payload.items,
   ];
@@ -72,11 +197,7 @@ function recordsFromPayload(payload) {
 
 function normalizePlanConfig(record = {}) {
   if (!objectRecord(record)) return null;
-  const agentConfig = objectRecord(record.agentConfig)
-    ? record.agentConfig
-    : objectRecord(record.agent_config)
-      ? record.agent_config
-      : {};
+  const agentConfig = objectRecord(record.agentConfig) ? record.agentConfig : {};
   const agent = objectRecord(record.agent)
     ? record.agent
     : objectRecord(agentConfig.agent)
@@ -101,60 +222,30 @@ function normalizePlanConfig(record = {}) {
     label: PLAN_LABELS[plan] || titleCase(rawPlan),
     agentCli: textValue(
       record.agentCli,
-      record.agentCLI,
-      record.agent_cli,
       record.cli,
-      record.agentCliCommand,
-      record.agent_cli_command,
       record.provider,
-      record.providerName,
-      record.provider_name,
       agent.agentCli,
-      agent.agent_cli,
       agent.cli,
       agentConfig.agentCli,
-      agentConfig.agent_cli,
       agentConfig.provider,
       agentConfig.cli,
       config.agentCli,
-      config.agent_cli,
       config.cli,
       settings.agentCli,
-      settings.agent_cli
     ),
     model: textValue(
       record.model,
-      record.modelName,
-      record.model_name,
-      record.reviewModel,
-      record.review_model,
       agentConfig.model,
-      agentConfig.modelName,
-      agentConfig.model_name,
       agent.model,
-      agent.modelName,
-      agent.model_name,
       config.model,
-      config.modelName,
-      config.model_name,
       settings.model
     ),
     reasoningEffort: textValue(
       record.reasoningEffort,
-      record.reasoning_effort,
-      record.effort,
-      record.reasoning,
       agentConfig.reasoningEffort,
-      agentConfig.reasoning_effort,
-      agentConfig.effort,
       agent.reasoningEffort,
-      agent.reasoning_effort,
-      agent.effort,
       config.reasoningEffort,
-      config.reasoning_effort,
-      config.effort,
       settings.reasoningEffort,
-      settings.reasoning_effort
     ),
   };
 }
@@ -176,6 +267,267 @@ function normalizePlanConfigs(payload) {
     });
 }
 
+function normalizeGroupId(value) {
+  return textValue(value)
+    .toLowerCase()
+    .replaceAll(/[\s_-]+/g, "");
+}
+
+function cleanDisplayText(value, maxLength = 180) {
+  const text = textValue(value);
+  if (!text) return "";
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}...` : text;
+}
+
+function nestedGet(source, path) {
+  if (!objectRecord(source) || !path) return { found: false, value: undefined };
+  const parts = String(path).split(".").filter(Boolean);
+  let current = source;
+  for (const part of parts) {
+    if (!objectRecord(current) || !Object.prototype.hasOwnProperty.call(current, part)) {
+      return { found: false, value: undefined };
+    }
+    current = current[part];
+  }
+  return { found: true, value: current };
+}
+
+function valueFromField(field, settings) {
+  const valueKeys = ["value", "current", "setting", "configValue", "config_value", "count"];
+  for (const key of valueKeys) {
+    if (Object.prototype.hasOwnProperty.call(field, key)) return field[key];
+  }
+  const path = textValue(field.path, field.key, field.id);
+  const found = nestedGet(settings, path);
+  return found.found ? found.value : undefined;
+}
+
+function fieldRecordsFromMap(value) {
+  if (!objectRecord(value)) return [];
+  return Object.entries(value).map(([path, field]) =>
+    objectRecord(field) ? { path, ...field } : { path, value: field }
+  );
+}
+
+function fieldsFromServerGroup(group) {
+  if (!objectRecord(group)) return [];
+  const containers = [group.fields, group.items, group.settings, group.values];
+  for (const container of containers) {
+    if (Array.isArray(container)) return container;
+    const mapped = fieldRecordsFromMap(container);
+    if (mapped.length) return mapped;
+  }
+  return [];
+}
+
+function serverConfigPathKey(path) {
+  return textValue(path).toLowerCase().replaceAll(/[-_]/g, "");
+}
+
+function isAllowedServerConfigField(field, group) {
+  const groupId = normalizeGroupId(group.id || group.key || group.title || group.name);
+  if (!PUBLIC_SERVER_GROUP_IDS.has(groupId)) return false;
+
+  const path = textValue(field.path, field.key, field.id, field.name);
+  const label = textValue(field.label, field.title, field.name);
+  const fieldText = `${path} ${label}`;
+  if (!fieldText.trim() || SENSITIVE_CONFIG_FIELD_PATTERN.test(fieldText)) return false;
+
+  const pathKey = serverConfigPathKey(path);
+  if (/^plans\.[^.]+\.(userreviewlimit|repositoryreviewlimit|reviewlimit)$/.test(pathKey)) {
+    return true;
+  }
+
+  if (
+    [
+      "scan.maxrunningscansperuser",
+      "scan.maxqueuedscansglobal",
+      "scan.maxqueuedscansperuser",
+      "scan.maxrepofiles",
+      "scan.maxrepobytes",
+      "ratelimit.enabled",
+      "ratelimit.requests",
+      "ratelimit.windowseconds",
+      "billing.creemproproductcount",
+      "billing.creemmaxproductcount",
+      "billing.creemproproductids",
+      "billing.creemmaxproductids",
+      "billing.catalogconfigured",
+      "billing.productcount",
+      "billing.creemtestmode",
+    ].includes(pathKey)
+  ) {
+    return true;
+  }
+
+  if (pathKey) return false;
+
+  const labelKey = label.toLowerCase();
+  if (groupId === "plans" || groupId === "planquotas" || groupId === "subscriptionplans") {
+    return /quota|monthly scans|review limit/.test(labelKey);
+  }
+  if (groupId === "scan" || groupId === "scanlimits") {
+    return /queue|queued|running|repository|repo|limit/.test(labelKey);
+  }
+  if (groupId === "ratelimit") {
+    return /rate|requests|window|enabled/.test(labelKey);
+  }
+  if (groupId === "billing" || groupId === "billingcatalog") {
+    return /catalog|product|configured|test mode/.test(labelKey);
+  }
+  return false;
+}
+
+function normalizeServerField(field, group, settings) {
+  if (!objectRecord(field) || !isAllowedServerConfigField(field, group)) return null;
+  const path = cleanDisplayText(field.path ?? field.key ?? field.id);
+  const label = cleanDisplayText(field.label ?? field.title ?? field.name ?? titleCase(path));
+  const description = cleanDisplayText(field.description ?? field.help ?? field.summary, 260);
+  return {
+    path,
+    label: label || titleCase(path),
+    description,
+    value: valueFromField(field, settings),
+  };
+}
+
+function normalizeServerGroupsFromPayload(payload) {
+  if (!objectRecord(payload)) return [];
+  const settings = objectRecord(payload.settings) ? payload.settings : {};
+  const groups = Array.isArray(payload.groups)
+    ? payload.groups
+    : Array.isArray(payload.items)
+      ? payload.items
+      : [];
+
+  return groups
+    .map((group) => {
+      if (!objectRecord(group)) return null;
+      const id = cleanDisplayText(group.id ?? group.key ?? group.title ?? group.name);
+      const normalizedId = normalizeGroupId(id);
+      if (!PUBLIC_SERVER_GROUP_IDS.has(normalizedId)) return null;
+      const fields = fieldsFromServerGroup(group)
+        .map((field) => normalizeServerField(field, group, settings))
+        .filter(Boolean);
+      if (!fields.length) return null;
+      return {
+        id: id || normalizedId,
+        title: cleanDisplayText(group.title ?? group.label ?? titleCase(id)),
+        description: cleanDisplayText(group.description ?? group.summary, 280),
+        fields,
+      };
+    })
+    .filter(Boolean);
+}
+
+function configRoots(payload) {
+  if (!objectRecord(payload)) return [];
+  return [payload.settings, payload.config, payload.data, payload].filter(objectRecord);
+}
+
+function valueFromCandidates(payload, candidates) {
+  for (const root of configRoots(payload)) {
+    for (const path of candidates) {
+      const found = nestedGet(root, path);
+      if (found.found) return { found: true, value: found.value };
+    }
+  }
+  return { found: false, value: undefined };
+}
+
+function normalizeServerGroupsFromSettings(payload) {
+  return FALLBACK_SERVER_CONFIG_GROUPS.map((group) => {
+    const fields = group.fields
+      .map((field) => {
+        const found = valueFromCandidates(payload, field.candidates);
+        if (!found.found) return null;
+        return {
+          path: field.path,
+          label: field.label,
+          description: field.description,
+          value: found.value,
+        };
+      })
+      .filter(Boolean);
+    return fields.length ? { ...group, fields } : null;
+  }).filter(Boolean);
+}
+
+function normalizeServerConfig(payload) {
+  const groups = normalizeServerGroupsFromPayload(payload);
+  return groups.length ? groups : normalizeServerGroupsFromSettings(payload);
+}
+
+function numericValue(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value.trim())) return Number(value);
+  return null;
+}
+
+function plural(count, singular) {
+  return `${count.toLocaleString("en-US")} ${singular}${count === 1 ? "" : "s"}`;
+}
+
+function countConfigured(value) {
+  if (Array.isArray(value)) return value.filter((item) => textValue(item)).length;
+  const numeric = numericValue(value);
+  if (numeric !== null) return Math.max(0, numeric);
+  if (objectRecord(value)) {
+    return Object.values(value).filter((item) => item !== undefined && item !== null && item !== "")
+      .length;
+  }
+  const text = textValue(value);
+  if (!text) return 0;
+  return text.split(",").filter((item) => item.trim()).length;
+}
+
+function formatBytes(value) {
+  const bytes = numericValue(value);
+  if (bytes === null) return cleanDisplayText(value);
+  if (bytes < 1024) return plural(bytes, "byte");
+  const units = ["KiB", "MiB", "GiB", "TiB"];
+  let amount = bytes;
+  let unit = "";
+  for (const nextUnit of units) {
+    amount /= 1024;
+    unit = nextUnit;
+    if (amount < 1024) break;
+  }
+  return `${bytes.toLocaleString("en-US")} bytes (${amount.toFixed(amount >= 10 ? 0 : 1)} ${unit})`;
+}
+
+function formatServerConfigValue(field) {
+  const pathKey = serverConfigPathKey(field.path);
+  const value = field.value;
+  if (value === undefined || value === null || value === "") return "";
+
+  if (/product(ids|count)$|catalogconfigured|productcount/.test(pathKey)) {
+    if (/configured$/.test(pathKey) && typeof value === "boolean") {
+      return value ? "Configured" : "Not configured";
+    }
+    const count = countConfigured(value);
+    return `${plural(count, "product")} configured`;
+  }
+
+  if (typeof value === "boolean") {
+    if (pathKey.includes("testmode")) return value ? "On" : "Off";
+    return value ? "Enabled" : "Disabled";
+  }
+
+  if (pathKey.includes("bytes")) return formatBytes(value);
+
+  const numeric = numericValue(value);
+  if (numeric !== null) {
+    if (pathKey.includes("seconds")) return `${numeric.toLocaleString("en-US")} seconds`;
+    return numeric.toLocaleString("en-US");
+  }
+
+  if (objectRecord(value)) return Object.keys(value).length ? "Configured" : "Not configured";
+  if (Array.isArray(value)) return `${plural(countConfigured(value), "item")} configured`;
+
+  return cleanDisplayText(value);
+}
+
 function isCanceled(error) {
   return (
     error?.name === "AbortError" ||
@@ -192,33 +544,70 @@ function ConfigValue({ value }) {
   return <code>{value}</code>;
 }
 
+function ServerConfigValue({ field }) {
+  const value = formatServerConfigValue(field);
+  if (!value) {
+    return (
+      <span className="docs-plan-missing">{T("Not provided by API", "Not provided by API")}</span>
+    );
+  }
+  return <code>{value}</code>;
+}
+
 export function DocsScreen({ go, auth }) {
   useLang();
   const [plans, setPlans] = useState([]);
+  const [serverGroups, setServerGroups] = useState([]);
+  const [serverConfigError, setServerConfigError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const nav = [
     ["plans", T("Subscription plans", "Subscription plans")],
+    ["server-config", T("Server config", "Server config")],
     ["contract", T("API contract", "API contract")],
   ];
 
-  const loadPlans = useCallback(async (signal) => {
+  const loadDocs = useCallback(async (signal) => {
     setLoading(true);
     setError("");
+    setServerConfigError("");
     try {
-      const payload = await pullwiseApi.docs.getSubscriptionPlanConfigs({ signal });
+      const [plansResult, serverConfigResult] = await Promise.allSettled([
+        pullwiseApi.docs.getSubscriptionPlanConfigs({ signal }),
+        typeof pullwiseApi.docs.getServerConfig === "function"
+          ? pullwiseApi.docs.getServerConfig({ signal })
+          : Promise.reject(new Error("Server config docs endpoint is not available.")),
+      ]);
       if (signal?.aborted) return;
-      setPlans(normalizePlanConfigs(payload));
-    } catch (err) {
-      if (isCanceled(err) || signal?.aborted) return;
-      setPlans([]);
-      setError(
-        err?.message ||
+
+      if (plansResult.status === "fulfilled") {
+        setPlans(normalizePlanConfigs(plansResult.value));
+      } else if (isCanceled(plansResult.reason)) {
+        return;
+      } else {
+        setPlans([]);
+        setError(
+          plansResult.reason?.message ||
+            T(
+              "Unable to load subscription plan configs.",
+              "Unable to load subscription plan configs."
+            )
+        );
+      }
+
+      if (serverConfigResult.status === "fulfilled") {
+        setServerGroups(normalizeServerConfig(serverConfigResult.value));
+      } else if (isCanceled(serverConfigResult.reason)) {
+        return;
+      } else {
+        setServerGroups([]);
+        setServerConfigError(
           T(
-            "Unable to load subscription plan configs.",
-            "Unable to load subscription plan configs."
+            "Server configuration docs are not available from this backend yet.",
+            "Server configuration docs are not available from this backend yet."
           )
-      );
+        );
+      }
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
@@ -226,9 +615,9 @@ export function DocsScreen({ go, auth }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    loadPlans(controller.signal);
+    loadDocs(controller.signal);
     return () => controller.abort();
-  }, [loadPlans]);
+  }, [loadDocs]);
 
   return (
     <div className="landing fade-in">
@@ -258,8 +647,8 @@ export function DocsScreen({ go, auth }) {
           </h1>
           <p className="docs-lede">
             {T(
-              "Subscription plan runtime configuration for Pullwise review agents. The values below are loaded from the server so the web docs stay aligned with backend policy.",
-              "Subscription plan runtime configuration for Pullwise review agents. The values below are loaded from the server so the web docs stay aligned with backend policy."
+              "Runtime configuration for Pullwise review agents and public server limits. The values below are loaded from the server so the web docs stay aligned with backend policy.",
+              "Runtime configuration for Pullwise review agents and public server limits. The values below are loaded from the server so the web docs stay aligned with backend policy."
             )}
           </p>
 
@@ -269,8 +658,8 @@ export function DocsScreen({ go, auth }) {
               <b>{T("Server-sourced configuration", "Server-sourced configuration")}</b>
               <p>
                 {T(
-                  "The UI only fixes the plan order and field labels. Agent CLI, model, and reasoning effort come from the docs configuration endpoint.",
-                  "The UI only fixes the plan order and field labels. Agent CLI, model, and reasoning effort come from the docs configuration endpoint."
+                  "Agent CLI, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
+                  "Agent CLI, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
                 )}
               </p>
             </div>
@@ -282,7 +671,10 @@ export function DocsScreen({ go, auth }) {
                 <I.Refresh size={14} />
               </span>
               <span>
-                {T("Loading subscription plan configs...", "Loading subscription plan configs...")}
+                {T(
+                  "Loading subscription plan configs and server settings...",
+                  "Loading subscription plan configs and server settings..."
+                )}
               </span>
             </div>
           )}
@@ -291,7 +683,7 @@ export function DocsScreen({ go, auth }) {
             <div className="docs-state error" role="alert">
               <I.X size={14} />
               <span>{error}</span>
-              <button className="btn sm" type="button" onClick={() => loadPlans()}>
+              <button className="btn sm" type="button" onClick={() => loadDocs()}>
                 <I.Refresh size={13} /> {T("Retry", "Retry")}
               </button>
             </div>
@@ -337,13 +729,62 @@ export function DocsScreen({ go, auth }) {
             </div>
           )}
 
+          <h2 id="server-config" className="docs-h2">
+            {T("Public server configuration", "Public server configuration")}
+          </h2>
+          <p>
+            {T(
+              "These settings describe customer-visible policy enforced by the backend: monthly quota, scan queue and repository limits, API rate limiting, and billing catalog readiness.",
+              "These settings describe customer-visible policy enforced by the backend: monthly quota, scan queue and repository limits, API rate limiting, and billing catalog readiness."
+            )}
+          </p>
+
+          {!loading && serverConfigError && (
+            <div className="docs-state docs-state-soft">
+              <I.FileCode size={14} />
+              <span>{serverConfigError}</span>
+            </div>
+          )}
+
+          {!loading && serverGroups.length > 0 && (
+            <div
+              className="docs-config-grid"
+              aria-label={T("Public server configuration", "Public server configuration")}
+            >
+              {serverGroups.map((group) => (
+                <article key={group.id} className="docs-config-group">
+                  <div className="docs-config-group-h">
+                    <div>
+                      <h3>{group.title}</h3>
+                      {group.description && <p>{group.description}</p>}
+                    </div>
+                  </div>
+                  <div className="docs-config-list">
+                    {group.fields.map((field) => (
+                      <div key={field.path || field.label} className="docs-config-row">
+                        <div className="docs-config-copy">
+                          <b>{field.label}</b>
+                          {field.path && <code className="docs-config-path">{field.path}</code>}
+                          {field.description && <p>{field.description}</p>}
+                        </div>
+                        <div className="docs-config-value">
+                          <ServerConfigValue field={field} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
           <h2 id="contract" className="docs-h2">
             {T("Configuration API", "Configuration API")}
           </h2>
           <p>
             {T(
-              "The web client calls GET /docs/subscription-plans and reads each plan's agentConfig.agent.cli, model, and reasoningEffort fields. Flat agentCli, model, and reasoning_effort aliases are accepted for compatibility.",
-              "The web client calls GET /docs/subscription-plans and reads each plan's agentConfig.agent.cli, model, and reasoningEffort fields. Flat agentCli, model, and reasoning_effort aliases are accepted for compatibility."
+              "The web client calls GET /docs/subscription-plans for plan agent configs and GET /docs/server-config for public server limits. The server-config endpoint may return groups with fields or a settings object; missing fields or an unavailable endpoint are treated as unavailable docs, not as a page failure.",
+              "The web client calls GET /docs/subscription-plans for plan agent configs and GET /docs/server-config for public server limits. The server-config endpoint may return groups with fields or a settings object; missing fields or an unavailable endpoint are treated as unavailable docs, not as a page failure."
             )}
           </p>
 

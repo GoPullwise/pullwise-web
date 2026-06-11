@@ -1264,20 +1264,108 @@ describe("normalizeIssue", () => {
     });
   });
 
-  it("normalizes scan AI usage to model metadata without token counts", () => {
+  it("normalizes scan AI usage to worker agent metadata without token counts", () => {
     expect(
       normalizeScan({
         id: "sc_1",
-        ai_usage: {
-          provider: "codex",
-          model: "gpt-5.5",
-          input_tokens: "123",
+        reviewAgent: {
+          agentCli: "codex",
+          provider: "openai",
+          model: "gpt-5.6",
+          reasoningEffort: "high",
+        },
+        aiUsage: {
+          provider: "fallback-provider",
+          model: "fallback-model",
+          reasoningEffort: "fallback-effort",
+          inputTokens: "123",
           outputTokens: 45.8,
-          total_tokens: "168",
+          totalTokens: "168",
         },
       }).aiUsage
     ).toEqual({
-      model: "gpt-5.5",
+      agentCli: "codex",
+      provider: "openai",
+      model: "gpt-5.6",
+      reasoningEffort: "high",
+    });
+  });
+
+  it("normalizes completion audit and job trace details for scan detail UI", () => {
+    expect(
+      normalizeScan({
+        id: "sc_completion",
+        status: "lost",
+        completion_audit: {
+          status: "blocked",
+          summary: "Final report upload was blocked by missing artifact metadata.",
+          blockers: [
+            { label: "Upload gate", status: "failed", summary: "Artifact manifest missing." },
+          ],
+          warnings: ["Worker heartbeat resumed after timeout window."],
+          checks: [
+            { name: "clone", status: "passed", summary: "Repository checkout completed." },
+            { name: "report", status: "failed", summary: "Upload step timed out." },
+          ],
+          completed_at: 1712345678,
+        },
+        job_trace: {
+          status: "failed",
+          summary: "Worker lost while finalizing the report.",
+          current_job_id: "job_42",
+          worker_id: "worker-east-1",
+          checkpoints: [
+            {
+              id: "cp_clone",
+              label: "Clone repository",
+              status: "passed",
+              at: 1712345600,
+            },
+            {
+              id: "cp_report",
+              label: "Upload report",
+              status: "failed",
+              message: "Connection dropped during artifact upload.",
+              attempt: 2,
+              job_id: "job_42",
+            },
+          ],
+        },
+      })
+    ).toMatchObject({
+      status: "lost",
+      completionAudit: {
+        status: "blocked",
+        summary: "Final report upload was blocked by missing artifact metadata.",
+        blockers: [
+          {
+            label: "Upload gate",
+            status: "failed",
+            summary: "Artifact manifest missing.",
+          },
+        ],
+        warnings: [{ label: "Worker heartbeat resumed after timeout window." }],
+        checks: [
+          { label: "clone", status: "passed" },
+          { label: "report", status: "failed", summary: "Upload step timed out." },
+        ],
+      },
+      jobTrace: {
+        status: "failed",
+        summary: "Worker lost while finalizing the report.",
+        currentJobId: "job_42",
+        workerId: "worker-east-1",
+        checkpoints: [
+          { label: "Clone repository", status: "passed" },
+          {
+            label: "Upload report",
+            status: "failed",
+            summary: "Connection dropped during artifact upload.",
+            attempt: 2,
+            jobId: "job_42",
+          },
+        ],
+      },
     });
   });
 
@@ -1511,11 +1599,11 @@ describe("normalizeIssue", () => {
   it("normalizes scan Audit Swarm evidence for readable rendering", () => {
     const scan = normalizeScan({
       id: "sc_audit_swarm",
-      audit_swarm: {
+      auditSwarm: {
         protocol: "audit-swarm/0.1",
         stage: "report",
         adapter: "codex",
-        provider_chain: ["codex", "opencode"],
+        providerChain: ["codex", "opencode"],
         summary: "2 candidates evaluated\n1 reported",
         counts: {
           issueCards: "1",

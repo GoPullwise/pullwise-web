@@ -25,6 +25,7 @@ describe("pullwiseApi issue fix endpoints", () => {
     request.mockResolvedValue({});
 
     await pullwiseApi.scans.get("scan/with spaces#1");
+    await pullwiseApi.scans.retry("scan/with spaces#1");
     await pullwiseApi.scans.auditBundle("scan/with spaces#1");
     await pullwiseApi.scans.auditBundleArchive("scan/with spaces#1");
     await pullwiseApi.scans.cancel("scan/with spaces#1");
@@ -40,43 +41,44 @@ describe("pullwiseApi issue fix endpoints", () => {
     await pullwiseApi.repositories.branches("repo/with spaces#1");
 
     expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231");
-    expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/audit-bundle");
-    expect(request).toHaveBeenNthCalledWith(3, "/scans/scan%2Fwith%20spaces%231/audit-bundle.zip", {
+    expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/retry", {
+      method: "POST",
+      body: {},
+    });
+    expect(request).toHaveBeenNthCalledWith(3, "/scans/scan%2Fwith%20spaces%231/audit-bundle");
+    expect(request).toHaveBeenNthCalledWith(4, "/scans/scan%2Fwith%20spaces%231/audit-bundle.zip", {
       responseType: "blob",
       timeout: 120000,
     });
-    expect(request).toHaveBeenNthCalledWith(4, "/scans/scan%2Fwith%20spaces%231/cancel", {
+    expect(request).toHaveBeenNthCalledWith(5, "/scans/scan%2Fwith%20spaces%231/cancel", {
       method: "POST",
     });
-    expect(request).toHaveBeenNthCalledWith(5, "/issues/issue%2Fwith%20spaces%231");
-    expect(request).toHaveBeenNthCalledWith(6, "/issues/issue%2Fwith%20spaces%231/status", {
+    expect(request).toHaveBeenNthCalledWith(6, "/issues/issue%2Fwith%20spaces%231");
+    expect(request).toHaveBeenNthCalledWith(7, "/issues/issue%2Fwith%20spaces%231/status", {
       method: "PATCH",
       body: { status: "fixed" },
     });
-    expect(request).toHaveBeenNthCalledWith(7, "/issues/issue%2Fwith%20spaces%231/fixes/preview", {
+    expect(request).toHaveBeenNthCalledWith(8, "/issues/issue%2Fwith%20spaces%231/fixes/preview", {
       method: "POST",
     });
-    expect(request).toHaveBeenNthCalledWith(8, "/issues/issue%2Fwith%20spaces%231/pull-requests", {
+    expect(request).toHaveBeenNthCalledWith(9, "/issues/issue%2Fwith%20spaces%231/pull-requests", {
       method: "POST",
     });
-    expect(request).toHaveBeenNthCalledWith(9, "/integrations/slack%2Fcustom", {
+    expect(request).toHaveBeenNthCalledWith(10, "/integrations/slack%2Fcustom", {
       method: "DELETE",
     });
     expect(request).toHaveBeenNthCalledWith(
-      10,
+      11,
       "/integrations/github/installations/install%2F999/manage-sessions",
       {
         method: "POST",
         body: { githubIdentityId: "ghi_1" },
       }
     );
-    expect(request).toHaveBeenNthCalledWith(11, "/api-keys/key%2Fwith%20spaces%231", {
+    expect(request).toHaveBeenNthCalledWith(12, "/api-keys/key%2Fwith%20spaces%231", {
       method: "DELETE",
     });
-    expect(request).toHaveBeenNthCalledWith(
-      12,
-      "/repositories/repo%2Fwith%20spaces%231/branches"
-    );
+    expect(request).toHaveBeenNthCalledWith(13, "/repositories/repo%2Fwith%20spaces%231/branches");
   });
 
   it("calls API key endpoints", async () => {
@@ -96,8 +98,10 @@ describe("pullwiseApi issue fix endpoints", () => {
     request.mockResolvedValue({});
 
     await pullwiseApi.docs.getSubscriptionPlanConfigs();
+    await pullwiseApi.docs.getServerConfig();
 
-    expect(request).toHaveBeenCalledWith("/docs/subscription-plans", { signal: undefined });
+    expect(request).toHaveBeenNthCalledWith(1, "/docs/subscription-plans", { signal: undefined });
+    expect(request).toHaveBeenNthCalledWith(2, "/docs/server-config", { signal: undefined });
   });
 
   it("calls scan impact graph endpoints", async () => {
@@ -117,10 +121,13 @@ describe("pullwiseApi issue fix endpoints", () => {
 
   it("rejects empty dynamic path segments before making a request", () => {
     expect(() => pullwiseApi.scans.get("")).toThrow(/path segment/i);
+    expect(() => pullwiseApi.scans.retry("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.auditBundle("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.auditBundleArchive("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.impactGraph("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.scans.impactFocus("", { path: "src/app.js" })).toThrow(/path segment/i);
+    expect(() => pullwiseApi.scans.impactFocus("", { path: "src/app.js" })).toThrow(
+      /path segment/i
+    );
     expect(() => pullwiseApi.scans.cancel(null)).toThrow(/path segment/i);
     expect(() => pullwiseApi.issues.get(undefined)).toThrow(/path segment/i);
     expect(() => pullwiseApi.issues.updateStatus("", { status: "fixed" })).toThrow(/path segment/i);

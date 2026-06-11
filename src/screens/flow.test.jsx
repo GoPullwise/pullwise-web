@@ -966,8 +966,10 @@ describe("ScanningScreen queue state", () => {
         progress: 100,
         issues: { critical: 0, high: 1, medium: 0, low: 0 },
         aiUsage: {
+          agentCli: "codex",
           provider: "codex",
           model: "gpt-5.5",
+          reasoningEffort: "high",
           inputTokens: 123,
           outputTokens: 45,
           totalTokens: 168,
@@ -990,10 +992,11 @@ describe("ScanningScreen queue state", () => {
 
     expect(screen.getByText("Live findings")).toBeInTheDocument();
     expect(screen.getByText("High")).toBeInTheDocument();
-    expect(screen.getByText("Model usage")).toBeInTheDocument();
+    expect(screen.getByText("Review agent")).toBeInTheDocument();
+    expect(screen.getByText("codex")).toBeInTheDocument();
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
+    expect(screen.getByText("reasoning: high")).toBeInTheDocument();
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
-    expect(screen.queryByText("codex")).not.toBeInTheDocument();
     expect(screen.queryByText("Evidence status")).not.toBeInTheDocument();
     expect(screen.queryByText("Candidate audit")).not.toBeInTheDocument();
   });

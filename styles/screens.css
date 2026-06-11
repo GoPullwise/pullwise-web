@@ -5234,6 +5234,106 @@ button.dash-cat-row:hover {
   font-style: italic;
 }
 
+.docs-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 10px 0 30px;
+}
+@media (max-width: 860px) {
+  .docs-config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.docs-config-group {
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+.docs-config-group-h {
+  min-width: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.docs-config-group-h h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+.docs-config-group-h p {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.docs-config-list {
+  display: flex;
+  flex-direction: column;
+}
+.docs-config-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.docs-config-row:last-child {
+  border-bottom: 0;
+}
+.docs-config-copy {
+  min-width: 0;
+}
+.docs-config-copy b {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.docs-config-path {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.docs-config-copy p {
+  margin: 5px 0 0;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.docs-config-value {
+  min-width: 0;
+  justify-self: end;
+  text-align: right;
+}
+.docs-config-value code {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .docs-config-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .docs-config-value {
+    justify-self: start;
+    text-align: left;
+  }
+}
+
 .docs-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -6832,6 +6932,9 @@ button.dash-cat-row:hover {
   .issue-meta,
   .pricing-tag,
   .docs-card p,
+  .docs-config-copy p,
+  .docs-config-path,
+  .docs-config-value code,
   .legal-callout p,
   .notfound-suggest-d
 ) {
@@ -6856,6 +6959,9 @@ button.dash-cat-row:hover {
 .hist-row,
 .int-row,
 .docs-table-r,
+.docs-config-grid,
+.docs-config-group,
+.docs-config-row,
 .legal-table-r,
 .notfound-suggest-i {
   min-width: 0;
@@ -6872,6 +6978,7 @@ button.dash-cat-row:hover {
 .int-row > *,
 .search-i > *,
 .docs-table-r > *,
+.docs-config-row > *,
 .legal-table-r > *,
 .notfound-suggest-i > * {
   min-width: 0;

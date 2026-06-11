@@ -779,7 +779,9 @@ describe("HistoryScreen queue state", () => {
       by: "you",
       issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
       aiUsage: {
+        agentCli: "codex",
         model: "gpt-5.5",
+        reasoningEffort: "high",
         inputTokens: 123,
         outputTokens: 45,
         totalTokens: 168,
@@ -797,7 +799,9 @@ describe("HistoryScreen queue state", () => {
     const row = screen.getByText("octocat/private-repo").closest(".scan-row");
     expect(row).not.toBeNull();
     await user.click(within(row).getByRole("button", { name: /^view$/i }));
+    expect(screen.getByText("codex")).toBeInTheDocument();
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
+    expect(screen.getByText("reasoning: high")).toBeInTheDocument();
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
 
     expect(screen.getByText("1 issues · 2 rejected · 1 downgraded")).toBeInTheDocument();
