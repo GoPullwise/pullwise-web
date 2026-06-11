@@ -552,7 +552,6 @@ export function BillingScreen({
     const requestedPlan = paidPlanById[targetPlan] || currentPlan;
     if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)) {
       setError("This subscription change is not supported from Pullwise.");
-      await refreshBillingPlan();
       setChangeDraft(null);
       return;
     }
