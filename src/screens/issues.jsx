@@ -188,6 +188,9 @@ function scanHistorySummary(scan) {
     return [T("queued", "排队中"), ...queueTags].join(" - ");
   }
   if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
+  if (scan.status === "lost") {
+    return scan.completionAudit?.summary || T("Scan lost", "扫描丢失");
+  }
   if (scan.issues) {
     const total = issueTotal(scan);
     const audit = scan.verificationAudit || {};
@@ -205,6 +208,7 @@ function scanHistorySummary(scan) {
     }
     return T(partsEn.join(" · "), partsZh.join(" · "));
   }
+  if (scan.completionAudit?.summary) return scan.completionAudit.summary;
   return scan.status;
 }
 
@@ -1972,7 +1976,15 @@ function groupScansByTime(scans) {
   return Array.from(groups.entries());
 }
 
-function HistoryGroups({ scans, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+function HistoryGroups({
+  scans,
+  viewScan,
+  viewScanIssues,
+  retryScan,
+  retryLoading,
+  downloadAuditBundle,
+  bundleLoading,
+}) {
   const dayGroups = useMemo(() => groupScansByDay(scans), [scans]);
   if (scans.length === 0) return null;
   return (
@@ -2007,6 +2019,8 @@ function HistoryGroups({ scans, viewScan, viewScanIssues, downloadAuditBundle, b
                       scan={timeItems[0]}
                       viewScan={viewScan}
                       viewScanIssues={viewScanIssues}
+                      retryScan={retryScan}
+                      retryLoading={retryLoading}
                       downloadAuditBundle={downloadAuditBundle}
                       bundleLoading={bundleLoading}
                     />
@@ -2018,6 +2032,8 @@ function HistoryGroups({ scans, viewScan, viewScanIssues, downloadAuditBundle, b
                           scan={scan}
                           viewScan={viewScan}
                           viewScanIssues={viewScanIssues}
+                          retryScan={retryScan}
+                          retryLoading={retryLoading}
                           downloadAuditBundle={downloadAuditBundle}
                           bundleLoading={bundleLoading}
                         />
@@ -2067,7 +2083,30 @@ function scanAiUsageBadges(aiUsage) {
   return badges;
 }
 
-function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLoading }) {
+function scanHasRetryableTrace(scan) {
+  return Boolean(
+    scan?.jobTrace?.checkpoints?.some((checkpoint) =>
+      ["failed", "cancelled", "lost"].includes(checkpoint.status)
+    )
+  );
+}
+
+function isRetryableHistoryScan(scan) {
+  return Boolean(
+    scan?.id &&
+      (["failed", "cancelled", "lost"].includes(scan.status) || scanHasRetryableTrace(scan))
+  );
+}
+
+function ScanRow({
+  scan,
+  viewScan,
+  viewScanIssues,
+  retryScan,
+  retryLoading,
+  downloadAuditBundle,
+  bundleLoading,
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const total = scanIssuesTotal(scan);
@@ -2075,6 +2114,8 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
   const status = scan.status || "info";
   const hasResults = scanHasResults(scan);
   const isDownloading = bundleLoading === scan.id;
+  const isRetrying = retryLoading === scan.id;
+  const canRetry = isRetryableHistoryScan(scan);
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
 
@@ -2183,6 +2224,11 @@ function ScanRow({ scan, viewScan, viewScanIssues, downloadAuditBundle, bundleLo
         {summary && <div className="scan-summary muted">{summary}</div>}
       </div>
       <div className="scan-row-actions" ref={menuRef} onClick={stopRowClick}>
+        {canRetry && (
+          <button className="btn sm" disabled={isRetrying} onClick={() => retryScan(scan)}>
+            {isRetrying ? T("Retrying...", "正在重试...") : T("Retry", "重试")}
+          </button>
+        )}
         <button
           className="btn sm"
           disabled={!scan.id || !hasResults}
@@ -2260,11 +2306,14 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
   useLang();
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
+  const [retryLoading, setRetryLoading] = useState("");
+  const [actionError, setActionError] = useState("");
   const {
     items: scans,
     loading,
     loadingMore,
     error,
+    reload,
     loadMore,
     meta = {},
   } = useScans({ status, limit: 50 });
@@ -2297,6 +2346,19 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
       );
     } finally {
       setBundleLoading("");
+    }
+  };
+  const retryScan = async (scan) => {
+    if (!scan?.id || retryLoading) return;
+    setActionError("");
+    setRetryLoading(scan.id);
+    try {
+      await pullwiseApi.scans.retry(scan.id);
+      if (typeof reload === "function") await reload();
+    } catch (actionError) {
+      setActionError(actionError?.message || T("Unable to retry scan.", "无法重试扫描。"));
+    } finally {
+      setRetryLoading("");
     }
   };
 
@@ -2349,6 +2411,11 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 {error}
               </div>
             )}
+            {!error && actionError && (
+              <div className="auth-error" role="alert" style={{ margin: "18px 18px 0" }}>
+                <I.X size={13} /> {actionError}
+              </div>
+            )}
             {loading && <HistorySkeleton />}
             {!loading && !error && filtered.length === 0 && (
               <div
@@ -2367,6 +2434,8 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 scans={filtered}
                 viewScan={viewScan}
                 viewScanIssues={viewScanIssues}
+                retryScan={retryScan}
+                retryLoading={retryLoading}
                 downloadAuditBundle={downloadAuditBundle}
                 bundleLoading={bundleLoading}
               />
