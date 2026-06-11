@@ -628,6 +628,81 @@ describe("BillingScreen", () => {
     });
   });
 
+  it("refreshes usage, reset time, and subscription activity after an in-app upgrade", async () => {
+    const maxPlan = {
+      id: "max",
+      name: "Pullwise Max",
+      description: "Higher-capacity repository review for production teams.",
+      reviewLimit: 90,
+      prices: {
+        month: { amount: "49", currency: "USD", interval: "month", configured: true },
+        year: { amount: "490", currency: "USD", interval: "year", configured: true },
+      },
+    };
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "month",
+          usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: {
+          status: "active",
+          plan: "max",
+          interval: "month",
+          usage: {
+            period: "2026-06",
+            used: 0,
+            limit: 90,
+            remaining: 90,
+            resetAt: 1783555200,
+          },
+          subscriptionEvents: [
+            {
+              provider: "creem",
+              subscriptionId: "sub_upgrade",
+              status: "active",
+              plan: "max",
+              interval: "month",
+              eventType: "subscription.updated",
+              eventId: "evt_upgrade",
+              eventCreated: 1780963210,
+            },
+          ],
+        },
+      });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      provider: "creem",
+      plan: "max",
+      interval: "month",
+      status: "active",
+    });
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findByText(/12 \/ 60 reviews used/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /switch to max/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm change/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2);
+    });
+    expect(await screen.findByText(/0 \/ 90 reviews used/i)).toBeInTheDocument();
+    expect(screen.getByText(/Monthly quota resets 2026-07-09 00:00 UTC/i)).toBeInTheDocument();
+    expect(screen.getByText("Subscription activity")).toBeInTheDocument();
+    expect(screen.getByText(/subscription\.updated/)).toBeInTheDocument();
+    expect(screen.getByText(/evt_upgrade - 2026-06-09 00:00 UTC/i)).toBeInTheDocument();
+  });
+
   it("does not offer lower-tier or monthly switching for active yearly Max subscribers", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

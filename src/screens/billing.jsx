@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
