@@ -237,6 +237,10 @@ function isActiveStatus(status) {
   return ["active", "trialing", "canceling"].includes(String(status || "").toLowerCase());
 }
 
+function isRestoredSubscriptionStatus(status) {
+  return ["active", "trialing"].includes(String(status || "").toLowerCase());
+}
+
 function nonNegativeInteger(value) {
   const number = Number(value ?? 0);
   if (!Number.isFinite(number)) return 0;
@@ -484,6 +488,7 @@ export function BillingScreen({
   const accountName = accountNameLabel(plan);
   const active = isActiveStatus(accountStatus);
   const activePaid = active && account.plan && account.plan !== "free";
+  const cancellationScheduled = String(accountStatus).toLowerCase() === "canceling";
   const subscriptionInterval = account.interval || "month";
   const currentPlan = activePaid ? paidPlanById[account.plan] || proPlan : freePlan;
   const usage = account.usage || {
@@ -558,13 +563,27 @@ export function BillingScreen({
       }
       const nextPlan = result?.plan || targetPlan;
       const nextInterval = result?.interval || targetInterval;
+      const nextStatus = result?.status || accountStatus;
+      const restoredSubscription = isRestoredSubscriptionStatus(nextStatus);
       setPlan((current) => ({
         ...current,
         account: {
           ...(billingAccount(current) || {}),
           plan: nextPlan,
           interval: nextInterval,
-          status: result?.status || accountStatus,
+          status: nextStatus,
+          cancelAtPeriodEnd:
+            typeof result?.cancelAtPeriodEnd === "boolean"
+              ? result.cancelAtPeriodEnd
+              : restoredSubscription
+                ? false
+                : billingAccount(current)?.cancelAtPeriodEnd,
+          canceledAt:
+            result && Object.prototype.hasOwnProperty.call(result, "canceledAt")
+              ? result.canceledAt
+              : restoredSubscription
+                ? null
+                : billingAccount(current)?.canceledAt,
         },
       }));
       setChangeDraft(null);
@@ -623,6 +642,43 @@ export function BillingScreen({
       setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to cancel subscription.");
+      setPendingAction("");
+    }
+  };
+
+  const resumeSubscription = async () => {
+    setPendingAction("resume");
+    setError("");
+    try {
+      const result = await pullwiseApi.billing.resumeSubscription({
+        returnUrl: billingReturnUrl("return"),
+      });
+      const nextStatus = result?.status || "active";
+      const restoredSubscription = isRestoredSubscriptionStatus(nextStatus);
+      setPlan((current) => ({
+        ...current,
+        account: {
+          ...(billingAccount(current) || {}),
+          plan: result?.plan || billingAccount(current)?.plan,
+          interval: result?.interval || billingAccount(current)?.interval,
+          status: nextStatus,
+          cancelAtPeriodEnd:
+            typeof result?.cancelAtPeriodEnd === "boolean"
+              ? result.cancelAtPeriodEnd
+              : restoredSubscription
+                ? false
+                : billingAccount(current)?.cancelAtPeriodEnd,
+          canceledAt:
+            result && Object.prototype.hasOwnProperty.call(result, "canceledAt")
+              ? result.canceledAt
+              : restoredSubscription
+                ? null
+                : billingAccount(current)?.canceledAt,
+        },
+      }));
+      setPendingAction("");
+    } catch (err) {
+      setError(err?.message || "Unable to resume subscription.");
       setPendingAction("");
     }
   };
@@ -750,7 +806,20 @@ export function BillingScreen({
                           <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
                         </button>
                       )}
-                      {accountStatus !== "canceling" && (
+                      {cancellationScheduled ? (
+                        <button
+                          className="btn"
+                          disabled={Boolean(pendingAction)}
+                          onClick={resumeSubscription}
+                        >
+                          {pendingAction === "resume" && (
+                            <span className="spin" style={{ display: "inline-block" }}>
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.Refresh size={14} /> {T("Resume renewal", "Resume renewal")}
+                        </button>
+                      ) : (
                         <button
                           className="btn"
                           disabled={Boolean(pendingAction)}

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,6 +12,7 @@ vi.mock("../api/pullwise.js", () => ({
       createCheckoutSession: vi.fn(),
       changeSubscriptionInterval: vi.fn(),
       cancelSubscription: vi.fn(),
+      resumeSubscription: vi.fn(),
     },
   },
 }));
@@ -94,6 +96,16 @@ describe("BillingScreen", () => {
     await waitFor(() => {
       expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
     });
+  });
+
+  it("keeps the billing change confirmation dialog compact on desktop", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+
+    expect(styles).toMatch(/\.billing-change-modal\s*{[^}]*max-width:\s*640px;/s);
+    expect(styles).not.toMatch(/\.billing-change-modal\s*{[^}]*max-width:\s*720px;/s);
+    expect(styles).toMatch(
+      /@media\s*\(max-width:\s*640px\)\s*{[\s\S]*\.billing-change-modal\s*{[^}]*max-width:\s*100%;/s
+    );
   });
 
   it("renders billing account skeletons while billing data is loading", () => {
@@ -680,6 +692,81 @@ describe("BillingScreen", () => {
       );
     });
     expect(screen.queryByRole("button", { name: /cancel renewal/i })).not.toBeInTheDocument();
+  });
+
+  it("offers resume renewal while cancellation is scheduled", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "canceling",
+        plan: "pro",
+        interval: "month",
+        cancelAtPeriodEnd: true,
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.resumeSubscription.mockResolvedValue({
+      provider: "creem",
+      plan: "pro",
+      interval: "month",
+      status: "active",
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+    });
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findByRole("button", { name: /resume renewal/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /switch to yearly/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /cancel renewal/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /resume renewal/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.resumeSubscription).toHaveBeenCalledWith(
+        expect.objectContaining({
+          returnUrl: expect.stringContaining("screen=billing"),
+        })
+      );
+    });
+    expect(await screen.findByRole("button", { name: /cancel renewal/i })).toBeInTheDocument();
+  });
+
+  it("lets subscribers upgrade while cancellation is scheduled", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "canceling",
+        plan: "pro",
+        interval: "month",
+        cancelAtPeriodEnd: true,
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      provider: "creem",
+      plan: "pro",
+      interval: "year",
+      status: "active",
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+    });
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm change/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interval: "year",
+        })
+      );
+    });
+    expect(screen.queryByRole("button", { name: /resume renewal/i })).not.toBeInTheDocument();
   });
 
   it("shows the user's subscription activity on Billing", async () => {

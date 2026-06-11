@@ -92,6 +92,8 @@ export const pullwiseApi = {
       request("/billing/change-interval", { method: "POST", body: payload }),
     cancelSubscription: (payload = {}) =>
       request("/billing/cancel-subscription", { method: "POST", body: payload }),
+    resumeSubscription: (payload = {}) =>
+      request("/billing/resume-subscription", { method: "POST", body: payload }),
   },
 
   apiKeys: {

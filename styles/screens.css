@@ -4229,14 +4229,14 @@ button.dash-cat-row:hover {
   flex: 1 1 auto;
   justify-content: center;
 }
-/* Billing change confirmation — wider, taller, content-driven layout.
-   Width: 720px (was 560), max-height 88vh with internal scroll.
+/* Billing change confirmation: compact, content-driven layout.
+   Width: 640px, max-height 88vh with internal scroll.
    No hardcoded text — every value comes from the loaded plan/account payload.
    Only upgrade / monthly-to-yearly flows are supported; copy and tone
    reflect that single path. */
 .billing-change-modal {
   width: 100%;
-  max-width: 720px;
+  max-width: 640px;
   max-height: 88vh;
   display: flex;
   flex-direction: column;
@@ -4526,7 +4526,7 @@ button.dash-cat-row:hover {
   justify-content: center;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px) {
   .billing-change-modal {
     max-width: 100%;
     max-height: 92vh;
