@@ -1307,6 +1307,134 @@
   color: var(--sev-medium);
 }
 
+.scan-compact-panel {
+  gap: 10px;
+}
+
+.scan-compact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scan-compact-head .scanning-counts-h {
+  margin-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scan-compact-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.scan-compact-status.tone-ok {
+  color: #15803d;
+  border-color: color-mix(in oklch, #16a34a 24%, var(--border));
+  background: color-mix(in oklch, #16a34a 8%, var(--bg));
+}
+
+.scan-compact-status.tone-warn {
+  color: #b45309;
+  border-color: color-mix(in oklch, #f59e0b 24%, var(--border));
+  background: color-mix(in oklch, #f59e0b 8%, var(--bg));
+}
+
+.scan-compact-status.tone-danger {
+  color: var(--sev-critical);
+  border-color: color-mix(in oklch, var(--sev-critical) 24%, var(--border));
+  background: color-mix(in oklch, var(--sev-critical) 8%, var(--bg));
+}
+
+.scan-compact-group {
+  display: grid;
+  gap: 8px;
+}
+
+.scan-compact-group-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.scan-compact-list,
+.scan-trace-list {
+  display: grid;
+  gap: 8px;
+}
+
+.scan-compact-item,
+.scan-trace-item {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.scan-compact-item-head,
+.scan-trace-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scan-compact-item-title,
+.scan-trace-item-title {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.scan-compact-item-summary,
+.scan-trace-item-meta {
+  font-size: 12px;
+}
+
+.scan-trace-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-trace-item-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scan-trace-item-meta span::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  background: var(--text-3);
+  opacity: 0.5;
+  flex: 0 0 auto;
+}
+
+.scan-trace-more {
+  font-size: 12px;
+}
+
 .scanning-audit {
   display: grid;
   gap: 14px;
