@@ -1697,7 +1697,8 @@ body {
   opacity: 0.55;
 }
 .scan-row-failed .scan-status-dot,
-.scan-row-cancelled .scan-status-dot {
+.scan-row-cancelled .scan-status-dot,
+.scan-row-lost .scan-status-dot {
   background: var(--sev-critical, #dc2626);
 }
 @keyframes scan-row-pulse {
@@ -1760,7 +1761,8 @@ body {
   background: color-mix(in oklch, #16a34a 14%, transparent);
 }
 .scan-badge-failed,
-.scan-badge-cancelled {
+.scan-badge-cancelled,
+.scan-badge-lost {
   color: var(--sev-critical, #dc2626);
   background: color-mix(in oklch, var(--sev-critical, #dc2626) 12%, transparent);
 }
