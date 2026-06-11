@@ -92,6 +92,14 @@ describe("pullwiseApi issue fix endpoints", () => {
     });
   });
 
+  it("calls public Docs config endpoints", async () => {
+    request.mockResolvedValue({});
+
+    await pullwiseApi.docs.getSubscriptionPlanConfigs();
+
+    expect(request).toHaveBeenCalledWith("/docs/subscription-plans", { signal: undefined });
+  });
+
   it("calls scan impact graph endpoints", async () => {
     request.mockResolvedValue({});
 

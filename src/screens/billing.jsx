@@ -4,7 +4,7 @@ import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
-import { quotaResetText } from "../lib/quota-display.js";
+import { formatQuotaResetAt, quotaResetText } from "../lib/quota-display.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
@@ -122,34 +122,111 @@ function planRank(plan) {
   return nonNegativeInteger(plan?.reviewLimit);
 }
 
-function billingChangeDirection(currentPlan, currentInterval, targetPlan, targetInterval) {
-  if (targetPlan?.id !== currentPlan?.id) {
-    return planRank(targetPlan) < planRank(currentPlan) ? "downgrade" : "upgrade";
+function subscriptionChangeIsUpgrade(currentPlan, currentInterval, targetPlan, targetInterval) {
+  const currentRank = planRank(currentPlan);
+  const targetRank = planRank(targetPlan);
+  if (targetRank > currentRank) {
+    return !(currentInterval === "year" && targetInterval === "month");
   }
-  if (currentInterval !== targetInterval) return "upgrade";
-
-  const currentAmount = priceAmount(priceFor(currentPlan, currentInterval)?.amount);
-  const targetAmount = priceAmount(priceFor(targetPlan, targetInterval)?.amount);
-  if (currentAmount != null && targetAmount != null) {
-    const currentAnnual = annualizedPriceAmount(currentAmount, currentInterval);
-    const targetAnnual = annualizedPriceAmount(targetAmount, targetInterval);
-    if (targetAnnual < currentAnnual) return "downgrade";
-    if (targetAnnual > currentAnnual) return "upgrade";
-  }
-  return "change";
+  return targetRank === currentRank && currentInterval === "month" && targetInterval === "year";
 }
 
-function billingChangeImpactText(direction) {
-  if (direction === "downgrade") {
-    return T(
-      "Your plan changes now. Unused time and tax may be refunded to the original payment method. Final refund is calculated by Creem.",
-      "Your plan changes now. Unused time and tax may be refunded to the original payment method. Final refund is calculated by Creem."
-    );
-  }
+function billingChangeImpactText() {
   return T(
     "Your plan changes now. Creem may charge the prorated difference immediately. Final tax and proration are calculated by Creem.",
     "Your plan changes now. Creem may charge the prorated difference immediately. Final tax and proration are calculated by Creem."
   );
+}
+
+// Localized cadence description for the comparison card.
+function intervalShortLabel(interval) {
+  return interval === "year" ? T("per year", "每年") : T("per month", "每月");
+}
+
+function cadenceLabel(interval) {
+  return interval === "year"
+    ? T("Billed once a year", "按年计费，每年一次")
+    : T("Billed every month", "按月计费，每月一次");
+}
+
+// Charge callout for the dialog — derived from the listed delta. Downgrade
+// is no longer a supported flow, so this always shows the upgrade copy:
+// charge prorated diff now, new plan effective immediately, new amount on
+// the next renewal date.
+function chargeCallout(deltaText) {
+  const noPrice =
+    deltaText === T("Final amount is calculated by Creem.", "Final amount is calculated by Creem.");
+  if (noPrice) {
+    return {
+      tone: "neutral",
+      icon: I.Lightbulb,
+      title: T("Final amount is calculated by Creem", "最终金额由 Creem 计算"),
+      body: T(
+        "Listed prices and tax are shown by Pullwise. The exact charge for this change is calculated by Creem at confirmation.",
+        "标价和税费由 Pullwise 显示。本次变更的最终扣款金额在确认时由 Creem 计算。"
+      ),
+      deltaText,
+      showDelta: false,
+    };
+  }
+  return {
+    tone: "charge",
+    icon: I.Trend,
+    title: T("Prorated charge today", "今天按比例扣款"),
+    body: T(
+      "The new plan is effective now. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date.",
+      "新套餐立即生效。Creem 会按当前周期剩余时间收取差额，并在下个续费日按新价格计费。"
+    ),
+    deltaText,
+    showDelta: true,
+  };
+}
+
+// Feature deltas derived from current vs target plan — never hardcoded
+function planFeatureDeltas(currentPlan, targetPlan) {
+  if (!currentPlan || !targetPlan) return [];
+  const rows = [];
+  const currentLimit = nonNegativeInteger(currentPlan.reviewLimit);
+  const targetLimit = nonNegativeInteger(targetPlan.reviewLimit);
+  if (currentLimit !== targetLimit) {
+    rows.push({
+      key: "reviewLimit",
+      label: T("Shared account reviews / month", "共享账户审查 / 月"),
+      before: T(`${currentLimit} reviews`, `${currentLimit} 次审查`),
+      after: T(`${targetLimit} reviews`, `${targetLimit} 次审查`),
+    });
+  }
+  const currentName = planName(currentPlan);
+  const targetName = planName(targetPlan);
+  if (currentName && targetName && currentName !== targetName) {
+    rows.push({
+      key: "planName",
+      label: T("Plan tier", "套餐等级"),
+      before: currentName,
+      after: targetName,
+    });
+  }
+  return rows;
+}
+
+// Renewal date formatting derived from the account payload
+function formatRenewalDate(value) {
+  if (value == null) return "";
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || value <= 0) return "";
+    const seconds = value > 1e12 ? Math.trunc(value / 1000) : Math.trunc(value);
+    return formatQuotaResetAt(seconds).split(" ")[0];
+  }
+  const text = String(value).trim();
+  if (!text) return "";
+  const numeric = Number(text);
+  if (Number.isFinite(numeric) && numeric > 0) return formatRenewalDate(numeric);
+  const parsed = new Date(text);
+  if (!Number.isFinite(parsed.getTime())) return "";
+  const yyyy = parsed.getUTCFullYear();
+  const mm = String(parsed.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(parsed.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function subscriptionChangeActionKey(targetPlan, targetInterval) {
@@ -179,22 +256,41 @@ function usageText(usage) {
 }
 
 function subscriptionRecords(account) {
-  return Array.isArray(account?.subscriptions)
-    ? account.subscriptions.filter((record) => record && typeof record === "object")
+  return Array.isArray(account?.subscriptionEvents)
+    ? account.subscriptionEvents.filter((record) => record && typeof record === "object")
     : [];
 }
 
-function subscriptionRecordId(record) {
-  return record?.subscriptionId || record?.customerId || T("Subscription", "Subscription");
+function subscriptionRecordKey(record) {
+  return (
+    record?.eventId ||
+    record?.subscriptionId ||
+    record?.customerId ||
+    T("Subscription", "Subscription")
+  );
+}
+
+function subscriptionRecordTitle(record) {
+  return (
+    record?.eventType ||
+    record?.subscriptionId ||
+    record?.customerId ||
+    T("Subscription update", "订阅更新")
+  );
 }
 
 function subscriptionRecordMeta(record) {
-  return [record?.status || "none", record?.interval || "month"].filter(Boolean).join(" - ");
+  const subject = record?.subscriptionId || record?.customerId || T("Subscription", "Subscription");
+  return [subject, record?.status || "none", record?.interval || "month"].filter(Boolean).join(" - ");
 }
 
 function subscriptionEventText(record) {
-  const event = record?.lastEventType || T("billing update", "billing update");
-  return record?.lastEventId ? `${event} - ${record.lastEventId}` : event;
+  const parts = [];
+  if (record?.eventId) parts.push(record.eventId);
+  if (record?.eventCreated) parts.push(formatQuotaResetAt(record.eventCreated));
+  else if (record?.processedAt) parts.push(formatQuotaResetAt(record.processedAt));
+  if (record?.stale) parts.push(T("stale", "stale"));
+  return parts.join(" - ") || T("billing update", "billing update");
 }
 
 function billingAccount(plan) {
@@ -399,12 +495,17 @@ export function BillingScreen({
   const subscriptions = subscriptionRecords(account);
   const usageResetText = quotaResetText(usage, "Monthly quota resets");
   const billingEnabled = Boolean(plan?.enabled);
-  const alternatePaidPlans = paidPlans.filter((paidPlan) => paidPlan.id !== account.plan);
+  const alternatePaidPlans = paidPlans.filter((paidPlan) =>
+    subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, paidPlan, subscriptionInterval)
+  );
   const changeDetails = useMemo(() => {
     if (!changeDraft) return null;
     const targetPlan = paidPlanById[changeDraft.targetPlan] || currentPlan;
     const targetInterval = changeDraft.targetInterval || subscriptionInterval;
-    const direction = billingChangeDirection(
+    if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, targetPlan, targetInterval)) {
+      return null;
+    }
+    const deltaText = billingChangeDeltaText(
       currentPlan,
       subscriptionInterval,
       targetPlan,
@@ -414,39 +515,34 @@ export function BillingScreen({
       currentPlan,
       currentInterval: subscriptionInterval,
       currentPrice: priceLabelWithInterval(currentPlan, subscriptionInterval),
+      currentCadence: cadenceLabel(subscriptionInterval),
+      currentIntervalShort: intervalShortLabel(subscriptionInterval),
       targetPlan,
       targetInterval,
       targetPrice: priceLabelWithInterval(targetPlan, targetInterval),
-      deltaText: billingChangeDeltaText(
-        currentPlan,
-        subscriptionInterval,
-        targetPlan,
-        targetInterval
+      targetCadence: cadenceLabel(targetInterval),
+      targetIntervalShort: intervalShortLabel(targetInterval),
+      deltaText,
+      impactText: billingChangeImpactText(),
+      callout: chargeCallout(deltaText),
+      featureDeltas: planFeatureDeltas(currentPlan, targetPlan),
+      renewalDate: formatRenewalDate(
+        account.currentPeriodEnd || account.current_period_end
       ),
-      impactText: billingChangeImpactText(direction),
       actionKey: subscriptionChangeActionKey(targetPlan.id, targetInterval),
     };
-  }, [changeDraft, currentPlan, paidPlanById, subscriptionInterval]);
-
-  const openPortal = async () => {
-    setPendingAction("portal");
-    setError("");
-    try {
-      const session = await pullwiseApi.billing.createPortalSession({
-        returnUrl: billingReturnUrl("return"),
-      });
-      if (!session?.url) throw new Error("Billing provider did not return a portal URL.");
-      navigate(safeBillingRedirectUrl(session.url, "billing portal URL"));
-    } catch (err) {
-      setError(err?.message || "Unable to open billing portal.");
-      setPendingAction("");
-    }
-  };
+  }, [changeDraft, currentPlan, paidPlanById, subscriptionInterval, account]);
 
   const changeSubscription = async ({
     targetPlan = account.plan,
     targetInterval = subscriptionInterval,
   }) => {
+    const requestedPlan = paidPlanById[targetPlan] || currentPlan;
+    if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)) {
+      setError("This subscription change is not supported from Pullwise.");
+      setChangeDraft(null);
+      return;
+    }
     const actionKey = subscriptionChangeActionKey(targetPlan, targetInterval);
     setPendingAction(actionKey);
     setError("");
@@ -484,6 +580,12 @@ export function BillingScreen({
     targetInterval = subscriptionInterval,
   }) => {
     setError("");
+    const requestedPlan = paidPlanById[targetPlan] || currentPlan;
+    if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)) {
+      setError("This subscription change is not supported from Pullwise.");
+      setChangeDraft(null);
+      return;
+    }
     setChangeDraft({
       targetPlan,
       targetInterval,
@@ -510,10 +612,6 @@ export function BillingScreen({
         mode: "scheduled",
         returnUrl: billingReturnUrl("return"),
       });
-      if (result?.url) {
-        navigate(safeBillingRedirectUrl(result.url, "billing portal URL"));
-        return;
-      }
       setPlan((current) => ({
         ...current,
         account: {
@@ -638,7 +736,7 @@ export function BillingScreen({
                           {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
                         </button>
                       ))}
-                      {subscriptionInterval === "month" ? (
+                      {subscriptionInterval === "month" && (
                         <button
                           className="btn"
                           disabled={Boolean(pendingAction)}
@@ -651,32 +749,7 @@ export function BillingScreen({
                           )}
                           <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
                         </button>
-                      ) : (
-                        <button
-                          className="btn"
-                          disabled={Boolean(pendingAction)}
-                          onClick={() => requestSubscriptionChange({ targetInterval: "month" })}
-                        >
-                          {pendingAction === `change-${account.plan}-month` && (
-                            <span className="spin" style={{ display: "inline-block" }}>
-                              <I.Refresh size={14} />
-                            </span>
-                          )}
-                          <I.Clock size={14} /> {T("Switch to monthly", "切换为按月")}
-                        </button>
                       )}
-                      <button
-                        className="btn"
-                        disabled={Boolean(pendingAction)}
-                        onClick={openPortal}
-                      >
-                        {pendingAction === "portal" && (
-                          <span className="spin" style={{ display: "inline-block" }}>
-                            <I.Refresh size={14} />
-                          </span>
-                        )}
-                        <I.Settings size={14} /> {T("Manage billing", "管理账单")}
-                      </button>
                       {accountStatus !== "canceling" && (
                         <button
                           className="btn"
@@ -700,17 +773,17 @@ export function BillingScreen({
                     <div className="billing-summary-main">
                       <I.FileCode size={18} />
                       <div>
-                        <b>{T("Subscription records", "Subscription records")}</b>
+                        <b>{T("Subscription activity", "订阅动态")}</b>
                       </div>
                     </div>
                     <div className="sub-record-list">
                       {subscriptions.map((record, index) => (
                         <div
                           className="sub-record-row"
-                          key={`${subscriptionRecordId(record)}-${index}`}
+                          key={`${subscriptionRecordKey(record)}-${index}`}
                         >
                           <div className="sub-record-main">
-                            <b>{subscriptionRecordId(record)}</b>
+                            <b>{subscriptionRecordTitle(record)}</b>
                             <div className="muted">{subscriptionRecordMeta(record)}</div>
                             <div className="muted">{subscriptionEventText(record)}</div>
                           </div>
@@ -743,15 +816,15 @@ export function BillingScreen({
             aria-labelledby="billing-change-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="modal-h">
+            <div className="modal-h billing-change-h">
               <div>
                 <h3 id="billing-change-title">
                   <I.Package size={15} /> {T("Confirm billing change", "Confirm billing change")}
                 </h3>
                 <p>
                   {T(
-                    "Review the plan and billing impact before anything changes.",
-                    "Review the plan and billing impact before anything changes."
+                    "Review the plan, cadence, and billing impact before anything changes.",
+                    "在变更前确认套餐、计费周期与扣款影响。"
                   )}
                 </p>
               </div>
@@ -769,27 +842,108 @@ export function BillingScreen({
               </button>
             </div>
             <div className="modal-body billing-change-body">
+              <div className="billing-change-direction billing-change-direction-upgrade">
+                {T("Upgrade", "升级")}
+              </div>
+
               <div className="billing-change-grid">
                 <div className="billing-change-box">
                   <span>{T("Current", "Current")}</span>
                   <b>{planName(changeDetails.currentPlan)}</b>
-                  <em>{changeDetails.currentPrice}</em>
+                  <em className="billing-change-price">
+                    {priceLabel(priceFor(changeDetails.currentPlan, changeDetails.currentInterval))}
+                    <span className="billing-change-period">
+                      {changeDetails.currentIntervalShort}
+                    </span>
+                  </em>
+                  <span className="billing-change-cadence">
+                    {changeDetails.currentCadence}
+                  </span>
                 </div>
-                <I.ArrowR className="billing-change-arrow" size={16} />
-                <div className="billing-change-box">
+                <I.ArrowR className="billing-change-arrow" size={18} />
+                <div className="billing-change-box billing-change-box-target">
                   <span>{T("New", "New")}</span>
                   <b>{planName(changeDetails.targetPlan)}</b>
-                  <em>{changeDetails.targetPrice}</em>
+                  <em className="billing-change-price">
+                    {priceLabel(priceFor(changeDetails.targetPlan, changeDetails.targetInterval))}
+                    <span className="billing-change-period">
+                      {changeDetails.targetIntervalShort}
+                    </span>
+                  </em>
+                  <span className="billing-change-cadence">
+                    {changeDetails.targetCadence}
+                  </span>
                 </div>
               </div>
-              <div className="billing-change-delta">
-                <I.Trend size={15} />
-                <span>{changeDetails.deltaText}</span>
+
+              <div className="billing-change-stats">
+                <div className="billing-change-stat">
+                  <span className="billing-change-stat-label">
+                    <I.Clock size={13} /> {T("Billing cadence", "计费周期")}
+                  </span>
+                  <b>{changeDetails.targetCadence}</b>
+                </div>
+                <div className="billing-change-stat">
+                  <span className="billing-change-stat-label">
+                    <I.Refresh size={13} /> {T("Next renewal", "下次续费")}
+                  </span>
+                  <b>
+                    {changeDetails.renewalDate ||
+                      T("Calculated at confirmation", "确认时计算")}
+                  </b>
+                </div>
               </div>
-              <div className="billing-change-notice">
-                <I.Clock size={15} />
-                <span>{changeDetails.impactText}</span>
+
+              <div
+                className={`billing-change-callout billing-change-callout-${changeDetails.callout.tone}`}
+              >
+                <span className="billing-change-callout-icon" aria-hidden="true">
+                  <changeDetails.callout.icon size={16} />
+                </span>
+                <div className="billing-change-callout-text">
+                  <b>{changeDetails.callout.title}</b>
+                  <span>{changeDetails.callout.body}</span>
+                  {changeDetails.callout.showDelta && (
+                    <span className="billing-change-callout-delta">
+                      {changeDetails.callout.deltaText}
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {changeDetails.featureDeltas.length > 0 && (
+                <div className="billing-change-features">
+                  <div className="billing-change-features-h">
+                    <I.Sliders size={13} /> {T("What changes now", "本次变更")}
+                  </div>
+                  <ul className="billing-change-features-list">
+                    {changeDetails.featureDeltas.map((row) => (
+                      <li key={row.key}>
+                        <span className="billing-change-feature-label">{row.label}</span>
+                        <span className="billing-change-feature-pair">
+                          <span className="billing-change-feature-before">{row.before}</span>
+                          <I.ArrowR size={12} className="billing-change-feature-arrow" />
+                          <span className="billing-change-feature-after">{row.after}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="billing-change-how">
+                <I.Shield size={14} />
+                <div>
+                  <b>{T("How this works", "变更说明")}</b>
+                  <p>
+                    {T(
+                      "The new plan takes effect immediately. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date. You can cancel renewal from Pullwise Billing.",
+                      "新套餐立即生效。Creem 会按当前周期剩余时间收取差额，并在下个续费日按新价格计费。你可以在 Pullwise 账单页取消续订。"
+                    )}
+                  </p>
+                </div>
+              </div>
+
               <p className="muted billing-change-copy">
                 {T(
                   "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem.",
@@ -797,7 +951,7 @@ export function BillingScreen({
                 )}
               </p>
             </div>
-            <div className="modal-foot">
+            <div className="modal-foot billing-change-foot">
               <button
                 className="btn ghost"
                 type="button"
@@ -807,7 +961,7 @@ export function BillingScreen({
                 {T("Cancel", "Cancel")}
               </button>
               <button
-                className="btn primary"
+                className="btn primary billing-change-confirm"
                 type="button"
                 disabled={Boolean(pendingAction)}
                 onClick={confirmSubscriptionChange}
@@ -963,7 +1117,7 @@ export function PricingScreen({
                 <div className="billing-actions">
                   {activePaid ? (
                     <a className="btn" {...screenLinkProps(go, "billing")}>
-                      <I.Settings size={14} /> {T("Manage billing", "管理账单")}
+                      <I.Settings size={14} /> {T("Open billing", "打开账单")}
                     </a>
                   ) : (
                     <button
@@ -1070,7 +1224,7 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         )}
         {plan?.id && plan.id !== "free" && (
           <li>
-            <I.Check size={13} /> {T("Cancel from the billing portal", "从账单门户取消")}
+            <I.Check size={13} /> {T("Cancel renewal from Billing", "从账单页取消续订")}
           </li>
         )}
       </ul>

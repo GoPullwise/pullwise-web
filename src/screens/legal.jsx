@@ -193,7 +193,7 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="rights" title={sections[6].title}>
         <p>
           {T(
-            `You can request access, export, correction, or deletion of your account data by contacting ${CONTACT_EMAIL}. You can also revoke API keys, disconnect GitHub access, and manage subscriptions from the product where those controls are available.`,
+            `You can request access, export, correction, or deletion of your account data by contacting ${CONTACT_EMAIL}. You can also revoke API keys, disconnect GitHub access, cancel renewal, and use supported subscription upgrades from Pullwise Billing where those controls are available.`,
             `你可以通过 ${CONTACT_EMAIL} 请求访问、导出、更正或删除账户数据。你也可以在产品提供相应控件时吊销 API key、断开 GitHub 访问，并管理订阅。`
           )}
         </p>
@@ -299,13 +299,37 @@ export function TermsScreen({ go, auth }) {
         <p>
           {T(
             "Paid subscriptions, if available, are billed through Creem. Prices, quotas, plan limits, renewal terms, taxes, and cancellation options are shown in the product or payment flow before purchase.",
-            "如提供付费订阅，订阅将通过 Creem 收费。价格、配额、套餐限制、续费条款、税费和取消选项会在购买前于产品或支付流程中展示。"
+            {
+              zh: "如提供付费订阅，订阅将通过 Creem 收费。价格、配额、套餐限制、续费条款、税费和取消选项会在购买前于产品或支付流程中展示。",
+              ja: "有料サブスクリプションが提供される場合、請求は Creem を通じて行われます。価格、クォータ、プラン制限、更新条件、税金、キャンセル方法は、購入前に製品内または決済フローで表示されます。",
+              ko: "유료 구독이 제공되는 경우 Creem을 통해 청구됩니다. 가격, 할당량, 플랜 한도, 갱신 조건, 세금, 취소 옵션은 구매 전에 제품 또는 결제 흐름에서 표시됩니다.",
+              fr: "Les abonnements payants, lorsqu'ils sont disponibles, sont facturés via Creem. Les prix, quotas, limites de forfait, conditions de renouvellement, taxes et options d'annulation sont affichés dans le produit ou le parcours de paiement avant l'achat.",
+              es: "Las suscripciones de pago, cuando estén disponibles, se facturan mediante Creem. Los precios, cuotas, límites del plan, términos de renovación, impuestos y opciones de cancelación se muestran en el producto o en el flujo de pago antes de comprar.",
+            }
           )}
         </p>
         <p>
           {T(
-            "You can manage or cancel an active subscription from the billing page when a provider portal is available. Unless required by law or explicitly stated in the product, fees already incurred are non-refundable.",
-            "当支付提供方门户可用时，你可以从计费页面管理或取消有效订阅。除非法律要求或产品中明确说明，已经产生的费用不予退款。"
+            "Pullwise supports subscription upgrades from the billing page, including switching to a higher tier or from monthly to yearly billing. Supported upgrades take effect immediately; Creem may charge the prorated difference for the rest of the current period, and the new recurring amount is billed on the next renewal date. Pullwise does not support lower-tier changes or yearly-to-monthly changes from the product.",
+            {
+              zh: "Pullwise 支持从计费页面进行订阅升级，包括切换到更高套餐，或从月付切换为年付。支持的升级会立即生效；Creem 可能会按当前周期剩余时间立即收取差额，并在下个续费日按新的周期金额扣款。Pullwise 不支持在产品内切换到更低套餐，也不支持年付切换为月付。",
+              ja: "Pullwise は、請求ページからのサブスクリプションアップグレードに対応しています。これには上位プランへの変更、または月額請求から年額請求への変更が含まれます。対応しているアップグレードは直ちに有効になり、Creem は現在の期間の残りに対する按分差額を即時請求する場合があります。次回更新日以降は新しい継続金額で請求されます。Pullwise は、製品内での下位プランへの変更または年額から月額への変更には対応していません。",
+              ko: "Pullwise는 결제 페이지에서 구독 업그레이드를 지원합니다. 여기에는 상위 등급으로 변경하거나 월간 결제에서 연간 결제로 변경하는 것이 포함됩니다. 지원되는 업그레이드는 즉시 적용되며, Creem은 현재 기간의 남은 기간에 대한 비례 차액을 즉시 청구할 수 있습니다. 다음 갱신일부터는 새로운 정기 금액이 청구됩니다. Pullwise는 제품 내에서 하위 등급으로 변경하거나 연간 결제에서 월간 결제로 변경하는 것을 지원하지 않습니다.",
+              fr: "Pullwise prend en charge les upgrades d'abonnement depuis la page de facturation, y compris le passage à un forfait supérieur ou d'une facturation mensuelle à annuelle. Les upgrades pris en charge prennent effet immédiatement ; Creem peut facturer immédiatement la différence au prorata pour le reste de la période en cours, puis le nouveau montant récurrent est facturé à la prochaine date de renouvellement. Pullwise ne prend pas en charge, depuis le produit, les passages à un forfait inférieur ni les passages de l'annuel au mensuel.",
+              es: "Pullwise admite upgrades de suscripción desde la página de facturación, incluido cambiar a un plan superior o pasar de facturación mensual a anual. Los upgrades admitidos entran en vigor de inmediato; Creem puede cobrar de inmediato la diferencia prorrateada por el resto del periodo actual, y el nuevo importe recurrente se cobra en la siguiente fecha de renovación. Pullwise no admite desde el producto cambios a un plan inferior ni cambios de anual a mensual.",
+            }
+          )}
+        </p>
+        <p>
+          {T(
+            "You can cancel renewal for an active subscription from Pullwise Billing. Cancellation is scheduled for the end of the current paid period, so access continues until that period ends. Unless required by law or explicitly stated in the product, fees already incurred are non-refundable.",
+            {
+              zh: "你可以从 Pullwise 账单页取消有效订阅的续订。取消续订会安排在当前已付周期结束时生效，因此访问权限会持续到该周期结束。除非法律要求或产品中明确说明，已经产生的费用不予退款。",
+              ja: "有効なサブスクリプションの更新キャンセルは Pullwise の請求ページから行えます。キャンセルは現在の支払い済み期間の終了時に予定されるため、その期間が終わるまでアクセスは継続します。法律で求められる場合、または製品内で明示される場合を除き、すでに発生した料金は返金されません。",
+              ko: "활성 구독의 갱신 취소는 Pullwise 결제 페이지에서 할 수 있습니다. 갱신 취소는 현재 결제된 기간이 끝날 때 적용되도록 예약되므로, 해당 기간이 끝날 때까지 접근 권한은 유지됩니다. 법률상 요구되거나 제품에 명시된 경우를 제외하고 이미 발생한 요금은 환불되지 않습니다.",
+              fr: "Vous pouvez annuler le renouvellement d'un abonnement actif depuis la page de facturation Pullwise. L'annulation est planifiée pour la fin de la période payée en cours ; l'accès continue donc jusqu'à la fin de cette période. Sauf obligation légale ou mention explicite dans le produit, les frais déjà engagés ne sont pas remboursables.",
+              es: "Puedes cancelar la renovación de una suscripción activa desde la página de facturación de Pullwise. La cancelación se programa para el final del periodo pagado actual, por lo que el acceso continúa hasta que termine ese periodo. Salvo que lo exija la ley o se indique explícitamente en el producto, las tarifas ya incurridas no son reembolsables.",
+            }
           )}
         </p>
       </Section>

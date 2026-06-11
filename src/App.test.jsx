@@ -33,6 +33,9 @@ vi.mock("./api/pullwise.js", () => ({
       list: vi.fn(),
       get: vi.fn(),
     },
+    docs: {
+      getSubscriptionPlanConfigs: vi.fn(),
+    },
   },
 }));
 
@@ -110,6 +113,16 @@ describe("App", () => {
       title: "Validate redirect targets",
       file: "src/auth.js",
       status: "open",
+    });
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [
+        {
+          plan: "free",
+          agentCli: "app-route-cli-free",
+          model: "app-route-model-free",
+          reasoningEffort: "app-route-effort-free",
+        },
+      ],
     });
   });
 
@@ -369,6 +382,19 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="notfound"]')).toBeInTheDocument();
     });
     expect(screen.queryByText(/worker registry/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the Docs route as a public screen", async () => {
+    window.history.replaceState({}, "", "/developers/docs");
+    pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="docs"]')).toBeInTheDocument();
+    });
+    expect(await screen.findByRole("heading", { name: /pullwise docs/i })).toBeInTheDocument();
+    expect(await screen.findByText("app-route-cli-free")).toBeInTheDocument();
   });
 
   it("keeps login actions hidden while confirming an initial signed-out session result", async () => {

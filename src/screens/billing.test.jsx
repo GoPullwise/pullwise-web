@@ -9,7 +9,6 @@ vi.mock("../api/pullwise.js", () => ({
     billing: {
       getPlan: vi.fn(),
       createCheckoutSession: vi.fn(),
-      createPortalSession: vi.fn(),
       changeSubscriptionInterval: vi.fn(),
       cancelSubscription: vi.fn(),
     },
@@ -533,10 +532,12 @@ describe("BillingScreen", () => {
     expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
     const dialog = await screen.findByRole("dialog", { name: /confirm billing change/i });
     expect(dialog).toHaveTextContent("Pullwise Pro");
-    expect(dialog).toHaveTextContent("$29/month");
-    expect(dialog).toHaveTextContent("$290/year");
+    expect(dialog).toHaveTextContent("$29");
+    expect(dialog).toHaveTextContent("$290");
+    expect(dialog).toHaveTextContent("per year");
     expect(dialog).toHaveTextContent("$58 less per year");
-    expect(dialog).toHaveTextContent(/Creem may charge the prorated difference immediately/i);
+    expect(dialog).toHaveTextContent(/prorated charge today/i);
+    expect(dialog).toHaveTextContent(/Creem charges the prorated difference/i);
 
     await user.click(screen.getByRole("button", { name: /confirm change/i }));
 
@@ -551,7 +552,7 @@ describe("BillingScreen", () => {
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: /switch to yearly/i })).not.toBeInTheDocument();
     });
-    expect(screen.getByRole("button", { name: /manage billing/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /manage billing/i })).not.toBeInTheDocument();
   });
 
   it("asks active Pro subscribers to confirm Max switching before changing billing", async () => {
@@ -593,10 +594,12 @@ describe("BillingScreen", () => {
     const dialog = await screen.findByRole("dialog", { name: /confirm billing change/i });
     expect(dialog).toHaveTextContent("Pullwise Pro");
     expect(dialog).toHaveTextContent("Pullwise Max");
-    expect(dialog).toHaveTextContent("$29/month");
-    expect(dialog).toHaveTextContent("$49/month");
+    expect(dialog).toHaveTextContent("$29");
+    expect(dialog).toHaveTextContent("$49");
+    expect(dialog).toHaveTextContent("per month");
     expect(dialog).toHaveTextContent("$20 more per month");
-    expect(dialog).toHaveTextContent(/Creem may charge the prorated difference immediately/i);
+    expect(dialog).toHaveTextContent(/prorated charge today/i);
+    expect(dialog).toHaveTextContent(/Creem charges the prorated difference/i);
 
     await user.click(screen.getByRole("button", { name: /confirm change/i }));
 
@@ -613,7 +616,7 @@ describe("BillingScreen", () => {
     });
   });
 
-  it("asks active Max subscribers to confirm Pro switching before changing billing", async () => {
+  it("does not offer lower-tier or monthly switching for active yearly Max subscribers", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       plans: [
@@ -636,40 +639,14 @@ describe("BillingScreen", () => {
         usage: { period: "2026-05", used: 12, limit: 90, remaining: 78 },
       },
     });
-    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
-      provider: "creem",
-      plan: "pro",
-      interval: "year",
-      status: "active",
-    });
-    const user = userEvent.setup();
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    await user.click(await screen.findByRole("button", { name: /switch to pro/i }));
-
+    expect((await screen.findAllByText("Pullwise Max")).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /switch to pro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /switch to monthly/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /confirm billing change/i })).not.toBeInTheDocument();
     expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
-    const dialog = await screen.findByRole("dialog", { name: /confirm billing change/i });
-    expect(dialog).toHaveTextContent("Pullwise Max");
-    expect(dialog).toHaveTextContent("Pullwise Pro");
-    expect(dialog).toHaveTextContent("$490/year");
-    expect(dialog).toHaveTextContent("$290/year");
-    expect(dialog).toHaveTextContent("$200 less per year");
-    expect(dialog).toHaveTextContent(/unused time and tax may be refunded/i);
-
-    await user.click(screen.getByRole("button", { name: /confirm change/i }));
-
-    await waitFor(() => {
-      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
-        expect.objectContaining({
-          plan: "pro",
-          interval: "year",
-        })
-      );
-    });
-    await waitFor(() => {
-      expect(screen.getAllByText("Pullwise Pro").length).toBeGreaterThan(0);
-    });
   });
 
   it("schedules subscription cancellation from Billing", async () => {
@@ -705,7 +682,54 @@ describe("BillingScreen", () => {
     expect(screen.queryByRole("button", { name: /cancel renewal/i })).not.toBeInTheDocument();
   });
 
-  it("shows the user's subscription records on Billing", async () => {
+  it("shows the user's subscription activity on Billing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        subscriptionEvents: [
+          {
+            provider: "creem",
+            subscriptionId: "sub_1",
+            customerId: "cust_1",
+            status: "active",
+            plan: "pro",
+            interval: "month",
+            currentPeriodStart: 1780963200,
+            currentPeriodEnd: 1783555200,
+            eventType: "checkout.completed",
+            eventId: "evt_1",
+            eventCreated: 1780963210,
+          },
+          {
+            provider: "creem",
+            subscriptionId: "sub_1",
+            customerId: "cust_1",
+            status: "canceling",
+            plan: "pro",
+            interval: "month",
+            eventType: "subscription.scheduled_cancel",
+            eventId: "evt_2",
+            eventCreated: 1780964210,
+          },
+        ],
+      },
+    });
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    expect(await screen.findByText("Subscription activity")).toBeInTheDocument();
+    expect(screen.getByText(/checkout\.completed/)).toBeInTheDocument();
+    expect(screen.getByText(/subscription\.scheduled_cancel/)).toBeInTheDocument();
+    expect(screen.getByText(/sub_1 - active - month/i)).toBeInTheDocument();
+    expect(screen.getByText(/sub_1 - canceling - month/i)).toBeInTheDocument();
+    expect(screen.getByText(/evt_1 - 2026-06-09 00:00 UTC/i)).toBeInTheDocument();
+  });
+
+  it("does not show legacy subscription snapshots as activity", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {
@@ -721,10 +745,8 @@ describe("BillingScreen", () => {
             status: "active",
             plan: "pro",
             interval: "month",
-            currentPeriodStart: 1780963200,
-            currentPeriodEnd: 1783555200,
             lastEventType: "checkout.completed",
-            lastEventId: "evt_1",
+            lastEventId: "evt_legacy",
             updatedAt: 1780963210,
           },
         ],
@@ -733,13 +755,12 @@ describe("BillingScreen", () => {
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    expect(await screen.findByText("Subscription records")).toBeInTheDocument();
-    expect(screen.getByText("sub_1")).toBeInTheDocument();
-    expect(screen.getByText(/active - month/i)).toBeInTheDocument();
-    expect(screen.getByText(/checkout\.completed/)).toBeInTheDocument();
+    expect(await screen.findByText(/12 \/ 100 reviews used/i)).toBeInTheDocument();
+    expect(screen.queryByText("Subscription activity")).not.toBeInTheDocument();
+    expect(screen.queryByText(/checkout\.completed/)).not.toBeInTheDocument();
   });
 
-  it("rejects unsafe billing portal URLs before navigating", async () => {
+  it("does not expose a Creem portal entry for active paid subscribers", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {
@@ -749,43 +770,14 @@ describe("BillingScreen", () => {
         usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
       },
     });
-    pullwiseApi.billing.createPortalSession.mockResolvedValue({
-      provider: "creem",
-      url: "javascript:alert(1)",
-    });
     const navigate = vi.fn();
-    const user = userEvent.setup();
 
     render(<BillingScreen go={vi.fn()} navigate={navigate} />);
 
-    await user.click(await screen.findByRole("button", { name: /manage billing/i }));
+    expect(await screen.findByText(/12 \/ 100 reviews used/i)).toBeInTheDocument();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing portal URL/i);
-    expect(navigate).not.toHaveBeenCalled();
-  });
-
-  it("rejects non-provider billing portal hosts before navigating", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      account: {
-        status: "active",
-        plan: "pro",
-        interval: "year",
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
-      },
-    });
-    pullwiseApi.billing.createPortalSession.mockResolvedValue({
-      provider: "creem",
-      url: "https://evil.example/portal",
-    });
-    const navigate = vi.fn();
-    const user = userEvent.setup();
-
-    render(<BillingScreen go={vi.fn()} navigate={navigate} />);
-
-    await user.click(await screen.findByRole("button", { name: /manage billing/i }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(/safe billing portal URL/i);
+    expect(screen.queryByRole("button", { name: /manage billing/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /manage billing/i })).not.toBeInTheDocument();
     expect(navigate).not.toHaveBeenCalled();
   });
 

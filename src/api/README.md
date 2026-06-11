@@ -12,7 +12,7 @@ Currently wired backend responsibilities:
 - Deterministic issue fix preview
 - GitHub pull request creation for auto-fixable issue fixes
 - Account session and GitHub integration state
-- Billing plan, checkout sessions, and customer portal sessions
+- Billing plan, checkout sessions, supported upgrades, and scheduled cancellation
 - Backend health and readiness status
 
 Not wired in this stage:

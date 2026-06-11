@@ -275,8 +275,8 @@ export function LandingScreen({ go, accent, auth }) {
             i: <I.Package />,
             h: T("Billing and quota controls", "支付与配额控制"),
             p: T(
-              "Surface account usage, repository quota, checkout, portal, and billing interval actions from the backend.",
-              "从后端展示账户用量、仓库配额、checkout、门户和计费周期操作。"
+              "Surface account usage, repository quota, checkout, cancellation, and supported billing interval actions from the backend.",
+              "从后端展示账户用量、仓库配额、checkout、取消续订和受支持的计费周期操作。"
             ),
           },
           {

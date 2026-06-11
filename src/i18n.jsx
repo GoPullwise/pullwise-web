@@ -1629,13 +1629,6 @@ const PHRASE_TRANSLATIONS = {
     fr: "Passer à l'annuel",
     es: "Cambiar a anual",
   },
-  "Manage billing": {
-    zh: "管理账单",
-    ja: "請求を管理",
-    ko: "결제 관리",
-    fr: "Gérer la facturation",
-    es: "Administrar facturación",
-  },
   "View pricing": {
     zh: "查看价格",
     ja: "料金を見る",
@@ -1723,13 +1716,6 @@ const PHRASE_TRANSLATIONS = {
     ko: "GitHub 저장소 리뷰 기록",
     fr: "Historique de revue des dépôts GitHub",
     es: "Historial de revisión de repositorios de GitHub",
-  },
-  "Cancel from the billing portal": {
-    zh: "从账单门户取消",
-    ja: "請求ポータルからキャンセル",
-    ko: "결제 포털에서 취소",
-    fr: "Annuler depuis le portail de facturation",
-    es: "Cancelar desde el portal de facturación",
   },
   "Connected repository": {
     zh: "已连接仓库",

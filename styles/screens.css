@@ -4101,9 +4101,22 @@ button.dash-cat-row:hover {
   flex: 1 1 auto;
   justify-content: center;
 }
+/* Billing change confirmation — wider, taller, content-driven layout.
+   Width: 720px (was 560), max-height 88vh with internal scroll.
+   No hardcoded text — every value comes from the loaded plan/account payload.
+   Only upgrade / monthly-to-yearly flows are supported; copy and tone
+   reflect that single path. */
+.billing-change-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
 .billing-change-modal .modal-h {
   align-items: flex-start;
   gap: 12px;
+  flex: 0 0 auto;
 }
 .billing-change-modal .modal-h h3 {
   gap: 8px;
@@ -4118,7 +4131,29 @@ button.dash-cat-row:hover {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
+.billing-change-foot {
+  flex: 0 0 auto;
+}
+
+/* Direction pill — currently always "Upgrade" (monthly→yearly is also
+   classified as upgrade by the existing direction logic). */
+.billing-change-direction {
+  align-self: flex-start;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-soft));
+}
+
+/* Plan compare row (current → new) */
 .billing-change-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -4127,62 +4162,257 @@ button.dash-cat-row:hover {
 }
 .billing-change-box {
   min-width: 0;
-  padding: 12px;
+  padding: 14px 14px 12px;
   border: 1px solid var(--border);
   background: var(--bg-soft);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
-.billing-change-box span {
+.billing-change-box-target {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-soft));
+}
+.billing-change-box > span:first-child {
   color: var(--text-3);
   font-size: 11px;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.billing-change-box b,
-.billing-change-box em {
+.billing-change-box b {
+  font-size: 14.5px;
+  font-weight: 600;
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.billing-change-box em {
-  color: var(--text-2);
-  font-size: 13px;
+.billing-change-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
   font-style: normal;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.billing-change-period {
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+.billing-change-cadence {
+  color: var(--text-3);
+  font-size: 12px;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .billing-change-arrow {
   align-self: center;
   color: var(--text-3);
 }
-.billing-change-delta,
-.billing-change-notice {
+
+/* Stats row — cadence + next renewal, side by side */
+.billing-change-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.billing-change-stat {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.billing-change-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.billing-change-stat b {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Charge callout — charge tone for upgrade, neutral when Creem calculates */
+.billing-change-callout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.billing-change-callout-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-2);
+  flex: 0 0 auto;
+}
+.billing-change-callout-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.billing-change-callout-text b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.billing-change-callout-delta {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 2px;
+}
+.billing-change-callout-charge {
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elev));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.billing-change-callout-charge .billing-change-callout-icon {
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-soft));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  color: var(--accent);
+}
+
+/* Feature delta list — only rendered when plan rows differ */
+.billing-change-features {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.billing-change-features-h {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.billing-change-features-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.billing-change-features-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  min-width: 0;
+}
+.billing-change-features-list li:last-child {
+  border-bottom: 0;
+}
+.billing-change-feature-label {
+  color: var(--text-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.billing-change-feature-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.billing-change-feature-before {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.billing-change-feature-after {
+  color: var(--text);
+  font-weight: 600;
+}
+.billing-change-feature-arrow {
+  color: var(--text-3);
+}
+
+/* "How this works" — behavior explanation */
+.billing-change-how {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
   align-items: flex-start;
   padding: 11px 12px;
   border: 1px solid var(--border);
-  background: var(--bg-elev);
+  background: var(--bg-soft);
   color: var(--text-2);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12.5px;
+  line-height: 1.55;
 }
-.billing-change-delta {
+.billing-change-how > svg {
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.billing-change-how b {
+  display: block;
   color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
+.billing-change-how p {
+  margin: 0;
+}
+
 .billing-change-copy {
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-size: 12px;
 }
+
+.billing-change-confirm {
+  min-width: 160px;
+  justify-content: center;
+}
+
 @media (max-width: 720px) {
+  .billing-change-modal {
+    max-width: 100%;
+    max-height: 92vh;
+  }
   .billing-change-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-
   .billing-change-arrow {
     justify-self: center;
     transform: rotate(90deg);
   }
-
+  .billing-change-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .api-key-name-row {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4910,6 +5140,98 @@ button.dash-cat-row:hover {
   font-size: 11px;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+.docs-state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 8px 0 24px;
+}
+.docs-state.error {
+  border-color: color-mix(in oklch, var(--sev-critical) 28%, var(--border));
+  background: color-mix(in oklch, var(--sev-critical) 6%, var(--bg-elev));
+  color: var(--sev-critical);
+}
+.docs-state svg,
+.docs-state .spin {
+  flex: 0 0 auto;
+}
+.docs-state .btn {
+  margin-left: auto;
+}
+
+.docs-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 30px;
+}
+@media (max-width: 860px) {
+  .docs-plan-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.docs-plan-card {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  min-width: 0;
+}
+.docs-plan-card-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.docs-plan-name {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+.docs-plan-key {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+.docs-plan-kv {
+  display: grid;
+  grid-template-columns: minmax(96px, 118px) minmax(0, 1fr);
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.docs-plan-kv:last-child {
+  border-bottom: 0;
+}
+.docs-plan-kv b {
+  color: var(--text-3);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.docs-plan-kv code {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.docs-plan-missing {
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-style: italic;
 }
 
 .docs-cards {

@@ -15,6 +15,7 @@ import { ApiKeysScreen } from "./screens/api.jsx";
 import { ApiDocsScreen } from "./screens/api-docs.jsx";
 import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
 import { DashboardScreen } from "./screens/dashboard.jsx";
+import { DocsScreen } from "./screens/docs.jsx";
 import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
 import {
@@ -36,6 +37,7 @@ const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
   "pricing",
+  "docs",
   "api",
   "privacy",
   "terms",
@@ -167,6 +169,7 @@ function PrototypeNav({ go, current }) {
     { k: "settings", t: T("Settings", "设置") },
     { k: "billing", t: T("Billing", "账单") },
     { k: "pricing", t: T("Pricing", "价格") },
+    { k: "docs", t: T("Docs", "Docs") },
     { k: "api", t: T("API docs", "API 文档") },
     { k: "privacy", t: T("Privacy Policy", "隐私") },
     { k: "terms", t: T("Terms of Service", "条款") },
@@ -615,6 +618,9 @@ export function App({ prototypeNav = false }) {
         break;
       case "pricing":
         body = <PricingScreen go={go} auth={auth} />;
+        break;
+      case "docs":
+        body = <DocsScreen go={go} auth={auth} />;
         break;
       case "api":
         body = <ApiDocsScreen go={go} auth={auth} />;

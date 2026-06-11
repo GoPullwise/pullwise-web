@@ -6,6 +6,7 @@ import { screenLinkProps } from "../lib/navigation.js";
 const HEADER_NAV = [
   { key: "landing", labelEn: "Product", labelZh: "产品" },
   { key: "pricing", labelEn: "Pricing", labelZh: "价格" },
+  { key: "docs", labelEn: "Docs", labelZh: "Docs" },
   { key: "api", labelEn: "API", labelZh: "API" },
   { key: "security", labelEn: "Security", labelZh: "安全" },
   { key: "status", labelEn: "Status", labelZh: "状态" },
@@ -16,6 +17,7 @@ const FOOTER_LINKS = [
   { key: "terms", labelEn: "Terms", labelZh: "条款" },
   { key: "security", labelEn: "Security", labelZh: "安全" },
   { key: "pricing", labelEn: "Pricing", labelZh: "价格" },
+  { key: "docs", labelEn: "Docs", labelZh: "Docs" },
   { key: "api", labelEn: "API", labelZh: "API" },
   { key: "status", labelEn: "Status", labelZh: "状态" },
 ];

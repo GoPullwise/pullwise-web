@@ -66,6 +66,13 @@ describe("dashboard routes", () => {
   });
 });
 
+describe("developer docs routes", () => {
+  it("uses developer docs as the canonical Docs path", () => {
+    expect(pathFromScreen("docs")).toBe("/developers/docs");
+    expect(screenFromPath("/developers/docs")).toBe("docs");
+  });
+});
+
 describe("issue detail routes", () => {
   it("encodes issue identity in the URL so detail pages can reload", () => {
     expect(pathFromScreen("issue", { issueId: "issue/with spaces#1" })).toBe(

@@ -86,8 +86,6 @@ export const pullwiseApi = {
     getPlan: () => request("/billing/plan"),
     createCheckoutSession: (payload = {}) =>
       request("/billing/checkout-sessions", { method: "POST", body: payload }),
-    createPortalSession: (payload = {}) =>
-      request("/billing/portal-sessions", { method: "POST", body: payload }),
     changeSubscriptionInterval: (payload = {}) =>
       request("/billing/change-interval", { method: "POST", body: payload }),
     cancelSubscription: (payload = {}) =>
@@ -98,6 +96,11 @@ export const pullwiseApi = {
     list: (params = {}) => request(withSearchParams("/api-keys", params)),
     create: (payload = {}) => request("/api-keys", { method: "POST", body: payload }),
     revoke: (keyId) => request(`/api-keys/${pathSegment(keyId)}`, { method: "DELETE" }),
+  },
+
+  docs: {
+    getSubscriptionPlanConfigs: (options = {}) =>
+      request("/docs/subscription-plans", { signal: options.signal }),
   },
 
   system: {

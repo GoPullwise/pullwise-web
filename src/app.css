@@ -326,6 +326,11 @@ body.has-proto-nav {
   .pricing-table-wrap,
   .docs-shell,
   .docs-main,
+  .docs-state,
+  .docs-plan-grid,
+  .docs-plan-card,
+  .docs-plan-card-h,
+  .docs-plan-kv,
   .docs-endpoint-list,
   .docs-endpoint-card,
   .docs-endpoint-card-h,
@@ -578,6 +583,7 @@ body.has-proto-nav {
 .section p,
 .legal-list li,
 .legal-list-flat li,
+.docs-plan-kv code,
 .docs-card p {
   overflow-wrap: anywhere;
 }
@@ -1492,5 +1498,301 @@ body.has-proto-nav {
   .set-side-i {
     flex: 0 0 auto;
     white-space: nowrap;
+  }
+}
+
+/* Responsive completion pass: keep medium and phone layouts usable with
+   long real-world repo names, API values, and billing copy. */
+.lp-top > div:last-child {
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lp-top > div:last-child .btn,
+.docs-foot-actions .btn,
+.billing-change-foot .btn {
+  min-width: 0;
+}
+
+.lp-hero,
+.lp-title,
+.lp-title-em,
+.lp-sub,
+.lp-meta,
+.lp-meta span,
+.lp-preview,
+.lp-preview-card,
+.lp-preview-main,
+.lp-preview-row,
+.lp-preview-stat,
+.lp-preview-issue,
+.lp-preview-issue-t,
+.lp-preview-issue-f,
+.lp-preview-url,
+.pricing-hero,
+.pricing-toggle,
+.pricing-tiers,
+.pricing-card,
+.pricing-card-h,
+.pricing-tag,
+.pricing-price,
+.pricing-feats,
+.pricing-feats li,
+.docs-state,
+.docs-plan-card,
+.docs-plan-card-h,
+.docs-plan-kv,
+.billing-change-callout,
+.billing-change-callout-text,
+.billing-change-features,
+.billing-change-feature-pair,
+.billing-change-how {
+  min-width: 0;
+}
+
+.docs-state {
+  flex-wrap: wrap;
+}
+
+.docs-state .btn {
+  margin-left: 0;
+}
+
+.docs-plan-name,
+.docs-plan-key,
+.docs-plan-kv b,
+.docs-plan-kv code,
+.lp-title,
+.lp-title-em,
+.lp-sub,
+.lp-meta span,
+.lp-preview-issue-t,
+.lp-preview-issue-f,
+.pricing-hero .lp-sub,
+.pricing-tag,
+.pricing-feats li,
+.billing-change-feature-before,
+.billing-change-feature-after {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.billing-change-features-list li {
+  min-width: 0;
+}
+
+.lp-title,
+.lp-title-em,
+.lp-sub,
+.pricing-hero .lp-sub {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+@media (max-width: 900px) {
+  .pricing-hero {
+    padding: 58px 24px 32px;
+  }
+
+  .docs-shell {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 760px) {
+  .pricing-hero {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .pricing-hero .lp-sub {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .pricing-toggle {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pricing-toggle .seg-i {
+    min-width: 0;
+    flex: 1 1 120px;
+    justify-content: center;
+  }
+
+  .pricing-tiers {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pricing-card {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .lp-title {
+    font-size: clamp(34px, 8.5vw, 46px);
+    line-height: 1.12;
+    letter-spacing: 0;
+  }
+
+  .lp-sub {
+    max-width: 100%;
+  }
+
+  .lp-meta span {
+    justify-content: center;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .lp-preview-main {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .lp-preview-url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page-h h1,
+  .page-h .sub {
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .repo-meta {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+  }
+
+  .repo-meta > span,
+  .repo-meta .repo-branch-picker,
+  .repo-meta .repo-quota {
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .docs-plan-kv {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .docs-foot-actions {
+    width: 100%;
+  }
+
+  .docs-foot-actions .btn {
+    flex: 1 1 140px;
+  }
+
+  .billing-change-features-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .billing-change-feature-pair {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 520px) {
+  .lp-top {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+  }
+
+  .lp-top > :first-child,
+  .lp-top > :last-child {
+    justify-self: stretch;
+  }
+
+  .lp-top > div:last-child {
+    justify-content: stretch;
+  }
+
+  .lp-top > div:last-child .btn {
+    flex: 1 1 130px;
+  }
+
+  .lp-hero {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .lp-title {
+    font-size: 30px;
+    max-width: 100%;
+  }
+
+  .lp-title-em {
+    display: inline;
+  }
+
+  .lp-sub {
+    font-size: 16px;
+    width: min(100%, 320px);
+  }
+
+  .lp-cta .btn {
+    width: 100%;
+  }
+
+  .lp-meta {
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .lp-meta span {
+    flex: 0 1 auto;
+  }
+
+  .lp-preview-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pricing-card {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .docs-h1 {
+    font-size: 30px;
+    line-height: 1.12;
+  }
+
+  .docs-callout,
+  .billing-change-callout,
+  .billing-change-how {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .billing-change-callout-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .billing-change-confirm {
+    min-width: 0;
   }
 }

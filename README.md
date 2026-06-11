@@ -10,7 +10,7 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 - Rich issue review plus manual triage/status changes
 - Deterministic fix preview and GitHub pull request creation for auto-fixable issues
 - Workspace-aware GitHub integration settings
-- Creem workspace billing through backend-created checkout and portal sessions
+- Creem workspace billing through backend-created checkout, supported upgrades, and scheduled cancellation
 - Legal, privacy, security, and live status/readiness pages
 
 Stage 2 remediation is intentionally narrow in this build. The browser can ask
@@ -251,5 +251,5 @@ https://app.your-domain.com/api/health
 ```
 
 The health response should come from `pullwise-server`. Then test GitHub login,
-GitHub repository authorization, checkout creation, and the billing portal using
-the production URLs above.
+GitHub repository authorization, checkout creation, supported billing upgrades,
+and scheduled cancellation using the production URLs above.

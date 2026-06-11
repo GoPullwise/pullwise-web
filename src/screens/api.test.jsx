@@ -6,6 +6,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useRepositories } from "../lib/pullwise-data.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
+import { DocsScreen } from "./docs.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -13,6 +14,9 @@ vi.mock("../api/pullwise.js", () => ({
       list: vi.fn(),
       create: vi.fn(),
       revoke: vi.fn(),
+    },
+    docs: {
+      getSubscriptionPlanConfigs: vi.fn(),
     },
   },
 }));
@@ -25,6 +29,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
 describe("API screens", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({ plans: [] });
     useIssues.mockReturnValue({ items: [] });
     useRepositories.mockReturnValue({
       items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
@@ -97,6 +102,106 @@ describe("API screens", () => {
     expect(repositoryExample).toHaveTextContent(/"contents": "write"/);
     expect(repositoryExample).toHaveTextContent(/"pull_requests": "write"/);
     expect(repositoryExample).not.toHaveTextContent(/"contents": "read"/);
+  });
+
+  it("loads subscription plan configs for Docs from the API", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [
+        {
+          id: "pro",
+          name: "Pro",
+          reviewLimit: 60,
+          agentConfig: {
+            plan: "pro",
+            agent: {
+              cli: "cli-from-api-pro",
+              model: "model-from-api-pro",
+              reasoningEffort: "effort-from-api-pro",
+            },
+          },
+        },
+        {
+          id: "free",
+          name: "Free",
+          reviewLimit: 5,
+          agentConfig: {
+            plan: "free",
+            agent: {
+              cli: "cli-from-api-free",
+              model: "model-from-api-free",
+              reasoningEffort: "effort-from-api-free",
+            },
+          },
+        },
+        {
+          id: "max",
+          name: "Max",
+          reviewLimit: 90,
+          agentConfig: {
+            plan: "max",
+            agent: {
+              cli: "cli-from-api-max",
+              model: "model-from-api-max",
+              reasoningEffort: "effort-from-api-max",
+            },
+          },
+        },
+      ],
+    });
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(await screen.findByText("cli-from-api-free")).toBeInTheDocument();
+    expect(screen.getByText("model-from-api-pro")).toBeInTheDocument();
+    expect(screen.getByText("effort-from-api-max")).toBeInTheDocument();
+    expect(pullwiseApi.docs.getSubscriptionPlanConfigs).toHaveBeenCalledTimes(1);
+
+    const cards = [...document.querySelectorAll(".docs-plan-card")];
+    expect(cards.map((card) => card.querySelector(".docs-plan-key")?.textContent)).toEqual([
+      "free",
+      "pro",
+      "max",
+    ]);
+  });
+
+  it("accepts map-shaped subscription plan config payloads", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: {
+        max: {
+          agent_cli: "map-cli-max",
+          model: "map-model-max",
+          reasoning_effort: "map-effort-max",
+        },
+      },
+    });
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(await screen.findByText("map-cli-max")).toBeInTheDocument();
+    expect(screen.getByText("map-model-max")).toBeInTheDocument();
+    expect(screen.getByText("map-effort-max")).toBeInTheDocument();
+  });
+
+  it("shows Docs loading, empty, and error states", async () => {
+    let resolvePlans;
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePlans = resolve;
+      })
+    );
+    const { unmount } = render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent(/loading subscription plan configs/i);
+    resolvePlans({ plans: [] });
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/no subscription plan configs/i);
+    });
+    unmount();
+
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockRejectedValue(new Error("Docs API failed"));
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Docs API failed");
   });
 
   it("exposes API docs navigation destinations as real screen links", async () => {

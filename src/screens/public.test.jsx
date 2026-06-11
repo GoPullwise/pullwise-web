@@ -13,6 +13,7 @@ describe("public navigation links", () => {
     const headerNav = screen.getByRole("navigation");
     const product = within(headerNav).getByRole("link", { name: /^product$/i });
     const pricing = within(headerNav).getByRole("link", { name: /^pricing$/i });
+    const docs = within(headerNav).getByRole("link", { name: /^docs$/i });
     const api = within(headerNav).getByRole("link", { name: /^api$/i });
     const signIn = screen.getByRole("link", { name: /^sign in$/i });
     const getStarted = screen.getByRole("link", { name: /^get started$/i });
@@ -20,6 +21,7 @@ describe("public navigation links", () => {
 
     expect(product).toHaveAttribute("href", "/");
     expect(pricing).toHaveAttribute("href", "/pricing");
+    expect(docs).toHaveAttribute("href", "/developers/docs");
     expect(api).toHaveAttribute("href", "/developers/api");
     expect(signIn).toHaveAttribute("href", "/login");
     expect(getStarted).toHaveAttribute("href", "/login");
@@ -30,10 +32,12 @@ describe("public navigation links", () => {
 
     await user.click(getStarted);
     await user.click(pricing);
+    await user.click(docs);
     await user.click(api);
 
     expect(go).toHaveBeenCalledWith("login");
     expect(go).toHaveBeenCalledWith("pricing");
+    expect(go).toHaveBeenCalledWith("docs");
     expect(go).toHaveBeenCalledWith("api");
   });
 
