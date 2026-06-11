@@ -61,6 +61,18 @@ describe("BillingScreen", () => {
     expect(screen.getByRole("button", { name: /start max/i })).toBeDisabled();
   });
 
+  it("keeps pricing skeletons after the initial pricing request times out", async () => {
+    pullwiseApi.billing.getPlan.mockRejectedValue(new Error("timeout of 12000ms exceeded"));
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/timeout/i);
+    expect(document.querySelectorAll(".pricing-card")).toHaveLength(3);
+    expect(document.querySelectorAll(".pricing-skeleton").length).toBeGreaterThanOrEqual(6);
+    expect(screen.getByRole("button", { name: /start max/i })).toBeDisabled();
+    expect(document.body).not.toHaveTextContent("Configured in provider");
+  });
+
   it("shows the topbar loading spinner only while billing data is loading", async () => {
     let resolvePlan;
     pullwiseApi.billing.getPlan.mockReturnValue(

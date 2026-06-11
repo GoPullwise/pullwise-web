@@ -858,7 +858,7 @@ export function PricingScreen({
     };
   }, []);
 
-  const pricingLoading = plan === null && !error;
+  const pricingLoading = plan === null;
   const pricingPlans = useMemo(
     () => pricingPlansFromPayload(plan, pricingLoading),
     [plan, pricingLoading]
