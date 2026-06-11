@@ -520,15 +520,25 @@ describe("BillingScreen", () => {
   });
 
   it("asks active monthly subscribers to confirm yearly switching before changing billing", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      account: {
-        status: "active",
-        plan: "pro",
-        interval: "month",
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
-      },
-    });
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "month",
+          usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "year",
+          usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        },
+      });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
       provider: "creem",
       interval: "year",
@@ -568,28 +578,37 @@ describe("BillingScreen", () => {
   });
 
   it("asks active Pro subscribers to confirm Max switching before changing billing", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      plans: [
-        ...billingCatalog.plans,
-        {
-          id: "max",
-          name: "Pullwise Max",
-          description: "Higher-capacity repository review for production teams.",
-          reviewLimit: 90,
-          prices: {
-            month: { amount: "49", currency: "USD", interval: "month", configured: true },
-            year: { amount: "490", currency: "USD", interval: "year", configured: true },
-          },
-        },
-      ],
-      account: {
-        status: "active",
-        plan: "pro",
-        interval: "month",
-        usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+    const maxPlan = {
+      id: "max",
+      name: "Pullwise Max",
+      description: "Higher-capacity repository review for production teams.",
+      reviewLimit: 90,
+      prices: {
+        month: { amount: "49", currency: "USD", interval: "month", configured: true },
+        year: { amount: "490", currency: "USD", interval: "year", configured: true },
       },
-    });
+    };
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "month",
+          usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: {
+          status: "active",
+          plan: "max",
+          interval: "month",
+          usage: { period: "2026-05", used: 12, limit: 90, remaining: 78 },
+          },
+      });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
       provider: "creem",
       plan: "max",
@@ -737,15 +756,26 @@ describe("BillingScreen", () => {
   });
 
   it("schedules subscription cancellation from Billing", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      account: {
-        status: "active",
-        plan: "pro",
-        interval: "year",
-        usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
-      },
-    });
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "year",
+          usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "canceling",
+          plan: "pro",
+          interval: "year",
+          cancelAtPeriodEnd: true,
+          usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+        },
+      });
     pullwiseApi.billing.cancelSubscription.mockResolvedValue({
       provider: "creem",
       plan: "pro",
@@ -770,16 +800,28 @@ describe("BillingScreen", () => {
   });
 
   it("offers resume renewal while cancellation is scheduled", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      account: {
-        status: "canceling",
-        plan: "pro",
-        interval: "month",
-        cancelAtPeriodEnd: true,
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
-      },
-    });
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "canceling",
+          plan: "pro",
+          interval: "month",
+          cancelAtPeriodEnd: true,
+          usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "month",
+          cancelAtPeriodEnd: false,
+          canceledAt: null,
+          usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        },
+      });
     pullwiseApi.billing.resumeSubscription.mockResolvedValue({
       provider: "creem",
       plan: "pro",
@@ -809,16 +851,28 @@ describe("BillingScreen", () => {
   });
 
   it("lets subscribers upgrade while cancellation is scheduled", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue({
-      ...billingCatalog,
-      account: {
-        status: "canceling",
-        plan: "pro",
-        interval: "month",
-        cancelAtPeriodEnd: true,
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
-      },
-    });
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "canceling",
+          plan: "pro",
+          interval: "month",
+          cancelAtPeriodEnd: true,
+          usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: {
+          status: "active",
+          plan: "pro",
+          interval: "year",
+          cancelAtPeriodEnd: false,
+          canceledAt: null,
+          usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        },
+      });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
       provider: "creem",
       plan: "pro",

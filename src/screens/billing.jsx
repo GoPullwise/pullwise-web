@@ -454,6 +454,13 @@ export function BillingScreen({
   const [pendingAction, setPendingAction] = useState("");
   const [changeDraft, setChangeDraft] = useState(null);
 
+  const refreshBillingPlan = useCallback(async () => {
+    const payload = await pullwiseApi.billing.getPlan();
+    setPlan(payload);
+    setError("");
+    return payload;
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -545,6 +552,7 @@ export function BillingScreen({
     const requestedPlan = paidPlanById[targetPlan] || currentPlan;
     if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)) {
       setError("This subscription change is not supported from Pullwise.");
+      await refreshBillingPlan();
       setChangeDraft(null);
       return;
     }
@@ -586,6 +594,7 @@ export function BillingScreen({
                 : billingAccount(current)?.canceledAt,
         },
       }));
+      await refreshBillingPlan();
       setChangeDraft(null);
       setPendingAction("");
     } catch (err) {
@@ -639,6 +648,7 @@ export function BillingScreen({
           cancelAtPeriodEnd: result?.cancelAtPeriodEnd ?? true,
         },
       }));
+      await refreshBillingPlan();
       setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to cancel subscription.");
@@ -676,6 +686,7 @@ export function BillingScreen({
                 : billingAccount(current)?.canceledAt,
         },
       }));
+      await refreshBillingPlan();
       setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to resume subscription.");
