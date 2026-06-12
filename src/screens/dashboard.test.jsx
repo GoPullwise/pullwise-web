@@ -378,13 +378,13 @@ describe("DashboardScreen issue list", () => {
     await user.keyboard("{Enter}");
 
     expect(setIssue).toHaveBeenCalledWith(issue);
-    expect(go).toHaveBeenCalledWith("issue");
+    expect(go).toHaveBeenCalledWith("issue", { issueId: "f_123" });
 
     setIssue.mockClear();
     go.mockClear();
     await user.keyboard(" ");
 
     expect(setIssue).toHaveBeenCalledWith(issue);
-    expect(go).toHaveBeenCalledWith("issue");
+    expect(go).toHaveBeenCalledWith("issue", { issueId: "f_123" });
   });
 });

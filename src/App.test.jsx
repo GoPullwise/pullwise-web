@@ -1076,6 +1076,7 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
     });
+    expect(window.location.pathname).toBe("/issues/f_redirect");
     expect(screen.getByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
     expect(
       screen.getByText("Attackers can redirect users to phishing domains.")
