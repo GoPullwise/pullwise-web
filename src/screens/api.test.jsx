@@ -199,6 +199,21 @@ describe("API screens", () => {
   });
 
   it("renders public server configuration groups while filtering private fields", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [
+        {
+          id: "free",
+          name: "Free",
+          reviewLimit: 5,
+          repositoryReviewLimit: 3,
+          repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
+          agentConfig: {
+            plan: "free",
+            agent: { cli: "docs-cli-free", model: "docs-model-free" },
+          },
+        },
+      ],
+    });
     pullwiseApi.docs.getServerConfig.mockResolvedValue({
       groups: [
         {
@@ -289,13 +304,15 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    const quotaLabel = await screen.findByText("Free user monthly scans");
-    expect(within(quotaLabel.closest(".docs-config-row")).getByText("5")).toBeInTheDocument();
-    expect(screen.getByText("Free repository monthly scans")).toBeInTheDocument();
-    expect(screen.getByText("Free repository file limit")).toBeInTheDocument();
-    expect(screen.getByText("Free repository byte limit")).toBeInTheDocument();
-    expect(screen.getByText("Queued scans per user")).toBeInTheDocument();
-    expect(screen.getByText("1,048,576 bytes (1.0 MiB)")).toBeInTheDocument();
+    expect(await screen.findByText("docs-cli-free")).toBeInTheDocument();
+    expect(screen.getByText(/200 files \/ 1,048,576 bytes \(1.0 MiB\)/)).toBeInTheDocument();
+    expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free repository monthly scans")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free repository byte limit")).not.toBeInTheDocument();
+    const queuedLabel = screen.getByText("Queued scans per user");
+    expect(within(queuedLabel.closest(".docs-config-row")).getByText("4")).toBeInTheDocument();
     expect(screen.getByText("Requests per window")).toBeInTheDocument();
     expect(screen.getByText("2 products configured")).toBeInTheDocument();
     expect(screen.queryByText("prod_pro_a")).not.toBeInTheDocument();
@@ -305,6 +322,18 @@ describe("API screens", () => {
   });
 
   it("accepts settings-shaped server config payloads", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [
+        {
+          id: "free",
+          name: "Free",
+          reviewLimit: 8,
+          repositoryReviewLimit: 2,
+          repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
+          agentConfig: { plan: "free", agent: { cli: "settings-cli-free" } },
+        },
+      ],
+    });
     pullwiseApi.docs.getServerConfig.mockResolvedValue({
       settings: {
         plans: {
@@ -322,10 +351,10 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    const freeQuota = await screen.findByText("Free user monthly scans");
-    expect(within(freeQuota.closest(".docs-config-row")).getByText("8")).toBeInTheDocument();
-    expect(screen.getByText("Free repository file limit")).toBeInTheDocument();
-    expect(screen.getByText("5,242,880 bytes (5.0 MiB)")).toBeInTheDocument();
+    expect(await screen.findByText("settings-cli-free")).toBeInTheDocument();
+    expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
+    expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
     expect(screen.getByText("Rate limiting enabled")).toBeInTheDocument();
     expect(screen.getByText("Enabled")).toBeInTheDocument();
     expect(screen.getByText("60 seconds")).toBeInTheDocument();

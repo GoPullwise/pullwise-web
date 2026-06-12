@@ -35,10 +35,14 @@ function titleCase(value) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-const PUBLIC_SERVER_GROUP_IDS = new Set([
+const PLAN_SERVER_GROUP_IDS = new Set([
   "plans",
   "planquotas",
   "subscriptionplans",
+]);
+
+const PUBLIC_SERVER_GROUP_IDS = new Set([
+  ...PLAN_SERVER_GROUP_IDS,
   "scan",
   "scanlimits",
   "ratelimit",
@@ -352,8 +356,22 @@ function serverConfigPathKey(path) {
   return textValue(path).toLowerCase().replaceAll(/[-_]/g, "");
 }
 
-function isAllowedServerConfigField(field, group) {
+function isPlanServerConfigField(field) {
+  const path = textValue(field.path, field.key, field.id, field.name);
+  const pathKey = serverConfigPathKey(path);
+  return /^plans\.[^.]+\.(userreviewlimit|repositoryreviewlimit|reviewlimit|maxrepofiles|maxrepobytes)$/.test(
+    pathKey
+  );
+}
+
+function isAllowedServerConfigField(field, group, options = {}) {
   const groupId = normalizeGroupId(group.id || group.key || group.title || group.name);
+  if (
+    options.omitPlanConfigFields &&
+    (PLAN_SERVER_GROUP_IDS.has(groupId) || isPlanServerConfigField(field))
+  ) {
+    return false;
+  }
   if (!PUBLIC_SERVER_GROUP_IDS.has(groupId)) return false;
 
   const path = textValue(field.path, field.key, field.id, field.name);
@@ -404,8 +422,8 @@ function isAllowedServerConfigField(field, group) {
   return false;
 }
 
-function normalizeServerField(field, group, settings) {
-  if (!objectRecord(field) || !isAllowedServerConfigField(field, group)) return null;
+function normalizeServerField(field, group, settings, options = {}) {
+  if (!objectRecord(field) || !isAllowedServerConfigField(field, group, options)) return null;
   const path = cleanDisplayText(field.path ?? field.key ?? field.id);
   const label = cleanDisplayText(field.label ?? field.title ?? field.name ?? titleCase(path));
   const description = cleanDisplayText(field.description ?? field.help ?? field.summary, 260);
@@ -417,7 +435,7 @@ function normalizeServerField(field, group, settings) {
   };
 }
 
-function normalizeServerGroupsFromPayload(payload) {
+function normalizeServerGroupsFromPayload(payload, options = {}) {
   if (!objectRecord(payload)) return [];
   const settings = objectRecord(payload.settings) ? payload.settings : {};
   const groups = Array.isArray(payload.groups)
@@ -433,7 +451,7 @@ function normalizeServerGroupsFromPayload(payload) {
       const normalizedId = normalizeGroupId(id);
       if (!PUBLIC_SERVER_GROUP_IDS.has(normalizedId)) return null;
       const fields = fieldsFromServerGroup(group)
-        .map((field) => normalizeServerField(field, group, settings))
+        .map((field) => normalizeServerField(field, group, settings, options))
         .filter(Boolean);
       if (!fields.length) return null;
       return {
@@ -461,10 +479,16 @@ function valueFromCandidates(payload, candidates) {
   return { found: false, value: undefined };
 }
 
-function normalizeServerGroupsFromSettings(payload) {
+function normalizeServerGroupsFromSettings(payload, options = {}) {
   return FALLBACK_SERVER_CONFIG_GROUPS.map((group) => {
     const fields = group.fields
       .map((field) => {
+        if (
+          options.omitPlanConfigFields &&
+          (PLAN_SERVER_GROUP_IDS.has(normalizeGroupId(group.id)) || isPlanServerConfigField(field))
+        ) {
+          return null;
+        }
         const found = valueFromCandidates(payload, field.candidates);
         if (!found.found) return null;
         return {
@@ -479,9 +503,9 @@ function normalizeServerGroupsFromSettings(payload) {
   }).filter(Boolean);
 }
 
-function normalizeServerConfig(payload) {
-  const groups = normalizeServerGroupsFromPayload(payload);
-  return groups.length ? groups : normalizeServerGroupsFromSettings(payload);
+function normalizeServerConfig(payload, options = {}) {
+  const groups = normalizeServerGroupsFromPayload(payload, options);
+  return groups.length ? groups : normalizeServerGroupsFromSettings(payload, options);
 }
 
 function numericValue(value) {
@@ -614,8 +638,10 @@ export function DocsScreen({ go, auth }) {
       ]);
       if (signal?.aborted) return;
 
+      let normalizedPlans = [];
       if (plansResult.status === "fulfilled") {
-        setPlans(normalizePlanConfigs(plansResult.value));
+        normalizedPlans = normalizePlanConfigs(plansResult.value);
+        setPlans(normalizedPlans);
       } else if (isCanceled(plansResult.reason)) {
         return;
       } else {
@@ -630,7 +656,11 @@ export function DocsScreen({ go, auth }) {
       }
 
       if (serverConfigResult.status === "fulfilled") {
-        setServerGroups(normalizeServerConfig(serverConfigResult.value));
+        setServerGroups(
+          normalizeServerConfig(serverConfigResult.value, {
+            omitPlanConfigFields: normalizedPlans.length > 0,
+          })
+        );
       } else if (isCanceled(serverConfigResult.reason)) {
         return;
       } else {
@@ -790,8 +820,8 @@ export function DocsScreen({ go, auth }) {
           </h2>
           <p>
             {T(
-              "These settings describe customer-visible policy enforced by the backend: monthly quota, scan queue and repository limits, API rate limiting, and billing catalog readiness.",
-              "These settings describe customer-visible policy enforced by the backend: monthly quota, scan queue and repository limits, API rate limiting, and billing catalog readiness."
+              "These settings describe additional customer-visible policy enforced by the backend: scan queue limits, API rate limiting, and billing catalog readiness.",
+              "These settings describe additional customer-visible policy enforced by the backend: scan queue limits, API rate limiting, and billing catalog readiness."
             )}
           </p>
 
@@ -839,8 +869,8 @@ export function DocsScreen({ go, auth }) {
           </h2>
           <p>
             {T(
-              "The web client calls GET /docs/subscription-plans for plan agent configs and GET /docs/server-config for public server limits. The server-config endpoint may return groups with fields or a settings object; missing fields or an unavailable endpoint are treated as unavailable docs, not as a page failure.",
-              "The web client calls GET /docs/subscription-plans for plan agent configs and GET /docs/server-config for public server limits. The server-config endpoint may return groups with fields or a settings object; missing fields or an unavailable endpoint are treated as unavailable docs, not as a page failure."
+              "The web client calls GET /docs/subscription-plans for plan agent configs and quotas, and GET /docs/server-config for additional public server limits. The server-config endpoint may return groups with fields or a settings object; missing fields or an unavailable endpoint are treated as unavailable docs, not as a page failure.",
+              "The web client calls GET /docs/subscription-plans for plan agent configs and quotas, and GET /docs/server-config for additional public server limits. The server-config endpoint may return groups with fields or a settings object; missing fields or an unavailable endpoint are treated as unavailable docs, not as a page failure."
             )}
           </p>
 
