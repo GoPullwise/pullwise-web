@@ -113,6 +113,8 @@ describe("API screens", () => {
           id: "pro",
           name: "Pro",
           reviewLimit: 60,
+          repositoryReviewLimit: 60,
+          repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
           agentConfig: {
             plan: "pro",
             agent: {
@@ -126,6 +128,8 @@ describe("API screens", () => {
           id: "free",
           name: "Free",
           reviewLimit: 5,
+          repositoryReviewLimit: 5,
+          repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
             agent: {
@@ -139,6 +143,8 @@ describe("API screens", () => {
           id: "max",
           name: "Max",
           reviewLimit: 90,
+          repositoryReviewLimit: 90,
+          repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
           agentConfig: {
             plan: "max",
             agent: {
@@ -156,6 +162,9 @@ describe("API screens", () => {
     expect(await screen.findByText("cli-from-api-free")).toBeInTheDocument();
     expect(screen.getByText("model-from-api-pro")).toBeInTheDocument();
     expect(screen.getByText("effort-from-api-max")).toBeInTheDocument();
+    expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
+    expect(screen.getByText(/1,000 files \/ 20,971,520 bytes \(20 MiB\)/)).toBeInTheDocument();
+    expect(screen.getByText(/2,000 files \/ 52,428,800 bytes \(50 MiB\)/)).toBeInTheDocument();
     expect(pullwiseApi.docs.getSubscriptionPlanConfigs).toHaveBeenCalledTimes(1);
 
     const cards = [...document.querySelectorAll(".docs-plan-card")];

@@ -247,6 +247,33 @@ function nonNegativeInteger(value) {
   return Math.max(0, Math.trunc(number));
 }
 
+function repositoryLimitsForPlan(plan) {
+  const limits = plan?.repositoryLimits || plan?.repository_limits || null;
+  if (!limits || typeof limits !== "object") return null;
+  const maxFiles = nonNegativeInteger(limits.maxFiles ?? limits.max_files);
+  const maxBytes = nonNegativeInteger(limits.maxBytes ?? limits.max_bytes);
+  return maxFiles || maxBytes ? { maxFiles, maxBytes } : null;
+}
+
+function formatCompactBytes(value) {
+  const bytes = nonNegativeInteger(value);
+  if (!bytes) return "";
+  const mib = 1024 * 1024;
+  const kib = 1024;
+  if (bytes >= mib && bytes % mib === 0) return `${bytes / mib} MB`;
+  if (bytes >= kib && bytes % kib === 0) return `${bytes / kib} KB`;
+  return `${bytes.toLocaleString("en-US")} bytes`;
+}
+
+function repositoryCheckoutFeatureText(plan) {
+  const limits = repositoryLimitsForPlan(plan);
+  if (!limits) return "";
+  const parts = [];
+  if (limits.maxFiles) parts.push(`${limits.maxFiles.toLocaleString("en-US")} files`);
+  if (limits.maxBytes) parts.push(formatCompactBytes(limits.maxBytes));
+  return T(`Repository checkout up to ${parts.join(" / ")}`, `仓库 checkout 最高 ${parts.join(" / ")}`);
+}
+
 function usagePercent(usage) {
   const limit = nonNegativeInteger(usage?.limit);
   if (!limit) return 0;
@@ -311,6 +338,7 @@ function fallbackFreePlan(loading = false) {
       "使用共享账户和仓库配额试用 Pullwise。"
     ),
     reviewLimit: 10,
+    repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
     loading,
     prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
   };
@@ -330,6 +358,9 @@ function fallbackPaidPlan(id, payload, loading = false) {
           )
         : T("Repository review for production teams.", "面向生产团队的仓库审查。")),
     reviewLimit: max ? 90 : 60,
+    repositoryLimits: max
+      ? { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 }
+      : { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
     loading,
     prices: {
       month: {
@@ -1245,6 +1276,7 @@ function PricingSkeletonLine({ className = "" }) {
 function PlanCard({ plan, price, interval, active, featured, cta }) {
   const loading = Boolean(plan?.loading);
   const reviewLimit = nonNegativeInteger(plan?.reviewLimit);
+  const repositoryLimitText = repositoryCheckoutFeatureText(plan);
   const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
@@ -1289,6 +1321,12 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
             T(`${reviewLimit} shared account reviews / month`, `${reviewLimit} 次/月 共享账户审查`)
           )}
         </li>
+        {repositoryLimitText && (
+          <li>
+            <I.Check size={13} />{" "}
+            {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> : repositoryLimitText}
+          </li>
+        )}
         <li>
           <I.Check size={13} />{" "}
           {T("Repository quota is shared by GitHub repo ID", "仓库配额按 GitHub repo ID 共享")}
