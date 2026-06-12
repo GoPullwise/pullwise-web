@@ -3,21 +3,30 @@ export async function onRequest(context) {
   if (!origin) {
     return json({ message: "PULLWISE_API_ORIGIN is not configured." }, 500);
   }
+  const upstreamOrigin = apiOrigin(origin);
+  if (!upstreamOrigin) {
+    return json({ message: "PULLWISE_API_ORIGIN must use HTTPS or loopback HTTP." }, 500);
+  }
 
   const incomingUrl = new URL(context.request.url);
-  const targetUrl = new URL(backendPath(incomingUrl) + incomingUrl.search, origin);
+  const targetUrl = new URL(backendPath(incomingUrl) + incomingUrl.search, upstreamOrigin);
   const headers = withoutClientProxyHeaders(context.request.headers);
   headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
   headers.set("X-Forwarded-Host", incomingUrl.host);
   const methodHasBody = hasBody(context.request.method);
 
-  const response = await fetch(targetUrl, {
-    method: context.request.method,
-    headers,
-    body: methodHasBody ? context.request.body : undefined,
-    duplex: methodHasBody ? "half" : undefined,
-    redirect: "manual",
-  });
+  let response;
+  try {
+    response = await fetch(targetUrl, {
+      method: context.request.method,
+      headers,
+      body: methodHasBody ? context.request.body : undefined,
+      duplex: methodHasBody ? "half" : undefined,
+      redirect: "manual",
+    });
+  } catch {
+    return json({ message: "Unable to reach Pullwise API upstream." }, 502);
+  }
 
   return new Response(response.body, {
     status: response.status,
@@ -31,6 +40,23 @@ function backendPath(incomingUrl) {
   if (!stripped || stripped === "/") return "/";
   return `/${stripped.replace(/^\/+/, "")}`;
 }
+
+function apiOrigin(origin) {
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol === "https:") return parsed;
+    if (parsed.protocol === "http:" && isLoopbackHost(parsed.hostname)) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function isLoopbackHost(hostname) {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  return ["localhost", "127.0.0.1", "::1"].includes(normalized);
+}
+
 function hasBody(method) {
   return !["GET", "HEAD"].includes(method.toUpperCase());
 }

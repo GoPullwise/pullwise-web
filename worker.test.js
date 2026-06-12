@@ -1,6 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import worker, { backendPath } from "./worker.js";
+
+const originalFetch = globalThis.fetch;
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
 
 describe("Cloudflare Worker API proxy", () => {
   it("routes api requests to the configured backend origin", async () => {
@@ -10,7 +16,7 @@ describe("Cloudflare Worker API proxy", () => {
           headers: { "Content-Type": "application/json" },
         })
     );
-    vi.stubGlobal("fetch", fetchMock);
+    globalThis.fetch = fetchMock;
 
     const request = new Request("https://pull-wise.com/api/auth/session?fresh=1", {
       headers: { Connection: "keep-alive", Host: "pull-wise.com" },
@@ -26,7 +32,6 @@ describe("Cloudflare Worker API proxy", () => {
     expect(fetchMock.mock.calls[0][1].headers.get("X-Forwarded-Host")).toBe("pull-wise.com");
     expect(payload.prefix).toBe(null);
 
-    vi.unstubAllGlobals();
   });
 
   it("strips spoofable client forwarding headers before proxying to the backend", async () => {
@@ -37,7 +42,7 @@ describe("Cloudflare Worker API proxy", () => {
         headers: { "Content-Type": "application/json" },
       });
     });
-    vi.stubGlobal("fetch", fetchMock);
+    globalThis.fetch = fetchMock;
 
     const request = new Request("https://pull-wise.com/api/health", {
       headers: {
@@ -71,7 +76,6 @@ describe("Cloudflare Worker API proxy", () => {
     expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("pull-wise.com");
     expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBeNull();
 
-    vi.unstubAllGlobals();
   });
 
   it("serves static assets for non-api requests", async () => {
@@ -90,6 +94,44 @@ describe("Cloudflare Worker API proxy", () => {
     await expect(response.json()).resolves.toEqual({
       message: "PULLWISE_API_ORIGIN is not configured.",
     });
+  });
+
+  it("rejects remote plaintext upstreams before forwarding credentials", async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    const response = await worker.fetch(
+      new Request("https://pull-wise.com/api/auth/session", {
+        headers: {
+          authorization: "Bearer browser-secret",
+          cookie: "pw_session=ses_1",
+        },
+      }),
+      { PULLWISE_API_ORIGIN: "http://api.pull-wise.com" }
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      message: "PULLWISE_API_ORIGIN must use HTTPS or loopback HTTP.",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+  });
+
+  it("returns a structured 502 when the backend fetch fails", async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error("connection failed"));
+    globalThis.fetch = fetchMock;
+
+    const response = await worker.fetch(
+      new Request("https://pull-wise.com/api/auth/session"),
+      { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" }
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      message: "Unable to reach Pullwise API upstream.",
+    });
+
   });
 
   it("strips the api prefix for backend paths", () => {

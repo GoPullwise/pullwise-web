@@ -18,8 +18,12 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
   if (!origin) {
     return json({ message: "PULLWISE_API_ORIGIN is not configured." }, 500);
   }
+  const upstreamOrigin = apiOrigin(origin);
+  if (!upstreamOrigin) {
+    return json({ message: "PULLWISE_API_ORIGIN must use HTTPS or loopback HTTP." }, 500);
+  }
 
-  const targetUrl = new URL(backendPath(incomingUrl.pathname) + incomingUrl.search, origin);
+  const targetUrl = new URL(backendPath(incomingUrl.pathname) + incomingUrl.search, upstreamOrigin);
   const headers = withoutClientProxyHeaders(request.headers);
   headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
   headers.set("X-Forwarded-Host", incomingUrl.host);
@@ -35,7 +39,12 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
     init.duplex = "half";
   }
 
-  const response = await fetch(targetUrl, init);
+  let response;
+  try {
+    response = await fetch(targetUrl, init);
+  } catch {
+    return json({ message: "Unable to reach Pullwise API upstream." }, 502);
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -51,6 +60,22 @@ export function backendPath(pathname) {
   const stripped = pathname.replace(/^\/api/, "");
   if (!stripped || stripped === "/") return "/";
   return `/${stripped.replace(/^\/+/, "")}`;
+}
+
+function apiOrigin(origin) {
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol === "https:") return parsed;
+    if (parsed.protocol === "http:" && isLoopbackHost(parsed.hostname)) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function isLoopbackHost(hostname) {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  return ["localhost", "127.0.0.1", "::1"].includes(normalized);
 }
 
 function hasBody(method) {

@@ -2,24 +2,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { onRequest } from "./[[path]].js";
 
+const originalFetch = globalThis.fetch;
+
 describe("api proxy", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    globalThis.fetch = originalFetch;
   });
 
   it("forwards the public Pages API base to the backend", async () => {
     let forwardedHeaders;
     let forwardedInit;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (_url, init) => {
-        forwardedHeaders = init.headers;
-        forwardedInit = init;
-        return new Response(JSON.stringify({ ok: true }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      })
-    );
+    globalThis.fetch = vi.fn(async (_url, init) => {
+      forwardedHeaders = init.headers;
+      forwardedInit = init;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    });
 
     await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
@@ -38,20 +37,17 @@ describe("api proxy", () => {
 
   it("removes hop-by-hop headers while proxying requests and responses", async () => {
     let forwardedHeaders;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (_url, init) => {
-        forwardedHeaders = init.headers;
-        return new Response(JSON.stringify({ ok: true }), {
-          headers: {
-            Connection: "X-Backend-Hop",
-            "Keep-Alive": "timeout=5",
-            "X-Backend-Hop": "drop-me",
-            "X-Request-Id": "req_1",
-          },
-        });
-      })
-    );
+    globalThis.fetch = vi.fn(async (_url, init) => {
+      forwardedHeaders = init.headers;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: {
+          Connection: "X-Backend-Hop",
+          "Keep-Alive": "timeout=5",
+          "X-Backend-Hop": "drop-me",
+          "X-Request-Id": "req_1",
+        },
+      });
+    });
 
     const response = await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
@@ -137,5 +133,43 @@ describe("api proxy", () => {
     });
 
     expect(forwardedUrl).toBe("https://api.internal/https://evil.example/steal?x=1");
+  });
+
+  it("rejects remote plaintext upstreams before forwarding credentials", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await onRequest({
+      env: { PULLWISE_API_ORIGIN: "http://api.internal" },
+      request: new Request("https://pull-wise.com/api/auth/session", {
+        headers: {
+          authorization: "Bearer browser-secret",
+          cookie: "pw_session=ses_1",
+        },
+      }),
+    });
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      message: "PULLWISE_API_ORIGIN must use HTTPS or loopback HTTP.",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a structured 502 when the backend fetch fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new Error("connection failed"))
+    );
+
+    const response = await onRequest({
+      env: { PULLWISE_API_ORIGIN: "https://api.internal" },
+      request: new Request("https://pull-wise.com/api/auth/session"),
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      message: "Unable to reach Pullwise API upstream.",
+    });
   });
 });
