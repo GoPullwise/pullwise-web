@@ -26,10 +26,6 @@ export const CONFIDENCE_BUCKETS = [
   { key: "low", color: "#9ca3af" },
 ];
 
-function pickBucket(buckets, key) {
-  return buckets.find((bucket) => bucket.key === key) || null;
-}
-
 function safeCount(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return 0;

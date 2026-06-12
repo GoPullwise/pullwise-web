@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -83,6 +84,7 @@ function scanAgentConfigLabel(scan) {
 const SEVERITY_WEIGHTS = { critical: 10, high: 7, medium: 4, low: 2, info: 1 };
 const SEVERITY_RANK = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
 const HOTSPOT_LIMIT = 5;
+const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
 
 const SEVERITY_LEVELS = [
   { key: "critical", en: "Critical", zh: "关键", color: "var(--sev-critical)" },
@@ -353,6 +355,7 @@ function DashboardSkeleton() {
 
 export function DashboardScreen({ go, setIssue, accent }) {
   useLang();
+  const [retryingScanId, setRetryingScanId] = useState("");
   const {
     items: issues,
     loading: issuesLoading,
@@ -361,7 +364,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
     status: "open",
     limit: 50,
   });
-  const { items: scans, loading: scansLoading } = useScans({ limit: 50 });
+  const { items: scans, loading: scansLoading, reload: reloadScans } = useScans({ limit: 50 });
   const { items: repositories, loading: reposLoading, needsAuthorization } = useRepositories();
 
   const openIssues = issues;
@@ -391,6 +394,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const highPct = openIssues.length ? Math.round((highShare / openIssues.length) * 100) : 0;
   const latestScan = scans[0];
   const latestScanAgentLabel = scanAgentConfigLabel(latestScan);
+  const canRetryLatestScan = Boolean(
+    latestScan?.id && RETRYABLE_SCAN_STATUSES.has(String(latestScan.status || "").toLowerCase())
+  );
   const hotspots = useMemo(() => issueRiskHotspots(openIssues), [openIssues]);
 
   const issueTrend = useMemo(() => scans.slice(0, 14).reverse().map(scanIssueTotal), [scans]);
@@ -409,6 +415,19 @@ export function DashboardScreen({ go, setIssue, accent }) {
   );
 
   const dashboardLoading = issuesLoading || scansLoading || reposLoading;
+
+  const retryLatestScan = async () => {
+    if (!canRetryLatestScan || retryingScanId) return;
+    setRetryingScanId(latestScan.id);
+    try {
+      await pullwiseApi.scans.retry(latestScan.id);
+      if (typeof reloadScans === "function") await reloadScans();
+    } catch (retryError) {
+      window.alert(retryError?.message || T("Unable to retry scan.", "无法重试扫描。"));
+    } finally {
+      setRetryingScanId("");
+    }
+  };
 
   return (
     <div className="app fade-in">
@@ -503,6 +522,18 @@ export function DashboardScreen({ go, setIssue, accent }) {
                 <div className="kpi card">
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Scans", "扫描")}</span>
+                    {canRetryLatestScan && (
+                      <button
+                        type="button"
+                        className="btn sm kpi-retry-btn"
+                        disabled={retryingScanId === latestScan.id}
+                        onClick={retryLatestScan}
+                      >
+                        {retryingScanId === latestScan.id
+                          ? T("Retrying...", "正在重试...")
+                          : T("Retry", "重试")}
+                      </button>
+                    )}
                   </div>
                   <div className="kpi-v">{scansLoading ? "-" : scans.length}</div>
                   <div className="kpi-foot">

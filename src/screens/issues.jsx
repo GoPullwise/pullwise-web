@@ -2050,13 +2050,6 @@ function HistoryGroups({
   );
 }
 
-const SEVERITY_BAR_SEGMENTS = [
-  { key: "critical", color: "var(--sev-critical)" },
-  { key: "high", color: "var(--sev-high)" },
-  { key: "medium", color: "var(--sev-medium)" },
-  { key: "low", color: "var(--sev-low)" },
-];
-
 const SEVERITY_LEGEND = [
   { key: "critical", labelEn: "Critical", labelZh: "关键" },
   { key: "high", labelEn: "High", labelZh: "高" },

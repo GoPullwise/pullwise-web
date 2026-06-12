@@ -193,7 +193,7 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="rights" title={sections[6].title}>
         <p>
           {T(
-            `You can request access, export, correction, or deletion of your account data by contacting ${CONTACT_EMAIL}. You can also revoke API keys, disconnect GitHub access, cancel renewal, and use supported subscription upgrades from Pullwise Billing where those controls are available.`,
+            `You can request access, export, correction, or deletion of your account data by contacting ${CONTACT_EMAIL}. You can also revoke API keys, disconnect GitHub access, cancel or resume renewal, and use supported subscription upgrades from Pullwise Billing where those controls are available.`,
             `你可以通过 ${CONTACT_EMAIL} 请求访问、导出、更正或删除账户数据。你也可以在产品提供相应控件时吊销 API key、断开 GitHub 访问，并管理订阅。`
           )}
         </p>
@@ -322,7 +322,7 @@ export function TermsScreen({ go, auth }) {
         </p>
         <p>
           {T(
-            "You can cancel renewal for an active subscription from Pullwise Billing. Cancellation is scheduled for the end of the current paid period, so access continues until that period ends. Unless required by law or explicitly stated in the product, fees already incurred are non-refundable.",
+            "You can cancel renewal for an active subscription from Pullwise Billing. Cancellation is scheduled for the end of the current paid period, so access continues until that period ends. You can resume renewal from Pullwise Billing before the scheduled cancellation takes effect. Unless required by law or explicitly stated in the product, fees already incurred are non-refundable.",
             {
               zh: "你可以从 Pullwise 账单页取消有效订阅的续订。取消续订会安排在当前已付周期结束时生效，因此访问权限会持续到该周期结束。除非法律要求或产品中明确说明，已经产生的费用不予退款。",
               ja: "有効なサブスクリプションの更新キャンセルは Pullwise の請求ページから行えます。キャンセルは現在の支払い済み期間の終了時に予定されるため、その期間が終わるまでアクセスは継続します。法律で求められる場合、または製品内で明示される場合を除き、すでに発生した料金は返金されません。",

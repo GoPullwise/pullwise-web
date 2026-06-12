@@ -1,9 +1,17 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardScreen } from "./dashboard.jsx";
+
+vi.mock("../api/pullwise.js", () => ({
+  pullwiseApi: {
+    scans: {
+      retry: vi.fn(),
+    },
+  },
+}));
 
 vi.mock("../lib/pullwise-data.js", () => ({
   useIssues: vi.fn(),
@@ -11,9 +19,19 @@ vi.mock("../lib/pullwise-data.js", () => ({
   useScans: vi.fn(),
 }));
 
+import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 
 describe("DashboardScreen issue list", () => {
+  beforeEach(() => {
+    pullwiseApi.scans.retry.mockReset();
+    pullwiseApi.scans.retry.mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("labels the dashboard as an account overview with real page-jump links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
@@ -93,6 +111,80 @@ describe("DashboardScreen issue list", () => {
     render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
 
     expect(screen.getByText("Last: now · codex · gpt-5.5 · reasoning: high")).toBeInTheDocument();
+  });
+
+  it("retries the failed latest scan and reloads scans", async () => {
+    const user = userEvent.setup();
+    const reload = vi.fn().mockResolvedValue(undefined);
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "scan_failed_latest",
+          repo: "acme/api",
+          branch: "main",
+          commit: "abc123",
+          status: "failed",
+          time: "now",
+        },
+        {
+          id: "scan_failed_old",
+          repo: "acme/api",
+          branch: "main",
+          commit: "def456",
+          status: "failed",
+          time: "earlier",
+        },
+      ],
+      loading: false,
+      reload,
+    });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    await user.click(screen.getByRole("button", { name: /^retry$/i }));
+
+    expect(pullwiseApi.scans.retry).toHaveBeenCalledWith("scan_failed_latest");
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+  });
+
+  it("alerts when retrying the latest scan fails", async () => {
+    const user = userEvent.setup();
+    const reload = vi.fn();
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    pullwiseApi.scans.retry.mockRejectedValueOnce(new Error("Retry service unavailable"));
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "scan_cancelled_latest",
+          repo: "acme/api",
+          branch: "main",
+          commit: "abc123",
+          status: "cancelled",
+          time: "now",
+        },
+      ],
+      loading: false,
+      reload,
+    });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    await user.click(screen.getByRole("button", { name: /^retry$/i }));
+
+    await waitFor(() => expect(alert).toHaveBeenCalledWith("Retry service unavailable"));
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it("keeps overview KPI sparklines aligned across all cards", () => {
