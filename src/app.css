@@ -1585,6 +1585,149 @@ body.has-proto-nav {
   margin-left: 0;
 }
 
+.server-machine-monitor {
+  display: grid;
+  gap: 16px;
+}
+
+.server-machine-facts,
+.server-machine-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.server-machine-facts {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.server-machine-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.server-machine-facts > div,
+.server-machine-metric {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-soft);
+}
+
+.server-machine-facts > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.server-machine-facts span,
+.server-machine-metric-h,
+.server-machine-metric-detail,
+.server-machine-range,
+.server-machine-chart-empty {
+  color: var(--text-3);
+}
+
+.server-machine-facts b,
+.server-machine-metric-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.server-machine-metric {
+  display: grid;
+  grid-template-rows: 22px 36px 18px 70px 16px;
+  gap: 6px;
+  padding: 12px;
+}
+
+.server-machine-metric-h,
+.server-machine-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.server-machine-metric-h > span:last-child,
+.server-machine-metric-detail,
+.server-machine-range > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-machine-metric-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  background: var(--bg-elev);
+  color: var(--text-2);
+}
+
+.server-machine-metric-value {
+  font-size: 28px;
+  font-weight: 680;
+  line-height: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+.server-machine-metric-detail {
+  font-size: 12px;
+}
+
+.server-machine-chart,
+.server-machine-sparkline,
+.server-machine-chart-empty {
+  min-width: 0;
+  width: 100%;
+  height: 70px;
+}
+
+.server-machine-sparkline {
+  display: block;
+}
+
+.server-machine-chart-empty {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.server-machine-range {
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+}
+
+.server-machine-skeleton {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .server-machine-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .server-machine-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .server-machine-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .docs-plan-name,
 .docs-plan-key,
 .docs-plan-kv b,

@@ -20,6 +20,9 @@ vi.mock("../api/pullwise.js", () => ({
       get: vi.fn(),
       update: vi.fn(),
     },
+    admin: {
+      serverMetrics: vi.fn(),
+    },
   },
 }));
 
@@ -44,6 +47,9 @@ describe("SettingsScreen", () => {
       profile: { name: "Taylor", email: "taylor@example.com" },
       review: { outputLanguage: "en" },
     });
+    pullwiseApi.admin.serverMetrics.mockRejectedValue(
+      Object.assign(new Error("Admin access is required."), { status: 403 })
+    );
   });
 
   it("lets users add another GitHub account or organization from personal authorizations", async () => {
@@ -324,6 +330,72 @@ describe("SettingsScreen", () => {
       });
       expect(select).toHaveValue("zh-CN");
     });
+  });
+
+  it("renders admin server machine history without CPU Usage", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: false,
+        repositories: [],
+      },
+    });
+    pullwiseApi.admin.serverMetrics.mockResolvedValue({
+      ok: true,
+      collectedAt: 1781200060,
+      server: {
+        hostname: "api-1",
+        platform: "Linux-6.8",
+        machine: "x86_64",
+      },
+      cpu: {
+        logicalCount: 8,
+        loadAverage: { oneMinute: 1.25, fiveMinute: 0.75, fifteenMinute: 0.5 },
+      },
+      memory: {
+        totalBytes: 8589934592,
+        availableBytes: 3221225472,
+        usedBytes: 5368709120,
+        usedPercent: 62.5,
+      },
+      storage: {
+        totalBytes: 107374182400,
+        freeBytes: 64424509440,
+        usedBytes: 42949672960,
+        usedPercent: 40.0,
+      },
+      history: [
+        {
+          collectedAt: 1781200000,
+          cpu: {
+            logicalCount: 8,
+            loadAverage: { oneMinute: 0.8, fiveMinute: 0.6, fifteenMinute: 0.4 },
+          },
+          memory: { usedPercent: 58.2 },
+          storage: { usedPercent: 39.7 },
+        },
+        {
+          collectedAt: 1781200060,
+          cpu: {
+            logicalCount: 8,
+            loadAverage: { oneMinute: 1.25, fiveMinute: 0.75, fifteenMinute: 0.5 },
+          },
+          memory: { usedPercent: 62.5 },
+          storage: { usedPercent: 40.0 },
+        },
+      ],
+    });
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /server machine/i }));
+
+    expect(screen.getByText("api-1")).toBeInTheDocument();
+    expect(screen.getByText("Memory Usage")).toBeInTheDocument();
+    expect(screen.getByText("Storage Usage")).toBeInTheDocument();
+    expect(screen.getByText("Load Average")).toBeInTheDocument();
+    expect(screen.queryByText(/CPU Usage/i)).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".server-machine-sparkline").length).toBe(3);
   });
 
   it("keeps the selected review output language when a delayed save response echoes stale English", async () => {
