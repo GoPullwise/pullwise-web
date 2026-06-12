@@ -67,13 +67,25 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
         label: `${PLAN_LABELS[plan]} repository monthly scans`,
         description: `Maximum scans one repository can receive in a billing cycle for ${PLAN_LABELS[plan]} users.`,
       },
+      {
+        path: `plans.${plan}.maxRepoFiles`,
+        candidates: [`plans.${plan}.maxRepoFiles`],
+        label: `${PLAN_LABELS[plan]} repository file limit`,
+        description: `Repository checkouts above this file count stop before verifier or AI review for ${PLAN_LABELS[plan]} users.`,
+      },
+      {
+        path: `plans.${plan}.maxRepoBytes`,
+        candidates: [`plans.${plan}.maxRepoBytes`],
+        label: `${PLAN_LABELS[plan]} repository byte limit`,
+        description: `Repository checkouts above this size stop before verifier or AI review for ${PLAN_LABELS[plan]} users.`,
+      },
     ]),
   },
   {
     id: "scan",
     title: "Scan limits",
     description:
-      "Queue and repository-size limits visible to users when scans are accepted or rejected.",
+      "Queue limits visible to users when scans are accepted or rejected.",
     fields: [
       {
         path: "scan.maxRunningScansPerUser",
@@ -92,19 +104,6 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
         candidates: ["scan.maxQueuedScansGlobal"],
         label: "Global queued scans",
         description: "Maximum queued scans across the service.",
-      },
-      {
-        path: "scan.maxRepoFiles",
-        candidates: ["scan.maxRepoFiles"],
-        label: "Repository file limit",
-        description:
-          "Repository checkouts above this file count stop before verifier or AI review.",
-      },
-      {
-        path: "scan.maxRepoBytes",
-        candidates: ["scan.maxRepoBytes"],
-        label: "Repository byte limit",
-        description: "Repository checkouts above this size stop before verifier or AI review.",
       },
     ],
   },
@@ -220,6 +219,15 @@ function normalizePlanConfig(record = {}) {
   return {
     plan,
     label: PLAN_LABELS[plan] || titleCase(rawPlan),
+    reviewLimit: valueFromPlanRecord(record, "reviewLimit", "review_limit"),
+    repositoryReviewLimit: valueFromPlanRecord(
+      record,
+      "repositoryReviewLimit",
+      "repository_review_limit"
+    ),
+    repositoryLimits: normalizeRepositoryLimits(
+      record.repositoryLimits || record.repository_limits || record.checkoutLimits
+    ),
     agentCli: textValue(
       record.agentCli,
       record.cli,
@@ -248,6 +256,26 @@ function normalizePlanConfig(record = {}) {
       settings.reasoningEffort,
     ),
   };
+}
+
+function valueFromPlanRecord(record, ...keys) {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(record, key)) return record[key];
+  }
+  return undefined;
+}
+
+function limitNumber(value) {
+  const number = numericValue(value);
+  if (number === null) return null;
+  return Math.max(0, Math.trunc(number));
+}
+
+function normalizeRepositoryLimits(value) {
+  if (!objectRecord(value)) return null;
+  const maxFiles = limitNumber(value.maxFiles ?? value.max_files ?? value.fileLimit);
+  const maxBytes = limitNumber(value.maxBytes ?? value.max_bytes ?? value.byteLimit);
+  return maxFiles || maxBytes ? { maxFiles, maxBytes } : null;
 }
 
 function planSortIndex(plan) {
@@ -334,7 +362,7 @@ function isAllowedServerConfigField(field, group) {
   if (!fieldText.trim() || SENSITIVE_CONFIG_FIELD_PATTERN.test(fieldText)) return false;
 
   const pathKey = serverConfigPathKey(path);
-  if (/^plans\.[^.]+\.(userreviewlimit|repositoryreviewlimit|reviewlimit)$/.test(pathKey)) {
+  if (/^plans\.[^.]+\.(userreviewlimit|repositoryreviewlimit|reviewlimit|maxrepofiles|maxrepobytes)$/.test(pathKey)) {
     return true;
   }
 
@@ -343,8 +371,6 @@ function isAllowedServerConfigField(field, group) {
       "scan.maxrunningscansperuser",
       "scan.maxqueuedscansglobal",
       "scan.maxqueuedscansperuser",
-      "scan.maxrepofiles",
-      "scan.maxrepobytes",
       "ratelimit.enabled",
       "ratelimit.requests",
       "ratelimit.windowseconds",
@@ -364,7 +390,7 @@ function isAllowedServerConfigField(field, group) {
 
   const labelKey = label.toLowerCase();
   if (groupId === "plans" || groupId === "planquotas" || groupId === "subscriptionplans") {
-    return /quota|monthly scans|review limit/.test(labelKey);
+    return /quota|monthly scans|review limit|repository|repo|checkout|file limit|byte limit/.test(labelKey);
   }
   if (groupId === "scan" || groupId === "scanlimits") {
     return /queue|queued|running|repository|repo|limit/.test(labelKey);
@@ -494,6 +520,14 @@ function formatBytes(value) {
     if (amount < 1024) break;
   }
   return `${bytes.toLocaleString("en-US")} bytes (${amount.toFixed(amount >= 10 ? 0 : 1)} ${unit})`;
+}
+
+function formatRepositoryLimits(limits) {
+  if (!limits) return "";
+  const parts = [];
+  if (limits.maxFiles) parts.push(`${limits.maxFiles.toLocaleString("en-US")} files`);
+  if (limits.maxBytes) parts.push(formatBytes(limits.maxBytes));
+  return parts.join(" / ");
 }
 
 function formatServerConfigValue(field) {
@@ -723,6 +757,28 @@ export function DocsScreen({ go, auth }) {
                   <div className="docs-plan-kv">
                     <b>{T("Reasoning effort", "Reasoning effort")}</b>
                     <ConfigValue value={plan.reasoningEffort} />
+                  </div>
+                  <div className="docs-plan-kv">
+                    <b>{T("Monthly account scans", "Monthly account scans")}</b>
+                    <ConfigValue
+                      value={formatServerConfigValue({
+                        path: "plans.reviewLimit",
+                        value: plan.reviewLimit,
+                      })}
+                    />
+                  </div>
+                  <div className="docs-plan-kv">
+                    <b>{T("Monthly repository scans", "Monthly repository scans")}</b>
+                    <ConfigValue
+                      value={formatServerConfigValue({
+                        path: "plans.repositoryReviewLimit",
+                        value: plan.repositoryReviewLimit,
+                      })}
+                    />
+                  </div>
+                  <div className="docs-plan-kv">
+                    <b>{T("Repository checkout", "Repository checkout")}</b>
+                    <ConfigValue value={formatRepositoryLimits(plan.repositoryLimits)} />
                   </div>
                 </article>
               ))}
