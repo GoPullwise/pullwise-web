@@ -876,6 +876,7 @@ function CompactAuditList({ title, items }) {
 
 function CompletionAuditPanel({ audit }) {
   if (!audit) return null;
+  const hasDetails = [audit.blockers, audit.warnings, audit.checks].some((items) => items?.length);
   return (
     <div className="card scanning-preflight scan-compact-panel">
       <div className="scan-compact-head">
@@ -890,9 +891,13 @@ function CompletionAuditPanel({ audit }) {
         {audit.updatedAt && <span>{T(`Updated: ${audit.updatedAt}`, `更新于：${audit.updatedAt}`)}</span>}
         {audit.outcome && <span>{T(`Outcome: ${audit.outcome}`, `结果：${audit.outcome}`)}</span>}
       </div>
-      <CompactAuditList title={T("Blockers", "阻塞项")} items={audit.blockers} />
-      <CompactAuditList title={T("Warnings", "警告")} items={audit.warnings} />
-      <CompactAuditList title={T("Checks", "检查项")} items={audit.checks} />
+      {hasDetails && (
+        <div className="scan-audit-scroll">
+          <CompactAuditList title={T("Blockers", "阻塞项")} items={audit.blockers} />
+          <CompactAuditList title={T("Warnings", "警告")} items={audit.warnings} />
+          <CompactAuditList title={T("Checks", "检查项")} items={audit.checks} />
+        </div>
+      )}
     </div>
   );
 }
@@ -916,7 +921,7 @@ function JobTracePanel({ trace }) {
       </div>
       {checkpoints.length > 0 && (
         <div className="scan-trace-list" role="list" aria-label={T("Job trace checkpoints", "任务轨迹检查点")}>
-          {checkpoints.slice(0, 8).map((checkpoint) => (
+          {checkpoints.map((checkpoint) => (
             <div key={checkpoint.key} className="scan-trace-item" role="listitem">
               <div className="scan-trace-item-head">
                 <span className="scan-trace-item-title">{checkpoint.label}</span>
@@ -933,11 +938,6 @@ function JobTracePanel({ trace }) {
               )}
             </div>
           ))}
-          {checkpoints.length > 8 && (
-            <div className="muted scan-trace-more">
-              {T(`+${checkpoints.length - 8} more checkpoints`, `还有 ${checkpoints.length - 8} 个检查点`)}
-            </div>
-          )}
         </div>
       )}
     </div>

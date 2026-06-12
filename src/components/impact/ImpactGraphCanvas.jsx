@@ -62,9 +62,26 @@ function buildImpactElements(impactGraph, relationKeys) {
   return elements;
 }
 
+function impactGraphElementsKey(elements) {
+  const nodes = [];
+  const edges = [];
+  for (const element of elements) {
+    const data = element?.data || {};
+    if (data.source && data.target) {
+      edges.push([data.id, data.source, data.target, data.label || ""]);
+    } else {
+      nodes.push([data.id, data.label || "", data.role || "", data.path || ""]);
+    }
+  }
+  nodes.sort((left, right) => String(left[0]).localeCompare(String(right[0])));
+  edges.sort((left, right) => String(left[0]).localeCompare(String(right[0])));
+  return JSON.stringify({ nodes, edges });
+}
+
 export function ImpactGraphCanvas({ impactGraph }) {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
+  const elementCacheRef = useRef({ key: "", elements: [] });
   const [showImports, setShowImports] = useState(false);
   const relationKeys = useMemo(
     () =>
@@ -73,10 +90,15 @@ export function ImpactGraphCanvas({ impactGraph }) {
         : IMPACT_DEFAULT_GRAPH_RELATIONS,
     [showImports]
   );
-  const elements = useMemo(
-    () => buildImpactElements(impactGraph, relationKeys),
-    [impactGraph, relationKeys]
-  );
+  const elements = useMemo(() => {
+    const nextElements = buildImpactElements(impactGraph, relationKeys);
+    const nextKey = impactGraphElementsKey(nextElements);
+    if (elementCacheRef.current.key === nextKey) {
+      return elementCacheRef.current.elements;
+    }
+    elementCacheRef.current = { key: nextKey, elements: nextElements };
+    return nextElements;
+  }, [impactGraph, relationKeys]);
 
   useEffect(() => {
     if (!containerRef.current || elements.length === 0) return undefined;

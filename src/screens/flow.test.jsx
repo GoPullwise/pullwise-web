@@ -1001,6 +1001,105 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText("Candidate audit")).not.toBeInTheDocument();
   });
 
+  it("renders every job trace checkpoint inside a scrollable list", () => {
+    const checkpoints = Array.from({ length: 12 }, (_, index) => ({
+      key: `checkpoint-${index + 1}`,
+      label: `Checkpoint ${index + 1}`,
+      status: index < 10 ? "done" : "running",
+      at: `2026-06-12T00:${String(index + 1).padStart(2, "0")}:00Z`,
+      jobId: "job_123",
+      workerId: "worker_a",
+      attempt: 1,
+      summary: `Checkpoint ${index + 1} summary`,
+    }));
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        progress: 65,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        jobTrace: {
+          status: "running",
+          summary: "Worker is processing the scan.",
+          currentJobId: "job_123",
+          workerId: "worker_a",
+          updatedAt: "2026-06-12T00:12:00Z",
+          checkpoints,
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_running", fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const traceList = screen.getByRole("list", { name: /job trace checkpoints/i });
+    expect(within(traceList).getByText("Checkpoint 12")).toBeInTheDocument();
+    expect(traceList.querySelectorAll(".scan-trace-item")).toHaveLength(12);
+    expect(screen.queryByText(/\+\d+ more checkpoints/i)).not.toBeInTheDocument();
+
+    const styles = readFileSync("styles/screens.css", "utf8");
+    expect(styles).toMatch(
+      /\.scan-audit-scroll,\s*\.scan-trace-list\s*\{[^}]*max-height:\s*clamp\(220px,\s*34vh,\s*360px\);/s
+    );
+    expect(styles).toMatch(
+      /\.scan-audit-scroll,\s*\.scan-trace-list\s*\{[^}]*overflow-y:\s*auto;/s
+    );
+    expect(styles).toMatch(
+      /\.scan-audit-scroll,\s*\.scan-trace-list\s*\{[^}]*overscroll-behavior-y:\s*contain;/s
+    );
+  });
+
+  it("keeps completion audit detail lists scrollable in the scan side panel", () => {
+    const checks = Array.from({ length: 14 }, (_, index) => ({
+      key: `check-${index + 1}`,
+      label: `Audit check ${index + 1}`,
+      status: index < 12 ? "passed" : "warning",
+      summary: `Audit check ${index + 1} result detail`,
+    }));
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        completionAudit: {
+          status: "warning",
+          outcome: "partial",
+          summary: "Completion audit captured worker checks.",
+          completedAt: "2026-06-12T00:14:00Z",
+          checks,
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_done", fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    expect(screen.getByText("Completion audit")).toBeInTheDocument();
+    const auditScroll = document.querySelector(".scan-audit-scroll");
+    expect(auditScroll).not.toBeNull();
+    expect(within(auditScroll).getByText("Audit check 14")).toBeInTheDocument();
+    expect(auditScroll.querySelectorAll(".scan-compact-item")).toHaveLength(14);
+  });
+
   it("hides Audit Swarm evidence and download until the review phase finishes", () => {
     useScanRun.mockReturnValue({
       scan: {
@@ -1381,6 +1480,53 @@ describe("ScanningScreen queue state", () => {
         "This scan did not return an impact graph. Repository graph and issue evidence remain available."
       )
     ).toBeInTheDocument();
+  });
+
+  it("keeps the impact graph instance stable across running scan refreshes", () => {
+    const go = vi.fn();
+    const cancel = vi.fn();
+    const activeRepo = { scanId: "sc_impact", fullName: "octocat/impact", defaultBranch: "main" };
+    const scan = {
+      id: "sc_impact",
+      repo: "octocat/impact",
+      branch: "main",
+      commit: "abc123",
+      status: "running",
+      phase: "index",
+      progress: 35,
+      issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      impactGraph: impactGraphFixture,
+    };
+    useScanRun.mockReturnValue({ scan, error: "", cancel });
+
+    const { rerender } = render(<ScanningScreen go={go} activeRepo={activeRepo} />);
+
+    expect(cytoscape).toHaveBeenCalledTimes(1);
+    expect(cytoscape.mock.calls[0][0].elements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          data: expect.objectContaining({ id: "file:src/auth/session.ts", role: "target" }),
+        }),
+      ])
+    );
+    const cy = cytoscape.mock.results[0].value;
+
+    useScanRun.mockReturnValue({
+      scan: {
+        ...scan,
+        phase: "ai",
+        progress: 62,
+        impactGraph: cloneFixture(impactGraphFixture),
+      },
+      error: "",
+      cancel,
+    });
+
+    rerender(<ScanningScreen go={go} activeRepo={activeRepo} />);
+
+    expect(cytoscape).toHaveBeenCalledTimes(1);
+    expect(cy.destroy).not.toHaveBeenCalled();
+    expect(cy.layout).not.toHaveBeenCalled();
   });
 
   it("keeps the repository graph instance stable across running scan refreshes", () => {

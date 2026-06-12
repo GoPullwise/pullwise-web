@@ -1309,6 +1309,7 @@
 
 .scan-compact-panel {
   gap: 10px;
+  min-width: 0;
 }
 
 .scan-compact-head {
@@ -1373,9 +1374,20 @@
 }
 
 .scan-compact-list,
+.scan-audit-scroll,
 .scan-trace-list {
   display: grid;
   gap: 8px;
+}
+
+.scan-audit-scroll,
+.scan-trace-list {
+  max-height: clamp(220px, 34vh, 360px);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
 
 .scan-compact-item,

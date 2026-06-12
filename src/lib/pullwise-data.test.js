@@ -387,6 +387,85 @@ describe("useScans", () => {
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
+
+  it("keeps active scan polling timeouts out of the page error state", async () => {
+    const recovery = deferred();
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_retry",
+      repo: "owner/repo",
+      branch: "main",
+      status: "running",
+      progress: 35,
+    });
+    pullwiseApi.scans.get
+      .mockRejectedValueOnce(new Error("timeout of 12000ms exceeded"))
+      .mockReturnValueOnce(recovery.promise);
+
+    const { result, unmount } = renderHook(() =>
+      useScanRun({
+        repo: "owner/repo",
+        branch: "main",
+        pollIntervalMs: 5,
+      })
+    );
+
+    await waitFor(() => expect(result.current.scan?.status).toBe("running"));
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledTimes(2));
+    expect(result.current.error).toBe("");
+
+    await act(async () => {
+      recovery.resolve({
+        id: "sc_retry",
+        repo: "owner/repo",
+        branch: "main",
+        status: "done",
+        progress: 100,
+      });
+    });
+
+    await waitFor(() => expect(result.current.scan?.status).toBe("done"));
+    expect(result.current.error).toBe("");
+    unmount();
+  });
+
+  it("keeps batch scan polling timeouts out of the page error state", async () => {
+    const recovery = deferred();
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_batch_retry",
+      repo: "owner/alpha",
+      branch: "main",
+      status: "running",
+      progress: 25,
+    });
+    pullwiseApi.scans.get
+      .mockRejectedValueOnce(new Error("timeout of 12000ms exceeded"))
+      .mockReturnValueOnce(recovery.promise);
+
+    const { result, unmount } = renderHook(() =>
+      useScanBatchRun({
+        repositories: [{ repo: "owner/alpha", branch: "main", commit: "pending" }],
+        pollIntervalMs: 5,
+      })
+    );
+
+    await waitFor(() => expect(result.current.scans[0]?.status).toBe("running"));
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledTimes(2));
+    expect(result.current.error).toBe("");
+
+    await act(async () => {
+      recovery.resolve({
+        id: "sc_batch_retry",
+        repo: "owner/alpha",
+        branch: "main",
+        status: "done",
+        progress: 100,
+      });
+    });
+
+    await waitFor(() => expect(result.current.scans[0]?.status).toBe("done"));
+    expect(result.current.error).toBe("");
+    unmount();
+  });
 });
 
 describe("useIssues", () => {

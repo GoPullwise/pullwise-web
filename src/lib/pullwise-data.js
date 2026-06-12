@@ -2202,8 +2202,23 @@ export function useScanRun({
   const [scan, setScan] = useState(null);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
+  const [pollRetryTick, setPollRetryTick] = useState(0);
   const [retrying, setRetrying] = useState(false);
   const initialScanRef = useRef(initialScan);
+  const errorSourceRef = useRef("");
+
+  const setRunError = useCallback((err, fallback, source) => {
+    errorSourceRef.current = source;
+    setError(err?.message || fallback);
+    setErrorCode(textValue(err?.code, err?.payload?.code));
+  }, []);
+
+  const clearRunError = useCallback((sources = null) => {
+    if (Array.isArray(sources) && !sources.includes(errorSourceRef.current)) return;
+    errorSourceRef.current = "";
+    setError("");
+    setErrorCode("");
+  }, []);
 
   useEffect(() => {
     initialScanRef.current = initialScan;
@@ -2213,46 +2228,48 @@ export function useScanRun({
     if (scanId) return undefined;
     if (!repo && !repoId) return undefined;
     let alive = true;
-    setError("");
-    setErrorCode("");
+    clearRunError();
     pullwiseApi.scans
       .create(scanCreatePayload({ repoId, repo, branch, commit, requestId }))
       .then((payload) => {
-        if (alive) setScan(normalizeScan(payload));
+        if (alive) {
+          setScan(normalizeScan(payload));
+          clearRunError();
+        }
       })
       .catch((err) => {
         if (alive) {
-          setError(err?.message || "Unable to start scan.");
-          setErrorCode(textValue(err?.code, err?.payload?.code));
+          setRunError(err, "Unable to start scan.", "create");
         }
       });
     return () => {
       alive = false;
     };
-  }, [scanId, repoId, repo, branch, commit, requestId]);
+  }, [scanId, repoId, repo, branch, commit, requestId, clearRunError, setRunError]);
 
   useEffect(() => {
     if (!scanId) return undefined;
     let alive = true;
     const seedScan = initialScanRef.current;
-    setError("");
-    setErrorCode("");
+    clearRunError();
     setScan(seedScan?.id === scanId ? normalizeScan(seedScan) : null);
     pullwiseApi.scans
       .get(scanId)
       .then((payload) => {
-        if (alive) setScan(normalizeScan(payload));
+        if (alive) {
+          setScan(normalizeScan(payload));
+          clearRunError();
+        }
       })
       .catch((err) => {
         if (alive) {
-          setError(err?.message || "Unable to load scan.");
-          setErrorCode(textValue(err?.code, err?.payload?.code));
+          setRunError(err, "Unable to load scan.", seedScan?.id === scanId ? "load" : "initial-load");
         }
       });
     return () => {
       alive = false;
     };
-  }, [scanId]);
+  }, [scanId, clearRunError, setRunError]);
 
   useEffect(() => {
     if (!scan?.id || isTerminalScan(scan)) return undefined;
@@ -2260,11 +2277,13 @@ export function useScanRun({
     const handle = setTimeout(async () => {
       try {
         const next = await pullwiseApi.scans.get(scan.id);
-        if (alive) setScan(normalizeScan(next));
-      } catch (err) {
         if (alive) {
-          setError(err?.message || "Polling failed.");
-          setErrorCode(textValue(err?.code, err?.payload?.code));
+          setScan(normalizeScan(next));
+          clearRunError(["load", "poll"]);
+        }
+      } catch {
+        if (alive) {
+          setPollRetryTick((tick) => tick + 1);
         }
       }
     }, pollIntervalMs);
@@ -2272,7 +2291,7 @@ export function useScanRun({
       alive = false;
       clearTimeout(handle);
     };
-  }, [scan, pollIntervalMs]);
+  }, [scan, pollIntervalMs, pollRetryTick, clearRunError, setRunError]);
 
   const cancel = async () => {
     if (!scan?.id || isTerminalScan(scan)) return;
@@ -2280,16 +2299,14 @@ export function useScanRun({
       const updated = await pullwiseApi.scans.cancel(scan.id);
       setScan(normalizeScan(updated));
     } catch (err) {
-      setError(err?.message || "Cancel failed.");
-      setErrorCode(textValue(err?.code, err?.payload?.code));
+      setRunError(err, "Cancel failed.", "cancel");
     }
   };
 
   const retry = async () => {
     if (!scan?.id || !["failed", "cancelled", "lost"].includes(scan.status)) return null;
     setRetrying(true);
-    setError("");
-    setErrorCode("");
+    clearRunError();
     try {
       const payload = await pullwiseApi.scans.retry(scan.id);
       const inlinePayload = retryResponseScanPayload(payload);
@@ -2304,8 +2321,7 @@ export function useScanRun({
       setScan(refreshed);
       return refreshed;
     } catch (err) {
-      setError(err?.message || "Retry failed.");
-      setErrorCode(textValue(err?.code, err?.payload?.code));
+      setRunError(err, "Retry failed.", "retry");
       return null;
     } finally {
       setRetrying(false);
@@ -2340,6 +2356,8 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
   const [batchResults, setBatchResults] = useState([]);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
+  const [pollRetryTick, setPollRetryTick] = useState(0);
+  const errorSourceRef = useRef("");
   const requests = repositories
     .map(normalizeScanRequest)
     .filter((request) => request.repo || request.repoId);
@@ -2347,13 +2365,25 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
 
+  const setRunError = useCallback((err, fallback, source) => {
+    errorSourceRef.current = source;
+    setError(err?.message || fallback);
+    setErrorCode(textValue(err?.code, err?.payload?.code));
+  }, []);
+
+  const clearRunError = useCallback((sources = null) => {
+    if (Array.isArray(sources) && !sources.includes(errorSourceRef.current)) return;
+    errorSourceRef.current = "";
+    setError("");
+    setErrorCode("");
+  }, []);
+
   useEffect(() => {
     const nextRequests = requestsRef.current;
     if (!requestKey) {
       setScans((current) => (current.length ? [] : current));
       setBatchResults((current) => (current.length ? [] : current));
-      setError((current) => (current ? "" : current));
-      setErrorCode((current) => (current ? "" : current));
+      clearRunError();
       return undefined;
     }
 
@@ -2371,8 +2401,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         errorCode: "",
       }))
     );
-    setError((current) => (current ? "" : current));
-    setErrorCode((current) => (current ? "" : current));
+    clearRunError();
 
     Promise.allSettled(
       nextRequests.map((request) => pullwiseApi.scans.create(scanCreatePayload(request)))
@@ -2412,15 +2441,14 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         })
       );
       if (failed) {
-        setError(failed.reason?.message || "Unable to start one or more scans.");
-        setErrorCode(textValue(failed.reason?.code, failed.reason?.payload?.code));
+        setRunError(failed.reason, "Unable to start one or more scans.", "create");
       }
     });
 
     return () => {
       alive = false;
     };
-  }, [requestKey]);
+  }, [requestKey, clearRunError, setRunError]);
 
   useEffect(() => {
     const activeScans = scans.filter((scan) => scan?.id && !isTerminalScan(scan));
@@ -2441,10 +2469,10 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
             return nextScan ? { ...row, status: nextScan.status, scan: nextScan } : row;
           })
         );
-      } catch (err) {
+        clearRunError(["poll"]);
+      } catch {
         if (alive) {
-          setError(err?.message || "Polling failed.");
-          setErrorCode(textValue(err?.code, err?.payload?.code));
+          setPollRetryTick((tick) => tick + 1);
         }
       }
     }, pollIntervalMs);
@@ -2453,7 +2481,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       alive = false;
       clearTimeout(handle);
     };
-  }, [scans, pollIntervalMs]);
+  }, [scans, pollIntervalMs, pollRetryTick, clearRunError, setRunError]);
 
   const cancel = async () => {
     const activeScans = scans.filter((scan) => scan?.id && !isTerminalScan(scan));
@@ -2472,8 +2500,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         })
       );
     } catch (err) {
-      setError(err?.message || "Cancel failed.");
-      setErrorCode(textValue(err?.code, err?.payload?.code));
+      setRunError(err, "Cancel failed.", "cancel");
     }
   };
 

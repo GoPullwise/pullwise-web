@@ -13,6 +13,10 @@ describe("ApiError", () => {
 });
 
 describe("request", () => {
+  it("uses a 30 second default request timeout", () => {
+    expect(http.defaults.timeout).toBe(30000);
+  });
+
   it("passes per-request timeout overrides through to axios", async () => {
     const httpRequest = vi.spyOn(http, "request").mockResolvedValueOnce({ data: "zip" });
 
