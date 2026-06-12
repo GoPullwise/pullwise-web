@@ -505,7 +505,8 @@ export function App({ prototypeNav = false }) {
   }, []);
 
   const scrollToTop = useCallback(() => {
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const prefersReducedMotion =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
   }, []);
 

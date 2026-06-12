@@ -704,7 +704,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       issue={issue}
                       onClick={() => {
                         setIssue(issue);
-                        go("issue");
+                        go("issue", { issueId: issue.id });
                       }}
                     />
                   ))}

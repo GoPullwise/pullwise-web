@@ -130,7 +130,7 @@ function SearchModal({ close, go, setIssue }) {
     if (typeof setIssue === "function") {
       setIssue(issue);
       close();
-      go("issue");
+      go("issue", { issueId: issue.id });
       return;
     }
     close();
