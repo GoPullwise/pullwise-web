@@ -28,6 +28,7 @@ describe("BillingScreen", () => {
         name: "Free",
         description: "Try Pullwise with a small monthly review allowance.",
         reviewLimit: 5,
+        repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
         prices: {
           month: { amount: "0", currency: "USD", interval: "month", configured: true },
         },
@@ -37,6 +38,7 @@ describe("BillingScreen", () => {
         name: "Pullwise Pro",
         description: "Repository review for production teams.",
         reviewLimit: 100,
+        repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
         prices: {
           month: { amount: "29", currency: "USD", interval: "month", configured: true },
           year: { amount: "290", currency: "USD", interval: "year", configured: true },
@@ -429,6 +431,9 @@ describe("BillingScreen", () => {
 
     expect(await screen.findByText("Free")).toBeInTheDocument();
     expect(screen.getByText("5 shared account reviews / month")).toBeInTheDocument();
+    expect(screen.getByText("Repository checkout up to 200 files / 5 MB")).toBeInTheDocument();
+    expect(screen.getByText("Repository checkout up to 1,000 files / 20 MB")).toBeInTheDocument();
+    expect(screen.getByText("Repository checkout up to 2,000 files / 50 MB")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 

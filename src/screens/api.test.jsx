@@ -219,6 +219,18 @@ describe("API screens", () => {
               description: "Maximum scans one repository can receive in a billing cycle.",
             },
             {
+              path: "plans.free.maxRepoFiles",
+              label: "Free repository file limit",
+              value: 200,
+              description: "Repository checkouts above this file count stop before review.",
+            },
+            {
+              path: "plans.free.maxRepoBytes",
+              label: "Free repository byte limit",
+              value: 1048576,
+              description: "Repository checkouts above this size stop before review.",
+            },
+            {
               path: "secrets.apiToken",
               label: "API token",
               value: "pw_secret_docs",
@@ -235,12 +247,6 @@ describe("API screens", () => {
               label: "Queued scans per user",
               value: 4,
               description: "Maximum queued scans one user may hold.",
-            },
-            {
-              path: "scan.maxRepoBytes",
-              label: "Repository byte limit",
-              value: 1048576,
-              description: "Repository checkouts above this size stop before review.",
             },
           ],
         },
@@ -286,6 +292,8 @@ describe("API screens", () => {
     const quotaLabel = await screen.findByText("Free user monthly scans");
     expect(within(quotaLabel.closest(".docs-config-row")).getByText("5")).toBeInTheDocument();
     expect(screen.getByText("Free repository monthly scans")).toBeInTheDocument();
+    expect(screen.getByText("Free repository file limit")).toBeInTheDocument();
+    expect(screen.getByText("Free repository byte limit")).toBeInTheDocument();
     expect(screen.getByText("Queued scans per user")).toBeInTheDocument();
     expect(screen.getByText("1,048,576 bytes (1.0 MiB)")).toBeInTheDocument();
     expect(screen.getByText("Requests per window")).toBeInTheDocument();
@@ -300,7 +308,12 @@ describe("API screens", () => {
     pullwiseApi.docs.getServerConfig.mockResolvedValue({
       settings: {
         plans: {
-          free: { userReviewLimit: 8, repositoryReviewLimit: 2 },
+          free: {
+            userReviewLimit: 8,
+            repositoryReviewLimit: 2,
+            maxRepoFiles: 200,
+            maxRepoBytes: 5 * 1024 * 1024,
+          },
         },
         rateLimit: { enabled: true, requests: 90, windowSeconds: 60 },
         billing: { creemProProductCount: 1, creemMaxProductCount: 0 },
@@ -311,6 +324,8 @@ describe("API screens", () => {
 
     const freeQuota = await screen.findByText("Free user monthly scans");
     expect(within(freeQuota.closest(".docs-config-row")).getByText("8")).toBeInTheDocument();
+    expect(screen.getByText("Free repository file limit")).toBeInTheDocument();
+    expect(screen.getByText("5,242,880 bytes (5.0 MiB)")).toBeInTheDocument();
     expect(screen.getByText("Rate limiting enabled")).toBeInTheDocument();
     expect(screen.getByText("Enabled")).toBeInTheDocument();
     expect(screen.getByText("60 seconds")).toBeInTheDocument();
