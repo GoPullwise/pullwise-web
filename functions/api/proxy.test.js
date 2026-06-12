@@ -71,15 +71,12 @@ describe("api proxy", () => {
 
   it("removes spoofable forwarding headers while preserving canonical proxy metadata", async () => {
     let forwardedHeaders;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (_url, init) => {
-        forwardedHeaders = init.headers;
-        return new Response(JSON.stringify({ ok: true }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      })
-    );
+    globalThis.fetch = vi.fn(async (_url, init) => {
+      forwardedHeaders = init.headers;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    });
 
     await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
@@ -117,15 +114,12 @@ describe("api proxy", () => {
 
   it("keeps malformed api-prefixed absolute URLs on the configured backend origin", async () => {
     let forwardedUrl;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url) => {
-        forwardedUrl = String(url);
-        return new Response(JSON.stringify({ ok: true }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      })
-    );
+    globalThis.fetch = vi.fn(async (url) => {
+      forwardedUrl = String(url);
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    });
 
     await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
@@ -137,7 +131,7 @@ describe("api proxy", () => {
 
   it("rejects remote plaintext upstreams before forwarding credentials", async () => {
     const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+    globalThis.fetch = fetchMock;
 
     const response = await onRequest({
       env: { PULLWISE_API_ORIGIN: "http://api.internal" },
@@ -157,10 +151,7 @@ describe("api proxy", () => {
   });
 
   it("returns a structured 502 when the backend fetch fails", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new Error("connection failed"))
-    );
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("connection failed"));
 
     const response = await onRequest({
       env: { PULLWISE_API_ORIGIN: "https://api.internal" },
