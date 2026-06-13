@@ -332,7 +332,7 @@ describe("SettingsScreen", () => {
     });
   });
 
-  it("renders admin server machine history without CPU Usage", async () => {
+  it("does not expose admin server machine metrics in web settings", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {
         connected: false,
@@ -384,18 +384,13 @@ describe("SettingsScreen", () => {
         },
       ],
     });
-    const user = userEvent.setup();
 
     render(<SettingsScreen go={vi.fn()} />);
 
-    await user.click(await screen.findByRole("button", { name: /server machine/i }));
-
-    expect(screen.getByText("api-1")).toBeInTheDocument();
-    expect(screen.getByText("Memory Usage")).toBeInTheDocument();
-    expect(screen.getByText("Storage Usage")).toBeInTheDocument();
-    expect(screen.getByText("Load Average")).toBeInTheDocument();
-    expect(screen.queryByText(/CPU Usage/i)).not.toBeInTheDocument();
-    expect(document.querySelectorAll(".server-machine-sparkline").length).toBe(3);
+    expect(await screen.findByText(/stay signed in for 7 days/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /server machine/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("api-1")).not.toBeInTheDocument();
+    expect(pullwiseApi.admin.serverMetrics).not.toHaveBeenCalled();
   });
 
   it("keeps the selected review output language when a delayed save response echoes stale English", async () => {

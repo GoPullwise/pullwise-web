@@ -108,10 +108,6 @@ export const pullwiseApi = {
     getServerConfig: (options = {}) => request("/docs/server-config", { signal: options.signal }),
   },
 
-  admin: {
-    serverMetrics: () => request("/admin/server-metrics"),
-  },
-
   system: {
     health: () => request("/health"),
     status: () => request("/status/system"),

@@ -38,8 +38,6 @@ const REVIEW_OUTPUT_LANGUAGES = [
   { value: "pt-BR", labelEn: "Portuguese", labelZh: "葡萄牙语" },
   { value: "it", labelEn: "Italian", labelZh: "意大利语" },
 ];
-const SERVER_METRICS_POLL_INTERVAL_MS = 10000;
-
 function reviewOutputLanguageValue(settings) {
   return settings?.review?.outputLanguage || DEFAULT_REVIEW_OUTPUT_LANGUAGE;
 }
@@ -62,205 +60,6 @@ function reviewOutputLanguageSaveError(error) {
     return "Unable to save review output language. Server origin configuration rejected this browser request. Add this web origin to PULLWISE_ALLOWED_ORIGINS or PULLWISE_APP_URL.";
   }
   return message || "Unable to save review output language.";
-}
-
-function finiteMetricNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function formatPercentValue(value) {
-  const number = finiteMetricNumber(value);
-  return number === null ? "n/a" : `${number.toFixed(1)}%`;
-}
-
-function formatLoadValue(value) {
-  const number = finiteMetricNumber(value);
-  return number === null ? "n/a" : number.toFixed(2);
-}
-
-function formatBytesValue(value) {
-  const bytes = finiteMetricNumber(value);
-  if (bytes === null) return "n/a";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let amount = Math.max(0, bytes);
-  let unitIndex = 0;
-  while (amount >= 1024 && unitIndex < units.length - 1) {
-    amount /= 1024;
-    unitIndex += 1;
-  }
-  const precision = unitIndex === 0 || amount >= 10 ? 0 : 1;
-  return `${amount.toFixed(precision)} ${units[unitIndex]}`;
-}
-
-function formatMetricTime(timestamp) {
-  const seconds = finiteMetricNumber(timestamp);
-  if (seconds === null) return "n/a";
-  return new Date(seconds * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function serverMetricsAccessDenied(error) {
-  return error?.status === 401 || error?.status === 403;
-}
-
-function metricHistory(metrics) {
-  const history = Array.isArray(metrics?.history) ? metrics.history : [];
-  if (history.length) return history;
-  if (!metrics) return [];
-  return [
-    {
-      collectedAt: metrics.collectedAt,
-      cpu: metrics.cpu,
-      memory: metrics.memory,
-      storage: metrics.storage,
-    },
-  ];
-}
-
-function metricSeriesValue(point, metric) {
-  if (metric === "memory") return finiteMetricNumber(point?.memory?.usedPercent);
-  if (metric === "storage") return finiteMetricNumber(point?.storage?.usedPercent);
-  if (metric === "load") return finiteMetricNumber(point?.cpu?.loadAverage?.oneMinute);
-  return null;
-}
-
-function ServerMetricSparkline({ points, metric, color, label }) {
-  const values = points
-    .map((point) => ({
-      value: metricSeriesValue(point, metric),
-    }))
-    .filter((point) => point.value !== null);
-  const width = 240;
-  const height = 70;
-  if (values.length < 2) {
-    return (
-      <div className="server-machine-chart-empty">
-        {T("Waiting for more samples", "等待更多采样")}
-      </div>
-    );
-  }
-  const min = Math.min(...values.map((point) => point.value));
-  const max = Math.max(...values.map((point) => point.value));
-  const range = max - min || 1;
-  const path = values
-    .map((point, index) => {
-      const x = (index / (values.length - 1)) * width;
-      const y = height - 6 - ((point.value - min) / range) * (height - 12);
-      return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
-  return (
-    <svg
-      className="server-machine-sparkline"
-      role="img"
-      aria-label={label}
-      viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="none"
-    >
-      <path d={`${path} L${width},${height} L0,${height} Z`} fill={color} fillOpacity="0.1" />
-      <path
-        d={path}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.8"
-        vectorEffect="non-scaling-stroke"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <line x1="0" y1={height - 1} x2={width} y2={height - 1} stroke={color} strokeOpacity="0.16" />
-    </svg>
-  );
-}
-
-function ServerMetricPanel({ icon, title, value, detail, points, metric, color }) {
-  const first = points[0];
-  const last = points[points.length - 1];
-  return (
-    <div className="server-machine-metric">
-      <div className="server-machine-metric-h">
-        <span className="server-machine-metric-icon">{icon}</span>
-        <span>{title}</span>
-      </div>
-      <div className="server-machine-metric-value">{value}</div>
-      <div className="server-machine-metric-detail">{detail}</div>
-      <div className="server-machine-chart">
-        <ServerMetricSparkline points={points} metric={metric} color={color} label={title} />
-      </div>
-      <div className="server-machine-range">
-        <span>{formatMetricTime(first?.collectedAt)}</span>
-        <span>{formatMetricTime(last?.collectedAt)}</span>
-      </div>
-    </div>
-  );
-}
-
-function ServerMachineMonitor({ metrics }) {
-  const points = metricHistory(metrics);
-  const loadAverage = metrics?.cpu?.loadAverage;
-  const host = metrics?.server?.hostname || "n/a";
-  const platform = metrics?.server?.platform || metrics?.server?.system || "n/a";
-  const machine = metrics?.server?.machine || "n/a";
-  const cpuCount = metrics?.cpu?.logicalCount || "n/a";
-  return (
-    <div className="server-machine-monitor">
-      <div className="server-machine-facts">
-        <div>
-          <span>{T("Host", "主机")}</span>
-          <b>{host}</b>
-        </div>
-        <div>
-          <span>{T("Platform", "平台")}</span>
-          <b>{platform}</b>
-        </div>
-        <div>
-          <span>{T("Machine", "机器")}</span>
-          <b>{machine}</b>
-        </div>
-        <div>
-          <span>{T("CPU cores", "CPU 核心")}</span>
-          <b>{cpuCount}</b>
-        </div>
-      </div>
-      <div className="server-machine-grid">
-        <ServerMetricPanel
-          icon={<I.Activity size={14} />}
-          title={T("Memory Usage", "内存使用率")}
-          value={formatPercentValue(metrics?.memory?.usedPercent)}
-          detail={T(
-            `${formatBytesValue(metrics?.memory?.usedBytes)} of ${formatBytesValue(metrics?.memory?.totalBytes)} used`,
-            `已用 ${formatBytesValue(metrics?.memory?.usedBytes)} / ${formatBytesValue(metrics?.memory?.totalBytes)}`
-          )}
-          points={points}
-          metric="memory"
-          color="var(--accent)"
-        />
-        <ServerMetricPanel
-          icon={<I.Database size={14} />}
-          title={T("Storage Usage", "存储使用率")}
-          value={formatPercentValue(metrics?.storage?.usedPercent)}
-          detail={T(
-            `${formatBytesValue(metrics?.storage?.freeBytes)} free`,
-            `剩余 ${formatBytesValue(metrics?.storage?.freeBytes)}`
-          )}
-          points={points}
-          metric="storage"
-          color="var(--sev-medium)"
-        />
-        <ServerMetricPanel
-          icon={<I.Clock size={14} />}
-          title={T("Load Average", "系统负载")}
-          value={formatLoadValue(loadAverage?.oneMinute)}
-          detail={T(
-            `5m ${formatLoadValue(loadAverage?.fiveMinute)} · 15m ${formatLoadValue(loadAverage?.fifteenMinute)}`,
-            `5 分钟 ${formatLoadValue(loadAverage?.fiveMinute)} · 15 分钟 ${formatLoadValue(loadAverage?.fifteenMinute)}`
-          )}
-          points={points}
-          metric="load"
-          color="var(--sev-low)"
-        />
-      </div>
-    </div>
-  );
 }
 
 function evidenceSortRank(issue) {
@@ -2657,12 +2456,7 @@ export function SettingsScreen({ go, setIssue = null }) {
   const [integrations, setIntegrations] = useState(null);
   const [integrationError, setIntegrationError] = useState("");
   const [managingInstallationId, setManagingInstallationId] = useState("");
-  const [serverMetrics, setServerMetrics] = useState(null);
-  const [serverMetricsError, setServerMetricsError] = useState("");
-  const [serverMetricsLoading, setServerMetricsLoading] = useState(false);
-  const [serverMetricsVisible, setServerMetricsVisible] = useState(false);
   const integrationRequestIdRef = useRef(0);
-  const serverMetricsRequestIdRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -2712,56 +2506,6 @@ export function SettingsScreen({ go, setIssue = null }) {
 
   useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
 
-  const loadServerMetrics = useCallback(async () => {
-    const getServerMetrics = pullwiseApi.admin?.serverMetrics;
-    if (!getServerMetrics) return false;
-    const requestId = serverMetricsRequestIdRef.current + 1;
-    serverMetricsRequestIdRef.current = requestId;
-    setServerMetricsLoading(true);
-    try {
-      const payload = await getServerMetrics();
-      if (requestId !== serverMetricsRequestIdRef.current) return true;
-      setServerMetrics(payload);
-      setServerMetricsError("");
-      setServerMetricsVisible(true);
-      return true;
-    } catch (error) {
-      if (requestId !== serverMetricsRequestIdRef.current) return false;
-      if (serverMetricsAccessDenied(error)) {
-        setServerMetricsVisible(false);
-        setServerMetricsError("");
-        setServerMetrics(null);
-        return false;
-      }
-      setServerMetricsVisible(true);
-      setServerMetricsError(
-        error?.message || T("Unable to load server machine metrics.", "无法加载服务器机器指标。")
-      );
-      return true;
-    } finally {
-      if (requestId === serverMetricsRequestIdRef.current) setServerMetricsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    let intervalId = null;
-    loadServerMetrics().then((shouldPoll) => {
-      if (!cancelled && shouldPoll) {
-        intervalId = window.setInterval(loadServerMetrics, SERVER_METRICS_POLL_INTERVAL_MS);
-      }
-    });
-    return () => {
-      cancelled = true;
-      serverMetricsRequestIdRef.current += 1;
-      if (intervalId) window.clearInterval(intervalId);
-    };
-  }, [loadServerMetrics]);
-
-  useEffect(() => {
-    if (tab === "serverMachine" && !serverMetricsVisible) setTab("profile");
-  }, [serverMetricsVisible, tab]);
-
   const github = integrations?.github;
   const user = session?.user;
   const githubRepoCount = github?.repositories?.length || 0;
@@ -2786,15 +2530,6 @@ export function SettingsScreen({ go, setIssue = null }) {
       i: <I.Sliders size={14} />,
     },
     { k: "integrations", t: T("Integrations", "集成"), i: <I.Github size={14} /> },
-    ...(serverMetricsVisible
-      ? [
-          {
-            k: "serverMachine",
-            t: T("Server Machine", "服务器机器"),
-            i: <I.Activity size={14} />,
-          },
-        ]
-      : []),
   ];
   const updateReviewOutputLanguage = async (event) => {
     const outputLanguage = event.target.value;
@@ -3009,36 +2744,6 @@ export function SettingsScreen({ go, setIssue = null }) {
                   {integrationError && (
                     <div className="auth-error" role="alert">
                       <I.X size={13} /> {integrationError}
-                    </div>
-                  )}
-                </div>
-              )}
-              {tab === "serverMachine" && (
-                <div className="card section">
-                  <div className="section-h">
-                    <div>
-                      <h3>{T("Server Machine", "服务器机器")}</h3>
-                      <div className="sub">
-                        {T("Recent resource history from admin snapshots.", "来自管理员采样的近期资源历史。")}
-                      </div>
-                    </div>
-                    <button className="btn sm" disabled={serverMetricsLoading} onClick={loadServerMetrics}>
-                      <I.Refresh size={12} />
-                      {serverMetricsLoading ? T("Refreshing...", "刷新中...") : T("Refresh", "刷新")}
-                    </button>
-                  </div>
-                  {serverMetricsError && (
-                    <div className="auth-error" role="alert">
-                      <I.X size={13} /> {serverMetricsError}
-                    </div>
-                  )}
-                  {serverMetrics ? (
-                    <ServerMachineMonitor metrics={serverMetrics} />
-                  ) : (
-                    <div className="server-machine-skeleton" aria-busy="true">
-                      <SkeletonLine className="sk-line sk-w-35 sk-h-18" />
-                      <SkeletonLine className="sk-block sk-h-48" />
-                      <SkeletonLine className="sk-block sk-h-48" />
                     </div>
                   )}
                 </div>
