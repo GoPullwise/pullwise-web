@@ -1860,7 +1860,7 @@ describe("ScanningScreen queue state", () => {
     expect(cancel.closest(".scanning-actions")).toBe(actionGroup);
   });
 
-  it("shows the production worker scan phases instead of legacy simulated phases", () => {
+  it("shows the production worker scan phases", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
