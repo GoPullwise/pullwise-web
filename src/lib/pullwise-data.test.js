@@ -661,11 +661,11 @@ describe("normalizeIssue", () => {
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
   });
 
-  it("normalizes repository graph nodes, edges, and architecture summary", () => {
+  it("normalizes canonical repository graph nodes, edges, and architecture summary", () => {
     const scan = normalizeScan({
       id: "sc_graph",
-      repository_graph: {
-        version: "repository-graph/0.1",
+      repositoryGraph: {
+        version: "repository-graph/0.2",
         stats: { nodes: 3, edges: 2, languages: ["JavaScript"], truncated: true },
         nodes: [
           {
@@ -690,7 +690,7 @@ describe("normalizeIssue", () => {
           promptText: "Repository architecture: UI entrypoint.",
         },
       },
-      semantic_graph: {
+      semanticGraph: {
         version: "semantic-code-graph/0.1",
         summary: "UI semantic graph",
         stats: { files: 1, symbols: 3, relationships: 2, routes: 0, source: "static", truncated: true },
@@ -722,7 +722,7 @@ describe("normalizeIssue", () => {
       },
     });
 
-    expect(scan.repositoryGraph.version).toBe("repository-graph/0.1");
+    expect(scan.repositoryGraph.version).toBe("repository-graph/0.2");
     expect(scan.repositoryGraph.nodes).toHaveLength(2);
     expect(scan.repositoryGraph.edges).toHaveLength(1);
     expect(scan.repositoryGraph.stats.nodes).toBe(2);
@@ -735,6 +735,30 @@ describe("normalizeIssue", () => {
     expect(scan.semanticGraph.nodes).toHaveLength(2);
     expect(scan.semanticGraph.stats.source).toBe("static");
     expect(scan.semanticGraph.reviewHints).toEqual(["Review component flow."]);
+  });
+
+  it("ignores removed snake_case graph fields on scans", () => {
+    const scan = normalizeScan({
+      id: "sc_removed_graph_fields",
+      repository_graph: {
+        version: "repository-graph/0.2",
+        nodes: [{ id: "file:src/App.jsx", label: "App.jsx", type: "entrypoint", path: "src/App.jsx" }],
+        edges: [],
+      },
+      semantic_graph: {
+        version: "semantic-code-graph/0.1",
+        nodes: [{ id: "symbol:src/App.jsx:App", label: "App", type: "component", path: "src/App.jsx" }],
+        edges: [],
+      },
+      impact_graph: {
+        version: "impact-graph/0.1",
+        targets: [{ id: "file:src/App.jsx", path: "src/App.jsx" }],
+      },
+    });
+
+    expect(scan.repositoryGraph).toBeNull();
+    expect(scan.semanticGraph).toBeNull();
+    expect(scan.impactGraph).toBeNull();
   });
 
   it("preserves repository graph 0.2 traceability fields and impact graph context", () => {

@@ -579,7 +579,7 @@ describe("ReposScreen scan selection", () => {
     expect(screen.getByText(/resets 2026-06-01 00:00 UTC/i)).toBeInTheDocument();
   });
 
-  it("shows account quota reset time on the repository selection screen", async () => {
+  it("shows workspace quota reset time on the repository selection screen", async () => {
     const resetAt = Date.UTC(2026, 5, 1, 0, 0, 0) / 1000;
     useRepositories.mockReturnValue({
       items: [{ ...repoAlpha, fork: true }],
@@ -595,8 +595,8 @@ describe("ReposScreen scan selection", () => {
     render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
-    expect(screen.getByText(/account quota/i)).toHaveTextContent(
-      /1 of 10 account scans left - resets 2026-06-01 00:00 UTC/i
+    expect(screen.getByText(/workspace quota/i)).toHaveTextContent(
+      /1 of 10 workspace scans left - resets 2026-06-01 00:00 UTC/i
     );
   });
 
@@ -663,7 +663,7 @@ describe("ReposScreen scan selection", () => {
     expect(screen.queryByText(/2 authorized repos/i)).not.toBeInTheDocument();
   });
 
-  it("blocks selecting beyond the current account quota with a clear reason", async () => {
+  it("blocks selecting beyond the current workspace quota with a clear reason", async () => {
     const user = userEvent.setup();
     useRepositories.mockReturnValue({
       items: [repoAlpha, repoBeta],
@@ -1892,6 +1892,36 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
   });
 
+  it("does not reintroduce removed local scan phases for stale phase names", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "secrets",
+        progress: 40,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const phases = document.querySelector(".scanning-phases");
+    expect(phases).not.toBeNull();
+    expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
+    expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
+    expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
+    expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
+  });
+
   it("does not render a standalone progress track in scan details", () => {
     useScanRun.mockReturnValue({
       scan: {
@@ -1985,14 +2015,14 @@ describe("ScanningScreen queue state", () => {
 
   it("does not route unstructured quota text to billing", async () => {
     const user = userEvent.setup();
-    const { go } = renderScanError("Account quota reached.");
+    const { go } = renderScanError("Workspace quota reached.");
 
     const action = screen.getByRole("link", { name: /retry/i });
     expect(action).toHaveAttribute("href", "/repos");
 
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/account quota reached/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/workspace quota reached/i);
     expect(go).toHaveBeenCalledWith("repos");
   });
 

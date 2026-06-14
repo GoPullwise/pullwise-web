@@ -93,7 +93,7 @@ describe("BillingScreen", () => {
 
     resolvePlan({
       ...billingCatalog,
-      account: { status: "none", plan: "free" },
+      workspace: { status: "none", plan: "free" },
     });
     await waitFor(() => {
       expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("BillingScreen", () => {
     );
   });
 
-  it("renders billing account skeletons while billing data is loading", () => {
+  it("renders billing workspace skeletons while billing data is loading", () => {
     pullwiseApi.billing.getPlan.mockReturnValue(new Promise(() => {}));
 
     const { container } = render(<BillingScreen go={vi.fn()} setIssue={vi.fn()} />);
@@ -123,7 +123,7 @@ describe("BillingScreen", () => {
   it("starts checkout through the configured backend billing provider", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none" },
+      workspace: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "creem",
@@ -134,7 +134,7 @@ describe("BillingScreen", () => {
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
 
-    expect(await screen.findByText("Account plans")).toBeInTheDocument();
+    expect(await screen.findByText("Workspace plans")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("Creem");
     await user.click(screen.getByRole("button", { name: /start pro/i }));
 
@@ -166,7 +166,7 @@ describe("BillingScreen", () => {
           },
         },
       ],
-      account: { status: "none", plan: "free" },
+      workspace: { status: "none", plan: "free" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "creem",
@@ -206,7 +206,7 @@ describe("BillingScreen", () => {
           },
         },
       ],
-      account: { status: "none", plan: "free" },
+      workspace: { status: "none", plan: "free" },
     });
     const user = userEvent.setup();
 
@@ -235,7 +235,7 @@ describe("BillingScreen", () => {
           },
         },
       ],
-      account: { status: "none", plan: "free" },
+      workspace: { status: "none", plan: "free" },
     });
     const navigate = vi.fn();
 
@@ -256,7 +256,7 @@ describe("BillingScreen", () => {
   it("exposes billing legal side navigation as real screen links", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none" },
+      workspace: { status: "none" },
     });
     const go = vi.fn();
     const user = userEvent.setup();
@@ -278,7 +278,7 @@ describe("BillingScreen", () => {
   it("keeps new subscriptions on Pricing instead of starting checkout from Billing", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none", plan: "free" },
+      workspace: { status: "none", plan: "free" },
     });
     const go = vi.fn();
     const user = userEvent.setup();
@@ -301,7 +301,7 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       provider: "disabled",
-      account: { status: "none", plan: "free" },
+      workspace: { status: "none", plan: "free" },
     });
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
@@ -313,11 +313,11 @@ describe("BillingScreen", () => {
     expect(headerActions.querySelector(".tag")).toBeNull();
   });
 
-  it("labels the account usage meter with the current plan instead of raw billing status", async () => {
+  it("labels the workspace usage meter with the current plan instead of raw billing status", async () => {
     const resetAt = Date.UTC(2026, 5, 1, 0, 0, 0) / 1000;
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "none",
         plan: "free",
         usage: { period: "2026-05", used: 2, limit: 5, remaining: 3, resetAt },
@@ -336,7 +336,7 @@ describe("BillingScreen", () => {
   it("rejects unsafe checkout URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none" },
+      workspace: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "creem",
@@ -356,7 +356,7 @@ describe("BillingScreen", () => {
   it("rejects checkout URLs with control characters before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none" },
+      workspace: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "creem",
@@ -376,7 +376,7 @@ describe("BillingScreen", () => {
   it("rejects non-provider checkout hosts before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: { status: "none" },
+      workspace: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "creem",
@@ -397,7 +397,7 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       provider: "creem",
-      account: { status: "none" },
+      workspace: { status: "none" },
     });
     pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
       provider: "creem",
@@ -418,7 +418,7 @@ describe("BillingScreen", () => {
   it("shows free and pro monthly limits with yearly pricing toggle", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "month",
@@ -430,7 +430,7 @@ describe("BillingScreen", () => {
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Free")).toBeInTheDocument();
-    expect(screen.getByText("5 shared account reviews / month")).toBeInTheDocument();
+    expect(screen.getByText("5 shared workspace reviews / month")).toBeInTheDocument();
     expect(screen.getByText("Repository checkout up to 200 files / 5 MB")).toBeInTheDocument();
     expect(screen.getByText("Repository checkout up to 1,000 files / 20 MB")).toBeInTheDocument();
     expect(screen.getByText("Repository checkout up to 2,000 files / 50 MB")).toBeInTheDocument();
@@ -448,7 +448,7 @@ describe("BillingScreen", () => {
         { ...billingCatalog.plans[0], reviewLimit: "not-a-number" },
         { ...billingCatalog.plans[1], reviewLimit: "not-a-number" },
       ],
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "month",
@@ -478,7 +478,7 @@ describe("BillingScreen", () => {
           },
         },
       ],
-      account: {
+      workspace: {
         status: "none",
         plan: "free",
         usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" },
@@ -495,7 +495,7 @@ describe("BillingScreen", () => {
   it("starts yearly checkout when yearly billing is selected", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "none",
         plan: "free",
         usage: { used: 0, limit: 5, remaining: 5, period: "2026-05" },
@@ -528,7 +528,7 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "month",
@@ -537,7 +537,7 @@ describe("BillingScreen", () => {
       })
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "year",
@@ -597,7 +597,7 @@ describe("BillingScreen", () => {
       .mockResolvedValueOnce({
         ...billingCatalog,
         plans: [...billingCatalog.plans, maxPlan],
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "month",
@@ -607,7 +607,7 @@ describe("BillingScreen", () => {
       .mockResolvedValueOnce({
         ...billingCatalog,
         plans: [...billingCatalog.plans, maxPlan],
-        account: {
+        workspace: {
           status: "active",
           plan: "max",
           interval: "month",
@@ -667,7 +667,7 @@ describe("BillingScreen", () => {
       .mockResolvedValueOnce({
         ...billingCatalog,
         plans: [...billingCatalog.plans, maxPlan],
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "month",
@@ -677,7 +677,7 @@ describe("BillingScreen", () => {
       .mockResolvedValueOnce({
         ...billingCatalog,
         plans: [...billingCatalog.plans, maxPlan],
-        account: {
+        workspace: {
           status: "active",
           plan: "max",
           interval: "month",
@@ -743,7 +743,7 @@ describe("BillingScreen", () => {
           },
         },
       ],
-      account: {
+      workspace: {
         status: "active",
         plan: "max",
         interval: "year",
@@ -764,7 +764,7 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "year",
@@ -773,7 +773,7 @@ describe("BillingScreen", () => {
       })
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "canceling",
           plan: "pro",
           interval: "year",
@@ -808,7 +808,7 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "canceling",
           plan: "pro",
           interval: "month",
@@ -818,7 +818,7 @@ describe("BillingScreen", () => {
       })
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "month",
@@ -859,7 +859,7 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "canceling",
           plan: "pro",
           interval: "month",
@@ -869,7 +869,7 @@ describe("BillingScreen", () => {
       })
       .mockResolvedValueOnce({
         ...billingCatalog,
-        account: {
+        workspace: {
           status: "active",
           plan: "pro",
           interval: "year",
@@ -906,7 +906,7 @@ describe("BillingScreen", () => {
   it("shows the user's subscription activity on Billing", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "month",
@@ -953,7 +953,7 @@ describe("BillingScreen", () => {
   it("only shows subscription event records as activity", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "month",
@@ -984,7 +984,7 @@ describe("BillingScreen", () => {
   it("does not expose a Creem portal entry for active paid subscribers", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "year",
@@ -1005,7 +1005,7 @@ describe("BillingScreen", () => {
   it("rejects unsafe interval-change URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "month",
@@ -1032,7 +1032,7 @@ describe("BillingScreen", () => {
   it("rejects non-provider interval-change hosts before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
-      account: {
+      workspace: {
         status: "active",
         plan: "pro",
         interval: "month",
