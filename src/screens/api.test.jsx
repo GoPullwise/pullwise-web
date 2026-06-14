@@ -206,7 +206,7 @@ describe("API screens", () => {
     expect(screen.getByText("map-effort-max")).toBeInTheDocument();
   });
 
-  it("ignores legacy plan agent aliases in Docs", async () => {
+  it("ignores unsupported plan agent aliases in Docs", async () => {
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
       plans: [
         {
@@ -215,18 +215,18 @@ describe("API screens", () => {
           reviewLimit: 5,
           repositoryReviewLimit: 5,
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
-          agentCli: "legacy-record-cli",
-          cli: "legacy-record-command",
-          provider: "legacy-record-provider",
+          agentCli: "unsupported-record-cli",
+          cli: "unsupported-record-command",
+          provider: "unsupported-record-provider",
           agentConfig: {
             plan: "free",
             providerChain: ["opencode"],
-            provider: "legacy-config-provider",
-            cli: "legacy-config-cli",
+            provider: "unsupported-config-provider",
+            cli: "unsupported-config-cli",
             agent: {
-              cli: "legacy-agent-cli",
-              model: "legacy-agent-model",
-              reasoningEffort: "legacy-agent-effort",
+              cli: "unsupported-agent-cli",
+              model: "unsupported-agent-model",
+              reasoningEffort: "unsupported-agent-effort",
             },
             opencode: {
               cli: "opencode",
@@ -243,10 +243,10 @@ describe("API screens", () => {
 
     expect(await screen.findByText("opencode")).toBeInTheDocument();
     expect(screen.getByText("canonical-docs-model")).toBeInTheDocument();
-    expect(screen.queryByText("legacy-agent-cli")).not.toBeInTheDocument();
-    expect(screen.queryByText("legacy-agent-model")).not.toBeInTheDocument();
-    expect(screen.queryByText("legacy-config-cli")).not.toBeInTheDocument();
-    expect(screen.queryByText("legacy-record-cli")).not.toBeInTheDocument();
+    expect(screen.queryByText("unsupported-agent-cli")).not.toBeInTheDocument();
+    expect(screen.queryByText("unsupported-agent-model")).not.toBeInTheDocument();
+    expect(screen.queryByText("unsupported-config-cli")).not.toBeInTheDocument();
+    expect(screen.queryByText("unsupported-record-cli")).not.toBeInTheDocument();
   });
 
   it("renders public server configuration groups while filtering private fields", async () => {

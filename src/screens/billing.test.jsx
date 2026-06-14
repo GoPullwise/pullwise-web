@@ -950,7 +950,7 @@ describe("BillingScreen", () => {
     expect(screen.getByText(/evt_1 - 2026-06-09 00:00 UTC/i)).toBeInTheDocument();
   });
 
-  it("does not show legacy subscription snapshots as activity", async () => {
+  it("only shows subscription event records as activity", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {
@@ -967,7 +967,7 @@ describe("BillingScreen", () => {
             plan: "pro",
             interval: "month",
             lastEventType: "checkout.completed",
-            lastEventId: "evt_legacy",
+            lastEventId: "evt_snapshot",
             updatedAt: 1780963210,
           },
         ],
