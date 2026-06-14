@@ -2047,27 +2047,7 @@ const PRODUCTION_SCAN_PHASES = [
   },
 ];
 
-const LEGACY_SCAN_PHASES = [
-  ...PRODUCTION_SCAN_PHASES.slice(0, 2),
-  {
-    k: "secrets",
-    t_en: "Scanning for secrets",
-    t_zh: "扫描密钥泄露",
-    d_en: "Legacy local scan phase",
-    d_zh: "旧版本地扫描阶段",
-  },
-  {
-    k: "deps",
-    t_en: "Analyzing dependencies",
-    t_zh: "分析依赖",
-    d_en: "Legacy local scan phase",
-    d_zh: "旧版本地扫描阶段",
-  },
-  ...PRODUCTION_SCAN_PHASES.slice(2),
-];
-
-const LEGACY_ONLY_SCAN_PHASE_KEYS = new Set(["secrets", "deps"]);
-const SCAN_PHASE_BY_KEY = new Map(LEGACY_SCAN_PHASES.map((phase) => [phase.k, phase]));
+const SCAN_PHASE_BY_KEY = new Map(PRODUCTION_SCAN_PHASES.map((phase) => [phase.k, phase]));
 const EMPTY_REPOSITORY_GRAPH_ITEMS = Object.freeze([]);
 
 function scanPhaseDefinition(phase) {
@@ -2075,7 +2055,7 @@ function scanPhaseDefinition(phase) {
 }
 
 function scanPhasesForPhase(phase) {
-  return LEGACY_ONLY_SCAN_PHASE_KEYS.has(phase) ? LEGACY_SCAN_PHASES : PRODUCTION_SCAN_PHASES;
+  return PRODUCTION_SCAN_PHASES;
 }
 
 function graphCountLabel(count, singular, plural = `${singular}s`) {

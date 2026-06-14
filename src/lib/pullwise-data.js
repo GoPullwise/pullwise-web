@@ -598,11 +598,9 @@ function normalizeRepositoryGraph(value) {
     stats: normalizeRepositoryGraphStats(value.stats, nodes, edges, rawNodes.length, rawEdges.length),
     nodes,
     edges,
-    architectureSummary: normalizeRepositoryGraphArchitectureSummary(
-      value.architectureSummary ?? value.architecture_summary
-    ),
+    architectureSummary: normalizeRepositoryGraphArchitectureSummary(value.architectureSummary),
   };
-  const impactGraph = normalizeImpactGraph(value.impactGraph ?? value.impact_graph);
+  const impactGraph = normalizeImpactGraph(value.impactGraph);
   if (impactGraph) graph.impactGraph = impactGraph;
   if (!graph.summary) delete graph.summary;
   if (!Object.keys(graph.architectureSummary).length) delete graph.architectureSummary;
@@ -1777,22 +1775,14 @@ export function normalizeScan(scan = {}) {
   const billingUsage = normalizeQuotaUsage(scan.billingUsage);
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
-  const rawRepositoryGraph = scan.repositoryGraph ?? scan.repository_graph;
+  const rawRepositoryGraph = scan.repositoryGraph;
   const repositoryGraph = normalizeRepositoryGraph(rawRepositoryGraph);
   const semanticGraph =
-    normalizeRepositorySemanticGraph(scan.semanticGraph ?? scan.semantic_graph) ||
-    normalizeRepositorySemanticGraph(
-      objectRecord(rawRepositoryGraph)
-        ? rawRepositoryGraph.semanticGraph ?? rawRepositoryGraph.semantic_graph
-        : null
-    ) ||
+    normalizeRepositorySemanticGraph(scan.semanticGraph) ||
+    normalizeRepositorySemanticGraph(objectRecord(rawRepositoryGraph) ? rawRepositoryGraph.semanticGraph : null) ||
     null;
   const rawImpactGraph =
-    scan.impactGraph ??
-    scan.impact_graph ??
-    (objectRecord(rawRepositoryGraph)
-      ? rawRepositoryGraph.impactGraph ?? rawRepositoryGraph.impact_graph
-      : null);
+    scan.impactGraph ?? (objectRecord(rawRepositoryGraph) ? rawRepositoryGraph.impactGraph : null);
   const impactGraph = normalizeImpactGraph(rawImpactGraph) || repositoryGraph?.impactGraph || null;
   return {
     ...scan,
