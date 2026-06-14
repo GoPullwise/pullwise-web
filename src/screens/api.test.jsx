@@ -117,8 +117,10 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
           agentConfig: {
             plan: "pro",
-            agent: {
-              cli: "cli-from-api-pro",
+            providerChain: ["codex"],
+            codex: {
+              cli: "codex",
+              command: "codex",
               model: "model-from-api-pro",
               reasoningEffort: "effort-from-api-pro",
             },
@@ -132,10 +134,12 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            agent: {
-              cli: "cli-from-api-free",
+            providerChain: ["opencode"],
+            opencode: {
+              cli: "opencode",
+              command: "opencode",
               model: "model-from-api-free",
-              reasoningEffort: "effort-from-api-free",
+              variant: "effort-from-api-free",
             },
           },
         },
@@ -147,8 +151,10 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
           agentConfig: {
             plan: "max",
-            agent: {
-              cli: "cli-from-api-max",
+            providerChain: ["codex"],
+            codex: {
+              cli: "codex",
+              command: "codex",
               model: "model-from-api-max",
               reasoningEffort: "effort-from-api-max",
             },
@@ -159,7 +165,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("cli-from-api-free")).toBeInTheDocument();
+    expect(await screen.findByText("opencode")).toBeInTheDocument();
     expect(screen.getByText("model-from-api-pro")).toBeInTheDocument();
     expect(screen.getByText("effort-from-api-max")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
@@ -181,10 +187,12 @@ describe("API screens", () => {
         max: {
           agentConfig: {
             plan: "max",
-            agent: {
-              cli: "map-cli-max",
+            providerChain: ["opencode"],
+            opencode: {
+              cli: "opencode",
+              command: "opencode",
               model: "map-model-max",
-              reasoningEffort: "map-effort-max",
+              variant: "map-effort-max",
             },
           },
         },
@@ -193,9 +201,52 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("map-cli-max")).toBeInTheDocument();
+    expect(await screen.findByText("opencode")).toBeInTheDocument();
     expect(screen.getByText("map-model-max")).toBeInTheDocument();
     expect(screen.getByText("map-effort-max")).toBeInTheDocument();
+  });
+
+  it("ignores legacy plan agent aliases in Docs", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [
+        {
+          id: "free",
+          name: "Free",
+          reviewLimit: 5,
+          repositoryReviewLimit: 5,
+          repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
+          agentCli: "legacy-record-cli",
+          cli: "legacy-record-command",
+          provider: "legacy-record-provider",
+          agentConfig: {
+            plan: "free",
+            providerChain: ["opencode"],
+            provider: "legacy-config-provider",
+            cli: "legacy-config-cli",
+            agent: {
+              cli: "legacy-agent-cli",
+              model: "legacy-agent-model",
+              reasoningEffort: "legacy-agent-effort",
+            },
+            opencode: {
+              cli: "opencode",
+              command: "opencode",
+              model: "canonical-docs-model",
+              variant: "medium",
+            },
+          },
+        },
+      ],
+    });
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect(screen.getByText("canonical-docs-model")).toBeInTheDocument();
+    expect(screen.queryByText("legacy-agent-cli")).not.toBeInTheDocument();
+    expect(screen.queryByText("legacy-agent-model")).not.toBeInTheDocument();
+    expect(screen.queryByText("legacy-config-cli")).not.toBeInTheDocument();
+    expect(screen.queryByText("legacy-record-cli")).not.toBeInTheDocument();
   });
 
   it("renders public server configuration groups while filtering private fields", async () => {
@@ -209,7 +260,8 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
           agentConfig: {
             plan: "free",
-            agent: { cli: "docs-cli-free", model: "docs-model-free" },
+            providerChain: ["opencode"],
+            opencode: { cli: "opencode", command: "opencode", model: "docs-model-free", variant: "medium" },
           },
         },
       ],
@@ -304,7 +356,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("docs-cli-free")).toBeInTheDocument();
+    expect(await screen.findByText("opencode")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 1,048,576 bytes \(1.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
@@ -330,7 +382,11 @@ describe("API screens", () => {
           reviewLimit: 8,
           repositoryReviewLimit: 2,
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
-          agentConfig: { plan: "free", agent: { cli: "settings-cli-free" } },
+          agentConfig: {
+            plan: "free",
+            providerChain: ["opencode"],
+            opencode: { cli: "opencode", command: "opencode", model: "settings-model-free", variant: "medium" },
+          },
         },
       ],
     });
@@ -351,7 +407,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("settings-cli-free")).toBeInTheDocument();
+    expect(await screen.findByText("opencode")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
@@ -363,7 +419,21 @@ describe("API screens", () => {
 
   it("keeps Docs usable when the server config endpoint is missing", async () => {
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [{ plan: "free", agentCli: "endpoint-missing-cli" }],
+      plans: [
+        {
+          id: "free",
+          agentConfig: {
+            plan: "free",
+            providerChain: ["opencode"],
+            opencode: {
+              cli: "opencode",
+              command: "opencode",
+              model: "endpoint-missing-model",
+              variant: "medium",
+            },
+          },
+        },
+      ],
     });
     pullwiseApi.docs.getServerConfig.mockRejectedValue(
       Object.assign(new Error("Not found"), { status: 404 })
@@ -371,7 +441,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("endpoint-missing-cli")).toBeInTheDocument();
+    expect(await screen.findByText("opencode")).toBeInTheDocument();
     expect(
       screen.getByText("Server configuration docs are not available from this backend yet.")
     ).toBeInTheDocument();

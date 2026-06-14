@@ -179,8 +179,6 @@ function recordsFromPayload(payload) {
   const containers = [
     payload.plans,
     payload.subscriptionPlans,
-    payload.agentConfigs,
-    payload.configs,
     payload.items,
   ];
 
@@ -201,63 +199,29 @@ function recordsFromPayload(payload) {
 function normalizePlanConfig(record = {}) {
   if (!objectRecord(record)) return null;
   const agentConfig = objectRecord(record.agentConfig) ? record.agentConfig : {};
-  const agent = objectRecord(record.agent)
-    ? record.agent
-    : objectRecord(agentConfig.agent)
-      ? agentConfig.agent
-      : {};
-  const config = objectRecord(record.config) ? record.config : {};
-  const settings = objectRecord(record.settings) ? record.settings : {};
   const rawPlan = textValue(
     record.plan,
     agentConfig.plan,
-    record.tier,
-    record.key,
     record.id,
-    record.slug,
     record.name
   );
   if (!rawPlan) return null;
   const plan = rawPlan.toLowerCase();
+  const providerChain = Array.isArray(agentConfig.providerChain) ? agentConfig.providerChain : [];
+  const provider = textValue(providerChain[0]).toLowerCase();
+  const providerConfig = objectRecord(agentConfig[provider]) ? agentConfig[provider] : {};
+  const agentCli = provider === "codex" || provider === "opencode" ? provider : "";
 
   return {
     plan,
     label: PLAN_LABELS[plan] || titleCase(rawPlan),
-    reviewLimit: valueFromPlanRecord(record, "reviewLimit", "review_limit"),
-    repositoryReviewLimit: valueFromPlanRecord(
-      record,
-      "repositoryReviewLimit",
-      "repository_review_limit"
-    ),
-    repositoryLimits: normalizeRepositoryLimits(
-      record.repositoryLimits || record.repository_limits || record.checkoutLimits
-    ),
-    agentCli: textValue(
-      record.agentCli,
-      record.cli,
-      record.provider,
-      agent.agentCli,
-      agent.cli,
-      agentConfig.agentCli,
-      agentConfig.provider,
-      agentConfig.cli,
-      config.agentCli,
-      config.cli,
-      settings.agentCli,
-    ),
-    model: textValue(
-      record.model,
-      agentConfig.model,
-      agent.model,
-      config.model,
-      settings.model
-    ),
+    reviewLimit: valueFromPlanRecord(record, "reviewLimit"),
+    repositoryReviewLimit: valueFromPlanRecord(record, "repositoryReviewLimit"),
+    repositoryLimits: normalizeRepositoryLimits(record.repositoryLimits),
+    agentCli,
+    model: textValue(providerConfig.model),
     reasoningEffort: textValue(
-      record.reasoningEffort,
-      agentConfig.reasoningEffort,
-      agent.reasoningEffort,
-      config.reasoningEffort,
-      settings.reasoningEffort,
+      provider === "opencode" ? providerConfig.variant : providerConfig.reasoningEffort
     ),
   };
 }

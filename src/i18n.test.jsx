@@ -31,28 +31,27 @@ describe("i18n storage resilience", () => {
     const { T, setLang } = await import("./i18n.jsx");
 
     setLang("ja");
-    expect(T("Overview", "总览")).toBe("概要");
-    expect(T("Custom", { zh: "自定义", ja: "カスタム", ko: "사용자 지정" })).toBe("カスタム");
+    expect(T("Custom", { zh: "zh-custom", ja: "ja-custom", ko: "ko-custom" })).toBe("ja-custom");
 
     setLang("ko");
-    expect(T("Custom", { zh: "自定义", ja: "カスタム", ko: "사용자 지정" })).toBe("사용자 지정");
+    expect(T("Custom", { zh: "zh-custom", ja: "ja-custom", ko: "ko-custom" })).toBe("ko-custom");
 
     setLang("fr");
-    expect(T("Custom", { zh: "自定义" })).toBe("Custom");
+    expect(T("Custom", { zh: "zh-custom" })).toBe("Custom");
 
     setLang("es");
-    expect(T("Settings", "设置")).toBe("Configuración");
+    expect(T("Custom", { es: "es-custom" })).toBe("es-custom");
   });
 
-  it("normalizes legacy Chinese codes and rejects unsupported languages", async () => {
+  it("rejects unsupported language codes instead of normalizing aliases", async () => {
     const { T, setLang, useLang } = await import("./i18n.jsx");
 
     setLang("zh-CN");
-    expect(T("Settings", "设置")).toBe("设置");
-    expect(T("Overview", "Overview")).toBe("总览");
+    expect(T("Settings", "Chinese settings")).toBe("Settings");
+    expect(T("Overview", "Overview")).toBe("Overview");
 
     setLang("de");
-    expect(T("Settings", "设置")).toBe("Settings");
+    expect(T("Settings", "Chinese settings")).toBe("Settings");
     expect(typeof useLang).toBe("function");
   });
 });

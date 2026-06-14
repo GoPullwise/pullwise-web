@@ -15,13 +15,6 @@ export const LANGUAGES = [
 ];
 
 const LANGUAGE_CODES = new Set(LANGUAGES.map((language) => language.code));
-const LANGUAGE_ALIASES = {
-  "zh-cn": "zh",
-  zh_cn: "zh",
-  "zh-hans": "zh",
-  zh_hans: "zh",
-  cn: "zh",
-};
 
 // Existing inline translation data contains intentional later overrides for a few common keys.
 // Keep the table order stable and let the final duplicate win.
@@ -1891,8 +1884,7 @@ const PHRASE_TRANSLATIONS = {
 
 function normalizeLang(nextLang) {
   const code = String(nextLang || "en").trim().toLowerCase();
-  const normalized = LANGUAGE_ALIASES[code] || code;
-  return LANGUAGE_CODES.has(normalized) ? normalized : "en";
+  return LANGUAGE_CODES.has(code) ? code : "en";
 }
 
 let lang = normalizeLang(localStorageGet("pw-lang", "en"));
