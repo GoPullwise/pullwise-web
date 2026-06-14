@@ -1426,6 +1426,13 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Tests, docs, config, and CI")).toBeInTheDocument();
     expect(cytoscape).toHaveBeenCalled();
     const graphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
+    expect(graphConfig.layout).toMatchObject({
+      name: "breadthfirst",
+      directed: true,
+      direction: "rightward",
+      grid: true,
+      avoidOverlap: true,
+    });
     expect(graphConfig.elements).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

@@ -2605,13 +2605,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const status = batchMode
     ? batchScanStatus(scans, expectedBatchCount, Boolean(error))
     : scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
-  const progress = batchMode
-    ? expectedBatchCount
-      ? scans.reduce((sum, item) => sum + Number(item?.progress || 0), 0) / expectedBatchCount
-      : 0
-    : typeof scan?.progress === "number"
-      ? scan.progress
-      : 0;
   const currentPhase =
     scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
   const scanPhases = scanPhasesForPhase(currentPhase);
@@ -2815,20 +2808,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 )}
               </div>
             )}
-
-            <div className="scanning-bar-wrap">
-              <div className="scanning-bar">
-                <div className="scanning-bar-fill" style={{ width: progress + "%" }}></div>
-              </div>
-              <div className="scanning-bar-meta">
-                <span>{Math.floor(progress)}%</span>
-                <span>
-                  {phaseIdx >= 0
-                    ? T(scanPhases[phaseIdx].t_en, scanPhases[phaseIdx].t_zh)
-                    : T("Queued", "队列中")}
-                </span>
-              </div>
-            </div>
 
             {status === "queued" && queueSummary && (
               <div className="scanning-queue">
