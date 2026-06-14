@@ -1343,20 +1343,21 @@ describe("normalizeIssue", () => {
     });
   });
 
-  it("normalizes scan AI usage to worker agent metadata without token counts", () => {
+  it("normalizes canonical scan AI usage without token counts", () => {
     expect(
       normalizeScan({
         id: "sc_1",
         reviewAgent: {
-          agentCli: "codex",
-          provider: "openai",
-          model: "gpt-5.6",
-          reasoningEffort: "high",
+          agentCli: "unsupported-review-agent",
+          provider: "unsupported-provider",
+          model: "unsupported-model",
+          reasoningEffort: "unsupported-effort",
         },
         aiUsage: {
-          provider: "fallback-provider",
-          model: "fallback-model",
-          reasoningEffort: "fallback-effort",
+          agentCli: "codex",
+          provider: "codex",
+          model: "gpt-5.6",
+          reasoningEffort: "high",
           inputTokens: "123",
           outputTokens: 45.8,
           totalTokens: "168",
@@ -1364,7 +1365,7 @@ describe("normalizeIssue", () => {
       }).aiUsage
     ).toEqual({
       agentCli: "codex",
-      provider: "openai",
+      provider: "codex",
       model: "gpt-5.6",
       reasoningEffort: "high",
     });

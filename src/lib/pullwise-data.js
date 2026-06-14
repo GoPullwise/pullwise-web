@@ -489,74 +489,14 @@ function normalizeQueueCount(value, { positive = false } = {}) {
   return normalized;
 }
 
-function objectValue(...values) {
-  for (const value of values) {
-    if (objectRecord(value)) return value;
-  }
-  return {};
-}
-
-function normalizeAiUsage(value, scan = {}) {
+function normalizeAiUsage(value) {
   const source = objectRecord(value) ? value : {};
-  const scanSource = objectRecord(scan) ? scan : {};
-  const reviewAgent = objectValue(scanSource.reviewAgent, source.reviewAgent);
-  const agent = objectValue(reviewAgent.agent, reviewAgent.agentConfig, source.agent, source.agentConfig);
-  const config = objectValue(reviewAgent.config, source.config, scanSource.config);
-  const agentCli = textValue(
-    reviewAgent.agentCli,
-    reviewAgent.cli,
-    reviewAgent.command,
-    agent.agentCli,
-    agent.cli,
-    agent.command,
-    config.agentCli,
-    config.cli,
-    config.command,
-    source.agentCli,
-    source.cli,
-    source.command,
-    scanSource.agentCli,
-    scanSource.cli,
-    scanSource.command
-  );
-  const provider = textValue(
-    reviewAgent.provider,
-    reviewAgent.providerName,
-    agent.provider,
-    agent.providerName,
-    config.provider,
-    config.providerName,
-    source.provider,
-    source.providerName,
-    scanSource.provider,
-    scanSource.providerName
-  );
-  const model = textValue(
-    reviewAgent.model,
-    reviewAgent.modelName,
-    agent.model,
-    agent.modelName,
-    config.model,
-    config.modelName,
-    source.model,
-    source.modelName,
-    scanSource.model,
-    scanSource.modelName
-  );
-  const reasoningEffort = textValue(
-    reviewAgent.reasoningEffort,
-    reviewAgent.reasoning,
-    agent.reasoningEffort,
-    agent.reasoning,
-    config.reasoningEffort,
-    config.reasoning,
-    source.reasoningEffort,
-    source.reasoning,
-    scanSource.reasoningEffort,
-    scanSource.reasoning
-  );
+  const agentCli = textValue(source.agentCli);
+  const provider = textValue(source.provider);
+  const model = textValue(source.model);
+  const reasoningEffort = textValue(source.reasoningEffort);
   const usage = {};
-  if (agentCli || provider) usage.agentCli = agentCli || provider;
+  if (agentCli) usage.agentCli = agentCli;
   if (provider) usage.provider = provider;
   if (model) usage.model = model;
   if (reasoningEffort) usage.reasoningEffort = reasoningEffort;
