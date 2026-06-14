@@ -1885,6 +1885,33 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
   });
 
+  it("does not render a standalone progress track in scan details", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "ai",
+        progress: 80,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    const { container } = render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    expect(container.querySelector(".scanning-bar-wrap")).not.toBeInTheDocument();
+    expect(container.querySelector(".scanning-bar")).not.toBeInTheDocument();
+    expect(screen.getByText("Audit Swarm review")).toBeInTheDocument();
+  });
+
   it("explains queued scans with queue position and capacity limits", () => {
     useScanRun.mockReturnValue({
       scan: {
