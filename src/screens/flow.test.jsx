@@ -1001,6 +1001,46 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText("Candidate audit")).not.toBeInTheDocument();
   });
 
+  it("does not render empty metadata bars in scan audit panels", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        progress: 65,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        completionAudit: {
+          status: "passed",
+          summary: "Completion audit has no extra metadata.",
+        },
+        jobTrace: {
+          status: "running",
+          summary: "Worker trace has no extra metadata.",
+          checkpoints: [],
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_running", fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const completionPanel = screen.getByText("Completion audit").closest(".scan-compact-panel");
+    const tracePanel = screen.getByText("Job trace").closest(".scan-compact-panel");
+
+    expect(completionPanel).not.toBeNull();
+    expect(tracePanel).not.toBeNull();
+    expect(completionPanel.querySelector(".scan-preflight-meta")).toBeNull();
+    expect(tracePanel.querySelector(".scan-preflight-meta")).toBeNull();
+  });
+
   it("renders every job trace checkpoint inside a scrollable list", () => {
     const checkpoints = Array.from({ length: 12 }, (_, index) => ({
       key: `checkpoint-${index + 1}`,

@@ -877,6 +877,20 @@ function CompactAuditList({ title, items }) {
 function CompletionAuditPanel({ audit }) {
   if (!audit) return null;
   const hasDetails = [audit.blockers, audit.warnings, audit.checks].some((items) => items?.length);
+  const metaItems = [
+    audit.completedAt && {
+      key: "completedAt",
+      label: T(`Completed: ${audit.completedAt}`, `完成于：${audit.completedAt}`),
+    },
+    audit.updatedAt && {
+      key: "updatedAt",
+      label: T(`Updated: ${audit.updatedAt}`, `更新于：${audit.updatedAt}`),
+    },
+    audit.outcome && {
+      key: "outcome",
+      label: T(`Outcome: ${audit.outcome}`, `结果：${audit.outcome}`),
+    },
+  ].filter(Boolean);
   return (
     <div className="card scanning-preflight scan-compact-panel">
       <div className="scan-compact-head">
@@ -886,11 +900,13 @@ function CompletionAuditPanel({ audit }) {
         <CompactStatusChip status={audit.status || audit.outcome} />
       </div>
       {audit.summary && <div className="muted scan-preflight-summary">{audit.summary}</div>}
-      <div className="scan-preflight-meta">
-        {audit.completedAt && <span>{T(`Completed: ${audit.completedAt}`, `完成于：${audit.completedAt}`)}</span>}
-        {audit.updatedAt && <span>{T(`Updated: ${audit.updatedAt}`, `更新于：${audit.updatedAt}`)}</span>}
-        {audit.outcome && <span>{T(`Outcome: ${audit.outcome}`, `结果：${audit.outcome}`)}</span>}
-      </div>
+      {metaItems.length > 0 && (
+        <div className="scan-preflight-meta">
+          {metaItems.map((item) => (
+            <span key={item.key}>{item.label}</span>
+          ))}
+        </div>
+      )}
       {hasDetails && (
         <div className="scan-audit-scroll">
           <CompactAuditList title={T("Blockers", "阻塞项")} items={audit.blockers} />
@@ -905,6 +921,20 @@ function CompletionAuditPanel({ audit }) {
 function JobTracePanel({ trace }) {
   if (!trace) return null;
   const checkpoints = trace.checkpoints || [];
+  const metaItems = [
+    trace.currentJobId && {
+      key: "currentJobId",
+      label: T(`Job: ${trace.currentJobId}`, `任务：${trace.currentJobId}`),
+    },
+    trace.workerId && {
+      key: "workerId",
+      label: T(`Worker: ${trace.workerId}`, `Worker：${trace.workerId}`),
+    },
+    trace.updatedAt && {
+      key: "updatedAt",
+      label: T(`Updated: ${trace.updatedAt}`, `更新于：${trace.updatedAt}`),
+    },
+  ].filter(Boolean);
   return (
     <div className="card scanning-preflight scan-compact-panel">
       <div className="scan-compact-head">
@@ -914,11 +944,13 @@ function JobTracePanel({ trace }) {
         <CompactStatusChip status={trace.status} />
       </div>
       {trace.summary && <div className="muted scan-preflight-summary">{trace.summary}</div>}
-      <div className="scan-preflight-meta">
-        {trace.currentJobId && <span>{T(`Job: ${trace.currentJobId}`, `任务：${trace.currentJobId}`)}</span>}
-        {trace.workerId && <span>{T(`Worker: ${trace.workerId}`, `Worker：${trace.workerId}`)}</span>}
-        {trace.updatedAt && <span>{T(`Updated: ${trace.updatedAt}`, `更新于：${trace.updatedAt}`)}</span>}
-      </div>
+      {metaItems.length > 0 && (
+        <div className="scan-preflight-meta">
+          {metaItems.map((item) => (
+            <span key={item.key}>{item.label}</span>
+          ))}
+        </div>
+      )}
       {checkpoints.length > 0 && (
         <div className="scan-trace-list" role="list" aria-label={T("Job trace checkpoints", "任务轨迹检查点")}>
           {checkpoints.map((checkpoint) => (
