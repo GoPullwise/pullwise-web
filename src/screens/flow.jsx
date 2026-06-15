@@ -1330,21 +1330,6 @@ export function ReposScreen({
       ...repo,
       scanRequestId: makeScanRequestId(),
     }));
-    if (selectedRepos.length > 1) {
-      const requests = selectedRepos
-        .map(scanInputFromRepo)
-        .filter((request) => request.repo || request.repoId);
-      const results = await Promise.allSettled(
-        requests.map((request) => pullwiseApi.scans.create(request))
-      );
-      const createdCount = results.filter((result) => result.status === "fulfilled").length;
-      if (createdCount === 0) {
-        const failed = results.find((result) => result.status === "rejected");
-        throw failed?.reason || new Error(T("Unable to start scans.", "无法启动扫描。"));
-      }
-      go("history");
-      return;
-    }
     setActiveRepo({ ...selectedRepos[0], selectedRepos });
     go("scanning");
   };

@@ -30,7 +30,7 @@ describe("Cloudflare Worker API proxy", () => {
     expect(fetchMock.mock.calls[0][1].headers.get("host")).toBeNull();
     expect(fetchMock.mock.calls[0][1].headers.get("X-Forwarded-Proto")).toBe("https");
     expect(fetchMock.mock.calls[0][1].headers.get("X-Forwarded-Host")).toBe("pull-wise.com");
-    expect(payload.prefix).toBe(null);
+    expect(payload.prefix).toBe("/api");
 
   });
 
@@ -74,7 +74,7 @@ describe("Cloudflare Worker API proxy", () => {
     expect(forwardedHeaders.get("X-Original-Forwarded-For")).toBeNull();
     expect(forwardedHeaders.get("X-Forwarded-Proto")).toBe("https");
     expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("pull-wise.com");
-    expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBeNull();
+    expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBe("/api");
 
   });
 

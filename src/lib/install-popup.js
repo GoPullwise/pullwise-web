@@ -27,6 +27,15 @@ export class GitHubInstallCancelled extends Error {
   }
 }
 
+export class GitHubInstallVerificationError extends Error {
+  constructor(cause) {
+    super(cause?.message || "Unable to verify GitHub installation after the popup closed.");
+    this.name = "GitHubInstallVerificationError";
+    this.code = cause?.code || cause?.payload?.code || "github_installation_verification_failed";
+    this.cause = cause;
+  }
+}
+
 export function isInstallPopupReturn() {
   if (typeof window === "undefined") return false;
   if (window.name !== POPUP_NAME) return false;
@@ -146,8 +155,8 @@ export function openGitHubInstallPopup(url, syncPayload) {
         }
 
         reject(new GitHubInstallCancelled());
-      } catch {
-        reject(new GitHubInstallCancelled());
+      } catch (error) {
+        reject(new GitHubInstallVerificationError(error));
       }
     }, POLL_INTERVAL_MS);
 
