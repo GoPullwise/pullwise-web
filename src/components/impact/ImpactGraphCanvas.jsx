@@ -155,7 +155,7 @@ export function ImpactGraphCanvas({ impactGraph }) {
       layout: {
         name: "breadthfirst",
         directed: true,
-        direction: "rightward",
+        direction: "downward",
         grid: true,
         avoidOverlap: true,
         avoidOverlapPadding: 14,
