@@ -210,7 +210,7 @@ function normalizePlanConfig(record = {}) {
   const providerChain = Array.isArray(agentConfig.providerChain) ? agentConfig.providerChain : [];
   const provider = textValue(providerChain[0]).toLowerCase();
   const providerConfig = objectRecord(agentConfig[provider]) ? agentConfig[provider] : {};
-  const agentCli = provider === "codex" || provider === "opencode" ? provider : "";
+  const agentCli = provider === "codex" ? provider : "";
 
   return {
     plan,
@@ -220,9 +220,7 @@ function normalizePlanConfig(record = {}) {
     repositoryLimits: normalizeRepositoryLimits(record.repositoryLimits),
     agentCli,
     model: textValue(providerConfig.model),
-    reasoningEffort: textValue(
-      provider === "opencode" ? providerConfig.variant : providerConfig.reasoningEffort
-    ),
+    reasoningEffort: textValue(providerConfig.reasoningEffort),
   };
 }
 

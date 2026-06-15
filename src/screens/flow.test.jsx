@@ -2082,7 +2082,6 @@ describe("ScanningScreen queue state", () => {
 
   it.each([
     "Codex CLI is missing or not authenticated.",
-    "OpenCode CLI is missing or not authenticated.",
   ])(
     "routes missing CLI provider errors to settings without exposing the runner name",
     async (message) => {
@@ -2095,7 +2094,7 @@ describe("ScanningScreen queue state", () => {
       await user.click(action);
 
       expect(screen.getByRole("alert")).toHaveTextContent(/review runner is missing/i);
-      expect(screen.getByRole("alert")).not.toHaveTextContent(/codex|opencode/i);
+      expect(screen.getByRole("alert")).not.toHaveTextContent(/codex/i);
       expect(go).toHaveBeenCalledWith("settings");
     }
   );

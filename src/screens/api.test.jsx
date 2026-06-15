@@ -134,12 +134,12 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            providerChain: ["opencode"],
-            opencode: {
-              cli: "opencode",
-              command: "opencode",
+            providerChain: ["codex"],
+            codex: {
+              cli: "codex",
+              command: "codex",
               model: "model-from-api-free",
-              variant: "effort-from-api-free",
+              reasoningEffort: "effort-from-api-free",
             },
           },
         },
@@ -165,7 +165,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect((await screen.findAllByText("codex")).length).toBeGreaterThan(0);
     expect(screen.getByText("model-from-api-pro")).toBeInTheDocument();
     expect(screen.getByText("effort-from-api-max")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
@@ -187,12 +187,12 @@ describe("API screens", () => {
         max: {
           agentConfig: {
             plan: "max",
-            providerChain: ["opencode"],
-            opencode: {
-              cli: "opencode",
-              command: "opencode",
+            providerChain: ["codex"],
+            codex: {
+              cli: "codex",
+              command: "codex",
               model: "map-model-max",
-              variant: "map-effort-max",
+              reasoningEffort: "map-effort-max",
             },
           },
         },
@@ -201,7 +201,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect(await screen.findByText("codex")).toBeInTheDocument();
     expect(screen.getByText("map-model-max")).toBeInTheDocument();
     expect(screen.getByText("map-effort-max")).toBeInTheDocument();
   });
@@ -220,7 +220,7 @@ describe("API screens", () => {
           provider: "unsupported-record-provider",
           agentConfig: {
             plan: "free",
-            providerChain: ["opencode"],
+            providerChain: ["codex"],
             provider: "unsupported-config-provider",
             cli: "unsupported-config-cli",
             agent: {
@@ -228,11 +228,11 @@ describe("API screens", () => {
               model: "unsupported-agent-model",
               reasoningEffort: "unsupported-agent-effort",
             },
-            opencode: {
-              cli: "opencode",
-              command: "opencode",
+            codex: {
+              cli: "codex",
+              command: "codex",
               model: "canonical-docs-model",
-              variant: "medium",
+              reasoningEffort: "medium",
             },
           },
         },
@@ -241,7 +241,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect(await screen.findByText("codex")).toBeInTheDocument();
     expect(screen.getByText("canonical-docs-model")).toBeInTheDocument();
     expect(screen.queryByText("unsupported-agent-cli")).not.toBeInTheDocument();
     expect(screen.queryByText("unsupported-agent-model")).not.toBeInTheDocument();
@@ -260,8 +260,8 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
           agentConfig: {
             plan: "free",
-            providerChain: ["opencode"],
-            opencode: { cli: "opencode", command: "opencode", model: "docs-model-free", variant: "medium" },
+            providerChain: ["codex"],
+            codex: { cli: "codex", command: "codex", model: "docs-model-free", reasoningEffort: "medium" },
           },
         },
       ],
@@ -356,7 +356,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect(await screen.findByText("codex")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 1,048,576 bytes \(1.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
@@ -384,8 +384,8 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            providerChain: ["opencode"],
-            opencode: { cli: "opencode", command: "opencode", model: "settings-model-free", variant: "medium" },
+            providerChain: ["codex"],
+            codex: { cli: "codex", command: "codex", model: "settings-model-free", reasoningEffort: "medium" },
           },
         },
       ],
@@ -407,7 +407,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect(await screen.findByText("codex")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
@@ -424,12 +424,12 @@ describe("API screens", () => {
           id: "free",
           agentConfig: {
             plan: "free",
-            providerChain: ["opencode"],
-            opencode: {
-              cli: "opencode",
-              command: "opencode",
+            providerChain: ["codex"],
+            codex: {
+              cli: "codex",
+              command: "codex",
               model: "endpoint-missing-model",
-              variant: "medium",
+              reasoningEffort: "medium",
             },
           },
         },
@@ -441,7 +441,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("opencode")).toBeInTheDocument();
+    expect(await screen.findByText("codex")).toBeInTheDocument();
     expect(
       screen.getByText("Server configuration docs are not available from this backend yet.")
     ).toBeInTheDocument();

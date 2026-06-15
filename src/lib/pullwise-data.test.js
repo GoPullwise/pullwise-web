@@ -1707,7 +1707,7 @@ describe("normalizeIssue", () => {
         protocol: "audit-swarm/0.1",
         stage: "report",
         adapter: "codex",
-        providerChain: ["codex", "opencode"],
+        providerChain: ["codex"],
         summary: "2 candidates evaluated\n1 reported",
         counts: {
           issueCards: "1",
@@ -1804,7 +1804,7 @@ describe("normalizeIssue", () => {
       protocol: "audit-swarm/0.1",
       stage: "report",
       adapter: "codex",
-      providerChain: ["codex", "opencode"],
+      providerChain: ["codex"],
       summary: "2 candidates evaluated",
       counts: {
         issueCards: 1,

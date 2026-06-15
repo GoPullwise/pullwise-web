@@ -16,7 +16,7 @@ describe("legal pages", () => {
     render(<SecurityScreen go={vi.fn()} />);
 
     expect(screen.getByText(/review runner credentials/i)).toBeInTheDocument();
-    expect(screen.queryByText(/codex|opencode/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/codex/i)).not.toBeInTheDocument();
   });
 
   it("shows dashboard actions instead of sign-in actions for signed-in users", () => {
