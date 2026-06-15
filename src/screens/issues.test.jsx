@@ -602,6 +602,54 @@ describe("HistoryScreen queue state", () => {
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
+  it("refreshes scan history on demand without clearing the current list", async () => {
+    const user = userEvent.setup();
+    let resolveReload;
+    const reload = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveReload = resolve;
+        })
+    );
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_done",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          time: "now",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload,
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    const refresh = screen.getByRole("button", { name: /^refresh$/i });
+    await user.click(refresh);
+
+    expect(reload).toHaveBeenCalledWith({ quiet: true });
+    expect(screen.getByText("octocat/private-repo")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /refreshing/i })).toBeDisabled();
+
+    await act(async () => {
+      resolveReload({});
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^refresh$/i })).not.toBeDisabled()
+    );
+  });
+
   it("renders scan history skeleton rows while scans are loading", () => {
     useScans.mockReturnValue({
       items: [],

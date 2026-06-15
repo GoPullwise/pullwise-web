@@ -1433,6 +1433,21 @@ describe("ScanningScreen queue state", () => {
     expect(canvasBlock).not.toMatch(/height:\s*clamp/);
   });
 
+  it("renders the impact graph canvas as a full-width landscape panel", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+    const canvasBlock = styles.match(/\.impact-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups
+      ?.body;
+    const wrapBlock = styles.match(/\.impact-graph-canvas-wrap\s*\{(?<body>[^}]*)\}/s)?.groups
+      ?.body;
+
+    expect(canvasBlock).toBeTruthy();
+    expect(canvasBlock).toMatch(/aspect-ratio:\s*16\s*\/\s*9;/);
+    expect(canvasBlock).toMatch(/width:\s*100%;/);
+    expect(canvasBlock).toMatch(/min-height:\s*320px;/);
+    expect(wrapBlock).toBeTruthy();
+    expect(wrapBlock).toMatch(/width:\s*100%;/);
+  });
+
   it("shows impact graph summary, target relations, coverage gaps, and graph canvas", async () => {
     useScanRun.mockReturnValue({
       scan: {
@@ -1724,6 +1739,16 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("1 failed")).toBeInTheDocument();
     expect(screen.getByText("1 flaky")).toBeInTheDocument();
     expect(screen.getByText("build, test")).toBeInTheDocument();
+  });
+
+  it("stacks repository scan limit evidence as a vertical list", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+    const limitMetaBlock = styles.match(
+      /\.scanning-preflight \.scan-repository-limits \.scan-preflight-meta\s*\{(?<body>[^}]*)\}/s
+    )?.groups?.body;
+
+    expect(limitMetaBlock).toBeTruthy();
+    expect(limitMetaBlock).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\);/);
   });
 
   it("marks a partial batch startup failure as failed after created scans finish", () => {

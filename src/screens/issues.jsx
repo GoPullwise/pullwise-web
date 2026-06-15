@@ -2299,6 +2299,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
   const [retryLoading, setRetryLoading] = useState("");
+  const [refreshLoading, setRefreshLoading] = useState(false);
   const [actionError, setActionError] = useState("");
   const {
     items: scans,
@@ -2353,6 +2354,21 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
       setRetryLoading("");
     }
   };
+  const refreshHistory = async () => {
+    if (refreshLoading || loading || typeof reload !== "function") return;
+    setActionError("");
+    setRefreshLoading(true);
+    try {
+      await reload({ quiet: true });
+    } catch (refreshError) {
+      setActionError(
+        refreshError?.message || T("Unable to refresh scan history.", "无法刷新扫描历史。")
+      );
+    } finally {
+      setRefreshLoading(false);
+    }
+  };
+  const refreshDisabled = refreshLoading || loading || typeof reload !== "function";
 
   return (
     <div className="app fade-in">
@@ -2391,6 +2407,16 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                   </button>
                 ))}
               </div>
+              <button
+                type="button"
+                className="btn"
+                disabled={refreshDisabled}
+                onClick={refreshHistory}
+                title={T("Refresh scan history", "刷新扫描历史")}
+              >
+                <I.Refresh size={13} className={refreshLoading ? "spin" : undefined} />
+                {refreshLoading ? T("Refreshing...", "正在刷新...") : T("Refresh", "刷新")}
+              </button>
               <a className="btn primary" {...screenLinkProps(go, "repos")}>
                 <I.Play size={11} /> {T("New scan", "新扫描")}
               </a>

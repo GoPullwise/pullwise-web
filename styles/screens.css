@@ -1307,6 +1307,15 @@
   color: var(--sev-medium);
 }
 
+.scanning-preflight .scan-repository-limits .scan-preflight-meta {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.scanning-preflight .scan-repository-limits .scan-preflight-meta span {
+  align-items: flex-start;
+}
+
 .scan-compact-panel {
   gap: 10px;
   min-width: 0;
@@ -2209,6 +2218,7 @@
 
 .impact-graph-canvas-wrap {
   min-width: 0;
+  width: 100%;
 }
 
 .impact-graph-toolbar {

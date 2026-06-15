@@ -102,6 +102,10 @@ export function ImpactGraphCanvas({ impactGraph }) {
 
   useEffect(() => {
     if (!containerRef.current || elements.length === 0) return undefined;
+    const containerWidth = containerRef.current.clientWidth || 960;
+    const containerHeight = containerRef.current.clientHeight || Math.round(containerWidth * 9 / 16);
+    const layoutHeight = Math.max(containerHeight, 320);
+    const layoutWidth = Math.max(containerWidth, Math.round(layoutHeight * 16 / 9));
     const cy = cytoscape({
       container: containerRef.current,
       elements,
@@ -155,6 +159,7 @@ export function ImpactGraphCanvas({ impactGraph }) {
         grid: true,
         avoidOverlap: true,
         avoidOverlapPadding: 14,
+        boundingBox: { x1: 0, y1: 0, w: layoutWidth, h: layoutHeight },
         nodeDimensionsIncludeLabels: true,
         spacingFactor: 1.35,
         animate: true,
@@ -197,7 +202,12 @@ export function ImpactGraphCanvas({ impactGraph }) {
       {elements.length === 0 ? (
         <div className="impact-empty">{T("No impact graph edges to render.", "No impact graph edges to render.")}</div>
       ) : (
-        <div className="impact-graph-canvas" ref={containerRef} />
+        <div
+          className="impact-graph-canvas"
+          ref={containerRef}
+          role="img"
+          aria-label={T("Impact context graph", "Impact context graph")}
+        />
       )}
     </div>
   );
