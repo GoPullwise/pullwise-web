@@ -215,9 +215,9 @@ function normalizePlanConfig(record = {}) {
   return {
     plan,
     label: PLAN_LABELS[plan] || titleCase(rawPlan),
-    reviewLimit: valueFromPlanRecord(record, "reviewLimit"),
+    reviewLimit: valueFromPlanRecord(record, "reviewLimit", "userReviewLimit"),
     repositoryReviewLimit: valueFromPlanRecord(record, "repositoryReviewLimit"),
-    repositoryLimits: normalizeRepositoryLimits(record.repositoryLimits),
+    repositoryLimits: normalizeRepositoryLimits(record.repositoryLimits) || normalizeRepositoryLimits(record),
     agentCli,
     model: textValue(providerConfig.model),
     reasoningEffort: textValue(providerConfig.reasoningEffort),
@@ -231,6 +231,10 @@ function valueFromPlanRecord(record, ...keys) {
   return undefined;
 }
 
+function hasConfigValue(value) {
+  return value !== undefined && value !== null && value !== "";
+}
+
 function limitNumber(value) {
   const number = numericValue(value);
   if (number === null) return null;
@@ -239,8 +243,12 @@ function limitNumber(value) {
 
 function normalizeRepositoryLimits(value) {
   if (!objectRecord(value)) return null;
-  const maxFiles = limitNumber(value.maxFiles ?? value.max_files ?? value.fileLimit);
-  const maxBytes = limitNumber(value.maxBytes ?? value.max_bytes ?? value.byteLimit);
+  const maxFiles = limitNumber(
+    value.maxFiles ?? value.max_files ?? value.maxRepoFiles ?? value.max_repo_files ?? value.fileLimit
+  );
+  const maxBytes = limitNumber(
+    value.maxBytes ?? value.max_bytes ?? value.maxRepoBytes ?? value.max_repo_bytes ?? value.byteLimit
+  );
   return maxFiles || maxBytes ? { maxFiles, maxBytes } : null;
 }
 
@@ -259,6 +267,49 @@ function normalizePlanConfigs(payload) {
       if (leftIndex !== rightIndex) return leftIndex - rightIndex;
       return left.label.localeCompare(right.label);
     });
+}
+
+function mergeRepositoryLimits(baseLimits, overrideLimits) {
+  const maxFiles = hasConfigValue(overrideLimits?.maxFiles)
+    ? overrideLimits.maxFiles
+    : baseLimits?.maxFiles;
+  const maxBytes = hasConfigValue(overrideLimits?.maxBytes)
+    ? overrideLimits.maxBytes
+    : baseLimits?.maxBytes;
+  return hasConfigValue(maxFiles) || hasConfigValue(maxBytes) ? { maxFiles, maxBytes } : null;
+}
+
+function mergePlanConfig(base, override) {
+  const plan = override.plan || base.plan;
+  return {
+    plan,
+    label: base.label || override.label || PLAN_LABELS[plan] || titleCase(plan),
+    reviewLimit: hasConfigValue(override.reviewLimit) ? override.reviewLimit : base.reviewLimit,
+    repositoryReviewLimit: hasConfigValue(override.repositoryReviewLimit)
+      ? override.repositoryReviewLimit
+      : base.repositoryReviewLimit,
+    repositoryLimits: mergeRepositoryLimits(base.repositoryLimits, override.repositoryLimits),
+    agentCli: hasConfigValue(base.agentCli) ? base.agentCli : override.agentCli,
+    model: hasConfigValue(base.model) ? base.model : override.model,
+    reasoningEffort: hasConfigValue(base.reasoningEffort)
+      ? base.reasoningEffort
+      : override.reasoningEffort,
+  };
+}
+
+function mergePlanConfigs(basePlans, overridePlans) {
+  const plansById = new Map();
+  for (const plan of basePlans) plansById.set(plan.plan, plan);
+  for (const override of overridePlans) {
+    const base = plansById.get(override.plan) || { plan: override.plan };
+    plansById.set(override.plan, mergePlanConfig(base, override));
+  }
+  return [...plansById.values()].sort((left, right) => {
+    const leftIndex = planSortIndex(left.plan);
+    const rightIndex = planSortIndex(right.plan);
+    if (leftIndex !== rightIndex) return leftIndex - rightIndex;
+    return left.label.localeCompare(right.label);
+  });
 }
 
 function normalizeGroupId(value) {
@@ -441,6 +492,91 @@ function valueFromCandidates(payload, candidates) {
   return { found: false, value: undefined };
 }
 
+function planConfigFieldFromPath(path) {
+  const parts = textValue(path).split(".").filter(Boolean);
+  if (parts.length < 3 || normalizeGroupId(parts[0]) !== "plans") return null;
+  const plan = textValue(parts[1]).toLowerCase();
+  if (!plan) return null;
+  const fieldKey = parts.slice(2).map(serverConfigPathKey).join(".");
+  if (fieldKey === "userreviewlimit" || fieldKey === "reviewlimit") {
+    return { plan, field: "reviewLimit" };
+  }
+  if (fieldKey === "repositoryreviewlimit") {
+    return { plan, field: "repositoryReviewLimit" };
+  }
+  if (fieldKey === "maxrepofiles" || fieldKey === "repositorylimits.maxfiles") {
+    return { plan, field: "maxFiles" };
+  }
+  if (fieldKey === "maxrepobytes" || fieldKey === "repositorylimits.maxbytes") {
+    return { plan, field: "maxBytes" };
+  }
+  return null;
+}
+
+function planRecordFor(records, plan) {
+  if (!records.has(plan)) records.set(plan, { plan });
+  return records.get(plan);
+}
+
+function applyPlanConfigField(record, field, value) {
+  if (!hasConfigValue(value)) return;
+  if (field === "reviewLimit" || field === "repositoryReviewLimit") {
+    record[field] = value;
+    return;
+  }
+  record.repositoryLimits = objectRecord(record.repositoryLimits) ? record.repositoryLimits : {};
+  if (field === "maxFiles") record.repositoryLimits.maxFiles = value;
+  if (field === "maxBytes") record.repositoryLimits.maxBytes = value;
+}
+
+function collectPlanRecordsFromSettings(payload, records) {
+  for (const root of configRoots(payload)) {
+    const plans = root.plans;
+    if (!objectRecord(plans)) continue;
+    for (const [plan, settings] of Object.entries(plans)) {
+      if (!objectRecord(settings)) continue;
+      const record = planRecordFor(records, String(plan).toLowerCase());
+      applyPlanConfigField(record, "reviewLimit", settings.reviewLimit ?? settings.userReviewLimit);
+      applyPlanConfigField(record, "repositoryReviewLimit", settings.repositoryReviewLimit);
+      const repositoryLimits =
+        normalizeRepositoryLimits(settings.repositoryLimits) || normalizeRepositoryLimits(settings);
+      if (repositoryLimits) {
+        applyPlanConfigField(record, "maxFiles", repositoryLimits.maxFiles);
+        applyPlanConfigField(record, "maxBytes", repositoryLimits.maxBytes);
+      }
+    }
+  }
+}
+
+function collectPlanRecordsFromGroups(payload, records) {
+  const settings = objectRecord(payload.settings) ? payload.settings : {};
+  const groups = Array.isArray(payload.groups)
+    ? payload.groups
+    : Array.isArray(payload.items)
+      ? payload.items
+      : [];
+  for (const group of groups) {
+    for (const field of fieldsFromServerGroup(group)) {
+      if (!objectRecord(field)) continue;
+      const parsed = planConfigFieldFromPath(field.path ?? field.key ?? field.id ?? field.name);
+      if (!parsed) continue;
+      applyPlanConfigField(
+        planRecordFor(records, parsed.plan),
+        parsed.field,
+        valueFromField(field, settings)
+      );
+    }
+  }
+}
+
+function planConfigsFromServerConfig(payload) {
+  if (!objectRecord(payload)) return [];
+  const records = new Map();
+  collectPlanRecordsFromSettings(payload, records);
+  collectPlanRecordsFromGroups(payload, records);
+  return normalizePlanConfigs([...records.values()]);
+}
+
 function normalizeServerGroupsFromSettings(payload, options = {}) {
   return FALLBACK_SERVER_CONFIG_GROUPS.map((group) => {
     const fields = group.fields
@@ -557,7 +693,7 @@ function isCanceled(error) {
 }
 
 function ConfigValue({ value }) {
-  if (!value)
+  if (!hasConfigValue(value))
     return (
       <span className="docs-plan-missing">{T("Not provided by API", "Not provided by API")}</span>
     );
@@ -600,9 +736,12 @@ export function DocsScreen({ go, auth }) {
       ]);
       if (signal?.aborted) return;
 
+      const serverConfigPayload =
+        serverConfigResult.status === "fulfilled" ? serverConfigResult.value : null;
+      const serverPlanConfigs = planConfigsFromServerConfig(serverConfigPayload);
       let normalizedPlans = [];
       if (plansResult.status === "fulfilled") {
-        normalizedPlans = normalizePlanConfigs(plansResult.value);
+        normalizedPlans = mergePlanConfigs(normalizePlanConfigs(plansResult.value), serverPlanConfigs);
         setPlans(normalizedPlans);
       } else if (isCanceled(plansResult.reason)) {
         return;
@@ -619,8 +758,8 @@ export function DocsScreen({ go, auth }) {
 
       if (serverConfigResult.status === "fulfilled") {
         setServerGroups(
-          normalizeServerConfig(serverConfigResult.value, {
-            omitPlanConfigFields: normalizedPlans.length > 0,
+          normalizeServerConfig(serverConfigPayload, {
+            omitPlanConfigFields: true,
           })
         );
       } else if (isCanceled(serverConfigResult.reason)) {

@@ -206,6 +206,73 @@ describe("API screens", () => {
     expect(screen.getByText("map-effort-max")).toBeInTheDocument();
   });
 
+  it("moves plan fields from server config into the Docs plan cards", async () => {
+    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
+      plans: [
+        {
+          id: "free",
+          name: "Free",
+          agentConfig: {
+            plan: "free",
+            providerChain: ["codex"],
+            codex: {
+              cli: "codex",
+              command: "codex",
+              model: "plan-card-model",
+              reasoningEffort: "medium",
+            },
+          },
+        },
+      ],
+    });
+    pullwiseApi.docs.getServerConfig.mockResolvedValue({
+      groups: [
+        {
+          id: "plans",
+          title: "Plan quotas",
+          fields: [
+            { path: "plans.free.userReviewLimit", label: "Free user monthly scans", value: 11 },
+            {
+              path: "plans.free.repositoryReviewLimit",
+              label: "Free repository monthly scans",
+              value: 7,
+            },
+            { path: "plans.free.maxRepoFiles", label: "Free repository file limit", value: 321 },
+            {
+              path: "plans.free.maxRepoBytes",
+              label: "Free repository byte limit",
+              value: 2 * 1024 * 1024,
+            },
+          ],
+        },
+        {
+          id: "scan",
+          title: "Scan limits",
+          fields: [
+            {
+              path: "scan.maxQueuedScansPerUser",
+              label: "Queued scans per user",
+              value: 4,
+            },
+          ],
+        },
+      ],
+    });
+
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    expect(await screen.findByText("plan-card-model")).toBeInTheDocument();
+    const freeCard = screen.getByText("free").closest(".docs-plan-card");
+    expect(within(freeCard).getByText("11")).toBeInTheDocument();
+    expect(within(freeCard).getByText("7")).toBeInTheDocument();
+    expect(
+      within(freeCard).getByText(/321 files \/ 2,097,152 bytes \(2.0 MiB\)/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
+    expect(screen.getByText("Queued scans per user")).toBeInTheDocument();
+  });
+
   it("ignores unsupported plan agent aliases in Docs", async () => {
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
       plans: [
