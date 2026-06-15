@@ -1,5 +1,18 @@
 # Pullwise Web Agent Notes
 
+## Worker Deployment Assumptions
+
+When web changes affect worker install links, same-origin API proxying, worker
+status, or worker-facing copy, keep these worker invariants intact:
+
+- Worker installs target Ubuntu 22.04 only.
+- Each worker instance must use only the `codex` and `opencode` binaries under
+  that worker instance directory.
+- Each worker instance must use only its own login state, config, and cache.
+- Worker install, doctor, update, cleanup, and job execution must not depend on
+  a global CLI, root login state, host `HOME`, host `CODEX_HOME`, or another
+  worker instance directory.
+
 ## Account And Repository Quota Language
 
 Pullwise does not expose a workspace quota model. User-facing copy, API docs,
