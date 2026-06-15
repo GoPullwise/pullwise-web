@@ -459,30 +459,24 @@ describe("ReposScreen scan selection", () => {
 
     await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
-    const activeRepo = setActiveRepo.mock.calls[0][0];
-    expect(activeRepo).toEqual(
-      expect.objectContaining({
-        fullName: "octocat/alpha",
-        selectedRepos: expect.any(Array),
-      })
-    );
-    expect(activeRepo.selectedRepos).toHaveLength(2);
-    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual(["octocat/alpha", "octocat/beta"]);
-    expect(activeRepo.selectedRepos[0].scanRequestId).toMatch(/^scan_req_/);
-    expect(activeRepo.selectedRepos[1].scanRequestId).toMatch(/^scan_req_/);
-    expect(activeRepo.selectedRepos[1].scanRequestId).not.toBe(activeRepo.selectedRepos[0].scanRequestId);
+    expect(setActiveRepo).toHaveBeenCalledWith(null);
+    const firstPayload = pullwiseApi.scans.create.mock.calls[0][0];
+    const secondPayload = pullwiseApi.scans.create.mock.calls[1][0];
     expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(1, {
       repo: "octocat/alpha",
-      branch: activeRepo.selectedRepos[0].branch,
+      branch: firstPayload.branch,
       commit: "pending",
-      requestId: activeRepo.selectedRepos[0].scanRequestId,
+      requestId: firstPayload.requestId,
     });
     expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(2, {
       repo: "octocat/beta",
-      branch: activeRepo.selectedRepos[1].branch,
+      branch: secondPayload.branch,
       commit: "pending",
-      requestId: activeRepo.selectedRepos[1].scanRequestId,
+      requestId: secondPayload.requestId,
     });
+    expect(firstPayload.requestId).toMatch(/^scan_req_/);
+    expect(secondPayload.requestId).toMatch(/^scan_req_/);
+    expect(secondPayload.requestId).not.toBe(firstPayload.requestId);
     expect(go).toHaveBeenCalledWith("history");
     expect(go).not.toHaveBeenCalledWith("scanning");
   });
@@ -513,10 +507,7 @@ describe("ReposScreen scan selection", () => {
 
     await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
-    expect(setActiveRepo.mock.calls[0][0].selectedRepos.map((repo) => repo.fullName)).toEqual([
-      "octocat/alpha",
-      "octocat/beta",
-    ]);
+    expect(setActiveRepo).toHaveBeenCalledWith(null);
     expect(go).toHaveBeenCalledWith("history");
     expect(go).not.toHaveBeenCalledWith("scanning");
   });

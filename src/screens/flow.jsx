@@ -1349,12 +1349,13 @@ export function ReposScreen({
       ...repo,
       scanRequestId: makeScanRequestId(),
     }));
-    setActiveRepo({ ...selectedRepos[0], selectedRepos });
     if (selectedRepos.length > 1) {
       await createBatchScans(selectedRepos.map(scanInputFromRepo));
+      setActiveRepo(null);
       go("history");
       return;
     }
+    setActiveRepo({ ...selectedRepos[0], selectedRepos });
     go("scanning");
   };
 
