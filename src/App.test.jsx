@@ -119,9 +119,13 @@ describe("App", () => {
       plans: [
         {
           plan: "free",
-          agentCli: "app-route-cli-free",
-          model: "app-route-model-free",
-          reasoningEffort: "app-route-effort-free",
+          agentConfig: {
+            providerChain: ["codex"],
+            codex: {
+              model: "app-route-model-free",
+              reasoningEffort: "app-route-effort-free",
+            },
+          },
         },
       ],
     });
@@ -396,7 +400,8 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="docs"]')).toBeInTheDocument();
     });
     expect(await screen.findByRole("heading", { name: /pullwise docs/i })).toBeInTheDocument();
-    expect(await screen.findByText("app-route-cli-free")).toBeInTheDocument();
+    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(screen.getByText("app-route-model-free")).toBeInTheDocument();
   });
 
   it("keeps login actions hidden while confirming an initial signed-out session result", async () => {
@@ -973,7 +978,7 @@ describe("App", () => {
     expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
   });
 
-  it("submits a repository batch directly to scan history", async () => {
+  it("submits a repository batch from the scanning screen", async () => {
     window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
@@ -1029,12 +1034,10 @@ describe("App", () => {
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
-    await waitFor(() => {
-      expect(window.location.pathname).toBe("/history");
-    });
+    await waitFor(() => expect(window.location.pathname).toBe("/scanning"));
     expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2);
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(screen.queryByText(/scan batch/i)).not.toBeInTheDocument();
+    expect(await screen.findByText(/scan batch queued/i)).toBeInTheDocument();
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText("octocat/beta")).toBeInTheDocument();
   });
