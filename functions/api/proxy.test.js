@@ -31,7 +31,7 @@ describe("api proxy", () => {
 
     expect(forwardedHeaders.get("X-Forwarded-Proto")).toBe("https");
     expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("pull-wise.com");
-    expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBeNull();
+    expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBe("/api");
     expect(forwardedInit.duplex).toBe("half");
   });
 
@@ -109,7 +109,7 @@ describe("api proxy", () => {
     expect(forwardedHeaders.get("X-Original-Forwarded-For")).toBeNull();
     expect(forwardedHeaders.get("X-Forwarded-Proto")).toBe("https");
     expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("pull-wise.com");
-    expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBeNull();
+    expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBe("/api");
   });
 
   it("keeps malformed api-prefixed absolute URLs on the configured backend origin", async () => {

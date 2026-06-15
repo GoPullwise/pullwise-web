@@ -437,7 +437,7 @@ describe("ReposScreen scan selection", () => {
     expect(dots[2]).toHaveStyle("--repo-lang-color: #8b949e");
   });
 
-  it("submits multiple selected repositories and opens scan history", async () => {
+  it("passes multiple selected repositories to the scanning batch runner", async () => {
     const go = vi.fn();
     const setActiveRepo = vi.fn();
     const user = userEvent.setup();
@@ -457,31 +457,25 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
-    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
-    const alphaRequest = pullwiseApi.scans.create.mock.calls[0][0];
-    const betaRequest = pullwiseApi.scans.create.mock.calls[1][0];
-    expect(alphaRequest).toEqual(
+    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+    const activeRepo = setActiveRepo.mock.calls[0][0];
+    expect(activeRepo).toEqual(
       expect.objectContaining({
-        repo: "octocat/alpha",
-        branch: "main",
-        commit: "pending",
-        requestId: expect.stringMatching(/^scan_req_/),
+        fullName: "octocat/alpha",
+        selectedRepos: expect.any(Array),
       })
     );
-    expect(betaRequest).toEqual(
-      expect.objectContaining({
-        repo: "octocat/beta",
-        commit: "pending",
-        requestId: expect.stringMatching(/^scan_req_/),
-      })
-    );
-    expect(betaRequest.requestId).not.toBe(alphaRequest.requestId);
-    expect(setActiveRepo).not.toHaveBeenCalled();
-    expect(go).toHaveBeenCalledWith("history");
-    expect(go).not.toHaveBeenCalledWith("scanning");
+    expect(activeRepo.selectedRepos).toHaveLength(2);
+    expect(activeRepo.selectedRepos.map((repo) => repo.fullName)).toEqual(["octocat/alpha", "octocat/beta"]);
+    expect(activeRepo.selectedRepos[0].scanRequestId).toMatch(/^scan_req_/);
+    expect(activeRepo.selectedRepos[1].scanRequestId).toMatch(/^scan_req_/);
+    expect(activeRepo.selectedRepos[1].scanRequestId).not.toBe(activeRepo.selectedRepos[0].scanRequestId);
+    expect(go).toHaveBeenCalledWith("scanning");
+    expect(go).not.toHaveBeenCalledWith("history");
   });
 
-  it("selects repositories from the keyboard before opening scan history", async () => {
+  it("selects repositories from the keyboard before opening scanning", async () => {
     const go = vi.fn();
     const setActiveRepo = vi.fn();
     const user = userEvent.setup();
@@ -505,10 +499,14 @@ describe("ReposScreen scan selection", () => {
     await user.keyboard(" ");
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
-    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
-    expect(setActiveRepo).not.toHaveBeenCalled();
-    expect(go).toHaveBeenCalledWith("history");
-    expect(go).not.toHaveBeenCalledWith("scanning");
+    await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+    expect(setActiveRepo.mock.calls[0][0].selectedRepos.map((repo) => repo.fullName)).toEqual([
+      "octocat/alpha",
+      "octocat/beta",
+    ]);
+    expect(go).toHaveBeenCalledWith("scanning");
+    expect(go).not.toHaveBeenCalledWith("history");
   });
 
   it("loads repository branches and scans the selected branch", async () => {
