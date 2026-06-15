@@ -1486,6 +1486,8 @@ describe("ScanningScreen queue state", () => {
       grid: true,
       avoidOverlap: true,
     });
+    expect(graphConfig.layout.boundingBox).toMatchObject({ x1: 0, y1: 0 });
+    expect(graphConfig.layout.boundingBox.w).toBeGreaterThan(graphConfig.layout.boundingBox.h);
     expect(graphConfig.elements).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
