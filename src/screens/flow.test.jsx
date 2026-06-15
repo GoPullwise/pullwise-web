@@ -1492,6 +1492,7 @@ describe("ScanningScreen queue state", () => {
     expect(graphConfig.layout.direction).not.toBe("rightward");
     expect(graphConfig.layout.boundingBox).toMatchObject({ x1: 0, y1: 0 });
     expect(graphConfig.layout.boundingBox.w).toBeGreaterThan(graphConfig.layout.boundingBox.h);
+    expect(graphConfig.wheelSensitivity).toBeUndefined();
     expect(graphConfig.elements).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

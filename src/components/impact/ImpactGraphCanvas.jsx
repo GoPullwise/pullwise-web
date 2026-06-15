@@ -170,7 +170,6 @@ export function ImpactGraphCanvas({ impactGraph }) {
       },
       userPanningEnabled: true,
       userZoomingEnabled: true,
-      wheelSensitivity: 0.16,
     });
     cyRef.current = cy;
     return () => {
