@@ -314,6 +314,25 @@ function scanInputFromRepo(repo) {
   return request;
 }
 
+function scanCreatePayloadFromInput({ repoId = "", repo, branch, commit = "pending", requestId = "" }) {
+  const payload = { branch: branch || "main", commit: commit || "pending" };
+  if (repoId) payload.repoId = repoId;
+  if (repo) payload.repo = repo;
+  if (requestId) payload.requestId = requestId;
+  return payload;
+}
+
+async function createBatchScans(scanInputs) {
+  const requests = scanInputs.filter((request) => request.repo || request.repoId);
+  const results = await Promise.allSettled(
+    requests.map((request) => pullwiseApi.scans.create(scanCreatePayloadFromInput(request)))
+  );
+  const created = results.filter((result) => result.status === "fulfilled").length;
+  const failed = results.find((result) => result.status === "rejected");
+  if (!created && failed) throw failed.reason;
+  return results;
+}
+
 function repoBranchKey(repo) {
   return String(
     repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || ""
@@ -1331,6 +1350,11 @@ export function ReposScreen({
       scanRequestId: makeScanRequestId(),
     }));
     setActiveRepo({ ...selectedRepos[0], selectedRepos });
+    if (selectedRepos.length > 1) {
+      await createBatchScans(selectedRepos.map(scanInputFromRepo));
+      go("history");
+      return;
+    }
     go("scanning");
   };
 
