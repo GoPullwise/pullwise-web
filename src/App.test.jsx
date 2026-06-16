@@ -1057,6 +1057,101 @@ describe("App", () => {
     expect(screen.getByText("octocat/beta")).toBeInTheDocument();
   });
 
+  it("waits for selected repository branches before starting a batch scan", async () => {
+    window.history.replaceState({}, "", "/repos");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const repoAlpha = {
+      id: "repo_alpha",
+      name: "alpha",
+      fullName: "octocat/alpha",
+      desc: "Alpha service",
+      defaultBranch: "main",
+    };
+    const repoBeta = {
+      id: "repo_beta",
+      name: "beta",
+      fullName: "octocat/beta",
+      desc: "Beta service",
+      defaultBranch: "develop",
+    };
+    const branchRequests = new Map();
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [repoAlpha, repoBeta],
+      needsAuthorization: false,
+    });
+    pullwiseApi.repositories.branches.mockImplementation((repoId) => {
+      const request = deferredPromise();
+      branchRequests.set(repoId, request);
+      return request.promise;
+    });
+    pullwiseApi.scans.preflight.mockResolvedValueOnce({
+      requestedCount: 2,
+      allowedCount: 2,
+      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
+      repositories: [],
+    });
+    pullwiseApi.scans.create
+      .mockResolvedValueOnce({
+        id: "sc_alpha",
+        repo: "octocat/alpha",
+        branch: "release",
+        commit: "pending",
+        status: "queued",
+        progress: 0,
+      })
+      .mockResolvedValueOnce({
+        id: "sc_beta",
+        repo: "octocat/beta",
+        branch: "hotfix",
+        commit: "pending",
+        status: "queued",
+        progress: 0,
+      });
+    pullwiseApi.scans.list.mockResolvedValue({ items: [] });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    await waitFor(() => expect(pullwiseApi.repositories.branches).toHaveBeenCalledTimes(2));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    expect(pullwiseApi.scans.preflight).not.toHaveBeenCalled();
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+
+    await act(async () => {
+      branchRequests.get("repo_alpha").resolve({
+        defaultBranch: "release",
+        branches: ["release", "main"],
+      });
+      branchRequests.get("repo_beta").resolve({
+        defaultBranch: "hotfix",
+        branches: ["hotfix", "develop"],
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
+    expect(pullwiseApi.scans.preflight).toHaveBeenCalledWith({
+      repositories: [
+        expect.objectContaining({ repo: "octocat/alpha", branch: "release" }),
+        expect.objectContaining({ repo: "octocat/beta", branch: "hotfix" }),
+      ],
+    });
+    expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ repo: "octocat/alpha", branch: "release" })
+    );
+    expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ repo: "octocat/beta", branch: "hotfix" })
+    );
+  });
+
   it("keeps cached scan history behind a skeleton until newly created batch scans load", async () => {
     window.history.replaceState({}, "", "/history");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
