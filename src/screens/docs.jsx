@@ -822,8 +822,8 @@ export function DocsScreen({ go, auth }) {
               <b>{T("Server-sourced configuration", "Server-sourced configuration")}</b>
               <p>
                 {T(
-                  "Agent CLI, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
-                  "Agent CLI, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
+                  "Agent provider, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
+                  "Agent provider, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
                 )}
               </p>
             </div>
@@ -877,7 +877,7 @@ export function DocsScreen({ go, auth }) {
                     <span className="docs-plan-key">{plan.plan}</span>
                   </div>
                   <div className="docs-plan-kv">
-                    <b>{T("Agent CLI", "Agent CLI")}</b>
+                    <b>{T("Agent provider", "Agent provider")}</b>
                     <ConfigValue value={plan.agentCli} />
                   </div>
                   <div className="docs-plan-kv">

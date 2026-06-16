@@ -288,7 +288,6 @@ describe("API screens", () => {
           agentConfig: {
             plan: "free",
             provider: "codex",
-            provider: "unsupported-config-provider",
             cli: "unsupported-config-cli",
             agent: {
               cli: "unsupported-agent-cli",
