@@ -339,8 +339,22 @@ describe("BillingScreen", () => {
       account: {
         status: "none",
         plan: "free",
-        usage: { period: "2026-05", used: 2, limit: 5, remaining: 3 },
+        usage: { period: "2026-05", used: 2, reserved: 1, limit: 5, remaining: 2 },
         quotaActivity: [
+          {
+            id: "ql_reserved",
+            action: "reserved",
+            amount: 1,
+            delta: 1,
+            scanId: "sc_reserved",
+            repo: "owner/queued-repo",
+            branch: "main",
+            commit: "pending",
+            status: "queued",
+            requestId: "req_reserved",
+            reason: "scan_reserved",
+            eventAt: Date.UTC(2026, 4, 2, 11, 55, 0) / 1000,
+          },
           {
             id: "ql_done",
             action: "consumed",
@@ -369,6 +383,20 @@ describe("BillingScreen", () => {
             reason: "REPOSITORY_TOO_LARGE",
             eventAt: Date.UTC(2026, 4, 2, 12, 5, 0) / 1000,
           },
+          {
+            id: "ql_released",
+            action: "released",
+            amount: 1,
+            delta: -1,
+            scanId: "sc_cancelled",
+            repo: "owner/cancelled-repo",
+            branch: "main",
+            commit: "pending",
+            status: "cancelled",
+            requestId: "req_cancelled",
+            reason: "scan_reservation_released",
+            eventAt: Date.UTC(2026, 4, 2, 12, 6, 0) / 1000,
+          },
         ],
       },
     });
@@ -380,8 +408,12 @@ describe("BillingScreen", () => {
     await user.click(await screen.findByRole("button", { name: /account usage/i }));
 
     expect(screen.getByText("Quota activity")).toBeInTheDocument();
+    expect(screen.getByText("Quota reserved")).toBeInTheDocument();
     expect(screen.getByText("Quota consumed")).toBeInTheDocument();
     expect(screen.getByText("Quota refunded")).toBeInTheDocument();
+    expect(screen.getByText("Reservation released")).toBeInTheDocument();
+    expect(screen.getByText("-1 pending")).toBeInTheDocument();
+    expect(screen.getByText("+1 pending")).toBeInTheDocument();
     expect(screen.getByText(/repository too large/i)).toBeInTheDocument();
 
     const consumedRow = screen.getByRole("link", { name: /owner\/repo/i });

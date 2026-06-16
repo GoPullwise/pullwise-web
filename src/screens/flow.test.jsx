@@ -1901,6 +1901,36 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("history");
   });
 
+  it("cancels active scans from the detail page without navigating away", async () => {
+    const go = vi.fn();
+    const cancel = vi.fn().mockResolvedValue();
+    const user = userEvent.setup();
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        progress: 35,
+      },
+      error: "",
+      cancel,
+    });
+
+    render(
+      <ScanningScreen
+        go={go}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(go).not.toHaveBeenCalledWith("history");
+  });
+
   it("groups scan header actions in one aligned control row", () => {
     useScanRun.mockReturnValue({
       scan: {
