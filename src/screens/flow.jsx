@@ -2096,7 +2096,7 @@ function scanPhaseDefinition(phase) {
   return SCAN_PHASE_BY_KEY.get(phase);
 }
 
-function scanPhasesForPhase(phase) {
+function scanPhasesForPhase(_phase) {
   return PRODUCTION_SCAN_PHASES;
 }
 
