@@ -347,6 +347,18 @@ describe("DashboardScreen issue list", () => {
     expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*max-height:\s*32px;/s);
   });
 
+  it("keeps dashboard issue tags from inheriting ellipsis clipping", () => {
+    const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
+    const screenCss = readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
+    const truncatingAtomSelector =
+      appCss.match(
+        /:where\((?<selector>[^)]*)\)\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;[^}]*white-space:\s*nowrap;/s
+      )?.groups?.selector || "";
+
+    expect(truncatingAtomSelector).not.toContain(".tag");
+    expect(screenCss).toMatch(/\.issue-meta\s*\{[^}]*flex-wrap:\s*wrap;/s);
+  });
+
   it("opens a dashboard issue row with keyboard activation", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

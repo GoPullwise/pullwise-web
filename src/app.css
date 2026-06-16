@@ -404,7 +404,7 @@ body.has-proto-nav {
   min-width: 0;
 }
 
-:where(.tag, .chip, .pill, .kbd, .repos-org, .pill-btn, .seg-i) {
+:where(.chip, .pill, .kbd, .repos-org, .pill-btn, .seg-i) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1003,6 +1003,10 @@ body.has-proto-nav {
   min-width: 0;
 }
 
+.issue-detail-h > div:first-child > div:first-child {
+  flex-wrap: wrap;
+}
+
 .issue-detail-h .sub > span {
   display: inline-flex;
   align-items: center;
@@ -1025,12 +1029,16 @@ body.has-proto-nav {
 
 .evidence-command,
 .audit-tag {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .evidence-command {
-  white-space: nowrap;
+  height: auto;
+  min-height: 20px;
 }
 
 .scanning-h {

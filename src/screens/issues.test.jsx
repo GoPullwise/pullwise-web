@@ -55,6 +55,10 @@ function screenStyles() {
   return readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
 }
 
+function appStyles() {
+  return readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
+}
+
 describe("IssuesScreen list resilience", () => {
   it("shows the topbar loading spinner only while issues are loading", () => {
     useIssues.mockReturnValue({
@@ -959,6 +963,33 @@ describe("IssueDetailScreen review detail", () => {
     expect(feedbackBlock).not.toMatch(/\bbackground\s*:/);
     expect(badgesBlock).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
     expect(badgeBlock).toMatch(/justify-content:\s*flex-start;/);
+  });
+
+  it("lets issue detail tags wrap instead of truncating labels", () => {
+    const baseCss = baseStyles();
+    const appCss = appStyles();
+    const tagBlock = baseCss.match(/\.tag\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const truncatingAtomSelector =
+      appCss.match(
+        /:where\((?<selector>[^)]*)\)\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;[^}]*white-space:\s*nowrap;/s
+      )?.groups?.selector || "";
+    const detailTagRowBlock =
+      appCss.match(/\.issue-detail-h > div:first-child > div:first-child\s*\{(?<body>[^}]*)\}/s)
+        ?.groups?.body || "";
+    const auditTagBlock =
+      appCss.match(/\.evidence-command,\s*\.audit-tag\s*\{(?<body>[^}]*)\}/s)?.groups?.body ||
+      "";
+
+    expect(tagBlock).toMatch(/min-height:\s*20px;/);
+    expect(tagBlock).not.toMatch(/\bheight:\s*20px;/);
+    expect(tagBlock).toMatch(/overflow:\s*visible;/);
+    expect(tagBlock).toMatch(/text-overflow:\s*clip;/);
+    expect(tagBlock).toMatch(/white-space:\s*normal;/);
+    expect(truncatingAtomSelector).not.toContain(".tag");
+    expect(detailTagRowBlock).toMatch(/flex-wrap:\s*wrap;/);
+    expect(auditTagBlock).toMatch(/overflow:\s*visible;/);
+    expect(auditTagBlock).toMatch(/text-overflow:\s*clip;/);
+    expect(auditTagBlock).toMatch(/white-space:\s*normal;/);
   });
 
   it("exposes issue detail recovery navigation as real screen links", async () => {
