@@ -965,8 +965,9 @@ describe("ScanningScreen queue state", () => {
 
     const skeleton = container.querySelector(".scan-detail-skeleton");
     expect(skeleton).toBeInTheDocument();
-    expect(within(skeleton).getByText("Loading scan details")).toBeInTheDocument();
-    expect(screen.getByText(/not the final detail page yet/i)).toBeInTheDocument();
+    expect(screen.getByText("Loading scan details")).toBeInTheDocument();
+    expect(container.querySelector(".scan-detail-loading-note")).not.toBeInTheDocument();
+    expect(screen.queryByText(/not the final detail page yet/i)).not.toBeInTheDocument();
     expect(container.querySelector(".scan-detail-skeleton-side")).toBeInTheDocument();
     expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();

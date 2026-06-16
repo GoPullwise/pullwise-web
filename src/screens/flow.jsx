@@ -2626,21 +2626,6 @@ function ScanDetailSkeleton() {
       aria-busy="true"
       aria-label={T("Loading scan details", "正在加载扫描详情")}
     >
-      <div className="scan-detail-loading-note">
-        <span className="scan-detail-loading-icon spin" aria-hidden="true">
-          <I.Refresh size={15} />
-        </span>
-        <div>
-          <b>{T("Loading scan details", "正在加载扫描详情")}</b>
-          <span>
-            {T(
-              "Fetching the full scan report. This is not the final detail page yet.",
-              "正在获取完整扫描报告，这还不是最终详情页。"
-            )}
-          </span>
-        </div>
-      </div>
-
       <div className="scanning-phases scan-detail-skeleton-phases" aria-hidden="true">
         {rows.map(([titleWidth, detailWidth], index) => (
           <div className="scanning-phase skeleton-row" key={`scan-detail-skeleton-phase-${index}`}>
@@ -2857,11 +2842,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               : T("Scanning…", "扫描进行中");
 
   const headerIcon =
-    detailLoading ? (
-      <span className="spin" style={{ display: "inline-block" }}>
-        <I.Refresh size={18} />
-      </span>
-    ) : status === "done" ? (
+    detailLoading ? null : status === "done" ? (
       <I.Check size={18} />
     ) : status === "failed" || status === "cancelled" || status === "lost" ? (
       <I.X size={18} />
@@ -2883,7 +2864,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         <div className="scanning scanning-wide">
           <div className="scanning-card card">
             <div className="scanning-h">
-              <div className="scanning-icon">{headerIcon}</div>
+              {headerIcon && <div className="scanning-icon">{headerIcon}</div>}
               <div className="scanning-copy">
                 <div className="scanning-title">
                   {detailLoading

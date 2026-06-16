@@ -1016,41 +1016,6 @@
   display: grid;
   gap: 14px;
 }
-.scan-detail-loading-note {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 12px;
-  align-items: flex-start;
-  margin-bottom: 8px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
-}
-.scan-detail-loading-icon {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  color: var(--accent);
-}
-.scan-detail-loading-note b,
-.scan-detail-loading-note span {
-  display: block;
-  min-width: 0;
-}
-.scan-detail-loading-note b {
-  color: var(--text);
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-.scan-detail-loading-note span {
-  margin-top: 2px;
-  color: var(--text-3);
-  font-size: 12.5px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
 .scan-detail-skeleton-phases .scanning-phase {
   color: var(--text-3);
 }
