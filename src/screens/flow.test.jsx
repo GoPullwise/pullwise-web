@@ -926,9 +926,49 @@ describe("ScanningScreen queue state", () => {
     expect(useScanRun).toHaveBeenCalledWith(
       expect.objectContaining({
         scanId: "sc_running",
-        initialScan: activeScan,
+      initialScan: activeScan,
       })
     );
+  });
+
+  it("shows a scan detail skeleton while history scan details are loading", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_history",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        progress: 100,
+      },
+      loading: true,
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    const { container } = render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_history",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+          initialScan: {
+            id: "sc_history",
+            repo: "octocat/private-repo",
+            branch: "main",
+            status: "done",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText("Loading scan details")).toBeInTheDocument();
+    expect(screen.getByText(/not the final detail page yet/i)).toBeInTheDocument();
+    expect(container.querySelector(".scan-detail-skeleton")).toBeInTheDocument();
+    expect(container.querySelector(".scan-detail-skeleton-side")).toBeInTheDocument();
+    expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 
   it("notifies the parent when a single scan id is resolved", async () => {

@@ -2155,6 +2155,7 @@ export function useScanRun({
   pollIntervalMs = 1500,
 }) {
   const [scan, setScan] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [pollRetryTick, setPollRetryTick] = useState(0);
@@ -2204,10 +2205,14 @@ export function useScanRun({
   }, [scanId, repoId, repo, branch, commit, requestId, clearRunError, setRunError]);
 
   useEffect(() => {
-    if (!scanId) return undefined;
+    if (!scanId) {
+      setLoading(false);
+      return undefined;
+    }
     let alive = true;
     const seedScan = initialScanRef.current;
     clearRunError();
+    setLoading(true);
     setScan(seedScan?.id === scanId ? normalizeScan(seedScan) : null);
     pullwiseApi.scans
       .get(scanId)
@@ -2221,6 +2226,9 @@ export function useScanRun({
         if (alive) {
           setRunError(err, "Unable to load scan.", seedScan?.id === scanId ? "load" : "initial-load");
         }
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
       });
     return () => {
       alive = false;
@@ -2304,7 +2312,7 @@ export function useScanRun({
     }
   };
 
-  return { scan, error, errorCode, cancel, retry, retrying, canceling };
+  return { scan, loading, error, errorCode, cancel, retry, retrying, canceling };
 }
 
 function scanRequestKey(request) {

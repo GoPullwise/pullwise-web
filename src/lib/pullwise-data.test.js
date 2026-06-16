@@ -424,6 +424,41 @@ describe("useScans", () => {
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
+  it("exposes loading while an existing scan detail is fetched", async () => {
+    const refresh = deferred();
+    pullwiseApi.scans.get.mockReturnValueOnce(refresh.promise);
+
+    const { result, unmount } = renderHook(() =>
+      useScanRun({
+        scanId: "sc_history",
+        initialScan: {
+          id: "sc_history",
+          repo: "owner/repo",
+          branch: "main",
+          status: "done",
+        },
+        pollIntervalMs: 25,
+      })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(true));
+    expect(result.current.scan).toMatchObject({ id: "sc_history", repo: "owner/repo" });
+
+    await act(async () => {
+      refresh.resolve({
+        id: "sc_history",
+        repo: "owner/repo",
+        branch: "main",
+        status: "done",
+        completionAudit: { summary: "Full detail loaded." },
+      });
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.scan.completionAudit.summary).toBe("Full detail loaded.");
+    unmount();
+  });
+
   it("keeps active scan polling timeouts out of the page error state", async () => {
     const recovery = deferred();
     pullwiseApi.scans.create.mockResolvedValueOnce({

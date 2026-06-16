@@ -2610,6 +2610,89 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
   );
 }
 
+function ScanDetailSkeleton() {
+  const rows = [
+    ["sk-w-28", "sk-w-62"],
+    ["sk-w-32", "sk-w-70"],
+    ["sk-w-26", "sk-w-56"],
+    ["sk-w-30", "sk-w-65"],
+  ];
+
+  return (
+    <div
+      className="scan-detail-skeleton"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label={T("Loading scan details", "正在加载扫描详情")}
+    >
+      <div className="scan-detail-loading-note">
+        <span className="scan-detail-loading-icon spin" aria-hidden="true">
+          <I.Refresh size={15} />
+        </span>
+        <div>
+          <b>{T("Loading scan details", "正在加载扫描详情")}</b>
+          <span>
+            {T(
+              "Fetching the full scan report. This is not the final detail page yet.",
+              "正在获取完整扫描报告，这还不是最终详情页。"
+            )}
+          </span>
+        </div>
+      </div>
+
+      <div className="scanning-phases scan-detail-skeleton-phases" aria-hidden="true">
+        {rows.map(([titleWidth, detailWidth], index) => (
+          <div className="scanning-phase skeleton-row" key={`scan-detail-skeleton-phase-${index}`}>
+            <div className="scanning-phase-bullet">
+              <SkeletonLine className="sk-line sk-w-100 sk-h-10" />
+            </div>
+            <div className="skeleton-stack">
+              <SkeletonLine className={`sk-line ${titleWidth} sk-h-16`} />
+              <SkeletonLine className={`sk-line ${detailWidth}`} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScanDetailSideSkeleton() {
+  return (
+    <div className="scanning-side scan-detail-skeleton-side" aria-hidden="true">
+      <div className="card scanning-counts scan-detail-skeleton-card">
+        <SkeletonLine className="sk-line sk-w-42 sk-h-10" />
+        <div className="scanning-counts-grid">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={`scan-detail-skeleton-count-${index}`}>
+              <SkeletonLine className="sk-line sk-w-35 sk-h-24" />
+              <SkeletonLine className="sk-line sk-w-55 sk-h-10" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="card scanning-preflight scan-detail-skeleton-card">
+        <SkeletonLine className="sk-line sk-w-50 sk-h-10" />
+        <SkeletonLine className="sk-line sk-w-80" />
+        <div className="scan-preflight-tags">
+          <SkeletonLine className="sk-line sk-w-24 sk-h-22" />
+          <SkeletonLine className="sk-line sk-w-30 sk-h-22" />
+          <SkeletonLine className="sk-line sk-w-20 sk-h-22" />
+        </div>
+      </div>
+      <div className="card scanning-log scan-detail-skeleton-card">
+        <SkeletonLine className="sk-line sk-w-36 sk-h-10" />
+        <div className="skeleton-stack">
+          <SkeletonLine className="sk-line sk-w-70" />
+          <SkeletonLine className="sk-line sk-w-55" />
+          <SkeletonLine className="sk-line sk-w-62" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
   const [logs, setLogs] = useState([]);
@@ -2655,6 +2738,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const retry = batchMode ? null : singleRun.retry;
   const retrying = batchMode ? false : Boolean(singleRun.retrying);
   const canceling = batchMode ? Boolean(batchRun.canceling) : Boolean(singleRun.canceling);
+  const detailLoading = !batchMode && Boolean(scanId && singleRun.loading);
 
   // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
@@ -2697,18 +2781,22 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const impactGraph = batchMode ? null : scan?.impactGraph || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
-  const terminal = batchMode
-    ? expectedBatchCount > 0 &&
-      batchRows.length === expectedBatchCount &&
-      batchRows.every(isTerminalBatchRow)
-    : isTerminalScan(scan);
+  const terminal =
+    !detailLoading &&
+    (batchMode
+      ? expectedBatchCount > 0 &&
+        batchRows.length === expectedBatchCount &&
+        batchRows.every(isTerminalBatchRow)
+      : isTerminalScan(scan));
   const auditSwarmPhaseIndex = scanPhases.findIndex((phase) => phase.k === "ai");
   const auditSwarmReviewComplete = auditSwarmPhaseIndex >= 0 && phaseIdx > auditSwarmPhaseIndex;
   const queueSummary = scanQueueSummary(scan);
-  const canCancel = batchMode
-    ? !canceling && scans.some((item) => item?.id && !isTerminalScan(item))
-    : Boolean(scan && !terminal && !canceling);
-  const canRetry = !batchMode && isRetryableScan(scan);
+  const canCancel =
+    !detailLoading &&
+    (batchMode
+      ? !canceling && scans.some((item) => item?.id && !isTerminalScan(item))
+      : Boolean(scan && !terminal && !canceling));
+  const canRetry = !detailLoading && !batchMode && isRetryableScan(scan);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
   const publicError = error ? publicScanErrorMessage(error) : "";
   const batchSummary = batchMode
@@ -2746,7 +2834,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   };
 
   const headerLabel =
-    status === "done"
+    detailLoading
+      ? T("Loading scan details", "正在加载扫描详情")
+      : status === "done"
       ? batchMode
         ? T("Scan batch complete", "批量扫描完成")
         : T("Scan complete", "扫描完成")
@@ -2767,7 +2857,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               : T("Scanning…", "扫描进行中");
 
   const headerIcon =
-    status === "done" ? (
+    detailLoading ? (
+      <span className="spin" style={{ display: "inline-block" }}>
+        <I.Refresh size={18} />
+      </span>
+    ) : status === "done" ? (
       <I.Check size={18} />
     ) : status === "failed" || status === "cancelled" || status === "lost" ? (
       <I.X size={18} />
@@ -2779,7 +2873,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: T("Scan", "扫描") }]} setIssue={setIssue} />
+      <Topbar
+        go={go}
+        breadcrumbs={[{ label: T("Scan", "扫描") }]}
+        setIssue={setIssue}
+        loading={detailLoading}
+      />
       <div className="main" style={{ margin: "0 auto", maxWidth: "none" }}>
         <div className="scanning scanning-wide">
           <div className="scanning-card card">
@@ -2787,7 +2886,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               <div className="scanning-icon">{headerIcon}</div>
               <div className="scanning-copy">
                 <div className="scanning-title">
-                  {status === "queued"
+                  {detailLoading
+                    ? headerLabel
+                    : status === "queued"
                     ? batchMode
                       ? T("Scan batch queued", "批量扫描排队中")
                       : T("Scan queued", "Scan queued")
@@ -2884,74 +2985,83 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               </div>
             )}
 
-            {status === "queued" && queueSummary && (
-              <div className="scanning-queue">
-                {queueSummary.message && (
-                  <div className="scanning-queue-message">{queueSummary.message}</div>
-                )}
-                <div className="scanning-queue-meta">
-                  {queueSummary.tags.map((tag) => (
-                    <span key={tag} className="tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="scanning-phases">
-              {scanPhases.map((p, i) => {
-                const isDone = phaseIdx > i || status === "done";
-                const isOn = phaseIdx === i && !terminal;
-                const cls = isDone ? " done" : isOn ? " on" : "";
-                const bullet = isDone ? (
-                  <I.Check size={11} />
-                ) : isOn ? (
-                  <span
-                    className="pulse"
-                    style={{
-                      display: "inline-block",
-                      width: 6,
-                      height: 6,
-                      borderRadius: 999,
-                      background: "currentColor",
-                    }}
-                  />
-                ) : (
-                  i + 1
-                );
-                return (
-                  <Fragment key={p.k}>
-                    <div className={"scanning-phase" + cls}>
-                      <div className="scanning-phase-bullet">{bullet}</div>
-                      <div>
-                        <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
-                        <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
-                      </div>
-                    </div>
-                    {p.k === "ai" && auditSwarmReviewComplete && (
-                      <AuditSwarmEvidence
-                        auditSwarm={auditSwarm}
-                        className="scanning-audit-inline"
-                        onDownload={batchMode ? null : handleDownloadBundle}
-                        downloading={bundleLoading}
-                      />
+            {detailLoading ? (
+              <ScanDetailSkeleton />
+            ) : (
+              <>
+                {status === "queued" && queueSummary && (
+                  <div className="scanning-queue">
+                    {queueSummary.message && (
+                      <div className="scanning-queue-message">{queueSummary.message}</div>
                     )}
-                  </Fragment>
-                );
-              })}
-            </div>
+                    <div className="scanning-queue-meta">
+                      {queueSummary.tags.map((tag) => (
+                        <span key={tag} className="tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            {!batchMode && (impactGraph || terminal) && (
-              <ImpactGraphPanel impactGraph={impactGraph} />
-            )}
+                <div className="scanning-phases">
+                  {scanPhases.map((p, i) => {
+                    const isDone = phaseIdx > i || status === "done";
+                    const isOn = phaseIdx === i && !terminal;
+                    const cls = isDone ? " done" : isOn ? " on" : "";
+                    const bullet = isDone ? (
+                      <I.Check size={11} />
+                    ) : isOn ? (
+                      <span
+                        className="pulse"
+                        style={{
+                          display: "inline-block",
+                          width: 6,
+                          height: 6,
+                          borderRadius: 999,
+                          background: "currentColor",
+                        }}
+                      />
+                    ) : (
+                      i + 1
+                    );
+                    return (
+                      <Fragment key={p.k}>
+                        <div className={"scanning-phase" + cls}>
+                          <div className="scanning-phase-bullet">{bullet}</div>
+                          <div>
+                            <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
+                            <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
+                          </div>
+                        </div>
+                        {p.k === "ai" && auditSwarmReviewComplete && (
+                          <AuditSwarmEvidence
+                            auditSwarm={auditSwarm}
+                            className="scanning-audit-inline"
+                            onDownload={batchMode ? null : handleDownloadBundle}
+                            downloading={bundleLoading}
+                          />
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </div>
 
-            {(repositoryGraph || semanticGraph) && (
-              <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
+                {!batchMode && (impactGraph || terminal) && (
+                  <ImpactGraphPanel impactGraph={impactGraph} />
+                )}
+
+                {(repositoryGraph || semanticGraph) && (
+                  <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
+                )}
+              </>
             )}
           </div>
 
-          <div className="scanning-side">
+          {detailLoading ? (
+            <ScanDetailSideSkeleton />
+          ) : (
+            <div className="scanning-side">
             <div className="card scanning-counts">
               <div className="scanning-counts-h">{T("Live findings", "实时发现")}</div>
               <div className="scanning-counts-grid">
@@ -3164,7 +3274,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
