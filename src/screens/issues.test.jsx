@@ -981,7 +981,7 @@ describe("IssueDetailScreen review detail", () => {
       "";
 
     expect(tagBlock).toMatch(/min-height:\s*20px;/);
-    expect(tagBlock).not.toMatch(/\bheight:\s*20px;/);
+    expect(tagBlock).not.toMatch(/^\s*height:\s*20px;/m);
     expect(tagBlock).toMatch(/overflow:\s*visible;/);
     expect(tagBlock).toMatch(/text-overflow:\s*clip;/);
     expect(tagBlock).toMatch(/white-space:\s*normal;/);
