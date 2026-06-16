@@ -345,6 +345,11 @@ describe("App", () => {
 
     expect(screen.getByRole("heading", { name: /checking session/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /continue with github/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /skip|sign in/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /skip|go to sign in|continue with github/i })
+    ).not.toBeInTheDocument();
   });
 
   it("sends authenticated users on the login screen back to the landing page", async () => {

@@ -528,18 +528,6 @@ export function App({ prototypeNav = false }) {
               "如果此浏览器仍保持登录，将恢复账户。"
             )}
           </p>
-          <button
-            className="btn sm ghost"
-            type="button"
-            style={{ marginTop: 16 }}
-            onClick={() => {
-              if (sessionAbortRef.current) sessionAbortRef.current.abort();
-              setAuthState({ status: "ready", authenticated: false, session: null });
-              setScreen("login");
-            }}
-          >
-            {T("Skip — go to sign in", "跳过 — 前往登录")}
-          </button>
         </div>
       </div>
     );
