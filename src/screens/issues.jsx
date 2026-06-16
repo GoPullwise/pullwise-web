@@ -1313,6 +1313,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setImpactScan(null);
     setImpactScanLoading(false);
     if (
+      loadingIssue ||
       embeddedImpactScan?.impactGraph ||
       !activeIssue?.scanId ||
       !activeIssue?.file ||
@@ -1337,7 +1338,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     return () => {
       cancelled = true;
     };
-  }, [activeIssue?.id, activeIssue?.scanId, activeIssue?.file, embeddedImpactScan]);
+  }, [activeIssue?.id, activeIssue?.scanId, activeIssue?.file, embeddedImpactScan, loadingIssue]);
 
   useEffect(() => {
     fixRequestRef.current += 1;
@@ -1368,6 +1369,35 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       }
     };
   }, [activeIssue]);
+
+  if (loadingIssue) {
+    return (
+      <div className="app fade-in">
+        <Topbar
+          go={go}
+          breadcrumbs={[
+            { label: T("Issues", "问题"), go: "issues" },
+            { label: routeIssueId || T("Issue", "问题") },
+          ]}
+          setIssue={setIssue}
+          loading
+        />
+        <div className="with-side">
+          <Sidebar section="issues" go={go} />
+          <div className="main" style={{ maxWidth: "none" }}>
+            <a
+              className="btn ghost sm"
+              style={{ marginBottom: 12 }}
+              {...screenLinkProps(go, "issues")}
+            >
+              <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
+            </a>
+            <IssueDetailSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!activeIssue) {
     return (
