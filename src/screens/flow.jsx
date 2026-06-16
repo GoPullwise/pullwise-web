@@ -595,7 +595,7 @@ function scanAuditSwarmSummary(scans) {
     protocol: uniqueStrings(audits.map((audit) => audit.protocol)).join(", "),
     stage: uniqueStrings(audits.map((audit) => audit.stage)).join(", "),
     adapter: uniqueStrings(audits.map((audit) => audit.adapter)).join(", "),
-    providerChain: uniqueStrings(audits.flatMap((audit) => audit.providerChain || [])).slice(0, 5),
+    provider: uniqueStrings(audits.map((audit) => audit.provider)).join(", "),
     summary:
       audits.length === 1
         ? summaries[0] || ""

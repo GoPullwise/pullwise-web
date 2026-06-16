@@ -207,8 +207,7 @@ function normalizePlanConfig(record = {}) {
   );
   if (!rawPlan) return null;
   const plan = rawPlan.toLowerCase();
-  const providerChain = Array.isArray(agentConfig.providerChain) ? agentConfig.providerChain : [];
-  const provider = textValue(providerChain[0]).toLowerCase();
+  const provider = textValue(agentConfig.provider).toLowerCase();
   const providerConfig = objectRecord(agentConfig[provider]) ? agentConfig[provider] : {};
   const agentCli = provider === "codex" ? provider : "";
 
