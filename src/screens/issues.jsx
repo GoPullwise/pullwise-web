@@ -1300,35 +1300,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     };
   }, [routeIssueId, setIssue]);
 
-  if (loadingIssue) {
-    return (
-      <div className="app fade-in">
-        <Topbar
-          go={go}
-          breadcrumbs={[
-            { label: T("Issues", "问题"), go: "issues" },
-            { label: routeIssueId || T("Issue", "问题") },
-          ]}
-          setIssue={setIssue}
-          loading
-        />
-        <div className="with-side">
-          <Sidebar section="issues" go={go} />
-          <div className="main" style={{ maxWidth: "none" }}>
-            <a
-              className="btn ghost sm"
-              style={{ marginBottom: 12 }}
-              {...screenLinkProps(go, "issues")}
-            >
-              <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
-            </a>
-            <IssueDetailSkeleton />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const embeddedImpactScan = useMemo(() => {
     if (plainObject(activeIssue?.scan)) return normalizeScan(activeIssue.scan);
     if (plainObject(activeIssue?.impactGraph)) {

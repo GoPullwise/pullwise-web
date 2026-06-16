@@ -1167,6 +1167,21 @@ describe("App", () => {
         },
       ],
     });
+    pullwiseApi.issues.get.mockResolvedValueOnce({
+      id: "f_redirect",
+      scanId: "sc_1",
+      repo: "octocat/private-repo",
+      title: "Unsafe redirect target",
+      summary: "Redirects accept attacker-controlled URLs.",
+      impact: "Attackers can redirect users to phishing domains.",
+      severity: "high",
+      category: "Security",
+      status: "open",
+      file: "src/auth.js",
+      line: 42,
+      confidence: 0.94,
+      effort: "S",
+    });
     const user = userEvent.setup();
 
     render(<App />);
@@ -1180,7 +1195,8 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
     });
     expect(window.location.pathname).toBe("/issues/f_redirect");
-    expect(screen.getByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
+    await waitFor(() => expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_redirect"));
+    expect(await screen.findByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
     expect(
       screen.getByText("Attackers can redirect users to phishing domains.")
     ).toBeInTheDocument();

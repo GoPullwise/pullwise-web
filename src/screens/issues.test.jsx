@@ -59,6 +59,16 @@ function appStyles() {
   return readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
 }
 
+function deferredPromise() {
+  let resolvePromise;
+  let rejectPromise;
+  const promise = new Promise((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+  return { promise, resolve: resolvePromise, reject: rejectPromise };
+}
+
 describe("IssuesScreen list resilience", () => {
   it("shows the topbar loading spinner only while issues are loading", () => {
     useIssues.mockReturnValue({
@@ -476,6 +486,55 @@ describe("IssueDetailScreen direct loading", () => {
     expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
     expect(screen.getByRole("button", { name: /useful/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
+  });
+
+  it("shows a skeleton and fetches full details when opened with a list summary", async () => {
+    const setIssue = vi.fn();
+    const detail = deferredPromise();
+    pullwiseApi.issues.get.mockReset();
+    pullwiseApi.issues.get.mockReturnValueOnce(detail.promise);
+
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{
+          id: "f_123",
+          repo: "acme/api",
+          severity: "high",
+          category: "Security",
+          title: "Summary-only title",
+          file: "src/auth.py",
+          status: "open",
+        }}
+        issueId="f_123"
+        setIssue={setIssue}
+      />
+    );
+
+    expect(screen.getByRole("status", { name: /loading issue details/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /summary-only title/i })).not.toBeInTheDocument();
+    expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
+
+    await act(async () => {
+      detail.resolve({
+        id: "f_123",
+        repo: "acme/api",
+        severity: "high",
+        category: "Security",
+        title: "Full issue title",
+        summary: "Detailed issue summary",
+        impact: "Full issue impact",
+        file: "src/auth.py",
+        status: "open",
+      });
+      await detail.promise;
+    });
+
+    expect(await screen.findByRole("heading", { name: /full issue title/i })).toBeInTheDocument();
+    expect(screen.getByText("Detailed issue summary")).toBeInTheDocument();
+    expect(setIssue).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "f_123", title: "Full issue title" })
+    );
   });
 
   it("shows impact context for the current issue file from its scan graph", async () => {
