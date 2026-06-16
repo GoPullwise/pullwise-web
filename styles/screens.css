@@ -2903,6 +2903,18 @@ button.dash-cat-row:hover {
   align-items: start;
   margin-top: 16px;
 }
+.issue-detail-skeleton {
+  display: grid;
+  gap: 16px;
+}
+.issue-detail-skeleton-head {
+  margin-bottom: 0;
+}
+.issue-detail-skeleton-section,
+.issue-detail-skeleton-actions {
+  display: grid;
+  gap: 12px;
+}
 .impact-band {
   display: grid;
   grid-template-columns: 28px 1fr;

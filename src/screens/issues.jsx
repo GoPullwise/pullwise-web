@@ -831,6 +831,66 @@ function IssuesTableSkeleton() {
   );
 }
 
+function IssueDetailSkeleton() {
+  return (
+    <div
+      className="issue-detail-skeleton"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label={T("Loading issue details", "正在加载问题详情")}
+    >
+      <div className="issue-detail-h issue-detail-skeleton-head" aria-hidden="true">
+        <div className="skeleton-stack">
+          <div className="issues-title-meta">
+            <SkeletonLine className="sk-line sk-w-14 sk-h-20" />
+            <SkeletonLine className="sk-line sk-w-18 sk-h-20" />
+            <SkeletonLine className="sk-line sk-w-22 sk-h-20" />
+          </div>
+          <SkeletonLine className="sk-line sk-w-62 sk-h-28" />
+          <SkeletonLine className="sk-line sk-w-80" />
+          <div className="issues-title-meta">
+            <SkeletonLine className="sk-line sk-w-24 sk-h-20" />
+            <SkeletonLine className="sk-line sk-w-34 sk-h-20" />
+            <SkeletonLine className="sk-line sk-w-18 sk-h-20" />
+          </div>
+        </div>
+      </div>
+      <div className="issue-detail-grid" aria-hidden="true">
+        <div className="issue-detail-main-col">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div
+              className="card section issue-detail-skeleton-section"
+              key={`issue-detail-skeleton-${index}`}
+            >
+              <div className="section-h">
+                <SkeletonLine className="sk-line sk-w-30 sk-h-18" />
+              </div>
+              <div className="skeleton-stack">
+                <SkeletonLine className="sk-line sk-w-100" />
+                <SkeletonLine className="sk-line sk-w-80" />
+                <SkeletonLine className="sk-line sk-w-56" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="card section issue-actions issue-detail-skeleton-actions">
+          <div className="section-h">
+            <SkeletonLine className="sk-line sk-w-35 sk-h-18" />
+          </div>
+          <div className="skeleton-stack">
+            <SkeletonLine className="sk-line sk-w-70 sk-h-20" />
+            <SkeletonLine className="sk-line sk-w-55 sk-h-20" />
+            <SkeletonLine className="sk-line sk-w-80 sk-h-28" />
+            <SkeletonLine className="sk-line sk-w-48 sk-h-28" />
+            <SkeletonLine className="sk-line sk-w-62" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilter = null }) {
   useLang();
   const [sev, setSev] = useState("all");
@@ -1178,11 +1238,12 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
 
 export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIssue = null }) {
   useLang();
+  const routeIssueId = String(issueId || "").trim();
+  const initialIssueRef = useRef(initialIssue);
   const [loadedIssue, setLoadedIssue] = useState(null);
-  const [, setLoadingIssue] = useState(false);
-  const [, setLoadError] = useState("");
-  const routeMatchesInitialIssue = !issueId || initialIssue?.id === issueId;
-  const activeIssue = loadedIssue || (routeMatchesInitialIssue ? initialIssue : null);
+  const [loadingIssue, setLoadingIssue] = useState(Boolean(routeIssueId));
+  const [loadError, setLoadError] = useState("");
+  const activeIssue = routeIssueId ? loadedIssue : initialIssue;
   const [currentStatus, setCurrentStatus] = useState(activeIssue?.status || "open");
   const [actionError, setActionError] = useState("");
   const [fixPreview, setFixPreview] = useState(null);
@@ -1202,18 +1263,25 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const pageCopyResetRef = useRef(null);
 
   useEffect(() => {
+    initialIssueRef.current = initialIssue;
+  }, [initialIssue]);
+
+  useEffect(() => {
     let cancelled = false;
     setLoadedIssue(null);
     setLoadError("");
-    if (!issueId || initialIssue?.id === issueId) {
+    if (!routeIssueId) {
       setLoadingIssue(false);
       return () => {
         cancelled = true;
       };
     }
+    const seedIssue =
+      initialIssueRef.current?.id === routeIssueId ? normalizeIssue(initialIssueRef.current) : null;
+    setLoadedIssue(seedIssue);
     setLoadingIssue(true);
     pullwiseApi.issues
-      .get(issueId)
+      .get(routeIssueId)
       .then((payload) => {
         if (cancelled) return;
         const nextIssue = normalizeIssue(payload);
@@ -1230,7 +1298,36 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     return () => {
       cancelled = true;
     };
-  }, [issueId, initialIssue, setIssue]);
+  }, [routeIssueId, setIssue]);
+
+  if (loadingIssue) {
+    return (
+      <div className="app fade-in">
+        <Topbar
+          go={go}
+          breadcrumbs={[
+            { label: T("Issues", "问题"), go: "issues" },
+            { label: routeIssueId || T("Issue", "问题") },
+          ]}
+          setIssue={setIssue}
+          loading
+        />
+        <div className="with-side">
+          <Sidebar section="issues" go={go} />
+          <div className="main" style={{ maxWidth: "none" }}>
+            <a
+              className="btn ghost sm"
+              style={{ marginBottom: 12 }}
+              {...screenLinkProps(go, "issues")}
+            >
+              <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
+            </a>
+            <IssueDetailSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const embeddedImpactScan = useMemo(() => {
     if (plainObject(activeIssue?.scan)) return normalizeScan(activeIssue.scan);
@@ -1503,6 +1600,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           >
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
           </a>
+          {loadError && (
+            <div className="auth-error" role="alert" style={{ margin: "0 0 12px" }}>
+              <I.X size={13} /> {loadError}
+            </div>
+          )}
           <div className="issue-detail-h">
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
