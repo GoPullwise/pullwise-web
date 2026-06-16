@@ -344,6 +344,69 @@ describe("App", () => {
     expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
   });
 
+  it("keeps multiple detail status updates when returning to the issue list", async () => {
+    window.history.replaceState({}, "", "/issues");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const firstIssue = {
+      id: "f_first",
+      scanId: "sc_1",
+      jobId: "job_1",
+      repo: "GoPullwise/pullwise-web",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.js",
+      line: 10,
+      status: "open",
+      createdAt: 100,
+    };
+    const secondIssue = {
+      ...firstIssue,
+      id: "f_second",
+      jobId: "job_2",
+      title: "Escape shell arguments",
+      file: "src/shell.js",
+      line: 20,
+      createdAt: 101,
+    };
+    pullwiseApi.issues.list.mockResolvedValue({ items: [firstIssue, secondIssue] });
+    pullwiseApi.issues.get.mockImplementation((issueId) =>
+      Promise.resolve(issueId === "f_first" ? firstIssue : secondIssue)
+    );
+    pullwiseApi.issues.updateStatus.mockImplementation((issueId, payload) =>
+      Promise.resolve({
+        ...(issueId === "f_first" ? firstIssue : secondIssue),
+        status: payload.status,
+      })
+    );
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /open issue f_first/i }));
+    await user.click(await screen.findByRole("button", { name: /mark fixed/i }));
+    await user.click(await screen.findByRole("link", { name: /back to list/i }));
+
+    await waitFor(() => {
+      const firstRow = screen.getByText("Validate redirect targets").closest(".issues-trow");
+      expect(within(firstRow).getByText(/^fixed$/i)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /open issue f_second/i }));
+    await user.click(await screen.findByRole("button", { name: /mark fixed/i }));
+    await user.click(await screen.findByRole("link", { name: /back to list/i }));
+
+    await waitFor(() => {
+      const firstRow = screen.getByText("Validate redirect targets").closest(".issues-trow");
+      const secondRow = screen.getByText("Escape shell arguments").closest(".issues-trow");
+      expect(within(firstRow).getByText(/^fixed$/i)).toBeInTheDocument();
+      expect(within(secondRow).getByText(/^fixed$/i)).toBeInTheDocument();
+    });
+  });
+
   it("does not show signed-out landing actions while the session check is pending", () => {
     pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));
 
