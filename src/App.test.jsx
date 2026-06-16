@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+﻿import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -130,7 +130,7 @@ describe("App", () => {
         {
           plan: "free",
           agentConfig: {
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               model: "app-route-model-free",
               reasoningEffort: "app-route-effort-free",

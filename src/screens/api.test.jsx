@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+﻿import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -117,7 +117,7 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
           agentConfig: {
             plan: "pro",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               cli: "codex",
               command: "codex",
@@ -134,7 +134,7 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               cli: "codex",
               command: "codex",
@@ -151,7 +151,7 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
           agentConfig: {
             plan: "max",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               cli: "codex",
               command: "codex",
@@ -187,7 +187,7 @@ describe("API screens", () => {
         max: {
           agentConfig: {
             plan: "max",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               cli: "codex",
               command: "codex",
@@ -214,7 +214,7 @@ describe("API screens", () => {
           name: "Free",
           agentConfig: {
             plan: "free",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               cli: "codex",
               command: "codex",
@@ -287,7 +287,7 @@ describe("API screens", () => {
           provider: "unsupported-record-provider",
           agentConfig: {
             plan: "free",
-            providerChain: ["codex"],
+            provider: "codex",
             provider: "unsupported-config-provider",
             cli: "unsupported-config-cli",
             agent: {
@@ -327,7 +327,7 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
           agentConfig: {
             plan: "free",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: { cli: "codex", command: "codex", model: "docs-model-free", reasoningEffort: "medium" },
           },
         },
@@ -451,7 +451,7 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: { cli: "codex", command: "codex", model: "settings-model-free", reasoningEffort: "medium" },
           },
         },
@@ -491,7 +491,7 @@ describe("API screens", () => {
           id: "free",
           agentConfig: {
             plan: "free",
-            providerChain: ["codex"],
+            provider: "codex",
             codex: {
               cli: "codex",
               command: "codex",
