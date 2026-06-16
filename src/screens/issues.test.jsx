@@ -1909,8 +1909,7 @@ describe("IssueDetailScreen review detail", () => {
     expect(previewButton).toHaveAttribute("title", reason);
     expect(openPullRequestButton).toBeDisabled();
     expect(openPullRequestButton).toHaveAttribute("title", reason);
-    expect(screen.getByText(/not auto-fixable/i)).toBeInTheDocument();
-    expect(screen.getByText(reason)).toBeInTheDocument();
+    expect(screen.getByText(/not auto-fixable/i)).toHaveTextContent(reason);
   });
 
   it("does not leak undefined or NaN when optional issue metadata is missing", () => {

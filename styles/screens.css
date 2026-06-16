@@ -4010,6 +4010,73 @@ button.dash-cat-row:hover {
   justify-self: end;
 }
 
+.billing-usage-toggle {
+  width: 100%;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.billing-usage-toggle:hover {
+  background: var(--bg-elev);
+}
+.billing-usage-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.billing-usage-toggle .billing-summary-meter {
+  grid-template-columns: minmax(100px, 1fr) auto auto;
+}
+.billing-usage-caret {
+  color: var(--text-3);
+  transition: transform 160ms ease;
+}
+.billing-usage-toggle.open .billing-usage-caret {
+  transform: rotate(90deg);
+}
+.billing-usage-activity {
+  margin-top: -4px;
+}
+.quota-activity-row {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.quota-activity-row:hover {
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
+  background: color-mix(in oklch, var(--accent) 5%, var(--bg-elev));
+}
+.quota-activity-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.quota-activity-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+.quota-activity-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in oklch, var(--accent) 24%, var(--border));
+}
+.quota-activity-refunded .quota-activity-icon {
+  color: #16a34a;
+  background: color-mix(in oklch, #16a34a 10%, var(--bg-elev));
+  border-color: color-mix(in oklch, #16a34a 32%, var(--border));
+}
+.quota-activity-empty {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .api-key-create {
   display: grid;
   gap: 0;

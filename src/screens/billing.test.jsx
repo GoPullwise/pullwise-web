@@ -333,6 +333,65 @@ describe("BillingScreen", () => {
     expect(usageTag).not.toHaveTextContent("none");
   });
 
+  it("toggles scan quota activity from account usage and links to scan details", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "none",
+        plan: "free",
+        usage: { period: "2026-05", used: 2, limit: 5, remaining: 3 },
+        quotaActivity: [
+          {
+            id: "ql_done",
+            action: "consumed",
+            amount: 1,
+            delta: 1,
+            scanId: "sc_done",
+            repo: "owner/repo",
+            branch: "main",
+            commit: "abc1234",
+            status: "done",
+            requestId: "req_done",
+            reason: "scan_created",
+            eventAt: Date.UTC(2026, 4, 2, 12, 0, 0) / 1000,
+          },
+          {
+            id: "sc_failed:refunded",
+            action: "refunded",
+            amount: 1,
+            delta: -1,
+            scanId: "sc_failed",
+            repo: "owner/failing-repo",
+            branch: "main",
+            commit: "def5678",
+            status: "failed",
+            requestId: "req_failed",
+            reason: "REPOSITORY_TOO_LARGE",
+            eventAt: Date.UTC(2026, 4, 2, 12, 5, 0) / 1000,
+          },
+        ],
+      },
+    });
+    const go = vi.fn();
+    const user = userEvent.setup();
+
+    render(<BillingScreen go={go} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /account usage/i }));
+
+    expect(screen.getByText("Quota activity")).toBeInTheDocument();
+    expect(screen.getByText("Quota consumed")).toBeInTheDocument();
+    expect(screen.getByText("Quota refunded")).toBeInTheDocument();
+    expect(screen.getByText(/repository too large/i)).toBeInTheDocument();
+
+    const consumedRow = screen.getByRole("link", { name: /owner\/repo/i });
+    expect(consumedRow).toHaveAttribute("href", "/scanning/sc_done");
+
+    await user.click(consumedRow);
+
+    expect(go).toHaveBeenCalledWith("scanning", { scanId: "sc_done" });
+  });
+
   it("rejects unsafe checkout URLs before navigating", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

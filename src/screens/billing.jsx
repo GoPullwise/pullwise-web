@@ -286,6 +286,59 @@ function usageText(usage) {
   return T(`${used} / ${limit} reviews used`, `${used} / ${limit} 次审查已用`);
 }
 
+function quotaActivityRecords(account) {
+  return Array.isArray(account?.quotaActivity)
+    ? account.quotaActivity.filter((record) => record && typeof record === "object" && record.scanId)
+    : [];
+}
+
+function quotaActivityRecordKey(record, index) {
+  return record?.id || `${record?.scanId || "scan"}-${record?.action || "quota"}-${index}`;
+}
+
+function quotaActivityAction(record) {
+  return record?.action === "refunded" ? "refunded" : "consumed";
+}
+
+function quotaActivityTitle(record) {
+  return quotaActivityAction(record) === "refunded"
+    ? T("Quota refunded", "配额已回退")
+    : T("Quota consumed", "配额已消耗");
+}
+
+function quotaActivityAmountText(record) {
+  const amount = nonNegativeInteger(record?.amount || Math.abs(Number(record?.delta || 0))) || 1;
+  return quotaActivityAction(record) === "refunded"
+    ? T(`+${amount} quota`, `+${amount} 配额`)
+    : T(`-${amount} quota`, `-${amount} 配额`);
+}
+
+function quotaActivityReasonText(reason) {
+  const text = String(reason || "").trim();
+  if (!text) return "";
+  return text.replace(/[_-]+/g, " ").toLowerCase();
+}
+
+function quotaActivityMeta(record) {
+  return [
+    record?.repo,
+    record?.branch,
+    record?.commit && record.commit !== "pending" ? record.commit : "",
+    record?.status,
+  ]
+    .filter(Boolean)
+    .join(" - ");
+}
+
+function quotaActivityEventText(record) {
+  const parts = [];
+  if (record?.requestId) parts.push(record.requestId);
+  const reason = quotaActivityReasonText(record?.reason);
+  if (reason && reason !== "scan created") parts.push(reason);
+  if (record?.eventAt) parts.push(formatQuotaResetAt(record.eventAt));
+  return parts.join(" - ");
+}
+
 function subscriptionRecords(account) {
   return Array.isArray(account?.subscriptionEvents)
     ? account.subscriptionEvents.filter((record) => record && typeof record === "object")
@@ -484,6 +537,7 @@ export function BillingScreen({
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState("");
   const [changeDraft, setChangeDraft] = useState(null);
+  const [usageExpanded, setUsageExpanded] = useState(false);
 
   const refreshBillingPlan = useCallback(async () => {
     const payload = await pullwiseApi.billing.getPlan();
@@ -535,6 +589,7 @@ export function BillingScreen({
     remaining: activePaid ? currentPlan.reviewLimit : freePlan.reviewLimit,
     period: "",
   };
+  const quotaActivity = useMemo(() => quotaActivityRecords(account), [account]);
   const subscriptions = subscriptionRecords(account);
   const usageResetText = quotaResetText(usage, "Monthly quota resets");
   const billingEnabled = Boolean(plan?.enabled);
@@ -778,7 +833,15 @@ export function BillingScreen({
               <BillingSkeleton />
             ) : (
               <div className="set-body">
-                <div className="bill-card billing-summary">
+                <button
+                  type="button"
+                  className={`bill-card billing-summary billing-usage-toggle${
+                    usageExpanded ? " open" : ""
+                  }`}
+                  aria-expanded={usageExpanded}
+                  aria-controls="billing-quota-activity"
+                  onClick={() => setUsageExpanded((expanded) => !expanded)}
+                >
                   <div className="billing-summary-main">
                     <I.Activity size={18} />
                     <div>
@@ -794,8 +857,79 @@ export function BillingScreen({
                       <div style={{ width: `${usagePercent(usage)}%` }} />
                     </div>
                     <span className="tag">{currentPlan?.name || T("Plan", "套餐")}</span>
+                    <I.ArrowR className="billing-usage-caret" size={13} aria-hidden="true" />
                   </div>
-                </div>
+                </button>
+
+                {usageExpanded && (
+                  <div
+                    id="billing-quota-activity"
+                    className="bill-card bill-card-list billing-usage-activity"
+                  >
+                    <div className="billing-summary-main">
+                      <I.Activity size={18} />
+                      <div>
+                        <b>{T("Quota activity", "配额明细")}</b>
+                        <div className="muted">
+                          {quotaActivity.length
+                            ? T(
+                                `${quotaActivity.length} scan quota events`,
+                                `${quotaActivity.length} 条 scan 配额事件`
+                              )
+                            : T("No scan quota events yet.", "暂无 scan 配额事件。")}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="sub-record-list">
+                      {quotaActivity.length > 0 ? (
+                        quotaActivity.map((record, index) => {
+                          const scanId = record.scanId;
+                          return (
+                            <a
+                              className={`sub-record-row quota-activity-row quota-activity-${quotaActivityAction(
+                                record
+                              )}`}
+                              key={quotaActivityRecordKey(record, index)}
+                              aria-label={T(
+                                `Open quota activity for ${record.repo || scanId}`,
+                                `打开 ${record.repo || scanId} 的配额明细`
+                              )}
+                              {...screenLinkProps(go, "scanning", { scanId })}
+                            >
+                              <div className="quota-activity-main">
+                                <span className="quota-activity-icon" aria-hidden="true">
+                                  {quotaActivityAction(record) === "refunded" ? (
+                                    <I.Refresh size={13} />
+                                  ) : (
+                                    <I.Activity size={13} />
+                                  )}
+                                </span>
+                                <span className="sub-record-main">
+                                  <b>{quotaActivityTitle(record)}</b>
+                                  <span className="muted">{quotaActivityMeta(record)}</span>
+                                  <span className="muted">{quotaActivityEventText(record)}</span>
+                                </span>
+                              </div>
+                              <span className="tag">{quotaActivityAmountText(record)}</span>
+                            </a>
+                          );
+                        })
+                      ) : (
+                        <div className="sub-record-row quota-activity-empty">
+                          <div className="sub-record-main">
+                            <b>{T("No quota activity", "暂无配额明细")}</b>
+                            <div className="muted">
+                              {T(
+                                "Scans that consume or refund quota will appear here.",
+                                "消耗或回退配额的 scan 会显示在这里。"
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="bill-card billing-summary">
                   <div className="billing-summary-main">
