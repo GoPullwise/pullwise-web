@@ -926,7 +926,7 @@ describe("ScanningScreen queue state", () => {
     expect(useScanRun).toHaveBeenCalledWith(
       expect.objectContaining({
         scanId: "sc_running",
-      initialScan: activeScan,
+        initialScan: activeScan,
       })
     );
   });
@@ -963,9 +963,10 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    expect(screen.getByText("Loading scan details")).toBeInTheDocument();
+    const skeleton = container.querySelector(".scan-detail-skeleton");
+    expect(skeleton).toBeInTheDocument();
+    expect(within(skeleton).getByText("Loading scan details")).toBeInTheDocument();
     expect(screen.getByText(/not the final detail page yet/i)).toBeInTheDocument();
-    expect(container.querySelector(".scan-detail-skeleton")).toBeInTheDocument();
     expect(container.querySelector(".scan-detail-skeleton-side")).toBeInTheDocument();
     expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
