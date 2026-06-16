@@ -1195,11 +1195,13 @@ export function ReposScreen({
   const [connectError, setConnectError] = useState("");
   const [selectionNotice, setSelectionNotice] = useState("");
   const [checkingQuota, setCheckingQuota] = useState(false);
+  const [resolvingBranches, setResolvingBranches] = useState(false);
   const [quotaPreflight, setQuotaPreflight] = useState(null);
   const [quotaDialogSelected, setQuotaDialogSelected] = useState([]);
   const [quotaDialogNotice, setQuotaDialogNotice] = useState("");
   const [repoBranches, setRepoBranches] = useState({});
   const [selectedBranches, setSelectedBranches] = useState({});
+  const branchRequestsRef = useRef(new Map());
   const {
     items: availableRepos,
     installations,
@@ -1307,9 +1309,11 @@ export function ReposScreen({
     async (repo) => {
       const key = repoBranchKey(repo);
       const apiId = repoBranchApiId(repo);
-      if (!key || !apiId) return;
+      if (!key || !apiId) return null;
       const current = repoBranches[key];
-      if (current?.loading || current?.branches?.length) return;
+      if (current?.branches?.length && !current.loading) return current;
+      const pending = branchRequestsRef.current.get(key);
+      if (pending) return pending;
       const fallbackBranch = repo?.branch || repo?.defaultBranch || "main";
       setRepoBranches((state) => ({
         ...state,
@@ -1320,32 +1324,63 @@ export function ReposScreen({
           error: "",
         },
       }));
-      try {
-        const payload = await pullwiseApi.repositories.branches(apiId);
-        const branches = branchPayloadBranches(payload, fallbackBranch);
-        const defaultBranch =
-          cleanBranchList([payload?.defaultBranch])[0] || fallbackBranch || branches[0] || "main";
-        setRepoBranches((state) => ({
-          ...state,
-          [key]: { branches, defaultBranch, loading: false, error: "" },
-        }));
-        setSelectedBranches((state) => ({
-          ...state,
-          [key]: branches.includes(state[key]) ? state[key] : defaultBranch,
-        }));
-      } catch (branchError) {
-        setRepoBranches((state) => ({
-          ...state,
-          [key]: {
-            branches: branchPayloadBranches(state[key], fallbackBranch),
+      const request = pullwiseApi.repositories
+        .branches(apiId)
+        .then((payload) => {
+          const branches = branchPayloadBranches(payload, fallbackBranch);
+          const defaultBranch =
+            cleanBranchList([payload?.defaultBranch])[0] || fallbackBranch || branches[0] || "main";
+          const resolved = { branches, defaultBranch, loading: false, error: "" };
+          setRepoBranches((state) => ({
+            ...state,
+            [key]: resolved,
+          }));
+          setSelectedBranches((state) => ({
+            ...state,
+            [key]: branches.includes(state[key]) ? state[key] : defaultBranch,
+          }));
+          return resolved;
+        })
+        .catch((branchError) => {
+          const resolved = {
+            branches: branchPayloadBranches(repoBranches[key], fallbackBranch),
             defaultBranch: fallbackBranch,
             loading: false,
             error: branchError?.message || "Unable to load branches.",
-          },
-        }));
-      }
+          };
+          setRepoBranches((state) => ({
+            ...state,
+            [key]: resolved,
+          }));
+          return resolved;
+        })
+        .finally(() => {
+          branchRequestsRef.current.delete(key);
+        });
+      branchRequestsRef.current.set(key, request);
+      return request;
     },
     [repoBranches]
+  );
+
+  const resolveBranchesForRepos = useCallback(
+    async (reposToResolve) => {
+      const branchStates = await Promise.all(reposToResolve.map((repo) => loadRepoBranches(repo)));
+      return reposToResolve.map((repo, index) => {
+        const key = repoBranchKey(repo);
+        const loaded = branchStates[index];
+        const selectedBranch = selectedBranches[key];
+        const selectedBranchIsAvailable =
+          selectedBranch && (!loaded?.branches?.length || loaded.branches.includes(selectedBranch));
+        const branch =
+          (selectedBranchIsAvailable ? selectedBranch : "") ||
+          loaded?.defaultBranch ||
+          loaded?.branches?.[0] ||
+          branchForRepo(repo);
+        return { ...repo, branch };
+      });
+    },
+    [branchForRepo, loadRepoBranches, selectedBranches]
   );
 
   useEffect(() => {
@@ -1460,15 +1495,18 @@ export function ReposScreen({
   };
 
   const startScan = async () => {
-    if (checkingQuota) return;
-    const reposToScan = selectedRepoObjects;
-    if (reposToScan.length === 0) return;
+    if (checkingQuota || resolvingBranches) return;
+    const selectedReposToScan = selectedRepoObjects;
+    if (selectedReposToScan.length === 0) return;
 
-    setCheckingQuota(true);
+    setResolvingBranches(true);
     setConnectError("");
     setSelectionNotice("");
     clearAuthorizationError();
     try {
+      const reposToScan = await resolveBranchesForRepos(selectedReposToScan);
+      setResolvingBranches(false);
+      setCheckingQuota(true);
       const preflight = await pullwiseApi.scans.preflight({
         repositories: reposToScan.map(scanInputFromRepo),
       });
@@ -1500,6 +1538,7 @@ export function ReposScreen({
           )
       );
     } finally {
+      setResolvingBranches(false);
       setCheckingQuota(false);
     }
   };
@@ -1651,10 +1690,10 @@ export function ReposScreen({
               </button>
               <button
                 className="btn primary"
-                disabled={selected.length === 0 || checkingQuota}
+                disabled={selected.length === 0 || checkingQuota || resolvingBranches}
                 onClick={startScan}
               >
-                {checkingQuota ? (
+                {checkingQuota || resolvingBranches ? (
                   <span className="spin" style={{ display: "inline-block" }}>
                     <I.Refresh size={12} />
                   </span>
