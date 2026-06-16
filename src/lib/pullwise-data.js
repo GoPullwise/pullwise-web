@@ -1755,6 +1755,8 @@ export function normalizeIssue(issue = {}) {
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
     autoFix,
     autoFixable,
+    fixabilityState: textValue(issue.fixabilityState, issue.fixability_state),
+    fixabilityReason: textValue(issue.fixabilityReason, issue.fixability_reason),
     steps: normalizeTextList(issue.steps),
     badCode: normalizeCodeLines(issue.badCode),
     goodCode: normalizeCodeLines(issue.goodCode),

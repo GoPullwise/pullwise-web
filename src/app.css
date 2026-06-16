@@ -1056,7 +1056,7 @@ body.has-proto-nav {
 }
 
 .scanning-sub .tag {
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .scanning-actions {

@@ -996,10 +996,18 @@ describe("normalizeIssue", () => {
     expect(normalizeRepo({ name: "octocat/public-repo", private: "false" }).private).toBe(false);
     expect(normalizeRepo({ name: "octocat/private-repo", private: "true" }).private).toBe(true);
     expect(
-      normalizeIssue({ id: "f_manual", autoFix: "false", autoFixable: "false" })
+      normalizeIssue({
+        id: "f_manual",
+        autoFix: "false",
+        autoFixable: "false",
+        fixability_state: "missing_patch",
+        fixability_reason: "No safe deterministic patch was generated for this issue.",
+      })
     ).toMatchObject({
       autoFix: false,
       autoFixable: false,
+      fixabilityState: "missing_patch",
+      fixabilityReason: "No safe deterministic patch was generated for this issue.",
     });
     expect(normalizeIssue({ id: "f_auto", autoFix: "true" })).toMatchObject({
       autoFix: true,

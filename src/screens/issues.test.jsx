@@ -986,6 +986,7 @@ describe("IssueDetailScreen review detail", () => {
     expect(tagBlock).toMatch(/text-overflow:\s*clip;/);
     expect(tagBlock).toMatch(/white-space:\s*normal;/);
     expect(truncatingAtomSelector).not.toContain(".tag");
+    expect(appCss).not.toMatch(/\.tag\s*\{[^}]*white-space:\s*nowrap;/s);
     expect(detailTagRowBlock).toMatch(/flex-wrap:\s*wrap;/);
     expect(auditTagBlock).toMatch(/overflow:\s*visible;/);
     expect(auditTagBlock).toMatch(/text-overflow:\s*clip;/);
@@ -1887,15 +1888,29 @@ describe("IssueDetailScreen review detail", () => {
   });
 
   it("keeps non-auto-fixable issues honest", () => {
+    const reason = "No safe deterministic patch was generated for this issue.";
+
     render(
       <IssueDetailScreen
         go={vi.fn()}
-        issue={{ id: "f_123", title: "Manual issue", status: "open", autoFix: false }}
+        issue={{
+          id: "f_123",
+          title: "Manual issue",
+          status: "open",
+          autoFix: false,
+          fixabilityReason: reason,
+        }}
       />
     );
 
-    expect(screen.getByRole("button", { name: /preview fix/i })).toBeDisabled();
+    const previewButton = screen.getByRole("button", { name: /preview fix/i });
+    const openPullRequestButton = screen.getByRole("button", { name: /open pr/i });
+    expect(previewButton).toBeDisabled();
+    expect(previewButton).toHaveAttribute("title", reason);
+    expect(openPullRequestButton).toBeDisabled();
+    expect(openPullRequestButton).toHaveAttribute("title", reason);
     expect(screen.getByText(/not auto-fixable/i)).toBeInTheDocument();
+    expect(screen.getByText(reason)).toBeInTheDocument();
   });
 
   it("does not leak undefined or NaN when optional issue metadata is missing", () => {

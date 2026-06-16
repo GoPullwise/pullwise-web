@@ -1352,6 +1352,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const auditEvidenceReady = issueAuditSwarmReviewComplete(issue);
   const hasEvidence = auditEvidenceReady && (issue.badCode?.length || issue.goodCode?.length);
   const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
+  const defaultFixabilityReason = T(
+    "No safe deterministic patch was generated for this issue.",
+    "此问题尚未生成安全的确定性补丁。"
+  );
+  const fixabilityReason =
+    typeof issue.fixabilityReason === "string" && issue.fixabilityReason.trim()
+      ? issue.fixabilityReason.trim()
+      : defaultFixabilityReason;
   const severity = issue.severity || "info";
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const hasReproduction =
@@ -1379,6 +1387,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     pullRequest?.issueId === issue.id
       ? pullRequest.value
       : issuePullRequestState(issue)?.value || null;
+  const openPullRequestDisabledReason = !activeFixPreview?.valid
+    ? autoFixable
+      ? T("Preview fix first.", "请先预览修复。")
+      : fixabilityReason
+    : "";
   const selectedFeedbackBadge = ISSUE_FEEDBACK_BADGES.find(
     (feedback) => feedback.value === selectedFeedback
   );
@@ -1852,6 +1865,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 className="btn sm"
                 disabled={!autoFixable || Boolean(fixLoading)}
                 onClick={previewFix}
+                title={!autoFixable ? fixabilityReason : undefined}
               >
                 <I.Sparkle size={13} />{" "}
                 {fixLoading === "preview"
@@ -1868,9 +1882,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   className="btn sm"
                   disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
                   onClick={openPullRequest}
-                  title={
-                    !activeFixPreview?.valid ? T("Preview fix first.", "请先预览修复。") : undefined
-                  }
+                  title={openPullRequestDisabledReason || undefined}
                 >
                   <I.GitBranch size={13} />{" "}
                   {fixLoading === "pr" ? T("Opening...", "正在打开...") : T("Open PR", "打开 PR")}
@@ -1878,7 +1890,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
               {!autoFixable && (
                 <div className="muted" style={{ fontSize: 12 }}>
-                  {T("This issue is not auto-fixable.", "此问题无法自动修复。")}
+                  {T("This issue is not auto-fixable:", "此问题无法自动修复：")}{" "}
+                  {fixabilityReason}
+                </div>
+              )}
+              {autoFixable && !activePullRequest?.url && !activeFixPreview?.valid && (
+                <div className="muted" style={{ fontSize: 12 }}>
+                  {T("Preview the fix to enable Open PR.", "先预览修复后即可打开 PR。")}
                 </div>
               )}
               {activeFixPreview && (
