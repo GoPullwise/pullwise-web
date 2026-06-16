@@ -1,6 +1,8 @@
 import axios from "axios";
 import { env } from "../config/env.js";
 
+export const SERVER_REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
+
 export class ApiError extends Error {
   constructor(message, { status, payload } = {}) {
     super(message);
@@ -14,7 +16,7 @@ export class ApiError extends Error {
 export const http = axios.create({
   baseURL: env.VITE_API_BASE_URL || "",
   withCredentials: true,
-  timeout: 30000,
+  timeout: SERVER_REQUEST_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",
   },

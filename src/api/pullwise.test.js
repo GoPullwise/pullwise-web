@@ -3,6 +3,7 @@ import { pullwiseApi } from "./pullwise.js";
 import { request } from "./http.js";
 
 vi.mock("./http.js", () => ({
+  SERVER_REQUEST_TIMEOUT_MS: 5 * 60 * 1000,
   request: vi.fn(),
 }));
 
@@ -48,7 +49,7 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(3, "/scans/scan%2Fwith%20spaces%231/audit-bundle");
     expect(request).toHaveBeenNthCalledWith(4, "/scans/scan%2Fwith%20spaces%231/audit-bundle.zip", {
       responseType: "blob",
-      timeout: 120000,
+      timeout: 5 * 60 * 1000,
     });
     expect(request).toHaveBeenNthCalledWith(5, "/scans/scan%2Fwith%20spaces%231/cancel", {
       method: "POST",

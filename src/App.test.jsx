@@ -66,6 +66,16 @@ async function flushPromises() {
   });
 }
 
+function deferredPromise() {
+  let resolve;
+  let reject;
+  const promise = new Promise((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, resolve, reject };
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -1045,6 +1055,91 @@ describe("App", () => {
     expect(pullwiseApi.scans.list).toHaveBeenCalled();
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText("octocat/beta")).toBeInTheDocument();
+  });
+
+  it("keeps cached scan history behind a skeleton until newly created batch scans load", async () => {
+    window.history.replaceState({}, "", "/history");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const repoAlpha = {
+      id: "repo_alpha",
+      name: "alpha",
+      fullName: "octocat/alpha",
+      desc: "Alpha service",
+      defaultBranch: "main",
+    };
+    const repoBeta = {
+      id: "repo_beta",
+      name: "beta",
+      fullName: "octocat/beta",
+      desc: "Beta service",
+      defaultBranch: "develop",
+    };
+    const oldScan = {
+      id: "sc_old",
+      repo: "octocat/old-repo",
+      branch: "main",
+      commit: "abc123",
+      status: "done",
+      createdAt: 1710000000,
+      time: "Earlier",
+      by: "you",
+    };
+    const scanAlpha = {
+      id: "sc_alpha",
+      repo: "octocat/alpha",
+      branch: "main",
+      commit: "pending",
+      status: "queued",
+      progress: 0,
+    };
+    const scanBeta = {
+      id: "sc_beta",
+      repo: "octocat/beta",
+      branch: "develop",
+      commit: "pending",
+      status: "queued",
+      progress: 0,
+    };
+    const staleHistoryReload = deferredPromise();
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [repoAlpha, repoBeta],
+      needsAuthorization: false,
+    });
+    pullwiseApi.scans.preflight.mockResolvedValueOnce({
+      requestedCount: 2,
+      allowedCount: 2,
+      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
+      repositories: [],
+    });
+    pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({ items: [oldScan] })
+      .mockReturnValueOnce(staleHistoryReload.promise)
+      .mockResolvedValue({ items: [scanAlpha, scanBeta] });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    expect(await screen.findByText("octocat/old-repo")).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: /new scan/i }));
+    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    await waitFor(() => expect(window.location.pathname).toBe("/history"));
+    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
+
+    await act(async () => {
+      staleHistoryReload.resolve({ items: [oldScan] });
+      await Promise.resolve();
+    });
+
+    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
   });
 
   it("opens issue search results directly in the issue detail view", async () => {

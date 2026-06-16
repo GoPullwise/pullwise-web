@@ -1,6 +1,6 @@
-import { request } from "./http.js";
+import { SERVER_REQUEST_TIMEOUT_MS, request } from "./http.js";
 
-const AUDIT_BUNDLE_ARCHIVE_TIMEOUT_MS = 120000;
+const AUDIT_BUNDLE_ARCHIVE_TIMEOUT_MS = SERVER_REQUEST_TIMEOUT_MS;
 
 function withSearchParams(path, params = {}) {
   const cleanParams = Object.fromEntries(

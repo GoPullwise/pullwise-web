@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ApiError, http, request } from "./http.js";
+import { ApiError, SERVER_REQUEST_TIMEOUT_MS, http, request } from "./http.js";
 
 describe("ApiError", () => {
   it("preserves structured backend error codes", () => {
@@ -13,8 +13,8 @@ describe("ApiError", () => {
 });
 
 describe("request", () => {
-  it("uses a 30 second default request timeout", () => {
-    expect(http.defaults.timeout).toBe(30000);
+  it("uses a 5 minute default request timeout", () => {
+    expect(http.defaults.timeout).toBe(SERVER_REQUEST_TIMEOUT_MS);
   });
 
   it("passes per-request timeout overrides through to axios", async () => {
@@ -23,7 +23,7 @@ describe("request", () => {
     await expect(
       request("/scans/sc_done/audit-bundle.zip", {
         responseType: "blob",
-        timeout: 120000,
+        timeout: SERVER_REQUEST_TIMEOUT_MS,
       })
     ).resolves.toBe("zip");
 
@@ -31,7 +31,7 @@ describe("request", () => {
       expect.objectContaining({
         url: "/scans/sc_done/audit-bundle.zip",
         responseType: "blob",
-        timeout: 120000,
+        timeout: SERVER_REQUEST_TIMEOUT_MS,
       })
     );
 
