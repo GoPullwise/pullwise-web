@@ -32,6 +32,7 @@ vi.mock("./api/pullwise.js", () => ({
     issues: {
       list: vi.fn(),
       get: vi.fn(),
+      updateStatus: vi.fn(),
     },
     docs: {
       getSubscriptionPlanConfigs: vi.fn(),
@@ -125,6 +126,12 @@ describe("App", () => {
       file: "src/auth.js",
       status: "open",
     });
+    pullwiseApi.issues.updateStatus.mockImplementation((issueId, payload) =>
+      Promise.resolve({
+        id: issueId,
+        status: payload?.status || "open",
+      })
+    );
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
       plans: [
         {
