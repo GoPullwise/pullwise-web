@@ -983,7 +983,7 @@ describe("App", () => {
     expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
   });
 
-  it("submits a repository batch from the scanning screen", async () => {
+  it("submits a repository batch and returns to scan history", async () => {
     window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
@@ -1039,10 +1039,10 @@ describe("App", () => {
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
-    await waitFor(() => expect(window.location.pathname).toBe("/scanning"));
+    await waitFor(() => expect(window.location.pathname).toBe("/history"));
     expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2);
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(await screen.findByText(/scan batch queued/i)).toBeInTheDocument();
+    expect(pullwiseApi.scans.list).toHaveBeenCalled();
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText("octocat/beta")).toBeInTheDocument();
   });

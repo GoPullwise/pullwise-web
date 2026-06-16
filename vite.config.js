@@ -42,6 +42,21 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, "index.html"),
       },
+      output: {
+        manualChunks(id) {
+          const normalized = id.replace(/\\/g, "/");
+          if (!normalized.includes("/node_modules/")) return undefined;
+          if (normalized.includes("/react/") || normalized.includes("/react-dom/") || normalized.includes("/scheduler/")) {
+            return "vendor-react";
+          }
+          if (normalized.includes("/cytoscape/")) return "vendor-graph";
+          if (normalized.includes("/lucide-react/")) return "vendor-icons";
+          if (normalized.includes("/date-fns/")) return "vendor-date";
+          if (normalized.includes("/axios/")) return "vendor-http";
+          if (normalized.includes("/react-router-dom/") || normalized.includes("/react-router/")) return "vendor-router";
+          return "vendor";
+        },
+      },
     },
   },
 });
