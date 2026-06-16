@@ -2,6 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 
 const successfulListCache = new Map();
+const issueUpdateCache = new Map();
+const ISSUE_UPDATE_KEY_FIELDS = [
+  "id",
+  "scanId",
+  "jobId",
+  "repo",
+  "file",
+  "line",
+  "title",
+  "createdAt",
+];
 
 function stableCacheKey(name, params = {}) {
   return [
@@ -29,7 +40,12 @@ function cloneListState(state) {
 
 function cachedListState(key) {
   const cached = successfulListCache.get(key);
-  return cached ? cloneListState(cached) : null;
+  if (!cached) return null;
+  const state = cloneListState(cached);
+  if (key.startsWith("issues|") || key === "issues") {
+    state.items = applyCachedIssueUpdates(state.items);
+  }
+  return state;
 }
 
 function rememberListState(key, state) {
@@ -41,6 +57,32 @@ function rememberListState(key, state) {
 
 export function clearPullwiseDataCache() {
   successfulListCache.clear();
+  issueUpdateCache.clear();
+}
+
+export function issueUpdateKey(issue) {
+  return JSON.stringify(ISSUE_UPDATE_KEY_FIELDS.map((field) => String(issue?.[field] ?? "")));
+}
+
+function applyCachedIssueUpdates(items) {
+  if (!Array.isArray(items) || issueUpdateCache.size === 0) return items;
+  return items.map((item) => {
+    const updated = issueUpdateCache.get(issueUpdateKey(item));
+    return updated ? { ...item, ...updated } : item;
+  });
+}
+
+export function rememberIssueUpdate(issue, updatedIssue) {
+  const key = issueUpdateKey(issue);
+  const normalized = normalizeIssue({ ...issue, ...updatedIssue });
+  issueUpdateCache.set(key, normalized);
+  for (const [cacheKey, state] of successfulListCache.entries()) {
+    if (!cacheKey.startsWith("issues|") && cacheKey !== "issues") continue;
+    rememberListState(cacheKey, {
+      ...state,
+      items: applyCachedIssueUpdates(state.items),
+    });
+  }
 }
 
 function useInitialCachedListState(cacheKey) {
@@ -1959,7 +2001,9 @@ export function useIssues({
           listParams({ limit, offset, status, severity, q, scanId })
         );
         if (requestId !== requestIdRef.current) return;
-        const nextItems = itemsFrom(payload, "items", "issues").map(normalizeIssue);
+        const nextItems = applyCachedIssueUpdates(
+          itemsFrom(payload, "items", "issues").map(normalizeIssue)
+        );
         setState((current) => {
           const nextState = {
             items: append ? [...current.items, ...nextItems] : nextItems,

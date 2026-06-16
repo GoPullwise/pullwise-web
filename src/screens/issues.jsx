@@ -16,7 +16,9 @@ import {
   normalizeIssue,
   normalizeIssuePullRequest,
   normalizeScan,
+  issueUpdateKey,
   notifyIssuesChanged,
+  rememberIssueUpdate,
   scanQueueSummary,
   useIssues,
   useScans,
@@ -116,7 +118,7 @@ const ISSUE_IDENTITY_FIELDS = [
 const ISSUE_STATUS_IDENTITY_FIELDS = ISSUE_IDENTITY_FIELDS.filter((field) => field !== "id");
 
 function issueRowKey(issue) {
-  return JSON.stringify(ISSUE_IDENTITY_FIELDS.map((field) => String(issue?.[field] ?? "")));
+  return issueUpdateKey(issue);
 }
 
 function issueStatusIdentity(issue) {
@@ -933,6 +935,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         ...issueStatusIdentity(issue),
       });
       const updatedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
+      rememberIssueUpdate(issue, updatedIssue);
       setLocalIssueUpdates((current) => ({ ...current, [rowKey]: updatedIssue }));
       await reload();
       notifyIssuesChanged({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
@@ -978,6 +981,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         const issue = targets[index];
         const rowKey = rowKeys[index];
         const updatedIssue = { ...issue, ...result.value, status: result.value?.status || "fixed" };
+        rememberIssueUpdate(issue, updatedIssue);
         localUpdates[rowKey] = updatedIssue;
         notifications.push({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
       });
@@ -1434,6 +1438,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         ...issueStatusIdentity(issue),
       });
       const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
+      rememberIssueUpdate(issue, mergedIssue);
       setCurrentStatus(mergedIssue.status);
       if (typeof setIssue === "function") setIssue(mergedIssue);
       notifyIssuesChanged({
