@@ -282,7 +282,12 @@ function usagePercent(usage) {
 
 function usageText(usage) {
   const used = nonNegativeInteger(usage?.used);
+  const reserved = nonNegativeInteger(usage?.reserved);
   const limit = nonNegativeInteger(usage?.limit);
+  const base = T(`${used} / ${limit} reviews used`, `${used} / ${limit} reviews used`);
+  if (!reserved) return base;
+  return T(`${base} - ${reserved} pending`, `${base} - ${reserved} pending`);
+  // eslint-disable-next-line no-unreachable
   return T(`${used} / ${limit} reviews used`, `${used} / ${limit} 次审查已用`);
 }
 
@@ -297,10 +302,18 @@ function quotaActivityRecordKey(record, index) {
 }
 
 function quotaActivityAction(record) {
-  return record?.action === "refunded" ? "refunded" : "consumed";
+  return ["reserved", "released", "refunded"].includes(record?.action)
+    ? record.action
+    : "consumed";
 }
 
 function quotaActivityTitle(record) {
+  const action = quotaActivityAction(record);
+  if (action === "refunded") return T("Quota refunded", "Quota refunded");
+  if (action === "reserved") return T("Quota reserved", "Quota reserved");
+  if (action === "released") return T("Reservation released", "Reservation released");
+  return T("Quota consumed", "Quota consumed");
+  // eslint-disable-next-line no-unreachable
   return quotaActivityAction(record) === "refunded"
     ? T("Quota refunded", "配额已回退")
     : T("Quota consumed", "配额已消耗");
@@ -308,6 +321,12 @@ function quotaActivityTitle(record) {
 
 function quotaActivityAmountText(record) {
   const amount = nonNegativeInteger(record?.amount || Math.abs(Number(record?.delta || 0))) || 1;
+  const action = quotaActivityAction(record);
+  if (action === "refunded") return T(`+${amount} quota`, `+${amount} quota`);
+  if (action === "released") return T(`+${amount} pending`, `+${amount} pending`);
+  if (action === "reserved") return T(`-${amount} pending`, `-${amount} pending`);
+  return T(`-${amount} quota`, `-${amount} quota`);
+  // eslint-disable-next-line no-unreachable
   return quotaActivityAction(record) === "refunded"
     ? T(`+${amount} quota`, `+${amount} 配额`)
     : T(`-${amount} quota`, `-${amount} 配额`);
@@ -898,7 +917,7 @@ export function BillingScreen({
                             >
                               <div className="quota-activity-main">
                                 <span className="quota-activity-icon" aria-hidden="true">
-                                  {quotaActivityAction(record) === "refunded" ? (
+                                  {["refunded", "released"].includes(quotaActivityAction(record)) ? (
                                     <I.Refresh size={13} />
                                   ) : (
                                     <I.Activity size={13} />

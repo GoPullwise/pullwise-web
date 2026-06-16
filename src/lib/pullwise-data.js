@@ -1162,16 +1162,18 @@ function normalizeQuotaCount(value, fallback = 0) {
 export function normalizeQuotaUsage(value) {
   if (!objectRecord(value)) return null;
   const used = normalizeQuotaCount(value.used);
+  const reserved = normalizeQuotaCount(value.reserved);
   const limit = normalizeQuotaCount(value.limit);
   const remaining = Object.prototype.hasOwnProperty.call(value, "remaining")
     ? normalizeQuotaCount(value.remaining)
-    : Math.max(0, limit - used);
+    : Math.max(0, limit - used - reserved);
   return {
     ...value,
     scope: textValue(value.scope, value.scopeType, value.scope_type),
     period: textValue(value.period),
     plan: textValue(value.plan),
     used,
+    reserved,
     limit,
     remaining,
     resetAt: textValue(value.resetAt, value.reset_at),
@@ -2136,6 +2138,7 @@ export function useScanRun({
   const [errorCode, setErrorCode] = useState("");
   const [pollRetryTick, setPollRetryTick] = useState(0);
   const [retrying, setRetrying] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const initialScanRef = useRef(initialScan);
   const errorSourceRef = useRef("");
 
@@ -2226,12 +2229,32 @@ export function useScanRun({
   }, [scan, pollIntervalMs, pollRetryTick, clearRunError, setRunError]);
 
   const cancel = async () => {
-    if (!scan?.id || isTerminalScan(scan)) return;
+    if (!scan?.id || isTerminalScan(scan) || canceling) return;
+    const previousScan = scan;
+    const cancelledAt = Math.floor(Date.now() / 1000);
+    setCanceling(true);
+    clearRunError();
+    setScan((current) => {
+      if (!current?.id || current.id !== previousScan.id || isTerminalScan(current)) return current;
+      return normalizeScan({
+        ...current,
+        status: "cancelled",
+        completedAt: current.completedAt || cancelledAt,
+        updatedAt: cancelledAt,
+        quotaState: current.quotaState === "reserved" ? "released" : current.quotaState,
+        quotaReleasedAt: current.quotaState === "reserved" ? cancelledAt : current.quotaReleasedAt,
+      });
+    });
     try {
-      const updated = await pullwiseApi.scans.cancel(scan.id);
+      const updated = await pullwiseApi.scans.cancel(previousScan.id);
       setScan(normalizeScan(updated));
     } catch (err) {
+      setScan((current) =>
+        current?.id === previousScan.id && current.status === "cancelled" ? previousScan : current
+      );
       setRunError(err, "Cancel failed.", "cancel");
+    } finally {
+      setCanceling(false);
     }
   };
 
@@ -2260,7 +2283,7 @@ export function useScanRun({
     }
   };
 
-  return { scan, error, errorCode, cancel, retry, retrying };
+  return { scan, error, errorCode, cancel, retry, retrying, canceling };
 }
 
 function scanRequestKey(request) {
@@ -2289,6 +2312,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [pollRetryTick, setPollRetryTick] = useState(0);
+  const [canceling, setCanceling] = useState(false);
   const errorSourceRef = useRef("");
   const requests = repositories
     .map(normalizeScanRequest)
@@ -2417,9 +2441,33 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
 
   const cancel = async () => {
     const activeScans = scans.filter((scan) => scan?.id && !isTerminalScan(scan));
-    if (!activeScans.length) return;
+    if (!activeScans.length || canceling) return;
+    const previousScans = scans;
+    const previousBatchResults = batchResults;
+    const activeIds = new Set(activeScans.map((scan) => scan.id));
+    const cancelledAt = Math.floor(Date.now() / 1000);
+    const optimisticCancel = (scan) => {
+      if (!scan?.id || !activeIds.has(scan.id) || isTerminalScan(scan)) return scan;
+      return normalizeScan({
+        ...scan,
+        status: "cancelled",
+        completedAt: scan.completedAt || cancelledAt,
+        updatedAt: cancelledAt,
+        quotaState: scan.quotaState === "reserved" ? "released" : scan.quotaState,
+        quotaReleasedAt: scan.quotaState === "reserved" ? cancelledAt : scan.quotaReleasedAt,
+      });
+    };
 
     try {
+      setCanceling(true);
+      clearRunError();
+      setScans((current) => current.map(optimisticCancel));
+      setBatchResults((current) =>
+        current.map((row) => {
+          const nextScan = optimisticCancel(row.scan);
+          return nextScan !== row.scan ? { ...row, status: nextScan.status, scan: nextScan } : row;
+        })
+      );
       const updates = await Promise.all(
         activeScans.map((scan) => pullwiseApi.scans.cancel(scan.id))
       );
@@ -2432,9 +2480,13 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         })
       );
     } catch (err) {
+      setScans(previousScans);
+      setBatchResults(previousBatchResults);
       setRunError(err, "Cancel failed.", "cancel");
+    } finally {
+      setCanceling(false);
     }
   };
 
-  return { scans, batchResults, error, errorCode, cancel };
+  return { scans, batchResults, error, errorCode, cancel, canceling };
 }

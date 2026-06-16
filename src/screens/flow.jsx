@@ -2601,6 +2601,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const cancel = batchMode ? batchRun.cancel : singleRun.cancel;
   const retry = batchMode ? null : singleRun.retry;
   const retrying = batchMode ? false : Boolean(singleRun.retrying);
+  const canceling = batchMode ? Boolean(batchRun.canceling) : Boolean(singleRun.canceling);
 
   // Append a log line whenever the worker advances to a new phase.
   useEffect(() => {
@@ -2652,8 +2653,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const auditSwarmReviewComplete = auditSwarmPhaseIndex >= 0 && phaseIdx > auditSwarmPhaseIndex;
   const queueSummary = scanQueueSummary(scan);
   const canCancel = batchMode
-    ? scans.some((item) => item?.id && !isTerminalScan(item))
-    : Boolean(scan && !terminal);
+    ? !canceling && scans.some((item) => item?.id && !isTerminalScan(item))
+    : Boolean(scan && !terminal && !canceling);
   const canRetry = !batchMode && isRetryableScan(scan);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
   const publicError = error ? publicScanErrorMessage(error) : "";
@@ -2663,7 +2664,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
 
   const handleCancel = async () => {
     if (canCancel) await cancel();
-    go("history");
   };
   const handleBack = () => {
     go("history");
@@ -2790,7 +2790,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 {canCancel && (
                   <>
                     <span className="scanning-actions-sep" aria-hidden="true" />
-                    <button className="btn ghost" onClick={handleCancel}>
+                    <button className="btn ghost" disabled={canceling} onClick={handleCancel}>
                       <I.X size={13} /> {T("Cancel", "取消")}
                     </button>
                   </>
