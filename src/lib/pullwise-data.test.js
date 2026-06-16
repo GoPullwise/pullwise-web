@@ -137,6 +137,42 @@ describe("useRepositories", () => {
     expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/repo"]);
     unmount();
   });
+
+  it("requests paginated repository pages and appends more results", async () => {
+    pullwiseApi.repositories.list
+      .mockResolvedValueOnce({
+        items: [{ id: "repo_1", fullName: "owner/one" }],
+        total: 2,
+        limit: 1,
+        offset: 0,
+        hasMore: true,
+        nextOffset: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "repo_2", fullName: "owner/two" }],
+        total: 2,
+        limit: 1,
+        offset: 1,
+        hasMore: false,
+        nextOffset: null,
+      });
+
+    const { result, unmount } = renderHook(() => useRepositories({ limit: 1 }));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/one"]);
+    expect(result.current.meta.total).toBe(2);
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(1, { limit: 1 });
+
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/one", "owner/two"]);
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(2, { limit: 1, offset: 1 });
+    unmount();
+  });
 });
 
 describe("useScans", () => {

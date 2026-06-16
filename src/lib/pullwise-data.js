@@ -1820,56 +1820,77 @@ export function normalizeScan(scan = {}) {
   };
 }
 
-export function useRepositories() {
+export function useRepositories({ limit = 100 } = {}) {
   const requestIdRef = useRef(0);
-  const cacheKey = "repositories";
+  const cacheKey = stableCacheKey("repositories", { limit });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
     items: [],
+    meta: pageMeta({}, limit),
     installations: [],
     installationAccounts: [],
     userQuota: null,
     needsAuthorization: false,
     ...(initialCachedState || {}),
     loading: !shouldRefreshQuietly,
+    loadingMore: false,
     error: "",
   }));
 
-  const load = useCallback(async ({ sync = false, quiet = false } = {}) => {
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-    setState((current) => ({ ...current, loading: quiet ? current.loading : true, error: "" }));
-    try {
-      const payload = sync
-        ? await pullwiseApi.repositories.sync()
-        : await pullwiseApi.repositories.list();
-      if (requestId !== requestIdRef.current) return;
-      const nextState = {
-        items: itemsFrom(payload, "items", "repositories").map(normalizeRepo),
-        installations: itemsFrom(payload, "installations"),
-        installationAccounts: itemsFrom(payload, "installationAccounts"),
-        userQuota: normalizeQuotaUsage(payload?.userQuota),
-        loading: false,
-        error: "",
-        needsAuthorization: normalizeBoolean(payload?.needsAuthorization),
-      };
-      rememberListState(cacheKey, nextState);
-      setState(nextState);
-    } catch (error) {
-      if (requestId !== requestIdRef.current) return;
+  const load = useCallback(
+    async ({ sync = false, quiet = false, append = false, offset = 0 } = {}) => {
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
       setState((current) => ({
         ...current,
-        loading: false,
-        error: error?.message || "Unable to load repositories.",
+        loading: quiet || append ? current.loading : true,
+        loadingMore: append,
+        error: "",
       }));
-    }
-  }, []);
+      try {
+        const payload = sync
+          ? await pullwiseApi.repositories.sync()
+          : await pullwiseApi.repositories.list(listParams({ limit, offset }));
+        if (requestId !== requestIdRef.current) return;
+        const nextItems = itemsFrom(payload, "items", "repositories").map(normalizeRepo);
+        setState((current) => {
+          const nextState = {
+            items: append ? [...current.items, ...nextItems] : nextItems,
+            installations: itemsFrom(payload, "installations"),
+            installationAccounts: itemsFrom(payload, "installationAccounts"),
+            userQuota: normalizeQuotaUsage(payload?.userQuota),
+            loading: false,
+            loadingMore: false,
+            error: "",
+            meta: pageMeta(payload, limit),
+            needsAuthorization: normalizeBoolean(payload?.needsAuthorization),
+          };
+          rememberListState(cacheKey, nextState);
+          return nextState;
+        });
+      } catch (error) {
+        if (requestId !== requestIdRef.current) return;
+        setState((current) => ({
+          ...current,
+          loading: false,
+          loadingMore: false,
+          error: error?.message || "Unable to load repositories.",
+        }));
+      }
+    },
+    [cacheKey, limit]
+  );
 
   useEffect(() => {
     load({ quiet: shouldRefreshQuietly });
   }, [load, shouldRefreshQuietly]);
 
-  return { ...state, reload: load };
+  const loadMore = useCallback(() => {
+    if (!state.meta?.hasMore || state.loadingMore) return;
+    load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
+  }, [load, state.meta, state.loadingMore, state.items.length]);
+
+  return { ...state, reload: load, loadMore };
 }
 
 function pageMeta(payload, fallbackLimit) {

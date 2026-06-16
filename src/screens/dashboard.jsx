@@ -365,7 +365,12 @@ export function DashboardScreen({ go, setIssue, accent }) {
     limit: 50,
   });
   const { items: scans, loading: scansLoading, reload: reloadScans } = useScans({ limit: 50 });
-  const { items: repositories, loading: reposLoading, needsAuthorization } = useRepositories();
+  const {
+    items: repositories,
+    loading: reposLoading,
+    needsAuthorization,
+    meta: repositoriesMeta = {},
+  } = useRepositories();
 
   const openIssues = issues;
   const counts = issueCounts(openIssues);
@@ -413,6 +418,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
         .map(() => 1),
     [scans]
   );
+  const repositoryCount = Number.isFinite(Number(repositoriesMeta.total))
+    ? Number(repositoriesMeta.total)
+    : repositories.length;
 
   const dashboardLoading = issuesLoading || scansLoading || reposLoading;
 
@@ -505,7 +513,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Repositories", "仓库")}</span>
                   </div>
-                  <div className="kpi-v">{reposLoading ? "-" : repositories.length}</div>
+                  <div className="kpi-v">{reposLoading ? "-" : repositoryCount}</div>
                   <div className="kpi-foot">
                     {needsAuthorization
                       ? T("Connect GitHub to add repositories", "连接 GitHub 以添加仓库")
@@ -513,7 +521,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   </div>
                   <div className="kpi-chart">
                     <Sparkline
-                      data={scanTrend.map(() => repositories.length)}
+                      data={scanTrend.map(() => repositoryCount)}
                       color="var(--text-3)"
                       height={20}
                     />

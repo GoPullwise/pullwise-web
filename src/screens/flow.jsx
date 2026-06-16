@@ -1206,9 +1206,12 @@ export function ReposScreen({
     installationAccounts,
     userQuota,
     loading,
+    loadingMore,
     error,
     needsAuthorization,
+    meta: repositoriesMeta = {},
     reload,
+    loadMore,
   } = useRepositories();
   const displayError = error || connectError || authorizationError;
   const hasInstallationDetails = Array.isArray(installations) && installations.length > 0;
@@ -1276,6 +1279,10 @@ export function ReposScreen({
       repo.desc.toLowerCase().includes(query);
     return matchesOrg && matchesQuery;
   });
+  const repositoryTotal = Number.isFinite(Number(repositoriesMeta.total))
+    ? Number(repositoriesMeta.total)
+    : availableRepos.length;
+  const loadedRepositoryCount = availableRepos.length;
   const accountQuotaRemaining = quotaRemaining(userQuota);
   const accountQuotaLabel = repoQuotaLabel(userQuota);
   const branchForRepo = useCallback(
@@ -1627,8 +1634,8 @@ export function ReposScreen({
                         "尚未连接 GitHub 仓库权限。"
                       )
                     : T(
-                        `${availableRepos.length} authorized repos`,
-                        `${availableRepos.length} 个已授权仓库`
+                        `${repositoryTotal} authorized repos`,
+                        `${repositoryTotal} 个已授权仓库`
                       )}
                 </div>
               )}
@@ -1974,6 +1981,33 @@ export function ReposScreen({
                     </div>
                   );
                 })}
+                {!loading && repositoriesMeta.hasMore && (
+                  <div className="repo-row repo-row-status">
+                    <div className="repo-icon">
+                      {loadingMore ? (
+                        <span className="spin" style={{ display: "inline-block" }}>
+                          <I.Refresh size={16} />
+                        </span>
+                      ) : (
+                        <I.Folder size={16} />
+                      )}
+                    </div>
+                    <div className="repo-main">
+                      <div className="repo-name">
+                        <span>{T("More repositories available", "还有更多仓库")}</span>
+                      </div>
+                      <div className="repo-desc">
+                        {T(
+                          `Loaded ${loadedRepositoryCount} of ${repositoryTotal} repositories.`,
+                          `已加载 ${loadedRepositoryCount} / ${repositoryTotal} 个仓库。`
+                        )}
+                      </div>
+                    </div>
+                    <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
+                      {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
