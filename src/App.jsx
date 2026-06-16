@@ -154,6 +154,23 @@ function activeRepoWithResolvedScan(activeRepo, scan) {
   return { ...activeRepo, ...scanContext };
 }
 
+function cleanPendingScanIds(value) {
+  if (!Array.isArray(value)) return [];
+  const ids = [];
+  const seen = new Set();
+  for (const item of value) {
+    const id = String(item || "").trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
+}
+
+function pendingScanIdsFromHistoryState(state) {
+  return isObject(state) ? cleanPendingScanIds(state.pendingScanIds) : [];
+}
+
 function PrototypeNav({ go, current }) {
   const screens = [
     { k: "landing", t: T("Landing", "首页") },
@@ -212,6 +229,9 @@ export function App({ prototypeNav = false }) {
   const [routeScanId, setRouteScanId] = useState(() => scanIdFromPath(window.location.pathname));
   const [issueScanFilter, setIssueScanFilter] = useState(null);
   const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
+  const [pendingHistoryScanIds, setPendingHistoryScanIds] = useState(() =>
+    pendingScanIdsFromHistoryState(window.history.state)
+  );
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -223,24 +243,32 @@ export function App({ prototypeNav = false }) {
     const path = pathFromScreen(nextScreen, params);
     const nextIssueId = nextScreen === "issue" ? issueIdFromPath(path) : "";
     const nextScanId = nextScreen === "scanning" ? scanIdFromPath(path) : "";
+    const nextPendingHistoryScanIds =
+      nextScreen === "history" ? cleanPendingScanIds(params.pendingScanIds) : [];
+    const historyState = { screen: nextScreen, issueId: nextIssueId, scanId: nextScanId };
+    if (nextPendingHistoryScanIds.length) {
+      historyState.pendingScanIds = nextPendingHistoryScanIds;
+    }
     if (window.location.pathname !== path) {
-      window.history.pushState(
-        { screen: nextScreen, issueId: nextIssueId, scanId: nextScanId },
-        "",
-        path
-      );
+      window.history.pushState(historyState, "", path);
+    } else {
+      window.history.replaceState(historyState, "", path);
     }
     setRouteIssueId(nextIssueId);
     setRouteScanId(nextScanId);
+    setPendingHistoryScanIds(nextPendingHistoryScanIds);
     setScreen(nextScreen);
     window.scrollTo({ top: 0 });
   };
 
   useEffect(() => {
-    const onPopState = () => {
+    const onPopState = (event) => {
       const nextScreen = screenFromPath(window.location.pathname) || "landing";
       setRouteIssueId(nextScreen === "issue" ? issueIdFromPath(window.location.pathname) : "");
       setRouteScanId(nextScreen === "scanning" ? scanIdFromPath(window.location.pathname) : "");
+      setPendingHistoryScanIds(
+        nextScreen === "history" ? pendingScanIdsFromHistoryState(event.state) : []
+      );
       setScreen(nextScreen);
     };
     window.addEventListener("popstate", onPopState);
@@ -340,6 +368,7 @@ export function App({ prototypeNav = false }) {
       if (authIdentityRef.current !== null) {
         setIssue(null);
         setIssueScanFilter(null);
+        setPendingHistoryScanIds([]);
       }
       authIdentityRef.current = nextIdentity;
     }
@@ -510,6 +539,14 @@ export function App({ prototypeNav = false }) {
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
   }, []);
 
+  const clearPendingHistoryScanIds = useCallback(() => {
+    setPendingHistoryScanIds([]);
+    if (screen !== "history") return;
+    const currentState = isObject(window.history.state) ? { ...window.history.state } : {};
+    delete currentState.pendingScanIds;
+    window.history.replaceState(currentState, "", window.location.pathname);
+  }, [screen]);
+
   const scanningActiveRepo = activeRepoForScanRoute(activeRepo, routeScanId);
 
   let body;
@@ -593,6 +630,8 @@ export function App({ prototypeNav = false }) {
             openScan={openScan}
             openScanIssues={openScanIssues}
             setIssue={setIssue}
+            expectedScanIds={pendingHistoryScanIds}
+            onExpectedScansLoaded={clearPendingHistoryScanIds}
           />
         );
         break;

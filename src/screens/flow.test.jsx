@@ -477,7 +477,9 @@ describe("ReposScreen scan selection", () => {
     expect(firstPayload.requestId).toMatch(/^scan_req_/);
     expect(secondPayload.requestId).toMatch(/^scan_req_/);
     expect(secondPayload.requestId).not.toBe(firstPayload.requestId);
-    expect(go).toHaveBeenCalledWith("history");
+    expect(go).toHaveBeenCalledWith("history", {
+      pendingScanIds: ["sc_octocat_alpha", "sc_octocat_beta"],
+    });
     expect(go).not.toHaveBeenCalledWith("scanning");
   });
 
@@ -508,7 +510,9 @@ describe("ReposScreen scan selection", () => {
     await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
     expect(setActiveRepo).toHaveBeenCalledWith(null);
-    expect(go).toHaveBeenCalledWith("history");
+    expect(go).toHaveBeenCalledWith("history", {
+      pendingScanIds: ["sc_octocat_alpha", "sc_octocat_beta"],
+    });
     expect(go).not.toHaveBeenCalledWith("scanning");
   });
 

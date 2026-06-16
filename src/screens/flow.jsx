@@ -333,6 +333,24 @@ async function createBatchScans(scanInputs) {
   return results;
 }
 
+function scanIdFromBatchCreateResult(result) {
+  if (result?.status !== "fulfilled") return "";
+  const value = result.value || {};
+  return String(value.id || value.scanId || value.scan?.id || "").trim();
+}
+
+function createdScanIdsFromBatchResults(results) {
+  const ids = [];
+  const seen = new Set();
+  for (const result of results || []) {
+    const id = scanIdFromBatchCreateResult(result);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
+}
+
 function repoBranchKey(repo) {
   return String(
     repo?.repoId || repo?.githubRepoId || repo?.id || repo?.fullName || repo?.name || ""
@@ -1350,9 +1368,10 @@ export function ReposScreen({
       scanRequestId: makeScanRequestId(),
     }));
     if (selectedRepos.length > 1) {
-      await createBatchScans(selectedRepos.map(scanInputFromRepo));
+      const batchResults = await createBatchScans(selectedRepos.map(scanInputFromRepo));
+      const pendingScanIds = createdScanIdsFromBatchResults(batchResults);
       setActiveRepo(null);
-      go("history");
+      go("history", pendingScanIds.length ? { pendingScanIds } : {});
       return;
     }
     setActiveRepo({ ...selectedRepos[0], selectedRepos });

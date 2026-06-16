@@ -671,6 +671,107 @@ describe("HistoryScreen queue state", () => {
     expect(screen.queryByText(/no scans yet/i)).not.toBeInTheDocument();
   });
 
+  it("keeps cached scan history hidden while expected new scans are missing", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_old",
+          repo: "octocat/old-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          time: "earlier",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    const { container } = render(
+      <HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />
+    );
+
+    expect(container.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
+    expect(screen.getByRole("status", { name: /^loading$/i })).toBeInTheDocument();
+  });
+
+  it("quietly reloads scan history while expected new scans are missing", () => {
+    vi.useFakeTimers();
+    const reload = vi.fn();
+    try {
+      useScans.mockReturnValue({
+        items: [
+          {
+            id: "sc_old",
+            repo: "octocat/old-repo",
+            branch: "main",
+            commit: "abc123",
+            status: "done",
+            time: "earlier",
+            by: "you",
+          },
+        ],
+        loading: false,
+        loadingMore: false,
+        error: "",
+        reload,
+        loadMore: vi.fn(),
+        meta: { total: 1 },
+      });
+
+      render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
+
+      act(() => {
+        vi.advanceTimersByTime(1500);
+      });
+
+      expect(reload).toHaveBeenCalledWith({ quiet: true });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("renders scan history once expected new scans are present", async () => {
+    const onExpectedScansLoaded = vi.fn();
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_new",
+          repo: "octocat/new-repo",
+          branch: "main",
+          commit: "pending",
+          status: "queued",
+          time: "now",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    const { container } = render(
+      <HistoryScreen
+        go={vi.fn()}
+        expectedScanIds={["sc_new"]}
+        onExpectedScansLoaded={onExpectedScansLoaded}
+      />
+    );
+
+    expect(container.querySelector(".history-skeleton")).not.toBeInTheDocument();
+    expect(screen.getByText("octocat/new-repo")).toBeInTheDocument();
+    await waitFor(() => expect(onExpectedScansLoaded).toHaveBeenCalledTimes(1));
+  });
+
   it("exposes the history new scan action as a real screen link", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

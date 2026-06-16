@@ -27,6 +27,7 @@ const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 const VERIFICATION_RANK = { verified: 4, static_proof: 3, potential_risk: 2, unverified: 1 };
 const EVIDENCE_RANK = { high: 3, medium: 2, low: 1 };
 const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
+const HISTORY_EXPECTED_SCAN_RETRY_MS = 1500;
 const REVIEW_OUTPUT_LANGUAGES = [
   { value: "en", labelEn: "English", labelZh: "英文" },
   { value: "zh-CN", labelEn: "Chinese", labelZh: "中文" },
@@ -2312,7 +2313,34 @@ function HistorySkeleton() {
   );
 }
 
-export function HistoryScreen({ go, openScan = null, openScanIssues = null, setIssue = null }) {
+function cleanExpectedScanIds(value) {
+  if (!Array.isArray(value)) return [];
+  const ids = [];
+  const seen = new Set();
+  for (const item of value) {
+    const id = String(item || "").trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
+}
+
+function scanListIncludesExpectedIds(scans, expectedScanIds) {
+  if (!expectedScanIds.length) return true;
+  if (!Array.isArray(scans) || !scans.length) return false;
+  const scanIds = new Set(scans.map((scan) => String(scan?.id || "").trim()).filter(Boolean));
+  return expectedScanIds.every((scanId) => scanIds.has(scanId));
+}
+
+export function HistoryScreen({
+  go,
+  openScan = null,
+  openScanIssues = null,
+  setIssue = null,
+  expectedScanIds = [],
+  onExpectedScansLoaded = null,
+}) {
   useLang();
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
@@ -2329,7 +2357,37 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
     meta = {},
   } = useScans({ status, limit: 50 });
   const filtered = scans;
+  const normalizedExpectedScanIds = useMemo(
+    () => cleanExpectedScanIds(expectedScanIds),
+    [expectedScanIds]
+  );
+  const expectedScansLoaded = useMemo(
+    () => scanListIncludesExpectedIds(filtered, normalizedExpectedScanIds),
+    [filtered, normalizedExpectedScanIds]
+  );
+  const waitingForExpectedScans =
+    normalizedExpectedScanIds.length > 0 && !expectedScansLoaded;
+  const displayLoading = loading || waitingForExpectedScans;
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
+
+  useEffect(() => {
+    if (!waitingForExpectedScans || loading || typeof reload !== "function") return undefined;
+    const handle = setTimeout(() => {
+      reload({ quiet: true });
+    }, HISTORY_EXPECTED_SCAN_RETRY_MS);
+    return () => clearTimeout(handle);
+  }, [waitingForExpectedScans, loading, reload]);
+
+  useEffect(() => {
+    if (
+      normalizedExpectedScanIds.length > 0 &&
+      expectedScansLoaded &&
+      typeof onExpectedScansLoaded === "function"
+    ) {
+      onExpectedScansLoaded();
+    }
+  }, [expectedScansLoaded, normalizedExpectedScanIds.length, onExpectedScansLoaded]);
+
   const viewScan = (scan) => {
     if (openScan) {
       openScan(scan);
@@ -2373,7 +2431,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
     }
   };
   const refreshHistory = async () => {
-    if (refreshLoading || loading || typeof reload !== "function") return;
+    if (refreshLoading || displayLoading || typeof reload !== "function") return;
     setActionError("");
     setRefreshLoading(true);
     try {
@@ -2386,7 +2444,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
       setRefreshLoading(false);
     }
   };
-  const refreshDisabled = refreshLoading || loading || typeof reload !== "function";
+  const refreshDisabled = refreshLoading || displayLoading || typeof reload !== "function";
 
   return (
     <div className="app fade-in">
@@ -2394,7 +2452,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
         go={go}
         breadcrumbs={[{ label: T("Scan history", "扫描历史") }]}
         setIssue={setIssue}
-        loading={loading}
+        loading={displayLoading}
       />
       <div className="with-side">
         <Sidebar section="history" go={go} />
@@ -2403,7 +2461,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
             <div>
               <h1>{T("Scan history", "扫描历史")}</h1>
               <div className="sub">
-                {loading ? (
+                {displayLoading ? (
                   <SkeletonLine className="sk-line sk-w-36" />
                 ) : (
                   T(
@@ -2442,7 +2500,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
           </div>
 
           <div className="hist-list card">
-            {error && (
+            {!waitingForExpectedScans && error && (
               <div className="muted" style={{ padding: 18 }}>
                 {error}
               </div>
@@ -2452,8 +2510,8 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 <I.X size={13} /> {actionError}
               </div>
             )}
-            {loading && <HistorySkeleton />}
-            {!loading && !error && filtered.length === 0 && (
+            {displayLoading && <HistorySkeleton />}
+            {!displayLoading && !error && filtered.length === 0 && (
               <div
                 style={{
                   padding: "32px 16px",
@@ -2465,7 +2523,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 {T("No scans yet.", "暂无扫描。")}
               </div>
             )}
-            {!loading && filtered.length > 0 && (
+            {!displayLoading && filtered.length > 0 && (
               <HistoryGroups
                 scans={filtered}
                 viewScan={viewScan}
@@ -2476,7 +2534,7 @@ export function HistoryScreen({ go, openScan = null, openScanIssues = null, setI
                 bundleLoading={bundleLoading}
               />
             )}
-            {!loading && meta.hasMore && (
+            {!displayLoading && meta.hasMore && (
               <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
                 <button className="btn sm" disabled={loadingMore} onClick={loadMore}>
                   {loadingMore ? T("Loading...", "正在加载...") : T("Load more", "加载更多")}
