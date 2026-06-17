@@ -89,20 +89,20 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-hero">
         <div className="lp-hero-tag">
           <span className="dot" style={{ background: accent }} />
-          <span>{T("GitHub review workflow", "GitHub review workflow")}</span>
+          <span>{T("Graph-verified code review", "图验证代码审查")}</span>
           <I.ArrowR size={12} />
         </div>
         <h1 className="lp-title">
-          {T("Review real repos", "审查真实仓库")}
+          {T("Find broadly.", "广泛发现。")}
           <br />
           <span className="lp-title-em">
-            {T("without sample data.", "不需要样例数据。")}
+            {T("Prove locally.", "本地证明。")}
           </span>
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise scans authorized GitHub repositories, stores agent-written findings, and keeps scan history in the backend.",
-            "Pullwise 扫描已授权的 GitHub 仓库，存储 agent 写入的发现，并在后端保留扫描历史。"
+            "Pullwise turns Git diffs into CodeGraph-backed review slices, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.",
+            "Pullwise 将 Git diff 转换为 CodeGraph 支撑的审查切片，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。"
           )}
         </p>
         <div className="lp-cta">
@@ -127,10 +127,13 @@ export function LandingScreen({ go, accent, auth }) {
           </span>
           <span>
             <I.Check size={12} />{" "}
-            {T("GitHub App repository access", "GitHub App 仓库访问")}
+            {T("CodeGraph evidence", "CodeGraph 证据")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Server-backed scans", "服务端扫描")}
+            <I.Check size={12} /> {T("Isolated reproduction", "隔离复现")}
+          </span>
+          <span>
+            <I.Check size={12} /> {T("Confirmed-only reports", "只报告已确认问题")}
           </span>
         </div>
       </section>
@@ -146,10 +149,10 @@ export function LandingScreen({ go, accent, auth }) {
           <div className="lp-preview-body">
             <div className="lp-preview-side">
               {[
-                T("Overview", "总览"),
-                T("Issues", "问题"),
-                T("History", "历史"),
-                T("Settings", "设置"),
+                T("Diff", "Diff"),
+                T("Graph slices", "图切片"),
+                T("Repro", "复现"),
+                T("Report", "报告"),
               ].map((item, index) => (
                 <div key={item} className={"lp-preview-side-i" + (index === 1 ? " active" : "")}>
                   {item}
@@ -160,43 +163,43 @@ export function LandingScreen({ go, accent, auth }) {
               <div className="lp-preview-row">
                 <div className="lp-preview-stat">
                   <b>
-                    <I.Github size={18} />
+                    <I.GitPull size={18} />
                   </b>
-                  <span>{T("Connect", "连接")}</span>
+                  <span>{T("Diff", "Diff")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
-                    <I.Refresh size={18} />
+                    <I.Layers size={18} />
                   </b>
-                  <span>{T("Scan", "扫描")}</span>
+                  <span>{T("Slice", "切片")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b style={{ color: accent }}>
                     <I.Bug size={18} />
                   </b>
-                  <span>{T("Review", "审查")}</span>
+                  <span>{T("Find", "发现")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
-                    <I.Check size={18} />
+                    <I.Shield size={18} />
                   </b>
-                  <span>{T("Triage", "分流")}</span>
+                  <span>{T("Judge", "判定")}</span>
                 </div>
               </div>
               <div className="lp-preview-issues">
                 <div className="lp-preview-issue">
                   <span className="sev sev-info">
                     <span className="dot" style={{ background: "currentColor" }} />
-                    {T("ready", "就绪")}
+                    {T("confirmed", "已确认")}
                   </span>
                   <div className="lp-preview-issue-t">
                     {T(
-                      "Connect GitHub to load repository findings.",
-                      "连接 GitHub 以加载仓库发现。"
+                      "Only reproduced, graph-linked findings reach the final report.",
+                      "只有已复现并关联图证据的问题会进入最终报告。"
                     )}
                   </div>
                   <span className="lp-preview-issue-f">
-                    {T("No sample findings", "没有样例发现")}
+                    {T("Graph evidence + local repro + judge approval", "图证据 + 本地复现 + judge 批准")}
                   </span>
                 </div>
               </div>
@@ -208,99 +211,99 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-features">
         {[
           {
-            i: <I.Github />,
-            h: T("GitHub identity", "GitHub 身份"),
+            i: <I.GitPull />,
+            h: T("Diff-first review entry", "从 Diff 开始审查"),
             p: T(
-              "Sign in with GitHub OAuth instead of a local demo account.",
-              "使用 GitHub OAuth 登录，而不是本地演示账户。"
+              "Start from the changed files, hunks, and rough changed symbols instead of asking agents to roam the whole repository.",
+              "从变更文件、hunk 和粗略变更符号开始，而不是让 agent 在整个仓库里漫游。"
             ),
           },
           {
-            i: <I.Folder />,
-            h: T("Repository authorization", "仓库授权"),
+            i: <I.Layers />,
+            h: T("CodeGraph slice planning", "CodeGraph 切片规划"),
             p: T(
-              "Authorize repositories through the GitHub App before scanning.",
-              "扫描前通过 GitHub App 授权仓库。"
+              "Build review context from matched symbols, callers, callees, impact radius, entrypoints, and affected tests.",
+              "基于匹配符号、调用方、被调用方、影响半径、入口点和受影响测试构建审查上下文。"
             ),
           },
           {
             i: <I.Bug />,
-            h: T("Stored findings", "存储的发现"),
+            h: T("Parallel finder agents", "并行 Finder Agents"),
             p: T(
-              "Issues are loaded from backend scan results, not frontend fixtures.",
-              "问题从后端扫描结果加载，而非前端假数据。"
+              "Run focused correctness, security, API contract, state, and repro-planning agents inside bounded slice context.",
+              "在有边界的切片上下文中运行正确性、安全、API 契约、状态和复现规划等聚焦 agent。"
             ),
           },
           {
-            i: <I.Check />,
-            h: T("Manual triage", "手动分流"),
+            i: <I.Filter />,
+            h: T("Candidate normalization", "候选问题归一化"),
             p: T(
-              "Mark findings fixed, snoozed, false positive, duplicate, or not relevant after review.",
-              "审查后，将发现标记为已修复、推迟、误报、重复或不相关。"
+              "Validate evidence, dedupe similar claims, score risk, and send only strong candidates to reproduction.",
+              "校验证据、去重相似主张、评估风险，并且只把高价值候选问题送入复现。"
             ),
           },
           {
-            i: <I.Activity />,
-            h: T("Scan history", "扫描历史"),
+            i: <I.Terminal />,
+            h: T("Isolated repro workers", "隔离复现 Worker"),
             p: T(
-              "Track queued, running, done, failed, and cancelled scans from server state.",
-              "从服务端状态跟踪排队、运行、完成、失败和已取消的扫描。"
+              "Give each candidate its own worker directory, generated minimal repro, command logs, and filesystem boundary checks.",
+              "为每个候选问题分配独立 worker 目录、最小复现、命令日志和文件系统边界检查。"
             ),
           },
           {
-            i: <I.Refresh />,
-            h: T("Batch scans and quota preflight", "批量扫描与配额预检"),
+            i: <I.Shield />,
+            h: T("Judge validation gate", "Judge 验证门禁"),
             p: T(
-              "Select multiple repositories, check account and repository quota, then queue only the allowed scans.",
-              "选择多个仓库，检查账户和仓库配额，然后仅对允许的扫描进行排队。"
+              "Reject static guesses, ambiguous logs, harness failures, missing reproduction, and workers that cross their boundaries.",
+              "拒绝静态猜测、含糊日志、测试夹具失败、缺失复现，以及越过边界的 worker。"
             ),
           },
           {
             i: <I.FileCode />,
-            h: T("Preflight and audit evidence", "预检与审计证据"),
+            h: T("Confirmed-only reports", "只报告已确认问题"),
             p: T(
-              "Show repository manifests, tool checks, verifier runs, candidate audit counts, and downloadable audit bundles.",
-              "展示仓库清单、工具检查、验证器运行、候选审计计数，以及可下载的审计包。"
+              "Final reports include confirmed findings with graph evidence, code evidence, trigger conditions, observed behavior, and repro commands.",
+              "最终报告包含已确认问题，以及图证据、代码证据、触发条件、观测行为和复现命令。"
             ),
           },
           {
-            i: <I.Code />,
-            h: T("Scoped REST API keys", "范围化 REST API 密钥"),
+            i: <I.Activity />,
+            h: T("Debuggable pipeline history", "可调试流水线历史"),
             p: T(
-              "Create account-scoped API keys for repository listing, scan control, scan status, and quota checks.",
-              "为仓库列表、扫描控制、扫描状态和配额检查创建账户范围的 API 密钥。"
-            ),
-          },
-          {
-            i: <I.Package />,
-            h: T("Billing and quota controls", "支付与配额控制"),
-            p: T(
-              "Surface account usage, repository quota, checkout, cancellation, and supported billing interval actions from the backend.",
-              "从后端展示账户用量、仓库配额、checkout、取消续订和受支持的计费周期操作。"
-            ),
-          },
-          {
-            i: <I.Github />,
-            h: T("Multiple GitHub installations", "多个 GitHub 安装"),
-            p: T(
-              "Manage personal and organization GitHub App installations without mixing repository access.",
-              "分别管理个人和组织的 GitHub App 安装，不混用仓库访问。"
-            ),
-          },
-          {
-            i: <I.ArrowR />,
-            h: T("Fix preview and pull requests", "修复预览与拉取请求"),
-            p: T(
-              "Preview deterministic fixes, push Pullwise fix branches, and open GitHub pull requests when write permissions are available.",
-              "预览确定性修复、推送 Pullwise 修复分支，并在有写权限时打开 GitHub 拉取请求。"
+              "Keep changed files, slices, finder tasks, raw candidates, repro status, judge reasons, and timing for developer audit.",
+              "保留变更文件、切片、finder 任务、原始候选、复现状态、judge 理由和耗时，便于开发者审计。"
             ),
           },
           {
             i: <I.Lock />,
-            h: T("No browser-side repo storage", "浏览器不存储仓库"),
+            h: T("Local-first review boundary", "本地优先审查边界"),
             p: T(
-              "The frontend reads repository metadata and findings through the API.",
-              "前端通过 API 读取仓库元数据和发现。"
+              "Default finder, repro, and judge runs avoid free network access, real credentials, production services, and destructive operations.",
+              "默认 finder、repro 和 judge 不自由联网，不使用真实凭据、生产服务或破坏性操作。"
+            ),
+          },
+          {
+            i: <I.Github />,
+            h: T("GitHub repository workflow", "GitHub 仓库工作流"),
+            p: T(
+              "Use GitHub identity, GitHub App repository authorization, server-backed scans, history, quotas, and account-scoped API keys.",
+              "使用 GitHub 身份、GitHub App 仓库授权、服务端扫描、历史记录、配额和账户范围 API 密钥。"
+            ),
+          },
+          {
+            i: <I.ArrowR />,
+            h: T("Triage and fix workflow", "分流与修复工作流"),
+            p: T(
+              "Review confirmed findings, mark workflow status, preview deterministic fixes, and open Pullwise pull requests when permitted.",
+              "审阅已确认问题、标记工作流状态、预览确定性修复，并在有权限时打开 Pullwise 拉取请求。"
+            ),
+          },
+          {
+            i: <I.Code />,
+            h: T("Automation-ready API", "面向自动化的 API"),
+            p: T(
+              "Drive repository listing, scan control, scan status, and quota checks from CI, internal tools, or scripts.",
+              "从 CI、内部工具或脚本驱动仓库列表、扫描控制、扫描状态和配额检查。"
             ),
           },
         ].map((feature, index) => (

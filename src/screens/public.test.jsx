@@ -55,14 +55,15 @@ describe("public navigation links", () => {
   it("summarizes implemented product capabilities on the landing page", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
 
-    expect(screen.getByText("Batch scans and quota preflight")).toBeInTheDocument();
-    expect(screen.getByText("Preflight and audit evidence")).toBeInTheDocument();
-    expect(screen.getByText("Scoped REST API keys")).toBeInTheDocument();
-    expect(screen.getByText("Billing and quota controls")).toBeInTheDocument();
-    expect(screen.getByText("Multiple GitHub installations")).toBeInTheDocument();
-    expect(screen.getByText("Fix preview and pull requests")).toBeInTheDocument();
+    expect(screen.getByText("Graph-verified code review")).toBeInTheDocument();
+    expect(screen.getByText("CodeGraph slice planning")).toBeInTheDocument();
+    expect(screen.getByText("Parallel finder agents")).toBeInTheDocument();
+    expect(screen.getByText("Isolated repro workers")).toBeInTheDocument();
+    expect(screen.getByText("Judge validation gate")).toBeInTheDocument();
+    expect(screen.getAllByText("Confirmed-only reports").length).toBeGreaterThan(0);
+    expect(screen.getByText("Automation-ready API")).toBeInTheDocument();
     expect(
-      screen.getByText(/fixed, snoozed, false positive, duplicate, or not relevant/i)
+      screen.getByText(/only reproduced, graph-linked findings reach the final report/i)
     ).toBeInTheDocument();
   });
 
