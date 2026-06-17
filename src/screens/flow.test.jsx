@@ -1,8 +1,7 @@
 import { readFileSync } from "node:fs";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import cytoscape from "cytoscape";
 import { setLang } from "../i18n.jsx";
 import { ReposScreen, ScanningScreen } from "./flow.jsx";
 
@@ -26,15 +25,6 @@ vi.mock("../api/pullwise.js", () => ({
       health: vi.fn(),
     },
   },
-}));
-
-vi.mock("cytoscape", () => ({
-  default: vi.fn(() => ({
-    destroy: vi.fn(),
-    fit: vi.fn(),
-    layout: vi.fn(() => ({ run: vi.fn() })),
-    on: vi.fn(),
-  })),
 }));
 
 vi.mock("../lib/pullwise-data.js", () => ({
@@ -82,66 +72,6 @@ const repoBeta = {
   branches: 4,
   updated: "Yesterday",
   defaultBranch: "develop",
-};
-
-const repositoryGraphFixture = {
-  version: "repository-graph/0.1",
-  stats: { nodes: 2, edges: 1, languages: ["JavaScript"], truncated: false },
-  nodes: [
-    {
-      id: "file:src/App.jsx",
-      label: "App.jsx",
-      type: "entrypoint",
-      path: "src/App.jsx",
-      importance: 0.9,
-      tags: ["frontend"],
-    },
-    { id: "dir:src/screens", label: "src/screens", type: "module", path: "src/screens" },
-  ],
-  edges: [
-    { id: "e1", source: "file:src/App.jsx", target: "dir:src/screens", type: "imports", weight: 1 },
-  ],
-  architectureSummary: {
-    entrypoints: ["src/App.jsx"],
-    modules: ["src/screens"],
-    reviewHints: ["Review scan UI."],
-    promptText: "Repository architecture: UI entrypoint.",
-  },
-};
-
-const semanticGraphFixture = {
-  version: "semantic-code-graph/0.1",
-  summary: "UI semantic graph",
-  stats: { files: 1, symbols: 2, relationships: 1, routes: 0, source: "static", truncated: false },
-  nodes: [
-    {
-      id: "symbol:src/App.jsx:App",
-      label: "App",
-      type: "component",
-      path: "src/App.jsx",
-      line: 1,
-      signature: "App()",
-      importance: 0.9,
-    },
-    {
-      id: "symbol:src/App.jsx:Flow",
-      label: "Flow",
-      type: "function",
-      path: "src/App.jsx",
-      line: 4,
-      signature: "Flow()",
-    },
-  ],
-  edges: [
-    {
-      id: "calls:symbol:src/App.jsx:App-symbol:src/App.jsx:Flow",
-      source: "symbol:src/App.jsx:App",
-      target: "symbol:src/App.jsx:Flow",
-      type: "calls",
-      weight: 1,
-    },
-  ],
-  reviewHints: ["Review component call flow."],
 };
 
 const impactGraphFixture = {
@@ -201,13 +131,8 @@ const impactGraphFixture = {
   },
 };
 
-function cloneFixture(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
 beforeEach(() => {
   setLang("en");
-  cytoscape.mockClear();
   connectGitHubRepositories.mockReset();
   connectGitHubRepositories.mockResolvedValue(undefined);
   manageGitHubInstallation.mockReset();
@@ -1388,183 +1313,6 @@ describe("ScanningScreen queue state", () => {
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
   });
 
-  it.skip("shows the repository graph for scans that include graph data", async () => {
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_graph",
-        repo: "octocat/graph",
-        branch: "main",
-        commit: "abc123",
-        status: "running",
-        phase: "index",
-        progress: 35,
-        issues: { critical: 0, high: 0, medium: 0, low: 0 },
-        repositoryGraph: repositoryGraphFixture,
-        semanticGraph: semanticGraphFixture,
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{ scanId: "sc_graph", fullName: "octocat/graph", defaultBranch: "main" }}
-      />
-    );
-
-    expect(screen.getByText("Repository graph")).toBeInTheDocument();
-    expect(screen.getByText("2 nodes")).toBeInTheDocument();
-    expect(screen.getByText("1 edge")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /fit graph/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /App\.jsx/i })).not.toBeInTheDocument();
-    expect(screen.queryByText("Review scan UI.")).not.toBeInTheDocument();
-    expect(document.querySelector(".repository-graph-node-list")).not.toBeInTheDocument();
-    expect(document.querySelector(".repository-graph-hints")).not.toBeInTheDocument();
-    const fileDetails = document.querySelector(".repository-graph-details");
-    expect(fileDetails).toHaveTextContent("App.jsx");
-    expect(fileDetails).toHaveTextContent("src/App.jsx");
-    expect(fileDetails).toHaveTextContent("entrypoint");
-
-    const fileGraphConfig = cytoscape.mock.calls[0][0];
-    expect(fileGraphConfig.elements).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          data: expect.objectContaining({ id: "file:src/App.jsx", label: "App.jsx" }),
-        }),
-      ])
-    );
-    expect(fileGraphConfig.style.find((entry) => entry.selector === "node").style).toMatchObject({
-      content: "data(label)",
-      label: "data(label)",
-      "text-opacity": 1,
-    });
-    expect(fileGraphConfig.layout).toMatchObject({
-      animationDuration: 650,
-      animationEasing: "ease-out-cubic",
-    });
-    const cy = cytoscape.mock.results[0].value;
-    const nodeTapHandler = cy.on.mock.calls.find(
-      ([eventName, selector]) => eventName === "tap" && selector === "node"
-    )?.[2];
-    expect(typeof nodeTapHandler).toBe("function");
-    act(() => {
-      nodeTapHandler({ target: { id: () => "dir:src/screens" } });
-    });
-    expect(document.querySelector(".repository-graph-details")).toHaveTextContent("src/screens");
-
-    const viewTrigger = screen.getByRole("button", { name: /graph view/i });
-    expect(viewTrigger).toHaveTextContent(/file graph/i);
-    await userEvent.click(viewTrigger);
-    await userEvent.click(await screen.findByRole("option", { name: /semantic graph/i }));
-
-    expect(screen.getByText("2 symbols")).toBeInTheDocument();
-    expect(screen.getByText("1 relationship")).toBeInTheDocument();
-    expect(screen.getByText("static")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /App component/i })).not.toBeInTheDocument();
-    expect(screen.queryByText("Review component call flow.")).not.toBeInTheDocument();
-    expect(document.querySelector(".repository-graph-details")).toHaveTextContent("App()");
-    const semanticGraphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
-    expect(semanticGraphConfig.elements).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          data: expect.objectContaining({ id: "symbol:src/App.jsx:App", label: "App" }),
-        }),
-      ])
-    );
-  });
-
-  it.skip("renders the repository graph canvas as a full-width landscape panel", () => {
-    const styles = readFileSync("styles/screens.css", "utf8");
-    const canvasBlock = styles.match(/\.repository-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups
-      ?.body;
-
-    expect(canvasBlock).toBeTruthy();
-    expect(canvasBlock).toMatch(/aspect-ratio:\s*16\s*\/\s*9;/);
-    expect(canvasBlock).toMatch(/width:\s*100%;/);
-    expect(canvasBlock).toMatch(/min-height:\s*320px;/);
-    expect(canvasBlock).not.toMatch(/aspect-ratio:\s*1\s*\/\s*1;/);
-    expect(canvasBlock).not.toMatch(/width:\s*min/);
-    expect(canvasBlock).not.toMatch(/height:\s*clamp/);
-  });
-
-  it.skip("renders the impact graph canvas as a full-width landscape panel", () => {
-    const styles = readFileSync("styles/screens.css", "utf8");
-    const canvasBlock = styles.match(/\.impact-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
-    const wrapBlock = styles.match(/\.impact-graph-canvas-wrap\s*\{(?<body>[^}]*)\}/s)?.groups
-      ?.body;
-
-    expect(canvasBlock).toBeTruthy();
-    expect(canvasBlock).toMatch(/aspect-ratio:\s*16\s*\/\s*9;/);
-    expect(canvasBlock).toMatch(/width:\s*100%;/);
-    expect(canvasBlock).toMatch(/min-height:\s*320px;/);
-    expect(wrapBlock).toBeTruthy();
-    expect(wrapBlock).toMatch(/width:\s*100%;/);
-  });
-
-  it.skip("shows impact graph summary, target relations, coverage gaps, and graph canvas", async () => {
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_impact",
-        repo: "octocat/impact",
-        branch: "main",
-        commit: "abc123",
-        status: "done",
-        phase: "report",
-        progress: 100,
-        issues: { critical: 0, high: 1, medium: 0, low: 0 },
-        impactGraph: impactGraphFixture,
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{ scanId: "sc_impact", fullName: "octocat/impact", defaultBranch: "main" }}
-      />
-    );
-
-    expect(screen.getByText("Impact context")).toBeInTheDocument();
-    expect(screen.getByText("impact-graph/0.1")).toBeInTheDocument();
-    expect(screen.getByText("changeset")).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /graph/i })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("Tests, docs, config, and CI")).toBeInTheDocument();
-    expect(cytoscape).toHaveBeenCalled();
-    const graphConfig = cytoscape.mock.calls[cytoscape.mock.calls.length - 1][0];
-    expect(graphConfig.layout).toMatchObject({
-      name: "breadthfirst",
-      directed: true,
-      direction: "downward",
-      grid: true,
-      avoidOverlap: true,
-    });
-    expect(graphConfig.layout.direction).not.toBe("rightward");
-    expect(graphConfig.layout.boundingBox).toMatchObject({ x1: 0, y1: 0 });
-    expect(graphConfig.layout.boundingBox.w).toBeGreaterThan(graphConfig.layout.boundingBox.h);
-    expect(graphConfig.wheelSensitivity).toBeUndefined();
-    expect(graphConfig.elements).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          data: expect.objectContaining({ id: "file:src/auth/session.ts", role: "target" }),
-        }),
-        expect.objectContaining({
-          data: expect.objectContaining({ label: "tests/auth/session.test.ts", role: "tests" }),
-        }),
-      ])
-    );
-
-    await userEvent.click(screen.getByRole("tab", { name: /summary/i }));
-
-    expect(screen.getAllByText("src/auth/session.ts").length).toBeGreaterThan(0);
-    expect(screen.getByText("tests/auth/session.test.ts")).toBeInTheDocument();
-    expect(screen.getByText("docs/auth.md")).toBeInTheDocument();
-    expect(screen.getByText("package.json")).toBeInTheDocument();
-    expect(screen.getByText(".github/workflows/ci.yml")).toBeInTheDocument();
-    expect(screen.getByText("src/no-test.ts")).toBeInTheDocument();
-  });
-
   it("shows lightweight GraphVerified confirmed findings in scan details", () => {
     useScanRun.mockReturnValue({
       scan: {
@@ -1669,99 +1417,6 @@ describe("ScanningScreen queue state", () => {
       )
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
-  });
-
-  it.skip("keeps the impact graph instance stable across running scan refreshes", () => {
-    const go = vi.fn();
-    const cancel = vi.fn();
-    const activeRepo = { scanId: "sc_impact", fullName: "octocat/impact", defaultBranch: "main" };
-    const scan = {
-      id: "sc_impact",
-      repo: "octocat/impact",
-      branch: "main",
-      commit: "abc123",
-      status: "running",
-      phase: "index",
-      progress: 35,
-      issues: { critical: 0, high: 0, medium: 0, low: 0 },
-      impactGraph: impactGraphFixture,
-    };
-    useScanRun.mockReturnValue({ scan, error: "", cancel });
-
-    const { rerender } = render(<ScanningScreen go={go} activeRepo={activeRepo} />);
-
-    expect(cytoscape).toHaveBeenCalledTimes(1);
-    expect(cytoscape.mock.calls[0][0].elements).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          data: expect.objectContaining({ id: "file:src/auth/session.ts", role: "target" }),
-        }),
-      ])
-    );
-    const cy = cytoscape.mock.results[0].value;
-
-    useScanRun.mockReturnValue({
-      scan: {
-        ...scan,
-        phase: "ai",
-        progress: 62,
-        impactGraph: cloneFixture(impactGraphFixture),
-      },
-      error: "",
-      cancel,
-    });
-
-    rerender(<ScanningScreen go={go} activeRepo={activeRepo} />);
-
-    expect(cytoscape).toHaveBeenCalledTimes(1);
-    expect(cy.destroy).not.toHaveBeenCalled();
-    expect(cy.layout).not.toHaveBeenCalled();
-  });
-
-  it.skip("keeps the repository graph instance stable across running scan refreshes", () => {
-    const go = vi.fn();
-    const cancel = vi.fn();
-    const activeRepo = { scanId: "sc_graph", fullName: "octocat/graph", defaultBranch: "main" };
-    const scan = {
-      id: "sc_graph",
-      repo: "octocat/graph",
-      branch: "main",
-      commit: "abc123",
-      status: "running",
-      phase: "index",
-      progress: 35,
-      issues: { critical: 0, high: 0, medium: 0, low: 0 },
-      repositoryGraph: repositoryGraphFixture,
-      semanticGraph: semanticGraphFixture,
-    };
-    useScanRun.mockReturnValue({ scan, error: "", cancel });
-
-    const { rerender } = render(<ScanningScreen go={go} activeRepo={activeRepo} />);
-
-    expect(cytoscape).toHaveBeenCalledTimes(1);
-    expect(cytoscape.mock.calls[0][0]).toMatchObject({
-      userPanningEnabled: true,
-      userZoomingEnabled: true,
-    });
-    const cy = cytoscape.mock.results[0].value;
-
-    useScanRun.mockReturnValue({
-      scan: {
-        ...scan,
-        phase: "ai",
-        progress: 62,
-        repositoryGraph: cloneFixture(repositoryGraphFixture),
-        semanticGraph: cloneFixture(semanticGraphFixture),
-      },
-      error: "",
-      cancel,
-    });
-
-    rerender(<ScanningScreen go={go} activeRepo={activeRepo} />);
-
-    expect(cytoscape).toHaveBeenCalledTimes(1);
-    expect(cy.destroy).not.toHaveBeenCalled();
-    expect(cy.layout).not.toHaveBeenCalled();
   });
 
   it("does not render the retired audit funnel for completed scans", () => {
