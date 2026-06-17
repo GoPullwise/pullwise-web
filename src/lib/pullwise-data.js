@@ -1830,9 +1830,7 @@ export function normalizeScan(scan = {}) {
   const rawImpactGraph =
     scan.impactGraph ?? (objectRecord(rawRepositoryGraph) ? rawRepositoryGraph.impactGraph : null);
   const impactGraph = normalizeImpactGraph(rawImpactGraph) || repositoryGraph?.impactGraph || null;
-  const graphVerifiedReport = normalizeGraphVerifiedReport(
-    scan.graphVerifiedReport ?? scan.graph_verified_report
-  );
+  const graphVerifiedReport = normalizeGraphVerifiedReport(scan.graphVerifiedReport);
   return {
     ...scan,
     id: textValue(scan.id),
@@ -1868,21 +1866,21 @@ export function normalizeScan(scan = {}) {
 
 function normalizeGraphVerifiedReport(value) {
   if (!objectRecord(value)) return null;
-  const finalJson = objectRecord(value.finalJson ?? value.final_json)
-    ? { ...(value.finalJson ?? value.final_json) }
+  const finalJson = objectRecord(value.finalJson)
+    ? { ...value.finalJson }
     : {};
   const confirmed = Array.isArray(finalJson.confirmed) ? finalJson.confirmed : [];
   const report = {
     version: textValue(value.version) || "graph-verified-code-review/1",
-    runId: textValue(value.runId, value.run_id),
+    runId: textValue(value.runId),
     mode: textValue(value.mode),
     base: textValue(value.base),
     head: textValue(value.head),
-    confirmedCount: normalizeCount(value.confirmedCount ?? value.confirmed_count),
-    rejectedCount: normalizeCount(value.rejectedCount ?? value.rejected_count),
-    blockedCount: normalizeCount(value.blockedCount ?? value.blocked_count),
-    finalMarkdown: textValue(value.finalMarkdown, value.final_markdown),
-    debugMarkdown: textValue(value.debugMarkdown, value.debug_markdown),
+    confirmedCount: normalizeCount(value.confirmedCount),
+    rejectedCount: normalizeCount(value.rejectedCount),
+    blockedCount: normalizeCount(value.blockedCount),
+    finalMarkdown: textValue(value.finalMarkdown),
+    debugMarkdown: textValue(value.debugMarkdown),
     finalJson: { ...finalJson, confirmed },
   };
   return report.runId ||

@@ -1560,6 +1560,47 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("src/no-test.ts")).toBeInTheDocument();
   });
 
+  it("shows canonical GraphVerified finalMarkdown in scan details", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_graph_verified",
+        repo: "octocat/graph-verified",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        impactGraph: impactGraphFixture,
+        graphVerifiedReport: {
+          confirmedCount: 1,
+          rejectedCount: 0,
+          blockedCount: 0,
+          finalMarkdown:
+            "# GraphVerified\n\nConfirmed issue f_scan with graph evidence and local reproduction.",
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_graph_verified",
+          fullName: "octocat/graph-verified",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("GraphVerified report")).toBeInTheDocument();
+    expect(
+      screen.getByText(/confirmed issue f_scan with graph evidence and local reproduction/i)
+    ).toBeInTheDocument();
+  });
+
   it("shows a graceful impact fallback when a terminal scan has no impact graph", () => {
     useScanRun.mockReturnValue({
       scan: {

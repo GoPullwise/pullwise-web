@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { ImpactEvidenceDrawer } from "../components/impact/ImpactEvidenceDrawer.jsx";
 import { ImpactTargetCard } from "../components/impact/ImpactTargetCard.jsx";
 import { findImpactTargetByPath } from "../components/impact/impact-utils.js";
@@ -325,6 +326,15 @@ function markdownText(value) {
 
 function plainObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function normalizeScanForIssueDisplay(scan) {
+  if (!plainObject(scan)) return null;
+  const normalized = normalizeScan(scan);
+  return {
+    ...normalized,
+    graphVerifiedReport: scan.graphVerifiedReport || normalized?.graphVerifiedReport || null,
+  };
 }
 
 const AUDIT_SWARM_DONE_PHASES = new Set(["report", "done", "complete", "completed"]);
@@ -1314,9 +1324,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   }, [routeIssueId, setIssue]);
 
   const embeddedImpactScan = useMemo(() => {
-    if (plainObject(activeIssue?.scan)) return normalizeScan(activeIssue.scan);
+    if (plainObject(activeIssue?.scan)) return normalizeScanForIssueDisplay(activeIssue.scan);
     if (plainObject(activeIssue?.impactGraph)) {
-      return normalizeScan({ id: activeIssue.scanId, impactGraph: activeIssue.impactGraph });
+      return normalizeScanForIssueDisplay({
+        id: activeIssue.scanId,
+        impactGraph: activeIssue.impactGraph,
+        graphVerifiedReport: activeIssue.graphVerifiedReport,
+      });
     }
     return null;
   }, [activeIssue]);
@@ -1340,7 +1354,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     pullwiseApi.scans
       .get(activeIssue.scanId)
       .then((payload) => {
-        if (!cancelled) setImpactScan(normalizeScan(payload));
+        if (!cancelled) setImpactScan(normalizeScanForIssueDisplay(payload));
       })
       .catch(() => {
         if (!cancelled) setImpactScan(null);
@@ -1433,6 +1447,11 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
 
   const issue = activeIssue;
   const impactGraph = embeddedImpactScan?.impactGraph || impactScan?.impactGraph || null;
+  const graphVerifiedReport =
+    activeIssue?.graphVerifiedReport ||
+    embeddedImpactScan?.graphVerifiedReport ||
+    impactScan?.graphVerifiedReport ||
+    null;
   const impactTarget = findImpactTargetByPath(impactGraph, issue.file);
   const showImpactContext = Boolean(issue.scanId || impactGraph || impactScanLoading);
 
@@ -1761,6 +1780,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   )}
                 </DetailSection>
               )}
+
+              <GraphVerifiedReport report={graphVerifiedReport} />
 
               <TextListSection
                 title={T("Why this is not a false positive", "为什么这不是误报")}
@@ -2311,14 +2332,6 @@ function ScanRow({
               {badge}
             </span>
           ))}
-          {graphVerified && (
-            <span className="scan-badge scan-badge-muted">
-              {T(
-                `graph verified: ${graphVerified.confirmedCount || 0}/${graphVerified.rejectedCount || 0}`,
-                `图验证：${graphVerified.confirmedCount || 0}/${graphVerified.rejectedCount || 0}`
-              )}
-            </span>
-          )}
           {total > 0 && (
             <span className={`scan-issues-badge ${issuesBadgeTone}`}>
               {T(`${total} issue${total === 1 ? "" : "s"}`, `${total} 个问题`)}
@@ -2359,6 +2372,7 @@ function ScanRow({
           </div>
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
+        <GraphVerifiedReport report={graphVerified} compact />
       </div>
       <div className="scan-row-actions" ref={menuRef} onClick={stopRowClick}>
         {canRetry && (

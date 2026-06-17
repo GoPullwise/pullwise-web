@@ -1764,6 +1764,50 @@
   margin-top: 2px;
 }
 
+.graph-verified-report {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+
+.graph-verified-report.compact {
+  margin-top: 10px;
+  padding: 10px;
+  background: color-mix(in oklch, var(--bg-elev) 92%, var(--accent) 8%);
+}
+
+.graph-verified-report-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.graph-verified-report-meta {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.graph-verified-markdown {
+  margin: 0;
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text-2);
+  font: 12px/1.55 var(--mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+}
+
 .scan-preflight-summary {
   font-size: 13px;
   line-height: 1.45;

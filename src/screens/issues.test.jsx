@@ -616,6 +616,42 @@ describe("IssueDetailScreen direct loading", () => {
     await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_no_impact"));
     expect(await screen.findByText("Impact graph unavailable for this scan.")).toBeInTheDocument();
   });
+
+  it("shows canonical GraphVerified finalMarkdown from the issue scan", async () => {
+    pullwiseApi.scans.get.mockReset();
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_graph_verified",
+      status: "done",
+      graphVerifiedReport: {
+        confirmedCount: 1,
+        rejectedCount: 1,
+        blockedCount: 0,
+        finalMarkdown:
+          "# GraphVerified\n\nConfirmed issue f_graph_verified by repository graph evidence.",
+      },
+    });
+
+    render(
+      <IssueDetailScreen
+        go={vi.fn()}
+        issue={{
+          id: "f_graph_verified",
+          scanId: "sc_graph_verified",
+          repo: "acme/api",
+          severity: "high",
+          category: "Quality",
+          title: "Graph verified issue",
+          file: "src/auth/session.ts",
+          status: "open",
+        }}
+      />
+    );
+
+    expect(await screen.findByText("GraphVerified report")).toBeInTheDocument();
+    expect(
+      screen.getByText(/confirmed issue f_graph_verified by repository graph evidence/i)
+    ).toBeInTheDocument();
+  });
 });
 
 describe("HistoryScreen queue state", () => {
@@ -1019,6 +1055,40 @@ describe("HistoryScreen queue state", () => {
     expect(screen.getByText("1 issues · 2 rejected · 1 downgraded")).toBeInTheDocument();
     expect(openScan).toHaveBeenCalledWith(scan);
     expect(go).not.toHaveBeenCalledWith("dashboard");
+  });
+
+  it("shows canonical GraphVerified finalMarkdown for completed scan rows", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_graph_verified",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          time: "now",
+          by: "you",
+          issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
+          graphVerifiedReport: {
+            confirmedCount: 1,
+            rejectedCount: 0,
+            blockedCount: 0,
+            finalMarkdown:
+              "# GraphVerified\n\nConfirmed issue f_123 with semantic graph evidence.",
+          },
+        },
+      ],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
+
+    expect(screen.getByText("GraphVerified report")).toBeInTheDocument();
+    expect(
+      screen.getByText(/confirmed issue f_123 with semantic graph evidence/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/graph verified:/i)).not.toBeInTheDocument();
   });
 
   it("downloads a structured audit bundle for completed scans", async () => {

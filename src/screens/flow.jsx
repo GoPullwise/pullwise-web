@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import cytoscape from "cytoscape";
+import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { ImpactGraphPanel } from "../components/impact/ImpactGraphPanel.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
@@ -2803,6 +2804,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const repositoryGraph = batchMode ? null : scan?.repositoryGraph || null;
   const semanticGraph = batchMode ? null : scan?.semanticGraph || null;
   const impactGraph = batchMode ? null : scan?.impactGraph || null;
+  const graphVerifiedReport = batchMode ? null : scan?.graphVerifiedReport || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
   const terminal =
@@ -3070,6 +3072,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 {!batchMode && (impactGraph || terminal) && (
                   <ImpactGraphPanel impactGraph={impactGraph} />
                 )}
+
+                <GraphVerifiedReport report={graphVerifiedReport} />
 
                 {(repositoryGraph || semanticGraph) && (
                   <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
