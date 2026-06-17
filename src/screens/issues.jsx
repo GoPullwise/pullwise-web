@@ -1301,7 +1301,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               {isGraphVerifiedIssue ? (
                 <GraphVerifiedIssueDetail issue={issue} />
               ) : (
-                <GraphVerifiedReport report={graphVerifiedReport} />
+                <GraphVerifiedReport report={graphVerifiedReport} showEmpty />
               )}
             </div>
 

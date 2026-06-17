@@ -1383,6 +1383,47 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
+  it("shows GraphVerified rejected and blocked counts when there are no confirmed findings", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_graph_verified_empty",
+        repo: "octocat/graph-verified-empty",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        graphVerifiedReport: {
+          runId: "gv_run_empty",
+          mode: "standard",
+          confirmedCount: 0,
+          rejectedCount: 2,
+          blockedCount: 1,
+          finalJson: { confirmed: [] },
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_graph_verified_empty",
+          fullName: "octocat/graph-verified-empty",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("GraphVerified findings")).toBeInTheDocument();
+    expect(screen.getByText("0 confirmed | 2 rejected | 1 blocked")).toBeInTheDocument();
+    expect(screen.getByText("No confirmed GraphVerified findings.")).toBeInTheDocument();
+    expect(screen.getByText("gv_run_empty")).toBeInTheDocument();
+  });
+
   it("does not render the legacy impact fallback when a terminal scan has no impact graph", () => {
     useScanRun.mockReturnValue({
       scan: {
@@ -1411,6 +1452,12 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.queryByText("Impact graph unavailable")).not.toBeInTheDocument();
+    expect(screen.getByText("GraphVerified findings")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
+      )
+    ).toBeInTheDocument();
     expect(
       screen.queryByText(
         "This scan did not return an impact graph. Repository graph and issue evidence remain available."

@@ -96,10 +96,33 @@ function confirmedCount(report, items) {
   return Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : items.length;
 }
 
-export function GraphVerifiedReport({ report, compact = false }) {
+function reportCount(report, key) {
+  const count = Number(report?.[key]);
+  return Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
+}
+
+function countSummary(report, count) {
+  const rejected = reportCount(report, "rejectedCount");
+  const blocked = reportCount(report, "blockedCount");
+  const parts = [`${count} confirmed`];
+  if (rejected) parts.push(`${rejected} rejected`);
+  if (blocked) parts.push(`${blocked} blocked`);
+  return parts.join(" | ");
+}
+
+export function GraphVerifiedReport({ report, compact = false, showEmpty = false }) {
+  const safeReport = report || {};
   const items = confirmedItems(report);
   const count = confirmedCount(report, items);
-  if (!report || (!count && !items.length && !text(report.runId))) return null;
+  const hasReport =
+    report &&
+    (count ||
+      items.length ||
+      reportCount(report, "rejectedCount") ||
+      reportCount(report, "blockedCount") ||
+      text(report.runId) ||
+      text(report.mode));
+  if (!hasReport && !showEmpty) return null;
 
   const visibleItems = compact ? items.slice(0, 2) : items;
   return (
@@ -107,16 +130,16 @@ export function GraphVerifiedReport({ report, compact = false }) {
       <div className="graph-verified-report-h">
         <span>{T("GraphVerified findings", "GraphVerified findings")}</span>
         <span className="graph-verified-report-meta">
-          {T(`${count} confirmed`, `${count} confirmed`)}
+          {T(countSummary(report, count), countSummary(report, count))}
         </span>
       </div>
 
       {!compact && (
         <div className="scan-preflight-meta">
-          {text(report.mode) && <span className="tag">{report.mode}</span>}
-          {text(report.base) && <span className="tag">base {report.base}</span>}
-          {text(report.head) && <span className="tag">head {report.head}</span>}
-          {text(report.runId) && <span className="tag">{report.runId}</span>}
+          {text(safeReport.mode) && <span className="tag">{safeReport.mode}</span>}
+          {text(safeReport.base) && <span className="tag">base {safeReport.base}</span>}
+          {text(safeReport.head) && <span className="tag">head {safeReport.head}</span>}
+          {text(safeReport.runId) && <span className="tag">{safeReport.runId}</span>}
         </div>
       )}
 
@@ -174,7 +197,14 @@ export function GraphVerifiedReport({ report, compact = false }) {
           })}
         </div>
       ) : (
-        <div className="muted">{T("No confirmed findings.", "No confirmed findings.")}</div>
+        <div className="muted">
+          {hasReport
+            ? T("No confirmed GraphVerified findings.", "没有已确认的 GraphVerified 问题。")
+            : T(
+                "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker.",
+                "这个扫描没有可用的 GraphVerified 报告。请使用 GraphVerified worker 重新运行。"
+              )}
+        </div>
       )}
     </section>
   );

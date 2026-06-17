@@ -2137,7 +2137,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   })}
                 </div>
 
-                <GraphVerifiedReport report={graphVerifiedReport} />
+                <GraphVerifiedReport report={graphVerifiedReport} showEmpty />
               </>
             )}
           </div>
