@@ -1830,6 +1830,9 @@ export function normalizeScan(scan = {}) {
   const rawImpactGraph =
     scan.impactGraph ?? (objectRecord(rawRepositoryGraph) ? rawRepositoryGraph.impactGraph : null);
   const impactGraph = normalizeImpactGraph(rawImpactGraph) || repositoryGraph?.impactGraph || null;
+  const graphVerifiedReport = normalizeGraphVerifiedReport(
+    scan.graphVerifiedReport ?? scan.graph_verified_report
+  );
   return {
     ...scan,
     id: textValue(scan.id),
@@ -1851,6 +1854,7 @@ export function normalizeScan(scan = {}) {
     jobTrace: normalizeJobTrace(scan.jobTrace ?? scan.job_trace),
     preflight: normalizePreflight(scan.preflight),
     auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
+    graphVerifiedReport,
     repositoryGraph,
     semanticGraph,
     impactGraph,
@@ -1860,6 +1864,37 @@ export function normalizeScan(scan = {}) {
     billingUsage,
     repoUsage,
   };
+}
+
+function normalizeGraphVerifiedReport(value) {
+  if (!objectRecord(value)) return null;
+  const finalJson = objectRecord(value.finalJson ?? value.final_json)
+    ? { ...(value.finalJson ?? value.final_json) }
+    : {};
+  const confirmed = Array.isArray(finalJson.confirmed) ? finalJson.confirmed : [];
+  const report = {
+    version: textValue(value.version) || "graph-verified-code-review/1",
+    runId: textValue(value.runId, value.run_id),
+    mode: textValue(value.mode),
+    base: textValue(value.base),
+    head: textValue(value.head),
+    confirmedCount: normalizeCount(value.confirmedCount ?? value.confirmed_count),
+    rejectedCount: normalizeCount(value.rejectedCount ?? value.rejected_count),
+    blockedCount: normalizeCount(value.blockedCount ?? value.blocked_count),
+    finalMarkdown: textValue(value.finalMarkdown, value.final_markdown),
+    debugMarkdown: textValue(value.debugMarkdown, value.debug_markdown),
+    finalJson: { ...finalJson, confirmed },
+  };
+  return report.runId ||
+    report.mode ||
+    report.confirmedCount ||
+    report.rejectedCount ||
+    report.blockedCount ||
+    report.finalMarkdown ||
+    report.debugMarkdown ||
+    confirmed.length
+    ? report
+    : null;
 }
 
 export function useRepositories({ limit = 100 } = {}) {

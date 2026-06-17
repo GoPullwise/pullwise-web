@@ -46,6 +46,35 @@ beforeEach(() => {
   clearPullwiseDataCache();
 });
 
+describe("normalizeScan", () => {
+  it("preserves graph-verified report counts and artifacts", () => {
+    const scan = normalizeScan({
+      id: "sc_1",
+      repo: "acme/app",
+      graphVerifiedReport: {
+        runId: "run_1",
+        mode: "standard",
+        confirmedCount: "1",
+        rejectedCount: "2",
+        blockedCount: "0",
+        finalMarkdown: "# Graph-Verified Code Review Report",
+        finalJson: { confirmed: [{ candidate: { issue_id: "issue_1" } }] },
+      },
+    });
+
+    expect(scan.graphVerifiedReport).toMatchObject({
+      version: "graph-verified-code-review/1",
+      runId: "run_1",
+      mode: "standard",
+      confirmedCount: 1,
+      rejectedCount: 2,
+      blockedCount: 0,
+      finalMarkdown: "# Graph-Verified Code Review Report",
+    });
+    expect(scan.graphVerifiedReport.finalJson.confirmed[0].candidate.issue_id).toBe("issue_1");
+  });
+});
+
 describe("useRepositories", () => {
   beforeEach(() => {
     pullwiseApi.repositories.list.mockReset();

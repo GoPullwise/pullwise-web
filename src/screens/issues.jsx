@@ -196,6 +196,7 @@ function scanHistorySummary(scan) {
   if (scan.issues) {
     const total = issueTotal(scan);
     const audit = scan.verificationAudit || {};
+    const graphVerified = scan.graphVerifiedReport || {};
     const rejected = Number(audit.rejectedCount || 0);
     const downgraded = Number(audit.downgradedCount || 0);
     const partsEn = [`${total} issues`];
@@ -207,6 +208,14 @@ function scanHistorySummary(scan) {
     if (downgraded > 0) {
       partsEn.push(`${downgraded} downgraded`);
       partsZh.push(`${downgraded} 个被降级`);
+    }
+    if (graphVerified.confirmedCount || graphVerified.rejectedCount || graphVerified.blockedCount) {
+      partsEn.push(
+        `graph verified ${graphVerified.confirmedCount || 0} confirmed / ${graphVerified.rejectedCount || 0} rejected`
+      );
+      partsZh.push(
+        `图验证 ${graphVerified.confirmedCount || 0} 个确认 / ${graphVerified.rejectedCount || 0} 个拒绝`
+      );
     }
     return T(partsEn.join(" · "), partsZh.join(" · "));
   }
@@ -2237,6 +2246,7 @@ function ScanRow({
   const canRetry = isRetryableHistoryScan(scan);
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
+  const graphVerified = scan.graphVerifiedReport || null;
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -2301,6 +2311,14 @@ function ScanRow({
               {badge}
             </span>
           ))}
+          {graphVerified && (
+            <span className="scan-badge scan-badge-muted">
+              {T(
+                `graph verified: ${graphVerified.confirmedCount || 0}/${graphVerified.rejectedCount || 0}`,
+                `图验证：${graphVerified.confirmedCount || 0}/${graphVerified.rejectedCount || 0}`
+              )}
+            </span>
+          )}
           {total > 0 && (
             <span className={`scan-issues-badge ${issuesBadgeTone}`}>
               {T(`${total} issue${total === 1 ? "" : "s"}`, `${total} 个问题`)}
