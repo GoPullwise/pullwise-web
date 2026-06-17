@@ -2,10 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
-import { ImpactEvidenceDrawer } from "../components/impact/ImpactEvidenceDrawer.jsx";
-import { ImpactTargetCard } from "../components/impact/ImpactTargetCard.jsx";
-import { findImpactTargetByPath } from "../components/impact/impact-utils.js";
-import { IssueDistributionBand } from "../components/issue-distribution-band.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -15,7 +11,6 @@ import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-a
 import { screenLinkProps } from "../lib/navigation.js";
 import {
   normalizeIssue,
-  normalizeIssuePullRequest,
   normalizeScan,
   issueUpdateKey,
   notifyIssuesChanged,
@@ -27,8 +22,6 @@ import {
 import { Sidebar, Topbar } from "../shell.jsx";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
-const VERIFICATION_RANK = { verified: 4, static_proof: 3, potential_risk: 2, unverified: 1 };
-const EVIDENCE_RANK = { high: 3, medium: 2, low: 1 };
 const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
 const HISTORY_EXPECTED_SCAN_RETRY_MS = 1500;
 const REVIEW_OUTPUT_LANGUAGES = [
@@ -66,30 +59,15 @@ function reviewOutputLanguageSaveError(error) {
   return message || "Unable to save review output language.";
 }
 
-function evidenceSortRank(issue) {
-  return (
-    (VERIFICATION_RANK[issueVerificationStatus(issue)] ?? 0) * 10 +
-    (EVIDENCE_RANK[issueConfidenceLevel(issue)] ?? 0)
-  );
-}
-
 function sortIssues(items, key) {
   const sorted = items.slice();
   if (key === "severity") {
     sorted.sort(
       (a, b) =>
         (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0) ||
-        evidenceSortRank(b) - evidenceSortRank(a)
+        String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
     );
   }
-  if (key === "confidence")
-    sorted.sort(
-      (a, b) =>
-        (VERIFICATION_RANK[issueVerificationStatus(b)] ?? 0) -
-          (VERIFICATION_RANK[issueVerificationStatus(a)] ?? 0) ||
-        (EVIDENCE_RANK[issueConfidenceLevel(b)] ?? 0) -
-          (EVIDENCE_RANK[issueConfidenceLevel(a)] ?? 0)
-    );
   if (key === "newest")
     sorted.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (key === "file") sorted.sort((a, b) => (a.file || "").localeCompare(b.file || ""));
@@ -192,35 +170,13 @@ function scanHistorySummary(scan) {
   }
   if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
   if (scan.status === "lost") {
-    return scan.completionAudit?.summary || T("Scan lost", "扫描丢失");
+    return T("Scan lost", "扫描丢失");
   }
   if (scan.issues) {
-    const total = issueTotal(scan);
-    const audit = scan.verificationAudit || {};
     const graphVerified = scan.graphVerifiedReport || {};
-    const rejected = Number(audit.rejectedCount || 0);
-    const downgraded = Number(audit.downgradedCount || 0);
-    const partsEn = [`${total} issues`];
-    const partsZh = [`${total} 个问题`];
-    if (rejected > 0) {
-      partsEn.push(`${rejected} rejected`);
-      partsZh.push(`${rejected} 个候选被拒绝`);
-    }
-    if (downgraded > 0) {
-      partsEn.push(`${downgraded} downgraded`);
-      partsZh.push(`${downgraded} 个被降级`);
-    }
-    if (graphVerified.confirmedCount || graphVerified.rejectedCount || graphVerified.blockedCount) {
-      partsEn.push(
-        `graph verified ${graphVerified.confirmedCount || 0} confirmed / ${graphVerified.rejectedCount || 0} rejected`
-      );
-      partsZh.push(
-        `图验证 ${graphVerified.confirmedCount || 0} 个确认 / ${graphVerified.rejectedCount || 0} 个拒绝`
-      );
-    }
-    return T(partsEn.join(" · "), partsZh.join(" · "));
+    const total = graphVerified.confirmedCount ?? issueTotal(scan);
+    return T(`${total} confirmed`, `${total} confirmed`);
   }
-  if (scan.completionAudit?.summary) return scan.completionAudit.summary;
   return scan.status;
 }
 
@@ -234,73 +190,6 @@ function DetailSection({ title, children, empty = "" }) {
       {children || <div className="muted">{empty}</div>}
     </div>
   );
-}
-
-function issuePullRequestState(issue) {
-  if (!issue?.pullRequest) return null;
-  const value = normalizeIssuePullRequest(issue.pullRequest, {
-    issueId: issue.id,
-    title: issue.title,
-  });
-  return value ? { issueId: issue.id, value } : null;
-}
-
-function CodeEvidence({ title, lines }) {
-  if (!lines?.length) return null;
-  return (
-    <div className="code code-evidence">
-      <div className="code-head">{title}</div>
-      <div className="code-body">
-        <pre>
-          {lines.map((line, index) => (
-            <div
-              key={`${title}-${line.ln || index}-${line.code}`}
-              className={"code-line " + (line.t || "")}
-            >
-              <span className="ln">{line.ln || ""}</span>
-              <span className="marker">
-                {line.t === "add" ? "+" : line.t === "del" ? "-" : " "}
-              </span>
-              <code>{line.code}</code>
-            </div>
-          ))}
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-const VERIFICATION_LABELS = {
-  verified: { en: "Verified", zh: "已验证" },
-  static_proof: { en: "Static proof", zh: "静态证明" },
-  potential_risk: { en: "Potential risk", zh: "潜在风险" },
-  unverified: { en: "Unverified", zh: "未验证" },
-};
-
-const CONFIDENCE_LABELS = {
-  high: { en: "High evidence", zh: "高置信度证据" },
-  medium: { en: "Medium evidence", zh: "中等置信度证据" },
-  low: { en: "Low evidence", zh: "低置信度证据" },
-};
-
-function issueVerificationStatus(issue) {
-  return issue?.verificationStatus || "potential_risk";
-}
-
-function issueConfidenceLevel(issue) {
-  return issue?.confidenceLevel || "low";
-}
-
-function verificationLabel(issue) {
-  const label = VERIFICATION_LABELS[issueVerificationStatus(issue)];
-  if (!label) return T("Potential risk", "潜在风险");
-  return T(label.en, label.zh);
-}
-
-function confidenceEvidenceLabel(issue) {
-  const label = CONFIDENCE_LABELS[issueConfidenceLevel(issue)];
-  if (!label) return T("Low evidence", "低置信度证据");
-  return T(label.en, label.zh);
 }
 
 function locationLabel(item) {
@@ -330,62 +219,7 @@ function plainObject(value) {
 
 function normalizeScanForIssueDisplay(scan) {
   if (!plainObject(scan)) return null;
-  const normalized = normalizeScan(scan);
-  return {
-    ...normalized,
-    graphVerifiedReport: scan.graphVerifiedReport || normalized?.graphVerifiedReport || null,
-  };
-}
-
-const AUDIT_SWARM_DONE_PHASES = new Set(["report", "done", "complete", "completed"]);
-const AUDIT_SWARM_PENDING_PHASES = new Set(["clone", "checkout", "index", "secrets", "deps", "ai"]);
-const AUDIT_SWARM_DONE_STAGES = new Set(["report", "done", "complete", "completed"]);
-const AUDIT_SWARM_PENDING_STAGES = new Set([
-  "candidate",
-  "candidates",
-  "discovery",
-  "review",
-  "reviewing",
-  "running",
-  "ai",
-]);
-
-function lifecycleText(...values) {
-  for (const value of values) {
-    const text = markdownText(value).toLowerCase();
-    if (text) return text;
-  }
-  return "";
-}
-
-function issueAuditSwarmReviewComplete(issue) {
-  if (typeof issue?.auditSwarm?.reviewComplete === "boolean") {
-    return issue.auditSwarm.reviewComplete;
-  }
-  if (typeof issue?.audit?.auditSwarmReviewComplete === "boolean") {
-    return issue.audit.auditSwarmReviewComplete;
-  }
-
-  const phase = lifecycleText(
-    issue?.scanPhase,
-    issue?.phase,
-    issue?.scan?.phase,
-    issue?.audit?.scanPhase,
-    issue?.audit?.phase,
-    issue?.auditSwarm?.phase
-  );
-  if (AUDIT_SWARM_DONE_PHASES.has(phase)) return true;
-  if (AUDIT_SWARM_PENDING_PHASES.has(phase)) return false;
-
-  const stage = lifecycleText(issue?.auditSwarm?.stage, issue?.audit?.auditSwarmStage);
-  if (AUDIT_SWARM_DONE_STAGES.has(stage)) return true;
-  if (AUDIT_SWARM_PENDING_STAGES.has(stage)) return false;
-
-  const status = lifecycleText(issue?.scanStatus, issue?.scan?.status, issue?.audit?.scanStatus);
-  if (["done", "complete", "completed"].includes(status)) return true;
-  if (["queued", "running", "failed", "cancelled", "canceled"].includes(status)) return false;
-
-  return true;
+  return normalizeScan(scan);
 }
 
 function appendMarkdownSection(lines, title, content) {
@@ -396,21 +230,88 @@ function appendMarkdownSection(lines, title, content) {
   lines.push("", `## ${title}`, body);
 }
 
-function appendMarkdownCodeBlock(lines, title, value) {
-  const body = markdownText(value);
-  if (!body) return;
-  lines.push("", `### ${title}`, "```", body, "```");
+function graphVerifiedLines(issue) {
+  const graph = issue.graphEvidence || {};
+  return [
+    graph.sliceId ? `- Slice: ${markdownText(graph.sliceId)}` : "",
+    ...(graph.pathSummary || []).map((item) => `- ${markdownText(item)}`),
+    ...(graph.codegraphFiles || []).map((file) => `- File: ${markdownText(file)}`),
+  ].filter(Boolean);
 }
 
-function codeLinesMarkdown(lines = []) {
-  return lines
-    .map((line) => (typeof line === "string" ? line : line?.code))
-    .map(markdownText)
-    .filter(Boolean)
-    .join("\n");
+function codeEvidenceMarkdown(issue) {
+  return (issue.codeEvidence || [])
+    .map((item) => {
+      const location = [markdownText(item?.file), markdownText(item?.lines)]
+        .filter(Boolean)
+        .join(":");
+      const why = markdownText(item?.whyItMatters);
+      return [location ? `- ${location}` : "", why ? `  ${why}` : ""].filter(Boolean).join("\n");
+    })
+    .filter(Boolean);
 }
 
-function buildIssuePageMarkdown(issue, currentStatus, { includeAuditEvidence = true } = {}) {
+function graphVerifiedReproductionMarkdown(issue) {
+  const reproduction = issue.reproduction || {};
+  const lines = [];
+  if (reproduction.commands?.length) {
+    lines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
+  }
+  [
+    ["Input", reproduction.input || issue.triggerCondition],
+    ["Expected", reproduction.expected || issue.expectedBehavior],
+    ["Actual", reproduction.actual || issue.observedBehavior],
+    ["Log", reproduction.logPath],
+  ].forEach(([label, value]) => {
+    const text = markdownText(value);
+    if (text) lines.push(`- ${label}: ${text}`);
+  });
+  return lines;
+}
+
+function buildGraphVerifiedIssueMarkdown(issue, currentStatus) {
+  const title = markdownText(issue.title) || markdownText(issue.id) || "GraphVerified finding";
+  const primaryLocation = issue.affectedLocations?.[0] || null;
+  const lines = [`# ${title}`];
+  appendMarkdownSection(
+    lines,
+    "Metadata",
+    [
+      ["Issue", issue.id],
+      ["Status", currentStatus || issue.status],
+      ["Severity", issue.severity],
+      ["Category", issue.category],
+      ["Repository", issue.repo],
+      ["Branch", issue.branch],
+      ["Commit", issue.commit],
+      ["Scan", issue.scanId],
+      ["Candidate", issue.candidateId],
+      ["File", primaryLocation ? locationLabel(primaryLocation) : issue.file],
+    ]
+      .map(([label, value]) => {
+        const text = markdownText(value);
+        return text ? `- ${label}: ${text}` : "";
+      })
+      .filter(Boolean)
+  );
+  appendMarkdownSection(lines, "Summary", issue.summary);
+  appendMarkdownSection(lines, "Graph evidence", graphVerifiedLines(issue));
+  appendMarkdownSection(lines, "Code evidence", codeEvidenceMarkdown(issue));
+  appendMarkdownSection(lines, "Trigger", issue.triggerCondition);
+  appendMarkdownSection(lines, "Expected behavior", issue.expectedBehavior);
+  appendMarkdownSection(lines, "Observed behavior", issue.observedBehavior);
+  appendMarkdownSection(lines, "Reproduction", graphVerifiedReproductionMarkdown(issue));
+  appendMarkdownSection(lines, "Why this matters", issue.whyThisMatters);
+  appendMarkdownSection(lines, "Fix direction", issue.suggestedFixDirection);
+  appendMarkdownSection(lines, "Limitations", issue.limitations);
+  return `${lines
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()}\n`;
+}
+
+function buildIssuePageMarkdown(issue, currentStatus) {
+  if (issue.graphVerified) return buildGraphVerifiedIssueMarkdown(issue, currentStatus);
   const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const lines = [`# ${title}`];
@@ -434,288 +335,10 @@ function buildIssuePageMarkdown(issue, currentStatus, { includeAuditEvidence = t
 
   appendMarkdownSection(lines, "Metadata", metadata);
   appendMarkdownSection(lines, "Summary", issue.summary);
-
-  if (includeAuditEvidence) {
-    const confidenceEvidence = [];
-    if (issue.verificationSummary) confidenceEvidence.push(markdownText(issue.verificationSummary));
-    if (issue.evidenceChecklist?.length) {
-      confidenceEvidence.push(
-        ...issue.evidenceChecklist
-          .map((item) => {
-            const label = markdownText(item?.label);
-            if (!label) return "";
-            return `- [${item?.met ? "x" : " "}] ${label}`;
-          })
-          .filter(Boolean)
-      );
-    }
-    appendMarkdownSection(lines, "Confidence evidence", confidenceEvidence);
-
-    if (issue.evidenceTrace?.length) {
-      appendMarkdownSection(
-        lines,
-        "Evidence trace",
-        issue.evidenceTrace.flatMap((stage, index) => {
-          const label = markdownText(stage?.label || stage?.key || `Step ${index + 1}`);
-          const status = markdownText(stage?.status);
-          const stageLines = label ? [`### ${label}${status ? ` (${status})` : ""}`] : [];
-          if (stage?.summary) stageLines.push(markdownText(stage.summary));
-          if (stage?.items?.length) {
-            stageLines.push(
-              ...stage.items.map((item) => `- ${markdownText(item)}`).filter(Boolean)
-            );
-          }
-          return stageLines;
-        })
-      );
-    }
-
-    const breakdown = issue.reasoningBreakdown || {};
-    const reasoningLines = [
-      ["Facts", breakdown.facts],
-      ["Inferences", breakdown.inferences],
-      ["Recommendations", breakdown.recommendations],
-    ].flatMap(([label, items]) => {
-      if (!items?.length) return [];
-      return [`### ${label}`, ...items.map((item) => `- ${markdownText(item)}`).filter(Boolean)];
-    });
-    appendMarkdownSection(lines, "Facts, reasoning, recommendations", reasoningLines);
-
-    if (issue.evidence?.length) {
-      appendMarkdownSection(
-        lines,
-        "Evidence chain",
-        issue.evidence.flatMap((item) => {
-          const itemLines = [`### ${markdownText(item.label || item.type)}`];
-          if (item.type) itemLines.push(`- Type: ${markdownText(item.type).replaceAll("_", " ")}`);
-          if (item.summary) itemLines.push(markdownText(item.summary));
-          if (item.file) itemLines.push(`- File: ${locationLabel(item)}`);
-          if (item.command) itemLines.push(`- Command: ${markdownText(item.command)}`);
-          if (item.logPath) itemLines.push(`- Log: ${markdownText(item.logPath)}`);
-          if (item.url) itemLines.push(`- URL: ${markdownText(item.url)}`);
-          if (item.exitCode !== null && item.exitCode !== undefined) {
-            itemLines.push(`- Exit code: ${item.exitCode}`);
-          }
-          return itemLines.filter(Boolean);
-        })
-      );
-    }
-
-    const reproduction = issue.reproduction || {};
-    const reproductionLines = [];
-    if (issue.reproductionPath) reproductionLines.push(markdownText(issue.reproductionPath));
-    if (reproduction.commands?.length) {
-      reproductionLines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
-    }
-    [
-      ["Input", reproduction.input],
-      ["Expected", reproduction.expected],
-      ["Actual", reproduction.actual],
-      ["Test file", reproduction.testFile],
-      ["Log", reproduction.logPath],
-    ].forEach(([label, value]) => {
-      const text = markdownText(value);
-      if (text) reproductionLines.push(`- ${label}: ${text}`);
-    });
-    appendMarkdownSection(lines, "Reproduction center", reproductionLines);
-  }
-
-  appendMarkdownSection(lines, "Detection reasoning", issue.detectionReasoning);
-  appendMarkdownSection(lines, "Impact", issue.impact);
-  appendMarkdownSection(lines, "Why this is not a false positive", issue.whyNotFalsePositive);
-  appendMarkdownSection(lines, "When this may not apply", issue.limitations);
-
-  const fixImpact = [];
-  if (issue.fixBenefits) fixImpact.push(`### Benefits\n${markdownText(issue.fixBenefits)}`);
-  if (issue.fixRisks) fixImpact.push(`### Risks\n${markdownText(issue.fixRisks)}`);
-  appendMarkdownSection(lines, "Fix impact analysis", fixImpact);
-
-  if (issue.steps?.length) {
-    appendMarkdownSection(
-      lines,
-      "Remediation",
-      issue.steps.map((step, index) => `${index + 1}. ${markdownText(step)}`).filter(Boolean)
-    );
-  }
-
-  const badCode = includeAuditEvidence ? codeLinesMarkdown(issue.badCode || []) : "";
-  const goodCode = includeAuditEvidence ? codeLinesMarkdown(issue.goodCode || []) : "";
-  if (badCode || goodCode) {
-    lines.push("", "## Patch evidence");
-    appendMarkdownCodeBlock(lines, "Current code", badCode);
-    appendMarkdownCodeBlock(lines, "Suggested code", goodCode);
-  }
-
-  if (issue.references?.length) {
-    appendMarkdownSection(
-      lines,
-      "References",
-      issue.references
-        .map((reference) => {
-          const url = markdownText(reference?.url);
-          if (!url) return "";
-          const label = markdownText(reference?.label) || url;
-          return `- [${label}](${url})`;
-        })
-        .filter(Boolean)
-    );
-  }
-
   return `${lines
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()}\n`;
-}
-
-function VerificationBadge({ issue }) {
-  return <span className="tag">{verificationLabel(issue)}</span>;
-}
-
-function EvidenceChecklist({ issue }) {
-  const checklist = issue.evidenceChecklist || [];
-  if (!checklist.length) return null;
-  return (
-    <div className="evidence-checklist">
-      <div className="evidence-badges">
-        <span className="tag">{confidenceEvidenceLabel(issue)}</span>
-        <VerificationBadge issue={issue} />
-      </div>
-      <div className="evidence-checklist-list">
-        {checklist.map((item) => (
-          <div key={item.label} className="evidence-check">
-            {item.met ? (
-              <I.Check size={13} className="evidence-check-icon met" />
-            ) : (
-              <I.X size={13} className="evidence-check-icon" />
-            )}
-            <span className="muted evidence-check-label">{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function EvidenceTrace({ issue }) {
-  const stages = Array.isArray(issue?.evidenceTrace)
-    ? issue.evidenceTrace
-        .map((stage, index) => {
-          const label = String(stage?.label || stage?.key || `Step ${index + 1}`).trim();
-          const status =
-            String(stage?.status || "").toLowerCase() === "missing" ? "missing" : "present";
-          const summary = String(stage?.summary || "").trim();
-          const items = Array.isArray(stage?.items)
-            ? stage.items.map((item) => String(item || "").trim()).filter(Boolean)
-            : [];
-          return { key: stage?.key || stage?.label || index, label, status, summary, items };
-        })
-        .filter((stage) => stage.label || stage.summary || stage.items.length)
-    : [];
-  if (!stages.length) return null;
-
-  const presentCount = stages.filter((stage) => stage.status === "present").length;
-  const percent = Math.round((presentCount / stages.length) * 100);
-
-  return (
-    <div className="evidence-trace-wrap">
-      <div className="trace-progress">
-        <div className="trace-progress-h">
-          <span className="trace-progress-title">{T("Trace coverage", "追溯覆盖")}</span>
-          <span className="trace-progress-count">
-            {T(
-              `${presentCount}/${stages.length} present`,
-              `${presentCount}/${stages.length} 已提供`
-            )}
-          </span>
-        </div>
-        <span className="trace-progress-bar" aria-hidden="true">
-          <span className="trace-progress-fill" style={{ width: `${percent}%` }} />
-        </span>
-      </div>
-      <div className="trace-timeline" role="list">
-        {stages.map((stage, index) => {
-          const present = stage.status === "present";
-          const detailItems = stage.items.filter((item) => item !== stage.summary);
-          return (
-            <div
-              key={`${stage.key}-${index}`}
-              className={"trace-step " + (present ? "trace-step-present" : "trace-step-missing")}
-              role="listitem"
-            >
-              <div className="trace-node">
-                <span className="trace-node-bullet" aria-hidden="true">
-                  {present ? <I.Check size={14} /> : <I.X size={14} />}
-                </span>
-                <span className="trace-node-l">
-                  <I.Activity size={12} className="trace-node-glyph" /> {stage.label}
-                </span>
-                <span className="trace-node-s">
-                  {present ? T("present", "已提供") : T("missing", "缺失")}
-                </span>
-                {stage.summary && <span className="trace-node-summary">{stage.summary}</span>}
-              </div>
-              {detailItems.length > 0 && (
-                <div className="trace-node-detail">
-                  <div className="trace-node-detail-h">{T("Evidence", "证据")}</div>
-                  <ul className="trace-node-items">
-                    {detailItems.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {index < stages.length - 1 && (
-                <span
-                  className={
-                    "trace-connector " +
-                    (present ? "trace-connector-present" : "trace-connector-missing")
-                  }
-                  aria-hidden="true"
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function EvidenceChain({ issue }) {
-  const evidence = issue.evidence || [];
-  if (!evidence.length) return null;
-  return (
-    <div className="evidence-chain">
-      {evidence.map((item, index) => (
-        <div key={`${item.type}-${item.label}-${index}`} className="evidence-item">
-          <div className="evidence-item-h">
-            <span className="tag">{item.type.replaceAll("_", " ")}</span>
-            <strong className="evidence-item-title">{item.label}</strong>
-            {item.exitCode !== null && item.exitCode !== undefined && (
-              <span className="tag">exit {item.exitCode}</span>
-            )}
-          </div>
-          {item.summary && <p className="muted evidence-summary">{item.summary}</p>}
-          {(item.file || item.command || item.logPath || item.url) && (
-            <div className="evidence-meta">
-              {item.file && (
-                <span className="tag">
-                  <I.FileCode size={11} /> {locationLabel(item)}
-                </span>
-              )}
-              {item.command && <code className="tag evidence-command">{item.command}</code>}
-              {item.logPath && <span className="tag">log: {item.logPath}</span>}
-              {item.url && (
-                <a className="auth-link" href={item.url} target="_blank" rel="noreferrer">
-                  {T("Open evidence line", "打开证据行")}
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
 }
 
 function ReproductionCenter({ issue }) {
@@ -776,30 +399,6 @@ function ReproductionCenter({ issue }) {
   );
 }
 
-function ReasoningBreakdown({ issue }) {
-  const breakdown = issue.reasoningBreakdown || {};
-  const sections = [
-    ["Facts", breakdown.facts],
-    ["Inferences", breakdown.inferences],
-    ["Recommendations", breakdown.recommendations],
-  ].filter(([, items]) => Array.isArray(items) && items.length > 0);
-  if (!sections.length) return null;
-  return (
-    <div className="repro-fields">
-      {sections.map(([title, items]) => (
-        <div key={title} className="repro-field">
-          <b className="repro-field-title">{title}</b>
-          <ul className="legal-list-flat evidence-list">
-            {items.map((item, index) => (
-              <li key={`${title}-${index}-${item}`}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function TextListSection({ title, items }) {
   if (!items?.length) return null;
   return (
@@ -810,6 +409,101 @@ function TextListSection({ title, items }) {
         ))}
       </ul>
     </DetailSection>
+  );
+}
+
+function codeEvidenceLocation(item) {
+  return [markdownText(item?.file), markdownText(item?.lines)].filter(Boolean).join(":");
+}
+
+function GraphVerifiedIssueDetail({ issue }) {
+  const graph = issue.graphEvidence || {};
+  const graphLines = [
+    graph.sliceId ? `Slice: ${graph.sliceId}` : "",
+    ...(graph.pathSummary || []),
+    ...(graph.codegraphFiles || []).map((file) => `File: ${file}`),
+  ].filter(Boolean);
+  const behaviorFields = [
+    [T("Trigger", "Trigger"), issue.triggerCondition],
+    [T("Expected", "Expected"), issue.expectedBehavior],
+    [T("Observed", "Observed"), issue.observedBehavior],
+  ].filter(([, value]) => markdownText(value));
+  const hasReproduction = Boolean(
+    issue.reproduction?.commands?.length ||
+      issue.reproduction?.input ||
+      issue.reproduction?.expected ||
+      issue.reproduction?.actual ||
+      issue.reproduction?.logPath
+  );
+
+  return (
+    <>
+      <DetailSection title={T("Graph evidence", "Graph evidence")}>
+        {graphLines.length > 0 && (
+          <ul className="legal-list-flat evidence-list">
+            {graphLines.map((line, index) => (
+              <li key={`${index}-${line}`}>{line}</li>
+            ))}
+          </ul>
+        )}
+      </DetailSection>
+
+      <DetailSection title={T("Code evidence", "Code evidence")}>
+        {issue.codeEvidence?.length > 0 && (
+          <div className="repro-fields">
+            {issue.codeEvidence.map((item, index) => {
+              const location = codeEvidenceLocation(item);
+              return (
+                <div key={`${location}-${index}`} className="repro-field">
+                  {location && <b className="repro-field-title">{location}</b>}
+                  {item.whyItMatters && (
+                    <p className="muted repro-field-text">{item.whyItMatters}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DetailSection>
+
+      {behaviorFields.length > 0 && (
+        <DetailSection title={T("Behavior", "Behavior")}>
+          <div className="repro-fields">
+            {behaviorFields.map(([label, value]) => (
+              <div key={label} className="repro-field">
+                <b className="repro-field-title">{label}</b>
+                <p className="muted repro-field-text">{value}</p>
+              </div>
+            ))}
+          </div>
+        </DetailSection>
+      )}
+
+      <DetailSection
+        title={T("Reproduction", "Reproduction")}
+        empty={T("No executable reproduction was provided.", "No executable reproduction was provided.")}
+      >
+        {hasReproduction && <ReproductionCenter issue={issue} />}
+      </DetailSection>
+
+      {issue.whyThisMatters && (
+        <DetailSection title={T("Why this matters", "Why this matters")}>
+          <p className="muted" style={{ color: "var(--text-2)" }}>
+            {issue.whyThisMatters}
+          </p>
+        </DetailSection>
+      )}
+
+      {issue.suggestedFixDirection && (
+        <DetailSection title={T("Fix direction", "Fix direction")}>
+          <p className="muted" style={{ color: "var(--text-2)" }}>
+            {issue.suggestedFixDirection}
+          </p>
+        </DetailSection>
+      )}
+
+      <TextListSection title={T("Limitations", "Limitations")} items={issue.limitations} />
+    </>
   );
 }
 
@@ -1074,10 +768,16 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               </button>
               <button
                 className="btn"
-                onClick={() => setSortBy(sortBy === "severity" ? "confidence" : "severity")}
+                onClick={() =>
+                  setSortBy(sortBy === "severity" ? "newest" : sortBy === "newest" ? "file" : "severity")
+                }
               >
                 <I.Sort size={14} />{" "}
-                {sortBy === "severity" ? T("Severity", "严重度") : T("Evidence", "证据")}
+                {sortBy === "severity"
+                  ? T("Severity", "严重度")
+                  : sortBy === "newest"
+                    ? T("Newest", "最新")
+                    : T("File", "文件")}
               </button>
             </div>
           </div>
@@ -1148,17 +848,13 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             )}
           </div>
 
-          {!loading && !error && all.length > 0 && (
-            <IssueDistributionBand issues={all} activeSeverity={sev} onSeverityClick={setSev} />
-          )}
-
           <div className="issues-table card">
             <div className="issues-thead">
               <div></div>
               <div>{T("Issue", "问题")}</div>
               <div>{T("File", "文件")}</div>
               <div>{T("Category", "类别")}</div>
-              <div>{T("Evidence", "证据")}</div>
+              <div>{T("Proof", "证据")}</div>
               <div>{T("Status", "状态")}</div>
               <div></div>
             </div>
@@ -1203,10 +899,12 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                     </div>
                     <div>
                       <div className="issues-evidence-cell">
-                        <VerificationBadge issue={issue} />
-                        <span className="issues-evidence-label">
-                          {confidenceEvidenceLabel(issue)}
+                        <span className="tag">
+                          {issue.graphVerified ? T("GraphVerified", "GraphVerified") : T("Confirmed", "Confirmed")}
                         </span>
+                        {issue.verificationLevel && (
+                          <span className="issues-evidence-label">{issue.verificationLevel}</span>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -1269,20 +967,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const activeIssue = routeIssueId ? loadedIssue : initialIssue;
   const [currentStatus, setCurrentStatus] = useState(activeIssue?.status || "open");
   const [actionError, setActionError] = useState("");
-  const [fixPreview, setFixPreview] = useState(null);
-  const [pullRequest, setPullRequest] = useState(issuePullRequestState(activeIssue));
-  const [fixLoading, setFixLoading] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState(activeIssue?.feedbackReason || "");
   const [feedbackLoading, setFeedbackLoading] = useState("");
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [pageCopied, setPageCopied] = useState(false);
-  const [impactScan, setImpactScan] = useState(null);
-  const [impactScanLoading, setImpactScanLoading] = useState(false);
-  const [impactDrawer, setImpactDrawer] = useState(null);
   const statusRequestRef = useRef(false);
   const feedbackRequestRef = useRef(0);
-  const fixRequestRef = useRef(0);
   const pageCopyResetRef = useRef(null);
 
   useEffect(() => {
@@ -1323,63 +1014,19 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     };
   }, [routeIssueId, setIssue]);
 
-  const embeddedImpactScan = useMemo(() => {
+  const embeddedScan = useMemo(() => {
     if (plainObject(activeIssue?.scan)) return normalizeScanForIssueDisplay(activeIssue.scan);
-    if (plainObject(activeIssue?.impactGraph)) {
-      return normalizeScanForIssueDisplay({
-        id: activeIssue.scanId,
-        impactGraph: activeIssue.impactGraph,
-        graphVerifiedReport: activeIssue.graphVerifiedReport,
-      });
-    }
     return null;
   }, [activeIssue]);
 
   useEffect(() => {
-    let cancelled = false;
-    setImpactScan(null);
-    setImpactScanLoading(false);
-    if (
-      loadingIssue ||
-      embeddedImpactScan?.impactGraph ||
-      !activeIssue?.scanId ||
-      !activeIssue?.file ||
-      typeof pullwiseApi.scans?.get !== "function"
-    ) {
-      return () => {
-        cancelled = true;
-      };
-    }
-    setImpactScanLoading(true);
-    pullwiseApi.scans
-      .get(activeIssue.scanId)
-      .then((payload) => {
-        if (!cancelled) setImpactScan(normalizeScanForIssueDisplay(payload));
-      })
-      .catch(() => {
-        if (!cancelled) setImpactScan(null);
-      })
-      .finally(() => {
-        if (!cancelled) setImpactScanLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeIssue?.id, activeIssue?.scanId, activeIssue?.file, embeddedImpactScan, loadingIssue]);
-
-  useEffect(() => {
-    fixRequestRef.current += 1;
     setCurrentStatus(activeIssue?.status || "open");
     setActionError("");
-    setFixPreview(null);
-    setPullRequest(issuePullRequestState(activeIssue));
-    setFixLoading("");
     setStatusLoading("");
     setSelectedFeedback(activeIssue?.feedbackReason || "");
     setFeedbackLoading("");
     setFeedbackSaved(false);
     setPageCopied(false);
-    setImpactDrawer(null);
     statusRequestRef.current = false;
     feedbackRequestRef.current += 1;
     if (pageCopyResetRef.current) {
@@ -1387,7 +1034,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       pageCopyResetRef.current = null;
     }
     return () => {
-      fixRequestRef.current += 1;
       statusRequestRef.current = false;
       feedbackRequestRef.current += 1;
       if (pageCopyResetRef.current) {
@@ -1446,14 +1092,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   }
 
   const issue = activeIssue;
-  const impactGraph = embeddedImpactScan?.impactGraph || impactScan?.impactGraph || null;
   const graphVerifiedReport =
-    activeIssue?.graphVerifiedReport ||
-    embeddedImpactScan?.graphVerifiedReport ||
-    impactScan?.graphVerifiedReport ||
-    null;
-  const impactTarget = findImpactTargetByPath(impactGraph, issue.file);
-  const showImpactContext = Boolean(issue.scanId || impactGraph || impactScanLoading);
+    activeIssue?.graphVerifiedReport || embeddedScan?.graphVerifiedReport || null;
+  const isGraphVerifiedIssue = issue.graphVerified === true;
 
   const updateStatus = async (nextStatus) => {
     if (statusRequestRef.current) return;
@@ -1481,49 +1122,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       setStatusLoading("");
     }
   };
-  const auditEvidenceReady = issueAuditSwarmReviewComplete(issue);
-  const hasEvidence = auditEvidenceReady && (issue.badCode?.length || issue.goodCode?.length);
-  const autoFixable = Boolean(issue.autoFix || issue.autoFixable);
-  const defaultFixabilityReason = T(
-    "No safe deterministic patch was generated for this issue.",
-    "此问题尚未生成安全的确定性补丁。"
-  );
-  const fixabilityReason =
-    typeof issue.fixabilityReason === "string" && issue.fixabilityReason.trim()
-      ? issue.fixabilityReason.trim()
-      : defaultFixabilityReason;
   const severity = issue.severity || "info";
   const primaryLocation = issue.affectedLocations?.[0] || null;
-  const hasReproduction =
-    auditEvidenceReady &&
-    Boolean(
-      issue.reproductionPath ||
-      issue.reproduction?.commands?.length ||
-      issue.reproduction?.input ||
-      issue.reproduction?.expected ||
-      issue.reproduction?.actual ||
-      issue.reproduction?.testFile ||
-      issue.reproduction?.logPath
-    );
-  const hasReasoningBreakdown =
-    auditEvidenceReady &&
-    Boolean(
-      issue.reasoningBreakdown?.facts?.length ||
-      issue.reasoningBreakdown?.inferences?.length ||
-      issue.reasoningBreakdown?.recommendations?.length
-    );
-  const hasEvidenceTrace =
-    auditEvidenceReady && Array.isArray(issue.evidenceTrace) && issue.evidenceTrace.length > 0;
-  const activeFixPreview = fixPreview?.issueId === issue.id ? fixPreview.value : null;
-  const activePullRequest =
-    pullRequest?.issueId === issue.id
-      ? pullRequest.value
-      : issuePullRequestState(issue)?.value || null;
-  const openPullRequestDisabledReason = !activeFixPreview?.valid
-    ? autoFixable
-      ? T("Preview fix first.", "请先预览修复。")
-      : fixabilityReason
-    : "";
   const selectedFeedbackBadge = ISSUE_FEEDBACK_BADGES.find(
     (feedback) => feedback.value === selectedFeedback
   );
@@ -1563,51 +1163,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       if (feedbackRequestRef.current === requestId) setFeedbackLoading("");
     }
   };
-  const beginFixRequest = () => {
-    const requestId = fixRequestRef.current + 1;
-    fixRequestRef.current = requestId;
-    return requestId;
-  };
-  const isCurrentFixRequest = (requestId) => fixRequestRef.current === requestId;
-  const previewFix = async () => {
-    const requestId = beginFixRequest();
-    setActionError("");
-    setFixPreview(null);
-    setPullRequest(issuePullRequestState(issue));
-    setFixLoading("preview");
-    try {
-      const preview = await pullwiseApi.issues.previewFix(issue.id);
-      if (!isCurrentFixRequest(requestId)) return;
-      setFixPreview({ issueId: issue.id, value: preview });
-    } catch (error) {
-      if (!isCurrentFixRequest(requestId)) return;
-      setActionError(error?.message || T("Unable to preview fix.", "无法预览修复。"));
-    } finally {
-      if (isCurrentFixRequest(requestId)) setFixLoading("");
-    }
-  };
-  const openPullRequest = async () => {
-    const requestId = beginFixRequest();
-    setActionError("");
-    setFixLoading("pr");
-    try {
-      const result = await pullwiseApi.issues.createPullRequest(issue.id);
-      if (!isCurrentFixRequest(requestId)) return;
-      setPullRequest({
-        issueId: issue.id,
-        value: normalizeIssuePullRequest(result, { issueId: issue.id, title: issue.title }) || null,
-      });
-    } catch (error) {
-      if (!isCurrentFixRequest(requestId)) return;
-      setActionError(error?.message || T("Unable to open pull request.", "无法打开拉取请求。"));
-    } finally {
-      if (isCurrentFixRequest(requestId)) setFixLoading("");
-    }
-  };
   const copyPage = async () => {
-    const copied = await copyText(
-      buildIssuePageMarkdown(issue, currentStatus, { includeAuditEvidence: auditEvidenceReady })
-    );
+    const copied = await copyText(buildIssuePageMarkdown(issue, currentStatus));
     if (!copied) return;
     setPageCopied(true);
     if (pageCopyResetRef.current) clearTimeout(pageCopyResetRef.current);
@@ -1651,8 +1208,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 </span>
                 <span className="issue-id">{issue.id}</span>
                 {issue.category && <span className="tag">{issue.category}</span>}
-                <VerificationBadge issue={issue} />
-                <span className="tag">{confidenceEvidenceLabel(issue)}</span>
+                {isGraphVerifiedIssue && <span className="tag">GraphVerified</span>}
+                {issue.verificationLevel && <span className="tag">{issue.verificationLevel}</span>}
                 <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
@@ -1691,200 +1248,10 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           </div>
           <div className="issue-detail-grid">
             <div className="issue-detail-main-col">
-              {auditEvidenceReady && issue.evidenceChecklist?.length > 0 && (
-                <DetailSection title={T("Confidence evidence", "置信度证据")}>
-                  {issue.verificationSummary && (
-                    <p className="muted issue-section-note">{issue.verificationSummary}</p>
-                  )}
-                  <EvidenceChecklist issue={issue} />
-                </DetailSection>
-              )}
-
-              {hasEvidenceTrace && (
-                <DetailSection title={T("Evidence trace", "证据追溯")}>
-                  <EvidenceTrace issue={issue} />
-                </DetailSection>
-              )}
-
-              {hasReasoningBreakdown && (
-                <DetailSection title={T("Facts, reasoning, recommendations", "事实、推理与建议")}>
-                  <ReasoningBreakdown issue={issue} />
-                </DetailSection>
-              )}
-
-              {auditEvidenceReady && (
-                <DetailSection
-                  title={T("Evidence chain", "证据链")}
-                  empty={T("No structured evidence was provided.", "未提供结构化证据。")}
-                >
-                  {issue.evidence?.length > 0 && <EvidenceChain issue={issue} />}
-                </DetailSection>
-              )}
-
-              {auditEvidenceReady && (
-                <DetailSection
-                  title={T("Reproduction center", "复现中心")}
-                  empty={T("No executable reproduction was provided.", "未提供可执行复现。")}
-                >
-                  {hasReproduction && <ReproductionCenter issue={issue} />}
-                </DetailSection>
-              )}
-
-              <DetailSection title={T("Detection reasoning", "检测推理")} empty="">
-                {issue.detectionReasoning && (
-                  <p className="muted" style={{ color: "var(--text-2)" }}>
-                    {issue.detectionReasoning}
-                  </p>
-                )}
-              </DetailSection>
-
-              <DetailSection
-                title={T("Impact", "影响")}
-                empty={T("No impact statement was provided.", "未提供影响说明。")}
-              >
-                {issue.impact && (
-                  <p className="muted" style={{ color: "var(--text-2)" }}>
-                    {issue.impact}
-                  </p>
-                )}
-              </DetailSection>
-
-              {showImpactContext && (
-                <DetailSection
-                  title={T("Impact context", "影响上下文")}
-                  empty={T(
-                    "No impact context is available for this issue file.",
-                    "此问题文件暂无影响上下文。"
-                  )}
-                >
-                  {impactScanLoading && !impactGraph ? (
-                    <div className="muted">
-                      {T("Loading impact context...", "正在加载影响上下文...")}
-                    </div>
-                  ) : impactTarget ? (
-                    <ImpactTargetCard target={impactTarget} onEvidence={setImpactDrawer} />
-                  ) : impactGraph ? (
-                    <div className="muted">
-                      {T(
-                        `No impact target matched ${issue.file || "this issue file"}.`,
-                        `未找到与 ${issue.file || "此问题文件"} 匹配的影响目标。`
-                      )}
-                    </div>
-                  ) : (
-                    <div className="muted">
-                      {T("Impact graph unavailable for this scan.", "此扫描暂无影响图。")}
-                    </div>
-                  )}
-                </DetailSection>
-              )}
-
-              <GraphVerifiedReport report={graphVerifiedReport} />
-
-              <TextListSection
-                title={T("Why this is not a false positive", "为什么这不是误报")}
-                items={issue.whyNotFalsePositive}
-              />
-
-              <TextListSection
-                title={T("When this may not apply", "何时可能不适用")}
-                items={issue.limitations}
-              />
-
-              {(issue.fixBenefits || issue.fixRisks) && (
-                <DetailSection title={T("Fix impact analysis", "修复影响分析")}>
-                  {issue.fixBenefits && (
-                    <div style={{ marginBottom: issue.fixRisks ? 10 : 0 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          marginBottom: 4,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "#16a34a",
-                        }}
-                      >
-                        <I.Check size={12} /> {T("Benefits", "收益")}
-                      </div>
-                      <p className="muted" style={{ color: "var(--text-2)", margin: 0 }}>
-                        {issue.fixBenefits}
-                      </p>
-                    </div>
-                  )}
-                  {issue.fixRisks && (
-                    <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          marginBottom: 4,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "var(--sev-high, #e97316)",
-                        }}
-                      >
-                        <I.X size={12} /> {T("Risks", "风险")}
-                      </div>
-                      <p className="muted" style={{ color: "var(--text-2)", margin: 0 }}>
-                        {issue.fixRisks}
-                      </p>
-                    </div>
-                  )}
-                </DetailSection>
-              )}
-
-              <DetailSection
-                title={T("Remediation", "修复步骤")}
-                empty={T("No remediation steps were provided.", "未提供修复步骤。")}
-              >
-                {issue.steps?.length > 0 && (
-                  <ol className="legal-list-flat" style={{ marginBottom: 0 }}>
-                    {issue.steps.map((step, index) => (
-                      <li key={`${index}-${step}`}>{step}</li>
-                    ))}
-                  </ol>
-                )}
-              </DetailSection>
-
-              {auditEvidenceReady && (
-                <DetailSection
-                  title={T("Patch evidence", "补丁证据")}
-                  empty={T("No patch evidence was provided.", "未提供补丁证据。")}
-                >
-                  {hasEvidence && (
-                    <>
-                      <CodeEvidence
-                        title={T("Current code", "当前代码")}
-                        lines={issue.badCode || []}
-                      />
-                      <CodeEvidence
-                        title={T("Suggested code", "建议代码")}
-                        lines={issue.goodCode || []}
-                      />
-                    </>
-                  )}
-                </DetailSection>
-              )}
-
-              {issue.references?.length > 0 && (
-                <DetailSection title={T("References", "参考资料")}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {issue.references.map((reference) => (
-                      <a
-                        key={`${reference.label}-${reference.url}`}
-                        className="auth-link"
-                        href={reference.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ fontSize: 13 }}
-                      >
-                        {reference.label || reference.url}
-                      </a>
-                    ))}
-                  </div>
-                </DetailSection>
+              {isGraphVerifiedIssue ? (
+                <GraphVerifiedIssueDetail issue={issue} />
+              ) : (
+                <GraphVerifiedReport report={graphVerifiedReport} />
               )}
             </div>
 
@@ -1903,22 +1270,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 {issue.jobId && (
                   <div className="tag audit-tag">
                     {T(`job ${issue.jobId}`, `任务 ${issue.jobId}`)}
-                  </div>
-                )}
-                {issue.auditSwarm?.protocol && (
-                  <div className="tag audit-tag">{issue.auditSwarm.protocol}</div>
-                )}
-                {issue.auditSwarm?.agentRole && (
-                  <div className="tag audit-tag">{issue.auditSwarm.agentRole}</div>
-                )}
-                {issue.auditSwarm?.shardId && (
-                  <div className="tag audit-tag">
-                    {T(`shard ${issue.auditSwarm.shardId}`, `分片 ${issue.auditSwarm.shardId}`)}
-                  </div>
-                )}
-                {issue.auditSwarm?.verdict && (
-                  <div className="tag audit-tag">
-                    {T(`verdict ${issue.auditSwarm.verdict}`, `结论 ${issue.auditSwarm.verdict}`)}
                   </div>
                 )}
               </div>
@@ -1996,67 +1347,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   <I.Refresh size={13} /> {T("Reopen", "重新打开")}
                 </button>
               )}
-              <div className="divider" />
-              <button
-                className="btn sm"
-                disabled={!autoFixable || Boolean(fixLoading)}
-                onClick={previewFix}
-                title={!autoFixable ? fixabilityReason : undefined}
-              >
-                <I.Sparkle size={13} />{" "}
-                {fixLoading === "preview"
-                  ? T("Previewing...", "正在预览...")
-                  : T("Preview fix", "预览修复")}
-              </button>
-              {activePullRequest?.url ? (
-                <a className="btn sm" href={activePullRequest.url} target="_blank" rel="noreferrer">
-                  <I.GitBranch size={13} /> {T("Open PR", "打开 PR")}
-                  {activePullRequest.number ? ` #${activePullRequest.number}` : ""}
-                </a>
-              ) : (
-                <button
-                  className="btn sm"
-                  disabled={!activeFixPreview?.valid || Boolean(fixLoading)}
-                  onClick={openPullRequest}
-                  title={openPullRequestDisabledReason || undefined}
-                >
-                  <I.GitBranch size={13} />{" "}
-                  {fixLoading === "pr" ? T("Opening...", "正在打开...") : T("Open PR", "打开 PR")}
-                </button>
-              )}
-              {!autoFixable && (
-                <div className="muted" style={{ fontSize: 12 }}>
-                  {T("This issue is not auto-fixable:", "此问题无法自动修复：")} {fixabilityReason}
-                </div>
-              )}
-              {autoFixable && !activePullRequest?.url && !activeFixPreview?.valid && (
-                <div className="muted" style={{ fontSize: 12 }}>
-                  {T("Preview the fix to enable Open PR.", "先预览修复后即可打开 PR。")}
-                </div>
-              )}
-              {activeFixPreview && (
-                <div className="fix-preview">
-                  <div className="fix-preview-h">
-                    <b>{activeFixPreview.file}</b>
-                    <span className="tag">
-                      {activeFixPreview.valid ? T("validated", "已验证") : T("blocked", "已阻止")}
-                    </span>
-                  </div>
-                  {activeFixPreview.message && (
-                    <div className="muted">{activeFixPreview.message}</div>
-                  )}
-                  {activeFixPreview.diff && (
-                    <pre className="diff-block">{activeFixPreview.diff}</pre>
-                  )}
-                </div>
-              )}
             </div>
           </div>
-          <ImpactEvidenceDrawer
-            title={impactDrawer?.title || T("Impact evidence", "Impact evidence")}
-            evidence={impactDrawer?.evidence || []}
-            onClose={() => setImpactDrawer(null)}
-          />
         </div>
       </div>
     </div>
@@ -2228,19 +1520,8 @@ function scanAiUsageBadges(aiUsage) {
   return badges;
 }
 
-function scanHasRetryableTrace(scan) {
-  return Boolean(
-    scan?.jobTrace?.checkpoints?.some((checkpoint) =>
-      ["failed", "cancelled", "lost"].includes(checkpoint.status)
-    )
-  );
-}
-
 function isRetryableHistoryScan(scan) {
-  return Boolean(
-    scan?.id &&
-    (["failed", "cancelled", "lost"].includes(scan.status) || scanHasRetryableTrace(scan))
-  );
+  return Boolean(scan?.id && ["failed", "cancelled", "lost"].includes(scan.status));
 }
 
 function ScanRow({

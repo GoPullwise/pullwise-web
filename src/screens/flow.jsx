@@ -1,15 +1,5 @@
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import cytoscape from "cytoscape";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
-import { ImpactGraphPanel } from "../components/impact/ImpactGraphPanel.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -469,40 +459,6 @@ function uniqueStrings(values) {
   return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
-function uniqueAuditSwarmEvidenceBlocks(blocks) {
-  const seen = new Set();
-  return blocks.filter((block) => {
-    const key = [
-      block?.kind,
-      block?.title,
-      block?.summary,
-      block?.issueId,
-      block?.severity,
-      block?.category,
-      block?.role,
-      block?.shardId,
-      block?.stage,
-      block?.status,
-      block?.verdict,
-      block?.proofType,
-      block?.command,
-      block?.file,
-      block?.startLine,
-      block?.endLine,
-      (block?.items || []).join("\n"),
-    ]
-      .map((part) =>
-        String(part || "")
-          .trim()
-          .toLowerCase()
-      )
-      .join("\x1f");
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 function scanPreflightSummary(scans) {
   const preflights = scans.map((scan) => scan?.preflight).filter(Boolean);
   if (!preflights.length) return null;
@@ -556,73 +512,6 @@ function scanPreflightSummary(scans) {
   };
 }
 
-function auditSwarmCount(audit, key) {
-  const value = Number(audit?.counts?.[key] || 0);
-  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-}
-
-function scanAuditSwarmSummary(scans) {
-  const audits = scans.map((scan) => scan?.auditSwarm).filter(Boolean);
-  if (!audits.length) return null;
-  const issueCards = audits.flatMap((audit) => audit.issueCards || []).slice(0, 8);
-  const verificationResults = audits
-    .flatMap((audit) => audit.verificationResults || [])
-    .slice(0, 12);
-  const evidenceBlocks = uniqueAuditSwarmEvidenceBlocks(
-    audits.flatMap((audit) => audit.evidenceBlocks || [])
-  ).slice(0, 12);
-  const counts = audits.reduce(
-    (totals, audit) => {
-      for (const key of Object.keys(totals)) {
-        totals[key] += auditSwarmCount(audit, key);
-      }
-      return totals;
-    },
-    {
-      issueCards: 0,
-      verificationResults: 0,
-      evidenceBlocks: 0,
-      candidateCount: 0,
-      reportedCount: 0,
-      rejectedCount: 0,
-      verifiedCount: 0,
-      staticProofCount: 0,
-      potentialRiskCount: 0,
-      unverifiedCount: 0,
-      manifestCount: 0,
-      toolCount: 0,
-      verifierRunCount: 0,
-    }
-  );
-  counts.issueCards = Math.max(counts.issueCards, issueCards.length);
-  counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
-  counts.evidenceBlocks = Math.max(counts.evidenceBlocks, evidenceBlocks.length);
-  const summaries = uniqueStrings(audits.map((audit) => audit.summary));
-  return {
-    protocol: uniqueStrings(audits.map((audit) => audit.protocol)).join(", "),
-    stage: uniqueStrings(audits.map((audit) => audit.stage)).join(", "),
-    adapter: uniqueStrings(audits.map((audit) => audit.adapter)).join(", "),
-    provider: uniqueStrings(audits.map((audit) => audit.provider)).join(", "),
-    summary:
-      audits.length === 1
-        ? summaries[0] || ""
-        : `${audits.length} repository audit protocols are reporting structured evidence.`,
-    logsSummary: audits.find((audit) => audit.logsSummary)?.logsSummary || "",
-    counts,
-    roles: uniqueStrings([
-      ...audits.flatMap((audit) => audit.roles || []),
-      ...evidenceBlocks.map((block) => block.role),
-    ]).slice(0, 8),
-    shards: uniqueStrings([
-      ...audits.flatMap((audit) => audit.shards || []),
-      ...evidenceBlocks.map((block) => block.shardId),
-    ]).slice(0, 8),
-    issueCards,
-    verificationResults,
-    evidenceBlocks,
-  };
-}
-
 function scanAiUsageSummary(scans) {
   const usages = scans.map((scan) => scan?.aiUsage).filter(Boolean);
   if (!usages.length) return null;
@@ -659,368 +548,10 @@ function scanAiUsageTags(aiUsage) {
   return tags;
 }
 
-function hasAuditSwarm(audit) {
-  if (!audit) return false;
-  const counts = audit.counts || {};
-  return Boolean(
-    audit.protocol ||
-    audit.stage ||
-    audit.summary ||
-    audit.roles?.length ||
-    audit.shards?.length ||
-    audit.evidenceBlocks?.length ||
-    Object.values(counts).some((value) => Number(value || 0) > 0)
-  );
-}
-
-function auditSwarmLocation(item) {
-  const location = item?.location && typeof item.location === "object" ? item.location : {};
-  const file = item?.file || location.file || "";
-  const line = item?.startLine || item?.line || location.startLine || location.line || "";
-  return file ? `${file}${line ? `:${line}` : ""}` : "";
-}
-
-function auditSwarmCountLabel(count, singular, plural) {
-  const safePlural = plural || `${singular}s`;
-  return `${count || 0} ${count === 1 ? singular : safePlural}`;
-}
-
-function AuditSwarmEvidence({
-  auditSwarm,
-  className = "",
-  onDownload = null,
-  downloading = false,
-}) {
-  if (!hasAuditSwarm(auditSwarm)) return null;
-
-  const rootClassName = ["scanning-audit", className].filter(Boolean).join(" ");
-  const evidenceTotal = auditSwarm.counts.evidenceBlocks || 0;
-  const stats = [
-    { key: "candidates", value: auditSwarm.counts.candidateCount, label: T("Candidates", "候选") },
-    { key: "reported", value: auditSwarm.counts.reportedCount, label: T("Reported", "已报告") },
-    { key: "rejected", value: auditSwarm.counts.rejectedCount, label: T("Rejected", "已拒绝") },
-    { key: "verified", value: auditSwarm.counts.verifiedCount, label: T("Verified", "已验证") },
-  ].filter((s) => typeof s.value === "number");
-  const showStats = stats.some((s) => s.value > 0);
-  const handleEvidenceClick = () => {
-    if (onDownload && evidenceTotal > 0) onDownload();
-  };
-  const evidenceInteractive = Boolean(onDownload) && evidenceTotal > 0;
-
-  return (
-    <div className={rootClassName}>
-      <div className="audit-head">
-        <span className="audit-head-icon">
-          <I.Shield size={13} />
-        </span>
-        <span className="audit-head-t">{T("Audit evidence", "审计证据")}</span>
-        {auditSwarm.protocol && <span className="audit-head-sub">{auditSwarm.protocol}</span>}
-      </div>
-      {auditSwarm.summary && (
-        <div className="muted scan-preflight-summary">{auditSwarm.summary}</div>
-      )}
-      {showStats && (
-        <div className="audit-stat-strip">
-          {stats.map((s) => (
-            <div key={s.key} className={"audit-stat" + (s.value > 0 ? "" : " audit-stat-empty")}>
-              <b>{s.value}</b>
-              <span>{s.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {evidenceTotal > 0 && (
-        <button
-          type="button"
-          className={"audit-evidence-link" + (evidenceInteractive ? " is-interactive" : "")}
-          onClick={handleEvidenceClick}
-          disabled={!evidenceInteractive || downloading}
-          aria-busy={downloading || undefined}
-        >
-          <span>
-            {T(
-              `${evidenceTotal} evidence blocks in the downloaded audit bundle`,
-              `下载的审计包中包含 ${evidenceTotal} 个证据块`
-            )}
-          </span>
-          <I.Download size={13} />
-        </button>
-      )}
-      {auditSwarm.issueCards.length > 0 && (
-        <div className="audit-section">
-          <div className="audit-section-h">
-            <span>{T("Issue cards", "问题卡片")}</span>
-            <span className="audit-section-count">
-              {auditSwarmCountLabel(
-                auditSwarm.counts.issueCards,
-                T("issue card", "张问题卡片"),
-                T("issue cards", "张问题卡片")
-              )}
-            </span>
-          </div>
-          <div className="audit-card-list">
-            {auditSwarm.issueCards.slice(0, 3).map((card, index) => {
-              const location = auditSwarmLocation(card);
-              return (
-                <div key={card.issueId || `${card.title}-${index}`} className="audit-card">
-                  <div className="audit-card-title">{card.title}</div>
-                  <div className="audit-card-meta">
-                    {card.severity && <span className="sev-mini">{card.severity}</span>}
-                    {card.agentRole && <span>{card.agentRole}</span>}
-                    {location && <span>{location}</span>}
-                  </div>
-                  {card.claim && (
-                    <div className="audit-card-row">
-                      <b>{T("Claim", "结论")}</b>
-                      <span>{card.claim}</span>
-                    </div>
-                  )}
-                  {card.evidence?.[0] && (
-                    <div className="audit-card-row">
-                      <b>{T("Evidence", "证据")}</b>
-                      <span>{card.evidence[0]}</span>
-                    </div>
-                  )}
-                  {card.falsePositiveChecks?.[0] && (
-                    <div className="audit-card-row">
-                      <b>{T("False +", "误报排除")}</b>
-                      <span>{card.falsePositiveChecks[0]}</span>
-                    </div>
-                  )}
-                  {card.suggestedTest && (
-                    <div className="audit-card-row">
-                      <b>{T("Test", "建议测试")}</b>
-                      <span>{card.suggestedTest}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {auditSwarm.counts.issueCards > auditSwarm.issueCards.length && (
-            <div className="audit-card-more">
-              {T(
-                `+${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} more in the downloaded audit bundle`,
-                `下载的审计包中还有 ${auditSwarm.counts.issueCards - auditSwarm.issueCards.length} 条`
-              )}
-            </div>
-          )}
-        </div>
-      )}
-      {auditSwarm.verificationResults.length > 0 && (
-        <div className="audit-section">
-          <div className="audit-section-h">
-            <span>{T("Verifier results", "验证结果")}</span>
-            <span className="audit-section-count">
-              {auditSwarmCountLabel(
-                auditSwarm.counts.verificationResults,
-                T("verifier result", "条验证结果"),
-                T("verifier results", "条验证结果")
-              )}
-            </span>
-          </div>
-          <div className="audit-card-list">
-            {auditSwarm.verificationResults.slice(0, 3).map((result, index) => (
-              <div
-                key={`${result.issueId || "result"}-${result.verifierRole || index}`}
-                className="audit-card"
-              >
-                <div className="audit-card-title">
-                  {result.verdict || T("reviewed", "已审查")}
-                  {result.verifierRole ? ` · ${result.verifierRole}` : ""}
-                </div>
-                {result.summary && (
-                  <div className="audit-card-row">
-                    <b>{T("Summary", "摘要")}</b>
-                    <span>{result.summary}</span>
-                  </div>
-                )}
-                {result.command && (
-                  <div className="audit-card-row">
-                    <b>{T("Command", "命令")}</b>
-                    <code className="tag evidence-command">{result.command}</code>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
-const STATUS_SUCCESS = new Set(["done", "complete", "completed", "passed", "ok", "verified"]);
-const STATUS_WARNING = new Set(["queued", "running", "pending", "warning", "partial", "skipped"]);
-const STATUS_DANGER = new Set(["failed", "cancelled", "canceled", "lost", "blocked", "error"]);
-
-function compactStatusLabel(status) {
-  const text = String(status || "")
-    .trim()
-    .replace(/[_-]+/g, " ");
-  return text ? text[0].toUpperCase() + text.slice(1) : "";
-}
-
-function compactStatusTone(status) {
-  const value = String(status || "")
-    .trim()
-    .toLowerCase();
-  if (STATUS_SUCCESS.has(value)) return "ok";
-  if (STATUS_DANGER.has(value)) return "danger";
-  if (STATUS_WARNING.has(value)) return "warn";
-  return "neutral";
-}
-
-function scanHasRetryableTrace(scan) {
-  return Boolean(
-    scan?.jobTrace?.checkpoints?.some((checkpoint) =>
-      RETRYABLE_SCAN_STATUSES.has(checkpoint.status)
-    )
-  );
-}
 
 function isRetryableScan(scan) {
-  return Boolean(
-    scan?.id && (RETRYABLE_SCAN_STATUSES.has(scan.status) || scanHasRetryableTrace(scan))
-  );
-}
-
-function CompactStatusChip({ status }) {
-  const label = compactStatusLabel(status);
-  if (!label) return null;
-  return <span className={`scan-compact-status tone-${compactStatusTone(status)}`}>{label}</span>;
-}
-
-function CompactAuditList({ title, items }) {
-  if (!items?.length) return null;
-  return (
-    <div className="scan-compact-group">
-      <div className="scan-compact-group-h">
-        <span>{title}</span>
-        <span>{items.length}</span>
-      </div>
-      <div className="scan-compact-list">
-        {items.map((item) => (
-          <div key={item.key} className="scan-compact-item">
-            <div className="scan-compact-item-head">
-              <span className="scan-compact-item-title">{item.label}</span>
-              <CompactStatusChip status={item.status} />
-            </div>
-            {item.summary && <div className="scan-compact-item-summary muted">{item.summary}</div>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CompletionAuditPanel({ audit }) {
-  if (!audit) return null;
-  const hasDetails = [audit.blockers, audit.warnings, audit.checks].some((items) => items?.length);
-  const metaItems = [
-    audit.completedAt && {
-      key: "completedAt",
-      label: T(`Completed: ${audit.completedAt}`, `完成于：${audit.completedAt}`),
-    },
-    audit.updatedAt && {
-      key: "updatedAt",
-      label: T(`Updated: ${audit.updatedAt}`, `更新于：${audit.updatedAt}`),
-    },
-    audit.outcome && {
-      key: "outcome",
-      label: T(`Outcome: ${audit.outcome}`, `结果：${audit.outcome}`),
-    },
-  ].filter(Boolean);
-  return (
-    <div className="card scanning-preflight scan-compact-panel">
-      <div className="scan-compact-head">
-        <div className="scanning-counts-h">
-          <I.Check size={14} /> {T("Completion audit", "完成审计")}
-        </div>
-        <CompactStatusChip status={audit.status || audit.outcome} />
-      </div>
-      {audit.summary && <div className="muted scan-preflight-summary">{audit.summary}</div>}
-      {metaItems.length > 0 && (
-        <div className="scan-preflight-meta">
-          {metaItems.map((item) => (
-            <span key={item.key}>{item.label}</span>
-          ))}
-        </div>
-      )}
-      {hasDetails && (
-        <div className="scan-audit-scroll">
-          <CompactAuditList title={T("Blockers", "阻塞项")} items={audit.blockers} />
-          <CompactAuditList title={T("Warnings", "警告")} items={audit.warnings} />
-          <CompactAuditList title={T("Checks", "检查项")} items={audit.checks} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function JobTracePanel({ trace }) {
-  if (!trace) return null;
-  const checkpoints = trace.checkpoints || [];
-  const metaItems = [
-    trace.currentJobId && {
-      key: "currentJobId",
-      label: T(`Job: ${trace.currentJobId}`, `任务：${trace.currentJobId}`),
-    },
-    trace.workerId && {
-      key: "workerId",
-      label: T(`Worker: ${trace.workerId}`, `Worker：${trace.workerId}`),
-    },
-    trace.updatedAt && {
-      key: "updatedAt",
-      label: T(`Updated: ${trace.updatedAt}`, `更新于：${trace.updatedAt}`),
-    },
-  ].filter(Boolean);
-  return (
-    <div className="card scanning-preflight scan-compact-panel">
-      <div className="scan-compact-head">
-        <div className="scanning-counts-h">
-          <I.Clock size={14} /> {T("Job trace", "任务轨迹")}
-        </div>
-        <CompactStatusChip status={trace.status} />
-      </div>
-      {trace.summary && <div className="muted scan-preflight-summary">{trace.summary}</div>}
-      {metaItems.length > 0 && (
-        <div className="scan-preflight-meta">
-          {metaItems.map((item) => (
-            <span key={item.key}>{item.label}</span>
-          ))}
-        </div>
-      )}
-      {checkpoints.length > 0 && (
-        <div
-          className="scan-trace-list"
-          role="list"
-          aria-label={T("Job trace checkpoints", "任务轨迹检查点")}
-        >
-          {checkpoints.map((checkpoint) => (
-            <div key={checkpoint.key} className="scan-trace-item" role="listitem">
-              <div className="scan-trace-item-head">
-                <span className="scan-trace-item-title">{checkpoint.label}</span>
-                <CompactStatusChip status={checkpoint.status} />
-              </div>
-              <div className="scan-trace-item-meta">
-                {checkpoint.at && <span>{checkpoint.at}</span>}
-                {checkpoint.jobId && <span>{checkpoint.jobId}</span>}
-                {checkpoint.workerId && <span>{checkpoint.workerId}</span>}
-                {checkpoint.attempt && (
-                  <span>{T(`Attempt ${checkpoint.attempt}`, `第 ${checkpoint.attempt} 次`)}</span>
-                )}
-              </div>
-              {checkpoint.summary && (
-                <div className="scan-compact-item-summary muted">{checkpoint.summary}</div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return Boolean(scan?.id && RETRYABLE_SCAN_STATUSES.has(scan.status));
 }
 
 function BranchPicker({ repoLabel, value, options, loading, error, disabled, onChange }) {
@@ -2174,22 +1705,21 @@ const PRODUCTION_SCAN_PHASES = [
   },
   {
     k: "ai",
-    t_en: "Audit Swarm review",
-    t_zh: "Audit Swarm 审计",
-    d_en: "Reviewer agents evaluate and verify candidates",
-    d_zh: "审查代理评估并验证候选问题",
+    t_en: "GraphVerified review",
+    t_zh: "GraphVerified 审查",
+    d_en: "Checking graph evidence and reproduction",
+    d_zh: "检查图证据和复现结果",
   },
   {
     k: "report",
     t_en: "Uploading report",
     t_zh: "上传报告",
-    d_en: "Persisting findings and audit evidence",
-    d_zh: "保存问题和审计证据",
+    d_en: "Persisting findings and the audit bundle",
+    d_zh: "保存问题和审计包",
   },
 ];
 
 const SCAN_PHASE_BY_KEY = new Map(PRODUCTION_SCAN_PHASES.map((phase) => [phase.k, phase]));
-const EMPTY_REPOSITORY_GRAPH_ITEMS = Object.freeze([]);
 
 function scanPhaseDefinition(phase) {
   return SCAN_PHASE_BY_KEY.get(phase);
@@ -2197,467 +1727,6 @@ function scanPhaseDefinition(phase) {
 
 function scanPhasesForPhase(_phase) {
   return PRODUCTION_SCAN_PHASES;
-}
-
-function graphCountLabel(count, singular, plural = `${singular}s`, zhUnit = plural) {
-  return T(`${count} ${count === 1 ? singular : plural}`, `${count} ${zhUnit}`);
-}
-
-function repositoryGraphElementsKey(nodes, edges) {
-  const nodeKeys = nodes
-    .map((node) => [
-      node.id,
-      node.label || node.path || node.id,
-      node.type || "file",
-      node.line || 0,
-    ])
-    .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
-  const edgeKeys = edges
-    .map((edge) => [edge.id, edge.source, edge.target, edge.type, edge.weight || 1])
-    .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
-  return JSON.stringify({ nodes: nodeKeys, edges: edgeKeys });
-}
-
-function repositoryGraphTypeLabel(type) {
-  const labels = {
-    class: T("Classes", "类"),
-    component: T("Components", "组件"),
-    entrypoint: T("Entrypoints", "入口"),
-    file: T("Files", "文件"),
-    function: T("Functions", "函数"),
-    manifest: T("Manifests", "清单"),
-    method: T("Methods", "方法"),
-    module: T("Modules", "模块"),
-    route: T("Routes", "路由"),
-    test: T("Tests", "测试"),
-    variable: T("Variables", "变量"),
-    workflow: T("Workflows", "工作流"),
-  };
-  return labels[type] || type;
-}
-
-function GraphMenuPicker({
-  className = "",
-  triggerClassName = "",
-  triggerIcon = null,
-  triggerLabel,
-  ariaLabel,
-  width = 180,
-  multiSelect = false,
-  options,
-}) {
-  const [open, setOpen] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0, minWidth: 0 });
-  const containerRef = useRef(null);
-  const triggerRef = useRef(null);
-  const menuRef = useRef(null);
-
-  const updateMenuPosition = useCallback(() => {
-    const trigger = triggerRef.current;
-    if (!trigger) return;
-    const rect = trigger.getBoundingClientRect();
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-    const minWidth = Math.max(rect.width, width);
-    const maxLeft = viewportWidth - minWidth - 8;
-    setMenuPos({
-      top: rect.bottom + 4,
-      left: Math.max(8, Math.min(rect.left, maxLeft)),
-      minWidth,
-    });
-  }, [width]);
-
-  useLayoutEffect(() => {
-    if (!open) return undefined;
-    updateMenuPosition();
-    const handlePointerDown = (event) => {
-      const container = containerRef.current;
-      const menu = menuRef.current;
-      const target = event.target;
-      if (container && container.contains(target)) return;
-      if (menu && menu.contains(target)) return;
-      setOpen(false);
-    };
-    const handleKey = (event) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        if (triggerRef.current) triggerRef.current.focus();
-      }
-    };
-    const handleScrollOrResize = () => updateMenuPosition();
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKey);
-    window.addEventListener("scroll", handleScrollOrResize, true);
-    window.addEventListener("resize", handleScrollOrResize);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKey);
-      window.removeEventListener("scroll", handleScrollOrResize, true);
-      window.removeEventListener("resize", handleScrollOrResize);
-    };
-  }, [open, updateMenuPosition]);
-
-  return (
-    <span
-      ref={containerRef}
-      className={`graph-menu-picker ${className}`.trim()}
-      onClick={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-    >
-      <button
-        ref={triggerRef}
-        type="button"
-        className={`graph-menu-trigger ${triggerClassName}`.trim()}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={ariaLabel}
-        onClick={() => {
-          if (!open) updateMenuPosition();
-          setOpen((prev) => !prev);
-        }}
-      >
-        {triggerIcon}
-        <span className="graph-menu-trigger-label">{triggerLabel}</span>
-        <I.ChevD size={11} className="graph-menu-chev" aria-hidden="true" />
-      </button>
-      {open && (
-        <ul
-          ref={menuRef}
-          role="listbox"
-          aria-multiselectable={multiSelect || undefined}
-          className="graph-menu"
-          aria-label={ariaLabel}
-          style={{
-            position: "fixed",
-            top: menuPos.top,
-            left: menuPos.left,
-            minWidth: menuPos.minWidth,
-          }}
-        >
-          {options.map((option) => (
-            <li
-              key={option.value}
-              role="option"
-              aria-selected={!!option.selected}
-              className={"graph-menu-option" + (option.selected ? " selected" : "")}
-              onClick={() => {
-                option.onSelect();
-                if (!multiSelect) setOpen(false);
-              }}
-            >
-              {option.icon ? (
-                <span className="graph-menu-option-icon" aria-hidden="true">
-                  {option.icon}
-                </span>
-              ) : null}
-              <span className="graph-menu-option-label">{option.label}</span>
-              {option.selected ? (
-                <I.Check size={11} className="graph-menu-option-check" aria-hidden="true" />
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
-    </span>
-  );
-}
-
-function graphTypeFilterLabel(activeCount, totalCount) {
-  if (!totalCount) return T("No types", "无类型");
-  if (activeCount === 0 || activeCount === totalCount) {
-    return T("All types", "全部类型");
-  }
-  return T(`${activeCount} of ${totalCount} types`, `${activeCount} / ${totalCount} 个类型`);
-}
-
-function RepositoryGraphPanel({ graph, semanticGraph }) {
-  const containerRef = useRef(null);
-  const cyRef = useRef(null);
-  const cytoscapeElementCacheRef = useRef({ key: "", elements: [] });
-  const fileGraph = graph && Array.isArray(graph.nodes) ? graph : null;
-  const codeGraph = semanticGraph && Array.isArray(semanticGraph.nodes) ? semanticGraph : null;
-  const [activeView, setActiveView] = useState(() => (fileGraph ? "files" : "code"));
-  const activeGraph = activeView === "code" && codeGraph ? codeGraph : fileGraph || codeGraph;
-  const nodes = Array.isArray(activeGraph?.nodes)
-    ? activeGraph.nodes
-    : EMPTY_REPOSITORY_GRAPH_ITEMS;
-  const edges = Array.isArray(activeGraph?.edges)
-    ? activeGraph.edges
-    : EMPTY_REPOSITORY_GRAPH_ITEMS;
-  const activeStats = activeGraph?.stats || {};
-  const typeList = useMemo(
-    () => [...new Set(nodes.map((node) => node.type).filter(Boolean))].sort(),
-    [nodes]
-  );
-  const typeKey = typeList.join("|");
-  const [activeTypes, setActiveTypes] = useState(() => new Set(typeList));
-  const [selectedNodeId, setSelectedNodeId] = useState(nodes[0]?.id || "");
-
-  useEffect(() => {
-    if (activeView === "files" && !fileGraph && codeGraph) setActiveView("code");
-    if (activeView === "code" && !codeGraph && fileGraph) setActiveView("files");
-  }, [activeView, codeGraph, fileGraph]);
-
-  useEffect(() => {
-    setActiveTypes(new Set(typeKey ? typeKey.split("|") : []));
-  }, [activeView, typeKey]);
-
-  useEffect(() => {
-    if (!nodes.some((node) => node.id === selectedNodeId)) {
-      setSelectedNodeId(nodes[0]?.id || "");
-    }
-  }, [activeView, nodes, selectedNodeId]);
-
-  const visibleNodes = useMemo(
-    () => nodes.filter((node) => activeTypes.size === 0 || activeTypes.has(node.type)),
-    [activeTypes, nodes]
-  );
-  const visibleNodeIds = useMemo(
-    () => new Set(visibleNodes.map((node) => node.id)),
-    [visibleNodes]
-  );
-  const visibleEdges = useMemo(
-    () =>
-      edges.filter((edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)),
-    [edges, visibleNodeIds]
-  );
-  const cytoscapeElementKey = useMemo(
-    () => repositoryGraphElementsKey(visibleNodes, visibleEdges),
-    [visibleEdges, visibleNodes]
-  );
-  const cytoscapeElements = useMemo(() => {
-    if (cytoscapeElementCacheRef.current.key === cytoscapeElementKey) {
-      return cytoscapeElementCacheRef.current.elements;
-    }
-    const elements = [
-      ...visibleNodes.map((node) => ({
-        data: {
-          id: node.id,
-          label: node.label || node.path || node.id,
-          type: node.type || "file",
-          line: node.line || 0,
-        },
-      })),
-      ...visibleEdges.map((edge) => ({
-        data: {
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          label: edge.type,
-          weight: edge.weight || 1,
-        },
-      })),
-    ];
-    cytoscapeElementCacheRef.current = { key: cytoscapeElementKey, elements };
-    return elements;
-  }, [cytoscapeElementKey, visibleEdges, visibleNodes]);
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId) || visibleNodes[0] || null;
-  const viewIsCode = activeView === "code" && Boolean(codeGraph);
-
-  useEffect(() => {
-    if (!containerRef.current || cytoscapeElements.length === 0) return undefined;
-    const layoutOptions = {
-      name: viewIsCode ? "cose" : "breadthfirst",
-      directed: true,
-      padding: 28,
-      spacingFactor: viewIsCode ? 1.22 : 1.14,
-      animate: true,
-      animationDuration: 650,
-      animationEasing: "ease-out-cubic",
-      randomize: true,
-      fit: true,
-    };
-    const cy = cytoscape({
-      container: containerRef.current,
-      elements: cytoscapeElements,
-      style: [
-        {
-          selector: "node",
-          style: {
-            "background-color": "#2563eb",
-            "border-color": "#eff6ff",
-            "border-width": 1,
-            color: "#0f172a",
-            content: "data(label)",
-            "font-size": 10,
-            height: 18,
-            label: "data(label)",
-            "text-background-color": "#ffffff",
-            "text-background-opacity": 0.86,
-            "text-background-padding": 2,
-            "text-border-color": "#dbeafe",
-            "text-border-opacity": 0.9,
-            "text-border-width": 1,
-            "text-halign": "center",
-            "text-margin-y": 7,
-            "text-max-width": 112,
-            "text-opacity": 1,
-            "text-valign": "bottom",
-            "text-wrap": "ellipsis",
-            width: 18,
-          },
-        },
-        {
-          selector: 'node[type = "entrypoint"]',
-          style: { "background-color": "#16a34a", height: 24, width: 24 },
-        },
-        { selector: 'node[type = "module"]', style: { "background-color": "#7c3aed" } },
-        { selector: 'node[type = "test"]', style: { "background-color": "#d97706" } },
-        { selector: 'node[type = "workflow"]', style: { "background-color": "#0891b2" } },
-        {
-          selector: 'node[type = "route"]',
-          style: { "background-color": "#dc2626", height: 24, width: 24 },
-        },
-        {
-          selector: 'node[type = "component"]',
-          style: { "background-color": "#16a34a", height: 22, width: 22 },
-        },
-        { selector: 'node[type = "class"]', style: { "background-color": "#7c3aed" } },
-        { selector: 'node[type = "function"]', style: { "background-color": "#2563eb" } },
-        { selector: 'node[type = "method"]', style: { "background-color": "#0891b2" } },
-        { selector: 'node[type = "variable"]', style: { "background-color": "#64748b" } },
-        {
-          selector: "edge",
-          style: {
-            "curve-style": "bezier",
-            "line-color": "#94a3b8",
-            "target-arrow-color": "#94a3b8",
-            "target-arrow-shape": "triangle",
-            width: 1.2,
-          },
-        },
-      ],
-      layout: layoutOptions,
-      userZoomingEnabled: true,
-      userPanningEnabled: true,
-    });
-    cy.on("tap", "node", (event) => setSelectedNodeId(event.target.id()));
-    cyRef.current = cy;
-    return () => {
-      cyRef.current = null;
-      cy.destroy();
-    };
-  }, [cytoscapeElements, viewIsCode]);
-
-  if (!nodes.length) return null;
-
-  const toggleType = (type) => {
-    setActiveTypes((current) => {
-      const next = new Set(current);
-      if (next.has(type)) next.delete(type);
-      else next.add(type);
-      return next;
-    });
-  };
-
-  return (
-    <div className="repository-graph">
-      <div className="repository-graph-head">
-        <div className="scanning-counts-h">
-          <I.Layers size={14} />{" "}
-          {viewIsCode ? T("Semantic graph", "语义图") : T("Repository graph", "仓库图")}
-        </div>
-        <div className="repository-graph-stats">
-          <span>
-            {viewIsCode
-              ? graphCountLabel(nodes.length, "symbol", "symbols", "个符号")
-              : graphCountLabel(nodes.length, "node", "nodes", "个节点")}
-          </span>
-          <span>
-            {viewIsCode
-              ? graphCountLabel(edges.length, "relationship", "relationships", "条关系")
-              : graphCountLabel(edges.length, "edge", "edges", "条边")}
-          </span>
-          {viewIsCode && activeStats.source && <span>{activeStats.source}</span>}
-          {activeStats.truncated && <span>{T("capped", "已截断")}</span>}
-          <button
-            type="button"
-            className="btn ghost sm repository-graph-fit"
-            onClick={() => cyRef.current?.fit(undefined, 24)}
-          >
-            <I.Grid size={12} /> {T("Fit graph", "适应画布")}
-          </button>
-        </div>
-      </div>
-      {(fileGraph && codeGraph) || typeList.length > 1 ? (
-        <div
-          className="repository-graph-controls"
-          aria-label={T("Repository graph controls", "仓库图控制")}
-        >
-          {fileGraph && codeGraph && (
-            <GraphMenuPicker
-              className="repository-graph-view-picker"
-              triggerClassName="repository-graph-view-trigger"
-              triggerIcon={
-                activeView === "code" ? (
-                  <I.Code size={12} aria-hidden="true" />
-                ) : (
-                  <I.FileCode size={12} aria-hidden="true" />
-                )
-              }
-              triggerLabel={
-                activeView === "code" ? T("Semantic graph", "语义图") : T("File graph", "文件图")
-              }
-              ariaLabel={T("Graph view", "图视图")}
-              width={160}
-              options={[
-                {
-                  value: "files",
-                  label: T("File graph", "文件图"),
-                  icon: <I.FileCode size={11} aria-hidden="true" />,
-                  selected: activeView === "files",
-                  onSelect: () => setActiveView("files"),
-                },
-                {
-                  value: "code",
-                  label: T("Semantic graph", "语义图"),
-                  icon: <I.Code size={11} aria-hidden="true" />,
-                  selected: activeView === "code",
-                  onSelect: () => setActiveView("code"),
-                },
-              ]}
-            />
-          )}
-          {typeList.length > 1 && (
-            <GraphMenuPicker
-              className="repository-graph-type-picker"
-              triggerClassName="repository-graph-type-trigger"
-              triggerIcon={<I.Filter size={12} aria-hidden="true" />}
-              triggerLabel={graphTypeFilterLabel(activeTypes.size, typeList.length)}
-              ariaLabel={T("Node type filter", "节点类型筛选")}
-              width={200}
-              multiSelect
-              options={typeList.map((type) => ({
-                value: type,
-                label: repositoryGraphTypeLabel(type),
-                selected: activeTypes.has(type),
-                onSelect: () => toggleType(type),
-              }))}
-            />
-          )}
-        </div>
-      ) : null}
-      <div
-        className="repository-graph-canvas"
-        ref={containerRef}
-        role="img"
-        aria-label={
-          viewIsCode
-            ? T("Code semantic graph", "代码语义图")
-            : T("Repository dependency graph", "仓库依赖图")
-        }
-      />
-      {selectedNode && (
-        <div className="repository-graph-details">
-          <b>{selectedNode.signature || selectedNode.label || selectedNode.path}</b>
-          <span>
-            {selectedNode.path}
-            {selectedNode.line ? `:${selectedNode.line}` : ""}
-          </span>
-          <span className="tag">{selectedNode.type}</span>
-        </div>
-      )}
-    </div>
-  );
 }
 
 function ScanDetailSkeleton() {
@@ -2810,10 +1879,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const preflight = batchMode
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
-  const auditSwarm = scanAuditSwarmSummary(scans);
-  const repositoryGraph = batchMode ? null : scan?.repositoryGraph || null;
-  const semanticGraph = batchMode ? null : scan?.semanticGraph || null;
-  const impactGraph = batchMode ? null : scan?.impactGraph || null;
   const graphVerifiedReport = batchMode ? null : scan?.graphVerifiedReport || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
@@ -2824,8 +1889,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         batchRows.length === expectedBatchCount &&
         batchRows.every(isTerminalBatchRow)
       : isTerminalScan(scan));
-  const auditSwarmPhaseIndex = scanPhases.findIndex((phase) => phase.k === "ai");
-  const auditSwarmReviewComplete = auditSwarmPhaseIndex >= 0 && phaseIdx > auditSwarmPhaseIndex;
   const queueSummary = scanQueueSummary(scan);
   const canCancel =
     !detailLoading &&
@@ -2855,7 +1918,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
 
   const handleDownloadBundle = async () => {
     const targetScanId = batchMode ? "" : scanId;
-    if (!targetScanId || bundleLoading || !auditSwarmReviewComplete) return;
+    if (!targetScanId || bundleLoading || !terminal) return;
     setBundleLoading(true);
     try {
       const bundle = await pullwiseApi.scans.auditBundleArchive(targetScanId);
@@ -2991,6 +2054,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 {terminal && (
                   <>
                     <span className="scanning-actions-sep" aria-hidden="true" />
+                    {!batchMode && (
+                      <button className="btn ghost" disabled={bundleLoading} onClick={handleDownloadBundle}>
+                        <I.Download size={13} />{" "}
+                        {bundleLoading ? T("Preparing...", "准备中...") : T("Audit bundle", "审计包")}
+                      </button>
+                    )}
+                    {!batchMode && <span className="scanning-actions-sep" aria-hidden="true" />}
                     <button className="btn primary" onClick={() => go("dashboard")}>
                       <I.Layout size={13} /> {T("Overview", "总览")}
                     </button>
@@ -3056,36 +2126,18 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       i + 1
                     );
                     return (
-                      <Fragment key={p.k}>
-                        <div className={"scanning-phase" + cls}>
-                          <div className="scanning-phase-bullet">{bullet}</div>
-                          <div>
-                            <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
-                            <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
-                          </div>
+                      <div className={"scanning-phase" + cls} key={p.k}>
+                        <div className="scanning-phase-bullet">{bullet}</div>
+                        <div>
+                          <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
+                          <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
                         </div>
-                        {p.k === "ai" && auditSwarmReviewComplete && (
-                          <AuditSwarmEvidence
-                            auditSwarm={auditSwarm}
-                            className="scanning-audit-inline"
-                            onDownload={batchMode ? null : handleDownloadBundle}
-                            downloading={bundleLoading}
-                          />
-                        )}
-                      </Fragment>
+                      </div>
                     );
                   })}
                 </div>
 
-                {!batchMode && (impactGraph || terminal) && (
-                  <ImpactGraphPanel impactGraph={impactGraph} />
-                )}
-
                 <GraphVerifiedReport report={graphVerifiedReport} />
-
-                {(repositoryGraph || semanticGraph) && (
-                  <RepositoryGraphPanel graph={repositoryGraph} semanticGraph={semanticGraph} />
-                )}
               </>
             )}
           </div>
@@ -3129,10 +2181,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   </>
                 )}
               </div>
-
-              <CompletionAuditPanel audit={scan?.completionAudit || null} />
-
-              <JobTracePanel trace={scan?.jobTrace || null} />
 
               {preflight && (
                 <div className="card scanning-preflight">

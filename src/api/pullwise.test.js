@@ -105,30 +105,11 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(2, "/docs/server-config", { signal: undefined });
   });
 
-  it("calls scan impact graph endpoints", async () => {
-    request.mockResolvedValue({});
-
-    await pullwiseApi.scans.impactGraph("scan/with spaces#1");
-    await pullwiseApi.scans.impactFocus("scan/with spaces#1", {
-      path: "src/auth/session.ts",
-    });
-
-    expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231/impact-graph");
-    expect(request).toHaveBeenNthCalledWith(
-      2,
-      "/scans/scan%2Fwith%20spaces%231/impact-graph/focus?path=src%2Fauth%2Fsession.ts"
-    );
-  });
-
   it("rejects empty dynamic path segments before making a request", () => {
     expect(() => pullwiseApi.scans.get("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.retry("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.auditBundle("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.auditBundleArchive("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.scans.impactGraph("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.scans.impactFocus("", { path: "src/app.js" })).toThrow(
-      /path segment/i
-    );
     expect(() => pullwiseApi.scans.cancel(null)).toThrow(/path segment/i);
     expect(() => pullwiseApi.issues.get(undefined)).toThrow(/path segment/i);
     expect(() => pullwiseApi.issues.updateStatus("", { status: "fixed" })).toThrow(/path segment/i);

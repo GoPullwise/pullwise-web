@@ -152,7 +152,7 @@ function normalizeVerificationCounts(verification) {
   };
 }
 
-function normalizeVerificationAudit(value) {
+function _normalizeVerificationAudit(value) {
   const source = objectRecord(value) ? value : {};
   const rejectedReasons = Array.isArray(source.rejectedReasons ?? source.rejected_reasons)
     ? (source.rejectedReasons ?? source.rejected_reasons)
@@ -394,7 +394,7 @@ function normalizeListEntry(value, index, { fallbackLabel = "" } = {}) {
   };
 }
 
-function normalizeCompletionAudit(value) {
+function _normalizeCompletionAudit(value) {
   if (!objectRecord(value)) return null;
   const blockers = itemsFrom(value, "blockers", "blockingChecks", "blocking_checks", "gates")
     .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "blocker" }))
@@ -432,7 +432,7 @@ function normalizeCompletionAudit(value) {
     : null;
 }
 
-function normalizeJobTrace(value) {
+function _normalizeJobTrace(value) {
   const source = Array.isArray(value) ? { checkpoints: value } : objectRecord(value) ? value : null;
   if (!source) return null;
   const checkpoints = itemsFrom(
@@ -606,7 +606,7 @@ function isSafeRepositoryGraphId(value) {
   return !/(^|:)(file|dir|symbol):([A-Za-z]:\/|\/)/i.test(id);
 }
 
-function normalizeRepositoryGraph(value) {
+function _normalizeRepositoryGraph(value) {
   if (!objectRecord(value)) return null;
   const version = textValue(value.version);
   if (!REPOSITORY_GRAPH_PROTOCOL_VERSIONS.has(version)) return null;
@@ -951,7 +951,7 @@ function normalizeImpactStats(value, targets, changedFiles) {
   };
 }
 
-function normalizeRepositorySemanticGraph(value) {
+function _normalizeRepositorySemanticGraph(value) {
   if (!objectRecord(value)) return null;
   const version = textValue(value.version);
   if (version !== REPOSITORY_SEMANTIC_GRAPH_PROTOCOL_VERSION) return null;
@@ -1326,6 +1326,74 @@ function normalizeReproduction(value) {
     testFile: textValue(source.testFile, source.test_file),
     logPath: textValue(source.logPath, source.log_path),
   };
+}
+
+function normalizeGraphVerifiedGraphEvidence(value) {
+  const source = objectRecord(value) ? value : {};
+  const evidence = {
+    sliceId: textValue(source.slice_id, source.sliceId),
+    codegraphFiles: normalizeTextList(source.codegraph_files ?? source.codegraphFiles),
+    pathSummary: normalizeTextList(source.path_summary ?? source.pathSummary),
+  };
+  return evidence.sliceId || evidence.codegraphFiles.length || evidence.pathSummary.length
+    ? evidence
+    : null;
+}
+
+function normalizeGraphVerifiedCodeEvidence(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!objectRecord(item)) return null;
+      const file = textValue(item.file, item.path);
+      const lines = textValue(item.lines);
+      const whyItMatters = multilineTextValue(item.why_it_matters ?? item.whyItMatters ?? item.summary);
+      if (!file && !lines && !whyItMatters) return null;
+      return { file, lines, whyItMatters };
+    })
+    .filter(Boolean);
+}
+
+function normalizeGraphVerifiedIssue(issue, id, title) {
+  const normalized = {
+    ...issue,
+    id,
+    scanId: textValue(issue.scanId),
+    jobId: textValue(issue.jobId),
+    repo: textValue(issue.repo),
+    branch: textValue(issue.branch),
+    commit: textValue(issue.commit),
+    status: normalizeIssueStatus(issue.status),
+    severity: normalizeSeverity(issue.severity),
+    category: textValue(issue.category) || "General",
+    title,
+    summary: multilineTextValue(issue.summary),
+    graphVerified: true,
+    candidateId: textValue(issue.candidateId),
+    dedupeKey: textValue(issue.dedupeKey),
+    verificationLevel: textValue(issue.verificationLevel),
+    safeToShowUser: issue.safeToShowUser !== false,
+    graphEvidence: normalizeGraphVerifiedGraphEvidence(issue.graphEvidence),
+    codeEvidence: normalizeGraphVerifiedCodeEvidence(issue.codeEvidence),
+    affectedLocations: normalizeLocations(issue.affectedLocations),
+    triggerCondition: multilineTextValue(issue.triggerCondition),
+    expectedBehavior: multilineTextValue(issue.expectedBehavior),
+    observedBehavior: multilineTextValue(issue.observedBehavior),
+    reproduction: normalizeReproduction(issue.reproduction),
+    whyThisMatters: multilineTextValue(issue.whyThisMatters),
+    suggestedFixDirection: multilineTextValue(issue.suggestedFixDirection),
+    limitations: normalizeTextList(issue.limitations),
+    graphVerifiedReport: objectRecord(issue.graphVerifiedReport) ? { ...issue.graphVerifiedReport } : {},
+    feedbackReason: normalizeIssueFeedbackReason(issue.feedbackReason ?? issue.feedback_reason),
+    file: textValue(issue.file),
+    line: normalizeLineNumber(issue.line),
+    age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
+    autoFix: false,
+    autoFixable: false,
+    pullRequest: undefined,
+    pullRequestPending: undefined,
+  };
+  return normalized;
 }
 
 function normalizeReasoningBreakdown(value) {
@@ -1758,6 +1826,7 @@ export function normalizeIssue(issue = {}) {
   issue = issue || {};
   const id = textValue(issue.id);
   const title = textValue(issue.title);
+  if (issue.graphVerified) return normalizeGraphVerifiedIssue(issue, id, title);
   const autoFix = normalizeBoolean(issue.autoFix);
   const autoFixable = normalizeBoolean(issue.autoFixable);
   const normalized = {
@@ -1821,15 +1890,6 @@ export function normalizeScan(scan = {}) {
   const billingUsage = normalizeQuotaUsage(scan.billingUsage);
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
-  const rawRepositoryGraph = scan.repositoryGraph;
-  const repositoryGraph = normalizeRepositoryGraph(rawRepositoryGraph);
-  const semanticGraph =
-    normalizeRepositorySemanticGraph(scan.semanticGraph) ||
-    normalizeRepositorySemanticGraph(objectRecord(rawRepositoryGraph) ? rawRepositoryGraph.semanticGraph : null) ||
-    null;
-  const rawImpactGraph =
-    scan.impactGraph ?? (objectRecord(rawRepositoryGraph) ? rawRepositoryGraph.impactGraph : null);
-  const impactGraph = normalizeImpactGraph(rawImpactGraph) || repositoryGraph?.impactGraph || null;
   const graphVerifiedReport = normalizeGraphVerifiedReport(scan.graphVerifiedReport);
   return {
     ...scan,
@@ -1844,18 +1904,16 @@ export function normalizeScan(scan = {}) {
     progress: normalizeProgress(scan.progress),
     issues: normalizeIssueCounts(scan.issues),
     verification: normalizeVerificationCounts(scan.verification),
-    verificationAudit: normalizeVerificationAudit(
-      scan.verificationAudit ?? scan.verification_audit
-    ),
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),
-    completionAudit: normalizeCompletionAudit(scan.completionAudit ?? scan.completion_audit),
-    jobTrace: normalizeJobTrace(scan.jobTrace ?? scan.job_trace),
     preflight: normalizePreflight(scan.preflight),
-    auditSwarm: normalizeAuditSwarm(scan.auditSwarm ?? scan.audit_swarm),
     graphVerifiedReport,
-    repositoryGraph,
-    semanticGraph,
-    impactGraph,
+    verificationAudit: undefined,
+    completionAudit: undefined,
+    jobTrace: undefined,
+    auditSwarm: undefined,
+    repositoryGraph: undefined,
+    semanticGraph: undefined,
+    impactGraph: undefined,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,
@@ -1869,7 +1927,9 @@ function normalizeGraphVerifiedReport(value) {
   const finalJson = objectRecord(value.finalJson)
     ? { ...value.finalJson }
     : {};
-  const confirmed = Array.isArray(finalJson.confirmed) ? finalJson.confirmed : [];
+  const confirmed = Array.isArray(finalJson.confirmed)
+    ? finalJson.confirmed.filter(objectRecord)
+    : [];
   const report = {
     version: textValue(value.version) || "graph-verified-code-review/1",
     runId: textValue(value.runId),
@@ -1879,8 +1939,6 @@ function normalizeGraphVerifiedReport(value) {
     confirmedCount: normalizeCount(value.confirmedCount),
     rejectedCount: normalizeCount(value.rejectedCount),
     blockedCount: normalizeCount(value.blockedCount),
-    finalMarkdown: textValue(value.finalMarkdown),
-    debugMarkdown: textValue(value.debugMarkdown),
     finalJson: { ...finalJson, confirmed },
   };
   return report.runId ||
@@ -1888,8 +1946,6 @@ function normalizeGraphVerifiedReport(value) {
     report.confirmedCount ||
     report.rejectedCount ||
     report.blockedCount ||
-    report.finalMarkdown ||
-    report.debugMarkdown ||
     confirmed.length
     ? report
     : null;

@@ -40,9 +40,6 @@ export const pullwiseApi = {
     retry: (scanId, payload = {}) =>
       request(`/scans/${pathSegment(scanId)}/retry`, { method: "POST", body: payload }),
     auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
-    impactGraph: (scanId) => request(`/scans/${pathSegment(scanId)}/impact-graph`),
-    impactFocus: (scanId, params = {}) =>
-      request(withSearchParams(`/scans/${pathSegment(scanId)}/impact-graph/focus`, params)),
     auditBundleArchive: (scanId) =>
       request(`/scans/${pathSegment(scanId)}/audit-bundle.zip`, {
         responseType: "blob",
