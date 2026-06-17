@@ -351,7 +351,8 @@ function ReproductionCenter({ issue }) {
     reproduction.expected ||
     reproduction.actual ||
     reproduction.testFile ||
-    reproduction.logPath;
+    reproduction.logPath ||
+    reproduction.exitCode !== undefined;
   if (!hasStructuredRepro && !issue.reproductionPath) return null;
   return (
     <div className="repro-center">
@@ -389,10 +390,11 @@ function ReproductionCenter({ issue }) {
           )}
         </div>
       )}
-      {(reproduction.testFile || reproduction.logPath) && (
+      {(reproduction.testFile || reproduction.logPath || reproduction.exitCode) && (
         <div className="repro-tags">
           {reproduction.testFile && <span className="tag">test: {reproduction.testFile}</span>}
           {reproduction.logPath && <span className="tag">log: {reproduction.logPath}</span>}
+          {reproduction.exitCode !== undefined && <span className="tag">exit: {reproduction.exitCode}</span>}
         </div>
       )}
     </div>
@@ -418,6 +420,8 @@ function codeEvidenceLocation(item) {
 
 function GraphVerifiedIssueDetail({ issue }) {
   const graph = issue.graphEvidence || {};
+  const proof = issue.reproProof || {};
+  const judge = issue.judgeEvidence || {};
   const graphLines = [
     graph.sliceId ? `Slice: ${graph.sliceId}` : "",
     ...(graph.pathSummary || []),
@@ -433,8 +437,28 @@ function GraphVerifiedIssueDetail({ issue }) {
       issue.reproduction?.input ||
       issue.reproduction?.expected ||
       issue.reproduction?.actual ||
-      issue.reproduction?.logPath
+      issue.reproduction?.logPath ||
+      issue.reproduction?.exitCode !== undefined
   );
+  const proofFields = [
+    [T("Type", "Type"), proof.type],
+    [T("Expected", "Expected"), proof.expected],
+    [T("Actual", "Actual"), proof.actual],
+    [T("Log excerpt", "Log excerpt"), proof.logExcerpt],
+    [T("Graph path exercised", "Graph path exercised"), proof.graphPathExercised ? "true" : ""],
+  ].filter(([, value]) => markdownText(value));
+  const judgeFields = [
+    [T("Status", "Status"), judge.status],
+    [T("Level", "Level"), judge.level],
+    [
+      T("Safe to show user", "Safe to show user"),
+      typeof judge.safeToShowUser === "boolean" ? (judge.safeToShowUser ? "true" : "false") : "",
+    ],
+    [T("Command", "Command"), judge.command],
+    [T("Log path", "Log path"), judge.logPath],
+    [T("Observable", "Observable"), judge.observable],
+    [T("Reason", "Reason"), judge.reason],
+  ].filter(([, value]) => markdownText(value));
 
   return (
     <>
@@ -485,6 +509,32 @@ function GraphVerifiedIssueDetail({ issue }) {
       >
         {hasReproduction && <ReproductionCenter issue={issue} />}
       </DetailSection>
+
+      {proofFields.length > 0 && (
+        <DetailSection title={T("Reproduction proof", "Reproduction proof")}>
+          <div className="repro-fields">
+            {proofFields.map(([label, value]) => (
+              <div key={label} className="repro-field">
+                <b className="repro-field-title">{label}</b>
+                <p className="muted repro-field-text">{value}</p>
+              </div>
+            ))}
+          </div>
+        </DetailSection>
+      )}
+
+      {judgeFields.length > 0 && (
+        <DetailSection title={T("Judge validation", "Judge validation")}>
+          <div className="repro-fields">
+            {judgeFields.map(([label, value]) => (
+              <div key={label} className="repro-field">
+                <b className="repro-field-title">{label}</b>
+                <p className="muted repro-field-text">{value}</p>
+              </div>
+            ))}
+          </div>
+        </DetailSection>
+      )}
 
       {issue.whyThisMatters && (
         <DetailSection title={T("Why this matters", "Why this matters")}>

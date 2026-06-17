@@ -1041,6 +1041,29 @@ body.has-proto-nav {
   min-height: 20px;
 }
 
+.graph-verified-evidence-block > ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 16px;
+  min-width: 0;
+}
+
+.graph-verified-evidence-block li,
+.graph-verified-inline-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.graph-verified-inline-meta {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
 .scanning-h {
   align-items: flex-start;
 }

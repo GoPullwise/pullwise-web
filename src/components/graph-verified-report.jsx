@@ -35,7 +35,7 @@ function itemSeverity(item) {
 function graphEvidenceLines(item) {
   const graph = item?.candidate?.graph_evidence || {};
   return [
-    text(graph.slice_id),
+    text(graph.slice_id) ? `slice: ${text(graph.slice_id)}` : "",
     ...textList(graph.path_summary),
     ...textList(graph.codegraph_files).map((file) => `file: ${file}`),
   ].filter(Boolean);
@@ -57,6 +57,38 @@ function reproductionCommand(item) {
   const commands = Array.isArray(item?.repro?.commands_run) ? item.repro.commands_run : [];
   const first = commands.find((command) => command && typeof command === "object");
   return text(first?.cmd) || text(item?.judge?.evidence_summary?.command);
+}
+
+function reproductionCommandMeta(item) {
+  const commands = Array.isArray(item?.repro?.commands_run) ? item.repro.commands_run : [];
+  const first = commands.find((command) => command && typeof command === "object") || {};
+  return [
+    text(first.exit_code) ? `exit ${text(first.exit_code)}` : "",
+    text(first.log_path) || text(item?.judge?.evidence_summary?.log_path),
+  ].filter(Boolean);
+}
+
+function proofLines(item) {
+  const proof = item?.repro?.proof || {};
+  return [
+    text(proof.type) ? `type: ${text(proof.type)}` : "",
+    text(proof.expected) ? `expected: ${text(proof.expected)}` : "",
+    text(proof.actual) ? `actual: ${text(proof.actual)}` : "",
+    text(proof.log_excerpt) ? `log: ${text(proof.log_excerpt)}` : "",
+    item?.repro?.graph_path_exercised === true ? "graph path exercised" : "",
+  ].filter(Boolean);
+}
+
+function judgeLines(item) {
+  const judge = item?.judge || {};
+  const evidence = judge.evidence_summary || {};
+  return [
+    text(judge.status) ? `status: ${text(judge.status)}` : "",
+    text(judge.level) ? `level: ${text(judge.level)}` : "",
+    typeof judge.safe_to_show_user === "boolean" ? `safe: ${judge.safe_to_show_user ? "true" : "false"}` : "",
+    text(evidence.observable) ? `observable: ${text(evidence.observable)}` : "",
+    text(judge.reason) ? `reason: ${text(judge.reason)}` : "",
+  ].filter(Boolean);
 }
 
 function confirmedCount(report, items) {
@@ -94,6 +126,9 @@ export function GraphVerifiedReport({ report, compact = false }) {
             const graphLines = graphEvidenceLines(item);
             const codeLines = codeEvidenceLines(item);
             const command = reproductionCommand(item);
+            const commandMeta = reproductionCommandMeta(item);
+            const proof = proofLines(item);
+            const judge = judgeLines(item);
             return (
               <article
                 className="audit-card"
@@ -110,22 +145,27 @@ export function GraphVerifiedReport({ report, compact = false }) {
                 {!compact && (
                   <>
                     {graphLines.length > 0 && (
-                      <div className="audit-card-row">
-                        <b>{T("Graph", "Graph")}</b>
-                        <span>{graphLines.slice(0, 4).join(" | ")}</span>
-                      </div>
+                      <EvidenceBlock title={T("Graph evidence", "Graph evidence")} items={graphLines} />
                     )}
                     {codeLines.length > 0 && (
-                      <div className="audit-card-row">
-                        <b>{T("Code", "Code")}</b>
-                        <span>{codeLines.slice(0, 3).join(" | ")}</span>
-                      </div>
+                      <EvidenceBlock title={T("Code evidence", "Code evidence")} items={codeLines} />
                     )}
                     {command && (
                       <div className="audit-card-row">
                         <b>{T("Repro", "Repro")}</b>
-                        <code className="tag evidence-command">{command}</code>
+                        <span>
+                          <code className="tag evidence-command">{command}</code>
+                          {commandMeta.length > 0 && (
+                            <span className="graph-verified-inline-meta">{commandMeta.join(" | ")}</span>
+                          )}
+                        </span>
                       </div>
+                    )}
+                    {proof.length > 0 && (
+                      <EvidenceBlock title={T("Proof", "Proof")} items={proof} />
+                    )}
+                    {judge.length > 0 && (
+                      <EvidenceBlock title={T("Judge", "Judge")} items={judge} />
                     )}
                   </>
                 )}
@@ -137,5 +177,18 @@ export function GraphVerifiedReport({ report, compact = false }) {
         <div className="muted">{T("No confirmed findings.", "No confirmed findings.")}</div>
       )}
     </section>
+  );
+}
+
+function EvidenceBlock({ title, items }) {
+  return (
+    <div className="audit-card-row graph-verified-evidence-block">
+      <b>{title}</b>
+      <ul>
+        {items.slice(0, 6).map((item, index) => (
+          <li key={`${title}-${index}-${item}`}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }

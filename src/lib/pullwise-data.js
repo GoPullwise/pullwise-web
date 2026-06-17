@@ -545,525 +545,6 @@ function normalizeAiUsage(value) {
   return Object.keys(usage).length ? usage : null;
 }
 
-const REPOSITORY_GRAPH_PROTOCOL_VERSIONS = new Set([
-  "repository-graph/0.1",
-  "repository-graph/0.2",
-]);
-const REPOSITORY_IMPACT_GRAPH_PROTOCOL_VERSION = "impact-graph/0.1";
-const REPOSITORY_SEMANTIC_GRAPH_PROTOCOL_VERSION = "semantic-code-graph/0.1";
-const REPOSITORY_GRAPH_MAX_NODES = 120;
-const REPOSITORY_GRAPH_MAX_EDGES = 240;
-const REPOSITORY_GRAPH_MAX_SEMANTIC_NODES = 120;
-const REPOSITORY_GRAPH_MAX_SEMANTIC_EDGES = 240;
-const REPOSITORY_GRAPH_MAX_PROMPT_CHARS = 2048;
-const REPOSITORY_GRAPH_MAX_EVIDENCE = 4;
-const IMPACT_GRAPH_MAX_TARGETS = 120;
-const IMPACT_GRAPH_MAX_RELATIONS = 40;
-const IMPACT_GRAPH_MAX_COVERAGE_ITEMS = 80;
-const REPOSITORY_GRAPH_NODE_TYPES = new Set([
-  "entrypoint",
-  "module",
-  "test",
-  "manifest",
-  "workflow",
-  "doc",
-  "config",
-  "file",
-]);
-const REPOSITORY_GRAPH_EDGE_TYPES = new Set([
-  "imports",
-  "contains",
-  "calls",
-  "configures",
-  "depends_on",
-  "tests",
-  "documents",
-]);
-const IMPACT_GRAPH_MODES = new Set(["repository", "changeset", "issue"]);
-const REPOSITORY_SEMANTIC_NODE_TYPES = new Set([
-  "class",
-  "component",
-  "function",
-  "method",
-  "route",
-  "variable",
-]);
-const REPOSITORY_SEMANTIC_EDGE_TYPES = new Set([
-  "calls",
-  "defines",
-  "extends",
-  "handles",
-  "imports",
-  "implements",
-  "uses",
-]);
-const REPOSITORY_GRAPH_ID_RE = /^[A-Za-z0-9_.:/@-]{1,180}$/;
-
-function isSafeRepositoryGraphId(value) {
-  const id = textValue(value);
-  if (!REPOSITORY_GRAPH_ID_RE.test(id)) return false;
-  if (/^[A-Za-z]:\//.test(id) || id.startsWith("/")) return false;
-  return !/(^|:)(file|dir|symbol):([A-Za-z]:\/|\/)/i.test(id);
-}
-
-function _normalizeRepositoryGraph(value) {
-  if (!objectRecord(value)) return null;
-  const version = textValue(value.version);
-  if (!REPOSITORY_GRAPH_PROTOCOL_VERSIONS.has(version)) return null;
-  const nodes = [];
-  const nodeIds = new Set();
-  const rawNodes = Array.isArray(value.nodes) ? value.nodes : [];
-  for (const item of rawNodes) {
-    const node = normalizeRepositoryGraphNode(item);
-    if (!node || nodeIds.has(node.id)) continue;
-    nodeIds.add(node.id);
-    nodes.push(node);
-    if (nodes.length >= REPOSITORY_GRAPH_MAX_NODES) break;
-  }
-  const edges = [];
-  const edgeIds = new Set();
-  const rawEdges = Array.isArray(value.edges) ? value.edges : [];
-  for (const item of rawEdges) {
-    const edge = normalizeRepositoryGraphEdge(item, nodeIds);
-    if (!edge || edgeIds.has(edge.id)) continue;
-    edgeIds.add(edge.id);
-    edges.push(edge);
-    if (edges.length >= REPOSITORY_GRAPH_MAX_EDGES) break;
-  }
-  const graph = {
-    version,
-    generatedAt: normalizeQuotaCount(value.generatedAt, 0),
-    repo: textValue(value.repo),
-    branch: textValue(value.branch) || "main",
-    commit: textValue(value.commit) || "pending",
-    summary: textValue(value.summary),
-    stats: normalizeRepositoryGraphStats(value.stats, nodes, edges, rawNodes.length, rawEdges.length),
-    nodes,
-    edges,
-    architectureSummary: normalizeRepositoryGraphArchitectureSummary(value.architectureSummary),
-  };
-  const impactGraph = normalizeImpactGraph(value.impactGraph);
-  if (impactGraph) graph.impactGraph = impactGraph;
-  if (!graph.summary) delete graph.summary;
-  if (!Object.keys(graph.architectureSummary).length) delete graph.architectureSummary;
-  return graph;
-}
-
-function normalizeRepositoryGraphNode(value) {
-  if (!objectRecord(value)) return null;
-  const id = textValue(value.id);
-  const type = textValue(value.type);
-  const path = normalizeRepositoryGraphPath(value.path);
-  if (!id || !isSafeRepositoryGraphId(id) || !REPOSITORY_GRAPH_NODE_TYPES.has(type) || !path) {
-    return null;
-  }
-  const node = {
-    id,
-    label: textValue(value.label).slice(0, 80) || path.split("/").pop() || id,
-    type,
-    path,
-  };
-  const importance = Number(value.importance);
-  if (Number.isFinite(importance)) node.importance = Math.max(0, Math.min(1, importance));
-  const tags = normalizeTextList(value.tags).slice(0, 10);
-  if (tags.length) node.tags = tags;
-  return node;
-}
-
-function normalizeRepositoryGraphEdge(value, nodeIds) {
-  if (!objectRecord(value)) return null;
-  const source = textValue(value.source);
-  const target = textValue(value.target);
-  const type = textValue(value.type);
-  if (
-    !nodeIds.has(source) ||
-    !nodeIds.has(target) ||
-    source === target ||
-    !REPOSITORY_GRAPH_EDGE_TYPES.has(type)
-  ) {
-    return null;
-  }
-  const fallbackId = `${type}:${source}->${target}`.slice(0, 180);
-  const id = isSafeRepositoryGraphId(value.id) ? textValue(value.id) : fallbackId;
-  const edge = { id, source, target, type };
-  const weight = Number(value.weight);
-  if (Number.isFinite(weight) && weight > 0) edge.weight = Math.min(100, Math.trunc(weight));
-  const confidence = optionalUnitNumber(value.confidence);
-  if (confidence !== null) edge.confidence = confidence;
-  const evidence = normalizeRepositoryGraphEvidence(value.evidence);
-  if (evidence.length) edge.evidence = evidence;
-  return edge;
-}
-
-function normalizeRepositoryGraphStats(value, nodes, edges, rawNodeCount, rawEdgeCount) {
-  const source = objectRecord(value) ? value : {};
-  return {
-    files: normalizeQuotaCount(source.files, 0),
-    nodes: nodes.length,
-    edges: edges.length,
-    languages: normalizeTextList(source.languages).slice(0, 8),
-    truncated:
-      Boolean(source.truncated) || rawNodeCount > nodes.length || rawEdgeCount > edges.length,
-  };
-}
-
-function normalizeRepositoryGraphArchitectureSummary(value) {
-  if (!objectRecord(value)) return {};
-  const summary = {};
-  for (const key of ["entrypoints", "modules", "tests", "workflows"]) {
-    const items = (Array.isArray(value[key]) ? value[key] : [])
-      .map(normalizeRepositoryGraphPath)
-      .filter(Boolean)
-      .slice(0, 20);
-    if (items.length) summary[key] = items;
-  }
-  const reviewHints = normalizeTextList(value.reviewHints ?? value.review_hints).slice(0, 20);
-  if (reviewHints.length) summary.reviewHints = reviewHints;
-  const promptText = multilineTextValue(value.promptText ?? value.prompt_text, REPOSITORY_GRAPH_MAX_PROMPT_CHARS);
-  if (promptText) summary.promptText = promptText;
-  return summary;
-}
-
-function optionalUnitNumber(value) {
-  if (value === undefined || value === null || value === "") return null;
-  const number = Number(value);
-  if (!Number.isFinite(number)) return null;
-  return Math.max(0, Math.min(1, number));
-}
-
-function normalizeRepositoryGraphEvidence(value, { maxItems = REPOSITORY_GRAPH_MAX_EVIDENCE } = {}) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (!objectRecord(item)) {
-        const text = firstLineText(item).slice(0, 180);
-        return text ? { text } : null;
-      }
-      const evidence = {};
-      const kind = textValue(item.kind, item.type).slice(0, 40);
-      const file = normalizeRepositoryGraphPath(item.file ?? item.path);
-      const line = normalizeQuotaCount(item.line ?? item.startLine ?? item.start_line, 0);
-      const text = firstLineText(item.text ?? item.summary ?? item.label ?? item.command).slice(
-        0,
-        180
-      );
-      if (kind) evidence.kind = kind;
-      if (file) evidence.file = file;
-      if (line) evidence.line = line;
-      if (text) evidence.text = text;
-      return Object.keys(evidence).length ? evidence : null;
-    })
-    .filter(Boolean)
-    .slice(0, maxItems);
-}
-
-export function normalizeImpactGraph(value) {
-  const source =
-    objectRecord(value?.impactGraph) && !textValue(value.version) ? value.impactGraph : value;
-  if (!objectRecord(source)) return null;
-  const version = textValue(source.version);
-  if (version !== REPOSITORY_IMPACT_GRAPH_PROTOCOL_VERSION) return null;
-  const targets = [];
-  const targetIds = new Set();
-  const rawTargets = Array.isArray(source.targets) ? source.targets : [];
-  for (const item of rawTargets) {
-    const target = normalizeImpactTarget(item);
-    if (!target || targetIds.has(target.id)) continue;
-    targetIds.add(target.id);
-    targets.push(target);
-    if (targets.length >= IMPACT_GRAPH_MAX_TARGETS) break;
-  }
-  const changedFiles = normalizeImpactPathList(source.changedFiles ?? source.changed_files).slice(
-    0,
-    IMPACT_GRAPH_MAX_COVERAGE_ITEMS
-  );
-  const mode = textValue(source.mode);
-  const graph = {
-    version,
-    mode: IMPACT_GRAPH_MODES.has(mode) ? mode : "repository",
-    summary: textValue(source.summary),
-    stats: normalizeImpactStats(source.stats, targets, changedFiles),
-    changedFiles,
-    targets,
-    coverage: normalizeImpactCoverage(source.coverage),
-    promptText: multilineTextValue(
-      source.promptText ?? source.prompt_text,
-      REPOSITORY_GRAPH_MAX_PROMPT_CHARS
-    ),
-  };
-  if (!graph.summary) delete graph.summary;
-  if (!graph.promptText) delete graph.promptText;
-  return graph;
-}
-
-export function normalizeImpactTarget(value) {
-  if (!objectRecord(value)) return null;
-  const rawId = textValue(value.id);
-  let path = normalizeRepositoryGraphPath(value.path ?? value.file);
-  if (!path && rawId.startsWith("file:")) {
-    path = normalizeRepositoryGraphPath(rawId.slice(5));
-  }
-  if (!path) return null;
-  const fallbackId = `file:${path}`.slice(0, 180);
-  const id = isSafeRepositoryGraphId(rawId) ? rawId : fallbackId;
-  const target = {
-    id,
-    path,
-    label: textValue(value.label).slice(0, 80) || path.split("/").pop() || path,
-    type: textValue(value.type) || "file",
-    relations: normalizeImpactRelations(value.relations),
-    gaps: normalizeTextList(value.gaps).slice(0, 20),
-  };
-  const risk = optionalUnitNumber(value.risk);
-  if (risk !== null) target.risk = risk;
-  const evidence = normalizeRepositoryGraphEvidence(value.evidence, { maxItems: 8 });
-  if (evidence.length) target.evidence = evidence;
-  return target;
-}
-
-function normalizeImpactRelations(value) {
-  const source = objectRecord(value) ? value : {};
-  return {
-    tests: normalizeImpactRelationList(source.tests ?? source.test),
-    documents: normalizeImpactRelationList(
-      source.documents ?? source.docs ?? source.documentation
-    ),
-    configures: normalizeImpactRelationList(source.configures ?? source.config ?? source.configs),
-    ci: normalizeImpactRelationList(source.ci ?? source.CI ?? source.workflows),
-    imports: normalizeImpactRelationList(source.imports),
-    importedBy: normalizeImpactRelationList(source.importedBy ?? source.imported_by),
-    symbols: normalizeImpactRelationList(source.symbols),
-  };
-}
-
-function normalizeImpactRelationList(value) {
-  if (!Array.isArray(value)) return [];
-  return value.map(normalizeImpactRelation).filter(Boolean).slice(0, IMPACT_GRAPH_MAX_RELATIONS);
-}
-
-export function normalizeImpactRelation(value) {
-  if (!objectRecord(value)) {
-    const path = normalizeRepositoryGraphPath(value);
-    if (!path) return null;
-    return {
-      id: `file:${path}`.slice(0, 180),
-      path,
-      label: path.split("/").pop() || path,
-    };
-  }
-  const path = normalizeRepositoryGraphPath(
-    value.path ??
-      value.file ??
-      value.targetPath ??
-      value.target_path ??
-      value.sourcePath ??
-      value.source_path
-  );
-  const label = textValue(value.label, value.name).slice(0, 100);
-  const rawId = textValue(value.id);
-  const fallbackId = (path ? `file:${path}` : label ? `relation:${label}` : "").slice(0, 180);
-  const id = isSafeRepositoryGraphId(rawId) ? rawId : fallbackId;
-  if (!id && !path && !label) return null;
-  const relation = {
-    id: id || label,
-    label: label || path.split("/").pop() || id,
-  };
-  if (path) relation.path = path;
-  const type = textValue(value.type, value.kind);
-  if (type) relation.type = type;
-  const line = normalizeLineNumber(value.line ?? value.startLine ?? value.start_line);
-  if (line) relation.line = line;
-  const confidence = optionalUnitNumber(value.confidence);
-  if (confidence !== null) relation.confidence = confidence;
-  const evidence = normalizeRepositoryGraphEvidence(value.evidence);
-  if (evidence.length) relation.evidence = evidence;
-  return relation;
-}
-
-function normalizeImpactPathList(values) {
-  if (!Array.isArray(values)) return [];
-  return [
-    ...new Set(
-      values
-        .map((item) =>
-          objectRecord(item)
-            ? normalizeRepositoryGraphPath(item.path ?? item.file)
-            : normalizeRepositoryGraphPath(item)
-        )
-        .filter(Boolean)
-    ),
-  ];
-}
-
-export function normalizeImpactCoverage(value) {
-  const source = objectRecord(value) ? value : {};
-  return {
-    sourceFilesWithoutTests: normalizeImpactPathList(
-      source.sourceFilesWithoutTests ?? source.source_files_without_tests
-    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
-    sourceFilesWithoutDocs: normalizeImpactPathList(
-      source.sourceFilesWithoutDocs ?? source.source_files_without_docs
-    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
-    testsWithoutTargets: normalizeImpactPathList(
-      source.testsWithoutTargets ?? source.tests_without_targets
-    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
-    docsWithoutTargets: normalizeImpactPathList(
-      source.docsWithoutTargets ?? source.docs_without_targets
-    ).slice(0, IMPACT_GRAPH_MAX_COVERAGE_ITEMS),
-  };
-}
-
-function normalizeImpactStats(value, targets, changedFiles) {
-  const source = objectRecord(value) ? value : {};
-  const relationCount = (key) =>
-    targets.reduce((total, target) => total + (target.relations?.[key]?.length || 0), 0);
-  const configuredRelationCount = relationCount("configures") + relationCount("ci");
-  return {
-    targets: normalizeQuotaCount(source.targets, targets.length),
-    testedTargets: normalizeQuotaCount(
-      source.testedTargets ?? source.tested_targets,
-      targets.filter((target) => target.relations.tests.length > 0).length
-    ),
-    documentedTargets: normalizeQuotaCount(
-      source.documentedTargets ?? source.documented_targets,
-      targets.filter((target) => target.relations.documents.length > 0).length
-    ),
-    configuredTargets: normalizeQuotaCount(
-      source.configuredTargets ?? source.configured_targets,
-      targets.filter(
-        (target) => target.relations.configures.length > 0 || target.relations.ci.length > 0
-      ).length
-    ),
-    testsEdges: normalizeQuotaCount(source.testsEdges ?? source.tests_edges, relationCount("tests")),
-    documentsEdges: normalizeQuotaCount(
-      source.documentsEdges ?? source.documents_edges,
-      relationCount("documents")
-    ),
-    configuresEdges: normalizeQuotaCount(
-      source.configuresEdges ?? source.configures_edges,
-      configuredRelationCount
-    ),
-    changedFiles: normalizeQuotaCount(
-      source.changedFiles ?? source.changed_files,
-      changedFiles.length
-    ),
-    truncated: normalizeBoolean(source.truncated),
-  };
-}
-
-function _normalizeRepositorySemanticGraph(value) {
-  if (!objectRecord(value)) return null;
-  const version = textValue(value.version);
-  if (version !== REPOSITORY_SEMANTIC_GRAPH_PROTOCOL_VERSION) return null;
-  const nodes = [];
-  const nodeIds = new Set();
-  const rawNodes = Array.isArray(value.nodes) ? value.nodes : [];
-  for (const item of rawNodes) {
-    const node = normalizeRepositorySemanticNode(item);
-    if (!node || nodeIds.has(node.id)) continue;
-    nodeIds.add(node.id);
-    nodes.push(node);
-    if (nodes.length >= REPOSITORY_GRAPH_MAX_SEMANTIC_NODES) break;
-  }
-  if (!nodes.length) return null;
-  const edges = [];
-  const edgeIds = new Set();
-  const rawEdges = Array.isArray(value.edges) ? value.edges : [];
-  for (const item of rawEdges) {
-    const edge = normalizeRepositorySemanticEdge(item, nodeIds);
-    if (!edge || edgeIds.has(edge.id)) continue;
-    edgeIds.add(edge.id);
-    edges.push(edge);
-    if (edges.length >= REPOSITORY_GRAPH_MAX_SEMANTIC_EDGES) break;
-  }
-  const graph = {
-    version,
-    summary: textValue(value.summary),
-    stats: normalizeRepositorySemanticStats(value.stats, nodes, edges, rawNodes.length, rawEdges.length),
-    nodes,
-    edges,
-    reviewHints: normalizeTextList(value.reviewHints ?? value.review_hints).slice(0, 20),
-  };
-  if (!graph.summary) delete graph.summary;
-  if (!graph.reviewHints.length) delete graph.reviewHints;
-  return graph;
-}
-
-function normalizeRepositorySemanticNode(value) {
-  if (!objectRecord(value)) return null;
-  const id = textValue(value.id);
-  const type = textValue(value.type);
-  const path = normalizeRepositoryGraphPath(value.path);
-  if (!id || !isSafeRepositoryGraphId(id) || !REPOSITORY_SEMANTIC_NODE_TYPES.has(type) || !path) {
-    return null;
-  }
-  const node = {
-    id,
-    label: textValue(value.label).slice(0, 80) || path.split("/").pop() || id,
-    type,
-    path,
-    line: normalizeQuotaCount(value.line, 0),
-  };
-  if (!node.line) delete node.line;
-  const signature = textValue(value.signature).slice(0, 180);
-  if (signature) node.signature = signature;
-  const importance = Number(value.importance);
-  if (Number.isFinite(importance)) node.importance = Math.max(0, Math.min(1, importance));
-  const tags = normalizeTextList(value.tags).slice(0, 10);
-  if (tags.length) node.tags = tags;
-  return node;
-}
-
-function normalizeRepositorySemanticEdge(value, nodeIds) {
-  if (!objectRecord(value)) return null;
-  const source = textValue(value.source);
-  const target = textValue(value.target);
-  const type = textValue(value.type);
-  if (
-    !nodeIds.has(source) ||
-    !nodeIds.has(target) ||
-    source === target ||
-    !REPOSITORY_SEMANTIC_EDGE_TYPES.has(type)
-  ) {
-    return null;
-  }
-  const fallbackId = `${type}:${source}->${target}`.slice(0, 180);
-  const id = isSafeRepositoryGraphId(value.id) ? textValue(value.id) : fallbackId;
-  const edge = { id, source, target, type };
-  const weight = Number(value.weight);
-  if (Number.isFinite(weight) && weight > 0) edge.weight = Math.min(100, Math.trunc(weight));
-  const confidence = optionalUnitNumber(value.confidence);
-  if (confidence !== null) edge.confidence = confidence;
-  const evidence = normalizeRepositoryGraphEvidence(value.evidence);
-  if (evidence.length) edge.evidence = evidence;
-  return edge;
-}
-
-function normalizeRepositorySemanticStats(value, nodes, edges, rawNodeCount, rawEdgeCount) {
-  const source = objectRecord(value) ? value : {};
-  const stats = {
-    files: normalizeQuotaCount(source.files, 0),
-    symbols: nodes.length,
-    relationships: edges.length,
-    routes: nodes.filter((node) => node.type === "route").length,
-    truncated:
-      Boolean(source.truncated) || rawNodeCount > nodes.length || rawEdgeCount > edges.length,
-  };
-  const graphSource = textValue(source.source);
-  if (["agent_fallback", "static"].includes(graphSource)) stats.source = graphSource;
-  return stats;
-}
-
-function normalizeRepositoryGraphPath(value) {
-  const text = firstLineText(value).replaceAll("\\", "/");
-  if (!text || text.startsWith("/") || text.startsWith("//") || /^[A-Za-z]:/.test(text)) return "";
-  const parts = text.split("/");
-  if (parts.some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) {
-    return "";
-  }
-  return parts.join("/");
-}
-
 function normalizeDisplayCount(...values) {
   for (const value of values) {
     if (value === undefined || value === null || value === "") continue;
@@ -1325,6 +806,7 @@ function normalizeReproduction(value) {
     actual: textValue(source.actual),
     testFile: textValue(source.testFile, source.test_file),
     logPath: textValue(source.logPath, source.log_path),
+    exitCode: normalizeCount(source.exitCode ?? source.exit_code),
   };
 }
 
@@ -1354,9 +836,47 @@ function normalizeGraphVerifiedCodeEvidence(value) {
     .filter(Boolean);
 }
 
+function normalizeGraphVerifiedJudgeEvidence(value) {
+  const source = objectRecord(value) ? value : {};
+  const hasSafeToShow =
+    typeof source.safeToShowUser === "boolean" || typeof source.safe_to_show_user === "boolean";
+  const evidence = {
+    status: textValue(source.status),
+    level: textValue(source.level),
+    safeToShowUser: source.safeToShowUser === false ? false : source.safe_to_show_user === false ? false : true,
+    reason: multilineTextValue(source.reason),
+    command: textValue(source.command),
+    logPath: textValue(source.logPath, source.log_path),
+    observable: multilineTextValue(source.observable),
+  };
+  return evidence.status ||
+    evidence.level ||
+    evidence.reason ||
+    evidence.command ||
+    evidence.logPath ||
+    evidence.observable ||
+    hasSafeToShow
+    ? evidence
+    : null;
+}
+
+function normalizeGraphVerifiedReproProof(value) {
+  const source = objectRecord(value) ? value : {};
+  const proof = {
+    type: textValue(source.type),
+    expected: multilineTextValue(source.expected),
+    actual: multilineTextValue(source.actual),
+    logExcerpt: multilineTextValue(source.logExcerpt, 2000) || multilineTextValue(source.log_excerpt, 2000),
+    graphPathExercised: source.graphPathExercised === true || source.graph_path_exercised === true,
+  };
+  return proof.type || proof.expected || proof.actual || proof.logExcerpt || proof.graphPathExercised
+    ? proof
+    : null;
+}
+
 function normalizeGraphVerifiedIssue(issue, id, title) {
+  const graphVerifiedItem = objectRecord(issue.graphVerifiedItem) ? { ...issue.graphVerifiedItem } : {};
   const normalized = {
-    ...issue,
     id,
     scanId: textValue(issue.scanId),
     jobId: textValue(issue.jobId),
@@ -1384,9 +904,14 @@ function normalizeGraphVerifiedIssue(issue, id, title) {
     suggestedFixDirection: multilineTextValue(issue.suggestedFixDirection),
     limitations: normalizeTextList(issue.limitations),
     graphVerifiedReport: objectRecord(issue.graphVerifiedReport) ? { ...issue.graphVerifiedReport } : {},
+    graphVerifiedItem,
+    judgeEvidence: normalizeGraphVerifiedJudgeEvidence(issue.judgeEvidence),
+    reproProof: normalizeGraphVerifiedReproProof(issue.reproProof),
     feedbackReason: normalizeIssueFeedbackReason(issue.feedbackReason ?? issue.feedback_reason),
     file: textValue(issue.file),
     line: normalizeLineNumber(issue.line),
+    createdAt: issue.createdAt,
+    updatedAt: issue.updatedAt,
     age: issue.age || formatTime(issue.createdAt || issue.updatedAt),
     autoFix: false,
     autoFixable: false,
@@ -1402,264 +927,6 @@ function normalizeReasoningBreakdown(value) {
     facts: normalizeTextList(source.facts),
     inferences: normalizeTextList(source.inferences),
     recommendations: normalizeTextList(source.recommendations),
-  };
-}
-
-function normalizeAuditSwarmTextList(value) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (objectRecord(item)) return normalizeAuditSwarmEvidenceText(item);
-      return textValue(item);
-    })
-    .filter(Boolean);
-}
-
-function normalizeAuditSwarmEvidenceLocation(item) {
-  const file = textValue(item.file, item.path);
-  if (!file) return "";
-  const startLine = normalizeLineNumber(item.startLine ?? item.start_line ?? item.line);
-  const endLine = normalizeLineNumber(item.endLine ?? item.end_line);
-  if (startLine && endLine && endLine !== startLine) return `${file}:${startLine}-${endLine}`;
-  return startLine ? `${file}:${startLine}` : file;
-}
-
-function normalizeAuditSwarmEvidenceText(item) {
-  return textValue(
-    item.summary,
-    item.text,
-    item.claim,
-    item.command,
-    normalizeAuditSwarmEvidenceLocation(item),
-    item.output,
-    item.label,
-    item.url,
-    item.type
-  );
-}
-
-const AUDIT_SWARM_EVIDENCE_BLOCK_KINDS = new Set([
-  "summary",
-  "claim",
-  "code_location",
-  "evidence",
-  "command",
-  "verifier_verdict",
-  "false_positive_check",
-  "invariant",
-  "risk",
-]);
-
-function normalizeAuditSwarmCounts(value) {
-  const source = objectRecord(value) ? value : {};
-  return {
-    issueCards: normalizeCount(source.issueCards ?? source.issue_cards),
-    verificationResults: normalizeCount(source.verificationResults ?? source.verification_results),
-    evidenceBlocks: normalizeCount(source.evidenceBlocks ?? source.evidence_blocks),
-    candidateCount: normalizeCount(source.candidateCount ?? source.candidate_count),
-    reportedCount: normalizeCount(source.reportedCount ?? source.reported_count),
-    rejectedCount: normalizeCount(source.rejectedCount ?? source.rejected_count),
-    downgradedCount: normalizeCount(source.downgradedCount ?? source.downgraded_count),
-    verifiedCount: normalizeCount(source.verifiedCount ?? source.verified_count),
-    staticProofCount: normalizeCount(source.staticProofCount ?? source.static_proof_count),
-    potentialRiskCount: normalizeCount(source.potentialRiskCount ?? source.potential_risk_count),
-    unverifiedCount: normalizeCount(source.unverifiedCount ?? source.unverified_count),
-    manifestCount: normalizeCount(source.manifestCount ?? source.manifest_count),
-    toolCount: normalizeCount(source.toolCount ?? source.tool_count),
-    verifierRunCount: normalizeCount(source.verifierRunCount ?? source.verifier_run_count),
-  };
-}
-
-function normalizeAuditSwarmIssueCards(value) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((card, index) => {
-      if (!objectRecord(card)) return null;
-      const locations = normalizeLocations(card.locations);
-      const primary = locations[0] || {};
-      const evidence = normalizeAuditSwarmTextList(card.evidence);
-      const title = textValue(card.title) || `Audit candidate ${index + 1}`;
-      return {
-        issueId: textValue(card.issueId, card.issue_id, card.id),
-        title,
-        severity: normalizeSeverity(card.severity),
-        category: textValue(card.category) || "Quality",
-        shardId: textValue(card.shardId, card.shard_id),
-        agentRole: textValue(card.agentRole, card.agent_role),
-        confidence: normalizeConfidence(card.confidence),
-        file: textValue(card.file, primary.file),
-        line: normalizeLineNumber(card.line ?? primary.startLine),
-        locations,
-        claim: textValue(card.claim, card.summary, card.description),
-        evidence,
-        evidenceCount: Math.max(
-          normalizeCount(card.evidenceCount ?? card.evidence_count),
-          evidence.length
-        ),
-        reproductionIdea: textValue(card.reproductionIdea, card.reproduction_idea),
-        suggestedTest: textValue(card.suggestedTest, card.suggested_test),
-        falsePositiveChecks: normalizeTextList(
-          card.falsePositiveChecks ?? card.false_positive_checks
-        ),
-        violatedInvariants: normalizeTextList(card.violatedInvariants ?? card.violated_invariants),
-      };
-    })
-    .filter((card) => card && (card.title || card.claim || card.file || card.evidence.length))
-    .slice(0, 20);
-}
-
-function normalizeAuditSwarmVerificationResults(value) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((result) => {
-      if (!objectRecord(result)) return null;
-      const commands = normalizeTextList(
-        result.commandsRun ?? result.commands_run ?? result.commands
-      );
-      const command = textValue(result.command);
-      if (command && !commands.includes(command)) commands.unshift(command);
-      const evidence = normalizeAuditSwarmTextList(result.evidence);
-      const verdict = textValue(result.verdict);
-      return {
-        issueId: textValue(result.issueId, result.issue_id),
-        verifierRole: textValue(result.verifierRole, result.verifier_role),
-        verdict: ["confirmed", "rejected", "inconclusive"].includes(verdict) ? verdict : "",
-        confidence: normalizeConfidence(result.confidence),
-        proofType: textValue(result.proofType, result.proof_type),
-        proofStrength: normalizeCount(result.proofStrength ?? result.proof_strength),
-        summary: textValue(result.summary, result.resultSummary, result.result_summary),
-        commands: commands.slice(0, 5),
-        command: commands[0] || "",
-        commandCount: Math.max(
-          normalizeCount(result.commandCount ?? result.command_count),
-          commands.length
-        ),
-        evidence,
-        evidenceCount: Math.max(
-          normalizeCount(result.evidenceCount ?? result.evidence_count),
-          evidence.length
-        ),
-        notesForFix: normalizeTextList(result.notesForFix ?? result.notes_for_fix),
-      };
-    })
-    .filter(
-      (result) =>
-        result && (result.issueId || result.verdict || result.summary || result.commands.length)
-    )
-    .slice(0, 30);
-}
-
-function normalizeAuditSwarmEvidenceBlocks(value) {
-  if (!Array.isArray(value)) return [];
-  const seen = new Set();
-  return value
-    .map((block) => {
-      if (!objectRecord(block)) return null;
-      const rawKind = textValue(block.kind).toLowerCase();
-      const kind = AUDIT_SWARM_EVIDENCE_BLOCK_KINDS.has(rawKind) ? rawKind : "evidence";
-      const verdict = textValue(block.verdict).toLowerCase();
-      const items = normalizeAuditSwarmTextList(block.items).slice(0, 8);
-      return {
-        id: textValue(block.id, block.blockId, block.block_id),
-        kind,
-        title: textValue(block.title) || kind.replaceAll("_", " "),
-        summary: textValue(block.summary, block.text, block.claim),
-        issueId: textValue(block.issueId, block.issue_id),
-        severity: normalizeSeverityValue(block.severity),
-        category: textValue(block.category),
-        role: textValue(
-          block.role,
-          block.agentRole,
-          block.agent_role,
-          block.verifierRole,
-          block.verifier_role
-        ),
-        shardId: textValue(block.shardId, block.shard_id),
-        stage: textValue(block.stage),
-        status: textValue(block.status),
-        verdict: ["confirmed", "rejected", "inconclusive"].includes(verdict) ? verdict : "",
-        proofType: textValue(block.proofType, block.proof_type),
-        proofStrength: normalizeCount(block.proofStrength ?? block.proof_strength),
-        command: textValue(block.command),
-        file: textValue(block.file, block.path),
-        startLine: normalizeLineNumber(block.startLine ?? block.start_line ?? block.line),
-        endLine: normalizeLineNumber(block.endLine ?? block.end_line),
-        confidence: normalizeConfidence(block.confidence),
-        items,
-      };
-    })
-    .filter(
-      (block) =>
-        block &&
-        (block.title ||
-          block.summary ||
-          block.command ||
-          block.file ||
-          block.items.length ||
-          block.verdict ||
-          block.issueId)
-    )
-    .filter((block) => {
-      const key = [
-        block.kind,
-        block.title,
-        block.summary,
-        block.issueId,
-        block.severity,
-        block.category,
-        block.role,
-        block.shardId,
-        block.stage,
-        block.status,
-        block.verdict,
-        block.proofType,
-        block.command,
-        block.file,
-        block.startLine,
-        block.endLine,
-        block.items.join("\n"),
-      ]
-        .map((part) => String(part || "").trim().toLowerCase())
-        .join("\x1f");
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, 40);
-}
-
-function normalizeAuditSwarm(value) {
-  if (!objectRecord(value)) return {};
-  const issueCards = normalizeAuditSwarmIssueCards(value.issueCards ?? value.issue_cards);
-  const verificationResults = normalizeAuditSwarmVerificationResults(
-    value.verificationResults ?? value.verification_results
-  );
-  const evidenceBlocks = normalizeAuditSwarmEvidenceBlocks(
-    value.evidenceBlocks ?? value.evidence_blocks
-  );
-  const counts = normalizeAuditSwarmCounts(value.counts);
-  if (issueCards.length) counts.issueCards = Math.max(counts.issueCards, issueCards.length);
-  if (verificationResults.length) {
-    counts.verificationResults = Math.max(counts.verificationResults, verificationResults.length);
-  }
-  if (evidenceBlocks.length)
-    counts.evidenceBlocks = Math.max(counts.evidenceBlocks, evidenceBlocks.length);
-  return {
-    protocol: textValue(value.protocol),
-    stage: textValue(value.stage),
-    adapter: textValue(value.adapter),
-    provider: textValue(value.provider, value.adapter),
-    summary: textValue(value.summary),
-    logsSummary: textValue(value.logsSummary, value.logs_summary),
-    counts,
-    roles: normalizeTextList(value.roles),
-    shards: normalizeTextList(value.shards),
-    issueCards,
-    verificationResults,
-    evidenceBlocks,
-    shardId: textValue(value.shardId, value.shard_id),
-    agentRole: textValue(value.agentRole, value.agent_role),
-    verdict: textValue(value.verdict),
   };
 }
 
@@ -1830,10 +1097,10 @@ export function normalizeIssue(issue = {}) {
   const autoFix = normalizeBoolean(issue.autoFix);
   const autoFixable = normalizeBoolean(issue.autoFixable);
   const normalized = {
-    ...issue,
     id,
     scanId: textValue(issue.scanId),
     repo: textValue(issue.repo),
+    branch: textValue(issue.branch, issue.audit?.branch),
     title,
     summary: textValue(issue.summary, issue.description),
     impact: textValue(issue.impact),
@@ -1850,7 +1117,6 @@ export function normalizeIssue(issue = {}) {
     confidenceLevel: normalizeConfidenceLevel(issue.confidenceLevel),
     evidenceTrace: normalizeEvidenceTrace(issue.evidenceTrace),
     reasoningBreakdown: normalizeReasoningBreakdown(issue.reasoningBreakdown),
-    auditSwarm: normalizeAuditSwarm(issue.auditSwarm),
     audit: objectRecord(issue.audit) ? { ...issue.audit } : {},
     commit: textValue(issue.commit, issue.audit?.commit),
     jobId: textValue(issue.jobId, issue.audit?.jobId),
@@ -1860,6 +1126,8 @@ export function normalizeIssue(issue = {}) {
     feedbackReason: normalizeIssueFeedbackReason(issue.feedbackReason ?? issue.feedback_reason),
     file: textValue(issue.file),
     line: normalizeLineNumber(issue.line),
+    createdAt: issue.createdAt,
+    updatedAt: issue.updatedAt,
     confidence: normalizeConfidence(issue.confidence),
     confidenceRationale: textValue(issue.confidenceRationale),
     effort: textValue(issue.effort) || "-",
@@ -1892,7 +1160,6 @@ export function normalizeScan(scan = {}) {
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   const graphVerifiedReport = normalizeGraphVerifiedReport(scan.graphVerifiedReport);
   return {
-    ...scan,
     id: textValue(scan.id),
     repo: textValue(scan.repo),
     branch: textValue(scan.branch) || "main",
@@ -1907,13 +1174,6 @@ export function normalizeScan(scan = {}) {
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),
     preflight: normalizePreflight(scan.preflight),
     graphVerifiedReport,
-    verificationAudit: undefined,
-    completionAudit: undefined,
-    jobTrace: undefined,
-    auditSwarm: undefined,
-    repositoryGraph: undefined,
-    semanticGraph: undefined,
-    impactGraph: undefined,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     quotaBucketIds,
