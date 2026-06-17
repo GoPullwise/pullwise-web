@@ -357,10 +357,7 @@ describe("ReposScreen scan selection", () => {
 
     await user.click(screen.getByRole("tab", { name: "@GoDelta" }));
 
-    expect(screen.getByRole("tab", { name: "@GoDelta" })).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
+    expect(screen.getByRole("tab", { name: "@GoDelta" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("keeps scan list metadata in two rows before selection", () => {
@@ -1075,7 +1072,11 @@ describe("ScanningScreen queue state", () => {
     render(
       <ScanningScreen
         go={vi.fn()}
-        activeRepo={{ scanId: "sc_running", fullName: "octocat/private-repo", defaultBranch: "main" }}
+        activeRepo={{
+          scanId: "sc_running",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
       />
     );
 
@@ -1124,7 +1125,11 @@ describe("ScanningScreen queue state", () => {
     render(
       <ScanningScreen
         go={vi.fn()}
-        activeRepo={{ scanId: "sc_running", fullName: "octocat/private-repo", defaultBranch: "main" }}
+        activeRepo={{
+          scanId: "sc_running",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
       />
     );
 
@@ -1266,6 +1271,29 @@ describe("ScanningScreen queue state", () => {
           },
           roles: ["security-reviewer", "prover"],
           shards: ["auth.session"],
+          issueCards: [
+            {
+              issueId: "issue-refresh",
+              title: "Refresh token rotation may not be atomic",
+              severity: "high",
+              agentRole: "security-reviewer",
+              file: "src/auth/refresh.ts",
+              startLine: "42",
+              claim: "Token invalidation and issuance are not in one transaction.",
+              evidence: ["createRefreshToken runs before old-token invalidation is confirmed."],
+              falsePositiveChecks: ["Caller transaction wrappers were checked."],
+              suggestedTest: "Mock a failure between issuance and invalidation.",
+            },
+          ],
+          verificationResults: [
+            {
+              issueId: "issue-refresh",
+              verifierRole: "prover",
+              verdict: "confirmed",
+              summary: "A mocked failure leaves both tokens valid.",
+              command: "pnpm test auth -- refresh-token-rotation",
+            },
+          ],
           evidenceBlocks: [
             {
               id: "issue-refresh:claim",
@@ -1360,10 +1388,11 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Reported")).toBeInTheDocument();
     expect(screen.getByText("Rejected")).toBeInTheDocument();
     expect(screen.getByText("Verified")).toBeInTheDocument();
-    expect(screen.queryByText("Claim")).not.toBeInTheDocument();
-    expect(screen.queryByText("src/auth/refresh.ts:42")).not.toBeInTheDocument();
-    expect(screen.queryByText("Refresh token rotation may not be atomic")).not.toBeInTheDocument();
-    expect(screen.queryByText("pnpm test auth -- refresh-token-rotation")).not.toBeInTheDocument();
+    expect(screen.getByText("Claim")).toBeInTheDocument();
+    expect(screen.getByText("Verifier results")).toBeInTheDocument();
+    expect(screen.getByText("src/auth/refresh.ts:42")).toBeInTheDocument();
+    expect(screen.getByText("Refresh token rotation may not be atomic")).toBeInTheDocument();
+    expect(screen.getByText("pnpm test auth -- refresh-token-rotation")).toBeInTheDocument();
   });
 
   it("keeps long audit evidence card text inside the card without clamping", () => {
@@ -1484,8 +1513,7 @@ describe("ScanningScreen queue state", () => {
 
   it("renders the impact graph canvas as a full-width landscape panel", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
-    const canvasBlock = styles.match(/\.impact-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups
-      ?.body;
+    const canvasBlock = styles.match(/\.impact-graph-canvas\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
     const wrapBlock = styles.match(/\.impact-graph-canvas-wrap\s*\{(?<body>[^}]*)\}/s)?.groups
       ?.body;
 
@@ -2229,9 +2257,7 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("billing");
   });
 
-  it.each([
-    "Codex CLI is missing or not authenticated.",
-  ])(
+  it.each(["Codex CLI is missing or not authenticated."])(
     "routes missing CLI provider errors to settings without exposing the runner name",
     async (message) => {
       const user = userEvent.setup();

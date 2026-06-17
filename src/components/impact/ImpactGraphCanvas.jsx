@@ -28,7 +28,12 @@ function buildImpactElements(impactGraph, relationKeys) {
     elements.push({ data });
   };
   const addEdge = (data) => {
-    if (!data.id || edgeIds.has(data.id) || !nodeIds.has(data.source) || !nodeIds.has(data.target)) {
+    if (
+      !data.id ||
+      edgeIds.has(data.id) ||
+      !nodeIds.has(data.source) ||
+      !nodeIds.has(data.target)
+    ) {
       return;
     }
     edgeIds.add(data.id);
@@ -103,9 +108,10 @@ export function ImpactGraphCanvas({ impactGraph }) {
   useEffect(() => {
     if (!containerRef.current || elements.length === 0) return undefined;
     const containerWidth = containerRef.current.clientWidth || 960;
-    const containerHeight = containerRef.current.clientHeight || Math.round(containerWidth * 9 / 16);
+    const containerHeight =
+      containerRef.current.clientHeight || Math.round((containerWidth * 9) / 16);
     const layoutHeight = Math.max(containerHeight, 320);
-    const layoutWidth = Math.max(containerWidth, Math.round(layoutHeight * 16 / 9));
+    const layoutWidth = Math.max(containerWidth, Math.round((layoutHeight * 16) / 9));
     const cy = cytoscape({
       container: containerRef.current,
       elements,
@@ -133,7 +139,10 @@ export function ImpactGraphCanvas({ impactGraph }) {
             width: 18,
           },
         },
-        { selector: 'node[role = "target"]', style: { "background-color": "#16a34a", height: 26, width: 26 } },
+        {
+          selector: 'node[role = "target"]',
+          style: { "background-color": "#16a34a", height: 26, width: 26 },
+        },
         { selector: 'node[role = "tests"]', style: { "background-color": "#7c3aed" } },
         { selector: 'node[role = "documents"]', style: { "background-color": "#0891b2" } },
         { selector: 'node[role = "configures"]', style: { "background-color": "#ea580c" } },
@@ -191,21 +200,23 @@ export function ImpactGraphCanvas({ impactGraph }) {
             checked={showImports}
             onChange={(event) => setShowImports(event.target.checked)}
           />
-          <span>{T("Imports", "Imports")}</span>
+          <span>{T("Imports", "导入关系")}</span>
         </label>
         <button type="button" className="btn sm ghost" onClick={fitGraph}>
           <I.Search size={12} />
-          {T("Fit graph", "Fit graph")}
+          {T("Fit graph", "适应画布")}
         </button>
       </div>
       {elements.length === 0 ? (
-        <div className="impact-empty">{T("No impact graph edges to render.", "No impact graph edges to render.")}</div>
+        <div className="impact-empty">
+          {T("No impact graph edges to render.", "暂无可渲染的影响图边。")}
+        </div>
       ) : (
         <div
           className="impact-graph-canvas"
           ref={containerRef}
           role="img"
-          aria-label={T("Impact context graph", "Impact context graph")}
+          aria-label={T("Impact context graph", "影响上下文图")}
         />
       )}
     </div>

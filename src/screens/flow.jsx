@@ -315,7 +315,13 @@ function scanInputFromRepo(repo) {
   return request;
 }
 
-function scanCreatePayloadFromInput({ repoId = "", repo, branch, commit = "pending", requestId = "" }) {
+function scanCreatePayloadFromInput({
+  repoId = "",
+  repo,
+  branch,
+  commit = "pending",
+  requestId = "",
+}) {
   const payload = { branch: branch || "main", commit: commit || "pending" };
   if (repoId) payload.repoId = repoId;
   if (repo) payload.repo = repo;
@@ -611,8 +617,8 @@ function scanAuditSwarmSummary(scans) {
       ...audits.flatMap((audit) => audit.shards || []),
       ...evidenceBlocks.map((block) => block.shardId),
     ]).slice(0, 8),
-    issueCards: [],
-    verificationResults: [],
+    issueCards,
+    verificationResults,
     evidenceBlocks,
   };
 }
@@ -847,14 +853,7 @@ function AuditSwarmEvidence({
 const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
 const STATUS_SUCCESS = new Set(["done", "complete", "completed", "passed", "ok", "verified"]);
 const STATUS_WARNING = new Set(["queued", "running", "pending", "warning", "partial", "skipped"]);
-const STATUS_DANGER = new Set([
-  "failed",
-  "cancelled",
-  "canceled",
-  "lost",
-  "blocked",
-  "error",
-]);
+const STATUS_DANGER = new Set(["failed", "cancelled", "canceled", "lost", "blocked", "error"]);
 
 function compactStatusLabel(status) {
   const text = String(status || "")
@@ -864,7 +863,9 @@ function compactStatusLabel(status) {
 }
 
 function compactStatusTone(status) {
-  const value = String(status || "").trim().toLowerCase();
+  const value = String(status || "")
+    .trim()
+    .toLowerCase();
   if (STATUS_SUCCESS.has(value)) return "ok";
   if (STATUS_DANGER.has(value)) return "danger";
   if (STATUS_WARNING.has(value)) return "warn";
@@ -873,7 +874,9 @@ function compactStatusTone(status) {
 
 function scanHasRetryableTrace(scan) {
   return Boolean(
-    scan?.jobTrace?.checkpoints?.some((checkpoint) => RETRYABLE_SCAN_STATUSES.has(checkpoint.status))
+    scan?.jobTrace?.checkpoints?.some((checkpoint) =>
+      RETRYABLE_SCAN_STATUSES.has(checkpoint.status)
+    )
   );
 }
 
@@ -990,7 +993,11 @@ function JobTracePanel({ trace }) {
         </div>
       )}
       {checkpoints.length > 0 && (
-        <div className="scan-trace-list" role="list" aria-label={T("Job trace checkpoints", "任务轨迹检查点")}>
+        <div
+          className="scan-trace-list"
+          role="list"
+          aria-label={T("Job trace checkpoints", "任务轨迹检查点")}
+        >
           {checkpoints.map((checkpoint) => (
             <div key={checkpoint.key} className="scan-trace-item" role="listitem">
               <div className="scan-trace-item-head">
@@ -1001,7 +1008,9 @@ function JobTracePanel({ trace }) {
                 {checkpoint.at && <span>{checkpoint.at}</span>}
                 {checkpoint.jobId && <span>{checkpoint.jobId}</span>}
                 {checkpoint.workerId && <span>{checkpoint.workerId}</span>}
-                {checkpoint.attempt && <span>{T(`Attempt ${checkpoint.attempt}`, `第 ${checkpoint.attempt} 次`)}</span>}
+                {checkpoint.attempt && (
+                  <span>{T(`Attempt ${checkpoint.attempt}`, `第 ${checkpoint.attempt} 次`)}</span>
+                )}
               </div>
               {checkpoint.summary && (
                 <div className="scan-compact-item-summary muted">{checkpoint.summary}</div>
@@ -1673,10 +1682,7 @@ export function ReposScreen({
                         "GitHub repository access is not connected yet.",
                         "尚未连接 GitHub 仓库权限。"
                       )
-                    : T(
-                        `${repositoryTotal} authorized repos`,
-                        `${repositoryTotal} 个已授权仓库`
-                      )}
+                    : T(`${repositoryTotal} authorized repos`, `${repositoryTotal} 个已授权仓库`)}
                 </div>
               )}
               {accountQuotaLabel && (
@@ -2171,14 +2177,14 @@ const PRODUCTION_SCAN_PHASES = [
     t_en: "Audit Swarm review",
     t_zh: "Audit Swarm 审计",
     d_en: "Reviewer agents evaluate and verify candidates",
-    d_zh: "reviewer agents 评估并验证候选问题",
+    d_zh: "审查代理评估并验证候选问题",
   },
   {
     k: "report",
     t_en: "Uploading report",
     t_zh: "上传报告",
     d_en: "Persisting findings and audit evidence",
-    d_zh: "保存 findings 和审计证据",
+    d_zh: "保存问题和审计证据",
   },
 ];
 
@@ -2193,8 +2199,8 @@ function scanPhasesForPhase(_phase) {
   return PRODUCTION_SCAN_PHASES;
 }
 
-function graphCountLabel(count, singular, plural = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : plural}`;
+function graphCountLabel(count, singular, plural = `${singular}s`, zhUnit = plural) {
+  return T(`${count} ${count === 1 ? singular : plural}`, `${count} ${zhUnit}`);
 }
 
 function repositoryGraphElementsKey(nodes, edges) {
@@ -2214,18 +2220,18 @@ function repositoryGraphElementsKey(nodes, edges) {
 
 function repositoryGraphTypeLabel(type) {
   const labels = {
-    class: "Classes",
-    component: "Components",
-    entrypoint: "Entrypoints",
-    file: "Files",
-    function: "Functions",
-    manifest: "Manifests",
-    method: "Methods",
-    module: "Modules",
-    route: "Routes",
-    test: "Tests",
-    variable: "Variables",
-    workflow: "Workflows",
+    class: T("Classes", "类"),
+    component: T("Components", "组件"),
+    entrypoint: T("Entrypoints", "入口"),
+    file: T("Files", "文件"),
+    function: T("Functions", "函数"),
+    manifest: T("Manifests", "清单"),
+    method: T("Methods", "方法"),
+    module: T("Modules", "模块"),
+    route: T("Routes", "路由"),
+    test: T("Tests", "测试"),
+    variable: T("Variables", "变量"),
+    workflow: T("Workflows", "工作流"),
   };
   return labels[type] || type;
 }
@@ -2356,9 +2362,9 @@ function GraphMenuPicker({
 }
 
 function graphTypeFilterLabel(activeCount, totalCount) {
-  if (!totalCount) return T("No types", "No types");
+  if (!totalCount) return T("No types", "无类型");
   if (activeCount === 0 || activeCount === totalCount) {
-    return T("All types", "All types");
+    return T("All types", "全部类型");
   }
   return T(`${activeCount} of ${totalCount} types`, `${activeCount} / ${totalCount} 个类型`);
 }
@@ -2548,28 +2554,34 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
       <div className="repository-graph-head">
         <div className="scanning-counts-h">
           <I.Layers size={14} />{" "}
-          {viewIsCode
-            ? T("Semantic graph", "Semantic graph")
-            : T("Repository graph", "Repository graph")}
+          {viewIsCode ? T("Semantic graph", "语义图") : T("Repository graph", "仓库图")}
         </div>
         <div className="repository-graph-stats">
-          <span>{graphCountLabel(nodes.length, viewIsCode ? "symbol" : "node")}</span>
-          <span>{graphCountLabel(edges.length, viewIsCode ? "relationship" : "edge")}</span>
+          <span>
+            {viewIsCode
+              ? graphCountLabel(nodes.length, "symbol", "symbols", "个符号")
+              : graphCountLabel(nodes.length, "node", "nodes", "个节点")}
+          </span>
+          <span>
+            {viewIsCode
+              ? graphCountLabel(edges.length, "relationship", "relationships", "条关系")
+              : graphCountLabel(edges.length, "edge", "edges", "条边")}
+          </span>
           {viewIsCode && activeStats.source && <span>{activeStats.source}</span>}
-          {activeStats.truncated && <span>{T("capped", "capped")}</span>}
+          {activeStats.truncated && <span>{T("capped", "已截断")}</span>}
           <button
             type="button"
             className="btn ghost sm repository-graph-fit"
             onClick={() => cyRef.current?.fit(undefined, 24)}
           >
-            <I.Grid size={12} /> {T("Fit graph", "Fit graph")}
+            <I.Grid size={12} /> {T("Fit graph", "适应画布")}
           </button>
         </div>
       </div>
       {(fileGraph && codeGraph) || typeList.length > 1 ? (
         <div
           className="repository-graph-controls"
-          aria-label={T("Repository graph controls", "Repository graph controls")}
+          aria-label={T("Repository graph controls", "仓库图控制")}
         >
           {fileGraph && codeGraph && (
             <GraphMenuPicker
@@ -2583,23 +2595,21 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
                 )
               }
               triggerLabel={
-                activeView === "code"
-                  ? T("Semantic graph", "Semantic graph")
-                  : T("File graph", "File graph")
+                activeView === "code" ? T("Semantic graph", "语义图") : T("File graph", "文件图")
               }
-              ariaLabel={T("Graph view", "Graph view")}
+              ariaLabel={T("Graph view", "图视图")}
               width={160}
               options={[
                 {
                   value: "files",
-                  label: T("File graph", "File graph"),
+                  label: T("File graph", "文件图"),
                   icon: <I.FileCode size={11} aria-hidden="true" />,
                   selected: activeView === "files",
                   onSelect: () => setActiveView("files"),
                 },
                 {
                   value: "code",
-                  label: T("Semantic graph", "Semantic graph"),
+                  label: T("Semantic graph", "语义图"),
                   icon: <I.Code size={11} aria-hidden="true" />,
                   selected: activeView === "code",
                   onSelect: () => setActiveView("code"),
@@ -2613,7 +2623,7 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
               triggerClassName="repository-graph-type-trigger"
               triggerIcon={<I.Filter size={12} aria-hidden="true" />}
               triggerLabel={graphTypeFilterLabel(activeTypes.size, typeList.length)}
-              ariaLabel={T("Node type filter", "Node type filter")}
+              ariaLabel={T("Node type filter", "节点类型筛选")}
               width={200}
               multiSelect
               options={typeList.map((type) => ({
@@ -2632,8 +2642,8 @@ function RepositoryGraphPanel({ graph, semanticGraph }) {
         role="img"
         aria-label={
           viewIsCode
-            ? T("Code semantic graph", "Code semantic graph")
-            : T("Repository dependency graph", "Repository dependency graph")
+            ? T("Code semantic graph", "代码语义图")
+            : T("Repository dependency graph", "仓库依赖图")
         }
       />
       {selectedNode && (
@@ -2859,10 +2869,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     }
   };
 
-  const headerLabel =
-    detailLoading
-      ? T("Loading scan details", "正在加载扫描详情")
-      : status === "done"
+  const headerLabel = detailLoading
+    ? T("Loading scan details", "正在加载扫描详情")
+    : status === "done"
       ? batchMode
         ? T("Scan batch complete", "批量扫描完成")
         : T("Scan complete", "扫描完成")
@@ -2873,25 +2882,24 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         : status === "lost"
           ? T("Scan lost", "Scan lost")
           : status === "cancelled"
-          ? batchMode
-            ? T("Scan batch cancelled", "批量扫描已取消")
-            : T("Scan cancelled", "扫描已取消")
-          : status === "no_repo"
-            ? T("No repository selected", "未选择仓库")
-            : batchMode
-              ? T("Scanning repositories", "正在扫描仓库")
-              : T("Scanning…", "扫描进行中");
+            ? batchMode
+              ? T("Scan batch cancelled", "批量扫描已取消")
+              : T("Scan cancelled", "扫描已取消")
+            : status === "no_repo"
+              ? T("No repository selected", "未选择仓库")
+              : batchMode
+                ? T("Scanning repositories", "正在扫描仓库")
+                : T("Scanning…", "扫描进行中");
 
-  const headerIcon =
-    detailLoading ? null : status === "done" ? (
-      <I.Check size={18} />
-    ) : status === "failed" || status === "cancelled" || status === "lost" ? (
-      <I.X size={18} />
-    ) : (
-      <span className="spin" style={{ display: "inline-block" }}>
-        <I.Refresh size={18} />
-      </span>
-    );
+  const headerIcon = detailLoading ? null : status === "done" ? (
+    <I.Check size={18} />
+  ) : status === "failed" || status === "cancelled" || status === "lost" ? (
+    <I.X size={18} />
+  ) : (
+    <span className="spin" style={{ display: "inline-block" }}>
+      <I.Refresh size={18} />
+    </span>
+  );
 
   return (
     <div className="app fade-in">
@@ -2911,10 +2919,10 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   {detailLoading
                     ? headerLabel
                     : status === "queued"
-                    ? batchMode
-                      ? T("Scan batch queued", "批量扫描排队中")
-                      : T("Scan queued", "Scan queued")
-                    : headerLabel}{" "}
+                      ? batchMode
+                        ? T("Scan batch queued", "批量扫描排队中")
+                        : T("Scan queued", "Scan queued")
+                      : headerLabel}{" "}
                   <b>
                     {batchMode
                       ? T(`${expectedBatchCount} repositories`, `${expectedBatchCount} 个仓库`)
@@ -3086,218 +3094,225 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
             <ScanDetailSideSkeleton />
           ) : (
             <div className="scanning-side">
-            <div className="card scanning-counts">
-              <div className="scanning-counts-h">{T("Live findings", "实时发现")}</div>
-              <div className="scanning-counts-grid">
-                <div>
-                  <b style={{ color: "var(--sev-critical)" }}>{found.critical || 0}</b>
-                  <span>{T("Critical", "关键")}</span>
-                </div>
-                <div>
-                  <b style={{ color: "var(--sev-high)" }}>{found.high || 0}</b>
-                  <span>{T("High", "高")}</span>
-                </div>
-                <div>
-                  <b style={{ color: "var(--sev-medium)" }}>{found.medium || 0}</b>
-                  <span>{T("Medium", "中")}</span>
-                </div>
-                <div>
-                  <b style={{ color: "var(--sev-low)" }}>{found.low || 0}</b>
-                  <span>{T("Low", "低")}</span>
-                </div>
-              </div>
-              {aiUsageTags.length > 0 && (
-                <>
-                  <div className="scanning-counts-h scanning-counts-subh">
-                    {T("Review agent", "审查代理")}
+              <div className="card scanning-counts">
+                <div className="scanning-counts-h">{T("Live findings", "实时发现")}</div>
+                <div className="scanning-counts-grid">
+                  <div>
+                    <b style={{ color: "var(--sev-critical)" }}>{found.critical || 0}</b>
+                    <span>{T("Critical", "关键")}</span>
                   </div>
-                  <div className="scan-preflight-meta">
-                    {aiUsageTags.map((tag) => (
-                      <span key={tag} className="tag">
-                        {tag}
+                  <div>
+                    <b style={{ color: "var(--sev-high)" }}>{found.high || 0}</b>
+                    <span>{T("High", "高")}</span>
+                  </div>
+                  <div>
+                    <b style={{ color: "var(--sev-medium)" }}>{found.medium || 0}</b>
+                    <span>{T("Medium", "中")}</span>
+                  </div>
+                  <div>
+                    <b style={{ color: "var(--sev-low)" }}>{found.low || 0}</b>
+                    <span>{T("Low", "低")}</span>
+                  </div>
+                </div>
+                {aiUsageTags.length > 0 && (
+                  <>
+                    <div className="scanning-counts-h scanning-counts-subh">
+                      {T("Review agent", "审查代理")}
+                    </div>
+                    <div className="scan-preflight-meta">
+                      {aiUsageTags.map((tag) => (
+                        <span key={tag} className="tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <CompletionAuditPanel audit={scan?.completionAudit || null} />
+
+              <JobTracePanel trace={scan?.jobTrace || null} />
+
+              {preflight && (
+                <div className="card scanning-preflight">
+                  <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
+                  {preflight.summary && (
+                    <div className="muted scan-preflight-summary">{preflight.summary}</div>
+                  )}
+                  <div className="scan-preflight-tags">
+                    {preflight.execution && <span className="tag">{preflight.execution}</span>}
+                    {preflight.mode && <span className="tag">{preflight.mode}</span>}
+                    {preflight.packageManagers.map((item) => (
+                      <span className="tag" key={`pm-${item}`}>
+                        {item}
+                      </span>
+                    ))}
+                    {preflight.languages.map((item) => (
+                      <span className="tag" key={`lang-${item}`}>
+                        {item}
                       </span>
                     ))}
                   </div>
-                </>
-              )}
-            </div>
-
-            <CompletionAuditPanel audit={scan?.completionAudit || null} />
-
-            <JobTracePanel trace={scan?.jobTrace || null} />
-
-            {preflight && (
-              <div className="card scanning-preflight">
-                <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
-                {preflight.summary && (
-                  <div className="muted scan-preflight-summary">{preflight.summary}</div>
-                )}
-                <div className="scan-preflight-tags">
-                  {preflight.execution && <span className="tag">{preflight.execution}</span>}
-                  {preflight.mode && <span className="tag">{preflight.mode}</span>}
-                  {preflight.packageManagers.map((item) => (
-                    <span className="tag" key={`pm-${item}`}>
-                      {item}
-                    </span>
-                  ))}
-                  {preflight.languages.map((item) => (
-                    <span className="tag" key={`lang-${item}`}>
-                      {item}
-                    </span>
-                  ))}
-                </div>
-                {hasRepositoryLimitEvidence(preflight) && (
-                  <div
-                    className={
-                      "scan-repository-limits" +
-                      (preflight.repositoryLimitExceeded ? " exceeded" : "")
-                    }
-                  >
-                    <div className="scan-repository-limits-head">
-                      <I.Database size={13} />
-                      <span>{T("Repository scan limits", "仓库扫描限制")}</span>
-                    </div>
-                    <div className="muted scan-preflight-summary">
-                      {preflight.repositoryLimitExceeded
-                        ? T(
-                            "This checkout exceeded the worker limits, so verifier commands and AI review were not run.",
-                            "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。"
-                          )
-                        : T(
-                            "This checkout was within the worker limits used for this scan.",
-                            "此仓库 checkout 未超过本次扫描使用的 worker 限制。"
-                          )}
-                    </div>
-                    <div className="scan-preflight-meta">
-                      {preflight.repositoryStats && (
-                        <span className={preflight.repositoryLimitExceeded ? "preflight-warn" : ""}>
-                          {T(
-                            `Checkout: ${formatCount(preflight.repositoryStats.fileCount)} files / ${formatBytes(preflight.repositoryStats.totalBytes)}`,
-                            `检出规模：${formatCount(preflight.repositoryStats.fileCount)} 个文件 / ${formatBytes(preflight.repositoryStats.totalBytes)}`
-                          )}
-                        </span>
-                      )}
-                      {preflight.repositoryLimits && (
-                        <span>
-                          {T(
-                            `Limit: ${formatCount(preflight.repositoryLimits.maxFiles)} files / ${formatBytes(preflight.repositoryLimits.maxBytes)}`,
-                            `限制：${formatCount(preflight.repositoryLimits.maxFiles)} 个文件 / ${formatBytes(preflight.repositoryLimits.maxBytes)}`
-                          )}
-                        </span>
-                      )}
-                      {preflight.repositoryLimitReasons?.length > 0 &&
-                        (() => {
-                          const reasons = uniqueStrings(
-                            preflight.repositoryLimitReasons.map(repositoryLimitReasonLabel)
-                          ).join(", ");
-                          return (
-                            <span className="preflight-warn">
-                              {T(`Reasons: ${reasons}`, `命中限制：${reasons}`)}
-                            </span>
-                          );
-                        })()}
-                      {preflight.repositoryStats?.scanStoppedEarly && (
-                        <span className="preflight-warn">
-                          {T(
-                            "Counting stopped after a limit was reached.",
-                            "达到限制后已停止继续计数。"
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <div className="scan-preflight-meta">
-                  <span>
-                    {T(
-                      `${preflight.manifestsCount || 0} manifests`,
-                      `${preflight.manifestsCount || 0} 个清单`
-                    )}
-                  </span>
-                  <span>
-                    {T(
-                      `${preflight.toolCount || 0} tool checks`,
-                      `${preflight.toolCount || 0} 项工具检查`
-                    )}
-                  </span>
-                  {preflight.environmentLabels.map((item) => (
-                    <span key={`env-${item}`}>{item}</span>
-                  ))}
-                  <span>
-                    {T(
-                      `${preflight.verifierRuns || 0} verifier runs`,
-                      `${preflight.verifierRuns || 0} 次验证器运行`
-                    )}
-                  </span>
-                  {preflight.verifierFailed > 0 && (
-                    <span className="preflight-warn">
-                      {T(
-                        `${preflight.verifierFailed} failed`,
-                        `${preflight.verifierFailed} 次失败`
-                      )}
-                    </span>
-                  )}
-                  {preflight.verifierFlaky > 0 && (
-                    <span className="preflight-warn">
-                      {T(`${preflight.verifierFlaky} flaky`, `${preflight.verifierFlaky} 次不稳定`)}
-                    </span>
-                  )}
-                  {preflight.verifierTimeout > 0 && (
-                    <span className="preflight-warn">
-                      {T(
-                        `${preflight.verifierTimeout} timed out`,
-                        `${preflight.verifierTimeout} 次超时`
-                      )}
-                    </span>
-                  )}
-                  {preflight.availableScripts.length > 0 && (
-                    <span>{preflight.availableScripts.join(", ")}</span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="card scanning-log">
-              <div className="scanning-counts-h">{T("Live log", "实时日志")}</div>
-              <div className="scanning-log-body">
-                {logs.length === 0 && (
-                  <div className="muted">{T("Waiting for engine…", "等待引擎启动…")}</div>
-                )}
-                {logs.map((l, i) => (
-                  <div key={i} className="scanning-log-line">
-                    {l}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {batchMode && (
-              <div className="card scanning-log">
-                <div className="scanning-counts-h">{T("Repository results", "仓库结果")}</div>
-                <div className="scanning-log-body">
-                  {batchRows.length === 0 && (
-                    <div className="muted">{T("Creating scan requests…", "正在创建扫描请求…")}</div>
-                  )}
-                  {batchRows.map((row) => (
+                  {hasRepositoryLimitEvidence(preflight) && (
                     <div
-                      key={row.requestId || row.repo || row.scanId}
-                      className="scanning-log-line"
+                      className={
+                        "scan-repository-limits" +
+                        (preflight.repositoryLimitExceeded ? " exceeded" : "")
+                      }
                     >
-                      <b>{row.repo || "—"}</b>
-                      <span className="tag" style={{ marginLeft: 8 }}>
-                        {row.status}
-                      </span>
-                      {row.scanId && (
-                        <span className="tag" style={{ marginLeft: 8 }}>
-                          {row.scanId}
-                        </span>
+                      <div className="scan-repository-limits-head">
+                        <I.Database size={13} />
+                        <span>{T("Repository scan limits", "仓库扫描限制")}</span>
+                      </div>
+                      <div className="muted scan-preflight-summary">
+                        {preflight.repositoryLimitExceeded
+                          ? T(
+                              "This checkout exceeded the worker limits, so verifier commands and AI review were not run.",
+                              "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。"
+                            )
+                          : T(
+                              "This checkout was within the worker limits used for this scan.",
+                              "此仓库 checkout 未超过本次扫描使用的 worker 限制。"
+                            )}
+                      </div>
+                      <div className="scan-preflight-meta">
+                        {preflight.repositoryStats && (
+                          <span
+                            className={preflight.repositoryLimitExceeded ? "preflight-warn" : ""}
+                          >
+                            {T(
+                              `Checkout: ${formatCount(preflight.repositoryStats.fileCount)} files / ${formatBytes(preflight.repositoryStats.totalBytes)}`,
+                              `检出规模：${formatCount(preflight.repositoryStats.fileCount)} 个文件 / ${formatBytes(preflight.repositoryStats.totalBytes)}`
+                            )}
+                          </span>
+                        )}
+                        {preflight.repositoryLimits && (
+                          <span>
+                            {T(
+                              `Limit: ${formatCount(preflight.repositoryLimits.maxFiles)} files / ${formatBytes(preflight.repositoryLimits.maxBytes)}`,
+                              `限制：${formatCount(preflight.repositoryLimits.maxFiles)} 个文件 / ${formatBytes(preflight.repositoryLimits.maxBytes)}`
+                            )}
+                          </span>
+                        )}
+                        {preflight.repositoryLimitReasons?.length > 0 &&
+                          (() => {
+                            const reasons = uniqueStrings(
+                              preflight.repositoryLimitReasons.map(repositoryLimitReasonLabel)
+                            ).join(", ");
+                            return (
+                              <span className="preflight-warn">
+                                {T(`Reasons: ${reasons}`, `命中限制：${reasons}`)}
+                              </span>
+                            );
+                          })()}
+                        {preflight.repositoryStats?.scanStoppedEarly && (
+                          <span className="preflight-warn">
+                            {T(
+                              "Counting stopped after a limit was reached.",
+                              "达到限制后已停止继续计数。"
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="scan-preflight-meta">
+                    <span>
+                      {T(
+                        `${preflight.manifestsCount || 0} manifests`,
+                        `${preflight.manifestsCount || 0} 个清单`
                       )}
-                      {row.error && <div className="muted">{row.error}</div>}
+                    </span>
+                    <span>
+                      {T(
+                        `${preflight.toolCount || 0} tool checks`,
+                        `${preflight.toolCount || 0} 项工具检查`
+                      )}
+                    </span>
+                    {preflight.environmentLabels.map((item) => (
+                      <span key={`env-${item}`}>{item}</span>
+                    ))}
+                    <span>
+                      {T(
+                        `${preflight.verifierRuns || 0} verifier runs`,
+                        `${preflight.verifierRuns || 0} 次验证器运行`
+                      )}
+                    </span>
+                    {preflight.verifierFailed > 0 && (
+                      <span className="preflight-warn">
+                        {T(
+                          `${preflight.verifierFailed} failed`,
+                          `${preflight.verifierFailed} 次失败`
+                        )}
+                      </span>
+                    )}
+                    {preflight.verifierFlaky > 0 && (
+                      <span className="preflight-warn">
+                        {T(
+                          `${preflight.verifierFlaky} flaky`,
+                          `${preflight.verifierFlaky} 次不稳定`
+                        )}
+                      </span>
+                    )}
+                    {preflight.verifierTimeout > 0 && (
+                      <span className="preflight-warn">
+                        {T(
+                          `${preflight.verifierTimeout} timed out`,
+                          `${preflight.verifierTimeout} 次超时`
+                        )}
+                      </span>
+                    )}
+                    {preflight.availableScripts.length > 0 && (
+                      <span>{preflight.availableScripts.join(", ")}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="card scanning-log">
+                <div className="scanning-counts-h">{T("Live log", "实时日志")}</div>
+                <div className="scanning-log-body">
+                  {logs.length === 0 && (
+                    <div className="muted">{T("Waiting for engine…", "等待引擎启动…")}</div>
+                  )}
+                  {logs.map((l, i) => (
+                    <div key={i} className="scanning-log-line">
+                      {l}
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+
+              {batchMode && (
+                <div className="card scanning-log">
+                  <div className="scanning-counts-h">{T("Repository results", "仓库结果")}</div>
+                  <div className="scanning-log-body">
+                    {batchRows.length === 0 && (
+                      <div className="muted">
+                        {T("Creating scan requests…", "正在创建扫描请求…")}
+                      </div>
+                    )}
+                    {batchRows.map((row) => (
+                      <div
+                        key={row.requestId || row.repo || row.scanId}
+                        className="scanning-log-line"
+                      >
+                        <b>{row.repo || "—"}</b>
+                        <span className="tag" style={{ marginLeft: 8 }}>
+                          {row.status}
+                        </span>
+                        {row.scanId && (
+                          <span className="tag" style={{ marginLeft: 8 }}>
+                            {row.scanId}
+                          </span>
+                        )}
+                        {row.error && <div className="muted">{row.error}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

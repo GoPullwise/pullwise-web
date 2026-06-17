@@ -22,9 +22,7 @@ export function ImpactTargetCard({ target, compact = false, onEvidence = null })
         <div className="impact-target-tags">
           <span className="tag">{target.type || "file"}</span>
           {risk && <span className="tag">{risk}</span>}
-          <span className="tag">
-            {T(`${relationCount} relations`, `${relationCount} relations`)}
-          </span>
+          <span className="tag">{T(`${relationCount} relations`, `${relationCount} 条关系`)}</span>
           {evidence.length > 0 && onEvidence && (
             <button
               type="button"
@@ -37,7 +35,7 @@ export function ImpactTargetCard({ target, compact = false, onEvidence = null })
               }
             >
               <I.Eye size={12} />
-              {T("Evidence", "Evidence")}
+              {T("Evidence", "证据")}
             </button>
           )}
         </div>

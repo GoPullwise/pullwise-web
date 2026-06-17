@@ -1,11 +1,47 @@
 export const IMPACT_RELATION_GROUPS = [
-  { key: "tests", label: "Tests", empty: "No related tests" },
-  { key: "documents", label: "Docs", empty: "No related docs" },
-  { key: "configures", label: "Config", empty: "No related config" },
-  { key: "ci", label: "CI", empty: "No related CI" },
-  { key: "importedBy", label: "Imported by", empty: "No importers detected" },
-  { key: "imports", label: "Imports", empty: "No imports detected" },
-  { key: "symbols", label: "Symbols", empty: "No symbols detected" },
+  {
+    key: "tests",
+    label: "Tests",
+    labelZh: "测试",
+    empty: "No related tests",
+    emptyZh: "暂无关联测试",
+  },
+  {
+    key: "documents",
+    label: "Docs",
+    labelZh: "文档",
+    empty: "No related docs",
+    emptyZh: "暂无关联文档",
+  },
+  {
+    key: "configures",
+    label: "Config",
+    labelZh: "配置",
+    empty: "No related config",
+    emptyZh: "暂无关联配置",
+  },
+  { key: "ci", label: "CI", labelZh: "CI", empty: "No related CI", emptyZh: "暂无关联 CI" },
+  {
+    key: "importedBy",
+    label: "Imported by",
+    labelZh: "被导入",
+    empty: "No importers detected",
+    emptyZh: "未检测到导入方",
+  },
+  {
+    key: "imports",
+    label: "Imports",
+    labelZh: "导入",
+    empty: "No imports detected",
+    emptyZh: "未检测到导入",
+  },
+  {
+    key: "symbols",
+    label: "Symbols",
+    labelZh: "符号",
+    empty: "No symbols detected",
+    emptyZh: "未检测到符号",
+  },
 ];
 
 export const IMPACT_DEFAULT_GRAPH_RELATIONS = ["tests", "documents", "configures", "ci"];
@@ -14,27 +50,38 @@ export const IMPACT_COVERAGE_SECTIONS = [
   {
     key: "sourceFilesWithoutTests",
     label: "Files without direct tests",
+    labelZh: "缺少直接测试的文件",
     empty: "No direct test gaps detected",
+    emptyZh: "未检测到直接测试缺口",
   },
   {
     key: "sourceFilesWithoutDocs",
     label: "Files without docs",
+    labelZh: "缺少文档的文件",
     empty: "No doc gaps detected",
+    emptyZh: "未检测到文档缺口",
   },
   {
     key: "testsWithoutTargets",
     label: "Tests without detected targets",
+    labelZh: "未匹配目标的测试",
     empty: "No orphan tests detected",
+    emptyZh: "未检测到孤立测试",
   },
   {
     key: "docsWithoutTargets",
     label: "Docs without detected targets",
+    labelZh: "未匹配目标的文档",
     empty: "No orphan docs detected",
+    emptyZh: "未检测到孤立文档",
   },
 ];
 
 export function impactPathKey(value) {
-  return String(value || "").trim().replaceAll("\\", "/").toLowerCase();
+  return String(value || "")
+    .trim()
+    .replaceAll("\\", "/")
+    .toLowerCase();
 }
 
 export function findImpactTargetByPath(impactGraph, path) {

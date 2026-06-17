@@ -20,13 +20,13 @@ export function ImpactEvidenceDrawer({ evidence = [], title = "Impact evidence",
       >
         <div className="impact-evidence-head">
           <div>
-            <div className="impact-eyebrow">{T("Impact evidence", "Impact evidence")}</div>
+            <div className="impact-eyebrow">{T("Impact evidence", "影响证据")}</div>
             <h3>{title}</h3>
           </div>
           <button
             type="button"
             className="btn sm ghost"
-            aria-label={T("Close evidence", "Close evidence")}
+            aria-label={T("Close evidence", "关闭证据")}
             onClick={onClose}
           >
             <I.X size={13} />

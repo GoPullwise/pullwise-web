@@ -8,19 +8,34 @@ import { ImpactTargetCard } from "./ImpactTargetCard.jsx";
 import { compactCount, impactCoverageCount } from "./impact-utils.js";
 
 const IMPACT_TABS = [
-  { key: "summary", label: "Summary" },
-  { key: "targets", label: "Targets" },
-  { key: "coverage", label: "Coverage" },
-  { key: "graph", label: "Graph" },
+  { key: "summary", label: "Summary", labelZh: "摘要" },
+  { key: "targets", label: "Targets", labelZh: "目标" },
+  { key: "coverage", label: "Coverage", labelZh: "覆盖" },
+  { key: "graph", label: "Graph", labelZh: "图谱" },
 ];
 
 function statCards(impactGraph) {
   const stats = impactGraph?.stats || {};
   return [
-    { key: "targets", label: "Targets", value: stats.targets ?? impactGraph?.targets?.length ?? 0 },
-    { key: "tested", label: "Tested", value: stats.testedTargets ?? 0 },
-    { key: "docs", label: "Documented", value: stats.documentedTargets ?? 0 },
-    { key: "config", label: "Configured", value: stats.configuredTargets ?? 0 },
+    {
+      key: "targets",
+      label: "Targets",
+      labelZh: "目标",
+      value: stats.targets ?? impactGraph?.targets?.length ?? 0,
+    },
+    { key: "tested", label: "Tested", labelZh: "已测试", value: stats.testedTargets ?? 0 },
+    {
+      key: "docs",
+      label: "Documented",
+      labelZh: "有文档",
+      value: stats.documentedTargets ?? 0,
+    },
+    {
+      key: "config",
+      label: "Configured",
+      labelZh: "有配置",
+      value: stats.configuredTargets ?? 0,
+    },
   ];
 }
 
@@ -37,14 +52,14 @@ export function ImpactGraphPanel({ impactGraph }) {
       <section className="impact-panel">
         <div className="impact-panel-head">
           <div>
-            <div className="impact-eyebrow">{T("Impact graph", "Impact graph")}</div>
-            <h3>{T("Impact graph unavailable", "Impact graph unavailable")}</h3>
+            <div className="impact-eyebrow">{T("Impact graph", "影响图")}</div>
+            <h3>{T("Impact graph unavailable", "影响图不可用")}</h3>
           </div>
         </div>
         <div className="impact-empty">
           {T(
             "This scan did not return an impact graph. Repository graph and issue evidence remain available.",
-            "This scan did not return an impact graph. Repository graph and issue evidence remain available."
+            "此扫描未返回影响图。仓库图和问题证据仍可查看。"
           )}
         </div>
       </section>
@@ -55,17 +70,17 @@ export function ImpactGraphPanel({ impactGraph }) {
     <section className="impact-panel">
       <div className="impact-panel-head">
         <div>
-          <div className="impact-eyebrow">{T("Impact graph", "Impact graph")}</div>
-          <h3>{T("Impact context", "Impact context")}</h3>
+          <div className="impact-eyebrow">{T("Impact graph", "影响图")}</div>
+          <h3>{T("Impact context", "影响上下文")}</h3>
         </div>
         <div className="impact-panel-tags">
           <span className="tag">{impactGraph.version}</span>
           <span className="tag">{impactGraph.mode}</span>
-          {impactGraph.stats?.truncated && <span className="tag">{T("truncated", "truncated")}</span>}
+          {impactGraph.stats?.truncated && <span className="tag">{T("truncated", "已截断")}</span>}
         </div>
       </div>
 
-      <div className="seg impact-tabs" role="tablist" aria-label={T("Impact views", "Impact views")}>
+      <div className="seg impact-tabs" role="tablist" aria-label={T("Impact views", "影响视图")}>
         {IMPACT_TABS.map((item) => (
           <button
             key={item.key}
@@ -75,7 +90,7 @@ export function ImpactGraphPanel({ impactGraph }) {
             aria-selected={tab === item.key}
             onClick={() => setTab(item.key)}
           >
-            {T(item.label, item.label)}
+            {T(item.label, item.labelZh)}
           </button>
         ))}
       </div>
@@ -86,17 +101,21 @@ export function ImpactGraphPanel({ impactGraph }) {
             {stats.map((stat) => (
               <div className="impact-stat" key={stat.key}>
                 <b>{stat.value}</b>
-                <span>{T(stat.label, stat.label)}</span>
+                <span>{T(stat.label, stat.labelZh)}</span>
               </div>
             ))}
           </div>
-          {impactGraph.summary && <p className="muted impact-summary-copy">{impactGraph.summary}</p>}
+          {impactGraph.summary && (
+            <p className="muted impact-summary-copy">{impactGraph.summary}</p>
+          )}
           {changedFiles.length > 0 && (
             <div className="impact-changed-files">
               <div className="impact-section-head compact">
                 <div>
-                  <div className="impact-eyebrow">{T("Changed files", "Changed files")}</div>
-                  <h3>{compactCount(changedFiles.length, "file")}</h3>
+                  <div className="impact-eyebrow">{T("Changed files", "变更文件")}</div>
+                  <h3>
+                    {T(compactCount(changedFiles.length, "file"), `${changedFiles.length} 个文件`)}
+                  </h3>
                 </div>
               </div>
               <div className="impact-path-list">
@@ -111,7 +130,9 @@ export function ImpactGraphPanel({ impactGraph }) {
               <ImpactTargetCard key={target.id} target={target} compact onEvidence={setDrawer} />
             ))}
             {targets.length === 0 && (
-              <div className="impact-empty">{T("No impact targets were reported.", "No impact targets were reported.")}</div>
+              <div className="impact-empty">
+                {T("No impact targets were reported.", "暂无影响目标。")}
+              </div>
             )}
           </div>
           {coverageGapCount > 0 && <ImpactCoveragePanel coverage={impactGraph.coverage} />}
@@ -124,7 +145,9 @@ export function ImpactGraphPanel({ impactGraph }) {
             <ImpactTargetCard key={target.id} target={target} onEvidence={setDrawer} />
           ))}
           {targets.length === 0 && (
-            <div className="impact-empty">{T("No impact targets were reported.", "No impact targets were reported.")}</div>
+            <div className="impact-empty">
+              {T("No impact targets were reported.", "暂无影响目标。")}
+            </div>
           )}
         </div>
       )}
@@ -135,8 +158,8 @@ export function ImpactGraphPanel({ impactGraph }) {
         <div className="impact-graph-tab">
           <div className="impact-section-head compact">
             <div>
-              <div className="impact-eyebrow">{T("Graph canvas", "Graph canvas")}</div>
-              <h3>{T("Tests, docs, config, and CI", "Tests, docs, config, and CI")}</h3>
+              <div className="impact-eyebrow">{T("Graph canvas", "图画布")}</div>
+              <h3>{T("Tests, docs, config, and CI", "测试、文档、配置和 CI")}</h3>
             </div>
             <I.Activity size={16} />
           </div>
@@ -145,7 +168,7 @@ export function ImpactGraphPanel({ impactGraph }) {
       )}
 
       <ImpactEvidenceDrawer
-        title={drawer?.title || T("Impact evidence", "Impact evidence")}
+        title={drawer?.title || T("Impact evidence", "影响证据")}
         evidence={drawer?.evidence || []}
         onClose={() => setDrawer(null)}
       />

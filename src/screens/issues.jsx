@@ -1166,7 +1166,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             {error && <div className="muted issues-table-message">{error}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="muted issues-table-empty">
-                {T("No findings are available yet.", "暂无 findings。")}
+                {T("No findings are available yet.", "暂无问题。")}
               </div>
             )}
             {!loading &&
@@ -1751,15 +1751,15 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
 
               {showImpactContext && (
                 <DetailSection
-                  title={T("Impact context", "Impact context")}
+                  title={T("Impact context", "影响上下文")}
                   empty={T(
                     "No impact context is available for this issue file.",
-                    "No impact context is available for this issue file."
+                    "此问题文件暂无影响上下文。"
                   )}
                 >
                   {impactScanLoading && !impactGraph ? (
                     <div className="muted">
-                      {T("Loading impact context...", "Loading impact context...")}
+                      {T("Loading impact context...", "正在加载影响上下文...")}
                     </div>
                   ) : impactTarget ? (
                     <ImpactTargetCard target={impactTarget} onEvidence={setImpactDrawer} />
@@ -1767,15 +1767,12 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     <div className="muted">
                       {T(
                         `No impact target matched ${issue.file || "this issue file"}.`,
-                        `No impact target matched ${issue.file || "this issue file"}.`
+                        `未找到与 ${issue.file || "此问题文件"} 匹配的影响目标。`
                       )}
                     </div>
                   ) : (
                     <div className="muted">
-                      {T(
-                        "Impact graph unavailable for this scan.",
-                        "Impact graph unavailable for this scan."
-                      )}
+                      {T("Impact graph unavailable for this scan.", "此扫描暂无影响图。")}
                     </div>
                   )}
                 </DetailSection>
@@ -2029,8 +2026,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
               {!autoFixable && (
                 <div className="muted" style={{ fontSize: 12 }}>
-                  {T("This issue is not auto-fixable:", "此问题无法自动修复：")}{" "}
-                  {fixabilityReason}
+                  {T("This issue is not auto-fixable:", "此问题无法自动修复：")} {fixabilityReason}
                 </div>
               )}
               {autoFixable && !activePullRequest?.url && !activeFixPreview?.valid && (
@@ -2243,7 +2239,7 @@ function scanHasRetryableTrace(scan) {
 function isRetryableHistoryScan(scan) {
   return Boolean(
     scan?.id &&
-      (["failed", "cancelled", "lost"].includes(scan.status) || scanHasRetryableTrace(scan))
+    (["failed", "cancelled", "lost"].includes(scan.status) || scanHasRetryableTrace(scan))
   );
 }
 
@@ -2505,8 +2501,7 @@ export function HistoryScreen({
     () => scanListIncludesExpectedIds(filtered, normalizedExpectedScanIds),
     [filtered, normalizedExpectedScanIds]
   );
-  const waitingForExpectedScans =
-    normalizedExpectedScanIds.length > 0 && !expectedScansLoaded;
+  const waitingForExpectedScans = normalizedExpectedScanIds.length > 0 && !expectedScansLoaded;
   const displayLoading = loading || waitingForExpectedScans;
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 

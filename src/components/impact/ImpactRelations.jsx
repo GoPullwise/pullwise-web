@@ -18,7 +18,9 @@ export function ImpactRelations({
   empty = false,
   onEvidence = null,
 }) {
-  const visibleGroups = groups.filter((group) => empty || impactRelationItems(target, group.key).length);
+  const visibleGroups = groups.filter(
+    (group) => empty || impactRelationItems(target, group.key).length
+  );
   if (!visibleGroups.length) return null;
 
   return (
@@ -28,11 +30,13 @@ export function ImpactRelations({
         return (
           <section className="impact-relation-group" key={group.key}>
             <div className="impact-relation-title">
-              <span>{T(group.label, group.label)}</span>
+              <span>{T(group.label, group.labelZh || group.label)}</span>
               <span className="tag">{items.length}</span>
             </div>
             {items.length === 0 ? (
-              <div className="muted impact-empty-line">{T(group.empty, group.empty)}</div>
+              <div className="muted impact-empty-line">
+                {T(group.empty, group.emptyZh || group.empty)}
+              </div>
             ) : (
               <div className="impact-relation-list">
                 {items.map((item, index) => {
@@ -61,13 +65,13 @@ export function ImpactRelations({
                               evidence: item.evidence.map((evidence) => ({
                                 ...evidence,
                                 relationLabel: label,
-                                relationType: group.label,
+                                relationType: T(group.label, group.labelZh || group.label),
                               })),
                             })
                           }
                         >
                           <I.Eye size={12} />
-                          {T("Evidence", "Evidence")}
+                          {T("Evidence", "证据")}
                         </button>
                       )}
                     </div>
