@@ -134,6 +134,28 @@ describe("Cloudflare Worker API proxy", () => {
 
   });
 
+  it("retries the default API origin when the upstream returns Cloudflare 1003", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response("<html>error code: 1003</html>", {
+          status: 403,
+          headers: { "content-type": "text/html" },
+        })
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ authenticated: false }), { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const response = await worker.fetch(
+      new Request("https://pull-wise.com/api/auth/session"),
+      { PULLWISE_API_ORIGIN: "https://198.51.100.10" }
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenNthCalledWith(1, new URL("https://198.51.100.10/auth/session"), expect.any(Object));
+    expect(fetchMock).toHaveBeenNthCalledWith(2, new URL("https://api.pull-wise.com/auth/session"), expect.any(Object));
+  });
+
   it("strips the api prefix for backend paths", () => {
     expect(backendPath("/api")).toBe("/");
     expect(backendPath("/api/")).toBe("/");

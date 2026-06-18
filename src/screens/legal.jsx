@@ -640,8 +640,8 @@ export function StatusScreen({ go, auth }) {
   const scanStatus = scanSystem?.scanSystemStatus || "down";
   const scanSystemDetail = scanSystem
     ? T(
-        `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.availableCapacity ?? 0} slots available`,
-        `排队 ${scanSystem.queuedJobs ?? 0} / 运行中 ${scanSystem.runningJobs ?? 0} / 可用槽位 ${scanSystem.availableCapacity ?? 0}`
+        `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.busyWorkerCount ?? 0} busy / ${scanSystem.idleWorkerCount ?? 0} idle workers`,
+        `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.busyWorkerCount ?? 0} busy / ${scanSystem.idleWorkerCount ?? 0} idle workers`
       )
     : T("Waiting for scan system status.", "等待扫描系统状态。");
   const reviewProviderConfigured = Boolean(

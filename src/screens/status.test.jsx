@@ -19,7 +19,8 @@ describe("StatusScreen", () => {
       scanSystemStatus: "ok",
       queuedJobs: 2,
       runningJobs: 1,
-      availableCapacity: 3,
+      busyWorkerCount: 1,
+      idleWorkerCount: 2,
     });
   });
 
@@ -38,7 +39,7 @@ describe("StatusScreen", () => {
 
     expect(await screen.findByText("API reachable")).toBeInTheDocument();
     expect(screen.getByText("Scan system")).toBeInTheDocument();
-    expect(screen.getByText(/2 queued \/ 1 running \/ 3 slots available/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 queued \/ 1 running \/ 1 busy \/ 2 idle workers/i)).toBeInTheDocument();
     expect(screen.queryByText(/Elevated scan latency/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Brief web app outage/i)).not.toBeInTheDocument();
   });
@@ -110,15 +111,14 @@ describe("StatusScreen", () => {
       scanSystemStatus: "ok",
       queuedJobs: 1,
       runningJobs: 1,
-      availableCapacity: 2,
+      busyWorkerCount: 1,
+      idleWorkerCount: 0,
       workers: [
         {
           worker_id: "wk_public...",
           name: "US worker",
           status: "idle",
           running_jobs: 1,
-          max_concurrent_jobs: 4,
-          free_slots: 3,
           provider: "codex",
           version: "0.1.0",
           region: "us-east",
@@ -145,14 +145,14 @@ describe("StatusScreen", () => {
       scanSystemStatus: "degraded",
       queuedJobs: 5,
       runningJobs: 2,
-      availableCapacity: 1,
+      busyWorkerCount: 1,
+      idleWorkerCount: 0,
       workers: [
         {
           worker_id: "wk_1",
           name: "US worker",
           status: "busy",
           running_jobs: 2,
-          max_concurrent_jobs: 2,
           provider: "codex",
           version: "0.1.0",
           region: "us-east",
@@ -162,7 +162,6 @@ describe("StatusScreen", () => {
           name: "EU worker",
           status: "degraded",
           running_jobs: 0,
-          max_concurrent_jobs: 8,
           provider: "codex",
           version: "0.1.0",
           region: "eu",
@@ -190,7 +189,8 @@ describe("StatusScreen", () => {
       scanSystemStatus: "ok",
       queuedJobs: 0,
       runningJobs: 0,
-      availableCapacity: 1,
+      busyWorkerCount: 0,
+      idleWorkerCount: 1,
       workers: [],
     });
 

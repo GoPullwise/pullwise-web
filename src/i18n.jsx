@@ -1505,13 +1505,6 @@ const PHRASE_TRANSLATIONS = {
     fr: "en file par utilisateur",
     es: "en cola por usuario",
   },
-  "queued / running / slots available": {
-    zh: "排队中 / 运行中 / 可用槽位",
-    ja: "待機中 / 実行中 / 利用可能スロット",
-    ko: "대기 중 / 실행 중 / 사용 가능 슬롯",
-    fr: "en file / en cours / créneaux disponibles",
-    es: "en cola / en curso / espacios disponibles",
-  },
   "Configured in provider": {
     zh: "在提供方配置",
     ja: "提供者側で設定",

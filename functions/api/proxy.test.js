@@ -163,4 +163,26 @@ describe("api proxy", () => {
       message: "Unable to reach Pullwise API upstream.",
     });
   });
+
+  it("retries the default API origin when the upstream returns Cloudflare 1003", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response("error code: 1003", {
+          status: 403,
+          headers: { "content-type": "text/plain" },
+        })
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ authenticated: false }), { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const response = await onRequest({
+      env: { PULLWISE_API_ORIGIN: "https://198.51.100.10" },
+      request: new Request("https://pull-wise.com/api/auth/session"),
+    });
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenNthCalledWith(1, new URL("https://198.51.100.10/auth/session"), expect.any(Object));
+    expect(fetchMock).toHaveBeenNthCalledWith(2, new URL("https://api.pull-wise.com/auth/session"), expect.any(Object));
+  });
 });
