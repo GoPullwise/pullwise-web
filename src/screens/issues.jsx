@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
-import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
+import { GraphVerifiedEvidenceGraph, GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -463,13 +463,8 @@ function GraphVerifiedIssueDetail({ issue }) {
   return (
     <>
       <DetailSection title={T("Graph evidence", "Graph evidence")}>
-        {graphLines.length > 0 && (
-          <ul className="legal-list-flat evidence-list">
-            {graphLines.map((line, index) => (
-              <li key={`${index}-${line}`}>{line}</li>
-            ))}
-          </ul>
-        )}
+        <GraphVerifiedEvidenceGraph graph={graph} label={issue.id || issue.title} />
+        {!graphLines.length && <p className="muted">{T("No graph evidence available.", "No graph evidence available.")}</p>}
       </DetailSection>
 
       <DetailSection title={T("Code evidence", "Code evidence")}>

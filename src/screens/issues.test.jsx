@@ -574,7 +574,14 @@ describe("IssueDetailScreen direct loading", () => {
     );
 
     expect(screen.getByText("Graph evidence")).toBeInTheDocument();
-    expect(screen.getByText("route -> handler -> session")).toBeInTheDocument();
+    const graph = screen.getByTestId("graph-verified-graph-f_graph_verified");
+    expect(
+      within(graph).getByRole("img", { name: /graphverified graph path for f_graph_verified/i })
+    ).toBeInTheDocument();
+    expect(within(graph).getAllByText("route").length).toBeGreaterThan(0);
+    expect(within(graph).getAllByText("handler").length).toBeGreaterThan(0);
+    expect(within(graph).getAllByText("session").length).toBeGreaterThan(0);
+    expect(within(graph).getAllByText("src/auth/session.ts").length).toBeGreaterThan(0);
     expect(screen.getByText("Code evidence")).toBeInTheDocument();
     expect(screen.getByText("The graph path reaches the failing session branch.")).toBeInTheDocument();
     expect(screen.getByText("pytest tests/auth/session.test.ts")).toBeInTheDocument();

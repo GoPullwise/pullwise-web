@@ -992,7 +992,14 @@ describe("ScanningScreen queue state", () => {
     expect(
       screen.getByText(/confirmed issue f_scan with graph evidence and local reproduction/i)
     ).toBeInTheDocument();
-    expect(screen.getByText(/route -> handler -> target/i)).toBeInTheDocument();
+    const graph = screen.getByTestId("graph-verified-graph-f_scan");
+    expect(
+      within(graph).getByRole("img", { name: /graphverified graph path for f_scan/i })
+    ).toBeInTheDocument();
+    expect(within(graph).getAllByText("route").length).toBeGreaterThan(0);
+    expect(within(graph).getAllByText("handler").length).toBeGreaterThan(0);
+    expect(within(graph).getAllByText("target").length).toBeGreaterThan(0);
+    expect(within(graph).getAllByText("src/app.ts").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 

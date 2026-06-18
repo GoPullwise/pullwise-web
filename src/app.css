@@ -1041,6 +1041,63 @@ body.has-proto-nav {
   min-height: 20px;
 }
 
+.graph-verified-graph {
+  min-width: 0;
+  margin: 8px 0 10px;
+  padding: 10px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface-1));
+}
+
+.graph-verified-graph-label {
+  margin-bottom: 8px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.graph-verified-graph svg {
+  display: block;
+  width: 100%;
+  min-width: 360px;
+  height: auto;
+}
+
+.graph-verified-edge {
+  stroke: color-mix(in srgb, var(--accent) 48%, var(--border));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.graph-verified-edge.file-link {
+  stroke-dasharray: 4 5;
+  stroke: color-mix(in srgb, var(--text-3) 58%, var(--border));
+}
+
+.graph-verified-node rect {
+  fill: var(--surface-1);
+  stroke: color-mix(in srgb, var(--accent) 42%, var(--border));
+  stroke-width: 1.4;
+}
+
+.graph-verified-node.slice rect {
+  fill: color-mix(in srgb, var(--accent) 10%, var(--surface-1));
+}
+
+.graph-verified-node.file rect {
+  fill: color-mix(in srgb, var(--text-3) 7%, var(--surface-1));
+  stroke: color-mix(in srgb, var(--text-3) 45%, var(--border));
+}
+
+.graph-verified-node text {
+  fill: var(--text);
+  font-size: 11.5px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
 .graph-verified-evidence-block > ul {
   display: grid;
   gap: 4px;
