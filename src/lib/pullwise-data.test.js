@@ -1321,6 +1321,30 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_ok", progress: "42.5" }).progress).toBe(42.5);
   });
 
+  it("preserves scan phase and queue metadata for active scan rendering", () => {
+    const scan = normalizeScan({
+      id: "sc_active",
+      status: "running",
+      phase: "index",
+      queue: {
+        message: "Waiting for worker capacity",
+        position: 2,
+        ahead: 1,
+      },
+    });
+
+    expect(scan.phase).toBe("index");
+    expect(scan.queue).toEqual({
+      message: "Waiting for worker capacity",
+      position: 2,
+      ahead: 1,
+    });
+    expect(scanQueueSummary(scan)).toEqual({
+      message: "Waiting for worker capacity",
+      tags: ["Position 2", "1 scan ahead"],
+    });
+  });
+
   it("normalizes scan text fields and status for safe rendering", () => {
     expect(
       normalizeScan({
