@@ -1044,58 +1044,148 @@ body.has-proto-nav {
 .graph-verified-graph {
   min-width: 0;
   margin: 8px 0 10px;
-  padding: 10px;
-  overflow-x: auto;
+  padding: 12px;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--accent) 4%, var(--surface-1));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 44%),
+    var(--bg-elev);
 }
 
 .graph-verified-graph-label {
-  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
   color: var(--text-3);
   font-size: 12px;
   font-weight: 700;
 }
 
-.graph-verified-graph svg {
-  display: block;
+.graph-verified-graph-label::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
+  content: "";
+}
+
+.graph-verified-flow {
+  min-width: 0;
   width: 100%;
-  min-width: 360px;
-  height: auto;
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 13%, var(--border));
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 30%),
+    color-mix(in srgb, var(--bg-soft) 72%, var(--bg-elev));
 }
 
-.graph-verified-edge {
-  stroke: color-mix(in srgb, var(--accent) 48%, var(--border));
-  stroke-width: 2;
-  stroke-linecap: round;
+.graph-verified-flow .react-flow__pane {
+  cursor: grab;
 }
 
-.graph-verified-edge.file-link {
-  stroke-dasharray: 4 5;
-  stroke: color-mix(in srgb, var(--text-3) 58%, var(--border));
+.graph-verified-flow .react-flow__pane:active {
+  cursor: grabbing;
 }
 
-.graph-verified-node rect {
-  fill: var(--surface-1);
-  stroke: color-mix(in srgb, var(--accent) 42%, var(--border));
-  stroke-width: 1.4;
+.graph-verified-flow-bg {
+  color: color-mix(in srgb, var(--text-3) 22%, transparent);
 }
 
-.graph-verified-node.slice rect {
-  fill: color-mix(in srgb, var(--accent) 10%, var(--surface-1));
+.graph-verified-flow-node {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  width: 100%;
+  height: 52px;
+  padding: 8px 13px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-elev) 88%, var(--bg-soft));
+  box-shadow:
+    0 10px 26px color-mix(in srgb, #0f172a 9%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  color: var(--text);
 }
 
-.graph-verified-node.file rect {
-  fill: color-mix(in srgb, var(--text-3) 7%, var(--surface-1));
-  stroke: color-mix(in srgb, var(--text-3) 45%, var(--border));
+.graph-verified-flow-node.slice {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 58%),
+    var(--bg-elev);
 }
 
-.graph-verified-node text {
-  fill: var(--text);
-  font-size: 11.5px;
-  font-weight: 700;
-  pointer-events: none;
+.graph-verified-flow-node.file {
+  border-color: color-mix(in srgb, #0f766e 36%, var(--border));
+  background:
+    linear-gradient(90deg, color-mix(in srgb, #0f766e 11%, transparent), transparent 58%),
+    var(--bg-elev);
+}
+
+.graph-verified-flow-node-caption {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.graph-verified-flow-node-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-verified-flow-handle {
+  width: 8px;
+  height: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: var(--bg-elev);
+  opacity: 0.85;
+}
+
+.graph-verified-flow-edge {
+  stroke: color-mix(in srgb, var(--accent) 58%, var(--border));
+  stroke-width: 2.2;
+}
+
+.graph-verified-flow-edge.file-link {
+  stroke: color-mix(in srgb, #0f766e 52%, var(--border));
+  stroke-dasharray: 7 5;
+}
+
+.graph-verified-flow .react-flow__edge-path {
+  filter: drop-shadow(0 1px 1px color-mix(in srgb, #0f172a 12%, transparent));
+}
+
+.graph-verified-flow .react-flow__edge.file-link .react-flow__arrowhead polyline,
+.graph-verified-flow .react-flow__edge.file-link .react-flow__arrowhead path {
+  stroke: color-mix(in srgb, #0f766e 62%, var(--border));
+  fill: color-mix(in srgb, #0f766e 62%, var(--border));
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .graph-verified-evidence-block > ul {

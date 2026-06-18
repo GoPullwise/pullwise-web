@@ -1,3 +1,12 @@
+import { useMemo } from "react";
+import dagre from "@dagrejs/dagre";
+import {
+  Background,
+  Handle,
+  MarkerType,
+  Position,
+  ReactFlow,
+} from "@xyflow/react";
 import { T } from "../i18n.jsx";
 
 function text(value) {
@@ -119,13 +128,16 @@ function countSummary(report, count) {
   return parts.join(" | ");
 }
 
-const PATH_SEPARATOR = /\s*(?:->|=>|→|⇒|›|»)\s*/;
-const GRAPH_NODE_WIDTH = 132;
-const GRAPH_NODE_HEIGHT = 34;
-const GRAPH_NODE_GAP = 28;
-const GRAPH_ROW_GAP = 58;
-const GRAPH_PADDING_X = 18;
-const GRAPH_PADDING_TOP = 28;
+const PATH_SEPARATOR = /\s*(?:->|=>|\u2192|\u21d2|\u203a|\u00bb)\s*/u;
+const GRAPH_NODE_WIDTH = 160;
+const GRAPH_FILE_NODE_WIDTH = 200;
+const GRAPH_NODE_HEIGHT = 52;
+const GRAPH_MIN_HEIGHT = 190;
+const GRAPH_MAX_HEIGHT = 360;
+const GRAPH_MAX_PATHS = 4;
+const GRAPH_MAX_FILES = 5;
+const GRAPH_NODE_TYPES = { evidence: GraphEvidenceNode };
+const GRAPH_FIT_VIEW_OPTIONS = { padding: 0.14, minZoom: 0.55, maxZoom: 1.12 };
 
 function splitGraphPath(value) {
   return text(value)
@@ -144,115 +156,215 @@ function safeTestId(value) {
   return text(value).replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "evidence";
 }
 
-function graphRows(evidence) {
-  const pathRows = evidence.pathSummary
+function pathRows(evidence) {
+  return evidence.pathSummary
     .map(splitGraphPath)
     .filter((row) => row.length)
-    .slice(0, 3);
-  if (pathRows.length) {
-    return pathRows.map((row) => (evidence.sliceId ? [`slice: ${evidence.sliceId}`, ...row] : row));
-  }
-  const fileRows = evidence.codegraphFiles.slice(0, 4);
-  if (fileRows.length) {
-    return [evidence.sliceId ? [`slice: ${evidence.sliceId}`, ...fileRows] : fileRows];
-  }
-  return evidence.sliceId ? [[`slice: ${evidence.sliceId}`]] : [];
+    .slice(0, GRAPH_MAX_PATHS);
 }
 
-function GraphNode({ label, x, y, kind }) {
+function graphNodeWidth(kind) {
+  return kind === "file" ? GRAPH_FILE_NODE_WIDTH : GRAPH_NODE_WIDTH;
+}
+
+function GraphEvidenceNode({ data }) {
   return (
-    <g className={`graph-verified-node ${kind}`} transform={`translate(${x} ${y})`}>
-      <title>{label}</title>
-      <rect width={GRAPH_NODE_WIDTH} height={GRAPH_NODE_HEIGHT} rx="7" />
-      <text x={GRAPH_NODE_WIDTH / 2} y="21" textAnchor="middle">
-        {shortLabel(label)}
-      </text>
-    </g>
+    <div className={`graph-verified-flow-node ${data.kind}`}>
+      <Handle className="graph-verified-flow-handle" type="target" position={Position.Left} />
+      <div className="graph-verified-flow-node-caption">{data.caption}</div>
+      <div className="graph-verified-flow-node-label" title={data.label}>
+        {shortLabel(data.label, data.kind === "file" ? 32 : 24)}
+      </div>
+      <Handle className="graph-verified-flow-handle" type="source" position={Position.Right} />
+    </div>
   );
+}
+
+function buildGraphFlow(evidence) {
+  const nodesByKey = new Map();
+  const edgesByKey = new Map();
+  const terminals = new Set();
+
+  const addNode = (label, kind) => {
+    const cleanLabel = text(label);
+    if (!cleanLabel) return null;
+    const key = `${kind}:${cleanLabel}`;
+    const existing = nodesByKey.get(key);
+    if (existing) return existing;
+    const node = {
+      id: `gv-node-${nodesByKey.size}`,
+      type: "evidence",
+      data: {
+        kind,
+        label: cleanLabel,
+        caption: kind === "slice" ? "slice" : kind === "file" ? "file" : "path",
+      },
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
+      draggable: false,
+      selectable: false,
+    };
+    nodesByKey.set(key, node);
+    return node;
+  };
+
+  const addEdge = (source, target, kind = "path") => {
+    if (!source?.id || !target?.id || source.id === target.id) return;
+    const key = `${source.id}:${target.id}:${kind}`;
+    if (edgesByKey.has(key)) return;
+    edgesByKey.set(key, {
+      id: `gv-edge-${edgesByKey.size}`,
+      source: source.id,
+      target: target.id,
+      type: "smoothstep",
+      className: kind === "file" ? "graph-verified-flow-edge file-link" : "graph-verified-flow-edge",
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 18,
+        height: 18,
+      },
+      data: { kind },
+      selectable: false,
+      focusable: false,
+    });
+  };
+
+  const sliceNode = evidence.sliceId ? addNode(evidence.sliceId, "slice") : null;
+  const rows = pathRows(evidence);
+  if (rows.length) {
+    rows.forEach((row) => {
+      let previous = sliceNode;
+      row.forEach((label) => {
+        if (sliceNode && label === evidence.sliceId) return;
+        const current = addNode(label, "path");
+        if (previous && current) addEdge(previous, current);
+        previous = current || previous;
+      });
+      if (previous) terminals.add(previous);
+    });
+  }
+
+  evidence.codegraphFiles.slice(0, GRAPH_MAX_FILES).forEach((file) => {
+    const fileNode = addNode(file, "file");
+    if (!fileNode) return;
+    if (terminals.size) {
+      terminals.forEach((terminal) => addEdge(terminal, fileNode, "file"));
+    } else if (sliceNode) {
+      addEdge(sliceNode, fileNode, "file");
+    }
+  });
+
+  return {
+    nodes: Array.from(nodesByKey.values()),
+    edges: Array.from(edgesByKey.values()),
+  };
+}
+
+function layoutGraphFlow(flow) {
+  const graph = new dagre.graphlib.Graph();
+  graph.setDefaultEdgeLabel(() => ({}));
+  graph.setGraph({
+    rankdir: "LR",
+    align: "UL",
+    nodesep: 26,
+    ranksep: 32,
+    marginx: 18,
+    marginy: 18,
+  });
+
+  flow.nodes.forEach((node) => {
+    graph.setNode(node.id, {
+      width: graphNodeWidth(node.data.kind),
+      height: GRAPH_NODE_HEIGHT,
+    });
+  });
+  flow.edges.forEach((edge) => graph.setEdge(edge.source, edge.target));
+  dagre.layout(graph);
+
+  let minY = 0;
+  let maxY = GRAPH_MIN_HEIGHT;
+  const nodes = flow.nodes.map((node) => {
+    const point = graph.node(node.id) || { x: 0, y: 0 };
+    const width = graphNodeWidth(node.data.kind);
+    const x = point.x - width / 2;
+    const y = point.y - GRAPH_NODE_HEIGHT / 2;
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y + GRAPH_NODE_HEIGHT);
+    return {
+      ...node,
+      position: { x, y },
+      style: { width, height: GRAPH_NODE_HEIGHT },
+    };
+  });
+
+  const height = Math.min(
+    GRAPH_MAX_HEIGHT,
+    Math.max(GRAPH_MIN_HEIGHT, Math.ceil(maxY - minY + 52))
+  );
+  return { nodes, edges: flow.edges, height };
+}
+
+function graphFlowModel(evidence) {
+  const flow = buildGraphFlow(evidence);
+  if (!flow.nodes.length) return null;
+  return layoutGraphFlow(flow);
+}
+
+function graphFallbackLines(evidence) {
+  const rows = pathRows(evidence);
+  if (rows.length) {
+    return rows.map((row) => (evidence.sliceId ? [evidence.sliceId, ...row] : row).join(" -> "));
+  }
+  return [
+    evidence.sliceId ? `slice: ${evidence.sliceId}` : "",
+    ...evidence.codegraphFiles.map((file) => `file: ${file}`),
+  ].filter(Boolean);
 }
 
 export function GraphVerifiedEvidenceGraph({ graph, label = "" }) {
-  const evidence = graphEvidenceValue(graph);
-  const rows = graphRows(evidence);
-  if (!rows.length) return null;
+  const evidence = useMemo(() => graphEvidenceValue(graph), [graph]);
+  const model = useMemo(() => graphFlowModel(evidence), [evidence]);
+  if (!model) return null;
 
-  const hasPathRows = evidence.pathSummary.some((entry) => splitGraphPath(entry).length);
-  const files = hasPathRows ? evidence.codegraphFiles.slice(0, 4) : [];
-  const maxRowLength = Math.max(...rows.map((row) => row.length), files.length || 0, 1);
-  const width = Math.max(
-    360,
-    GRAPH_PADDING_X * 2 + maxRowLength * GRAPH_NODE_WIDTH + (maxRowLength - 1) * GRAPH_NODE_GAP
+  const graphLabel = text(label) || evidence.sliceId || graphFallbackLines(evidence)[0] || "evidence";
+  const ariaLabel = T(
+    `GraphVerified graph path for ${graphLabel}`,
+    `GraphVerified graph path for ${graphLabel}`
   );
-  const fileRowY = GRAPH_PADDING_TOP + rows.length * GRAPH_ROW_GAP + 18;
-  const height = fileRowY + (files.length ? GRAPH_NODE_HEIGHT + 22 : 4);
-  const graphLabel = text(label) || evidence.sliceId || rows[0].join(" to ");
 
   return (
     <div className="graph-verified-graph" data-testid={`graph-verified-graph-${safeTestId(graphLabel)}`}>
       <div className="graph-verified-graph-label">{T("Graph path", "Graph path")}</div>
-      <svg
+      <div
+        className="graph-verified-flow"
         role="img"
-        aria-label={T(`GraphVerified graph path for ${graphLabel}`, `GraphVerified graph path for ${graphLabel}`)}
-        viewBox={`0 0 ${width} ${height}`}
+        aria-label={ariaLabel}
+        style={{ height: model.height }}
       >
-        {rows.map((row, rowIndex) => {
-          const y = GRAPH_PADDING_TOP + rowIndex * GRAPH_ROW_GAP;
-          return (
-            <g key={`row-${rowIndex}`}>
-              {row.slice(0, -1).map((node, nodeIndex) => {
-                const x1 = GRAPH_PADDING_X + nodeIndex * (GRAPH_NODE_WIDTH + GRAPH_NODE_GAP) + GRAPH_NODE_WIDTH;
-                const x2 = GRAPH_PADDING_X + (nodeIndex + 1) * (GRAPH_NODE_WIDTH + GRAPH_NODE_GAP);
-                const cy = y + GRAPH_NODE_HEIGHT / 2;
-                return (
-                  <line
-                    key={`${rowIndex}-${nodeIndex}-${node}`}
-                    className="graph-verified-edge"
-                    x1={x1}
-                    y1={cy}
-                    x2={x2}
-                    y2={cy}
-                    aria-hidden="true"
-                  />
-                );
-              })}
-              {row.map((node, nodeIndex) => (
-                <GraphNode
-                  key={`${rowIndex}-${nodeIndex}-${node}`}
-                  label={node}
-                  x={GRAPH_PADDING_X + nodeIndex * (GRAPH_NODE_WIDTH + GRAPH_NODE_GAP)}
-                  y={y}
-                  kind={nodeIndex === 0 && node.startsWith("slice:") ? "slice" : "path"}
-                />
-              ))}
-            </g>
-          );
-        })}
-        {files.length > 0 && (
-          <g className="graph-verified-files">
-            {files.map((file, index) => {
-              const sourceRow = rows[0];
-              const sourceIndex = Math.max(0, sourceRow.length - 1);
-              const sourceX = GRAPH_PADDING_X + sourceIndex * (GRAPH_NODE_WIDTH + GRAPH_NODE_GAP) + GRAPH_NODE_WIDTH / 2;
-              const sourceY = GRAPH_PADDING_TOP + GRAPH_NODE_HEIGHT;
-              const fileX = GRAPH_PADDING_X + index * (GRAPH_NODE_WIDTH + GRAPH_NODE_GAP);
-              const fileY = fileRowY;
-              return (
-                <g key={`file-${file}-${index}`}>
-                  <line
-                    className="graph-verified-edge file-link"
-                    x1={sourceX}
-                    y1={sourceY}
-                    x2={fileX + GRAPH_NODE_WIDTH / 2}
-                    y2={fileY}
-                    aria-hidden="true"
-                  />
-                  <GraphNode label={file} x={fileX} y={fileY} kind="file" />
-                </g>
-              );
-            })}
-          </g>
-        )}
-      </svg>
+        <ReactFlow
+          ariaLabel={ariaLabel}
+          nodes={model.nodes}
+          edges={model.edges}
+          nodeTypes={GRAPH_NODE_TYPES}
+          fitView
+          fitViewOptions={GRAPH_FIT_VIEW_OPTIONS}
+          minZoom={0.35}
+          maxZoom={1.35}
+          panOnDrag
+          zoomOnPinch
+          zoomOnScroll={false}
+          zoomOnDoubleClick={false}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          onlyRenderVisibleElements
+          preventScrolling={false}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background className="graph-verified-flow-bg" gap={18} size={1.2} />
+        </ReactFlow>
+        <div className="sr-only">{graphFallbackLines(evidence).join(" | ")}</div>
+      </div>
     </div>
   );
 }
