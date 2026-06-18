@@ -15,6 +15,8 @@ import {
   issueUpdateKey,
   notifyIssuesChanged,
   rememberIssueUpdate,
+  retryResponseScanId,
+  retryResponseScanPayload,
   scanQueueSummary,
   useIssues,
   useScans,
@@ -163,10 +165,7 @@ function scanHasResults(scan) {
 function scanHistorySummary(scan) {
   const queueSummary = scanQueueSummary(scan);
   if (scan.status === "queued" && queueSummary) {
-    const queueTags = queueSummary.tags.filter(
-      (tag) => !tag.startsWith("Global") && !tag.startsWith("Per user")
-    );
-    return [T("queued", "排队中"), ...queueTags].join(" - ");
+    return [T("queued", "排队中"), ...queueSummary.tags].join(" - ");
   }
   if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
   if (scan.status === "lost") {
@@ -720,14 +719,35 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       rowKeys.reduce((next, rowKey) => ({ ...next, [rowKey]: true }), current)
     );
     try {
-      const results = await Promise.allSettled(
-        targets.map((issue) =>
-          pullwiseApi.issues.updateStatus(issue.id, {
-            status: "fixed",
-            ...issueStatusIdentity(issue),
-          })
-        )
-      );
+      const results =
+        typeof pullwiseApi.issues.updateStatuses === "function"
+          ? await pullwiseApi.issues
+              .updateStatuses(
+                targets.map((issue) => ({
+                  id: issue.id,
+                  status: "fixed",
+                  ...issueStatusIdentity(issue),
+                }))
+              )
+              .then((payload) => {
+                const updatedById = new Map(
+                  (payload?.items || payload?.issues || []).map((issue) => [String(issue?.id || ""), issue])
+                );
+                return targets.map((issue) => {
+                  const updated = updatedById.get(String(issue.id || ""));
+                  return updated
+                    ? { status: "fulfilled", value: updated }
+                    : { status: "rejected", reason: new Error("Issue was not updated.") };
+                });
+              })
+          : await Promise.allSettled(
+              targets.map((issue) =>
+                pullwiseApi.issues.updateStatus(issue.id, {
+                  status: "fixed",
+                  ...issueStatusIdentity(issue),
+                })
+              )
+            );
       const localUpdates = {};
       const notifications = [];
       let failureCount = 0;
@@ -1816,6 +1836,7 @@ export function HistoryScreen({
     error,
     reload,
     loadMore,
+    upsertScan,
     meta = {},
   } = useScans({ status, limit: 50 });
   const filtered = scans;
@@ -1883,8 +1904,16 @@ export function HistoryScreen({
     setActionError("");
     setRetryLoading(scan.id);
     try {
-      await pullwiseApi.scans.retry(scan.id);
-      if (typeof reload === "function") await reload();
+      const payload = await pullwiseApi.scans.retry(scan.id);
+      const inlinePayload = retryResponseScanPayload(payload);
+      const refreshed = inlinePayload
+        ? normalizeScan(inlinePayload)
+        : normalizeScan(await pullwiseApi.scans.get(retryResponseScanId(payload, scan.id)));
+      if (typeof upsertScan === "function") {
+        upsertScan(refreshed, scan.id);
+      } else if (typeof reload === "function") {
+        await reload({ quiet: true });
+      }
     } catch (actionError) {
       setActionError(actionError?.message || T("Unable to retry scan.", "无法重试扫描。"));
     } finally {

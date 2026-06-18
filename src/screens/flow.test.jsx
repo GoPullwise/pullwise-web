@@ -36,7 +36,6 @@ vi.mock("../lib/pullwise-data.js", () => ({
           tags: [
             scan.queue.position ? `Position ${scan.queue.position}` : null,
             typeof scan.queue.ahead === "number" ? `${scan.queue.ahead} scans ahead` : null,
-            scan.queue.limits?.perUser ? `Per user ${scan.queue.limits.perUser}` : null,
           ].filter(Boolean),
         }
       : null,
@@ -1454,7 +1453,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("GraphVerified review")).toBeInTheDocument();
   });
 
-  it("explains queued scans with queue position and capacity limits", () => {
+  it("explains queued scans with queue position", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_queued",
@@ -1468,8 +1467,8 @@ describe("ScanningScreen queue state", () => {
           ahead: 3,
           reason: "waiting_for_turn",
           message: "Queued with 3 scans ahead.",
-          limits: { perUser: 1 },
-          running: { global: 3, user: 0 },
+          limits: { queuedGlobal: 1000 },
+          running: { global: 3 },
         },
       },
       error: "",
@@ -1487,7 +1486,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText(/scan queued/i)).toBeInTheDocument();
     expect(screen.getByText(/position 4/i)).toBeInTheDocument();
     expect(screen.getAllByText(/3 scans ahead/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/per user 1/i)).toBeInTheDocument();
+    expect(screen.queryByText(/per user/i)).not.toBeInTheDocument();
   });
 
   it("routes disabled review provider errors to settings", async () => {

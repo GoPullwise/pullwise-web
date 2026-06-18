@@ -8,16 +8,21 @@ import { DashboardScreen } from "./dashboard.jsx";
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
+      get: vi.fn(),
       retry: vi.fn(),
     },
   },
 }));
 
-vi.mock("../lib/pullwise-data.js", () => ({
-  useIssues: vi.fn(),
-  useRepositories: vi.fn(),
-  useScans: vi.fn(),
-}));
+vi.mock("../lib/pullwise-data.js", async () => {
+  const actual = await vi.importActual("../lib/pullwise-data.js");
+  return {
+    ...actual,
+    useIssues: vi.fn(),
+    useRepositories: vi.fn(),
+    useScans: vi.fn(),
+  };
+});
 
 import { pullwiseApi } from "../api/pullwise.js";
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
@@ -25,7 +30,9 @@ import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 describe("DashboardScreen issue list", () => {
   beforeEach(() => {
     pullwiseApi.scans.retry.mockReset();
+    pullwiseApi.scans.get.mockReset();
     pullwiseApi.scans.retry.mockResolvedValue({});
+    pullwiseApi.scans.get.mockResolvedValue({ id: "scan_retry_next", status: "queued" });
   });
 
   afterEach(() => {
@@ -113,9 +120,37 @@ describe("DashboardScreen issue list", () => {
     expect(screen.getByText("Last: now · codex · gpt-5.5 · reasoning: high")).toBeInTheDocument();
   });
 
-  it("retries the failed latest scan and reloads scans", async () => {
+  it("shows the latest queued scan position in the scans KPI", () => {
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "scan_queued_latest",
+          repo: "acme/api",
+          branch: "main",
+          commit: "pending",
+          status: "queued",
+          time: "now",
+          queue: { position: 4, ahead: 3, message: "Queued with 3 scans ahead." },
+        },
+      ],
+      loading: false,
+    });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    expect(screen.getByText(/Position 4 \/ 3 scans ahead/i)).toBeInTheDocument();
+  });
+
+  it("retries the failed latest scan and updates the scan list from a targeted refresh", async () => {
     const user = userEvent.setup();
     const reload = vi.fn().mockResolvedValue(undefined);
+    const upsertScan = vi.fn();
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({
       items: [],
@@ -143,6 +178,7 @@ describe("DashboardScreen issue list", () => {
       ],
       loading: false,
       reload,
+      upsertScan,
     });
 
     render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
@@ -150,7 +186,14 @@ describe("DashboardScreen issue list", () => {
     await user.click(screen.getByRole("button", { name: /^retry$/i }));
 
     expect(pullwiseApi.scans.retry).toHaveBeenCalledWith("scan_failed_latest");
-    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("scan_failed_latest")
+    );
+    expect(upsertScan).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "scan_retry_next", status: "queued" }),
+      "scan_failed_latest"
+    );
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it("alerts when retrying the latest scan fails", async () => {

@@ -3,6 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 
 const successfulListCache = new Map();
 const issueUpdateCache = new Map();
+const inFlightDataRequests = new Map();
 const ISSUE_UPDATE_KEY_FIELDS = [
   "id",
   "scanId",
@@ -14,14 +15,100 @@ const ISSUE_UPDATE_KEY_FIELDS = [
   "createdAt",
 ];
 
+function pageIsHidden() {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
+
+function onVisible(callback) {
+  if (typeof document === "undefined") return undefined;
+  const handleVisibility = () => {
+    if (document.visibilityState !== "hidden") callback();
+  };
+  document.addEventListener("visibilitychange", handleVisibility);
+  return () => document.removeEventListener("visibilitychange", handleVisibility);
+}
+
 function stableCacheKey(name, params = {}) {
   return [
     name,
     ...Object.entries(params)
       .filter(([, value]) => value !== "" && value !== undefined && value !== null)
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, value]) => `${key}:${String(value)}`),
+    .map(([key, value]) => `${key}:${String(value)}`),
   ].join("|");
+}
+
+function makeAbortController() {
+  return typeof AbortController === "function" ? new AbortController() : null;
+}
+
+function createAbortError() {
+  if (typeof DOMException === "function") {
+    return new DOMException("Request aborted", "AbortError");
+  }
+  const error = new Error("Request aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function isAbortError(error) {
+  return (
+    error?.name === "AbortError" ||
+    error?.name === "CanceledError" ||
+    error?.code === "ERR_CANCELED"
+  );
+}
+
+function dedupedDataRequest(key, fetcher, ownerSignal) {
+  if (ownerSignal?.aborted) return Promise.reject(createAbortError());
+  let entry = inFlightDataRequests.get(key);
+  if (!entry) {
+    const controller = makeAbortController();
+    entry = {
+      consumers: 0,
+      controller,
+      done: false,
+      promise: Promise.resolve()
+        .then(() => fetcher(controller?.signal))
+        .finally(() => {
+          entry.done = true;
+          inFlightDataRequests.delete(key);
+        }),
+    };
+    entry.promise.catch(() => {});
+    inFlightDataRequests.set(key, entry);
+  }
+  entry.consumers += 1;
+
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    entry.consumers = Math.max(0, entry.consumers - 1);
+    if (!entry.done && entry.consumers === 0 && ownerSignal?.aborted) {
+      entry.controller?.abort();
+    }
+  };
+
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      release();
+      reject(createAbortError());
+    };
+    ownerSignal?.addEventListener?.("abort", onAbort, { once: true });
+    entry.promise.then(
+      (value) => {
+        ownerSignal?.removeEventListener?.("abort", onAbort);
+        release();
+        resolve(value);
+      },
+      (error) => {
+        ownerSignal?.removeEventListener?.("abort", onAbort);
+        release();
+        reject(error);
+      }
+    );
+  });
 }
 
 function cloneListState(state) {
@@ -58,6 +145,7 @@ function rememberListState(key, state) {
 export function clearPullwiseDataCache() {
   successfulListCache.clear();
   issueUpdateCache.clear();
+  inFlightDataRequests.clear();
 }
 
 export function issueUpdateKey(issue) {
@@ -944,6 +1032,7 @@ function normalizeGraphVerifiedReport(value) {
 
 export function useRepositories({ limit = 100 } = {}) {
   const requestIdRef = useRef(0);
+  const abortRef = useRef(null);
   const cacheKey = stableCacheKey("repositories", { limit });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
@@ -963,6 +1052,9 @@ export function useRepositories({ limit = 100 } = {}) {
     async ({ sync = false, quiet = false, append = false, offset = 0 } = {}) => {
       const requestId = requestIdRef.current + 1;
       requestIdRef.current = requestId;
+      abortRef.current?.abort?.();
+      const controller = makeAbortController();
+      abortRef.current = controller;
       setState((current) => ({
         ...current,
         loading: quiet || append ? current.loading : true,
@@ -970,9 +1062,14 @@ export function useRepositories({ limit = 100 } = {}) {
         error: "",
       }));
       try {
+        const params = listParams({ limit, offset });
         const payload = sync
-          ? await pullwiseApi.repositories.sync()
-          : await pullwiseApi.repositories.list(listParams({ limit, offset }));
+          ? await pullwiseApi.repositories.sync(undefined, { signal: controller?.signal })
+          : await dedupedDataRequest(
+              stableCacheKey("repositories-request", params),
+              (signal) => pullwiseApi.repositories.list(params, { signal }),
+              controller?.signal
+            );
         if (requestId !== requestIdRef.current) return;
         const nextItems = itemsFrom(payload, "items", "repositories").map(normalizeRepo);
         setState((current) => {
@@ -991,6 +1088,7 @@ export function useRepositories({ limit = 100 } = {}) {
           return nextState;
         });
       } catch (error) {
+        if (isAbortError(error)) return;
         if (requestId !== requestIdRef.current) return;
         setState((current) => ({
           ...current,
@@ -998,6 +1096,8 @@ export function useRepositories({ limit = 100 } = {}) {
           loadingMore: false,
           error: error?.message || "Unable to load repositories.",
         }));
+      } finally {
+        if (abortRef.current === controller) abortRef.current = null;
       }
     },
     [cacheKey, limit]
@@ -1005,6 +1105,7 @@ export function useRepositories({ limit = 100 } = {}) {
 
   useEffect(() => {
     load({ quiet: shouldRefreshQuietly });
+    return () => abortRef.current?.abort?.();
   }, [load, shouldRefreshQuietly]);
 
   const loadMore = useCallback(() => {
@@ -1055,6 +1156,7 @@ export function useIssues({
   refreshOnChange = true,
 } = {}) {
   const requestIdRef = useRef(0);
+  const abortRef = useRef(null);
   const cacheKey = stableCacheKey("issues", { limit, status, severity, q, scanId });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
@@ -1070,6 +1172,9 @@ export function useIssues({
     async ({ append = false, offset = 0, quiet = false } = {}) => {
       const requestId = requestIdRef.current + 1;
       requestIdRef.current = requestId;
+      abortRef.current?.abort?.();
+      const controller = makeAbortController();
+      abortRef.current = controller;
       setState((current) => ({
         ...current,
         loading: append || quiet ? current.loading : true,
@@ -1077,8 +1182,11 @@ export function useIssues({
         error: "",
       }));
       try {
-        const payload = await pullwiseApi.issues.list(
-          listParams({ limit, offset, status, severity, q, scanId })
+        const params = listParams({ limit, offset, status, severity, q, scanId });
+        const payload = await dedupedDataRequest(
+          stableCacheKey("issues-request", params),
+          (signal) => pullwiseApi.issues.list(params, { signal }),
+          controller?.signal
         );
         if (requestId !== requestIdRef.current) return;
         const nextItems = applyCachedIssueUpdates(
@@ -1096,6 +1204,7 @@ export function useIssues({
           return nextState;
         });
       } catch (error) {
+        if (isAbortError(error)) return;
         if (requestId !== requestIdRef.current) return;
         setState((current) => ({
           items: current.items,
@@ -1104,6 +1213,8 @@ export function useIssues({
           error: error?.message || "Unable to load issues.",
           meta: current.meta,
         }));
+      } finally {
+        if (abortRef.current === controller) abortRef.current = null;
       }
     },
     [cacheKey, limit, status, severity, q, scanId]
@@ -1111,6 +1222,7 @@ export function useIssues({
 
   useEffect(() => {
     load({ quiet: shouldRefreshQuietly });
+    return () => abortRef.current?.abort?.();
   }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
@@ -1147,10 +1259,8 @@ export function scanQueueSummary(scan) {
   const tags = [];
   const position = normalizeQueueCount(queue.position, { positive: true });
   const ahead = normalizeQueueCount(queue.ahead);
-  const perUserLimit = normalizeQueueCount(queue.limits?.perUser, { positive: true });
   if (position !== null) tags.push(`Position ${position}`);
   if (ahead !== null) tags.push(`${scanCountLabel(ahead)} ahead`);
-  if (perUserLimit !== null) tags.push(`Per user ${perUserLimit}`);
 
   return {
     message: firstLineText(queue.message),
@@ -1160,6 +1270,7 @@ export function scanQueueSummary(scan) {
 
 export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
+  const abortRef = useRef(null);
   const cacheKey = stableCacheKey("scans", { limit, status, repo });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
@@ -1175,6 +1286,9 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
     async ({ quiet = false, append = false, offset = 0 } = {}) => {
       const requestId = requestIdRef.current + 1;
       requestIdRef.current = requestId;
+      abortRef.current?.abort?.();
+      const controller = makeAbortController();
+      abortRef.current = controller;
       setState((current) => ({
         ...current,
         loading: quiet || append ? current.loading : true,
@@ -1182,7 +1296,12 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
         error: "",
       }));
       try {
-        const payload = await pullwiseApi.scans.list(listParams({ limit, offset, status, repo }));
+        const params = listParams({ limit, offset, status, repo });
+        const payload = await dedupedDataRequest(
+          stableCacheKey("scans-request", params),
+          (signal) => pullwiseApi.scans.list(params, { signal }),
+          controller?.signal
+        );
         if (requestId !== requestIdRef.current) return;
         const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
         setState((current) => {
@@ -1197,6 +1316,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           return nextState;
         });
       } catch (error) {
+        if (isAbortError(error)) return;
         if (requestId !== requestIdRef.current) return;
         const message = error?.message || "Unable to load scans.";
         setState((current) => ({
@@ -1206,6 +1326,8 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           error: message,
           meta: current.meta,
         }));
+      } finally {
+        if (abortRef.current === controller) abortRef.current = null;
       }
     },
     [cacheKey, limit, status, repo]
@@ -1213,10 +1335,14 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
 
   useEffect(() => {
     load({ quiet: shouldRefreshQuietly });
+    return () => abortRef.current?.abort?.();
   }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
     if (!state.items.some(isActiveScan)) return undefined;
+    if (pageIsHidden()) {
+      return onVisible(() => load({ quiet: true }));
+    }
     const handle = setTimeout(() => {
       load({ quiet: true });
     }, pollIntervalMs);
@@ -1228,7 +1354,32 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
     load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
   }, [load, state.meta, state.loadingMore, state.items.length]);
 
-  return { ...state, reload: load, loadMore };
+  const upsertScan = useCallback(
+    (scan, replacedScanId = "") => {
+      const normalized = normalizeScan(scan);
+      if (!normalized.id) return;
+      setState((current) => {
+        const shouldInclude = !status || normalized.status === status;
+        const remainingItems = current.items.filter(
+          (item) => item.id !== normalized.id && item.id !== replacedScanId
+        );
+        const nextItems = shouldInclude ? [normalized, ...remainingItems] : remainingItems;
+        const nextState = {
+          ...current,
+          items: nextItems,
+          meta: {
+            ...current.meta,
+            total: Math.max(current.meta.total || 0, nextItems.length),
+          },
+        };
+        rememberListState(cacheKey, nextState);
+        return nextState;
+      });
+    },
+    [cacheKey, status]
+  );
+
+  return { ...state, reload: load, loadMore, upsertScan };
 }
 
 const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled", "lost"]);
@@ -1237,15 +1388,15 @@ export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
 }
 
-function retryResponseScanPayload(payload) {
+export function retryResponseScanPayload(payload) {
   if (objectRecord(payload?.scan)) return payload.scan;
   if (objectRecord(payload?.data?.scan)) return payload.data.scan;
   if (objectRecord(payload?.result?.scan)) return payload.result.scan;
   if (objectRecord(payload?.retry)) return payload.retry;
-  return objectRecord(payload) ? payload : null;
+  return objectRecord(payload) && textValue(payload.id, payload.scanId, payload.scan_id) ? payload : null;
 }
 
-function retryResponseScanId(payload, fallback = "") {
+export function retryResponseScanId(payload, fallback = "") {
   return textValue(
     payload?.scanId,
     payload?.scan_id,
@@ -1334,12 +1485,13 @@ export function useScanRun({
       return undefined;
     }
     let alive = true;
+    const controller = makeAbortController();
     const seedScan = initialScanRef.current;
     clearRunError();
     setLoading(true);
     setScan(seedScan?.id === scanId ? normalizeScan(seedScan) : null);
     pullwiseApi.scans
-      .get(scanId)
+      .get(scanId, { signal: controller?.signal })
       .then((payload) => {
         if (alive) {
           setScan(normalizeScan(payload));
@@ -1347,6 +1499,7 @@ export function useScanRun({
         }
       })
       .catch((err) => {
+        if (isAbortError(err)) return;
         if (alive) {
           setRunError(err, "Unable to load scan.", seedScan?.id === scanId ? "load" : "initial-load");
         }
@@ -1356,20 +1509,26 @@ export function useScanRun({
       });
     return () => {
       alive = false;
+      controller?.abort();
     };
   }, [scanId, clearRunError, setRunError]);
 
   useEffect(() => {
     if (!scan?.id || isTerminalScan(scan)) return undefined;
+    if (pageIsHidden()) {
+      return onVisible(() => setPollRetryTick((tick) => tick + 1));
+    }
     let alive = true;
+    const controller = makeAbortController();
     const handle = setTimeout(async () => {
       try {
-        const next = await pullwiseApi.scans.get(scan.id);
+        const next = await pullwiseApi.scans.get(scan.id, { signal: controller?.signal });
         if (alive) {
           setScan(normalizeScan(next));
           clearRunError(["load", "poll"]);
         }
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return;
         if (alive) {
           setPollRetryTick((tick) => tick + 1);
         }
@@ -1377,6 +1536,7 @@ export function useScanRun({
     }, pollIntervalMs);
     return () => {
       alive = false;
+      controller?.abort();
       clearTimeout(handle);
     };
   }, [scan, pollIntervalMs, pollRetryTick, clearRunError, setRunError]);
@@ -1562,13 +1722,22 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
   useEffect(() => {
     const activeScans = scans.filter((scan) => scan?.id && !isTerminalScan(scan));
     if (!activeScans.length) return undefined;
+    if (pageIsHidden()) {
+      return onVisible(() => setPollRetryTick((tick) => tick + 1));
+    }
 
     let alive = true;
+    const controller = makeAbortController();
     const handle = setTimeout(async () => {
       try {
-        const updates = await Promise.all(
-          activeScans.map((scan) => pullwiseApi.scans.get(scan.id))
-        );
+        const activeIds = activeScans.map((scan) => scan.id);
+        const payload =
+          typeof pullwiseApi.scans.status === "function"
+            ? await pullwiseApi.scans.status(activeIds, { signal: controller?.signal })
+            : await Promise.all(
+                activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal: controller?.signal }))
+              );
+        const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
         if (!alive) return;
         const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
         setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
@@ -1579,7 +1748,8 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
           })
         );
         clearRunError(["poll"]);
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return;
         if (alive) {
           setPollRetryTick((tick) => tick + 1);
         }
@@ -1588,6 +1758,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
 
     return () => {
       alive = false;
+      controller?.abort();
       clearTimeout(handle);
     };
   }, [scans, pollIntervalMs, pollRetryTick, clearRunError, setRunError]);

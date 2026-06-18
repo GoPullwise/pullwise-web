@@ -863,7 +863,7 @@ describe("HistoryScreen queue state", () => {
             position: 4,
             ahead: 3,
             message: "Server is running 3 of 3 scans; 3 scans ahead.",
-            limits: { global: 3, perUser: 1 },
+            limits: { queuedGlobal: 3 },
           },
         },
       ],

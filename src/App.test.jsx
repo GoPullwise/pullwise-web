@@ -223,7 +223,7 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_restore");
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_restore", expect.objectContaining({ signal: expect.any(Object) }));
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
     expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
@@ -249,7 +249,7 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_route");
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_route", expect.objectContaining({ signal: expect.any(Object) }));
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
     expect(screen.getByText("GoPullwise/pullwise-server")).toBeInTheDocument();
@@ -341,7 +341,7 @@ describe("App", () => {
     await waitFor(() => {
       expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
     });
-    expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
+    expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
   });
 
   it("keeps multiple detail status updates when returning to the issue list", async () => {
@@ -1122,7 +1122,7 @@ describe("App", () => {
     await waitFor(() => expect(window.location.pathname).toBe("/history"));
     expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2);
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(pullwiseApi.scans.list).toHaveBeenCalled();
+    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalled());
     expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
     expect(screen.getByText("octocat/beta")).toBeInTheDocument();
   });
@@ -1363,7 +1363,7 @@ describe("App", () => {
     await waitFor(() => expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_redirect"));
     expect(await screen.findByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
     expect(
-      screen.getByText("Attackers can redirect users to phishing domains.")
+      await screen.findByText("Redirects accept attacker-controlled URLs.")
     ).toBeInTheDocument();
   });
 
@@ -1413,7 +1413,8 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(pullwiseApi.issues.list).toHaveBeenCalledWith(
-        expect.objectContaining({ scanId: "sc_history_1" })
+        expect.objectContaining({ scanId: "sc_history_1" }),
+        expect.objectContaining({ signal: expect.any(Object) })
       );
     });
     expect(await screen.findByText("History-only issue")).toBeInTheDocument();
@@ -1460,7 +1461,7 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(window.location.pathname).toBe("/scanning/sc_history_1");
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_history_1");
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_history_1", expect.objectContaining({ signal: expect.any(Object) }));
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });

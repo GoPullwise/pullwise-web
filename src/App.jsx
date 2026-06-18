@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
 import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
@@ -11,20 +11,8 @@ import {
   screenFromPath,
 } from "./lib/navigation.js";
 import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
-import { ApiKeysScreen } from "./screens/api.jsx";
-import { ApiDocsScreen } from "./screens/api-docs.jsx";
-import { BillingScreen, PricingScreen } from "./screens/billing.jsx";
-import { DashboardScreen } from "./screens/dashboard.jsx";
-import { DocsScreen } from "./screens/docs.jsx";
 import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
-import {
-  HistoryScreen,
-  IssueDetailScreen,
-  IssuesScreen,
-  SettingsScreen,
-} from "./screens/issues.jsx";
-import { PrivacyScreen, SecurityScreen, StatusScreen, TermsScreen } from "./screens/legal.jsx";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 const ACCENT = "#6366f1";
@@ -33,6 +21,33 @@ const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
 const SESSION_SIGNED_OUT_CONFIRM_DELAY_MS = 2000;
 const ACTIVE_REPO_STORAGE_KEY = "pw-active-repo";
 const BACK_TO_TOP_THRESHOLD_PX = 240;
+function lazyScreen(loader, exportName) {
+  return lazy(() => loader().then((module) => ({ default: module[exportName] })));
+}
+
+const ApiKeysScreen = lazyScreen(() => import("./screens/api.jsx"), "ApiKeysScreen");
+const ApiDocsScreen = lazyScreen(() => import("./screens/api-docs.jsx"), "ApiDocsScreen");
+const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "BillingScreen");
+const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
+const DashboardScreen = lazyScreen(() => import("./screens/dashboard.jsx"), "DashboardScreen");
+const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
+const HistoryScreen = lazyScreen(() => import("./screens/issues.jsx"), "HistoryScreen");
+const IssueDetailScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssueDetailScreen");
+const IssuesScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssuesScreen");
+const SettingsScreen = lazyScreen(() => import("./screens/issues.jsx"), "SettingsScreen");
+const PrivacyScreen = lazyScreen(() => import("./screens/legal.jsx"), "PrivacyScreen");
+const SecurityScreen = lazyScreen(() => import("./screens/legal.jsx"), "SecurityScreen");
+const StatusScreen = lazyScreen(() => import("./screens/legal.jsx"), "StatusScreen");
+const TermsScreen = lazyScreen(() => import("./screens/legal.jsx"), "TermsScreen");
+
+function ScreenFallback() {
+  return (
+    <div className="auth-wrap fade-in" role="status" aria-label={T("Loading...", "正在加载...")}>
+      {T("Loading...", "正在加载...")}
+    </div>
+  );
+}
+
 const PUBLIC_SCREENS = new Set([
   "landing",
   "login",
@@ -691,7 +706,7 @@ export function App({ prototypeNav = false }) {
             : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}`
         }
       >
-        {body}
+        <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
       </div>
 
       <button

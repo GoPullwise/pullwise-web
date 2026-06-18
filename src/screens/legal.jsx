@@ -552,13 +552,17 @@ export function StatusScreen({ go, auth }) {
 
   useEffect(() => {
     let cancelled = false;
+    let intervalId = null;
 
     async function loadHealth() {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       setNow(new Date());
       try {
         const payload = await pullwiseApi.system.health();
         const statusPayload =
-          typeof pullwiseApi.system.status === "function"
+          payload?.scanSystem
+            ? payload.scanSystem
+            : typeof pullwiseApi.system.status === "function"
             ? await pullwiseApi.system.status().catch(() => payload?.scanSystem || null)
             : payload?.scanSystem || null;
         if (!cancelled) {
@@ -576,10 +580,19 @@ export function StatusScreen({ go, auth }) {
     }
 
     loadHealth();
-    const id = setInterval(loadHealth, STATUS_REFRESH_MS);
+    intervalId = setInterval(loadHealth, STATUS_REFRESH_MS);
+    const handleVisibility = () => {
+      if (document.visibilityState !== "hidden") void loadHealth();
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibility);
+    }
     return () => {
       cancelled = true;
-      clearInterval(id);
+      clearInterval(intervalId);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleVisibility);
+      }
     };
   }, []);
 
@@ -612,12 +625,8 @@ export function StatusScreen({ go, auth }) {
   const limitsDetail = limits
     ? [
         T(
-          `${limits.maxConcurrentScansPerUser ?? "-"} per user running`,
-          `${limits.maxConcurrentScansPerUser ?? "-"} 个每用户运行中`
-        ),
-        T(
-          `${limits.maxQueuedScansGlobal ?? "-"} global / ${limits.maxQueuedScansPerUser ?? "-"} per user queued`,
-          `全局 ${limits.maxQueuedScansGlobal ?? "-"} / 每用户排队 ${limits.maxQueuedScansPerUser ?? "-"}`
+          `${limits.maxQueuedScansGlobal ?? "-"} global queued`,
+          `全局排队上限 ${limits.maxQueuedScansGlobal ?? "-"}`
         ),
         repositoryLimitDetail(limits),
         `${T("Rate limiting", "限流")} ${limits.rateLimitEnabled ? T("enabled", "已启用") : T("disabled", "未启用")}`,
@@ -728,7 +737,7 @@ export function StatusScreen({ go, auth }) {
               <StatusRow
                 icon={<I.Activity size={14} />}
                 title={T("Runtime limits", "运行时限制")}
-                status={limits.maxConcurrentScansPerUser ? "operational" : "degraded"}
+                status={limits.maxQueuedScansGlobal ? "operational" : "degraded"}
                 detail={limitsDetail}
               />
             )}

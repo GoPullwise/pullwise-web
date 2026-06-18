@@ -191,7 +191,7 @@ describe("useRepositories", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/one"]);
     expect(result.current.meta.total).toBe(2);
-    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(1, { limit: 1 });
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(1, { limit: 1 }, expect.objectContaining({ signal: expect.any(Object) }));
 
     await act(async () => {
       result.current.loadMore();
@@ -199,7 +199,7 @@ describe("useRepositories", () => {
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
     expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/one", "owner/two"]);
-    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(2, { limit: 1, offset: 1 });
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(2, { limit: 1, offset: 1 }, expect.objectContaining({ signal: expect.any(Object) }));
     unmount();
   });
 });
@@ -258,7 +258,7 @@ describe("useScans", () => {
       limit: 1,
       status: "done",
       repo: "owner/repo",
-    });
+    }, expect.objectContaining({ signal: expect.any(Object) }));
 
     await act(async () => {
       result.current.loadMore();
@@ -270,7 +270,7 @@ describe("useScans", () => {
       offset: 1,
       status: "done",
       repo: "owner/repo",
-    });
+    }, expect.objectContaining({ signal: expect.any(Object) }));
   });
 
   it("shows cached scans without blocking loading while refreshing after remount", async () => {
@@ -448,7 +448,7 @@ describe("useScans", () => {
     );
 
     await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_running");
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_running", expect.objectContaining({ signal: expect.any(Object) }));
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
@@ -601,7 +601,7 @@ describe("useIssues", () => {
       severity: "high",
       q: "auth",
       scanId: "sc_1",
-    });
+    }, expect.objectContaining({ signal: expect.any(Object) }));
 
     await act(async () => {
       result.current.loadMore();
@@ -615,7 +615,7 @@ describe("useIssues", () => {
       severity: "high",
       q: "auth",
       scanId: "sc_1",
-    });
+    }, expect.objectContaining({ signal: expect.any(Object) }));
   });
 
   it("shows cached issues without blocking loading while refreshing after remount", async () => {
@@ -1425,13 +1425,12 @@ describe("normalizeIssue", () => {
           ahead: "3",
           limits: {
             global: "4",
-            perUser: "1",
           },
         },
       })
     ).toEqual({
       message: "Waiting for capacity",
-      tags: ["Position 2", "3 scans ahead", "Per user 1"],
+      tags: ["Position 2", "3 scans ahead"],
     });
 
     expect(
@@ -1442,7 +1441,6 @@ describe("normalizeIssue", () => {
           ahead: -1,
           limits: {
             global: {},
-            perUser: -2,
           },
         },
       })

@@ -22,6 +22,22 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(2, "/issues/f_123/pull-requests", { method: "POST" });
   });
 
+  it("calls batch scan and issue status endpoints", async () => {
+    request.mockResolvedValue({});
+
+    await pullwiseApi.scans.status(["sc_1", "sc_2"]);
+    await pullwiseApi.issues.updateStatuses([{ id: "iss_1", status: "fixed" }]);
+
+    expect(request).toHaveBeenNthCalledWith(1, "/scans/status", {
+      method: "POST",
+      body: { ids: ["sc_1", "sc_2"] },
+    });
+    expect(request).toHaveBeenNthCalledWith(2, "/issues/status", {
+      method: "PATCH",
+      body: { updates: [{ id: "iss_1", status: "fixed" }] },
+    });
+  });
+
   it("encodes dynamic path segments before calling routed endpoints", async () => {
     request.mockResolvedValue({});
 

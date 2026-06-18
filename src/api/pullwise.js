@@ -18,6 +18,10 @@ function pathSegment(value) {
   return encodeURIComponent(text);
 }
 
+function getRequest(path, options = {}) {
+  return options.signal ? request(path, { signal: options.signal }) : request(path);
+}
+
 export const pullwiseApi = {
   auth: {
     getSession: (options = {}) => request("/auth/session", { signal: options.signal }),
@@ -28,15 +32,21 @@ export const pullwiseApi = {
   },
 
   repositories: {
-    list: (params = {}) => request(withSearchParams("/repositories", params)),
-    branches: (repoId) => request(`/repositories/${pathSegment(repoId)}/branches`),
-    sync: (payload) => request("/repositories/sync", { method: "POST", body: payload }),
+    list: (params = {}, options = {}) =>
+      getRequest(withSearchParams("/repositories", params), options),
+    branches: (repoId, options = {}) =>
+      getRequest(`/repositories/${pathSegment(repoId)}/branches`, options),
+    sync: (payload, options = {}) =>
+      request("/repositories/sync", { method: "POST", body: payload, signal: options.signal }),
   },
 
   scans: {
     preflight: (payload) => request("/scans/preflight", { method: "POST", body: payload }),
     create: (payload) => request("/scans", { method: "POST", body: payload }),
-    get: (scanId) => request(`/scans/${pathSegment(scanId)}`),
+    get: (scanId, options = {}) =>
+      getRequest(`/scans/${pathSegment(scanId)}`, options),
+    status: (ids = [], options = {}) =>
+      request("/scans/status", { method: "POST", body: { ids }, signal: options.signal }),
     retry: (scanId, payload = {}) =>
       request(`/scans/${pathSegment(scanId)}/retry`, { method: "POST", body: payload }),
     auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
@@ -45,15 +55,19 @@ export const pullwiseApi = {
         responseType: "blob",
         timeout: AUDIT_BUNDLE_ARCHIVE_TIMEOUT_MS,
       }),
-    list: (params = {}) => request(withSearchParams("/scans", params)),
+    list: (params = {}, options = {}) =>
+      getRequest(withSearchParams("/scans", params), options),
     cancel: (scanId) => request(`/scans/${pathSegment(scanId)}/cancel`, { method: "POST" }),
   },
 
   issues: {
-    list: (params = {}) => request(withSearchParams("/issues", params)),
-    get: (issueId) => request(`/issues/${pathSegment(issueId)}`),
+    list: (params = {}, options = {}) =>
+      getRequest(withSearchParams("/issues", params), options),
+    get: (issueId, options = {}) =>
+      getRequest(`/issues/${pathSegment(issueId)}`, options),
     updateStatus: (issueId, payload) =>
       request(`/issues/${pathSegment(issueId)}/status`, { method: "PATCH", body: payload }),
+    updateStatuses: (updates = []) => request("/issues/status", { method: "PATCH", body: { updates } }),
     previewFix: (issueId) =>
       request(`/issues/${pathSegment(issueId)}/fixes/preview`, { method: "POST" }),
     createPullRequest: (issueId) =>

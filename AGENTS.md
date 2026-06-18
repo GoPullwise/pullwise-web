@@ -37,3 +37,27 @@ tests, and UI state should describe quota in account/user and repository terms.
 - Public REST API docs are account-scoped and should continue to describe
   repository listing, scan control, scan status, and quota checks with account
   and repository terminology.
+
+## Performance And Data Fetching
+
+Keep route and polling changes aligned with the current scale model.
+
+- Heavy screens such as issues, billing, docs, legal, API docs, settings, and
+  dashboard are lazy-loaded. Do not reintroduce broad static screen imports in
+  `App.jsx` unless the route is part of the first interaction path.
+- Data hooks should preserve stale-while-revalidate behavior: show cached
+  successful list state immediately, then refresh quietly when appropriate.
+- New API client GET helpers should accept an optional `AbortSignal`. Hook
+  effects should abort stale requests on route/filter/page changes.
+- Use request de-duplication for concurrent identical list/status requests. Do
+  not start duplicate polling requests for the same cache key.
+- Active scan polling should use the bulk scan status endpoint instead of one
+  `GET /scans/:id` per active scan. Fall back only when the bulk endpoint is not
+  available.
+- Status and active scan polling should pause while `document.visibilityState`
+  is hidden and refresh when the tab becomes visible.
+- Batch issue status updates should use the batch endpoint for bulk "mark fixed"
+  flows. Keep single-issue update only as a narrow fallback.
+- Retry scan actions should update or replace the affected scan from the inline
+  retry payload or a targeted scan refresh. Avoid reloading the entire scan
+  history after a single retry unless targeted refresh fails.

@@ -250,8 +250,8 @@ describe("API screens", () => {
           title: "Scan limits",
           fields: [
             {
-              path: "scan.maxQueuedScansPerUser",
-              label: "Queued scans per user",
+              path: "scan.maxQueuedScansGlobal",
+              label: "Global queued scans",
               value: 4,
             },
           ],
@@ -270,7 +270,7 @@ describe("API screens", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
-    expect(screen.getByText("Queued scans per user")).toBeInTheDocument();
+    expect(screen.getByText("Global queued scans")).toBeInTheDocument();
   });
 
   it("ignores unsupported plan agent aliases in Docs", async () => {
@@ -376,10 +376,10 @@ describe("API screens", () => {
           title: "Scan limits",
           fields: [
             {
-              path: "scan.maxQueuedScansPerUser",
-              label: "Queued scans per user",
+              path: "scan.maxQueuedScansGlobal",
+              label: "Global queued scans",
               value: 4,
-              description: "Maximum queued scans one user may hold.",
+              description: "Maximum queued scans across the service.",
             },
           ],
         },
@@ -429,7 +429,7 @@ describe("API screens", () => {
     expect(screen.queryByText("Free repository monthly scans")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository byte limit")).not.toBeInTheDocument();
-    const queuedLabel = screen.getByText("Queued scans per user");
+    const queuedLabel = screen.getByText("Global queued scans");
     expect(within(queuedLabel.closest(".docs-config-row")).getByText("4")).toBeInTheDocument();
     expect(screen.getByText("Requests per window")).toBeInTheDocument();
     expect(screen.getByText("2 products configured")).toBeInTheDocument();

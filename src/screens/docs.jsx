@@ -89,20 +89,8 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
     id: "scan",
     title: "Scan limits",
     description:
-      "Queue limits visible to users when scans are accepted or rejected.",
+      "Global queue limits visible to users when scans are accepted or rejected.",
     fields: [
-      {
-        path: "scan.maxRunningScansPerUser",
-        candidates: ["scan.maxRunningScansPerUser"],
-        label: "Concurrent scans per user",
-        description: "Maximum scans one user can have running at the same time.",
-      },
-      {
-        path: "scan.maxQueuedScansPerUser",
-        candidates: ["scan.maxQueuedScansPerUser"],
-        label: "Queued scans per user",
-        description: "Maximum queued scans one user may hold before the server asks them to wait.",
-      },
       {
         path: "scan.maxQueuedScansGlobal",
         candidates: ["scan.maxQueuedScansGlobal"],
@@ -398,9 +386,7 @@ function isAllowedServerConfigField(field, group, options = {}) {
 
   if (
     [
-      "scan.maxrunningscansperuser",
       "scan.maxqueuedscansglobal",
-      "scan.maxqueuedscansperuser",
       "ratelimit.enabled",
       "ratelimit.requests",
       "ratelimit.windowseconds",
@@ -423,6 +409,7 @@ function isAllowedServerConfigField(field, group, options = {}) {
     return /quota|monthly scans|review limit|repository|repo|checkout|file limit|byte limit/.test(labelKey);
   }
   if (groupId === "scan" || groupId === "scanlimits") {
+    if (/per user|concurrent scans/.test(labelKey)) return false;
     return /queue|queued|running|repository|repo|limit/.test(labelKey);
   }
   if (groupId === "ratelimit") {

@@ -3,7 +3,15 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
-import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
+import {
+  normalizeScan,
+  retryResponseScanId,
+  retryResponseScanPayload,
+  scanQueueSummary,
+  useIssues,
+  useRepositories,
+  useScans,
+} from "../lib/pullwise-data.js";
 import {
   CONFIDENCE_BUCKETS,
   DistributionCard,
@@ -364,7 +372,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
     status: "open",
     limit: 50,
   });
-  const { items: scans, loading: scansLoading, reload: reloadScans } = useScans({ limit: 50 });
+  const { items: scans, loading: scansLoading, reload: reloadScans, upsertScan } = useScans({ limit: 50 });
   const {
     items: repositories,
     loading: reposLoading,
@@ -398,7 +406,12 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const verifiedPct = openIssues.length ? Math.round((verifiedShare / openIssues.length) * 100) : 0;
   const highPct = openIssues.length ? Math.round((highShare / openIssues.length) * 100) : 0;
   const latestScan = scans[0];
-  const latestScanAgentLabel = scanAgentConfigLabel(latestScan);
+  const latestScanBaseAgentLabel = scanAgentConfigLabel(latestScan);
+  const latestScanQueueSummary = latestScan?.status === "queued" ? scanQueueSummary(latestScan) : null;
+  const latestScanQueueLabel = latestScanQueueSummary?.tags?.length
+    ? latestScanQueueSummary.tags.join(" / ")
+    : "";
+  const latestScanAgentLabel = latestScanQueueLabel || latestScanBaseAgentLabel;
   const canRetryLatestScan = Boolean(
     latestScan?.id && RETRYABLE_SCAN_STATUSES.has(String(latestScan.status || "").toLowerCase())
   );
@@ -428,8 +441,16 @@ export function DashboardScreen({ go, setIssue, accent }) {
     if (!canRetryLatestScan || retryingScanId) return;
     setRetryingScanId(latestScan.id);
     try {
-      await pullwiseApi.scans.retry(latestScan.id);
-      if (typeof reloadScans === "function") await reloadScans();
+      const payload = await pullwiseApi.scans.retry(latestScan.id);
+      const inlinePayload = retryResponseScanPayload(payload);
+      const refreshed = inlinePayload
+        ? normalizeScan(inlinePayload)
+        : normalizeScan(await pullwiseApi.scans.get(retryResponseScanId(payload, latestScan.id)));
+      if (typeof upsertScan === "function") {
+        upsertScan(refreshed, latestScan.id);
+      } else if (typeof reloadScans === "function") {
+        await reloadScans({ quiet: true });
+      }
     } catch (retryError) {
       window.alert(retryError?.message || T("Unable to retry scan.", "无法重试扫描。"));
     } finally {
