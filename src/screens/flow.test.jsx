@@ -74,63 +74,6 @@ const repoBeta = {
   defaultBranch: "develop",
 };
 
-const impactGraphFixture = {
-  version: "impact-graph/0.1",
-  mode: "changeset",
-  summary: "Impact graph: auth session has direct tests, docs, config, and CI.",
-  stats: {
-    targets: 1,
-    testedTargets: 1,
-    documentedTargets: 1,
-    configuredTargets: 1,
-    testsEdges: 1,
-    documentsEdges: 1,
-    configuresEdges: 2,
-    changedFiles: 1,
-    truncated: false,
-  },
-  changedFiles: ["src/auth/session.ts"],
-  targets: [
-    {
-      id: "file:src/auth/session.ts",
-      path: "src/auth/session.ts",
-      label: "session.ts",
-      type: "file",
-      risk: 0.74,
-      relations: {
-        tests: [
-          {
-            id: "file:tests/auth/session.test.ts",
-            path: "tests/auth/session.test.ts",
-            confidence: 0.95,
-            evidence: [
-              {
-                kind: "import",
-                file: "tests/auth/session.test.ts",
-                line: 3,
-                text: "import { createSession } from '../../src/auth/session'",
-              },
-            ],
-          },
-        ],
-        documents: [{ id: "file:docs/auth.md", path: "docs/auth.md" }],
-        configures: [{ id: "file:package.json", path: "package.json", type: "npm-script" }],
-        ci: [{ id: "file:.github/workflows/ci.yml", path: ".github/workflows/ci.yml" }],
-        importedBy: [{ id: "file:src/auth/index.ts", path: "src/auth/index.ts" }],
-        imports: [],
-        symbols: [],
-      },
-      gaps: ["no_direct_docs"],
-    },
-  ],
-  coverage: {
-    sourceFilesWithoutTests: ["src/no-test.ts"],
-    sourceFilesWithoutDocs: ["src/auth/session.ts"],
-    testsWithoutTargets: [],
-    docsWithoutTargets: [],
-  },
-};
-
 beforeEach(() => {
   setLang("en");
   connectGitHubRepositories.mockReset();
@@ -966,335 +909,6 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("gpt-5.5")).toBeInTheDocument();
     expect(screen.getByText("reasoning: high")).toBeInTheDocument();
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
-    expect(screen.queryByText("Evidence status")).not.toBeInTheDocument();
-    expect(screen.queryByText("Candidate audit")).not.toBeInTheDocument();
-  });
-
-  it("does not render legacy completion audit or job trace panels", () => {
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_running",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "pending",
-        status: "running",
-        progress: 65,
-        issues: { critical: 0, high: 0, medium: 0, low: 0 },
-        completionAudit: {
-          status: "passed",
-          summary: "Completion audit has no extra metadata.",
-        },
-        jobTrace: {
-          status: "running",
-          summary: "Worker trace has no extra metadata.",
-          checkpoints: [],
-        },
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          scanId: "sc_running",
-          fullName: "octocat/private-repo",
-          defaultBranch: "main",
-        }}
-      />
-    );
-
-    expect(screen.queryByText("Completion audit")).not.toBeInTheDocument();
-    expect(screen.queryByText("Job trace")).not.toBeInTheDocument();
-    expect(screen.queryByText("Completion audit has no extra metadata.")).not.toBeInTheDocument();
-    expect(screen.queryByText("Worker trace has no extra metadata.")).not.toBeInTheDocument();
-  });
-
-  it("does not render legacy job trace checkpoint lists", () => {
-    const checkpoints = Array.from({ length: 12 }, (_, index) => ({
-      key: `checkpoint-${index + 1}`,
-      label: `Checkpoint ${index + 1}`,
-      status: index < 10 ? "done" : "running",
-      at: `2026-06-12T00:${String(index + 1).padStart(2, "0")}:00Z`,
-      jobId: "job_123",
-      workerId: "worker_a",
-      attempt: 1,
-      summary: `Checkpoint ${index + 1} summary`,
-    }));
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_running",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "pending",
-        status: "running",
-        progress: 65,
-        issues: { critical: 0, high: 0, medium: 0, low: 0 },
-        jobTrace: {
-          status: "running",
-          summary: "Worker is processing the scan.",
-          currentJobId: "job_123",
-          workerId: "worker_a",
-          updatedAt: "2026-06-12T00:12:00Z",
-          checkpoints,
-        },
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          scanId: "sc_running",
-          fullName: "octocat/private-repo",
-          defaultBranch: "main",
-        }}
-      />
-    );
-
-    expect(screen.queryByRole("list", { name: /job trace checkpoints/i })).not.toBeInTheDocument();
-    expect(screen.queryByText("Checkpoint 12")).not.toBeInTheDocument();
-    expect(screen.queryByText("Worker is processing the scan.")).not.toBeInTheDocument();
-  });
-
-  it("does not render legacy completion audit detail lists", () => {
-    const checks = Array.from({ length: 14 }, (_, index) => ({
-      key: `check-${index + 1}`,
-      label: `Audit check ${index + 1}`,
-      status: index < 12 ? "passed" : "warning",
-      summary: `Audit check ${index + 1} result detail`,
-    }));
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_done",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "abc1234",
-        status: "done",
-        progress: 100,
-        issues: { critical: 0, high: 0, medium: 0, low: 0 },
-        completionAudit: {
-          status: "warning",
-          outcome: "partial",
-          summary: "Completion audit captured worker checks.",
-          completedAt: "2026-06-12T00:14:00Z",
-          checks,
-        },
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{ scanId: "sc_done", fullName: "octocat/private-repo", defaultBranch: "main" }}
-      />
-    );
-
-    expect(screen.queryByText("Completion audit")).not.toBeInTheDocument();
-    expect(screen.queryByText("Completion audit captured worker checks.")).not.toBeInTheDocument();
-    expect(screen.queryByText("Audit check 14")).not.toBeInTheDocument();
-    expect(document.querySelector(".scan-audit-scroll")).not.toBeInTheDocument();
-  });
-
-  it("ignores legacy Audit Swarm payload while GraphVerified review is running", () => {
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_running",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "pending",
-        status: "running",
-        phase: "ai",
-        progress: 75,
-        issues: { critical: 0, high: 1, medium: 0, low: 0 },
-        auditSwarm: {
-          protocol: "audit-swarm/0.1",
-          stage: "discovery",
-          summary: "Reviewer agents are still evaluating candidates.",
-          counts: {
-            evidenceBlocks: 3,
-            candidateCount: 2,
-            reportedCount: 1,
-          },
-          evidenceBlocks: [
-            {
-              id: "issue-refresh:evidence:0",
-              kind: "evidence",
-              title: "Discovery evidence",
-              summary: "createRefreshToken runs before old-token invalidation is confirmed.",
-            },
-          ],
-        },
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          scanId: "sc_running",
-          fullName: "octocat/private-repo",
-          defaultBranch: "main",
-        }}
-      />
-    );
-
-    expect(
-      screen.getAllByText("GraphVerified review").find((node) => node.closest(".scanning-phase"))
-    ).toBeTruthy();
-    expect(screen.queryByText("Audit evidence")).not.toBeInTheDocument();
-    expect(screen.queryByText("Discovery evidence")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /evidence blocks/i })).not.toBeInTheDocument();
-    expect(pullwiseApi.scans.auditBundleArchive).not.toHaveBeenCalled();
-  });
-
-  it("does not render legacy Audit Swarm evidence from the worker scan payload", () => {
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_done",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "abc1234",
-        status: "done",
-        progress: 100,
-        issues: { critical: 0, high: 1, medium: 0, low: 0 },
-        verification: { verified: 1, static_proof: 0, potential_risk: 0, unverified: 0 },
-        auditSwarm: {
-          protocol: "audit-swarm/0.1",
-          stage: "report",
-          adapter: "codex",
-          summary: "2 candidates evaluated; 1 reported; 1 rejected before reporting.",
-          counts: {
-            issueCards: 1,
-            verificationResults: 1,
-            evidenceBlocks: 7,
-            candidateCount: 2,
-            rejectedCount: 1,
-            verifiedCount: 1,
-          },
-          roles: ["security-reviewer", "prover"],
-          shards: ["auth.session"],
-          issueCards: [
-            {
-              issueId: "issue-refresh",
-              title: "Refresh token rotation may not be atomic",
-              severity: "high",
-              agentRole: "security-reviewer",
-              file: "src/auth/refresh.ts",
-              startLine: "42",
-              claim: "Token invalidation and issuance are not in one transaction.",
-              evidence: ["createRefreshToken runs before old-token invalidation is confirmed."],
-              falsePositiveChecks: ["Caller transaction wrappers were checked."],
-              suggestedTest: "Mock a failure between issuance and invalidation.",
-            },
-          ],
-          verificationResults: [
-            {
-              issueId: "issue-refresh",
-              verifierRole: "prover",
-              verdict: "confirmed",
-              summary: "A mocked failure leaves both tokens valid.",
-              command: "pnpm test auth -- refresh-token-rotation",
-            },
-          ],
-          evidenceBlocks: [
-            {
-              id: "issue-refresh:claim",
-              kind: "claim",
-              issueId: "issue-refresh",
-              title: "Refresh token rotation may not be atomic",
-              severity: "high",
-              role: "security-reviewer",
-              shardId: "auth.session",
-              summary: "Token invalidation and issuance are not in one transaction.",
-            },
-            {
-              id: "issue-refresh:location:0",
-              kind: "code_location",
-              title: "Code location",
-              file: "src/auth/refresh.ts",
-              startLine: "42",
-              summary: "Primary audited location.",
-            },
-            {
-              id: "issue-refresh:location:duplicate",
-              kind: "code_location",
-              title: "Code location",
-              file: "src/auth/refresh.ts",
-              startLine: "42",
-              summary: "Primary audited location.",
-            },
-            {
-              id: "issue-refresh:evidence:0",
-              kind: "evidence",
-              title: "Discovery evidence",
-              summary: "createRefreshToken runs before old-token invalidation is confirmed.",
-            },
-            {
-              id: "issue-refresh:false-positive:0",
-              kind: "false_positive_check",
-              title: "False-positive check",
-              summary: "Check whether the caller wraps this service in a transaction.",
-            },
-            {
-              id: "issue-refresh:suggested-test",
-              kind: "command",
-              title: "Suggested test",
-              status: "suggested",
-              summary: "Mock a failure between issuance and invalidation.",
-            },
-            {
-              id: "issue-refresh:verdict:prover",
-              kind: "verifier_verdict",
-              title: "Verifier verdict",
-              role: "prover",
-              verdict: "confirmed",
-              summary: "A mocked failure leaves both tokens valid.",
-            },
-            {
-              id: "issue-refresh:command:0",
-              kind: "command",
-              title: "Verifier command",
-              role: "prover",
-              status: "executed",
-              command: "pnpm test auth -- refresh-token-rotation",
-            },
-          ],
-        },
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          scanId: "sc_done",
-          fullName: "octocat/private-repo",
-          defaultBranch: "main",
-        }}
-      />
-    );
-
-    expect(screen.queryByText("Audit evidence")).not.toBeInTheDocument();
-    expect(screen.queryByText("audit-swarm/0.1")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("7 evidence blocks in the downloaded audit bundle")
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText("Candidates")).not.toBeInTheDocument();
-    expect(screen.queryByText("Verifier results")).not.toBeInTheDocument();
-    expect(screen.queryByText("src/auth/refresh.ts:42")).not.toBeInTheDocument();
-    expect(screen.queryByText("Refresh token rotation may not be atomic")).not.toBeInTheDocument();
-    expect(screen.queryByText("pnpm test auth -- refresh-token-rotation")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
   it("keeps long audit evidence card text inside the card without clamping", () => {
@@ -1324,7 +938,6 @@ describe("ScanningScreen queue state", () => {
         phase: "report",
         progress: 100,
         issues: { critical: 0, high: 1, medium: 0, low: 0 },
-        impactGraph: impactGraphFixture,
         graphVerifiedReport: {
           runId: "gv_run_1",
           mode: "standard",
@@ -1424,11 +1037,11 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("gv_run_empty")).toBeInTheDocument();
   });
 
-  it("does not render the legacy impact fallback when a terminal scan has no impact graph", () => {
+  it("shows the GraphVerified empty state when a terminal scan has no report", () => {
     useScanRun.mockReturnValue({
       scan: {
-        id: "sc_no_impact",
-        repo: "octocat/no-impact",
+        id: "sc_without_graph_verified_report",
+        repo: "octocat/no-report",
         branch: "main",
         commit: "abc123",
         status: "done",
@@ -1444,57 +1057,20 @@ describe("ScanningScreen queue state", () => {
       <ScanningScreen
         go={vi.fn()}
         activeRepo={{
-          scanId: "sc_no_impact",
-          fullName: "octocat/no-impact",
+          scanId: "sc_without_graph_verified_report",
+          fullName: "octocat/no-report",
           defaultBranch: "main",
         }}
       />
     );
 
-    expect(screen.queryByText("Impact graph unavailable")).not.toBeInTheDocument();
     expect(screen.getByText("GraphVerified findings")).toBeInTheDocument();
     expect(
       screen.getByText(
         "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
       )
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        "This scan did not return an impact graph. Repository graph and issue evidence remain available."
-      )
-    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
-  });
-
-  it("does not render the retired audit funnel for completed scans", () => {
-    useScanRun.mockReturnValue({
-      scan: {
-        id: "sc_done",
-        repo: "octocat/private-repo",
-        branch: "main",
-        commit: "abc1234",
-        status: "done",
-        progress: 100,
-        issues: { critical: 0, high: 0, medium: 1, low: 0 },
-      },
-      error: "",
-      cancel: vi.fn(),
-    });
-
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          scanId: "sc_done",
-          fullName: "octocat/private-repo",
-          defaultBranch: "main",
-        }}
-      />
-    );
-
-    expect(screen.queryByRole("img", { name: /audit funnel/i })).not.toBeInTheDocument();
-    expect(document.querySelector(".audit-funnel-fill")).not.toBeInTheDocument();
-    expect(document.querySelector(".audit-funnel-metric")).not.toBeInTheDocument();
   });
 
   it("shows preflight evidence for a completed scan", () => {
@@ -1510,7 +1086,7 @@ describe("ScanningScreen queue state", () => {
         verification: { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 },
         preflight: {
           mode: "static",
-          execution: "allowlisted_verifier_scripts",
+          execution: "graph_verified_review",
           summary: "Static preflight captured repository manifests and worker tool versions.",
           packageManagers: ["pnpm"],
           languages: ["JavaScript/TypeScript"],
@@ -1530,14 +1106,6 @@ describe("ScanningScreen queue state", () => {
           },
           manifests: [{ file: "package.json", type: "node" }],
           toolVersions: [{ name: "git", available: true, output: "git ok" }],
-          verifier: {
-            enabled: true,
-            summary: "Verifier ran one command.",
-            runs: [
-              { script: "test", command: "pnpm run test", status: "failed", exitCode: 1 },
-              { script: "lint", command: "pnpm run lint", status: "flaky", exitCode: 1 },
-            ],
-          },
         },
       },
       error: "",
@@ -1556,7 +1124,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.getByText("Preflight evidence")).toBeInTheDocument();
-    expect(screen.getByText("allowlisted_verifier_scripts")).toBeInTheDocument();
+    expect(screen.getByText("graph_verified_review")).toBeInTheDocument();
     expect(screen.getByText("pnpm")).toBeInTheDocument();
     expect(screen.getByText("Repository scan limits")).toBeInTheDocument();
     expect(screen.getByText("Checkout: 2,001 files / 50 MB")).toBeInTheDocument();
@@ -1566,9 +1134,6 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("1 manifests")).toBeInTheDocument();
     expect(screen.getByText("1 tool checks")).toBeInTheDocument();
     expect(screen.getByText("Linux 6.8.0 x86_64")).toBeInTheDocument();
-    expect(screen.getByText("2 verifier runs")).toBeInTheDocument();
-    expect(screen.getByText("1 failed")).toBeInTheDocument();
-    expect(screen.getByText("1 flaky")).toBeInTheDocument();
     expect(screen.getByText("build, test")).toBeInTheDocument();
   });
 

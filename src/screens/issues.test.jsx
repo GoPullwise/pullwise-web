@@ -537,81 +537,6 @@ describe("IssueDetailScreen direct loading", () => {
     );
   });
 
-  it("does not fetch or render legacy impact context for issue details", () => {
-    pullwiseApi.scans.get.mockResolvedValueOnce({
-      id: "sc_impact",
-      impactGraph: {
-        version: "impact-graph/0.1",
-        mode: "repository",
-        targets: [
-          {
-            id: "file:src/auth/session.ts",
-            path: "src/auth/session.ts",
-            label: "session.ts",
-            type: "file",
-            relations: {
-              tests: [{ path: "tests/auth/session.test.ts" }],
-              documents: [{ path: "docs/auth.md" }],
-              configures: [{ path: "package.json", type: "npm-script" }],
-              ci: [{ path: ".github/workflows/ci.yml" }],
-              importedBy: [{ path: "src/auth/index.ts" }],
-            },
-            gaps: ["no_direct_docs"],
-          },
-        ],
-        coverage: {},
-      },
-    });
-
-    render(
-      <IssueDetailScreen
-        go={vi.fn()}
-        issue={{
-          id: "f_impact",
-          scanId: "sc_impact",
-          repo: "acme/api",
-          severity: "high",
-          category: "Quality",
-          title: "Session regression",
-          file: "src/auth/session.ts",
-          status: "open",
-        }}
-      />
-    );
-
-    expect(screen.queryByText("Impact context")).not.toBeInTheDocument();
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(screen.queryByText("tests/auth/session.test.ts")).not.toBeInTheDocument();
-  });
-
-  it("does not render the old impact fallback when a scan has no impact graph", () => {
-    pullwiseApi.scans.get.mockReset();
-    pullwiseApi.scans.get.mockResolvedValueOnce({
-      id: "sc_no_impact",
-      status: "done",
-    });
-
-    render(
-      <IssueDetailScreen
-        go={vi.fn()}
-        issue={{
-          id: "f_no_impact",
-          scanId: "sc_no_impact",
-          repo: "acme/api",
-          severity: "medium",
-          category: "Quality",
-          title: "Missing impact graph",
-          file: "src/auth/session.ts",
-          status: "open",
-        }}
-      />
-    );
-
-    expect(screen.queryByText("Impact context")).not.toBeInTheDocument();
-    expect(screen.queryByText("Impact graph unavailable for this scan.")).not.toBeInTheDocument();
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-  });
-
   it("shows structured GraphVerified evidence from the issue payload", () => {
     render(
       <IssueDetailScreen
@@ -661,12 +586,12 @@ describe("IssueDetailScreen direct loading", () => {
       <IssueDetailScreen
         go={vi.fn()}
         issue={{
-          id: "f_legacy_payload",
-          scanId: "sc_legacy_payload",
+          id: "f_empty_payload",
+          scanId: "sc_empty_payload",
           repo: "acme/api",
           severity: "medium",
           category: "Quality",
-          title: "Legacy payload issue",
+          title: "Empty report issue",
           file: "src/auth/session.ts",
           status: "open",
         }}
@@ -680,7 +605,6 @@ describe("IssueDetailScreen direct loading", () => {
         "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
       )
     ).toBeInTheDocument();
-    expect(screen.queryByText("Impact context")).not.toBeInTheDocument();
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
   });
 });
@@ -1065,7 +989,6 @@ describe("HistoryScreen queue state", () => {
         outputTokens: 45,
         totalTokens: 168,
       },
-      verificationAudit: { rejectedCount: 2, downgradedCount: 1 },
     };
     useScans.mockReturnValue({
       items: [scan],
@@ -1147,7 +1070,6 @@ describe("HistoryScreen queue state", () => {
       time: "now",
       by: "you",
       issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
-      verificationAudit: { rejectedCount: 2, downgradedCount: 1 },
     };
     const createObjectURL = vi.fn(() => "blob:pullwise-audit");
     const revokeObjectURL = vi.fn();
@@ -1297,7 +1219,7 @@ describe("IssueDetailScreen review detail", () => {
     expect(go).toHaveBeenCalledWith("issues");
   });
 
-  it("hides issue audit evidence while the Audit Swarm review is running", async () => {
+  it("hides issue audit evidence while non-GraphVerified review is running", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;

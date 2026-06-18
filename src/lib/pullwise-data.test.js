@@ -479,12 +479,10 @@ describe("useScans", () => {
         repo: "owner/repo",
         branch: "main",
         status: "done",
-        completionAudit: { summary: "Full detail loaded." },
       });
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.scan.completionAudit).toBeUndefined();
     unmount();
   });
 
@@ -759,30 +757,6 @@ describe("normalizeIssue", () => {
       confidence: 0,
     });
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
-  });
-
-  it("ignores removed graph fields on scans", () => {
-    const scan = normalizeScan({
-      id: "sc_removed_graph_fields",
-      repository_graph: {
-        version: "repository-graph/0.2",
-        nodes: [{ id: "file:src/App.jsx", label: "App.jsx", type: "entrypoint", path: "src/App.jsx" }],
-        edges: [],
-      },
-      semantic_graph: {
-        version: "semantic-code-graph/0.1",
-        nodes: [{ id: "symbol:src/App.jsx:App", label: "App", type: "component", path: "src/App.jsx" }],
-        edges: [],
-      },
-      impact_graph: {
-        version: "impact-graph/0.1",
-        targets: [{ id: "file:src/App.jsx", path: "src/App.jsx" }],
-      },
-    });
-
-    expect(scan.repositoryGraph).toBeUndefined();
-    expect(scan.semanticGraph).toBeUndefined();
-    expect(scan.impactGraph).toBeUndefined();
   });
 
   it("normalizes repository text fields for search-safe rendering", () => {
@@ -1307,48 +1281,6 @@ describe("normalizeIssue", () => {
           },
           { name: "", command: "bad", available: true },
         ],
-        verifier: {
-          enabled: true,
-          summary: "Verifier ran one command",
-          runs: [
-            {
-              script: "test",
-              command: "npm run test",
-              status: "failed",
-              exitCode: "1",
-              durationMs: "1200",
-              logPath: "verification/job/test.log",
-              output: "AssertionError",
-            },
-            {
-              script: "lint",
-              command: "npm run lint",
-              status: "flaky",
-              exitCode: "1",
-              durationMs: "900",
-              confirmedFailure: false,
-              logPath: "verification/job/lint.log",
-              output: "first attempt failed, second passed",
-              attempts: [
-                {
-                  attempt: "1",
-                  status: "failed",
-                  exitCode: "1",
-                  durationMs: "400",
-                  output: "FAIL",
-                },
-                {
-                  attempt: "2",
-                  status: "passed",
-                  exitCode: "0",
-                  durationMs: "300",
-                  output: "PASS",
-                },
-              ],
-            },
-            { script: "", command: "", status: "bad" },
-          ],
-        },
       },
     });
 
@@ -1378,35 +1310,6 @@ describe("normalizeIssue", () => {
       toolVersions: [
         { name: "git", command: "git --version", available: true, exitCode: 0, output: "git ok" },
       ],
-      verifier: {
-        enabled: true,
-        summary: "Verifier ran one command",
-        runs: [
-          {
-            script: "test",
-            command: "npm run test",
-            status: "failed",
-            exitCode: 1,
-            durationMs: 1200,
-            logPath: "verification/job/test.log",
-            outputRedacted: true,
-          },
-          {
-            script: "lint",
-            command: "npm run lint",
-            status: "flaky",
-            exitCode: 1,
-            durationMs: 900,
-            confirmedFailure: false,
-            logPath: "verification/job/lint.log",
-            outputRedacted: true,
-            attempts: [
-              { attempt: 1, status: "failed", exitCode: 1, durationMs: 400, outputRedacted: true },
-              { attempt: 2, status: "passed", exitCode: 0, durationMs: 300, outputRedacted: true },
-            ],
-          },
-        ],
-      },
     });
     expect(normalizeScan({ id: "sc_empty" }).preflight).toBeNull();
   });

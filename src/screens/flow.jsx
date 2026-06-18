@@ -462,10 +462,6 @@ function uniqueStrings(values) {
 function scanPreflightSummary(scans) {
   const preflights = scans.map((scan) => scan?.preflight).filter(Boolean);
   if (!preflights.length) return null;
-  const verifierRuns = preflights.flatMap((preflight) => preflight.verifier?.runs || []);
-  const verifierFailed = verifierRuns.filter((run) => run.status === "failed").length;
-  const verifierFlaky = verifierRuns.filter((run) => run.status === "flaky").length;
-  const verifierTimeout = verifierRuns.filter((run) => run.status === "timeout").length;
   const environments = preflights.map((preflight) => preflight.environment).filter(Boolean);
   const environmentLabels = uniqueStrings(
     environments.map((environment) =>
@@ -505,10 +501,6 @@ function scanPreflightSummary(scans) {
       0
     ),
     environmentLabels,
-    verifierRuns: verifierRuns.length,
-    verifierFailed,
-    verifierFlaky,
-    verifierTimeout,
   };
 }
 
@@ -1348,7 +1340,7 @@ export function ReposScreen({
                     </div>
                     <div className="repo-desc">
                       {T(
-                        "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before verifier and AI review and shows the measured size.",
+                        "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before graph review and shows the measured size.",
                         "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。"
                       )}
                     </div>
@@ -1700,7 +1692,7 @@ const PRODUCTION_SCAN_PHASES = [
     k: "index",
     t_en: "Repository preflight",
     t_zh: "仓库预检",
-    d_en: "Capturing manifests, tools, and verifier output",
+    d_en: "Capturing manifests, tools, and graph context",
     d_zh: "采集清单、工具版本和验证器输出",
   },
   {
@@ -2216,7 +2208,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       <div className="muted scan-preflight-summary">
                         {preflight.repositoryLimitExceeded
                           ? T(
-                              "This checkout exceeded the worker limits, so verifier commands and AI review were not run.",
+                              "This checkout exceeded the worker limits, so graph review was not run.",
                               "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。"
                             )
                           : T(
@@ -2281,36 +2273,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     {preflight.environmentLabels.map((item) => (
                       <span key={`env-${item}`}>{item}</span>
                     ))}
-                    <span>
-                      {T(
-                        `${preflight.verifierRuns || 0} verifier runs`,
-                        `${preflight.verifierRuns || 0} 次验证器运行`
-                      )}
-                    </span>
-                    {preflight.verifierFailed > 0 && (
-                      <span className="preflight-warn">
-                        {T(
-                          `${preflight.verifierFailed} failed`,
-                          `${preflight.verifierFailed} 次失败`
-                        )}
-                      </span>
-                    )}
-                    {preflight.verifierFlaky > 0 && (
-                      <span className="preflight-warn">
-                        {T(
-                          `${preflight.verifierFlaky} flaky`,
-                          `${preflight.verifierFlaky} 次不稳定`
-                        )}
-                      </span>
-                    )}
-                    {preflight.verifierTimeout > 0 && (
-                      <span className="preflight-warn">
-                        {T(
-                          `${preflight.verifierTimeout} timed out`,
-                          `${preflight.verifierTimeout} 次超时`
-                        )}
-                      </span>
-                    )}
                     {preflight.availableScripts.length > 0 && (
                       <span>{preflight.availableScripts.join(", ")}</span>
                     )}

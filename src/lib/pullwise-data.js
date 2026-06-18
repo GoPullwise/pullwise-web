@@ -152,56 +152,6 @@ function normalizeVerificationCounts(verification) {
   };
 }
 
-function _normalizeVerificationAudit(value) {
-  const source = objectRecord(value) ? value : {};
-  const rejectedReasons = Array.isArray(source.rejectedReasons ?? source.rejected_reasons)
-    ? (source.rejectedReasons ?? source.rejected_reasons)
-        .map((item) => {
-          if (!objectRecord(item)) return null;
-          const reason = textValue(item.reason);
-          const count = normalizeCount(item.count);
-          return reason && count ? { reason, count } : null;
-        })
-        .filter(Boolean)
-    : [];
-  const rejectedSamples = Array.isArray(source.rejectedSamples ?? source.rejected_samples)
-    ? (source.rejectedSamples ?? source.rejected_samples)
-        .map((item) => {
-          if (!objectRecord(item)) return null;
-          const reason = textValue(item.reason);
-          if (!reason) return null;
-          return {
-            reason,
-            title: textValue(item.title),
-            severity: textValue(item.severity),
-            category: textValue(item.category),
-            file: textValue(item.file),
-            line: normalizeCount(item.line),
-            verificationStatus: normalizeVerificationStatus(item.verificationStatus),
-          };
-        })
-        .filter(Boolean)
-        .slice(0, 5)
-    : [];
-  const rejectedReasonCount = rejectedReasons.reduce((sum, item) => sum + item.count, 0);
-  return {
-    candidateCount: normalizeCount(source.candidateCount ?? source.candidate_count),
-    reportedCount: normalizeCount(source.reportedCount ?? source.reported_count),
-    rejectedCount: Math.max(
-      normalizeCount(source.rejectedCount ?? source.rejected_count),
-      rejectedReasonCount
-    ),
-    downgradedCount: normalizeCount(source.downgradedCount ?? source.downgraded_count),
-    verifiedCount: normalizeCount(source.verifiedCount ?? source.verified_count),
-    staticProofCount: normalizeCount(source.staticProofCount ?? source.static_proof_count),
-    potentialRiskCount: normalizeCount(source.potentialRiskCount ?? source.potential_risk_count),
-    unverifiedCount: normalizeCount(source.unverifiedCount ?? source.unverified_count),
-    rejectedReasons,
-    rejectedSamples,
-    summary: textValue(source.summary),
-  };
-}
-
 function normalizePreflight(preflight) {
   if (!objectRecord(preflight)) return null;
   const manifests = Array.isArray(preflight.manifests)
@@ -228,54 +178,6 @@ function normalizePreflight(preflight) {
         })
         .filter(Boolean)
     : [];
-  const verifierRuns = Array.isArray(preflight.verifier?.runs)
-    ? preflight.verifier.runs
-        .map((item) => {
-          if (!objectRecord(item)) return null;
-          const status = textValue(item.status);
-          const attempts = Array.isArray(item.attempts)
-            ? item.attempts
-                .map((attempt) => {
-                  if (!objectRecord(attempt)) return null;
-                  const attemptStatus = textValue(attempt.status);
-                  return {
-                    attempt: normalizeCount(attempt.attempt),
-                    status: ["passed", "failed", "skipped", "timeout"].includes(attemptStatus)
-                      ? attemptStatus
-                      : "skipped",
-                    exitCode: normalizeCount(attempt.exitCode),
-                    durationMs: normalizeCount(attempt.durationMs),
-                    outputRedacted:
-                      normalizeBoolean(attempt.outputRedacted) ||
-                      Boolean(textValue(attempt.output)),
-                  };
-                })
-                .filter(Boolean)
-            : [];
-          return {
-            script: textValue(item.script),
-            command: textValue(item.command),
-            status: ["passed", "failed", "skipped", "timeout", "flaky"].includes(status)
-              ? status
-              : "skipped",
-            exitCode: normalizeCount(item.exitCode),
-            durationMs: normalizeCount(item.durationMs),
-            confirmedFailure: normalizeBoolean(item.confirmedFailure),
-            attempts,
-            logPath: textValue(item.logPath),
-            outputRedacted:
-              normalizeBoolean(item.outputRedacted) || Boolean(textValue(item.output)),
-          };
-        })
-        .filter((item) => item?.script || item?.command)
-    : [];
-  const verifier = objectRecord(preflight.verifier)
-    ? {
-        enabled: normalizeBoolean(preflight.verifier.enabled),
-        summary: textValue(preflight.verifier.summary),
-        runs: verifierRuns,
-      }
-    : null;
   const environment = objectRecord(preflight.environment)
     ? {
         os: textValue(preflight.environment.os),
@@ -307,176 +209,7 @@ function normalizePreflight(preflight) {
     repositoryLimitReasons: normalizeTextList(preflight.repositoryLimitReasons),
     manifests,
     toolVersions,
-    verifier,
   };
-}
-
-function normalizeLooseStatus(value) {
-  const status = textValue(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 40);
-  return status;
-}
-
-function normalizeListEntry(value, index, { fallbackLabel = "" } = {}) {
-  if (objectRecord(value)) {
-    const label = textValue(
-      value.label,
-      value.title,
-      value.name,
-      value.check,
-      value.checkpoint,
-      value.phase,
-      value.stage,
-      value.job,
-      value.id
-    );
-    const summary = textValue(
-      value.summary,
-      value.message,
-      value.detail,
-      value.reason,
-      value.description
-    );
-    const status = normalizeLooseStatus(
-      value.status ?? value.state ?? value.result ?? value.verdict ?? value.outcome
-    );
-    const at = formatTime(
-      value.at ??
-        value.time ??
-        value.timestamp ??
-        value.createdAt ??
-        value.created_at ??
-        value.updatedAt ??
-        value.updated_at ??
-        value.finishedAt ??
-        value.finished_at
-    );
-    const item = {
-      key:
-        textValue(value.key, value.id, value.name, value.label, value.title) ||
-        `${fallbackLabel || "item"}_${index}`,
-      label: label || summary || fallbackLabel,
-      summary: label && summary && summary !== label ? summary : "",
-      status,
-      at,
-      jobId: textValue(value.jobId, value.job_id, value.scanJobId, value.scan_job_id),
-      workerId: textValue(
-        value.workerId,
-        value.worker_id,
-        value.workerName,
-        value.worker_name,
-        value.claimId,
-        value.claim_id
-      ),
-      attempt: normalizeQueueCount(value.attempt, { positive: true }),
-      kind: textValue(value.kind, value.type),
-    };
-    if (!item.label && !item.summary && !item.status && !item.at && !item.jobId && !item.workerId) {
-      return null;
-    }
-    return item;
-  }
-  const label = firstLineText(value);
-  if (!label) return null;
-  return {
-    key: `${fallbackLabel || "item"}_${index}`,
-    label,
-    summary: "",
-    status: "",
-    at: "",
-    jobId: "",
-    workerId: "",
-    attempt: null,
-    kind: "",
-  };
-}
-
-function _normalizeCompletionAudit(value) {
-  if (!objectRecord(value)) return null;
-  const blockers = itemsFrom(value, "blockers", "blockingChecks", "blocking_checks", "gates")
-    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "blocker" }))
-    .filter(Boolean)
-    .slice(0, 8);
-  const warnings = itemsFrom(value, "warnings", "warningChecks", "warning_checks")
-    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "warning" }))
-    .filter(Boolean)
-    .slice(0, 8);
-  const checks = itemsFrom(value, "checks", "results", "items")
-    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "check" }))
-    .filter(Boolean)
-    .slice(0, 12);
-  const audit = {
-    status: normalizeLooseStatus(value.status ?? value.state ?? value.result ?? value.verdict),
-    outcome: textValue(value.outcome),
-    summary: textValue(value.summary, value.message, value.resultSummary, value.result_summary),
-    blockers,
-    warnings,
-    checks,
-    completedAt: formatTime(
-      value.completedAt ?? value.completed_at ?? value.finishedAt ?? value.finished_at
-    ),
-    updatedAt: formatTime(value.updatedAt ?? value.updated_at ?? value.lastUpdatedAt),
-  };
-  return audit.status ||
-    audit.outcome ||
-    audit.summary ||
-    audit.completedAt ||
-    audit.updatedAt ||
-    blockers.length ||
-    warnings.length ||
-    checks.length
-    ? audit
-    : null;
-}
-
-function _normalizeJobTrace(value) {
-  const source = Array.isArray(value) ? { checkpoints: value } : objectRecord(value) ? value : null;
-  if (!source) return null;
-  const checkpoints = itemsFrom(
-    source,
-    "checkpoints",
-    "steps",
-    "entries",
-    "events",
-    "jobs",
-    "trace"
-  )
-    .map((item, index) => normalizeListEntry(item, index, { fallbackLabel: "checkpoint" }))
-    .filter(Boolean)
-    .slice(0, 16);
-  const trace = {
-    status: normalizeLooseStatus(source.status ?? source.state ?? source.result),
-    summary: textValue(source.summary, source.message),
-    currentJobId: textValue(source.currentJobId, source.current_job_id, source.jobId, source.job_id),
-    workerId: textValue(
-      source.workerId,
-      source.worker_id,
-      source.workerName,
-      source.worker_name,
-      source.claimId,
-      source.claim_id
-    ),
-    updatedAt: formatTime(
-      source.updatedAt ??
-        source.updated_at ??
-        source.lastSeenAt ??
-        source.last_seen_at ??
-        source.finishedAt ??
-        source.finished_at
-    ),
-    checkpoints,
-  };
-  return trace.status ||
-    trace.summary ||
-    trace.currentJobId ||
-    trace.workerId ||
-    trace.updatedAt ||
-    checkpoints.length
-    ? trace
-    : null;
 }
 
 function normalizePreflightRepositoryStats(value) {
@@ -564,7 +297,7 @@ function textValue(...values) {
 }
 
 const NORMALIZED_SEVERITIES = new Set(["critical", "high", "medium", "low", "info"]);
-const AUDIT_SWARM_SEVERITY_ALIASES = {
+const SEVERITY_ALIASES = {
   p0: "critical",
   p1: "high",
   p2: "medium",
@@ -574,9 +307,7 @@ const AUDIT_SWARM_SEVERITY_ALIASES = {
 
 function normalizeSeverityValue(value) {
   const severity = textValue(value).toLowerCase();
-  return (
-    AUDIT_SWARM_SEVERITY_ALIASES[severity] || (NORMALIZED_SEVERITIES.has(severity) ? severity : "")
-  );
+  return SEVERITY_ALIASES[severity] || (NORMALIZED_SEVERITIES.has(severity) ? severity : "");
 }
 
 function normalizeSeverity(value) {
