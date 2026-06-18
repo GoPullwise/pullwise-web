@@ -1043,14 +1043,8 @@ body.has-proto-nav {
 
 .graph-verified-graph {
   min-width: 0;
-  margin: 8px 0 10px;
-  padding: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 44%),
-    var(--bg-elev);
+  margin: 10px 0 12px;
+  overflow: visible;
 }
 
 .graph-verified-graph-label {

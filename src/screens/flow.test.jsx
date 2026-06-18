@@ -927,6 +927,15 @@ describe("ScanningScreen queue state", () => {
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
   });
 
+  it("keeps the GraphVerified graph wrapper unframed so cards do not nest too deeply", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+    const graphWrapper = styles.match(/\.graph-verified-graph\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+
+    expect(graphWrapper).toMatch(/overflow:\s*visible;/);
+    expect(graphWrapper).not.toMatch(/\bborder\s*:/);
+    expect(graphWrapper).not.toMatch(/\bbackground\s*:/);
+  });
+
   it("shows lightweight GraphVerified confirmed findings in scan details", () => {
     useScanRun.mockReturnValue({
       scan: {
