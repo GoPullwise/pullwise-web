@@ -87,11 +87,6 @@ export function LandingScreen({ go, accent, auth }) {
       <PublicHeader go={go} current="landing" auth={auth} />
 
       <section className="lp-hero">
-        <div className="lp-hero-tag">
-          <span className="dot" style={{ background: accent }} />
-          <span>{T("Graph-verified code review", "图验证代码审查")}</span>
-          <I.ArrowR size={12} />
-        </div>
         <h1 className="lp-title">
           {T("Find broadly.", "广泛发现。")}
           <br />

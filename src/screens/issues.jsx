@@ -1609,7 +1609,6 @@ function ScanRow({
   const canRetry = isRetryableHistoryScan(scan);
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
-  const graphVerified = scan.graphVerifiedReport || null;
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -1714,7 +1713,6 @@ function ScanRow({
           </div>
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
-        <GraphVerifiedReport report={graphVerified} compact />
       </div>
       <div className="scan-row-actions" ref={menuRef} onClick={stopRowClick}>
         {canRetry && (

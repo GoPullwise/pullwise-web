@@ -55,7 +55,7 @@ describe("public navigation links", () => {
   it("summarizes implemented product capabilities on the landing page", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
 
-    expect(screen.getByText("Graph-verified code review")).toBeInTheDocument();
+    expect(screen.queryByText("Graph-verified code review")).not.toBeInTheDocument();
     expect(screen.getByText("CodeGraph slice planning")).toBeInTheDocument();
     expect(screen.getByText("Parallel finder agents")).toBeInTheDocument();
     expect(screen.getByText("Isolated repro workers")).toBeInTheDocument();

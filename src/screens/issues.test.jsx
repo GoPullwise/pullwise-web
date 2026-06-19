@@ -1018,7 +1018,7 @@ describe("HistoryScreen queue state", () => {
     expect(go).not.toHaveBeenCalledWith("dashboard");
   });
 
-  it("shows lightweight GraphVerified findings for completed scan rows", () => {
+  it("hides GraphVerified findings from completed scan rows", () => {
     useScans.mockReturnValue({
       items: [
         {
@@ -1059,10 +1059,10 @@ describe("HistoryScreen queue state", () => {
 
     render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
 
-    expect(screen.getByText("GraphVerified findings")).toBeInTheDocument();
+    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
     expect(
-      screen.getByText(/confirmed issue f_123 with semantic graph evidence/i)
-    ).toBeInTheDocument();
+      screen.queryByText(/confirmed issue f_123 with semantic graph evidence/i)
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/graph verified:/i)).not.toBeInTheDocument();
   });
 
