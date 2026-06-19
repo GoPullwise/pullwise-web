@@ -1015,7 +1015,6 @@ function normalizeGraphVerifiedReport(value) {
     version: textValue(value.version) || "graph-verified-code-review/1",
     runId: textValue(value.runId),
     mode: textValue(value.mode),
-    base: textValue(value.base),
     head: textValue(value.head),
     confirmedCount: normalizeCount(value.confirmedCount),
     rejectedCount: normalizeCount(value.rejectedCount),

@@ -96,8 +96,8 @@ export function LandingScreen({ go, accent, auth }) {
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise turns Git diffs into CodeGraph-backed review slices, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.",
-            "Pullwise 将 Git diff 转换为 CodeGraph 支撑的审查切片，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。"
+            "Pullwise scans the current repository snapshot with CodeGraph-backed review slices, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.",
+            "Pullwise 使用 CodeGraph 支撑的审查切片扫描当前仓库快照，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。"
           )}
         </p>
         <div className="lp-cta">
@@ -206,19 +206,19 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-features">
         {[
           {
-            i: <I.GitPull />,
-            h: T("Diff-first review entry", "从 Diff 开始审查"),
+            i: <I.Search />,
+            h: T("Repository snapshot entry", "从仓库快照开始审查"),
             p: T(
-              "Start from the changed files, hunks, and rough changed symbols instead of asking agents to roam the whole repository.",
-              "从变更文件、hunk 和粗略变更符号开始，而不是让 agent 在整个仓库里漫游。"
+              "Start from the current HEAD tree, repository symbols, and CodeGraph context instead of manufacturing a comparison base.",
+              "从当前 HEAD 树、仓库符号和 CodeGraph 上下文开始，而不是人为制造比较基线。"
             ),
           },
           {
             i: <I.Layers />,
             h: T("CodeGraph slice planning", "CodeGraph 切片规划"),
             p: T(
-              "Build review context from matched symbols, callers, callees, impact radius, entrypoints, and affected tests.",
-              "基于匹配符号、调用方、被调用方、影响半径、入口点和受影响测试构建审查上下文。"
+              "Build review context from repository symbols, callers, callees, impact radius, and entrypoints.",
+              "基于仓库符号、调用方、被调用方、影响半径和入口点构建审查上下文。"
             ),
           },
           {
@@ -265,8 +265,8 @@ export function LandingScreen({ go, accent, auth }) {
             i: <I.Activity />,
             h: T("Debuggable pipeline history", "可调试流水线历史"),
             p: T(
-              "Keep changed files, slices, finder tasks, raw candidates, repro status, judge reasons, and timing for developer audit.",
-              "保留变更文件、切片、finder 任务、原始候选、复现状态、judge 理由和耗时，便于开发者审计。"
+              "Keep repository snapshot files, slices, finder tasks, raw candidates, repro status, judge reasons, and timing for developer audit.",
+              "保留仓库快照文件、切片、finder 任务、原始候选、复现状态、judge 理由和耗时，便于开发者审计。"
             ),
           },
           {

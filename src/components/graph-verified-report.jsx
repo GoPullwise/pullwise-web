@@ -396,7 +396,6 @@ export function GraphVerifiedReport({ report, compact = false, showEmpty = false
       {!compact && (
         <div className="scan-preflight-meta">
           {text(safeReport.mode) && <span className="tag">{safeReport.mode}</span>}
-          {text(safeReport.base) && <span className="tag">base {safeReport.base}</span>}
           {text(safeReport.head) && <span className="tag">head {safeReport.head}</span>}
           {text(safeReport.runId) && <span className="tag">{safeReport.runId}</span>}
         </div>
