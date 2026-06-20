@@ -56,7 +56,7 @@ describe("public navigation links", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
 
     expect(screen.queryByText("Graph-verified code review")).not.toBeInTheDocument();
-    expect(screen.getByText("CodeGraph slice planning")).toBeInTheDocument();
+    expect(screen.getByText("Repository context planning")).toBeInTheDocument();
     expect(screen.getByText("Parallel finder agents")).toBeInTheDocument();
     expect(screen.getByText("Isolated repro workers")).toBeInTheDocument();
     expect(screen.getByText("Judge validation gate")).toBeInTheDocument();

@@ -96,8 +96,8 @@ export function LandingScreen({ go, accent, auth }) {
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise scans the current repository snapshot with CodeGraph-backed review slices, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.",
-            "Pullwise 使用 CodeGraph 支撑的审查切片扫描当前仓库快照，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。"
+            "Pullwise scans the current repository snapshot with Codex-built review context, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.",
+            "Pullwise 使用 Codex 构建的审查上下文扫描当前仓库快照，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。"
           )}
         </p>
         <div className="lp-cta">
@@ -122,7 +122,7 @@ export function LandingScreen({ go, accent, auth }) {
           </span>
           <span>
             <I.Check size={12} />{" "}
-            {T("CodeGraph evidence", "CodeGraph 证据")}
+            {T("Repository context evidence", "仓库上下文证据")}
           </span>
           <span>
             <I.Check size={12} /> {T("Isolated reproduction", "隔离复现")}
@@ -209,13 +209,13 @@ export function LandingScreen({ go, accent, auth }) {
             i: <I.Search />,
             h: T("Repository snapshot entry", "从仓库快照开始审查"),
             p: T(
-              "Start from the current HEAD tree, repository symbols, and CodeGraph context instead of manufacturing a comparison base.",
-              "从当前 HEAD 树、仓库符号和 CodeGraph 上下文开始，而不是人为制造比较基线。"
+              "Start from the current HEAD tree, repository symbols, and Codex-built context instead of manufacturing a comparison base.",
+              "从当前 HEAD 树、仓库符号和 Codex 构建的上下文开始，而不是人为制造比较基线。"
             ),
           },
           {
             i: <I.Layers />,
-            h: T("CodeGraph slice planning", "CodeGraph 切片规划"),
+            h: T("Repository context planning", "仓库上下文规划"),
             p: T(
               "Build review context from repository symbols, callers, callees, impact radius, and entrypoints.",
               "基于仓库符号、调用方、被调用方、影响半径和入口点构建审查上下文。"
