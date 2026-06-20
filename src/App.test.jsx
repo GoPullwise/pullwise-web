@@ -1280,10 +1280,14 @@ describe("App", () => {
       repositories: [],
     });
     pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
-    pullwiseApi.scans.list
-      .mockResolvedValueOnce({ items: [oldScan] })
-      .mockReturnValueOnce(staleHistoryReload.promise)
-      .mockResolvedValue({ items: [scanAlpha, scanBeta] });
+    const historyResponses = [
+      Promise.resolve({ items: [oldScan] }),
+      staleHistoryReload.promise,
+    ];
+    pullwiseApi.scans.list.mockImplementation((params = {}) => {
+      if (params.limit === 1) return Promise.resolve({ items: [], total: 1 });
+      return historyResponses.shift() || Promise.resolve({ items: [scanAlpha, scanBeta] });
+    });
     const user = userEvent.setup();
 
     render(<App />);

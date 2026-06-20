@@ -3,17 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useIssues, useRepositories } from "./lib/pullwise-data.js";
+import { useIssues, useRepositories, useScans } from "./lib/pullwise-data.js";
 import { Sidebar, Topbar } from "./shell.jsx";
 
 vi.mock("./lib/pullwise-data.js", () => ({
   useIssues: vi.fn(),
   useRepositories: vi.fn(),
+  useScans: vi.fn(),
 }));
 
 beforeEach(() => {
   vi.clearAllMocks();
   useIssues.mockReturnValue({ items: [] });
+  useScans.mockReturnValue({ items: [] });
   useRepositories.mockReturnValue({
     items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
   });
@@ -127,5 +129,18 @@ describe("Sidebar navigation", () => {
 
     expect(useIssues).toHaveBeenCalledWith({ status: "open", limit: 1 });
     expect(screen.getByText("12")).toBeInTheDocument();
+  });
+
+  it("uses the server scan total for the scan history badge", () => {
+    useScans.mockReturnValue({
+      items: [{ id: "scan_1" }],
+      meta: { total: 123 },
+    });
+
+    render(<Sidebar section="dashboard" go={vi.fn()} />);
+
+    const history = screen.getByRole("link", { name: /^scan history\b/i });
+    expect(useScans).toHaveBeenCalledWith({ limit: 1 });
+    expect(history).toHaveTextContent("123");
   });
 });

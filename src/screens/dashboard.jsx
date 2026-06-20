@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -367,13 +367,21 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const {
     items: issues,
     loading: issuesLoading,
+    loadingMore: issuesLoadingMore,
     error: issuesError,
     meta: issuesMeta = {},
+    loadMore: loadMoreIssues,
   } = useIssues({
     status: "open",
     limit: 50,
   });
-  const { items: scans, loading: scansLoading, reload: reloadScans, upsertScan } = useScans({ limit: 50 });
+  const {
+    items: scans,
+    loading: scansLoading,
+    reload: reloadScans,
+    upsertScan,
+    meta: scansMeta = {},
+  } = useScans({ limit: 50 });
   const {
     items: repositories,
     loading: reposLoading,
@@ -385,6 +393,10 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const openIssueTotal = Number.isFinite(Number(issuesMeta.total))
     ? Number(issuesMeta.total)
     : openIssues.length;
+  useEffect(() => {
+    if (issuesError || issuesLoading || issuesLoadingMore || !issuesMeta.hasMore) return;
+    if (typeof loadMoreIssues === "function") loadMoreIssues();
+  }, [issuesError, issuesLoading, issuesLoadingMore, issuesMeta.hasMore, loadMoreIssues]);
   const counts = issueCounts(openIssues);
   const verificationCounts = useMemo(
     () =>
@@ -435,11 +447,14 @@ export function DashboardScreen({ go, setIssue, accent }) {
         .map(() => 1),
     [scans]
   );
+  const scanTotal = Number.isFinite(Number(scansMeta.total)) ? Number(scansMeta.total) : scans.length;
   const repositoryCount = Number.isFinite(Number(repositoriesMeta.total))
     ? Number(repositoriesMeta.total)
     : repositories.length;
 
-  const dashboardLoading = issuesLoading || scansLoading || reposLoading;
+  const issuesAnalyticsLoading =
+    issuesLoading || issuesLoadingMore || (!issuesError && Boolean(issuesMeta.hasMore));
+  const dashboardLoading = issuesAnalyticsLoading || scansLoading || reposLoading;
 
   const retryLatestScan = async () => {
     if (!canRetryLatestScan || retryingScanId) return;
@@ -568,7 +583,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       </button>
                     )}
                   </div>
-                  <div className="kpi-v">{scansLoading ? "-" : scans.length}</div>
+                  <div className="kpi-v">{scansLoading ? "-" : scanTotal}</div>
                   <div className="kpi-foot">
                     {latestScan
                       ? latestScanAgentLabel

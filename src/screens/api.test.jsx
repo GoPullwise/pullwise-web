@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
-import { useIssues, useRepositories } from "../lib/pullwise-data.js";
+import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
 import { DocsScreen } from "./docs.jsx";
@@ -25,6 +25,7 @@ vi.mock("../api/pullwise.js", () => ({
 vi.mock("../lib/pullwise-data.js", () => ({
   useIssues: vi.fn(),
   useRepositories: vi.fn(),
+  useScans: vi.fn(),
 }));
 
 describe("API screens", () => {
@@ -33,6 +34,7 @@ describe("API screens", () => {
     pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({ plans: [] });
     pullwiseApi.docs.getServerConfig.mockResolvedValue({ groups: [] });
     useIssues.mockReturnValue({ items: [] });
+    useScans.mockReturnValue({ items: [] });
     useRepositories.mockReturnValue({
       items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
     });

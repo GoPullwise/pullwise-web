@@ -183,6 +183,105 @@ describe("DashboardScreen issue list", () => {
     expect(openIssuesKpi).not.toHaveTextContent("50");
   });
 
+  it("uses the server scan total for the scans KPI", () => {
+    const pagedScans = Array.from({ length: 50 }, (_, index) => ({
+      id: `scan_${index + 1}`,
+      repo: "acme/api",
+      branch: "main",
+      commit: `abc${index + 1}`,
+      time: "now",
+    }));
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: pagedScans,
+      meta: { total: 123 },
+      loading: false,
+    });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    const scansKpi = screen
+      .getAllByText("Scans")
+      .find((node) => node.classList.contains("kpi-l"))
+      ?.closest(".kpi");
+    expect(scansKpi).toHaveTextContent("123");
+    expect(scansKpi).not.toHaveTextContent("50");
+  });
+
+  it("loads every open issue page before rendering overview issue analytics", async () => {
+    const loadMore = vi.fn();
+    const firstPageIssues = Array.from({ length: 50 }, (_, index) => ({
+      id: `f_${index + 1}`,
+      repo: "acme/api",
+      severity: "info",
+      category: "Security",
+      title: `Issue ${index + 1}`,
+      file: "src/common.js",
+      line: index + 1,
+      verificationStatus: "unverified",
+      confidenceLevel: "medium",
+      status: "open",
+    }));
+    const secondPageIssue = {
+      id: "f_51",
+      repo: "acme/critical",
+      severity: "critical",
+      category: "Security",
+      title: "Critical issue from the second page",
+      file: "src/critical.js",
+      line: 51,
+      verificationStatus: "static_proof",
+      confidenceLevel: "high",
+      status: "open",
+    };
+
+    useIssues.mockReturnValue({
+      items: firstPageIssues,
+      meta: { total: 51, hasMore: true, nextOffset: 50 },
+      loading: false,
+      loadingMore: false,
+      error: "",
+      loadMore,
+    });
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({ items: [], loading: false });
+
+    const { container, rerender } = render(
+      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
+    );
+
+    expect(container.querySelector(".dashboard-skeleton")).toBeInTheDocument();
+    await waitFor(() => expect(loadMore).toHaveBeenCalledTimes(1));
+
+    useIssues.mockReturnValue({
+      items: [...firstPageIssues, secondPageIssue],
+      meta: { total: 51, hasMore: false, nextOffset: null },
+      loading: false,
+      loadingMore: false,
+      error: "",
+      loadMore,
+    });
+    rerender(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    const criticalRows = screen
+      .getAllByText("Critical")
+      .map((node) => node.closest(".dash-donut-row"))
+      .filter(Boolean);
+    expect(criticalRows.some((row) => row.textContent.includes("1"))).toBe(true);
+    expect(screen.getAllByText("1/51")).toHaveLength(2);
+    expect(screen.getByText("src/critical.js")).toBeInTheDocument();
+    expect(screen.getByText("Showing 8 of 51 open issues")).toBeInTheDocument();
+  });
+
   it("retries the failed latest scan and updates the scan list from a targeted refresh", async () => {
     const user = userEvent.setup();
     const reload = vi.fn().mockResolvedValue(undefined);

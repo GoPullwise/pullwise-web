@@ -2,7 +2,7 @@ import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
-import { useIssues, useRepositories } from "./lib/pullwise-data.js";
+import { useIssues, useRepositories, useScans } from "./lib/pullwise-data.js";
 
 export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
   useLang();
@@ -244,9 +244,11 @@ function SearchModal({ close, go, setIssue }) {
 export function Sidebar({ section, go }) {
   useLang();
   const { items: issues, meta: issueMeta = {} } = useIssues({ status: "open", limit: 1 });
+  const { items: scans, meta: scanMeta = {} } = useScans({ limit: 1 });
   const openIssueCount = Number.isFinite(Number(issueMeta.total))
     ? Number(issueMeta.total)
     : issues.length;
+  const scanCount = Number.isFinite(Number(scanMeta.total)) ? Number(scanMeta.total) : scans.length;
   const items = [
     { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} />, badge: null },
     {
@@ -260,7 +262,7 @@ export function Sidebar({ section, go }) {
       k: "history",
       label: T("Scan history", "扫描历史"),
       icon: <I.Clock size={15} />,
-      badge: null,
+      badge: scanCount || null,
     },
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} />, badge: null },
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} />, badge: null },

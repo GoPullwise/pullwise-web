@@ -41,6 +41,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
       : null,
   useIssues: vi.fn(() => ({ items: [], loading: false, error: "" })),
   useRepositories: vi.fn(),
+  useScans: vi.fn(() => ({ items: [] })),
   useScanBatchRun: vi.fn(),
   useScanRun: vi.fn(),
 }));

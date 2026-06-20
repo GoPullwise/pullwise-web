@@ -38,7 +38,7 @@ vi.mock("../lib/pullwise-data.js", async (importOriginal) => {
         : null,
     useIssues: vi.fn(() => ({ items: [] })),
     useRepositories: vi.fn(() => ({ items: [] })),
-    useScans: vi.fn(),
+    useScans: vi.fn(() => ({ items: [] })),
   };
 });
 
