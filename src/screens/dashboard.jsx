@@ -368,6 +368,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
     items: issues,
     loading: issuesLoading,
     error: issuesError,
+    meta: issuesMeta = {},
   } = useIssues({
     status: "open",
     limit: 50,
@@ -381,6 +382,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
   } = useRepositories();
 
   const openIssues = issues;
+  const openIssueTotal = Number.isFinite(Number(issuesMeta.total))
+    ? Number(issuesMeta.total)
+    : openIssues.length;
   const counts = issueCounts(openIssues);
   const verificationCounts = useMemo(
     () =>
@@ -499,7 +503,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       </span>
                     )}
                   </div>
-                  <div className="kpi-v">{openIssues.length}</div>
+                  <div className="kpi-v">{openIssueTotal}</div>
                   <div className="kpi-foot" aria-hidden="true">
                     &nbsp;
                   </div>
@@ -691,8 +695,8 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       ? T("Loading issues...", "正在加载问题...")
                       : openIssues.length > 0
                         ? T(
-                            `Showing ${Math.min(openIssues.length, 8)} of ${openIssues.length} open issues`,
-                            `显示 ${Math.min(openIssues.length, 8)} / ${openIssues.length} 个未解决问题`
+                            `Showing ${Math.min(openIssues.length, 8)} of ${openIssueTotal} open issues`,
+                            `显示 ${Math.min(openIssues.length, 8)} / ${openIssueTotal} 个未解决问题`
                           )
                         : T("No open issues", "暂无未解决问题")}
                   </div>

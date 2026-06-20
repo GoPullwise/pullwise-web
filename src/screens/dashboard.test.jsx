@@ -147,6 +147,42 @@ describe("DashboardScreen issue list", () => {
     expect(screen.getByText(/Position 4 \/ 3 scans ahead/i)).toBeInTheDocument();
   });
 
+  it("uses the server-filtered open issue total for the open issues KPI", () => {
+    const pagedIssues = Array.from({ length: 50 }, (_, index) => ({
+      id: `f_${index + 1}`,
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: `Issue ${index + 1}`,
+      file: "src/test.js",
+      line: index + 1,
+      confidence: 0.9,
+      effort: "S",
+      status: "open",
+    }));
+    useIssues.mockImplementation(({ limit } = {}) => ({
+      items: limit === 1 ? [{ id: "sidebar-count-sample", status: "open" }] : pagedIssues,
+      meta: { total: 76 },
+      loading: false,
+      error: "",
+    }));
+    useRepositories.mockReturnValue({
+      items: [],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({ items: [], loading: false });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    const openIssuesKpi = screen
+      .getAllByText("Open issues")
+      .find((node) => node.classList.contains("kpi-l"))
+      ?.closest(".kpi");
+    expect(openIssuesKpi).toHaveTextContent("76");
+    expect(openIssuesKpi).not.toHaveTextContent("50");
+  });
+
   it("retries the failed latest scan and updates the scan list from a targeted refresh", async () => {
     const user = userEvent.setup();
     const reload = vi.fn().mockResolvedValue(undefined);
