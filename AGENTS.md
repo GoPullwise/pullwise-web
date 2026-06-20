@@ -61,3 +61,9 @@ Keep route and polling changes aligned with the current scale model.
 - Retry scan actions should update or replace the affected scan from the inline
   retry payload or a targeted scan refresh. Avoid reloading the entire scan
   history after a single retry unless targeted refresh fails.
+
+## Graph-Verified Review Copy
+
+User-facing GraphVerified copy must describe a full-repository snapshot review
+of the current checkout. Scan/report views should tolerate and display
+review-unit coverage metadata even when no confirmed findings are present.
