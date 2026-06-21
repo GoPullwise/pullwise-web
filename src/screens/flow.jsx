@@ -1865,6 +1865,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const currentPhase =
     scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
   const scanProgressMessage = batchMode ? "" : scan?.progressMessage || "";
+  const scanProgressLogsSummary = batchMode ? "" : scan?.logsSummary || "";
   const scanPhases = scanPhasesForPhase(currentPhase);
   const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.k === currentPhase) : -1;
   const found = batchMode
@@ -2049,9 +2050,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   <>
                     <span className="scanning-actions-sep" aria-hidden="true" />
                     {!batchMode && (
-                      <button className="btn ghost" disabled={bundleLoading} onClick={handleDownloadBundle}>
+                      <button
+                        className="btn ghost"
+                        disabled={bundleLoading}
+                        onClick={handleDownloadBundle}
+                      >
                         <I.Download size={13} />{" "}
-                        {bundleLoading ? T("Preparing...", "准备中...") : T("Audit bundle", "审计包")}
+                        {bundleLoading
+                          ? T("Preparing...", "准备中...")
+                          : T("Audit bundle", "审计包")}
                       </button>
                     )}
                     {!batchMode && <span className="scanning-actions-sep" aria-hidden="true" />}
@@ -2129,6 +2136,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                               ? scanProgressMessage
                               : T(p.d_en, p.d_zh)}
                           </div>
+                          {p.k === currentPhase && scanProgressLogsSummary && (
+                            <div className="scanning-phase-meta">{scanProgressLogsSummary}</div>
+                          )}
                         </div>
                       </div>
                     );

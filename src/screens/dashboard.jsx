@@ -93,6 +93,13 @@ const SEVERITY_WEIGHTS = { critical: 10, high: 7, medium: 4, low: 2, info: 1 };
 const SEVERITY_RANK = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
 const HOTSPOT_LIMIT = 5;
 const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
+const ACTIVE_SCAN_STATUSES = new Set(["queued", "running"]);
+const SCAN_PHASE_LABELS = {
+  clone: { en: "Cloning repository", zh: "克隆仓库" },
+  index: { en: "Repository preflight", zh: "仓库预检" },
+  ai: { en: "GraphVerified review", zh: "GraphVerified 审查" },
+  report: { en: "Uploading report", zh: "上传报告" },
+};
 
 const SEVERITY_LEVELS = [
   { key: "critical", en: "Critical", zh: "关键", color: "var(--sev-critical)" },
@@ -178,6 +185,28 @@ function issueRiskHotspots(issues) {
 
 function severityCountLabel(level, count) {
   return T(`${count} ${level.en.toLowerCase()}`, `${count} ${level.zh}`);
+}
+
+function scanPhaseLabel(scan) {
+  const phase = SCAN_PHASE_LABELS[scan?.phase];
+  if (phase) return T(phase.en, phase.zh);
+  if (scan?.status === "queued") return T("Queued", "排队中");
+  if (scan?.status === "running") return T("Running", "运行中");
+  return T("Scan", "扫描");
+}
+
+function activeScanProgressMessage(scan) {
+  if (!scan) return "";
+  if (scan.progressMessage) return scan.progressMessage;
+  if (scan.status === "queued") {
+    const queue = scanQueueSummary(scan);
+    return (
+      queue?.message ||
+      queue?.tags?.join(" / ") ||
+      T("Waiting for an available worker.", "等待可用 worker。")
+    );
+  }
+  return T("Worker is preparing the next progress update.", "Worker 正在准备下一次进度更新。");
 }
 
 function RiskHotspotRow({ item, index }) {
@@ -422,8 +451,12 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const verifiedPct = openIssues.length ? Math.round((verifiedShare / openIssues.length) * 100) : 0;
   const highPct = openIssues.length ? Math.round((highShare / openIssues.length) * 100) : 0;
   const latestScan = scans[0];
+  const activeScan = scans.find((scan) =>
+    ACTIVE_SCAN_STATUSES.has(String(scan?.status || "").toLowerCase())
+  );
   const latestScanBaseAgentLabel = scanAgentConfigLabel(latestScan);
-  const latestScanQueueSummary = latestScan?.status === "queued" ? scanQueueSummary(latestScan) : null;
+  const latestScanQueueSummary =
+    latestScan?.status === "queued" ? scanQueueSummary(latestScan) : null;
   const latestScanQueueLabel = latestScanQueueSummary?.tags?.length
     ? latestScanQueueSummary.tags.join(" / ")
     : "";
@@ -431,6 +464,8 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const canRetryLatestScan = Boolean(
     latestScan?.id && RETRYABLE_SCAN_STATUSES.has(String(latestScan.status || "").toLowerCase())
   );
+  const activeScanProgress = activeScan ? Math.round(Number(activeScan.progress || 0)) : 0;
+  const activeScanMessage = activeScanProgressMessage(activeScan);
   const hotspots = useMemo(() => issueRiskHotspots(openIssues), [openIssues]);
 
   const issueTrend = useMemo(() => scans.slice(0, 14).reverse().map(scanIssueTotal), [scans]);
@@ -447,7 +482,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
         .map(() => 1),
     [scans]
   );
-  const scanTotal = Number.isFinite(Number(scansMeta.total)) ? Number(scansMeta.total) : scans.length;
+  const scanTotal = Number.isFinite(Number(scansMeta.total))
+    ? Number(scansMeta.total)
+    : scans.length;
   const repositoryCount = Number.isFinite(Number(repositoriesMeta.total))
     ? Number(repositoriesMeta.total)
     : repositories.length;
@@ -599,6 +636,43 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   </div>
                 </div>
               </div>
+
+              {activeScan && (
+                <section
+                  className="card dash-summary active-scan-progress"
+                  aria-labelledby="active-scan-progress-title"
+                >
+                  <div className="dash-summary-head">
+                    <div>
+                      <h3 id="active-scan-progress-title">{T("Active scan", "活动扫描")}</h3>
+                      <div className="sub">{activeScan.repo || activeScan.id}</div>
+                    </div>
+                    <a
+                      className="btn sm"
+                      {...screenLinkProps(go, "scanning", { scanId: activeScan.id })}
+                    >
+                      {T("Scan details", "扫描详情")} <I.ArrowR size={12} />
+                    </a>
+                  </div>
+                  <div className="active-scan-progress-main">
+                    <div className="active-scan-progress-row">
+                      <span className="active-scan-progress-phase">
+                        {scanPhaseLabel(activeScan)}
+                      </span>
+                      <span className="tag">{activeScanProgress}%</span>
+                    </div>
+                    <div className="active-scan-progress-message">{activeScanMessage}</div>
+                    {activeScan.logsSummary && (
+                      <div className="active-scan-progress-meta">{activeScan.logsSummary}</div>
+                    )}
+                    <div className="active-scan-progress-bar" aria-hidden="true">
+                      <span
+                        style={{ width: `${Math.max(0, Math.min(100, activeScanProgress))}%` }}
+                      />
+                    </div>
+                  </div>
+                </section>
+              )}
 
               <div className="dash-grid">
                 <div className="card dash-summary">

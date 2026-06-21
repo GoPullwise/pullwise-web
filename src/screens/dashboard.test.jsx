@@ -147,6 +147,47 @@ describe("DashboardScreen issue list", () => {
     expect(screen.getByText(/Position 4 \/ 3 scans ahead/i)).toBeInTheDocument();
   });
 
+  it("shows active GraphVerified review progress on the dashboard", () => {
+    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
+    useRepositories.mockReturnValue({
+      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
+      loading: false,
+      needsAuthorization: false,
+    });
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_running",
+          repo: "acme/api",
+          branch: "main",
+          commit: "pending",
+          status: "running",
+          phase: "ai",
+          progress: 80,
+          progressMessage: "Graph: mapping shards 12/80",
+          logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
+          time: "now",
+        },
+      ],
+      loading: false,
+    });
+
+    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+
+    const activeScan = screen.getByRole("region", { name: /active scan/i });
+    expect(within(activeScan).getByText("acme/api")).toBeInTheDocument();
+    expect(within(activeScan).getByText("GraphVerified review")).toBeInTheDocument();
+    expect(within(activeScan).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
+    expect(
+      within(activeScan).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")
+    ).toBeInTheDocument();
+    expect(within(activeScan).getByText("80%")).toBeInTheDocument();
+    expect(within(activeScan).getByRole("link", { name: /scan details/i })).toHaveAttribute(
+      "href",
+      "/scanning/sc_running"
+    );
+  });
+
   it("uses the server-filtered open issue total for the open issues KPI", () => {
     const pagedIssues = Array.from({ length: 50 }, (_, index) => ({
       id: `f_${index + 1}`,
@@ -321,9 +362,7 @@ describe("DashboardScreen issue list", () => {
     await user.click(screen.getByRole("button", { name: /^retry$/i }));
 
     expect(pullwiseApi.scans.retry).toHaveBeenCalledWith("scan_failed_latest");
-    await waitFor(() =>
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("scan_failed_latest")
-    );
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith("scan_failed_latest"));
     expect(upsertScan).toHaveBeenCalledWith(
       expect.objectContaining({ id: "scan_retry_next", status: "queued" }),
       "scan_failed_latest"

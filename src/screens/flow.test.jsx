@@ -929,7 +929,8 @@ describe("ScanningScreen queue state", () => {
 
   it("keeps the GraphVerified graph wrapper unframed so cards do not nest too deeply", () => {
     const styles = readFileSync("src/app.css", "utf8");
-    const graphWrapper = styles.match(/\.graph-verified-graph\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const graphWrapper =
+      styles.match(/\.graph-verified-graph\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
 
     expect(graphWrapper).toMatch(/overflow:\s*visible;/);
     expect(graphWrapper).not.toMatch(/\bborder\s*:/);
@@ -1376,6 +1377,7 @@ describe("ScanningScreen queue state", () => {
         phase: "ai",
         progress: 80,
         progressMessage: "Graph: mapping shards 12/80",
+        logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
       },
       error: "",
       cancel: vi.fn(),
@@ -1394,6 +1396,9 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
     expect(within(phases).getByText("GraphVerified review")).toBeInTheDocument();
     expect(within(phases).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
+    expect(
+      within(phases).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")
+    ).toBeInTheDocument();
     expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
