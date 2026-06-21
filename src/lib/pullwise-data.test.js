@@ -1326,6 +1326,8 @@ describe("normalizeIssue", () => {
       id: "sc_active",
       status: "running",
       phase: "index",
+      progressMessage: "Graph: repository census",
+      logsSummary: "stage=census",
       queue: {
         message: "Waiting for worker capacity",
         position: 2,
@@ -1334,6 +1336,8 @@ describe("normalizeIssue", () => {
     });
 
     expect(scan.phase).toBe("index");
+    expect(scan.progressMessage).toBe("Graph: repository census");
+    expect(scan.logsSummary).toBe("stage=census");
     expect(scan.queue).toEqual({
       message: "Waiting for worker capacity",
       position: 2,
@@ -1342,6 +1346,34 @@ describe("normalizeIssue", () => {
     expect(scanQueueSummary(scan)).toEqual({
       message: "Waiting for worker capacity",
       tags: ["Position 2", "1 scan ahead"],
+    });
+  });
+
+  it("preserves scan retry metadata for active scan rendering", () => {
+    const scan = normalizeScan({
+      id: "sc_retrying",
+      status: "queued",
+      retry: {
+        attempt: 1,
+        maxAttempts: 2,
+        retryAttempts: 1,
+        remainingAttempts: 1,
+        attemptedWorkers: 1,
+        reason: "worker_result_failed",
+      },
+    });
+
+    expect(scan.retry).toEqual({
+      attempt: 1,
+      maxAttempts: 2,
+      retryAttempts: 1,
+      remainingAttempts: 1,
+      attemptedWorkers: 1,
+      reason: "worker_result_failed",
+    });
+    expect(scanQueueSummary(scan)).toEqual({
+      message: "",
+      tags: ["Attempt 1 of 2", "1 retry left", "Retrying after worker failure"],
     });
   });
 

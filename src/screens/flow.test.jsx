@@ -1375,6 +1375,7 @@ describe("ScanningScreen queue state", () => {
         status: "running",
         phase: "ai",
         progress: 80,
+        progressMessage: "Graph: mapping shards 12/80",
       },
       error: "",
       cancel: vi.fn(),
@@ -1392,6 +1393,7 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
     expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
     expect(within(phases).getByText("GraphVerified review")).toBeInTheDocument();
+    expect(within(phases).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
     expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();

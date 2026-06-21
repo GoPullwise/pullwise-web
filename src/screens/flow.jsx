@@ -1844,11 +1844,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     if (!def) return;
     setLogs((prev) => {
       const stamp = new Date().toLocaleTimeString();
-      const line = `[${stamp}] ${T(def.t_en, def.t_zh)}`;
+      const detail = scan?.progressMessage ? ` - ${scan.progressMessage}` : "";
+      const line = `[${stamp}] ${T(def.t_en, def.t_zh)}${detail}`;
       if (prev.length && prev[prev.length - 1] === line) return prev;
       return [...prev.slice(-9), line];
     });
-  }, [scan?.phase]);
+  }, [scan?.phase, scan?.progressMessage]);
 
   useEffect(() => {
     if (batchMode || !scan?.id || typeof onScanResolved !== "function") return;
@@ -1863,6 +1864,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     : scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
   const currentPhase =
     scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
+  const scanProgressMessage = batchMode ? "" : scan?.progressMessage || "";
   const scanPhases = scanPhasesForPhase(currentPhase);
   const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.k === currentPhase) : -1;
   const found = batchMode
@@ -2122,7 +2124,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                         <div className="scanning-phase-bullet">{bullet}</div>
                         <div>
                           <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
-                          <div className="scanning-phase-d">{T(p.d_en, p.d_zh)}</div>
+                          <div className="scanning-phase-d">
+                            {p.k === currentPhase && scanProgressMessage
+                              ? scanProgressMessage
+                              : T(p.d_en, p.d_zh)}
+                          </div>
                         </div>
                       </div>
                     );

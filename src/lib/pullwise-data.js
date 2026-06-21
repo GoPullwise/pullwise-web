@@ -352,6 +352,26 @@ function normalizeQueueCount(value, { positive = false } = {}) {
   return normalized;
 }
 
+function normalizeScanRetry(value) {
+  if (!objectRecord(value)) return null;
+  const maxAttempts = normalizeQueueCount(value.maxAttempts ?? value.max_attempts, { positive: true }) || 1;
+  const attempt = normalizeQueueCount(value.attempt) || 0;
+  const retryAttempts = normalizeQueueCount(value.retryAttempts ?? value.retry_attempts) ?? Math.max(0, maxAttempts - 1);
+  const remainingAttempts = Math.min(
+    maxAttempts,
+    normalizeQueueCount(value.remainingAttempts ?? value.remaining_attempts) || 0
+  );
+  const attemptedWorkers = normalizeQueueCount(value.attemptedWorkers ?? value.attempted_workers) || 0;
+  return {
+    attempt,
+    maxAttempts,
+    retryAttempts,
+    remainingAttempts,
+    attemptedWorkers,
+    reason: textValue(value.reason),
+  };
+}
+
 function normalizeAiUsage(value) {
   const source = objectRecord(value) ? value : {};
   const agentCli = textValue(source.agentCli);
@@ -989,6 +1009,8 @@ export function normalizeScan(scan = {}) {
     time: textValue(scan.time) || formatTime(scan.createdAt),
     by: textValue(scan.by) || "you",
     progress: normalizeProgress(scan.progress),
+    progressMessage: textValue(scan.progressMessage, scan.progress_message),
+    logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     issues: normalizeIssueCounts(scan.issues),
     verification: normalizeVerificationCounts(scan.verification),
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),
@@ -997,6 +1019,7 @@ export function normalizeScan(scan = {}) {
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     queue: objectRecord(scan.queue) ? { ...scan.queue } : null,
+    retry: normalizeScanRetry(scan.retry),
     quotaBucketIds,
     billingUsage,
     repoUsage,
@@ -1253,18 +1276,32 @@ function scanCountLabel(count) {
   return `${count} scan${count === 1 ? "" : "s"}`;
 }
 
+function retryCountLabel(count) {
+  return `${count} retr${count === 1 ? "y" : "ies"}`;
+}
+
 export function scanQueueSummary(scan) {
   const queue = scan?.queue;
-  if (!queue || typeof queue !== "object" || Array.isArray(queue)) return null;
+  const retry = scan?.retry;
+  if ((!queue || typeof queue !== "object" || Array.isArray(queue)) && !retry) return null;
 
   const tags = [];
-  const position = normalizeQueueCount(queue.position, { positive: true });
-  const ahead = normalizeQueueCount(queue.ahead);
+  const position = normalizeQueueCount(queue?.position, { positive: true });
+  const ahead = normalizeQueueCount(queue?.ahead);
   if (position !== null) tags.push(`Position ${position}`);
   if (ahead !== null) tags.push(`${scanCountLabel(ahead)} ahead`);
+  if (retry?.attempt || retry?.maxAttempts > 1) {
+    tags.push(`Attempt ${Math.max(0, retry.attempt)} of ${Math.max(1, retry.maxAttempts)}`);
+  }
+  if (retry?.remainingAttempts > 0) {
+    tags.push(`${retryCountLabel(retry.remainingAttempts)} left`);
+  }
+  if (retry?.reason === "worker_result_failed") {
+    tags.push("Retrying after worker failure");
+  }
 
   return {
-    message: firstLineText(queue.message),
+    message: firstLineText(queue?.message),
     tags,
   };
 }
