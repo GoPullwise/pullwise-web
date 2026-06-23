@@ -473,4 +473,14 @@ describe("SettingsScreen", () => {
     );
     expect(screen.getByRole("alert")).toHaveTextContent(/PULLWISE_ALLOWED_ORIGINS/);
   });
+  it("shows a retryable first-load error without clearing successful settings data", async () => {
+    pullwiseApi.integrations.list.mockRejectedValueOnce(new Error("GitHub integrations unavailable."));
+
+    render(<SettingsScreen go={vi.fn()} />);
+
+    expect(await screen.findByText(/stay signed in for 7 days/i)).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/GitHub integrations unavailable/i);
+    expect(screen.getByRole("button", { name: /^retry$/i })).toBeInTheDocument();
+  });
+
 });

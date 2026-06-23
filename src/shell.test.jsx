@@ -45,6 +45,18 @@ describe("Topbar navigation", () => {
     expect(breadcrumbButtonBlock).toMatch(/\bpadding:\s*0;/);
   });
 
+  it("exposes search as a named button and dialog", async () => {
+    const user = userEvent.setup();
+
+    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
+
+    await user.click(screen.getByRole("button", { name: /^search$/i }));
+
+    const dialog = screen.getByRole("dialog", { name: /^search$/i });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(screen.getByRole("textbox", { name: /^search$/i })).toBeInTheDocument();
+  });
+
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

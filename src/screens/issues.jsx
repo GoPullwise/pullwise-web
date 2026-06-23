@@ -26,6 +26,7 @@ import { Sidebar, Topbar } from "../shell.jsx";
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
 const HISTORY_EXPECTED_SCAN_RETRY_MS = 1500;
+const HISTORY_EXPECTED_SCAN_MAX_RETRIES = 5;
 const REVIEW_OUTPUT_LANGUAGES = [
   { value: "en", labelEn: "English", labelZh: "英文" },
   { value: "zh-CN", labelEn: "Chinese", labelZh: "中文" },
@@ -1826,6 +1827,7 @@ export function HistoryScreen({
   const [bundleLoading, setBundleLoading] = useState("");
   const [retryLoading, setRetryLoading] = useState("");
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [expectedScanRetryCount, setExpectedScanRetryCount] = useState(0);
   const [actionError, setActionError] = useState("");
   const {
     items: scans,
@@ -1842,21 +1844,39 @@ export function HistoryScreen({
     () => cleanExpectedScanIds(expectedScanIds),
     [expectedScanIds]
   );
+  const expectedScanIdsKey = useMemo(
+    () => normalizedExpectedScanIds.join("|"),
+    [normalizedExpectedScanIds]
+  );
   const expectedScansLoaded = useMemo(
     () => scanListIncludesExpectedIds(filtered, normalizedExpectedScanIds),
     [filtered, normalizedExpectedScanIds]
   );
-  const waitingForExpectedScans = normalizedExpectedScanIds.length > 0 && !expectedScansLoaded;
+  const expectedScanWaitExpired =
+    normalizedExpectedScanIds.length > 0 &&
+    !expectedScansLoaded &&
+    !error &&
+    expectedScanRetryCount >= HISTORY_EXPECTED_SCAN_MAX_RETRIES;
+  const waitingForExpectedScans =
+    normalizedExpectedScanIds.length > 0 &&
+    !expectedScansLoaded &&
+    !error &&
+    !expectedScanWaitExpired;
   const displayLoading = loading || waitingForExpectedScans;
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 
   useEffect(() => {
+    setExpectedScanRetryCount(0);
+  }, [expectedScanIdsKey, status]);
+
+  useEffect(() => {
     if (!waitingForExpectedScans || loading || typeof reload !== "function") return undefined;
     const handle = setTimeout(() => {
+      setExpectedScanRetryCount((count) => count + 1);
       reload({ quiet: true });
     }, HISTORY_EXPECTED_SCAN_RETRY_MS);
     return () => clearTimeout(handle);
-  }, [waitingForExpectedScans, loading, reload]);
+  }, [waitingForExpectedScans, loading, reload, expectedScanRetryCount]);
 
   useEffect(() => {
     if (
@@ -1993,9 +2013,9 @@ export function HistoryScreen({
                 {error}
               </div>
             )}
-            {!error && actionError && (
+            {!error && (actionError || expectedScanWaitExpired) && (
               <div className="auth-error" role="alert" style={{ margin: "18px 18px 0" }}>
-                <I.X size={13} /> {actionError}
+                <I.X size={13} /> {actionError || T("New scan has not appeared yet. Refresh scan history to try again.", "New scan has not appeared yet. Refresh scan history to try again.")}
               </div>
             )}
             {displayLoading && <HistorySkeleton />}
@@ -2040,40 +2060,72 @@ export function SettingsScreen({ go, setIssue = null }) {
   useLang();
   const [tab, setTab] = useState("profile");
   const [session, setSession] = useState(null);
+  const [profileError, setProfileError] = useState("");
   const [settings, setSettings] = useState(null);
   const [settingsError, setSettingsError] = useState("");
   const [settingsSaving, setSettingsSaving] = useState("");
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [initialLoadError, setInitialLoadError] = useState("");
   const [integrations, setIntegrations] = useState(null);
   const [integrationError, setIntegrationError] = useState("");
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const integrationRequestIdRef = useRef(0);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadSettingsPayloads = useCallback(async (cancelledRef = null) => {
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
-    Promise.all([
+    setSettingsLoading(true);
+    setInitialLoadError("");
+    setProfileError("");
+    setSettingsError("");
+    setIntegrationError("");
+    const [sessionResult, integrationsResult, settingsResult] = await Promise.allSettled([
       pullwiseApi.auth.getSession(),
       pullwiseApi.integrations.list(),
       pullwiseApi.settings.get(),
-    ])
-      .then(([sessionPayload, integrationsPayload, settingsPayload]) => {
-        if (cancelled) return;
-        setSession(sessionPayload);
-        setSettings(settingsPayload);
-        if (requestId === integrationRequestIdRef.current) setIntegrations(integrationsPayload);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSession(null);
-          setSettings(null);
-          if (requestId === integrationRequestIdRef.current) setIntegrations(null);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    ]);
+    if (cancelledRef?.current) return;
+
+    const errors = [];
+    if (sessionResult.status === "fulfilled") {
+      setSession(sessionResult.value);
+    } else {
+      const message = sessionResult.reason?.message || T("Unable to load account session.", "Unable to load account session.");
+      setSession(null);
+      setProfileError(message);
+      errors.push(message);
+    }
+
+    if (settingsResult.status === "fulfilled") {
+      setSettings(settingsResult.value);
+    } else {
+      const message = settingsResult.reason?.message || T("Unable to load preferences.", "Unable to load preferences.");
+      setSettings(null);
+      setSettingsError(message);
+      errors.push(message);
+    }
+
+    if (requestId === integrationRequestIdRef.current) {
+      if (integrationsResult.status === "fulfilled") {
+        setIntegrations(integrationsResult.value);
+      } else {
+        const message = integrationsResult.reason?.message || T("Unable to load GitHub integrations.", "Unable to load GitHub integrations.");
+        setIntegrations(null);
+        setIntegrationError(message);
+        errors.push(message);
+      }
+    }
+    setInitialLoadError(errors.join(" "));
+    setSettingsLoading(false);
   }, []);
+
+  useEffect(() => {
+    const cancelledRef = { current: false };
+    loadSettingsPayloads(cancelledRef);
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [loadSettingsPayloads]);
 
   const refreshGitHubRepositoryAccess = useCallback(async () => {
     const requestId = integrationRequestIdRef.current + 1;
@@ -2183,7 +2235,7 @@ export function SettingsScreen({ go, setIssue = null }) {
 
   return (
     <div className="app fade-in">
-      <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} setIssue={setIssue} />
+      <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} setIssue={setIssue} loading={settingsLoading} />
       <div className="with-side">
         <Sidebar section="settings" go={go} />
         <div className="main">
@@ -2193,6 +2245,15 @@ export function SettingsScreen({ go, setIssue = null }) {
               <div className="sub">{T("Account and integrations", "账号与集成")}</div>
             </div>
           </div>
+          {initialLoadError && (
+            <div className="auth-error" role="alert" style={{ marginBottom: 12 }}>
+              <I.X size={13} />
+              <span style={{ flex: 1 }}>{initialLoadError}</span>
+              <button className="btn sm" type="button" onClick={() => loadSettingsPayloads()} disabled={settingsLoading}>
+                {settingsLoading ? T("Retrying...", "Retrying...") : T("Retry", "Retry")}
+              </button>
+            </div>
+          )}
           <div className="set-shell">
             <aside className="set-side">
               {settingsTabs.map((item) => (
@@ -2212,6 +2273,11 @@ export function SettingsScreen({ go, setIssue = null }) {
                   <div className="section-h">
                     <h3>{T("Profile", "个人资料")}</h3>
                   </div>
+                  {profileError && (
+                    <div className="auth-error" role="alert">
+                      <I.X size={13} /> {profileError}
+                    </div>
+                  )}
                   <div className="set-row">
                     <div className="set-av" style={{ background: "var(--accent)" }}>
                       {(user?.name || "?").slice(0, 1).toUpperCase()}

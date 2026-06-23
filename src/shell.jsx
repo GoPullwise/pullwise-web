@@ -66,7 +66,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
             <I.Refresh size={14} />
           </span>
         )}
-        <button className="btn ghost sm" onClick={() => setSearchOpen(true)}>
+        <button type="button" className="btn ghost sm" aria-label={T("Search", "Search")} onClick={() => setSearchOpen(true)}>
           <I.Search size={14} />{" "}
           <span style={{ color: "var(--text-3)" }}>{T("Search...", "搜索...")}</span>{" "}
           <span className="kbd" style={{ marginLeft: 6 }}>
@@ -90,6 +90,8 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
 function SearchModal({ close, go, setIssue }) {
   useLang();
   const [q, setQ] = React.useState("");
+  const dialogRef = React.useRef(null);
+  const inputRef = React.useRef(null);
   const { items: issues } = useIssues();
   const { items: repos } = useRepositories();
   const query = q.trim().toLowerCase();
@@ -126,6 +128,25 @@ function SearchModal({ close, go, setIssue }) {
     (page) => !query || page.t.toLowerCase().includes(query) || page.k.includes(query)
   );
   const empty = issueResults.length === 0 && repoResults.length === 0 && pages.length === 0;
+  const trapFocus = (event) => {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) || []
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   const openIssue = (issue) => {
     if (typeof setIssue === "function") {
       setIssue(issue);
@@ -139,11 +160,24 @@ function SearchModal({ close, go, setIssue }) {
 
   return (
     <div className="modal-back" onClick={close}>
-      <div className="modal modal-search" onClick={(event) => event.stopPropagation()}>
+      <div
+        className="modal modal-search"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="search-dialog-title"
+        ref={dialogRef}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={trapFocus}
+      >
         <div className="search-h">
+          <span id="search-dialog-title" className="sr-only">
+            {T("Search", "Search")}
+          </span>
           <I.Search size={16} />
           <input
+            ref={inputRef}
             autoFocus
+            aria-label={T("Search", "Search")}
             placeholder={T("Search issues, repos, pages...", "搜索问题、仓库、页面...")}
             value={q}
             onChange={(event) => setQ(event.target.value)}

@@ -486,7 +486,7 @@ describe("useScans", () => {
     unmount();
   });
 
-  it("keeps active scan polling timeouts out of the page error state", async () => {
+  it("surfaces active scan polling timeouts until polling recovers", async () => {
     const recovery = deferred();
     pullwiseApi.scans.create.mockResolvedValueOnce({
       id: "sc_retry",
@@ -509,7 +509,7 @@ describe("useScans", () => {
 
     await waitFor(() => expect(result.current.scan?.status).toBe("running"));
     await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledTimes(2));
-    expect(result.current.error).toBe("");
+    expect(result.current.error).toMatch(/timeout/i);
 
     await act(async () => {
       recovery.resolve({
@@ -526,7 +526,7 @@ describe("useScans", () => {
     unmount();
   });
 
-  it("keeps batch scan polling timeouts out of the page error state", async () => {
+  it("surfaces batch scan polling timeouts until polling recovers", async () => {
     const recovery = deferred();
     pullwiseApi.scans.create.mockResolvedValueOnce({
       id: "sc_batch_retry",
@@ -548,7 +548,7 @@ describe("useScans", () => {
 
     await waitFor(() => expect(result.current.scans[0]?.status).toBe("running"));
     await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledTimes(2));
-    expect(result.current.error).toBe("");
+    expect(result.current.error).toMatch(/timeout/i);
 
     await act(async () => {
       recovery.resolve({

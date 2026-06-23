@@ -794,6 +794,47 @@ describe("HistoryScreen queue state", () => {
     }
   });
 
+  it("shows cached scan history with a warning when expected new scans never arrive", async () => {
+    vi.useFakeTimers();
+    const reload = vi.fn();
+    try {
+      useScans.mockReturnValue({
+        items: [
+          {
+            id: "sc_old",
+            repo: "octocat/old-repo",
+            branch: "main",
+            commit: "abc123",
+            status: "done",
+            time: "earlier",
+            by: "you",
+          },
+        ],
+        loading: false,
+        loadingMore: false,
+        error: "",
+        reload,
+        loadMore: vi.fn(),
+        meta: { total: 1 },
+      });
+
+      const { container } = render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
+
+      for (let index = 0; index < 5; index += 1) {
+        act(() => {
+          vi.advanceTimersByTime(1500);
+        });
+      }
+
+      expect(container.querySelector(".history-skeleton")).not.toBeInTheDocument();
+      expect(screen.getByText("octocat/old-repo")).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent(/new scan has not appeared/i);
+      expect(reload).toHaveBeenCalledTimes(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("renders scan history once expected new scans are present", async () => {
     const onExpectedScansLoaded = vi.fn();
     useScans.mockReturnValue({

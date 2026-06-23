@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
+import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { PublicHeader } from "./public-layout.jsx";
@@ -115,7 +116,7 @@ function DocsCode({ title, children }) {
   );
 }
 
-const API_BASE_URL = "https://api.pull-wise.com";
+const API_BASE_URL = env.VITE_PUBLIC_API_BASE_URL || "https://api.pull-wise.com";
 const CONTACT_EMAIL = "contact@pull-wise.com";
 
 export function ApiDocsScreen({ go, auth }) {

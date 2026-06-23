@@ -1568,6 +1568,7 @@ export function useScanRun({
       } catch (err) {
         if (isAbortError(err)) return;
         if (alive) {
+          setRunError(err, "Unable to refresh scan status.", "poll");
           setPollRetryTick((tick) => tick + 1);
         }
       }
@@ -1789,6 +1790,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       } catch (err) {
         if (isAbortError(err)) return;
         if (alive) {
+          setRunError(err, "Unable to refresh scan status.", "poll");
           setPollRetryTick((tick) => tick + 1);
         }
       }

@@ -35,16 +35,23 @@ describe("parseEnv", () => {
     expect(() => parseEnv({ VITE_API_BASE_URL: "javascript:alert(1)" })).toThrow();
   });
 
-  it("falls back to the same-origin API proxy on pull-wise.com when the build env is missing", () => {
-    expect(
-      parseEnv(
-        {},
-        {
-          location: {
-            hostname: "pull-wise.com",
-          },
-        }
-      ).VITE_API_BASE_URL
-    ).toBe("/api");
+  it.each(["pull-wise.com", "www.pull-wise.com"])(
+    "falls back to the same-origin API proxy on %s when the build env is missing",
+    (hostname) => {
+      expect(
+        parseEnv(
+          {},
+          {
+            location: { hostname },
+          }
+        ).VITE_API_BASE_URL
+      ).toBe("/api");
+    }
+  );
+
+  it("accepts a configurable public API base URL for docs", () => {
+    expect(parseEnv({ VITE_PUBLIC_API_BASE_URL: "https://api.example.com" }).VITE_PUBLIC_API_BASE_URL).toBe(
+      "https://api.example.com"
+    );
   });
 });

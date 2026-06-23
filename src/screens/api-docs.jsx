@@ -1,9 +1,10 @@
 import { I } from "../icons.jsx";
+import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
-const API_BASE_URL = "https://api.pull-wise.com";
+const API_BASE_URL = env.VITE_PUBLIC_API_BASE_URL || "https://api.pull-wise.com";
 const CONTACT_EMAIL = "contact@pull-wise.com";
 
 function DocsCode({ title, children }) {
