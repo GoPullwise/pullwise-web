@@ -19,6 +19,7 @@ import {
   countBy,
 } from "../components/distribution-primitives.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { ScanProgressBar } from "../components/scan-progress.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function Sparkline({ data, color, height = 28 }) {
@@ -654,23 +655,13 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       {T("Scan details", "扫描详情")} <I.ArrowR size={12} />
                     </a>
                   </div>
-                  <div className="active-scan-progress-main">
-                    <div className="active-scan-progress-row">
-                      <span className="active-scan-progress-phase">
-                        {scanPhaseLabel(activeScan)}
-                      </span>
-                      <span className="tag">{activeScanProgress}%</span>
-                    </div>
-                    <div className="active-scan-progress-message">{activeScanMessage}</div>
-                    {activeScan.logsSummary && (
-                      <div className="active-scan-progress-meta">{activeScan.logsSummary}</div>
-                    )}
-                    <div className="active-scan-progress-bar" aria-hidden="true">
-                      <span
-                        style={{ width: `${Math.max(0, Math.min(100, activeScanProgress))}%` }}
-                      />
-                    </div>
-                  </div>
+                  <ScanProgressBar
+                    className="active-scan-progress-main"
+                    progress={activeScanProgress}
+                    label={scanPhaseLabel(activeScan)}
+                    message={activeScanMessage}
+                    meta={activeScan.logsSummary}
+                  />
                 </section>
               )}
 

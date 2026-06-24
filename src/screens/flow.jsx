@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { ScanProgressBar } from "../components/scan-progress.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -2070,6 +2071,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               </div>
             </div>
 
+            {!detailLoading && !batchMode && scan && (
+              <ScanProgressBar
+                className="scanning-progress"
+                progress={scan.progress}
+                label={T("Scan progress", "扫描进度")}
+                message={scanProgressMessage}
+                meta={scanProgressLogsSummary}
+              />
+            )}
             {error && (
               <div
                 className="auth-error"

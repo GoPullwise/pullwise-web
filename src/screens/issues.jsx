@@ -3,6 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { GraphVerifiedEvidenceGraph, GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { ScanProgressBar } from "../components/scan-progress.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
@@ -1610,6 +1611,7 @@ function ScanRow({
   const canRetry = isRetryableHistoryScan(scan);
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
+  const showProgress = status === "queued" || status === "running";
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -1714,6 +1716,15 @@ function ScanRow({
           </div>
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
+        {showProgress && (
+          <ScanProgressBar
+            compact
+            className="scan-row-progress"
+            progress={scan.progress}
+            label={T("Progress", "进度")}
+            message={scan.progressMessage}
+          />
+        )}
       </div>
       <div className="scan-row-actions" ref={menuRef} onClick={stopRowClick}>
         {canRetry && (
