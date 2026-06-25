@@ -1,4 +1,4 @@
-﻿import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
@@ -1331,6 +1331,16 @@ describe("normalizeIssue", () => {
       completed_at: 1700000120,
       progressMessage: "Graph: repository census",
       logsSummary: "stage=census",
+      progressLogs: [
+        {
+          time: "1700000050",
+          phase: "ai",
+          progress: "80",
+          message: "Graph: mapping",
+          logs_summary: "stage=graph",
+        },
+        { bad: {} },
+      ],
       queue: {
         message: "Waiting for worker capacity",
         position: 2,
@@ -1341,6 +1351,15 @@ describe("normalizeIssue", () => {
     expect(scan.phase).toBe("index");
     expect(scan.progressMessage).toBe("Graph: repository census");
     expect(scan.logsSummary).toBe("stage=census");
+    expect(scan.progressLogs).toEqual([
+      {
+        time: 1700000050,
+        phase: "ai",
+        progress: 80,
+        message: "Graph: mapping",
+        logsSummary: "stage=graph",
+      },
+    ]);
     expect(scan.startedAt).toBe(1700000000);
     expect(scan.updatedAt).toBe(1700000060);
     expect(scan.completedAt).toBe(1700000120);

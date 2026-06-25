@@ -1742,6 +1742,36 @@ function scanLogTimestamp(scan) {
   }
   return "";
 }
+function fallbackScanProgressLogs(scan) {
+  const phase = scan?.phase;
+  const message = scan?.progressMessage || "";
+  const logsSummary = scan?.logsSummary || "";
+  if (!phase || !scanPhaseDefinition(phase) || (!message && !logsSummary)) return [];
+  return [
+    {
+      time: scan?.updatedAt ?? scan?.completedAt ?? scan?.startedAt ?? scan?.createdAt,
+      phase,
+      progress: scan?.progress,
+      message,
+      logsSummary,
+    },
+  ];
+}
+
+function scanProgressLogLine(entry, fallbackScan) {
+  const phase = entry?.phase || fallbackScan?.phase;
+  const def = scanPhaseDefinition(phase);
+  const label = def ? T(def.t_en, def.t_zh) : phase || T("Worker update", "Worker update");
+  const stamp = scanLogTimestamp({
+    updatedAt: entry?.time ?? fallbackScan?.updatedAt,
+    completedAt: fallbackScan?.completedAt,
+    startedAt: fallbackScan?.startedAt,
+    createdAt: fallbackScan?.createdAt,
+  });
+  const detailText = entry?.message || entry?.logsSummary || "";
+  const detail = detailText ? ` - ${detailText}` : "";
+  return `${stamp ? `[${stamp}] ` : ""}${label}${detail}`;
+}
 
 function ScanDetailSkeleton() {
   const rows = [
@@ -1813,7 +1843,6 @@ function ScanDetailSideSkeleton() {
 
 export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
-  const [logs, setLogs] = useState([]);
   const [bundleLoading, setBundleLoading] = useState(false);
   const resolvedScanIdRef = useRef("");
   const selectedRepos = useMemo(
@@ -1858,26 +1887,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const canceling = batchMode ? Boolean(batchRun.canceling) : Boolean(singleRun.canceling);
   const detailLoading = !batchMode && Boolean(scanId && singleRun.loading);
 
-  // Append a log line whenever the worker advances to a new phase.
-  useEffect(() => {
-    const phase = scan?.phase;
-    if (!phase) return;
-    const def = scanPhaseDefinition(phase);
-    if (!def) return;
-    setLogs((prev) => {
-      const stamp = scanLogTimestamp({
-        updatedAt: scan?.updatedAt,
-        completedAt: scan?.completedAt,
-        startedAt: scan?.startedAt,
-        createdAt: scan?.createdAt,
-      }) || new Date().toLocaleTimeString();
-      const detail = scan?.progressMessage ? ` - ${scan.progressMessage}` : "";
-      const line = `[${stamp}] ${T(def.t_en, def.t_zh)}${detail}`;
-      if (prev.length && prev[prev.length - 1] === line) return prev;
-      return [...prev.slice(-9), line];
-    });
-  }, [scan?.phase, scan?.progressMessage, scan?.updatedAt, scan?.completedAt, scan?.startedAt, scan?.createdAt]);
-
   useEffect(() => {
     if (batchMode || !scan?.id || typeof onScanResolved !== "function") return;
     if (resolvedScanIdRef.current === scan.id) return;
@@ -1893,6 +1902,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
   const scanProgressMessage = batchMode ? "" : scan?.progressMessage || "";
   const scanProgressLogsSummary = batchMode ? "" : scan?.logsSummary || "";
+  const liveLogEntries = batchMode
+    ? []
+    : scan?.progressLogs?.length
+      ? scan.progressLogs
+      : fallbackScanProgressLogs(scan);
+  const liveLogLines = liveLogEntries.map((entry) => scanProgressLogLine(entry, scan)).filter(Boolean);
   const scanPhases = scanPhasesForPhase(currentPhase);
   const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.k === currentPhase) : -1;
   const found = batchMode
@@ -2335,10 +2350,10 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               <div className="card scanning-log">
                 <div className="scanning-counts-h">{T("Live log", "实时日志")}</div>
                 <div className="scanning-log-body">
-                  {logs.length === 0 && (
+                  {liveLogLines.length === 0 && (
                     <div className="muted">{T("Waiting for engine…", "等待引擎启动…")}</div>
                   )}
-                  {logs.map((l, i) => (
+                  {liveLogLines.map((l, i) => (
                     <div key={i} className="scanning-log-line">
                       {l}
                     </div>

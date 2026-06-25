@@ -1382,9 +1382,18 @@ describe("ScanningScreen queue state", () => {
         status: "running",
         phase: "ai",
         progress: 80,
-        updatedAt: logTimestamp,
+        updatedAt: currentTimestamp,
         progressMessage: "Graph: mapping shards 12/80",
         logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
+        progressLogs: [
+          {
+            time: logTimestamp,
+            phase: "ai",
+            progress: 80,
+            message: "Graph: mapping shards 12/80",
+            logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
+          },
+        ],
       },
       error: "",
       cancel: vi.fn(),
@@ -1415,6 +1424,44 @@ describe("ScanningScreen queue state", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("does not duplicate live log rows when scan details rerender without new progress", () => {
+    const logTimestamp = 1700000000;
+    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] GraphVerified review - Graph: mapping shards 12/80`;
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "ai",
+        progress: 80,
+        progressLogs: [
+          {
+            time: logTimestamp,
+            phase: "ai",
+            progress: 80,
+            message: "Graph: mapping shards 12/80",
+          },
+        ],
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    const scanScreen = (
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+    const { rerender } = render(scanScreen);
+
+    expect(screen.getAllByText(liveLogLine)).toHaveLength(1);
+    rerender(scanScreen);
+    expect(screen.getAllByText(liveLogLine)).toHaveLength(1);
   });
 
   it("does not reintroduce removed local scan phases for stale phase names", () => {

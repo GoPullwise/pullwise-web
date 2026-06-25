@@ -871,6 +871,27 @@ function normalizeTimestamp(value) {
   if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
   return null;
 }
+function normalizeScanProgressLog(value) {
+  if (!objectRecord(value)) return null;
+  const entry = {};
+  const time = normalizeTimestamp(value.time ?? value.logTime ?? value.log_time);
+  if (time !== null) entry.time = time;
+  const phase = textValue(value.phase);
+  if (phase) entry.phase = phase;
+  if (Object.prototype.hasOwnProperty.call(value, "progress")) {
+    entry.progress = normalizeProgress(value.progress);
+  }
+  const message = textValue(value.message, value.progressMessage, value.progress_message);
+  if (message) entry.message = message;
+  const logsSummary = textValue(value.logsSummary, value.logs_summary);
+  if (logsSummary) entry.logsSummary = logsSummary;
+  return Object.keys(entry).length ? entry : null;
+}
+
+function normalizeScanProgressLogs(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(normalizeScanProgressLog).filter(Boolean).slice(-20);
+}
 
 function fallbackPullRequestTitle(issueId, title) {
   return `Fix ${cleanPullRequestText(title) || cleanPullRequestText(issueId) || "issue"}`;
@@ -1014,6 +1035,7 @@ export function normalizeScan(scan = {}) {
     progress: normalizeProgress(scan.progress),
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
+    progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),
     issues: normalizeIssueCounts(scan.issues),
     verification: normalizeVerificationCounts(scan.verification),
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),
