@@ -1722,6 +1722,27 @@ function scanPhasesForPhase(_phase) {
   return PRODUCTION_SCAN_PHASES;
 }
 
+function scanLogDate(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return null;
+    return new Date(value * 1000);
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  if (/^\d+$/.test(text)) return new Date(Number(text) * 1000);
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function scanLogTimestamp(scan) {
+  for (const value of [scan?.updatedAt, scan?.completedAt, scan?.startedAt, scan?.createdAt]) {
+    const date = scanLogDate(value);
+    if (date) return date.toLocaleTimeString();
+  }
+  return "";
+}
+
 function ScanDetailSkeleton() {
   const rows = [
     ["sk-w-28", "sk-w-62"],
@@ -1844,13 +1865,18 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     const def = scanPhaseDefinition(phase);
     if (!def) return;
     setLogs((prev) => {
-      const stamp = new Date().toLocaleTimeString();
+      const stamp = scanLogTimestamp({
+        updatedAt: scan?.updatedAt,
+        completedAt: scan?.completedAt,
+        startedAt: scan?.startedAt,
+        createdAt: scan?.createdAt,
+      }) || new Date().toLocaleTimeString();
       const detail = scan?.progressMessage ? ` - ${scan.progressMessage}` : "";
       const line = `[${stamp}] ${T(def.t_en, def.t_zh)}${detail}`;
       if (prev.length && prev[prev.length - 1] === line) return prev;
       return [...prev.slice(-9), line];
     });
-  }, [scan?.phase, scan?.progressMessage]);
+  }, [scan?.phase, scan?.progressMessage, scan?.updatedAt, scan?.completedAt, scan?.startedAt, scan?.createdAt]);
 
   useEffect(() => {
     if (batchMode || !scan?.id || typeof onScanResolved !== "function") return;

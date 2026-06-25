@@ -1367,6 +1367,12 @@ describe("ScanningScreen queue state", () => {
   });
 
   it("shows the production worker scan phases", () => {
+    const logTimestamp = 1700000000;
+    const currentTimestamp = 1700007200;
+    const expectedLogTime = new Date(logTimestamp * 1000).toLocaleTimeString();
+    const currentTime = new Date(currentTimestamp * 1000).toLocaleTimeString();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(currentTimestamp * 1000));
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1376,6 +1382,7 @@ describe("ScanningScreen queue state", () => {
         status: "running",
         phase: "ai",
         progress: 80,
+        updatedAt: logTimestamp,
         progressMessage: "Graph: mapping shards 12/80",
         logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
       },
@@ -1383,12 +1390,13 @@ describe("ScanningScreen queue state", () => {
       cancel: vi.fn(),
     });
 
-    render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
-      />
-    );
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      );
 
     const phases = document.querySelector(".scanning-phases");
     expect(phases).not.toBeNull();
@@ -1400,8 +1408,13 @@ describe("ScanningScreen queue state", () => {
       within(phases).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")
     ).toBeInTheDocument();
     expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
+    expect(screen.getByText(`[${expectedLogTime}] GraphVerified review - Graph: mapping shards 12/80`)).toBeInTheDocument();
+    expect(screen.queryByText(`[${currentTime}] GraphVerified review - Graph: mapping shards 12/80`)).not.toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("does not reintroduce removed local scan phases for stale phase names", () => {

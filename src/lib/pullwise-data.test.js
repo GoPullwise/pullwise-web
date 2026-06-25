@@ -1326,6 +1326,9 @@ describe("normalizeIssue", () => {
       id: "sc_active",
       status: "running",
       phase: "index",
+      started_at: "1700000000",
+      updated_at: "1700000060",
+      completed_at: 1700000120,
       progressMessage: "Graph: repository census",
       logsSummary: "stage=census",
       queue: {
@@ -1338,6 +1341,9 @@ describe("normalizeIssue", () => {
     expect(scan.phase).toBe("index");
     expect(scan.progressMessage).toBe("Graph: repository census");
     expect(scan.logsSummary).toBe("stage=census");
+    expect(scan.startedAt).toBe(1700000000);
+    expect(scan.updatedAt).toBe(1700000060);
+    expect(scan.completedAt).toBe(1700000120);
     expect(scan.queue).toEqual({
       message: "Waiting for worker capacity",
       position: 2,
