@@ -38,6 +38,18 @@ tests, and UI state should describe quota in account/user and repository terms.
   repository listing, scan control, scan status, and quota checks with account
   and repository terminology.
 
+## Public REST API Rate Limits
+
+API rate limit copy and docs are about public REST API automation, not ordinary
+browser web app requests.
+
+- Keep public docs and UI copy scoped to REST API/API-key traffic.
+- Do not imply that signed-in web app calls such as session refresh,
+  repositories, scans, issues, settings, or billing are governed by the narrow
+  REST API rate limit.
+- If the server exposes rate-limit settings in `/docs/server-config`, render
+  them as public REST API limits.
+
 ## Performance And Data Fetching
 
 Keep route and polling changes aligned with the current scale model.

@@ -102,13 +102,13 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
   {
     id: "rateLimit",
     title: "API rate limit",
-    description: "Request rate limiting applied by the server to browser and API-key traffic.",
+    description: "Request rate limiting applied by the server to public REST API traffic, not normal web app session traffic.",
     fields: [
       {
         path: "rateLimit.enabled",
         candidates: ["rateLimit.enabled"],
         label: "Rate limiting enabled",
-        description: "Whether non-exempt user/API requests are rate limited.",
+        description: "Whether public REST API requests are rate limited.",
       },
       {
         path: "rateLimit.requests",
@@ -809,8 +809,8 @@ export function DocsScreen({ go, auth }) {
               <b>{T("Server-sourced configuration", "Server-sourced configuration")}</b>
               <p>
                 {T(
-                  "Agent provider, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
-                  "Agent provider, model, reasoning effort, plan quotas, scan limits, rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
+                  "Agent provider, model, reasoning effort, plan quotas, scan limits, public REST API rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
+                  "Agent provider, model, reasoning effort, plan quotas, scan limits, public REST API rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
                 )}
               </p>
             </div>
@@ -907,8 +907,8 @@ export function DocsScreen({ go, auth }) {
           </h2>
           <p>
             {T(
-              "These settings describe additional customer-visible policy enforced by the backend: scan queue limits, API rate limiting, and billing catalog readiness.",
-              "These settings describe additional customer-visible policy enforced by the backend: scan queue limits, API rate limiting, and billing catalog readiness."
+              "These settings describe additional customer-visible policy enforced by the backend: scan queue limits, public REST API rate limiting, and billing catalog readiness.",
+              "These settings describe additional customer-visible policy enforced by the backend: scan queue limits, public REST API rate limiting, and billing catalog readiness."
             )}
           </p>
 
