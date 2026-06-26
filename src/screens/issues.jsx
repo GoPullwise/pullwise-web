@@ -11,8 +11,8 @@ import { downloadBlob } from "../lib/download.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
-  normalizeIssue,
   normalizeScan,
+  applyCachedIssueUpdate,
   issueUpdateKey,
   notifyIssuesChanged,
   rememberIssueUpdate,
@@ -1079,14 +1079,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       };
     }
     const seedIssue =
-      initialIssueRef.current?.id === routeIssueId ? normalizeIssue(initialIssueRef.current) : null;
+      initialIssueRef.current?.id === routeIssueId ? applyCachedIssueUpdate(initialIssueRef.current) : null;
     setLoadedIssue(seedIssue);
     setLoadingIssue(true);
     pullwiseApi.issues
       .get(routeIssueId)
       .then((payload) => {
         if (cancelled) return;
-        const nextIssue = normalizeIssue(payload);
+        const nextIssue = applyCachedIssueUpdate(payload);
         setLoadedIssue(nextIssue);
         if (typeof setIssue === "function") setIssue(nextIssue);
       })

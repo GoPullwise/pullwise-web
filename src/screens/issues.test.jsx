@@ -43,7 +43,7 @@ vi.mock("../lib/pullwise-data.js", async (importOriginal) => {
 });
 
 import { pullwiseApi } from "../api/pullwise.js";
-import { useIssues, useScans } from "../lib/pullwise-data.js";
+import { rememberIssueUpdate, useIssues, useScans } from "../lib/pullwise-data.js";
 
 function baseStyles() {
   return readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
@@ -488,6 +488,27 @@ describe("IssueDetailScreen direct loading", () => {
     expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
   });
 
+  it("keeps a locally fixed issue fixed when direct detail reload returns stale open data", async () => {
+    const issue = {
+      id: "f_123",
+      scanId: "sc_1",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      status: "open",
+    };
+    rememberIssueUpdate(issue, { ...issue, status: "fixed" });
+    pullwiseApi.issues.get.mockReset();
+    pullwiseApi.issues.get.mockResolvedValueOnce(issue);
+
+    render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={vi.fn()} />);
+
+    expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
+    expect(screen.getByText("fixed")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /mark fixed/i })).not.toBeInTheDocument();
+  });
   it("shows a skeleton and fetches full details when opened with a list summary", async () => {
     const setIssue = vi.fn();
     const detail = deferredPromise();

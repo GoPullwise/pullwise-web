@@ -6,6 +6,7 @@ import {
   normalizeIssue,
   normalizeRepo,
   normalizeScan,
+  rememberIssueUpdate,
   scanQueueSummary,
   useIssues,
   useRepositories,
@@ -618,6 +619,38 @@ describe("useIssues", () => {
     }, expect.objectContaining({ signal: expect.any(Object) }));
   });
 
+  it("keeps locally fixed issues out of the open list after remount when refresh is stale", async () => {
+    const issue = {
+      id: "iss_1",
+      scanId: "sc_1",
+      repo: "acme/api",
+      file: "src/auth.py",
+      title: "Validate redirects",
+      status: "open",
+      severity: "high",
+    };
+    const refresh = deferred();
+    pullwiseApi.issues.list
+      .mockResolvedValueOnce({ items: [issue], total: 1 })
+      .mockReturnValueOnce(refresh.promise);
+
+    const first = renderHook(() => useIssues({ limit: 1, status: "open", refreshOnChange: false }));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    rememberIssueUpdate(issue, { ...issue, status: "fixed" });
+    first.unmount();
+
+    const next = renderHook(() => useIssues({ limit: 1, status: "open", refreshOnChange: false }));
+    expect(next.result.current.loading).toBe(false);
+    expect(next.result.current.items).toEqual([]);
+
+    await act(async () => {
+      refresh.resolve({ items: [issue], total: 1 });
+    });
+
+    await waitFor(() => expect(next.result.current.loading).toBe(false));
+    expect(next.result.current.items).toEqual([]);
+    next.unmount();
+  });
   it("shows cached issues without blocking loading while refreshing after remount", async () => {
     const refresh = deferred();
     pullwiseApi.issues.list
