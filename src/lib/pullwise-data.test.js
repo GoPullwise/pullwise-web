@@ -759,6 +759,37 @@ describe("normalizeIssue", () => {
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
   });
 
+  it("normalizes graph-verified static proof issue fields", () => {
+    const issue = normalizeIssue({
+      id: "issue_static",
+      title: "Static lifecycle proof",
+      graphVerified: true,
+      verificationStatus: "static_proof",
+      confidenceLevel: "high",
+      reproductionPath: "Inspect the worker lifecycle state transition.",
+      reproduction: {
+        steps: ["Inspect src/worker.py", "Compare pending state with cleanup behavior"],
+        expected: "Pending uploads remain protected.",
+        actual: "Cleanup can unload the pending upload watcher.",
+      },
+      reproProof: {
+        type: "static-proof",
+        verification_steps: ["Inspect src/worker.py", "Confirm cleanup lacks pending upload guard"],
+      },
+    });
+
+    expect(issue.verificationStatus).toBe("static_proof");
+    expect(issue.confidenceLevel).toBe("high");
+    expect(issue.reproductionPath).toBe("Inspect the worker lifecycle state transition.");
+    expect(issue.reproduction.steps).toEqual([
+      "Inspect src/worker.py",
+      "Compare pending state with cleanup behavior",
+    ]);
+    expect(issue.reproProof.verificationSteps).toEqual([
+      "Inspect src/worker.py",
+      "Confirm cleanup lacks pending upload guard",
+    ]);
+  });
   it("normalizes repository text fields for search-safe rendering", () => {
     const repo = normalizeRepo({
       id: 42,

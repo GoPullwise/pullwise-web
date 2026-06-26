@@ -640,6 +640,7 @@ function normalizeReproduction(value) {
   const source = objectRecord(value) ? value : {};
   return {
     commands: normalizeTextList(source.commands),
+    steps: normalizeTextList(source.steps ?? source.verification_steps),
     input: textValue(source.input),
     expected: textValue(source.expected),
     actual: textValue(source.actual),
@@ -701,14 +702,21 @@ function normalizeGraphVerifiedJudgeEvidence(value) {
 
 function normalizeGraphVerifiedReproProof(value) {
   const source = objectRecord(value) ? value : {};
+  const verificationSteps = normalizeTextList(source.verificationSteps ?? source.verification_steps);
   const proof = {
     type: textValue(source.type),
     expected: multilineTextValue(source.expected),
     actual: multilineTextValue(source.actual),
     logExcerpt: multilineTextValue(source.logExcerpt, 2000) || multilineTextValue(source.log_excerpt, 2000),
+    verificationSteps,
     graphPathExercised: source.graphPathExercised === true || source.graph_path_exercised === true,
   };
-  return proof.type || proof.expected || proof.actual || proof.logExcerpt || proof.graphPathExercised
+  return proof.type ||
+    proof.expected ||
+    proof.actual ||
+    proof.logExcerpt ||
+    proof.verificationSteps.length ||
+    proof.graphPathExercised
     ? proof
     : null;
 }
@@ -731,6 +739,9 @@ function normalizeGraphVerifiedIssue(issue, id, title) {
     candidateId: textValue(issue.candidateId),
     dedupeKey: textValue(issue.dedupeKey),
     verificationLevel: textValue(issue.verificationLevel),
+    reproductionPath: textValue(issue.reproductionPath),
+    verificationStatus: normalizeVerificationStatus(issue.verificationStatus),
+    confidenceLevel: normalizeConfidenceLevel(issue.confidenceLevel),
     safeToShowUser: issue.safeToShowUser !== false,
     graphEvidence: normalizeGraphVerifiedGraphEvidence(issue.graphEvidence),
     codeEvidence: normalizeGraphVerifiedCodeEvidence(issue.codeEvidence),

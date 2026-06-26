@@ -255,8 +255,14 @@ function codeEvidenceMarkdown(issue) {
 function graphVerifiedReproductionMarkdown(issue) {
   const reproduction = issue.reproduction || {};
   const lines = [];
+  if (issue.reproductionPath) {
+    lines.push(`- Method: ${markdownText(issue.reproductionPath)}`);
+  }
   if (reproduction.commands?.length) {
     lines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
+  }
+  if (reproduction.steps?.length) {
+    lines.push("### Verification steps", ...reproduction.steps.map((step) => `- ${markdownText(step)}`).filter(Boolean));
   }
   [
     ["Input", reproduction.input || issue.triggerCondition],
@@ -345,9 +351,11 @@ function buildIssuePageMarkdown(issue, currentStatus) {
 function ReproductionCenter({ issue }) {
   const reproduction = issue.reproduction || {};
   const commands = Array.isArray(reproduction.commands) ? reproduction.commands : [];
+  const steps = Array.isArray(reproduction.steps) ? reproduction.steps : [];
   const commandText = commands.join("\n");
   const hasStructuredRepro =
     commands.length ||
+    steps.length ||
     reproduction.input ||
     reproduction.expected ||
     reproduction.actual ||
@@ -361,31 +369,41 @@ function ReproductionCenter({ issue }) {
       {commands.length > 0 && (
         <div className="docs-code repro-command">
           <div className="docs-code-h">
-            <span>{T("Reproduction command", "复现命令")}</span>
+            <span>{T("Reproduction command", "\u590d\u73b0\u547d\u4ee4")}</span>
             <button className="docs-code-copy" type="button" onClick={() => copyText(commandText)}>
-              <I.Copy size={12} /> {T("Copy", "复制")}
+              <I.Copy size={12} /> {T("Copy", "\u590d\u5236")}
             </button>
           </div>
           <pre>{commandText}</pre>
+        </div>
+      )}
+      {steps.length > 0 && (
+        <div className="repro-fields">
+          {steps.map((step, index) => (
+            <div key={`verification-step-${index}-${step}`} className="repro-field">
+              <b className="repro-field-title">{T("Verification step", "\u9a8c\u8bc1\u6b65\u9aa4")}</b>
+              <p className="muted repro-field-text">{step}</p>
+            </div>
+          ))}
         </div>
       )}
       {(reproduction.input || reproduction.expected || reproduction.actual) && (
         <div className="repro-fields">
           {reproduction.input && (
             <div className="repro-field">
-              <b className="repro-field-title">{T("Input", "输入")}</b>
+              <b className="repro-field-title">{T("Input", "\u8f93\u5165")}</b>
               <p className="muted repro-field-text">{reproduction.input}</p>
             </div>
           )}
           {reproduction.expected && (
             <div className="repro-field">
-              <b className="repro-field-title">{T("Expected", "预期")}</b>
+              <b className="repro-field-title">{T("Expected", "\u9884\u671f")}</b>
               <p className="muted repro-field-text">{reproduction.expected}</p>
             </div>
           )}
           {reproduction.actual && (
             <div className="repro-field">
-              <b className="repro-field-title">{T("Actual", "实际")}</b>
+              <b className="repro-field-title">{T("Actual", "\u5b9e\u9645")}</b>
               <p className="muted repro-field-text">{reproduction.actual}</p>
             </div>
           )}
@@ -434,7 +452,9 @@ function GraphVerifiedIssueDetail({ issue }) {
     [T("Observed", "Observed"), issue.observedBehavior],
   ].filter(([, value]) => markdownText(value));
   const hasReproduction = Boolean(
-    issue.reproduction?.commands?.length ||
+    issue.reproductionPath ||
+      issue.reproduction?.commands?.length ||
+      issue.reproduction?.steps?.length ||
       issue.reproduction?.input ||
       issue.reproduction?.expected ||
       issue.reproduction?.actual ||
@@ -446,6 +466,7 @@ function GraphVerifiedIssueDetail({ issue }) {
     [T("Expected", "Expected"), proof.expected],
     [T("Actual", "Actual"), proof.actual],
     [T("Log excerpt", "Log excerpt"), proof.logExcerpt],
+    [T("Verification steps", "Verification steps"), proof.verificationSteps?.join(" | ")],
     [T("Graph path exercised", "Graph path exercised"), proof.graphPathExercised ? "true" : ""],
   ].filter(([, value]) => markdownText(value));
   const judgeFields = [
