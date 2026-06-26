@@ -1096,9 +1096,10 @@ body.has-proto-nav {
   align-content: center;
   gap: 3px;
   width: 100%;
-  height: 52px;
+  height: 100%;
+  min-height: 58px;
   padding: 8px 13px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
   border-radius: 8px;
   background: color-mix(in srgb, var(--bg-elev) 88%, var(--bg-soft));
@@ -1133,13 +1134,15 @@ body.has-proto-nav {
 
 .graph-verified-flow-node-label {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   color: var(--text);
   font-size: 12px;
   font-weight: 760;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .graph-verified-flow-handle {
@@ -1151,23 +1154,48 @@ body.has-proto-nav {
 }
 
 .graph-verified-flow-edge {
-  stroke: color-mix(in srgb, var(--accent) 58%, var(--border));
-  stroke-width: 2.2;
+  stroke: color-mix(in srgb, var(--accent) 76%, var(--text-2));
+  stroke-width: 3.1;
 }
 
 .graph-verified-flow-edge.file-link {
-  stroke: color-mix(in srgb, #0f766e 52%, var(--border));
+  stroke: color-mix(in srgb, #0f766e 72%, var(--text-2));
   stroke-dasharray: 7 5;
 }
 
 .graph-verified-flow .react-flow__edge-path {
-  filter: drop-shadow(0 1px 1px color-mix(in srgb, #0f172a 12%, transparent));
+  filter: drop-shadow(0 1px 1px color-mix(in srgb, #0f172a 22%, transparent));
+}
+
+.graph-verified-flow .react-flow__edge-textbg {
+  fill: color-mix(in srgb, var(--bg-elev) 96%, transparent);
+  stroke: color-mix(in srgb, var(--border) 78%, transparent);
+  stroke-width: 1;
+}
+
+.graph-verified-flow .react-flow__edge-text {
+  fill: var(--text-2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--bg-elev) 82%, transparent);
+  stroke-width: 2px;
+  text-transform: uppercase;
+}
+
+.graph-verified-flow .react-flow__node {
+  cursor: grab;
+}
+
+.graph-verified-flow .react-flow__node.dragging {
+  cursor: grabbing;
 }
 
 .graph-verified-flow .react-flow__edge.file-link .react-flow__arrowhead polyline,
 .graph-verified-flow .react-flow__edge.file-link .react-flow__arrowhead path {
-  stroke: color-mix(in srgb, #0f766e 62%, var(--border));
-  fill: color-mix(in srgb, #0f766e 62%, var(--border));
+  stroke: color-mix(in srgb, #0f766e 78%, var(--text-2));
+  fill: color-mix(in srgb, #0f766e 78%, var(--text-2));
 }
 
 .sr-only {

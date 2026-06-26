@@ -1013,6 +1013,79 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
+
+  it("keeps GraphVerified graph labels complete and nodes movable", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+    const nodeLabelBlock =
+      styles.match(/\.graph-verified-flow-node-label\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const nodeBlock =
+      styles.match(/\.graph-verified-flow-node\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const edgeBlock =
+      styles.match(/\.graph-verified-flow-edge\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+
+    expect(nodeLabelBlock).toMatch(/white-space:\s*normal;/);
+    expect(nodeLabelBlock).toMatch(/overflow-wrap:\s*anywhere;/);
+    expect(nodeLabelBlock).not.toMatch(/text-overflow:\s*ellipsis;/);
+    expect(nodeBlock).toMatch(/overflow:\s*visible;/);
+    expect(edgeBlock).toMatch(/stroke-width:\s*3\.1;/);
+    expect(readFileSync("src/components/graph-verified-report.jsx", "utf8")).toMatch(/label: kind === "file" \? "file" : "path"/);
+    expect(readFileSync("src/components/graph-verified-report.jsx", "utf8")).toMatch(/nodesDraggable/);
+
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_graph_verified_long_labels",
+        repo: "octocat/graph-verified-long-labels",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        graphVerifiedReport: {
+          confirmedCount: 1,
+          finalJson: {
+            confirmed: [
+              {
+                candidate: {
+                  candidate_id: "f_long_graph",
+                  claim: "Confirmed long graph labels remain readable.",
+                  graph_evidence: {
+                    slice_id: "slice-long-readable",
+                    path_summary: [
+                      "route-entrypoint-with-long-name -> service-handler-with-long-name -> target-module-with-complete-readable-name",
+                    ],
+                    codegraph_files: ["src/really/long/path/target-module-with-complete-readable-name.ts"],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_graph_verified_long_labels",
+          fullName: "octocat/graph-verified-long-labels",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    const graph = screen.getByTestId("graph-verified-graph-f_long_graph");
+    expect(within(graph).getAllByText("target-module-with-complete-readable-name").length).toBeGreaterThan(0);
+    expect(
+      within(graph).getAllByText("src/really/long/path/target-module-with-complete-readable-name.ts").length
+    ).toBeGreaterThan(0);
+    expect(graph.querySelector(".react-flow__node")).toHaveClass("selectable");
+    expect(graph.querySelector('[title="target-module-with-complete-readable-name"]')).toBeInTheDocument();
+  });
+
   it("shows GraphVerified rejected and blocked counts when there are no confirmed findings", () => {
     useScanRun.mockReturnValue({
       scan: {

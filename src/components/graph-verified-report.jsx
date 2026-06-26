@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import dagre from "@dagrejs/dagre";
 import {
   Background,
@@ -6,6 +6,8 @@ import {
   MarkerType,
   Position,
   ReactFlow,
+  useEdgesState,
+  useNodesState,
 } from "@xyflow/react";
 import { T } from "../i18n.jsx";
 
@@ -131,9 +133,10 @@ function countSummary(report, count) {
 const PATH_SEPARATOR = /\s*(?:->|=>|\u2192|\u21d2|\u203a|\u00bb)\s*/u;
 const GRAPH_NODE_WIDTH = 160;
 const GRAPH_FILE_NODE_WIDTH = 200;
-const GRAPH_NODE_HEIGHT = 52;
+const GRAPH_NODE_BASE_HEIGHT = 58;
+const GRAPH_NODE_LINE_HEIGHT = 15;
 const GRAPH_MIN_HEIGHT = 190;
-const GRAPH_MAX_HEIGHT = 360;
+const GRAPH_MAX_HEIGHT = 520;
 const GRAPH_MAX_PATHS = 4;
 const GRAPH_MAX_FILES = 5;
 const GRAPH_NODE_TYPES = { evidence: GraphEvidenceNode };
@@ -144,12 +147,6 @@ function splitGraphPath(value) {
     .split(PATH_SEPARATOR)
     .map((part) => part.trim())
     .filter(Boolean);
-}
-
-function shortLabel(value, maxLength = 24) {
-  const label = text(value);
-  if (label.length <= maxLength) return label;
-  return `${label.slice(0, maxLength - 1)}...`;
 }
 
 function safeTestId(value) {
@@ -167,14 +164,18 @@ function graphNodeWidth(kind) {
   return kind === "file" ? GRAPH_FILE_NODE_WIDTH : GRAPH_NODE_WIDTH;
 }
 
+function graphNodeHeight(label, kind) {
+  const charsPerLine = kind === "file" ? 24 : 19;
+  const lines = Math.max(1, Math.ceil(text(label).length / charsPerLine));
+  return GRAPH_NODE_BASE_HEIGHT + Math.max(0, lines - 1) * GRAPH_NODE_LINE_HEIGHT;
+}
+
 function GraphEvidenceNode({ data }) {
   return (
-    <div className={`graph-verified-flow-node ${data.kind}`}>
+    <div className={`graph-verified-flow-node ${data.kind}`} title={data.label}>
       <Handle className="graph-verified-flow-handle" type="target" position={Position.Left} />
       <div className="graph-verified-flow-node-caption">{data.caption}</div>
-      <div className="graph-verified-flow-node-label" title={data.label}>
-        {shortLabel(data.label, data.kind === "file" ? 32 : 24)}
-      </div>
+      <div className="graph-verified-flow-node-label">{data.label}</div>
       <Handle className="graph-verified-flow-handle" type="source" position={Position.Right} />
     </div>
   );
@@ -201,8 +202,8 @@ function buildGraphFlow(evidence) {
       },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
-      draggable: false,
-      selectable: false,
+      draggable: true,
+      selectable: true,
     };
     nodesByKey.set(key, node);
     return node;
@@ -218,13 +219,14 @@ function buildGraphFlow(evidence) {
       target: target.id,
       type: "smoothstep",
       className: kind === "file" ? "graph-verified-flow-edge file-link" : "graph-verified-flow-edge",
+      label: kind === "file" ? "file" : "path",
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        width: 18,
-        height: 18,
+        width: 22,
+        height: 22,
       },
       data: { kind },
-      selectable: false,
+      selectable: true,
       focusable: false,
     });
   };
@@ -275,7 +277,7 @@ function layoutGraphFlow(flow) {
   flow.nodes.forEach((node) => {
     graph.setNode(node.id, {
       width: graphNodeWidth(node.data.kind),
-      height: GRAPH_NODE_HEIGHT,
+      height: graphNodeHeight(node.data.label, node.data.kind),
     });
   });
   flow.edges.forEach((edge) => graph.setEdge(edge.source, edge.target));
@@ -286,14 +288,15 @@ function layoutGraphFlow(flow) {
   const nodes = flow.nodes.map((node) => {
     const point = graph.node(node.id) || { x: 0, y: 0 };
     const width = graphNodeWidth(node.data.kind);
+    const nodeHeight = graphNodeHeight(node.data.label, node.data.kind);
     const x = point.x - width / 2;
-    const y = point.y - GRAPH_NODE_HEIGHT / 2;
+    const y = point.y - nodeHeight / 2;
     minY = Math.min(minY, y);
-    maxY = Math.max(maxY, y + GRAPH_NODE_HEIGHT);
+    maxY = Math.max(maxY, y + nodeHeight);
     return {
       ...node,
       position: { x, y },
-      style: { width, height: GRAPH_NODE_HEIGHT },
+      style: { width, height: nodeHeight },
     };
   });
 
@@ -324,6 +327,14 @@ function graphFallbackLines(evidence) {
 export function GraphVerifiedEvidenceGraph({ graph, label = "" }) {
   const evidence = useMemo(() => graphEvidenceValue(graph), [graph]);
   const model = useMemo(() => graphFlowModel(evidence), [evidence]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(model?.nodes || []);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(model?.edges || []);
+
+  useEffect(() => {
+    setNodes(model?.nodes || []);
+    setEdges(model?.edges || []);
+  }, [model, setEdges, setNodes]);
+
   if (!model) return null;
 
   const graphLabel = text(label) || evidence.sliceId || graphFallbackLines(evidence)[0] || "evidence";
@@ -343,8 +354,10 @@ export function GraphVerifiedEvidenceGraph({ graph, label = "" }) {
       >
         <ReactFlow
           ariaLabel={ariaLabel}
-          nodes={model.nodes}
-          edges={model.edges}
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
           nodeTypes={GRAPH_NODE_TYPES}
           fitView
           fitViewOptions={GRAPH_FIT_VIEW_OPTIONS}
@@ -354,9 +367,9 @@ export function GraphVerifiedEvidenceGraph({ graph, label = "" }) {
           zoomOnPinch
           zoomOnScroll={false}
           zoomOnDoubleClick={false}
-          nodesDraggable={false}
+          nodesDraggable
           nodesConnectable={false}
-          elementsSelectable={false}
+          elementsSelectable
           onlyRenderVisibleElements
           preventScrolling={false}
           proOptions={{ hideAttribution: true }}
