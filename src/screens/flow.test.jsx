@@ -1004,7 +1004,7 @@ describe("ScanningScreen queue state", () => {
     ).toBeInTheDocument();
     const graph = screen.getByTestId("graph-verified-graph-f_scan");
     expect(
-      within(graph).getByRole("img", { name: /graphverified graph path for f_scan/i })
+      within(graph).getByRole("img", { name: /graphverified code evidence path for f_scan/i })
     ).toBeInTheDocument();
     expect(within(graph).getAllByText("route").length).toBeGreaterThan(0);
     expect(within(graph).getAllByText("handler").length).toBeGreaterThan(0);
@@ -1084,6 +1084,31 @@ describe("ScanningScreen queue state", () => {
     ).toBeGreaterThan(0);
     expect(graph.querySelector(".react-flow__node")).toHaveClass("selectable");
     expect(graph.querySelector('[title="target-module-with-complete-readable-name"]')).toBeInTheDocument();
+  });
+
+
+  it("supports highlighting a clicked GraphVerified graph edge and its connected nodes", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+    const highlightedEdgeBlock =
+      styles.match(/\.graph-verified-flow \.react-flow__edge\.highlighted \.react-flow__edge-path\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const linkedNodeBlock =
+      styles.match(/\.graph-verified-flow \.react-flow__node\.graph-verified-flow-node-linked \.graph-verified-flow-node\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const dimmedNodeBlock =
+      styles.match(/\.graph-verified-flow \.react-flow__node\.graph-verified-flow-node-dimmed\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const dimmedEdgeBlock =
+      styles.match(/\.graph-verified-flow \.react-flow__edge\.dimmed\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const graphComponent = readFileSync("src/components/graph-verified-report.jsx", "utf8");
+
+    expect(highlightedEdgeBlock).toMatch(/stroke-width:\s*5;/);
+    expect(linkedNodeBlock).toMatch(/box-shadow:/);
+    expect(dimmedNodeBlock).toMatch(/opacity:\s*0\.42;/);
+    expect(dimmedEdgeBlock).toMatch(/opacity:\s*0\.28;/);
+    expect(graphComponent).toMatch(/const \[selectedEdgeId, setSelectedEdgeId\] = useState\(""\);/);
+    expect(graphComponent).toMatch(/onEdgeClick=\{onEdgeClick\}/);
+    expect(graphComponent).toMatch(/onPaneClick=\{clearEdgeHighlight\}/);
+    expect(graphComponent).toMatch(/setSelectedEdgeId\(\(current\) => \(current === edge\.id \? "" : edge\.id\)\)/);
+    expect(graphComponent).toMatch(/selectedEdge && linkedNodeIds\.has\(node\.id\) && "graph-verified-flow-node-linked"/);
+    expect(graphComponent).toMatch(/selectedEdgeId === edge\.id && "highlighted"/);
   });
 
   it("shows GraphVerified rejected and blocked counts when there are no confirmed findings", () => {

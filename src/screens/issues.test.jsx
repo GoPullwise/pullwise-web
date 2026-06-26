@@ -576,7 +576,7 @@ describe("IssueDetailScreen direct loading", () => {
     expect(screen.getByText("Graph evidence")).toBeInTheDocument();
     const graph = screen.getByTestId("graph-verified-graph-f_graph_verified");
     expect(
-      within(graph).getByRole("img", { name: /graphverified graph path for f_graph_verified/i })
+      within(graph).getByRole("img", { name: /graphverified code evidence path for f_graph_verified/i })
     ).toBeInTheDocument();
     expect(within(graph).getAllByText("route").length).toBeGreaterThan(0);
     expect(within(graph).getAllByText("handler").length).toBeGreaterThan(0);

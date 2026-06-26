@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dagre from "@dagrejs/dagre";
 import {
   Background,
@@ -324,28 +324,78 @@ function graphFallbackLines(evidence) {
   ].filter(Boolean);
 }
 
+function graphFlowClassName(...parts) {
+  return parts.filter(Boolean).join(" ");
+}
+
 export function GraphVerifiedEvidenceGraph({ graph, label = "" }) {
   const evidence = useMemo(() => graphEvidenceValue(graph), [graph]);
   const model = useMemo(() => graphFlowModel(evidence), [evidence]);
   const [nodes, setNodes, onNodesChange] = useNodesState(model?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(model?.edges || []);
+  const [selectedEdgeId, setSelectedEdgeId] = useState("");
 
   useEffect(() => {
     setNodes(model?.nodes || []);
     setEdges(model?.edges || []);
+    setSelectedEdgeId("");
   }, [model, setEdges, setNodes]);
+
+  const selectedEdge = useMemo(
+    () => edges.find((edge) => edge.id === selectedEdgeId) || null,
+    [edges, selectedEdgeId]
+  );
+  const linkedNodeIds = useMemo(
+    () => new Set(selectedEdge ? [selectedEdge.source, selectedEdge.target] : []),
+    [selectedEdge]
+  );
+  const visibleNodes = useMemo(
+    () =>
+      nodes.map((node) => ({
+        ...node,
+        className: graphFlowClassName(
+          node.className,
+          selectedEdge && linkedNodeIds.has(node.id) && "graph-verified-flow-node-linked",
+          selectedEdge && !linkedNodeIds.has(node.id) && "graph-verified-flow-node-dimmed"
+        ),
+      })),
+    [linkedNodeIds, nodes, selectedEdge]
+  );
+  const visibleEdges = useMemo(
+    () =>
+      edges.map((edge) => ({
+        ...edge,
+        className: graphFlowClassName(
+          edge.className,
+          selectedEdgeId === edge.id && "highlighted",
+          selectedEdgeId && selectedEdgeId !== edge.id && "dimmed"
+        ),
+      })),
+    [edges, selectedEdgeId]
+  );
+  const onEdgeClick = useCallback((event, edge) => {
+    event.stopPropagation();
+    setSelectedEdgeId((current) => (current === edge.id ? "" : edge.id));
+  }, []);
+  const clearEdgeHighlight = useCallback(() => setSelectedEdgeId(""), []);
 
   if (!model) return null;
 
   const graphLabel = text(label) || evidence.sliceId || graphFallbackLines(evidence)[0] || "evidence";
   const ariaLabel = T(
-    `GraphVerified graph path for ${graphLabel}`,
-    `GraphVerified graph path for ${graphLabel}`
+    `GraphVerified code evidence path for ${graphLabel}`,
+    `GraphVerified code evidence path for ${graphLabel}`
   );
 
   return (
     <div className="graph-verified-graph" data-testid={`graph-verified-graph-${safeTestId(graphLabel)}`}>
-      <div className="graph-verified-graph-label">{T("Graph path", "Graph path")}</div>
+      <div className="graph-verified-graph-label">{T("Code evidence path", "代码证据路径")}</div>
+      <div className="graph-verified-graph-help">
+        {T(
+          "Shows how this finding connects through the code graph to the related files.",
+          "展示这个问题如何通过代码图关联到相关文件。"
+        )}
+      </div>
       <div
         className="graph-verified-flow"
         role="img"
@@ -354,10 +404,12 @@ export function GraphVerifiedEvidenceGraph({ graph, label = "" }) {
       >
         <ReactFlow
           ariaLabel={ariaLabel}
-          nodes={nodes}
-          edges={edges}
+          nodes={visibleNodes}
+          edges={visibleEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onEdgeClick={onEdgeClick}
+          onPaneClick={clearEdgeHighlight}
           nodeTypes={GRAPH_NODE_TYPES}
           fitView
           fitViewOptions={GRAPH_FIT_VIEW_OPTIONS}

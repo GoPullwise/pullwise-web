@@ -1066,6 +1066,15 @@ body.has-proto-nav {
   content: "";
 }
 
+.graph-verified-graph-help {
+  max-width: 680px;
+  margin: -4px 0 10px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .graph-verified-flow {
   min-width: 0;
   width: 100%;
@@ -1123,6 +1132,18 @@ body.has-proto-nav {
     var(--bg-elev);
 }
 
+.graph-verified-flow .react-flow__node.graph-verified-flow-node-linked .graph-verified-flow-node {
+  border-color: color-mix(in srgb, var(--accent) 78%, var(--text));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 14px 32px color-mix(in srgb, #0f172a 14%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.graph-verified-flow .react-flow__node.graph-verified-flow-node-dimmed {
+  opacity: 0.42;
+}
+
 .graph-verified-flow-node-caption {
   color: var(--text-3);
   font-size: 9px;
@@ -1161,6 +1182,30 @@ body.has-proto-nav {
 .graph-verified-flow-edge.file-link {
   stroke: color-mix(in srgb, #0f766e 72%, var(--text-2));
   stroke-dasharray: 7 5;
+}
+
+.graph-verified-flow .react-flow__edge.highlighted .react-flow__edge-path {
+  stroke: color-mix(in srgb, var(--accent) 88%, var(--text));
+  stroke-width: 5;
+  filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--accent) 34%, transparent));
+}
+
+.graph-verified-flow .react-flow__edge.highlighted.file-link .react-flow__edge-path {
+  stroke: color-mix(in srgb, #0f766e 86%, var(--text));
+}
+
+.graph-verified-flow .react-flow__edge.dimmed {
+  opacity: 0.28;
+}
+
+.graph-verified-flow .react-flow__edge.highlighted .react-flow__edge-text {
+  fill: var(--text);
+}
+
+.graph-verified-flow .react-flow__edge.highlighted .react-flow__arrowhead polyline,
+.graph-verified-flow .react-flow__edge.highlighted .react-flow__arrowhead path {
+  stroke: color-mix(in srgb, var(--accent) 88%, var(--text));
+  fill: color-mix(in srgb, var(--accent) 88%, var(--text));
 }
 
 .graph-verified-flow .react-flow__edge-path {
