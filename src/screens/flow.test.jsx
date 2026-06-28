@@ -407,6 +407,19 @@ describe("ReposScreen scan selection", () => {
     });
     await user.click(branchTrigger);
     await user.click(await screen.findByRole("option", { name: "release/1.0" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /branch for octocat\/alpha/i })).toHaveAttribute(
+        "title",
+        "Branch: release/1.0"
+      )
+    );
+    const updatedBranchTrigger = screen.getByRole("button", {
+      name: /branch for octocat\/alpha/i,
+    });
+    expect(updatedBranchTrigger.closest(".repo-branch-picker")).toHaveAttribute(
+      "title",
+      "Branch: release/1.0"
+    );
     await user.click(screen.getByRole("button", { name: /start scan/i }));
 
     await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));

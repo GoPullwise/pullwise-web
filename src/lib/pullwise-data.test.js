@@ -627,6 +627,7 @@ describe("useScans", () => {
 
   it("falls back to individual scan polling when the bulk status endpoint is unavailable", async () => {
     const unavailable = Object.assign(new Error("Not Found"), { status: 404 });
+    const fallbackStatus = deferred();
     pullwiseApi.scans.status = vi.fn().mockRejectedValueOnce(unavailable);
     pullwiseApi.scans.create.mockResolvedValueOnce({
       id: "sc_bulk_unavailable",
@@ -635,13 +636,7 @@ describe("useScans", () => {
       status: "running",
       progress: 25,
     });
-    pullwiseApi.scans.get.mockResolvedValueOnce({
-      id: "sc_bulk_unavailable",
-      repo: "owner/alpha",
-      branch: "main",
-      status: "done",
-      progress: 100,
-    });
+    pullwiseApi.scans.get.mockReturnValueOnce(fallbackStatus.promise);
 
     const { result, unmount } = renderHook(() =>
       useScanBatchRun({
@@ -659,6 +654,15 @@ describe("useScans", () => {
       "sc_bulk_unavailable",
       expect.objectContaining({ signal: expect.any(Object) })
     ));
+    await act(async () => {
+      fallbackStatus.resolve({
+        id: "sc_bulk_unavailable",
+        repo: "owner/alpha",
+        branch: "main",
+        status: "done",
+        progress: 100,
+      });
+    });
     await waitFor(() => expect(result.current.scans[0]?.status).toBe("done"));
     expect(result.current.error).toBe("");
     unmount();
@@ -1069,19 +1073,6 @@ describe("normalizeIssue", () => {
         value.toLowerCase().includes("18")
       )
     ).not.toThrow();
-  });
-
-  it("normalizes saved issue feedback reasons", () => {
-    expect(normalizeIssue({ id: "f_useful", feedbackReason: "valid" }).feedbackReason).toBe(
-      "useful"
-    );
-    expect(normalizeIssue({ id: "f_fp", feedback_reason: "False Positive" }).feedbackReason).toBe(
-      "false_positive"
-    );
-    expect(normalizeIssue({ id: "f_spec", feedbackReason: "speculative" }).feedbackReason).toBe(
-      "too_speculative"
-    );
-    expect(normalizeIssue({ id: "f_bad", feedbackReason: "<script>" }).feedbackReason).toBe("");
   });
 
   it("normalizes issue line numbers for display-safe file labels", () => {

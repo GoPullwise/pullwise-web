@@ -112,49 +112,6 @@ function issueStatusIdentity(issue) {
   );
 }
 
-const ISSUE_FEEDBACK_BADGES = [
-  {
-    value: "useful",
-    labelEn: "Useful",
-    labelZh: "有用",
-    reason: "User marked issue useful / valid.",
-    falsePositive: false,
-    tone: "positive",
-  },
-  {
-    value: "false_positive",
-    labelEn: "False positive",
-    labelZh: "误报",
-    reason: "False positive.",
-    falsePositive: true,
-    tone: "negative",
-  },
-  {
-    value: "not_relevant",
-    labelEn: "Not relevant",
-    labelZh: "不相关",
-    reason: "Not relevant to this PR.",
-  },
-  {
-    value: "duplicate",
-    labelEn: "Duplicate",
-    labelZh: "重复",
-    reason: "Duplicate issue.",
-  },
-  {
-    value: "too_speculative",
-    labelEn: "Speculative",
-    labelZh: "猜测",
-    reason: "Too speculative.",
-  },
-  {
-    value: "low_impact",
-    labelEn: "Low impact",
-    labelZh: "影响较低",
-    reason: "Low impact.",
-  },
-];
-
 function issueTotal(scan) {
   if (!scan?.issues) return 0;
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
@@ -1056,12 +1013,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [currentStatus, setCurrentStatus] = useState(activeIssue?.status || "open");
   const [actionError, setActionError] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
-  const [selectedFeedback, setSelectedFeedback] = useState(activeIssue?.feedbackReason || "");
-  const [feedbackLoading, setFeedbackLoading] = useState("");
-  const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [pageCopied, setPageCopied] = useState(false);
   const statusRequestRef = useRef(false);
-  const feedbackRequestRef = useRef(0);
   const pageCopyResetRef = useRef(null);
 
   useEffect(() => {
@@ -1111,19 +1064,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setCurrentStatus(activeIssue?.status || "open");
     setActionError("");
     setStatusLoading("");
-    setSelectedFeedback(activeIssue?.feedbackReason || "");
-    setFeedbackLoading("");
-    setFeedbackSaved(false);
     setPageCopied(false);
     statusRequestRef.current = false;
-    feedbackRequestRef.current += 1;
     if (pageCopyResetRef.current) {
       clearTimeout(pageCopyResetRef.current);
       pageCopyResetRef.current = null;
     }
     return () => {
       statusRequestRef.current = false;
-      feedbackRequestRef.current += 1;
       if (pageCopyResetRef.current) {
         clearTimeout(pageCopyResetRef.current);
         pageCopyResetRef.current = null;
@@ -1212,45 +1160,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   };
   const severity = issue.severity || "info";
   const primaryLocation = issue.affectedLocations?.[0] || null;
-  const selectedFeedbackBadge = ISSUE_FEEDBACK_BADGES.find(
-    (feedback) => feedback.value === selectedFeedback
-  );
-  const submitFeedbackBadge = async (feedback) => {
-    const requestId = feedbackRequestRef.current + 1;
-    feedbackRequestRef.current = requestId;
-    const payload = {
-      feedbackReason: feedback.value,
-      reason: feedback.reason,
-    };
-    if (typeof feedback.falsePositive === "boolean") {
-      payload.falsePositive = feedback.falsePositive;
-    }
-    setActionError("");
-    setSelectedFeedback(feedback.value);
-    setFeedbackSaved(false);
-    setFeedbackLoading(feedback.value);
-    try {
-      const updated = await pullwiseApi.issues.updateStatus(issue.id, {
-        ...issueStatusIdentity(issue),
-        ...payload,
-      });
-      if (feedbackRequestRef.current !== requestId) return;
-      const mergedIssue = {
-        ...issue,
-        ...updated,
-        status: updated?.status || currentStatus || issue.status || "open",
-        feedbackReason: feedback.value,
-      };
-      setCurrentStatus(mergedIssue.status);
-      if (typeof setIssue === "function") setIssue(mergedIssue);
-      setFeedbackSaved(true);
-    } catch (error) {
-      if (feedbackRequestRef.current !== requestId) return;
-      setActionError(error?.message || T("Unable to submit issue feedback.", "无法提交问题反馈。"));
-    } finally {
-      if (feedbackRequestRef.current === requestId) setFeedbackLoading("");
-    }
-  };
   const copyPage = async () => {
     const copied = await copyText(buildIssuePageMarkdown(issue, currentStatus));
     if (!copied) return;
@@ -1371,43 +1280,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
                 {pageCopied ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
               </button>
-              <div className="divider" />
-              <div className="issue-feedback">
-                <div className="issue-feedback-h">
-                  <span className="muted">{T("Feedback", "反馈")}</span>
-                  {selectedFeedbackBadge && (
-                    <span className="tag issue-feedback-selected" aria-live="polite">
-                      {feedbackLoading
-                        ? T("Saving:", "保存中：")
-                        : feedbackSaved
-                          ? T("Selected:", "已选择：")
-                          : T("Selected:", "已选择：")}{" "}
-                      {T(selectedFeedbackBadge.labelEn, selectedFeedbackBadge.labelZh)}
-                    </span>
-                  )}
-                </div>
-                <div
-                  className="issue-feedback-badges"
-                  role="group"
-                  aria-label={T("Issue feedback", "问题反馈")}
-                >
-                  {ISSUE_FEEDBACK_BADGES.map((feedback) => (
-                    <button
-                      key={feedback.value}
-                      type="button"
-                      className={
-                        "btn sm issue-feedback-badge" +
-                        (selectedFeedback === feedback.value ? " selected" : "")
-                      }
-                      disabled={Boolean(feedbackLoading)}
-                      aria-pressed={selectedFeedback === feedback.value}
-                      onClick={() => submitFeedbackBadge(feedback)}
-                    >
-                      <span>{T(feedback.labelEn, feedback.labelZh)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
               <div className="divider" />
               {currentStatus === "open" ? (
                 <div className="issue-action-row">

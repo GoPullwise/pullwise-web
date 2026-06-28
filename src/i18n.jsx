@@ -937,13 +937,6 @@ const PHRASE_TRANSLATIONS = {
     fr: "Fiches de problème",
     es: "Tarjetas de problema",
   },
-  "Issue feedback": {
-    zh: "问题反馈",
-    ja: "問題フィードバック",
-    ko: "이슈 피드백",
-    fr: "Retour sur le problème",
-    es: "Comentarios sobre el problema",
-  },
   Details: { zh: "详情", ja: "詳細", ko: "세부 정보", fr: "Détails", es: "Detalles" },
   Test: { zh: "建议测试", ja: "テスト", ko: "테스트", fr: "Test", es: "Prueba" },
   "False +": {

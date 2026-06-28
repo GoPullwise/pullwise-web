@@ -476,7 +476,6 @@ describe("IssueDetailScreen direct loading", () => {
       title: "Validate redirect targets",
       file: "src/auth.py",
       status: "open",
-      feedbackReason: "useful",
     });
 
     render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={setIssue} />);
@@ -484,8 +483,8 @@ describe("IssueDetailScreen direct loading", () => {
     expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
     expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
     expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
-    expect(screen.getByRole("button", { name: /useful/i })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: /issue feedback/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
   });
 
   it("keeps a locally fixed issue fixed when direct detail reload returns stale open data", async () => {
@@ -1216,21 +1215,6 @@ describe("IssueDetailScreen review detail", () => {
     expect(summaryBlock).not.toMatch(/-webkit-line-clamp:/);
   });
 
-  it("keeps issue feedback aligned with action controls", () => {
-    const css = screenStyles();
-    const feedbackBlock = css.match(/\.issue-feedback\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
-    const badgesBlock = Array.from(css.matchAll(/\.issue-feedback-badges\s*\{(?<body>[^}]*)\}/gs))
-      .map((match) => match.groups?.body || "")
-      .join("\n");
-    const badgeBlock =
-      css.match(/\.issue-feedback-badge\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
-
-    expect(feedbackBlock).not.toMatch(/\bborder\s*:/);
-    expect(feedbackBlock).not.toMatch(/\bbackground\s*:/);
-    expect(badgesBlock).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
-    expect(badgeBlock).toMatch(/justify-content:\s*flex-start;/);
-  });
-
   it("lets issue detail tags wrap instead of truncating labels", () => {
     const baseCss = baseStyles();
     const appCss = appStyles();
@@ -1465,148 +1449,6 @@ describe("IssueDetailScreen review detail", () => {
         createdAt: 101,
       })
     );
-  });
-
-  it("submits useful feedback without changing issue status", async () => {
-    const user = userEvent.setup();
-    const issue = {
-      id: "f_123",
-      scanId: "sc_1",
-      jobId: "job_1",
-      repo: "acme/api",
-      severity: "high",
-      category: "Security",
-      title: "Validate redirect targets",
-      file: "src/auth.py",
-      line: 42,
-      status: "open",
-      createdAt: 101,
-    };
-    pullwiseApi.issues.updateStatus.mockReset();
-    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "open" });
-
-    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: /useful/i }));
-
-    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
-      "f_123",
-      expect.objectContaining({
-        feedbackReason: "useful",
-        falsePositive: false,
-        reason: "User marked issue useful / valid.",
-        scanId: "sc_1",
-        jobId: "job_1",
-        repo: "acme/api",
-        file: "src/auth.py",
-        line: 42,
-        title: "Validate redirect targets",
-        createdAt: 101,
-      })
-    );
-    expect(pullwiseApi.issues.updateStatus.mock.calls[0][1]).not.toHaveProperty("status");
-    expect(screen.getByText(/selected:\s*useful/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /snooze/i })).toBeInTheDocument();
-  });
-
-  it("submits false positive feedback as a strong negative label without snoozing", async () => {
-    const user = userEvent.setup();
-    const issue = {
-      id: "f_123",
-      repo: "acme/api",
-      severity: "high",
-      category: "Security",
-      title: "Validate redirect targets",
-      status: "open",
-    };
-    pullwiseApi.issues.updateStatus.mockReset();
-    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "open" });
-
-    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: /false positive/i }));
-
-    expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
-      "f_123",
-      expect.objectContaining({
-        feedbackReason: "false_positive",
-        falsePositive: true,
-        reason: "False positive.",
-      })
-    );
-    expect(pullwiseApi.issues.updateStatus.mock.calls[0][1]).not.toHaveProperty("status");
-    expect(screen.getByText(/selected:\s*false positive/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /snooze/i })).toBeInTheDocument();
-  });
-
-  it("keeps non-false-positive feedback independent from snooze", async () => {
-    const user = userEvent.setup();
-    const issue = {
-      id: "f_123",
-      repo: "acme/api",
-      severity: "high",
-      category: "Security",
-      title: "Validate redirect targets",
-      status: "open",
-    };
-    pullwiseApi.issues.updateStatus.mockReset();
-    pullwiseApi.issues.updateStatus.mockResolvedValueOnce({ ...issue, status: "open" });
-
-    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: /^duplicate$/i }));
-
-    const payload = pullwiseApi.issues.updateStatus.mock.calls[0][1];
-    expect(payload).toMatchObject({
-      feedbackReason: "duplicate",
-      reason: "Duplicate issue.",
-    });
-    expect(payload).not.toHaveProperty("status");
-    expect(payload).not.toHaveProperty("falsePositive");
-    expect(screen.getByText(/selected:\s*duplicate/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /snooze/i })).toBeInTheDocument();
-  });
-
-  it("lets the user change feedback and shows the latest selection", async () => {
-    const user = userEvent.setup();
-    const issue = {
-      id: "f_123",
-      repo: "acme/api",
-      severity: "high",
-      category: "Security",
-      title: "Validate redirect targets",
-      status: "open",
-    };
-    pullwiseApi.issues.updateStatus.mockReset();
-    pullwiseApi.issues.updateStatus
-      .mockResolvedValueOnce({ ...issue, status: "open" })
-      .mockResolvedValueOnce({ ...issue, status: "open" });
-
-    render(<IssueDetailScreen go={vi.fn()} issue={issue} setIssue={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: /useful/i }));
-    await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(1));
-    await user.click(screen.getByRole("button", { name: /false positive/i }));
-    await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(2));
-
-    expect(pullwiseApi.issues.updateStatus.mock.calls[1][1]).toMatchObject({
-      feedbackReason: "false_positive",
-      falsePositive: true,
-      reason: "False positive.",
-    });
-    expect(pullwiseApi.issues.updateStatus.mock.calls[1][1]).not.toHaveProperty("status");
-    expect(screen.getByRole("button", { name: /useful/i })).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
-    expect(screen.getByRole("button", { name: /false positive/i })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-    expect(screen.getByText(/selected:\s*false positive/i)).toBeInTheDocument();
   });
 
   it("does not leak undefined or NaN when optional issue metadata is missing", () => {

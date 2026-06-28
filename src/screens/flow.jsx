@@ -608,12 +608,15 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
   };
 
   const pickerClass = "repo-branch-picker" + (error ? " repo-branch-error" : "");
+  const branchTitle = error || `Branch: ${value}`;
+  const branchValueLabel = loading ? T("Loading...", "加载中...") : value;
 
   return (
     <span
+      key={branchTitle}
       ref={containerRef}
       className={pickerClass}
-      title={error || `Branch: ${value}`}
+      title={branchTitle}
       onClick={(event) => event.stopPropagation()}
       onKeyDown={(event) => event.stopPropagation()}
     >
@@ -624,6 +627,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Branch for ${repoLabel}`}
+        title={branchTitle}
         disabled={disabled}
         onClick={() => {
           if (!open) updateMenuPosition();
@@ -631,7 +635,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         }}
       >
         <I.GitBranch size={12} />
-        <span className="repo-branch-value">{loading ? T("Loading...", "加载中...") : value}</span>
+        <span className="repo-branch-value">{branchValueLabel}</span>
         <I.ChevD size={11} className="repo-branch-chev" aria-hidden="true" />
       </button>
       {open && (
