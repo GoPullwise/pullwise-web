@@ -120,7 +120,7 @@ export const pullwiseApi = {
   },
 
   system: {
-    health: () => request("/health"),
-    status: () => request("/status/system"),
+    health: (options = {}) => request("/health", { signal: options.signal }),
+    status: (options = {}) => request("/status/system", { signal: options.signal }),
   },
 };

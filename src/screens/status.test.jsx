@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { StatusScreen } from "./legal.jsx";
@@ -11,6 +11,16 @@ vi.mock("../api/pullwise.js", () => ({
     },
   },
 }));
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
 
 describe("StatusScreen", () => {
   beforeEach(() => {
@@ -200,5 +210,36 @@ describe("StatusScreen", () => {
     expect(screen.queryByText("Worker registry")).not.toBeInTheDocument();
     expect(screen.queryByText(/No workers registered/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Manage workers/i)).not.toBeInTheDocument();
+  });
+
+  it("ignores stale health responses after a newer check fails", async () => {
+    const staleHealth = deferred();
+    pullwiseApi.system.health
+      .mockReturnValueOnce(staleHealth.promise)
+      .mockRejectedValueOnce(new Error("Newer health check failed"));
+
+    render(<StatusScreen go={vi.fn()} />);
+
+    expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("API unreachable")).toBeInTheDocument();
+
+    await act(async () => {
+      staleHealth.resolve({
+        ok: true,
+        service: "pullwise-server",
+        mode: "production",
+        database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
+      });
+      await staleHealth.promise;
+    });
+
+    expect(screen.getByText("API unreachable")).toBeInTheDocument();
+    expect(screen.queryByText("API reachable")).not.toBeInTheDocument();
   });
 });

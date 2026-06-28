@@ -1,5 +1,14 @@
 const API_PREFIX = "/api";
 const DEFAULT_PULLWISE_API_ORIGIN = "https://api.pull-wise.com";
+const HTML_SHELL_CACHE_CONTROL = "no-cache";
+const STATIC_SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+const HTML_SHELL_SECURITY_HEADERS = {
+  "X-Frame-Options": "DENY",
+  "Content-Security-Policy": "frame-ancestors 'none'",
+};
 
 export default {
   async fetch(request, env) {
@@ -10,7 +19,7 @@ export default {
     if (!env.ASSETS) {
       return json({ message: "Static assets binding is not configured." }, 500);
     }
-    return env.ASSETS.fetch(request);
+    return withStaticAssetHeaders(await env.ASSETS.fetch(request));
   },
 };
 
@@ -65,6 +74,28 @@ function proxyResponse(response) {
     statusText: response.statusText,
     headers: withoutHopByHopHeaders(response.headers),
   });
+}
+
+function withStaticAssetHeaders(response) {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(STATIC_SECURITY_HEADERS)) {
+    headers.set(name, value);
+  }
+  if (isHtmlResponse(headers)) {
+    headers.set("Cache-Control", HTML_SHELL_CACHE_CONTROL);
+    for (const [name, value] of Object.entries(HTML_SHELL_SECURITY_HEADERS)) {
+      headers.set(name, value);
+    }
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function isHtmlResponse(headers) {
+  return (headers.get("content-type") || "").toLowerCase().includes("text/html");
 }
 
 export function isApiRequest(url) {

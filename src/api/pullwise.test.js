@@ -121,6 +121,17 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(2, "/docs/server-config", { signal: undefined });
   });
 
+  it("passes abort signals to public system endpoints", async () => {
+    request.mockResolvedValue({});
+    const controller = new AbortController();
+
+    await pullwiseApi.system.health({ signal: controller.signal });
+    await pullwiseApi.system.status({ signal: controller.signal });
+
+    expect(request).toHaveBeenNthCalledWith(1, "/health", { signal: controller.signal });
+    expect(request).toHaveBeenNthCalledWith(2, "/status/system", { signal: controller.signal });
+  });
+
   it("rejects empty dynamic path segments before making a request", () => {
     expect(() => pullwiseApi.scans.get("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.retry("")).toThrow(/path segment/i);

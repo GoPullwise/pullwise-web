@@ -87,6 +87,28 @@ describe("Cloudflare Worker API proxy", () => {
     expect(assets.fetch).toHaveBeenCalledOnce();
   });
 
+  it("adds shell cache and anti-framing headers to html assets served through the worker", async () => {
+    const assets = {
+      fetch: vi.fn(
+        async () =>
+          new Response("<!doctype html>", {
+            headers: {
+              "Content-Type": "text/html; charset=utf-8",
+              "Cache-Control": "public, max-age=3600",
+            },
+          })
+      ),
+    };
+
+    const response = await worker.fetch(new Request("https://pull-wise.com/dashboard"), { ASSETS: assets });
+
+    expect(response.headers.get("Cache-Control")).toBe("no-cache");
+    expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(response.headers.get("Content-Security-Policy")).toBe("frame-ancestors 'none'");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(response.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
+  });
+
   it("fails closed when the backend origin is missing", async () => {
     const response = await worker.fetch(new Request("https://pull-wise.com/api/health"), {});
 

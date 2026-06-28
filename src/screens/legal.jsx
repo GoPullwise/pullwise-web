@@ -553,28 +553,54 @@ export function StatusScreen({ go, auth }) {
   useEffect(() => {
     let cancelled = false;
     let intervalId = null;
+    let requestId = 0;
+    let activeController = null;
+
+    function abortActiveRequest() {
+      requestId += 1;
+      if (activeController) {
+        activeController.abort();
+        activeController = null;
+      }
+    }
 
     async function loadHealth() {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        abortActiveRequest();
+        return;
+      }
+      abortActiveRequest();
+      const currentRequestId = requestId;
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      activeController = controller;
+      const requestOptions = controller ? { signal: controller.signal } : {};
+      const isCurrentRequest = () =>
+        !cancelled &&
+        requestId === currentRequestId &&
+        (!controller || !controller.signal.aborted);
       setNow(new Date());
       try {
-        const payload = await pullwiseApi.system.health();
+        const payload = await pullwiseApi.system.health(requestOptions);
         const statusPayload =
           payload?.scanSystem
             ? payload.scanSystem
             : typeof pullwiseApi.system.status === "function"
-            ? await pullwiseApi.system.status().catch(() => payload?.scanSystem || null)
+            ? await pullwiseApi.system.status(requestOptions).catch(() => payload?.scanSystem || null)
             : payload?.scanSystem || null;
-        if (!cancelled) {
+        if (isCurrentRequest()) {
           setHealth(payload);
           setSystemStatus(statusPayload || payload?.scanSystem || null);
           setError("");
         }
       } catch (healthError) {
-        if (!cancelled) {
+        if (isCurrentRequest()) {
           setHealth(null);
           setSystemStatus(null);
           setError(healthError?.message || "Unable to reach the Pullwise API.");
+        }
+      } finally {
+        if (activeController === controller) {
+          activeController = null;
         }
       }
     }
@@ -582,13 +608,18 @@ export function StatusScreen({ go, auth }) {
     loadHealth();
     intervalId = setInterval(loadHealth, STATUS_REFRESH_MS);
     const handleVisibility = () => {
-      if (document.visibilityState !== "hidden") void loadHealth();
+      if (document.visibilityState === "hidden") {
+        abortActiveRequest();
+      } else {
+        void loadHealth();
+      }
     };
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", handleVisibility);
     }
     return () => {
       cancelled = true;
+      abortActiveRequest();
       clearInterval(intervalId);
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleVisibility);
