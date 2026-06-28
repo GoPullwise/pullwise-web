@@ -43,6 +43,10 @@ function makeAbortController() {
   return typeof AbortController === "function" ? new AbortController() : null;
 }
 
+function bulkScanStatusUnavailable(error) {
+  return error?.status === 404 || error?.status === 405;
+}
+
 function createAbortError() {
   if (typeof DOMException === "function") {
     return new DOMException("Request aborted", "AbortError");
@@ -195,9 +199,12 @@ export function rememberIssueUpdate(issue, updatedIssue) {
   if (normalized.id) issueUpdateByIdCache.set(normalized.id, normalized);
   for (const [cacheKey, state] of successfulListCache.entries()) {
     if (!cacheKey.startsWith("issues|") && cacheKey !== "issues") continue;
+    const filters = issueFiltersFromCacheKey(cacheKey);
     rememberListState(cacheKey, {
       ...state,
-      items: applyCachedIssueUpdates(state.items),
+      items: applyCachedIssueUpdates(state.items).filter((issue) =>
+        issueMatchesRequestFilters(issue, filters)
+      ),
     });
   }
 }
@@ -1109,12 +1116,23 @@ function normalizeGraphVerifiedReport(value) {
     blockedCount: normalizeCount(value.blockedCount),
     finalJson: { ...finalJson, confirmed },
   };
+  for (const key of ["coverage", "reviewUnits", "review_units"]) {
+    if (objectRecord(value[key]) || Array.isArray(value[key])) {
+      report[key] = value[key];
+    }
+  }
   return report.runId ||
     report.mode ||
     report.confirmedCount ||
     report.rejectedCount ||
     report.blockedCount ||
-    confirmed.length
+    confirmed.length ||
+    report.coverage ||
+    report.reviewUnits ||
+    report.review_units ||
+    report.finalJson.coverage ||
+    report.finalJson.reviewUnits ||
+    report.finalJson.review_units
     ? report
     : null;
 }
@@ -1835,12 +1853,21 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     const handle = setTimeout(async () => {
       try {
         const activeIds = activeScans.map((scan) => scan.id);
-        const payload =
-          typeof pullwiseApi.scans.status === "function"
-            ? await pullwiseApi.scans.status(activeIds, { signal: controller?.signal })
-            : await Promise.all(
-                activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal: controller?.signal }))
-              );
+        let payload;
+        if (typeof pullwiseApi.scans.status === "function") {
+          try {
+            payload = await pullwiseApi.scans.status(activeIds, { signal: controller?.signal });
+          } catch (err) {
+            if (!bulkScanStatusUnavailable(err)) throw err;
+            payload = await Promise.all(
+              activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal: controller?.signal }))
+            );
+          }
+        } else {
+          payload = await Promise.all(
+            activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal: controller?.signal }))
+          );
+        }
         const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
         if (!alive) return;
         const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
@@ -1897,10 +1924,21 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
           return nextScan !== row.scan ? { ...row, status: nextScan.status, scan: nextScan } : row;
         })
       );
-      const updates = await Promise.all(
-        activeScans.map((scan) => pullwiseApi.scans.cancel(scan.id))
+      const results = await Promise.allSettled(
+        activeScans.map((scan) => Promise.resolve().then(() => pullwiseApi.scans.cancel(scan.id)))
       );
-      const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
+      const updates = results
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => normalizeScan(result.value));
+      const failedIds = new Set(
+        results
+          .map((result, index) => (result.status === "rejected" ? activeScans[index]?.id : ""))
+          .filter(Boolean)
+      );
+      const failed = results.find((result) => result.status === "rejected");
+      const previousById = new Map(previousScans.map((scan) => [scan.id, scan]));
+      const previousRowsById = new Map(previousBatchResults.map((row) => [row.scanId, row]));
+      const byId = new Map(updates.map((scan) => [String(scan.id || ""), scan]));
       setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
       setBatchResults((current) =>
         current.map((row) => {
@@ -1908,6 +1946,23 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
           return nextScan ? { ...row, status: nextScan.status, scan: nextScan } : row;
         })
       );
+      if (failed) {
+        setScans((current) =>
+          current.map((scan) => (failedIds.has(scan.id) ? previousById.get(scan.id) || scan : scan))
+        );
+        setBatchResults((current) =>
+          current.map((row) => {
+            if (!failedIds.has(row.scanId)) return row;
+            const previous = previousRowsById.get(row.scanId) || row;
+            return {
+              ...previous,
+              error: failed.reason?.message || "Cancel failed.",
+              errorCode: textValue(failed.reason?.code, failed.reason?.payload?.code),
+            };
+          })
+        );
+        setRunError(failed.reason, "Cancel failed.", "cancel");
+      }
     } catch (err) {
       setScans(previousScans);
       setBatchResults(previousBatchResults);

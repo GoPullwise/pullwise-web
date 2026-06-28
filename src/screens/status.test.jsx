@@ -50,6 +50,8 @@ describe("StatusScreen", () => {
     expect(await screen.findByText("API reachable")).toBeInTheDocument();
     expect(screen.getByText("Scan system")).toBeInTheDocument();
     expect(screen.getByText(/2 queued \/ 1 running \/ 1 busy \/ 2 idle workers/i)).toBeInTheDocument();
+    expect(screen.getByText(/sqlite: configured backend/i)).toBeInTheDocument();
+    expect(screen.queryByText(/\.pullwise\/pullwise\.sqlite3/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Elevated scan latency/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Brief web app outage/i)).not.toBeInTheDocument();
   });
@@ -92,6 +94,7 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/1000 global queued/i)).toBeInTheDocument();
     expect(screen.getByText(/Repo checkout 2,000 files \/ 50 MB/i)).toBeInTheDocument();
     expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
+    expect(screen.queryByText(/\.pullwise\/pullwise\.sqlite3/i)).not.toBeInTheDocument();
   });
 
   it("does not expose the public review provider detail", async () => {

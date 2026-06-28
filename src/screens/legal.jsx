@@ -664,7 +664,7 @@ export function StatusScreen({ go, auth }) {
       ].filter(Boolean).join(" - ")
     : "";
   const databaseDetail = health?.database?.type
-    ? `${health.database.type}: ${health.database.path || T("configured backend path", "已配置后端路径")}`
+    ? `${health.database.type}: ${T("configured backend", "已配置后端")}`
     : T("Waiting for backend health.", "等待后端健康检查。");
 
   const scanSystem = systemStatus || health?.scanSystem || null;

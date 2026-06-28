@@ -23,6 +23,7 @@ vi.mock("../api/pullwise.js", () => ({
     },
     scans: {
       create: vi.fn(),
+      cancel: vi.fn(),
       get: vi.fn(),
       list: vi.fn(),
     },
@@ -57,8 +58,13 @@ describe("normalizeScan", () => {
         confirmedCount: "1",
         rejectedCount: "2",
         blockedCount: "0",
+        coverage: { scope: "full-repository snapshot" },
+        reviewUnits: [{ unit_id: "unit-0001", status: "covered" }],
         finalMarkdown: "# Graph-Verified Code Review Report",
-        finalJson: { confirmed: [{ candidate: { issue_id: "issue_1" } }] },
+        finalJson: {
+          coverage: { reviewedFiles: 1 },
+          confirmed: [{ candidate: { issue_id: "issue_1" } }],
+        },
       },
     });
 
@@ -72,6 +78,9 @@ describe("normalizeScan", () => {
     });
     expect(scan.graphVerifiedReport.finalMarkdown).toBeUndefined();
     expect(scan.graphVerifiedReport.debugMarkdown).toBeUndefined();
+    expect(scan.graphVerifiedReport.coverage.scope).toBe("full-repository snapshot");
+    expect(scan.graphVerifiedReport.reviewUnits[0].unit_id).toBe("unit-0001");
+    expect(scan.graphVerifiedReport.finalJson.coverage.reviewedFiles).toBe(1);
     expect(scan.graphVerifiedReport.finalJson.confirmed[0].candidate.issue_id).toBe("issue_1");
   });
 });
@@ -208,8 +217,10 @@ describe("useRepositories", () => {
 describe("useScans", () => {
   beforeEach(() => {
     pullwiseApi.scans.create.mockReset();
+    pullwiseApi.scans.cancel.mockReset();
     pullwiseApi.scans.get.mockReset();
     pullwiseApi.scans.list.mockReset();
+    pullwiseApi.scans.status = undefined;
   });
 
   it("keeps polling while queued or running scans are active", async () => {
@@ -454,6 +465,54 @@ describe("useScans", () => {
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
+  it("keeps successful batch cancel results when another cancel request fails", async () => {
+    const cancelError = new Error("cancel beta failed");
+    pullwiseApi.scans.create
+      .mockResolvedValueOnce({
+        id: "sc_cancel_alpha",
+        repo: "owner/alpha",
+        branch: "main",
+        status: "running",
+      })
+      .mockResolvedValueOnce({
+        id: "sc_cancel_beta",
+        repo: "owner/beta",
+        branch: "main",
+        status: "running",
+      });
+    pullwiseApi.scans.cancel
+      .mockResolvedValueOnce({
+        id: "sc_cancel_alpha",
+        repo: "owner/alpha",
+        branch: "main",
+        status: "cancelled",
+      })
+      .mockRejectedValueOnce(cancelError);
+
+    const { result, unmount } = renderHook(() =>
+      useScanBatchRun({
+        repositories: [
+          { repo: "owner/alpha", branch: "main", commit: "pending" },
+          { repo: "owner/beta", branch: "main", commit: "pending" },
+        ],
+        pollIntervalMs: 10000,
+      })
+    );
+
+    await waitFor(() => expect(result.current.scans).toHaveLength(2));
+
+    await act(async () => {
+      await result.current.cancel();
+    });
+
+    expect(pullwiseApi.scans.cancel).toHaveBeenCalledTimes(2);
+    expect(result.current.scans.find((scan) => scan.id === "sc_cancel_alpha")?.status).toBe("cancelled");
+    expect(result.current.scans.find((scan) => scan.id === "sc_cancel_beta")?.status).toBe("running");
+    expect(result.current.batchResults.find((row) => row.scanId === "sc_cancel_beta")?.error).toBe("cancel beta failed");
+    expect(result.current.error).toBe("cancel beta failed");
+    unmount();
+  });
+
   it("exposes loading while an existing scan detail is fetched", async () => {
     const refresh = deferred();
     pullwiseApi.scans.get.mockReturnValueOnce(refresh.promise);
@@ -561,6 +620,45 @@ describe("useScans", () => {
       });
     });
 
+    await waitFor(() => expect(result.current.scans[0]?.status).toBe("done"));
+    expect(result.current.error).toBe("");
+    unmount();
+  });
+
+  it("falls back to individual scan polling when the bulk status endpoint is unavailable", async () => {
+    const unavailable = Object.assign(new Error("Not Found"), { status: 404 });
+    pullwiseApi.scans.status = vi.fn().mockRejectedValueOnce(unavailable);
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_bulk_unavailable",
+      repo: "owner/alpha",
+      branch: "main",
+      status: "running",
+      progress: 25,
+    });
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_bulk_unavailable",
+      repo: "owner/alpha",
+      branch: "main",
+      status: "done",
+      progress: 100,
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useScanBatchRun({
+        repositories: [{ repo: "owner/alpha", branch: "main", commit: "pending" }],
+        pollIntervalMs: 5,
+      })
+    );
+
+    await waitFor(() => expect(result.current.scans[0]?.status).toBe("running"));
+    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
+      ["sc_bulk_unavailable"],
+      expect.objectContaining({ signal: expect.any(Object) })
+    ));
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
+      "sc_bulk_unavailable",
+      expect.objectContaining({ signal: expect.any(Object) })
+    ));
     await waitFor(() => expect(result.current.scans[0]?.status).toBe("done"));
     expect(result.current.error).toBe("");
     unmount();
