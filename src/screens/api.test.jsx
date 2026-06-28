@@ -85,6 +85,25 @@ describe("API screens", () => {
 
     const scanResponse = screen.getByText("Scan response").closest(".docs-code");
     expect(scanResponse?.querySelector("pre")).not.toHaveTextContent(/"requestId"/);
+    expect(scanResponse?.querySelector("pre")).toHaveTextContent(/"verification"/);
+    expect(scanResponse?.querySelector("pre")).toHaveTextContent(/"quotaState": "reserved"/);
+    expect(scanResponse?.querySelector("pre")).toHaveTextContent(/"reserved": 1/);
+    expect(scanResponse?.querySelector("pre")).toHaveTextContent(
+      /"limit": 10,[\s\S]*"used": 1,[\s\S]*"reserved": 1,[\s\S]*"remaining": 8/
+    );
+    expect(scanResponse?.querySelector("pre")).toHaveTextContent(
+      /"limit": 3,[\s\S]*"used": 1,[\s\S]*"reserved": 1,[\s\S]*"remaining": 1/
+    );
+  });
+
+  it("documents only commit values accepted by the public scan API", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const startScan = screen.getByText("Start a scan").closest(".docs-code");
+
+    expect(startScan?.querySelector("pre")).not.toHaveTextContent(/"commit": "HEAD"/);
+    expect(screen.getAllByText(/commit SHA/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/idempotencyKey/i).length).toBeGreaterThan(0);
   });
 
   it("uses the implemented free-plan quota defaults in response examples", () => {
@@ -95,6 +114,7 @@ describe("API screens", () => {
 
     expect(quotaExample).toHaveTextContent(/"scope": "user"[\s\S]*"limit": 10,/);
     expect(quotaExample).toHaveTextContent(/"scope": "repository"[\s\S]*"limit": 3,/);
+    expect(quotaExample).toHaveTextContent(/"reserved": 0/);
   });
 
   it("documents the GitHub App write permissions required by implementation", () => {
@@ -329,7 +349,12 @@ describe("API screens", () => {
           agentConfig: {
             plan: "free",
             provider: "codex",
-            codex: { cli: "codex", command: "codex", model: "docs-model-free", reasoningEffort: "medium" },
+            codex: {
+              cli: "codex",
+              command: "codex",
+              model: "docs-model-free",
+              reasoningEffort: "medium",
+            },
           },
         },
       ],
@@ -453,7 +478,12 @@ describe("API screens", () => {
           agentConfig: {
             plan: "free",
             provider: "codex",
-            codex: { cli: "codex", command: "codex", model: "settings-model-free", reasoningEffort: "medium" },
+            codex: {
+              cli: "codex",
+              command: "codex",
+              model: "settings-model-free",
+              reasoningEffort: "medium",
+            },
           },
         },
       ],

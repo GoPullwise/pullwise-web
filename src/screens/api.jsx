@@ -5,7 +5,7 @@ import { I } from "../icons.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
-import { PublicHeader } from "./public-layout.jsx";
+import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function itemsFrom(payload, ...keys) {
@@ -136,8 +136,8 @@ export function ApiDocsScreen({ go, auth }) {
       path: "/api/v1/repositories/{repoId}/scans",
       scope: "scans:write",
       description: T(
-        "Start a scan for an authorized repository. Optional JSON body: branch, commit, requestId.",
-        "为已授权仓库启动扫描。可选 JSON body：branch、commit、requestId。"
+        "Start a scan for an authorized repository. Optional JSON body: branch, commit SHA, requestId, or idempotencyKey.",
+        "为已授权仓库启动扫描。可选 JSON body：branch、commit SHA、requestId 或 idempotencyKey。"
       ),
     },
     {
@@ -313,8 +313,9 @@ Content-Type: application/json
         "plan": "free",
         "limit": 3,
         "used": 1,
+        "reserved": 0,
         "remaining": 2,
-        "resetAt": 1780272000,
+        "resetAt": 1782864000,
         "bucketId": "qb_repo_123"
       },
       "href": "/repositories/repo_123",
@@ -331,8 +332,9 @@ Content-Type: application/json
     "plan": "free",
     "limit": 10,
     "used": 2,
+    "reserved": 0,
     "remaining": 8,
-    "resetAt": 1780272000,
+    "resetAt": 1782864000,
     "bucketId": "qb_user_123"
   },
   "apiKey": {
@@ -349,14 +351,14 @@ Content-Type: application/json
           </h2>
           <p>
             {T(
-              "A scan queues a backend checkout and review run for the authorized repository. The optional requestId field is an idempotency key: reusing the same requestId for the same repository returns the existing scan; reusing it for another repository returns 409.",
-              "扫描会为已授权仓库排队执行后端 checkout 和审查。可选字段 requestId 是幂等键：同一仓库重复使用同一个 requestId 会返回已有扫描；不同仓库重复使用会返回 409。"
+              "A scan queues a backend checkout and review run for the authorized repository. The optional requestId or idempotencyKey field is an idempotency key: reusing the same value for the same repository returns the existing scan; reusing it for another repository returns 409.",
+              "扫描会为已授权仓库排队执行后端 checkout 和审查。可选字段 requestId 或 idempotencyKey 是幂等键：同一仓库重复使用同一个值会返回已有扫描；不同仓库重复使用会返回 409。"
             )}
           </p>
           <p>
             {T(
-              "requestId is accepted on scan creation for idempotency, but the public scan payload returns the scan id and status fields rather than echoing requestId.",
-              "创建扫描时可以传入 requestId 做幂等控制；公开扫描响应返回 scan id 和状态字段，不会回显 requestId。"
+              "requestId and idempotencyKey are accepted on scan creation for idempotency, but the public scan payload returns the scan id and status fields rather than echoing either value.",
+              "创建扫描时可以传入 requestId 或 idempotencyKey 做幂等控制；公开扫描响应返回 scan id 和状态字段，不会回显这些值。"
             )}
           </p>
           <DocsCode title={T("Start a scan", "启动扫描")}>
@@ -365,8 +367,7 @@ Content-Type: application/json
   -H "Content-Type: application/json" \\
   -d '{
     "branch": "main",
-    "commit": "HEAD",
-    "requestId": "ci-2026-05-29T06:30:00Z"
+    "requestId": "ci-2026-06-29T06:30:00Z"
   }'`}
           </DocsCode>
           <DocsCode title={T("Scan response", "扫描响应")}>
@@ -388,8 +389,15 @@ Content-Type: application/json
     "low": 0,
     "info": 0
   },
+  "verification": {
+    "verified": 0,
+    "static_proof": 0,
+    "potential_risk": 0,
+    "unverified": 0
+  },
   "createdAt": 1779997800,
   "queuedAt": 1779997800,
+  "reviewOutputLanguage": "en",
   "quotaBucketIds": {
     "user": "qb_user_123",
     "repository": "qb_repo_123"
@@ -400,8 +408,9 @@ Content-Type: application/json
     "plan": "free",
     "limit": 10,
     "used": 1,
-    "remaining": 9,
-    "resetAt": 1780272000,
+    "reserved": 1,
+    "remaining": 8,
+    "resetAt": 1782864000,
     "bucketId": "qb_user_123"
   },
   "repoUsage": {
@@ -410,10 +419,13 @@ Content-Type: application/json
     "plan": "free",
     "limit": 3,
     "used": 1,
-    "remaining": 2,
-    "resetAt": 1780272000,
+    "reserved": 1,
+    "remaining": 1,
+    "resetAt": 1782864000,
     "bucketId": "qb_repo_123"
   },
+  "quotaState": "reserved",
+  "quotaReservedAt": 1779997800,
   "by": "api key"
 }`}
           </DocsCode>
@@ -438,8 +450,8 @@ Content-Type: application/json
           </h2>
           <p>
             {T(
-              "Quota is reported for both the account and the repository. A scan consumes quota before it is queued. When quota is exhausted, the scan start endpoint returns 402 Payment Required with a machine-readable code.",
-              "配额同时按账户和仓库返回。启动扫描会在入队前消耗配额。配额耗尽时，启动扫描端点返回 402 Payment Required，并包含机器可读的 code。"
+              "Quota is reported for both the account and the repository. A scan reserves quota before it is queued; reserved quota reduces remaining quota and is consumed when the worker reaches a billable review stage. Cancelled scans and refundable worker failures release or roll back the reservation. When quota is exhausted, the scan start endpoint returns 402 Payment Required with a machine-readable code.",
+              "配额同时按账户和仓库返回。扫描入队前会预留配额；预留配额会减少 remaining，并在 worker 到达可计费审查阶段时消耗。取消的扫描和可退款的 worker 失败会释放或回滚预留。配额耗尽时，启动扫描端点返回 402 Payment Required，并包含机器可读的 code。"
             )}
           </p>
           <DocsCode title={T("Read remaining scan count", "读取剩余扫描次数")}>
@@ -455,8 +467,9 @@ Content-Type: application/json
     "plan": "free",
     "limit": 10,
     "used": 2,
+    "reserved": 0,
     "remaining": 8,
-    "resetAt": 1780272000,
+    "resetAt": 1782864000,
     "bucketId": "qb_user_123"
   },
   "repository": {
@@ -465,8 +478,9 @@ Content-Type: application/json
     "plan": "free",
     "limit": 3,
     "used": 1,
+    "reserved": 0,
     "remaining": 2,
-    "resetAt": 1780272000,
+    "resetAt": 1782864000,
     "bucketId": "qb_repo_123"
   }
 }`}
@@ -480,8 +494,8 @@ Content-Type: application/json
               [
                 "400",
                 T(
-                  "Malformed JSON, invalid repoId, invalid scope, or invalid request body.",
-                  "JSON 格式错误、repoId 无效、scope 无效或请求 body 无效。"
+                  "Malformed JSON, invalid repoId, invalid scope, invalid commit SHA, unavailable branch, or invalid request body.",
+                  "JSON 格式错误、repoId 无效、scope 无效、commit SHA 无效、分支不可用或请求 body 无效。"
                 ),
               ],
               ["401", T("Missing or invalid API key.", "缺少 API key 或 API key 无效。")],
@@ -519,6 +533,13 @@ Content-Type: application/json
                 T(
                   "Rate limit exceeded. Responses include X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset when rate limiting is enabled.",
                   "超过限流。启用限流时，响应包含 X-RateLimit-Limit、X-RateLimit-Remaining 和 X-RateLimit-Reset。"
+                ),
+              ],
+              [
+                "502",
+                T(
+                  "Requested branch validation failed against GitHub.",
+                  "向 GitHub 校验请求分支失败。"
                 ),
               ],
               [
@@ -565,6 +586,7 @@ Content-Type: application/json
           </div>
         </main>
       </div>
+      <PublicFooter go={go} current="api" />
     </div>
   );
 }

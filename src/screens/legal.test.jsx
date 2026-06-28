@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { PrivacyScreen, SecurityScreen } from "./legal.jsx";
+import { PrivacyScreen, SecurityScreen, TermsScreen } from "./legal.jsx";
 
 describe("legal pages", () => {
   it("does not claim third-party security certifications that are not backed by the product", () => {
@@ -73,6 +73,22 @@ describe("legal pages", () => {
     await user.click(breadcrumbHome);
 
     expect(go).toHaveBeenCalledWith("landing");
+  });
+
+  it("shows the current legal document update date", () => {
+    render(<PrivacyScreen go={vi.fn()} />);
+
+    expect(screen.getByText("2026-06-29")).toBeInTheDocument();
+  });
+
+  it("keeps billing terms aligned with implemented renewal controls", () => {
+    render(<TermsScreen go={vi.fn()} />);
+
+    expect(screen.getByText(/cancel renewal for an active subscription/i)).toBeInTheDocument();
+    expect(screen.getByText(/resume renewal from Pullwise Billing/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/lower-tier changes or yearly-to-monthly changes/i)
+    ).toBeInTheDocument();
   });
 
   it("exposes the contact address as the security report mail link", () => {

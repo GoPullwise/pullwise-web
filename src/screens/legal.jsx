@@ -7,7 +7,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const CONTACT_EMAIL = "contact@pull-wise.com";
 const SECURITY_EMAIL = CONTACT_EMAIL;
-const LAST_UPDATED = "2026-06-09";
+const LAST_UPDATED = "2026-06-29";
 const STATUS_REFRESH_MS = 30_000;
 
 function LegalChrome({ go, current, children, auth }) {
@@ -100,8 +100,8 @@ export function PrivacyScreen({ go, auth }) {
       sections={sections}
       title={T("Privacy Policy", "隐私政策")}
       subtitle={T(
-        "This Privacy Policy explains how Pullwise handles account, GitHub, billing, API, and scan data for its GitHub-connected code review service.",
-        "本隐私政策说明 Pullwise 如何在连接 GitHub 的代码审查服务中处理账户、GitHub、计费、API 和扫描数据。"
+        "This Privacy Policy explains how Pullwise handles account, GitHub, billing, API key, quota, repository preflight, scan, finding, and workflow data for its GitHub-connected code review service.",
+        "本隐私政策说明 Pullwise 如何在连接 GitHub 的代码审查服务中处理账户、GitHub、计费、API key、配额、仓库预检、扫描、发现和工作流数据。"
       )}
     >
       <Section id="scope" title={sections[0].title}>
@@ -121,24 +121,36 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="data" title={sections[1].title}>
         <p>
           {T(
-            "We collect the information needed to provide and operate Pullwise, including account identity, GitHub profile and installation metadata, authorized repository metadata, subscription and billing provider identifiers, API key metadata, scan records, issue findings, fix preview and pull request workflow records, and operational logs.",
-            "我们收集提供和运营 Pullwise 所需的信息，包括账户身份、GitHub 资料和安装元数据、已授权仓库元数据、订阅和支付提供方标识、API key 元数据、扫描记录、问题发现、修复预览和拉取请求流程记录，以及运行日志。"
+            "We collect the information needed to provide and operate Pullwise, including account identity, GitHub profile and installation metadata, authorized repository metadata, subscription and billing provider identifiers, API key metadata, quota buckets and ledger activity, scan records, repository preflight evidence, progress logs, issue findings, generated reports, fix preview and pull request workflow records, and operational logs.",
+            "我们收集提供和运营 Pullwise 所需的信息，包括账户身份、GitHub 资料和安装元数据、已授权仓库元数据、订阅和支付提供方标识、API key 元数据、配额 bucket 与 ledger 活动、扫描记录、仓库预检证据、进度日志、问题发现、生成报告、修复预览和拉取请求流程记录，以及运行日志。"
           )}
         </p>
         <LegalList
           items={[
-            T("Account data: email, session state, GitHub login, and linked GitHub identities.", "账户数据：邮箱、会话状态、GitHub 登录名和已关联的 GitHub 身份。"),
-            T("Repository data: repository id, full name, owner, default branch, visibility, GitHub App installation, permissions, and repository quota.", "仓库数据：仓库 id、完整名称、所有者、默认分支、可见性、GitHub App 安装、权限和仓库配额。"),
-            T("API data: API key name, key prefix, hashed key value, scopes, creation time, last used time, and revocation state. The full API key token is shown only once.", "API 数据：API key 名称、前缀、哈希后的 key 值、权限范围、创建时间、最近使用时间和吊销状态。完整 API key token 只显示一次。"),
-            T("Review data: scan id, branch, commit, status, phase, issue counts, structured findings, and fix or pull request workflow records when you use those features.", "审查数据：扫描 id、分支、commit、状态、阶段、问题计数、结构化发现，以及你使用修复或 pull request 功能时产生的流程记录。"),
+            T(
+              "Account data: email, session state, GitHub login, and linked GitHub identities.",
+              "账户数据：邮箱、会话状态、GitHub 登录名和已关联的 GitHub 身份。"
+            ),
+            T(
+              "Repository data: repository id, full name, owner, default branch, visibility, GitHub App installation, permissions, and repository quota.",
+              "仓库数据：仓库 id、完整名称、所有者、默认分支、可见性、GitHub App 安装、权限和仓库配额。"
+            ),
+            T(
+              "API data: API key name, key prefix, hashed key value, scopes, creation time, last used time, and revocation state. The full API key token is shown only once.",
+              "API 数据：API key 名称、前缀、哈希后的 key 值、权限范围、创建时间、最近使用时间和吊销状态。完整 API key token 只显示一次。"
+            ),
+            T(
+              "Review data: scan id, branch, commit, status, phase, progress logs, repository preflight evidence, issue and verification counts, structured findings, generated reports, audit bundle metadata, and fix or pull request workflow records when you use those features.",
+              "审查数据：扫描 id、分支、commit、状态、阶段、进度日志、仓库预检证据、问题和验证计数、结构化发现、生成报告、审计包元数据，以及你使用修复或 pull request 功能时产生的流程记录。"
+            ),
           ]}
         />
       </Section>
       <Section id="code" title={sections[2].title}>
         <p>
           {T(
-            "Repository contents are cloned by backend workers only for scans, audit evidence, or fix previews that you initiate. Source code is not stored in the browser, is not exposed to other Pullwise accounts, and is not used by Pullwise to train models.",
-            "仓库内容只会由后端 worker 为你主动发起的扫描、审计证据或修复预览进行克隆。源码不会存入浏览器，不会暴露给其他 Pullwise 账户，也不会被 Pullwise 用于训练模型。"
+            "Repository contents are cloned by backend workers only for repository preflight, scans, audit evidence, fix previews, or pull request workflows that you initiate. Source code is not stored in the browser, is not exposed to other Pullwise accounts, and is not used by Pullwise to train models.",
+            "仓库内容只会由后端 worker 为你主动发起的仓库预检、扫描、审计证据、修复预览或 pull request 工作流进行克隆。源码不会存入浏览器，不会暴露给其他 Pullwise 账户，也不会被 Pullwise 用于训练模型。"
           )}
         </p>
         <p>
@@ -151,8 +163,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="use" title={sections[3].title}>
         <p>
           {T(
-            "We use data to authenticate users, connect GitHub repositories, run scans, show findings, manage API keys, enforce quota and rate limits, process subscriptions, prevent abuse, maintain reliability, investigate errors, and respond to support requests.",
-            "我们使用数据来认证用户、连接 GitHub 仓库、运行扫描、展示发现、管理 API key、执行配额和限流、处理订阅、防止滥用、维护服务可靠性、排查错误并响应支持请求。"
+            "We use data to authenticate users, connect and manage GitHub repository access, run preflight checks and scans, show findings and reports, generate audit bundles, manage API keys, reserve and consume quota, enforce rate limits, process subscriptions and subscription changes, prevent abuse, maintain reliability, investigate errors, and respond to support requests.",
+            "我们使用数据来认证用户、连接和管理 GitHub 仓库访问、运行预检和扫描、展示发现和报告、生成审计包、管理 API key、预留和消耗配额、执行限流、处理订阅和订阅变更、防止滥用、维护服务可靠性、排查错误并响应支持请求。"
           )}
         </p>
         <p>
@@ -165,8 +177,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="sharing" title={sections[4].title}>
         <p>
           {T(
-            "Pullwise uses service providers only as needed to operate the product. These may include hosting and database infrastructure, GitHub, Creem payments when enabled, support systems, and configured review providers.",
-            "Pullwise 仅在运营产品所需范围内使用服务提供方。这些提供方可能包括托管和数据库基础设施、GitHub、启用时的 Creem 支付、支持系统，以及已配置的审查提供方。"
+            "Pullwise uses service providers only as needed to operate the product. These may include hosting and database infrastructure, GitHub for OAuth, GitHub App installation, repository access, and pull request workflows, Creem payments when enabled, support systems, and configured review providers.",
+            "Pullwise 仅在运营产品所需范围内使用服务提供方。这些提供方可能包括托管和数据库基础设施、用于 OAuth、GitHub App 安装、仓库访问和 pull request 工作流的 GitHub、启用时的 Creem 支付、支持系统，以及已配置的审查提供方。"
           )}
         </p>
         <p>
@@ -179,8 +191,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="retention" title={sections[5].title}>
         <p>
           {T(
-            "Account, GitHub authorization, API key metadata, billing metadata, and subscription records are kept while your account is active or while needed for service operation, security, tax, audit, or legal reasons. Scan findings and history may be retained so you can review past results.",
-            "账户、GitHub 授权、API key 元数据、计费元数据和订阅记录会在账户有效期间保留，或在服务运营、安全、税务、审计或法律需要期间保留。扫描发现和历史可能会被保留，以便你查看过去结果。"
+            "Account, GitHub authorization, API key metadata, billing metadata, subscription records, quota ledger activity, and operational logs are kept while your account is active or while needed for service operation, security, tax, audit, or legal reasons. Scan findings, generated reports, preflight evidence, audit bundle metadata, and history may be retained so you can review past results.",
+            "账户、GitHub 授权、API key 元数据、计费元数据、订阅记录、配额 ledger 活动和运行日志会在账户有效期间保留，或在服务运营、安全、税务、审计或法律需要期间保留。扫描发现、生成报告、预检证据、审计包元数据和历史可能会被保留，以便你查看过去结果。"
           )}
         </p>
         <p>
@@ -193,16 +205,16 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="rights" title={sections[6].title}>
         <p>
           {T(
-            `You can request access, export, correction, or deletion of your account data by contacting ${CONTACT_EMAIL}. You can also revoke API keys, disconnect GitHub access, cancel or resume renewal, and use supported subscription upgrades from Pullwise Billing where those controls are available.`,
-            `你可以通过 ${CONTACT_EMAIL} 请求访问、导出、更正或删除账户数据。你也可以在产品提供相应控件时吊销 API key、断开 GitHub 访问，并管理订阅。`
+            `You can request access, export, correction, or deletion of your account data by contacting ${CONTACT_EMAIL}. You can also revoke API keys, disconnect or manage GitHub access, cancel or resume renewal, and use supported subscription upgrades from Pullwise Billing where those controls are available.`,
+            `你可以通过 ${CONTACT_EMAIL} 请求访问、导出、更正或删除账户数据。你也可以在产品提供相应控件时吊销 API key、断开或管理 GitHub 访问、取消或恢复续订，并使用支持的订阅升级。`
           )}
         </p>
       </Section>
       <Section id="security" title={sections[7].title}>
         <p>
           {T(
-            "Pullwise uses backend-held secrets, scoped API keys, GitHub authorization checks, body-size limits, optional rate limiting, CORS controls, and server-side persistence. You remain responsible for protecting your GitHub account, Pullwise sessions, and API keys.",
-            "Pullwise 使用后端保存的密钥、带权限范围的 API key、GitHub 授权检查、body 大小限制、可选限流、CORS 控制和服务端持久化。你仍需负责保护自己的 GitHub 账户、Pullwise 会话和 API key。"
+            "Pullwise uses backend-held secrets, scoped API keys, GitHub authorization checks, branch and repository validation, body-size limits, optional database-backed rate limiting, CORS controls, and server-side persistence. You remain responsible for protecting your GitHub account, Pullwise sessions, and API keys.",
+            "Pullwise 使用后端保存的密钥、带权限范围的 API key、GitHub 授权检查、分支和仓库校验、body 大小限制、可选的数据库支持限流、CORS 控制和服务端持久化。你仍需负责保护自己的 GitHub 账户、Pullwise 会话和 API key。"
           )}
         </p>
       </Section>
@@ -256,14 +268,14 @@ export function TermsScreen({ go, auth }) {
       <Section id="service" title={sections[1].title}>
         <p>
           {T(
-            "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, queue scans, store scan history, generate structured findings, expose account-scoped REST API endpoints, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.",
-            "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、排队扫描、保存扫描历史、生成结构化发现、提供账户范围的 REST API 端点，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。"
+            "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, run repository preflight checks, queue, cancel, and retry scans, store scan history, generate structured findings and reports, expose account-scoped REST API endpoints, manage API keys, show live configuration and status docs, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.",
+            "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、运行仓库预检、排队、取消和重试扫描、保存扫描历史、生成结构化发现和报告、提供账户范围的 REST API 端点、管理 API key、展示实时配置和状态文档，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。"
           )}
         </p>
         <p>
           {T(
-            "Findings, summaries, proposed fixes, and generated pull request content are recommendations. You are responsible for reviewing the underlying code and deciding whether to rely on or merge any result.",
-            "发现、摘要、建议修复和生成的 pull request 内容均为建议。你需要负责审查底层代码，并决定是否依赖或合并任何结果。"
+            "Findings, summaries, generated reports, proposed fixes, and generated pull request content are recommendations. You are responsible for reviewing the underlying code and deciding whether to rely on or merge any result.",
+            "发现、摘要、生成报告、建议修复和生成的 pull request 内容均为建议。你需要负责审查底层代码，并决定是否依赖或合并任何结果。"
           )}
         </p>
       </Section>
@@ -284,14 +296,14 @@ export function TermsScreen({ go, auth }) {
       <Section id="api" title={sections[3].title}>
         <p>
           {T(
-            "Pullwise API keys are account-scoped credentials. They inherit the creator's authorized repositories and are limited by configured scopes such as repositories:read, scans:write, scans:read, and quota:read.",
-            "Pullwise API key 是账户范围的凭据。它们继承创建者已授权的仓库，并受 repositories:read、scans:write、scans:read、quota:read 等配置权限范围限制。"
+            "Pullwise API keys are account-scoped credentials. They inherit the creator's authorized repositories and are limited by configured scopes such as repositories:read, scans:write, scans:read, and quota:read. Public scan creation accepts only authorized repositories and validates requested branches and commit SHA values before queueing where applicable.",
+            "Pullwise API key 是账户范围的凭据。它们继承创建者已授权的仓库，并受 repositories:read、scans:write、scans:read、quota:read 等配置权限范围限制。公开扫描创建只接受已授权仓库，并会在适用时校验请求分支和 commit SHA 后再入队。"
           )}
         </p>
         <p>
           {T(
-            "You may not bypass rate limits, quota controls, authentication, authorization checks, or repository access restrictions. Pullwise may suspend or revoke API access that risks service stability or security.",
-            "你不得绕过限流、配额控制、认证、授权检查或仓库访问限制。对于影响服务稳定性或安全性的 API 访问，Pullwise 可以暂停或吊销。"
+            "You may not bypass rate limits, quota reservation or consumption controls, authentication, authorization checks, branch validation, or repository access restrictions. Pullwise may suspend or revoke API access that risks service stability or security.",
+            "你不得绕过限流、配额预留或消耗控制、认证、授权检查、分支校验或仓库访问限制。对于影响服务稳定性或安全性的 API 访问，Pullwise 可以暂停或吊销。"
           )}
         </p>
       </Section>
@@ -324,7 +336,7 @@ export function TermsScreen({ go, auth }) {
           {T(
             "You can cancel renewal for an active subscription from Pullwise Billing. Cancellation is scheduled for the end of the current paid period, so access continues until that period ends. You can resume renewal from Pullwise Billing before the scheduled cancellation takes effect. Unless required by law or explicitly stated in the product, fees already incurred are non-refundable.",
             {
-              zh: "你可以从 Pullwise 账单页取消有效订阅的续订。取消续订会安排在当前已付周期结束时生效，因此访问权限会持续到该周期结束。除非法律要求或产品中明确说明，已经产生的费用不予退款。",
+              zh: "你可以从 Pullwise 账单页取消有效订阅的续订。取消续订会安排在当前已付周期结束时生效，因此访问权限会持续到该周期结束。你可以在计划取消生效前从 Pullwise 账单页恢复续订。除非法律要求或产品中明确说明，已经产生的费用不予退款。",
               ja: "有効なサブスクリプションの更新キャンセルは Pullwise の請求ページから行えます。キャンセルは現在の支払い済み期間の終了時に予定されるため、その期間が終わるまでアクセスは継続します。法律で求められる場合、または製品内で明示される場合を除き、すでに発生した料金は返金されません。",
               ko: "활성 구독의 갱신 취소는 Pullwise 결제 페이지에서 할 수 있습니다. 갱신 취소는 현재 결제된 기간이 끝날 때 적용되도록 예약되므로, 해당 기간이 끝날 때까지 접근 권한은 유지됩니다. 법률상 요구되거나 제품에 명시된 경우를 제외하고 이미 발생한 요금은 환불되지 않습니다.",
               fr: "Vous pouvez annuler le renouvellement d'un abonnement actif depuis la page de facturation Pullwise. L'annulation est planifiée pour la fin de la période payée en cours ; l'accès continue donc jusqu'à la fin de cette période. Sauf obligation légale ou mention explicite dans le produit, les frais déjà engagés ne sont pas remboursables.",
@@ -344,8 +356,8 @@ export function TermsScreen({ go, auth }) {
       <Section id="content" title={sections[6].title}>
         <p>
           {T(
-            "You retain ownership of your repository code and other customer content. You grant Pullwise the limited rights needed to host, clone, process, analyze, display, and transmit that content only to provide, secure, support, and improve the service.",
-            "你保留对仓库代码和其他客户内容的所有权。你授予 Pullwise 为提供、保护、支持和改进服务所必需的有限权利，以托管、克隆、处理、分析、展示和传输这些内容。"
+            "You retain ownership of your repository code and other customer content. You grant Pullwise the limited rights needed to host, clone, preflight, process, analyze, display, transmit, and generate review artifacts from that content only to provide, secure, support, and improve the service.",
+            "你保留对仓库代码和其他客户内容的所有权。你授予 Pullwise 为提供、保护、支持和改进服务所必需的有限权利，以托管、克隆、预检、处理、分析、展示、传输这些内容，并基于这些内容生成审查产物。"
           )}
         </p>
         <p>
