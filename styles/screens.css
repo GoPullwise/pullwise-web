@@ -5221,6 +5221,20 @@ button.dash-cat-row:hover {
   min-width: 0;
   max-width: none;
 }
+.docs-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.docs-page-head .docs-h1 {
+  margin-bottom: 0;
+}
+.docs-page-head .btn {
+  flex: 0 0 auto;
+  margin-top: 4px;
+}
 .docs-crumbs {
   display: flex;
   align-items: center;
@@ -7278,6 +7292,7 @@ button.dash-cat-row:hover {
 .docs-config-grid,
 .docs-config-group,
 .docs-config-row,
+.docs-page-head,
 .legal-table-r,
 .notfound-suggest-i {
   min-width: 0;
@@ -7325,6 +7340,7 @@ button.dash-cat-row:hover {
 .bill-card,
 .billing-summary,
 .docs-code-h,
+.docs-page-head,
 .docs-foot,
 .notfound-foot {
   min-width: 0;

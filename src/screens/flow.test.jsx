@@ -1537,6 +1537,38 @@ describe("ScanningScreen queue state", () => {
     }
   });
 
+  it("shows failed scan progress as stopped before completion", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_failed",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "failed",
+        phase: "report",
+        progress: 100,
+        progressMessage: "Uploading failed result",
+        logsSummary: "GraphVerified completion gate failed.",
+      },
+      error: "",
+      retry: vi.fn(),
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const progress = screen.getByRole("progressbar", { name: /progress before failure/i });
+    expect(progress).toHaveAttribute("aria-valuenow", "94");
+    expect(progress).toHaveAttribute("aria-valuetext", "Scan failed at 94%");
+    expect(screen.getByText("Failed at 94%")).toBeInTheDocument();
+    expect(screen.queryByText("100%")).not.toBeInTheDocument();
+  });
+
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
     const logTimestamp = 1700000000;
     const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] GraphVerified review - Graph: mapping shards 12/80`;

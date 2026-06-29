@@ -327,6 +327,7 @@ body.has-proto-nav {
   .docs-shell,
   .docs-main,
   .docs-state,
+  .docs-page-head,
   .docs-plan-grid,
   .docs-plan-card,
   .docs-plan-card-h,
@@ -1516,6 +1517,11 @@ body.has-proto-nav {
 .docs-foot {
   flex-wrap: wrap;
   align-items: center;
+}
+
+.docs-page-head {
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .pop {

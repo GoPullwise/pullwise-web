@@ -1,4 +1,5 @@
 import { useEffect, useReducer } from "react";
+import { DYNAMIC_PHRASE_TRANSLATIONS, EXTRA_PHRASE_TRANSLATIONS } from "./i18n-extra.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
 
 // i18n: tiny inline translations.
@@ -1788,6 +1789,21 @@ function normalizeLang(nextLang) {
 
 let lang = normalizeLang(localStorageGet("pw-lang", "en"));
 
+function interpolateDynamicTranslation(template, match, targetLang) {
+  if (typeof template === "function") return template(match, targetLang);
+  return String(template).replace(/\$(\d+)/g, (_, index) => match[Number(index)] ?? "");
+}
+
+function dynamicPhraseTranslation(en, targetLang) {
+  for (const rule of DYNAMIC_PHRASE_TRANSLATIONS) {
+    const match = String(en).match(rule.match);
+    if (!match) continue;
+    const template = rule.translations?.[targetLang];
+    return template ? interpolateDynamicTranslation(template, match, targetLang) : "";
+  }
+  return "";
+}
+
 export function setLang(nextLang) {
   lang = normalizeLang(nextLang);
   localStorageSet("pw-lang", lang);
@@ -1797,15 +1813,18 @@ export function setLang(nextLang) {
 export function T(en, translations) {
   if (lang === "en") return en;
 
+  const phraseTranslations = EXTRA_PHRASE_TRANSLATIONS[en] || PHRASE_TRANSLATIONS[en];
+  const dynamicTranslation = dynamicPhraseTranslation(en, lang);
+
   if (translations && typeof translations === "object" && !Array.isArray(translations)) {
-    return translations[lang] || translations.en || PHRASE_TRANSLATIONS[en]?.[lang] || en;
+    return translations[lang] || translations.en || phraseTranslations?.[lang] || dynamicTranslation || en;
   }
 
   if (lang === "zh" && translations) {
-    return translations === en ? PHRASE_TRANSLATIONS[en]?.zh || translations : translations;
+    return translations === en ? phraseTranslations?.zh || dynamicTranslation || translations : translations;
   }
 
-  return PHRASE_TRANSLATIONS[en]?.[lang] || en;
+  return phraseTranslations?.[lang] || dynamicTranslation || en;
 }
 
 export function useLang() {

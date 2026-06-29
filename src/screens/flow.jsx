@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
-import { ScanProgressBar } from "../components/scan-progress.jsx";
+import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -1490,12 +1490,26 @@ export function ReposScreen({
                           <span>{repo.fullName || repo.name}</span>
                           {repo.private && (
                             <span className="tag">
-                              <I.Lock size={10} /> private
+                              <I.Lock size={10} />{" "}
+                              {T("private", {
+                                zh: "私有",
+                                ja: "プライベート",
+                                ko: "비공개",
+                                fr: "privé",
+                                es: "privado",
+                              })}
                             </span>
                           )}
                           {repo.fork && (
                             <span className="tag">
-                              <I.GitBranch size={10} /> fork
+                              <I.GitBranch size={10} />{" "}
+                              {T("fork", {
+                                zh: "派生",
+                                ja: "フォーク",
+                                ko: "포크",
+                                fr: "fork",
+                                es: "fork",
+                              })}
                             </span>
                           )}
                         </div>
@@ -1942,6 +1956,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const batchSummary = batchMode
     ? batchCreationSummary(batchRows, scans, expectedBatchCount)
     : null;
+  const scanProgress = !batchMode && scan ? scanProgressPresentation(scan) : null;
 
   const handleCancel = async () => {
     if (canCancel) await cancel();
@@ -2119,10 +2134,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
             {!detailLoading && !batchMode && scan && (
               <ScanProgressBar
                 className="scanning-progress"
-                progress={scan.progress}
-                label={T("Scan progress", "扫描进度")}
+                progress={scanProgress.progress}
+                label={scanProgress.label}
                 message={scanProgressMessage}
                 meta={scanProgressLogsSummary}
+                valueLabel={scanProgress.valueLabel}
+                ariaValueText={scanProgress.ariaValueText}
               />
             )}
             {error && (

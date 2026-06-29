@@ -3,7 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { GraphVerifiedEvidenceGraph, GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
-import { ScanProgressBar } from "../components/scan-progress.jsx";
+import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
@@ -368,9 +368,24 @@ function ReproductionCenter({ issue }) {
       )}
       {(reproduction.testFile || reproduction.logPath || reproduction.exitCode) && (
         <div className="repro-tags">
-          {reproduction.testFile && <span className="tag">test: {reproduction.testFile}</span>}
-          {reproduction.logPath && <span className="tag">log: {reproduction.logPath}</span>}
-          {reproduction.exitCode !== undefined && <span className="tag">exit: {reproduction.exitCode}</span>}
+          {reproduction.testFile && (
+            <span className="tag">
+              {T("test:", { zh: "测试：", ja: "テスト:", ko: "테스트:", fr: "test :", es: "prueba:" })}{" "}
+              {reproduction.testFile}
+            </span>
+          )}
+          {reproduction.logPath && (
+            <span className="tag">
+              {T("log:", { zh: "日志：", ja: "ログ:", ko: "로그:", fr: "journal :", es: "registro:" })}{" "}
+              {reproduction.logPath}
+            </span>
+          )}
+          {reproduction.exitCode !== undefined && (
+            <span className="tag">
+              {T("exit:", { zh: "退出码：", ja: "終了:", ko: "종료:", fr: "sortie :", es: "salida:" })}{" "}
+              {reproduction.exitCode}
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -1516,6 +1531,7 @@ function ScanRow({
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
   const showProgress = status === "queued" || status === "running";
+  const progressDisplay = showProgress ? scanProgressPresentation(scan, { label: T("Progress", "进度") }) : null;
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -1624,9 +1640,11 @@ function ScanRow({
           <ScanProgressBar
             compact
             className="scan-row-progress"
-            progress={scan.progress}
-            label={T("Progress", "进度")}
+            progress={progressDisplay.progress}
+            label={progressDisplay.label}
             message={scan.progressMessage}
+            valueLabel={progressDisplay.valueLabel}
+            ariaValueText={progressDisplay.ariaValueText}
           />
         )}
       </div>

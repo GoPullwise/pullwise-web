@@ -776,7 +776,7 @@ export function DocsScreen({ go, auth }) {
       <div className="docs-shell">
         <aside className="docs-side">
           <div className="docs-side-g">
-            <div className="docs-side-h">Docs</div>
+            <div className="docs-side-h">{T("Docs", "文档")}</div>
             {nav.map(([id, label]) => (
               <a key={id} className="docs-side-i" href={`#${id}`}>
                 {label}
@@ -791,10 +791,16 @@ export function DocsScreen({ go, auth }) {
               Pullwise
             </a>
             <span className="sep">/</span>
-            <span className="now">Docs</span>
+            <span className="now">{T("Docs", "文档")}</span>
           </div>
           <h1 id="plans" className="docs-h1">
-            Pullwise Docs
+            {T("Pullwise Docs", {
+              zh: "Pullwise 文档",
+              ja: "Pullwise ドキュメント",
+              ko: "Pullwise 문서",
+              fr: "Docs Pullwise",
+              es: "Docs de Pullwise",
+            })}
           </h1>
           <p className="docs-lede">
             {T(

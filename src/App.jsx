@@ -213,7 +213,15 @@ function PrototypeNav({ go, current }) {
   return (
     <div className="proto-nav">
       <div className="proto-nav-l">
-        <span className="proto-nav-brand">PR · Prototype</span>
+        <span className="proto-nav-brand">
+          {T("PR · Prototype", {
+            zh: "PR · 原型",
+            ja: "PR · プロトタイプ",
+            ko: "PR · 프로토타입",
+            fr: "PR · Prototype",
+            es: "PR · Prototipo",
+          })}
+        </span>
       </div>
       <div className="proto-nav-screens">
         {screens.map((s, i) => (

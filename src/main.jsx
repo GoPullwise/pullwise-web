@@ -5,6 +5,7 @@ import "../styles/base.css";
 import "../styles/screens.css";
 import "./app.css";
 import { App } from "./App.jsx";
+import { T } from "./i18n.jsx";
 import { isInstallPopupReturn, notifyOpenerAndClose } from "./lib/install-popup.js";
 
 const root = createRoot(document.getElementById("root"));
@@ -35,9 +36,23 @@ function InstallPopupReturn() {
       }}
     >
       <div>
-        <p style={{ fontSize: 15, margin: 0 }}>GitHub installation complete · GitHub 安装完成</p>
+        <p style={{ fontSize: 15, margin: 0 }}>
+          {T("GitHub installation complete", {
+            zh: "GitHub 安装完成",
+            ja: "GitHub インストールが完了しました",
+            ko: "GitHub 설치 완료",
+            fr: "Installation GitHub terminée",
+            es: "Instalación de GitHub completada",
+          })}
+        </p>
         <p style={{ fontSize: 13, marginTop: 8, color: "#6b7280" }}>
-          You can close this window. 你可以关闭此窗口。
+          {T("You can close this window.", {
+            zh: "你可以关闭此窗口。",
+            ja: "このウィンドウを閉じてかまいません。",
+            ko: "이 창을 닫아도 됩니다.",
+            fr: "Vous pouvez fermer cette fenêtre.",
+            es: "Puedes cerrar esta ventana.",
+          })}
         </p>
       </div>
     </div>

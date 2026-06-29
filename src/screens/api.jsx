@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
@@ -103,6 +103,123 @@ function createdApiKeyToken(payload) {
   );
 }
 
+function copyText(value) {
+  const clipboard = globalThis.navigator?.clipboard;
+  if (!value || !clipboard?.writeText) return Promise.resolve(false);
+  return clipboard
+    .writeText(value)
+    .then(() => true)
+    .catch(() => false);
+}
+
+function markdownText(value) {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function markdownTableCell(value) {
+  return markdownText(value).replaceAll("|", "\\|");
+}
+
+function appendMarkdownBlock(lines, value) {
+  const text = markdownText(value);
+  if (text) lines.push(text);
+}
+
+function appendApiDocsMarkdownElement(lines, element) {
+  if (element.matches("[data-copy-exclude], .docs-crumbs")) return;
+
+  if (element.classList.contains("docs-page-head")) {
+    const heading = element.querySelector(".docs-h1");
+    if (heading) appendApiDocsMarkdownElement(lines, heading);
+    return;
+  }
+
+  if (element.classList.contains("docs-callout")) {
+    const title = markdownText(element.querySelector("b")?.textContent);
+    const body = markdownText(element.querySelector("p")?.textContent);
+    if (title || body) {
+      lines.push(
+        [title ? `> **${title}**` : "", body ? `> ${body}` : ""].filter(Boolean).join("\n")
+      );
+    }
+    return;
+  }
+
+  if (element.classList.contains("docs-code")) {
+    const title = markdownText(element.querySelector(".docs-code-h span")?.textContent);
+    const code = String(element.querySelector("pre")?.textContent ?? "").replace(/\n+$/g, "");
+    if (title) lines.push(`### ${title}`);
+    if (code) lines.push(`\`\`\`\n${code}\n\`\`\``);
+    return;
+  }
+
+  if (element.classList.contains("docs-endpoint-list")) {
+    Array.from(element.querySelectorAll(".docs-endpoint-card")).forEach((card) => {
+      const method = markdownText(card.querySelector(".docs-method")?.textContent);
+      const path = markdownText(card.querySelector("code")?.textContent);
+      const description = markdownText(card.querySelector("p")?.textContent);
+      const scope = markdownText(card.querySelector(".docs-scope")?.textContent);
+      const endpointLines = [
+        method || path ? `### ${[method, path].filter(Boolean).join(" ")}` : "",
+        description,
+        scope,
+      ].filter(Boolean);
+      if (endpointLines.length) lines.push(endpointLines.join("\n\n"));
+    });
+    return;
+  }
+
+  if (element.classList.contains("docs-table")) {
+    const rows = Array.from(element.querySelectorAll(".docs-table-r"))
+      .map((row) => [
+        markdownTableCell(row.querySelector("b")?.textContent),
+        markdownTableCell(row.querySelector("span")?.textContent),
+      ])
+      .filter(([code, text]) => code || text);
+    if (rows.length) {
+      lines.push(
+        [
+          "| Code | Description |",
+          "| --- | --- |",
+          ...rows.map((row) => `| ${row[0]} | ${row[1]} |`),
+        ].join("\n")
+      );
+    }
+    return;
+  }
+
+  if (element.classList.contains("docs-foot")) {
+    appendMarkdownBlock(lines, element.querySelector(".muted")?.textContent);
+    return;
+  }
+
+  const tag = element.tagName.toLowerCase();
+  if (tag === "h1") {
+    appendMarkdownBlock(lines, `# ${element.textContent}`);
+    return;
+  }
+  if (tag === "h2") {
+    appendMarkdownBlock(lines, `## ${element.textContent}`);
+    return;
+  }
+  if (tag === "p") {
+    appendMarkdownBlock(lines, element.textContent);
+  }
+}
+
+function buildApiDocsMarkdownFromElement(root) {
+  if (!root) return "";
+  const lines = [];
+  Array.from(root.children).forEach((element) => appendApiDocsMarkdownElement(lines, element));
+  const markdown = lines
+    .join("\n\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return markdown ? `${markdown}\n` : "";
+}
+
 function DocsCode({ title, children }) {
   return (
     <div className="docs-code">
@@ -121,6 +238,9 @@ const CONTACT_EMAIL = "contact@pull-wise.com";
 
 export function ApiDocsScreen({ go, auth }) {
   useLang();
+  const [pageCopied, setPageCopied] = useState(false);
+  const docsMainRef = useRef(null);
+  const pageCopyResetRef = useRef(null);
   const endpoints = [
     {
       method: "GET",
@@ -178,6 +298,24 @@ export function ApiDocsScreen({ go, auth }) {
     ["errors", T("Errors", "错误")],
   ];
 
+  useEffect(
+    () => () => {
+      if (pageCopyResetRef.current) clearTimeout(pageCopyResetRef.current);
+    },
+    []
+  );
+
+  const copyPage = async () => {
+    const copied = await copyText(buildApiDocsMarkdownFromElement(docsMainRef.current));
+    if (!copied) return;
+    setPageCopied(true);
+    if (pageCopyResetRef.current) clearTimeout(pageCopyResetRef.current);
+    pageCopyResetRef.current = setTimeout(() => {
+      setPageCopied(false);
+      pageCopyResetRef.current = null;
+    }, 2000);
+  };
+
   return (
     <div className="landing fade-in">
       <PublicHeader go={go} current="api" auth={auth} />
@@ -193,7 +331,7 @@ export function ApiDocsScreen({ go, auth }) {
           </div>
         </aside>
 
-        <main className="docs-main">
+        <main className="docs-main" ref={docsMainRef}>
           <div className="docs-crumbs">
             <a className="auth-link" {...screenLinkProps(go, "landing")}>
               Pullwise
@@ -201,9 +339,21 @@ export function ApiDocsScreen({ go, auth }) {
             <span className="sep">/</span>
             <span className="now">API</span>
           </div>
-          <h1 id="overview" className="docs-h1">
-            Pullwise REST API
-          </h1>
+          <div className="docs-page-head">
+            <h1 id="overview" className="docs-h1">
+              {T("Pullwise REST API", "Pullwise REST API")}
+            </h1>
+            <button
+              className="btn sm"
+              type="button"
+              onClick={copyPage}
+              aria-live="polite"
+              data-copy-exclude
+            >
+              {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
+              {pageCopied ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
+            </button>
+          </div>
           <p className="docs-lede">
             {T(
               "Automate GitHub repository review from CI, internal tools, or scripts. The public REST API is served from https://api.pull-wise.com and exposes account-scoped repository listing, scan control, scan status, and quota checks.",

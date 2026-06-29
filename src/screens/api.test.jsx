@@ -53,6 +53,45 @@ describe("API screens", () => {
     expect(screen.getByText("/api/v1/repositories/{repoId}/quota")).toBeInTheDocument();
   });
 
+  it("copies the rendered API docs page as markdown", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    try {
+      render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+      await user.click(screen.getByRole("button", { name: /copy page/i }));
+
+      await waitFor(() => {
+        expect(writeText).toHaveBeenCalledTimes(1);
+      });
+      const markdown = writeText.mock.calls[0][0];
+      expect(markdown).toContain("# Pullwise REST API");
+      expect(markdown).toContain("## Authentication");
+      expect(markdown).toContain("### Base URL");
+      expect(markdown).toContain("```");
+      expect(markdown).toContain("### GET /api/v1/repositories");
+      expect(markdown).toContain("| Code | Description |");
+      expect(markdown).toContain("API routes are versioned under /api/v1.");
+      expect(markdown).not.toContain("Copy Page");
+      expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
+    } finally {
+      if (originalClipboard) {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
+      } else {
+        delete navigator.clipboard;
+      }
+    }
+  });
+
   it("renders endpoint docs as scannable cards instead of a compressed table", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 

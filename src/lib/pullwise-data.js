@@ -366,6 +366,18 @@ function normalizeProgress(value) {
   return Math.min(100, Math.max(0, progress));
 }
 
+const INCOMPLETE_TERMINAL_SCAN_PROGRESS_MAX = 94;
+const INCOMPLETE_TERMINAL_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
+
+function normalizeScanProgressForStatus(status, value) {
+  const progress = normalizeProgress(value);
+  if (status === "done") return 100;
+  if (INCOMPLETE_TERMINAL_SCAN_STATUSES.has(status)) {
+    return Math.min(progress, INCOMPLETE_TERMINAL_SCAN_PROGRESS_MAX);
+  }
+  return progress;
+}
+
 function normalizeBoolean(value) {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
@@ -1044,6 +1056,7 @@ export function normalizeIssue(issue = {}) {
 
 export function normalizeScan(scan = {}) {
   scan = scan || {};
+  const status = normalizeScanStatus(scan.status);
   const billingUsage = normalizeQuotaUsage(scan.billingUsage);
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
@@ -1053,7 +1066,7 @@ export function normalizeScan(scan = {}) {
     repo: textValue(scan.repo),
     branch: textValue(scan.branch) || "main",
     commit: textValue(scan.commit) || "-",
-    status: normalizeScanStatus(scan.status),
+    status,
     phase: textValue(scan.phase),
     createdAt: scan.createdAt,
     startedAt: normalizeTimestamp(scan.startedAt ?? scan.started_at) ?? scan.startedAt,
@@ -1061,7 +1074,7 @@ export function normalizeScan(scan = {}) {
     updatedAt: normalizeTimestamp(scan.updatedAt ?? scan.updated_at) ?? scan.updatedAt,
     time: textValue(scan.time) || formatTime(scan.createdAt),
     by: textValue(scan.by) || "you",
-    progress: normalizeProgress(scan.progress),
+    progress: normalizeScanProgressForStatus(status, scan.progress),
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),

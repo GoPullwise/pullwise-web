@@ -1511,6 +1511,9 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_low", progress: -12 }).progress).toBe(0);
     expect(normalizeScan({ id: "sc_high", progress: 140 }).progress).toBe(100);
     expect(normalizeScan({ id: "sc_ok", progress: "42.5" }).progress).toBe(42.5);
+    expect(normalizeScan({ id: "sc_done", status: "done", progress: 80 }).progress).toBe(100);
+    expect(normalizeScan({ id: "sc_failed", status: "failed", progress: 100 }).progress).toBe(94);
+    expect(normalizeScan({ id: "sc_cancelled", status: "cancelled", progress: 99 }).progress).toBe(94);
   });
 
   it("preserves scan phase and queue metadata for active scan rendering", () => {

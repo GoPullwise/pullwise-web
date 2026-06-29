@@ -19,7 +19,7 @@ import {
   countBy,
 } from "../components/distribution-primitives.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
-import { ScanProgressBar } from "../components/scan-progress.jsx";
+import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function Sparkline({ data, color, height = 28 }) {
@@ -465,7 +465,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const canRetryLatestScan = Boolean(
     latestScan?.id && RETRYABLE_SCAN_STATUSES.has(String(latestScan.status || "").toLowerCase())
   );
-  const activeScanProgress = activeScan ? Math.round(Number(activeScan.progress || 0)) : 0;
+  const activeScanProgress = activeScan
+    ? scanProgressPresentation(activeScan, { label: scanPhaseLabel(activeScan) })
+    : null;
   const activeScanMessage = activeScanProgressMessage(activeScan);
   const hotspots = useMemo(() => issueRiskHotspots(openIssues), [openIssues]);
 
@@ -657,10 +659,12 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   </div>
                   <ScanProgressBar
                     className="active-scan-progress-main"
-                    progress={activeScanProgress}
-                    label={scanPhaseLabel(activeScan)}
+                    progress={activeScanProgress.progress}
+                    label={activeScanProgress.label}
                     message={activeScanMessage}
                     meta={activeScan.logsSummary}
+                    valueLabel={activeScanProgress.valueLabel}
+                    ariaValueText={activeScanProgress.ariaValueText}
                   />
                 </section>
               )}
