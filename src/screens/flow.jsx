@@ -320,10 +320,35 @@ function scanCreatePayloadFromInput({
   return payload;
 }
 
+const BATCH_SCAN_CREATE_CONCURRENCY = 3;
+const BRANCH_LOOKUP_CONCURRENCY = 4;
+
+async function allSettledWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(Number(concurrency) || 1, items.length || 1));
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        try {
+          results[index] = { status: "fulfilled", value: await worker(items[index], index) };
+        } catch (reason) {
+          results[index] = { status: "rejected", reason };
+        }
+      }
+    })
+  );
+  return results;
+}
+
 async function createBatchScans(scanInputs) {
   const requests = scanInputs.filter((request) => request.repo || request.repoId);
-  const results = await Promise.allSettled(
-    requests.map((request) => pullwiseApi.scans.create(scanCreatePayloadFromInput(request)))
+  const results = await allSettledWithConcurrency(
+    requests,
+    BATCH_SCAN_CREATE_CONCURRENCY,
+    (request) => pullwiseApi.scans.create(scanCreatePayloadFromInput(request))
   );
   const created = results.filter((result) => result.status === "fulfilled").length;
   const failed = results.find((result) => result.status === "rejected");
@@ -903,10 +928,15 @@ export function ReposScreen({
 
   const resolveBranchesForRepos = useCallback(
     async (reposToResolve) => {
-      const branchStates = await Promise.all(reposToResolve.map((repo) => loadRepoBranches(repo)));
+      const branchResults = await allSettledWithConcurrency(
+        reposToResolve,
+        BRANCH_LOOKUP_CONCURRENCY,
+        (repo) => loadRepoBranches(repo)
+      );
       return reposToResolve.map((repo, index) => {
         const key = repoBranchKey(repo);
-        const loaded = branchStates[index];
+        const result = branchResults[index];
+        const loaded = result?.status === "fulfilled" ? result.value : null;
         const selectedBranch = selectedBranches[key];
         const selectedBranchIsAvailable =
           selectedBranch && (!loaded?.branches?.length || loaded.branches.includes(selectedBranch));

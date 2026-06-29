@@ -1230,7 +1230,7 @@ function pageMeta(payload, fallbackLimit) {
   };
 }
 
-function listParams({ limit, offset, status, severity, q, scanId, repo } = {}) {
+function listParams({ limit, offset, status, severity, q, scanId, repo, sort } = {}) {
   const params = {};
   if (limit) params.limit = limit;
   if (offset) params.offset = offset;
@@ -1239,6 +1239,7 @@ function listParams({ limit, offset, status, severity, q, scanId, repo } = {}) {
   if (q) params.q = q;
   if (scanId) params.scanId = scanId;
   if (repo) params.repo = repo;
+  if (sort) params.sort = sort;
   return params;
 }
 
@@ -1255,11 +1256,12 @@ export function useIssues({
   severity = "",
   q = "",
   scanId = "",
+  sort = "",
   refreshOnChange = true,
 } = {}) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
-  const cacheKey = stableCacheKey("issues", { limit, status, severity, q, scanId });
+  const cacheKey = stableCacheKey("issues", { limit, status, severity, q, scanId, sort });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
     items: [],
@@ -1284,7 +1286,7 @@ export function useIssues({
         error: "",
       }));
       try {
-        const params = listParams({ limit, offset, status, severity, q, scanId });
+        const params = listParams({ limit, offset, status, severity, q, scanId, sort });
         const payload = await dedupedDataRequest(
           stableCacheKey("issues-request", params),
           (signal) => pullwiseApi.issues.list(params, { signal }),
@@ -1319,7 +1321,7 @@ export function useIssues({
         if (abortRef.current === controller) abortRef.current = null;
       }
     },
-    [cacheKey, limit, status, severity, q, scanId]
+    [cacheKey, limit, status, severity, q, scanId, sort]
   );
 
   useEffect(() => {
@@ -1462,15 +1464,71 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
   }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
-    if (!hasActiveScans) return undefined;
+    const activeIds = state.items
+      .filter(isActiveScan)
+      .map((scan) => scan.id)
+      .filter(Boolean);
+    if (!activeIds.length) return undefined;
     if (pageIsHidden()) {
-      return onVisible(() => load({ quiet: true }));
+      return onVisible(() => setPollRetryTick((tick) => tick + 1));
     }
+    let alive = true;
+    const controller = makeAbortController();
     const handle = setTimeout(() => {
-      load({ quiet: true });
+      const requestKey = stableCacheKey("scans-status-request", { ids: activeIds.join(",") });
+      dedupedDataRequest(
+        requestKey,
+        async (signal) => {
+          try {
+            return await pullwiseApi.scans.status(activeIds, { signal });
+          } catch (error) {
+            if (!bulkScanStatusUnavailable(error)) throw error;
+            return Promise.all(
+              activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal }))
+            );
+          }
+        },
+        controller?.signal
+      )
+        .then((payload) => {
+          if (!alive) return;
+          const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
+          const byId = new Map(
+            updates
+              .map(normalizeScan)
+              .filter((scan) => scan.id)
+              .map((scan) => [scan.id, scan])
+          );
+          if (!byId.size) return;
+          setState((current) => {
+            const nextItems = current.items
+              .map((scan) => byId.get(scan.id) || scan)
+              .filter((scan) => !status || status === "all" || scan.status === status);
+            const nextState = {
+              ...current,
+              items: nextItems,
+              error: "",
+              meta: current.meta,
+            };
+            rememberListState(cacheKey, nextState);
+            return nextState;
+          });
+        })
+        .catch((error) => {
+          if (isAbortError(error) || !alive) return;
+          setState((current) => ({
+            ...current,
+            error: error?.message || "Unable to refresh scan status.",
+          }));
+          setPollRetryTick((tick) => tick + 1);
+        });
     }, pollIntervalMs);
-    return () => clearTimeout(handle);
-  }, [hasActiveScans, state.items, load, pollIntervalMs, pollRetryTick]);
+    return () => {
+      alive = false;
+      controller?.abort();
+      clearTimeout(handle);
+    };
+  }, [hasActiveScans, state.items, cacheKey, status, pollIntervalMs, pollRetryTick]);
 
   const loadMore = useCallback(() => {
     if (!state.meta.hasMore || state.loadingMore) return;
@@ -1645,7 +1703,16 @@ export function useScanRun({
     const controller = makeAbortController();
     const handle = setTimeout(async () => {
       try {
-        const next = await pullwiseApi.scans.get(scan.id, { signal: controller?.signal });
+        let payload;
+        try {
+          payload = await pullwiseApi.scans.status([scan.id], { signal: controller?.signal });
+        } catch (err) {
+          if (!bulkScanStatusUnavailable(err)) throw err;
+          payload = await pullwiseApi.scans.get(scan.id, { signal: controller?.signal });
+        }
+        const next = Array.isArray(payload)
+          ? payload[0]
+          : itemsFrom(payload, "items", "scans")[0] || payload;
         if (alive) {
           setScan(normalizeScan(next));
           clearRunError(["load", "poll"]);
@@ -1743,6 +1810,28 @@ function normalizeScanRequest(request) {
   };
 }
 
+const BATCH_SCAN_CREATE_CONCURRENCY = 3;
+
+async function allSettledWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(Number(concurrency) || 1, items.length || 1));
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        try {
+          results[index] = { status: "fulfilled", value: await worker(items[index], index) };
+        } catch (reason) {
+          results[index] = { status: "rejected", reason };
+        }
+      }
+    })
+  );
+  return results;
+}
+
 export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {}) {
   const [scans, setScans] = useState([]);
   const [batchResults, setBatchResults] = useState([]);
@@ -1796,8 +1885,8 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     );
     clearRunError();
 
-    Promise.allSettled(
-      nextRequests.map((request) => pullwiseApi.scans.create(scanCreatePayload(request)))
+    allSettledWithConcurrency(nextRequests, BATCH_SCAN_CREATE_CONCURRENCY, (request) =>
+      pullwiseApi.scans.create(scanCreatePayload(request))
     ).then((results) => {
       if (!alive) return;
       const createdScans = results

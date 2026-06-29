@@ -666,7 +666,15 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
     reload,
     loadMore,
     meta = {},
-  } = useIssues({ status, severity: sev, q: query, scanId, limit: 50, refreshOnChange: false });
+  } = useIssues({
+    status,
+    severity: sev,
+    q: query,
+    scanId,
+    sort: sortBy,
+    limit: 50,
+    refreshOnChange: false,
+  });
   const localIssues = Object.values(localIssueUpdates);
   const serverIssueKeys = new Set(all.map(issueRowKey));
   const issuesWithLocalStatus = [

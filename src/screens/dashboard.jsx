@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -397,13 +397,12 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const {
     items: issues,
     loading: issuesLoading,
-    loadingMore: issuesLoadingMore,
     error: issuesError,
     meta: issuesMeta = {},
-    loadMore: loadMoreIssues,
   } = useIssues({
     status: "open",
     limit: 50,
+    sort: "severity",
   });
   const {
     items: scans,
@@ -423,10 +422,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const openIssueTotal = Number.isFinite(Number(issuesMeta.total))
     ? Number(issuesMeta.total)
     : openIssues.length;
-  useEffect(() => {
-    if (issuesError || issuesLoading || issuesLoadingMore || !issuesMeta.hasMore) return;
-    if (typeof loadMoreIssues === "function") loadMoreIssues();
-  }, [issuesError, issuesLoading, issuesLoadingMore, issuesMeta.hasMore, loadMoreIssues]);
   const counts = issueCounts(openIssues);
   const verificationCounts = useMemo(
     () =>
@@ -492,9 +487,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
     ? Number(repositoriesMeta.total)
     : repositories.length;
 
-  const issuesAnalyticsLoading =
-    issuesLoading || issuesLoadingMore || (!issuesError && Boolean(issuesMeta.hasMore));
-  const dashboardLoading = issuesAnalyticsLoading || scansLoading || reposLoading;
+  const dashboardLoading = issuesLoading || scansLoading || reposLoading;
 
   const retryLatestScan = async () => {
     if (!canRetryLatestScan || retryingScanId) return;
