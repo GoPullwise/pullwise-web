@@ -638,6 +638,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   const [sortBy, setSortBy] = useState("severity");
   const [statusUpdating, setStatusUpdating] = useState({});
   const [bulkStatusLoading, setBulkStatusLoading] = useState("");
+  const [statusActionError, setStatusActionError] = useState("");
   const [localIssueUpdates, setLocalIssueUpdates] = useState({});
   const statusUpdatingRef = useRef(new Set());
   const query = q.trim();
@@ -666,6 +667,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
     if (statusUpdatingRef.current.has(rowKey)) return;
     statusUpdatingRef.current.add(rowKey);
     setStatusUpdating((current) => ({ ...current, [rowKey]: true }));
+    setStatusActionError("");
     try {
       const updated = await pullwiseApi.issues.updateStatus(issue.id, {
         status: nextStatus,
@@ -676,6 +678,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       setLocalIssueUpdates((current) => ({ ...current, [rowKey]: updatedIssue }));
       await reload();
       notifyIssuesChanged({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
+    } catch (error) {
+      setStatusActionError(error?.message || T("Issue status update failed.", "问题状态更新失败。"));
     } finally {
       statusUpdatingRef.current.delete(rowKey);
       setStatusUpdating((current) => {
@@ -695,6 +699,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
     const rowKeys = targets.map(issueRowKey);
     rowKeys.forEach((rowKey) => statusUpdatingRef.current.add(rowKey));
     setBulkStatusLoading("fixed");
+    setStatusActionError("");
     setStatusUpdating((current) =>
       rowKeys.reduce((next, rowKey) => ({ ...next, [rowKey]: true }), current)
     );
@@ -749,10 +754,15 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         notifications.forEach(notifyIssuesChanged);
       }
       if (failureCount) {
-        globalThis.alert?.(
-          T(`${failureCount} issue status update failed.`, `${failureCount} 个问题状态更新失败。`)
+        const message = T(
+          `${failureCount} issue status update failed.`,
+          `${failureCount} 个问题状态更新失败。`
         );
+        setStatusActionError(message);
+        globalThis.alert?.(message);
       }
+    } catch (error) {
+      setStatusActionError(error?.message || T("Issue status update failed.", "问题状态更新失败。"));
     } finally {
       rowKeys.forEach((rowKey) => statusUpdatingRef.current.delete(rowKey));
       setStatusUpdating((current) => {
@@ -905,6 +915,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             </div>
             {loading && <IssuesTableSkeleton />}
             {error && <div className="muted issues-table-message">{error}</div>}
+            {statusActionError && <div className="muted issues-table-message">{statusActionError}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="muted issues-table-empty">
                 {T("No findings are available yet.", "暂无问题。")}

@@ -242,6 +242,45 @@ describe("useScans", () => {
     );
   });
 
+  it("keeps polling active scans after a transient list error", async () => {
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({ items: [{ id: "sc_1", status: "running" }] })
+      .mockRejectedValueOnce(new Error("timeout of 12000ms exceeded"))
+      .mockResolvedValueOnce({ items: [{ id: "sc_1", status: "done" }] });
+
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5 }));
+
+    await waitFor(() => expect(result.current.items[0]?.status).toBe("running"));
+    await waitFor(() => expect(result.current.error).toMatch(/timeout/i));
+    await waitFor(() => expect(result.current.items[0]?.status).toBe("done"), { timeout: 250 });
+    expect(result.current.error).toBe("");
+    unmount();
+  });
+
+  it("aborts in-flight scan list requests when clearing the data cache", async () => {
+    const refresh = deferred();
+    let signal;
+    pullwiseApi.scans.list.mockImplementationOnce((_params, options = {}) => {
+      signal = options.signal;
+      return refresh.promise;
+    });
+
+    const { unmount } = renderHook(() => useScans({ pollIntervalMs: 10000 }));
+
+    await waitFor(() => expect(signal).toBeTruthy());
+
+    act(() => {
+      clearPullwiseDataCache();
+    });
+
+    expect(signal.aborted).toBe(true);
+
+    await act(async () => {
+      refresh.resolve({ items: [] });
+    });
+    unmount();
+  });
+
   it("passes list filters and appends paginated scan results", async () => {
     pullwiseApi.scans.list
       .mockResolvedValueOnce({

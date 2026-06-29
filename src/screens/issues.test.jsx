@@ -304,6 +304,40 @@ describe("IssuesScreen list resilience", () => {
     expect(await screen.findByRole("button", { name: /open issue f_123/i })).toBeInTheDocument();
   });
 
+  it("shows a visible error when a list status update fails", async () => {
+    const user = userEvent.setup();
+    const issue = {
+      id: "f_123",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      status: "open",
+    };
+    const reload = vi.fn();
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockRejectedValueOnce(new Error("offline"));
+    useIssues.mockReturnValue({
+      items: [issue],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload,
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    const markFixed = screen.getByRole("button", { name: /mark fixed/i });
+    await user.click(markFixed);
+
+    expect(await screen.findByText("offline")).toBeInTheDocument();
+    expect(markFixed).not.toBeDisabled();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
   it("marks every visible non-fixed issue as fixed from the list action", async () => {
     const user = userEvent.setup();
     const firstIssue = {

@@ -77,7 +77,9 @@ function dedupedDataRequest(key, fetcher, ownerSignal) {
         .then(() => fetcher(controller?.signal))
         .finally(() => {
           entry.done = true;
-          inFlightDataRequests.delete(key);
+          if (inFlightDataRequests.get(key) === entry) {
+            inFlightDataRequests.delete(key);
+          }
         }),
     };
     entry.promise.catch(() => {});
@@ -153,6 +155,9 @@ export function clearPullwiseDataCache() {
   successfulListCache.clear();
   issueUpdateCache.clear();
   issueUpdateByIdCache.clear();
+  for (const entry of inFlightDataRequests.values()) {
+    entry.controller?.abort?.();
+  }
   inFlightDataRequests.clear();
 }
 
@@ -1379,6 +1384,10 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
     loadingMore: false,
     error: "",
   }));
+  const [pollRetryTick, setPollRetryTick] = useState(0);
+  const hasActiveScans = state.items.some(isActiveScan);
+  const hasActiveScansRef = useRef(hasActiveScans);
+  hasActiveScansRef.current = hasActiveScans;
 
   const load = useCallback(
     async ({ quiet = false, append = false, offset = 0 } = {}) => {
@@ -1424,6 +1433,9 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           error: message,
           meta: current.meta,
         }));
+        if (hasActiveScansRef.current) {
+          setPollRetryTick((tick) => tick + 1);
+        }
       } finally {
         if (abortRef.current === controller) abortRef.current = null;
       }
@@ -1437,7 +1449,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
   }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
-    if (!state.items.some(isActiveScan)) return undefined;
+    if (!hasActiveScans) return undefined;
     if (pageIsHidden()) {
       return onVisible(() => load({ quiet: true }));
     }
@@ -1445,7 +1457,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
       load({ quiet: true });
     }, pollIntervalMs);
     return () => clearTimeout(handle);
-  }, [state.items, load, pollIntervalMs]);
+  }, [hasActiveScans, state.items, load, pollIntervalMs, pollRetryTick]);
 
   const loadMore = useCallback(() => {
     if (!state.meta.hasMore || state.loadingMore) return;
