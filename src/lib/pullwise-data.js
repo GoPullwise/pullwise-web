@@ -1560,7 +1560,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
       const normalized = normalizeScan(scan);
       if (!normalized.id) return;
       setState((current) => {
-        const shouldInclude = !status || normalized.status === status;
+        const shouldInclude = !status || status === "all" || normalized.status === status;
         const remainingItems = current.items.filter(
           (item) => item.id !== normalized.id && item.id !== replacedScanId
         );

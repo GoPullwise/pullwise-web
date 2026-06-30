@@ -1755,6 +1755,25 @@ function scanListIncludesExpectedIds(scans, expectedScanIds) {
   return expectedScanIds.every((scanId) => scanIds.has(scanId));
 }
 
+function missingExpectedScanIds(scans, expectedScanIds) {
+  if (!expectedScanIds.length) return [];
+  const scanIds = new Set(
+    (scans || []).map((scan) => String(scan?.id || "").trim()).filter(Boolean)
+  );
+  return expectedScanIds.filter((scanId) => !scanIds.has(scanId));
+}
+
+function scansFromStatusPayload(payload) {
+  const items = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.items)
+      ? payload.items
+      : Array.isArray(payload?.scans)
+        ? payload.scans
+        : [];
+  return items.map(normalizeScan).filter((scan) => scan.id);
+}
+
 export function HistoryScreen({
   go,
   openScan = null,
@@ -1793,6 +1812,10 @@ export function HistoryScreen({
     () => scanListIncludesExpectedIds(filtered, normalizedExpectedScanIds),
     [filtered, normalizedExpectedScanIds]
   );
+  const expectedScanIdsMissing = useMemo(
+    () => missingExpectedScanIds(filtered, normalizedExpectedScanIds),
+    [filtered, normalizedExpectedScanIds]
+  );
   const expectedScanWaitExpired =
     normalizedExpectedScanIds.length > 0 &&
     !expectedScansLoaded &&
@@ -1811,13 +1834,54 @@ export function HistoryScreen({
   }, [expectedScanIdsKey, status]);
 
   useEffect(() => {
-    if (!waitingForExpectedScans || loading || typeof reload !== "function") return undefined;
+    if (!waitingForExpectedScans || loading) return undefined;
+    let cancelled = false;
     const handle = setTimeout(() => {
       setExpectedScanRetryCount((count) => count + 1);
-      reload({ quiet: true });
+      const refreshExpectedScans = async () => {
+        if (typeof reload === "function") {
+          try {
+            await reload({ quiet: true });
+          } catch {
+            // The targeted status refresh below can still recover scans omitted from the list page.
+          }
+        }
+        if (
+          cancelled ||
+          typeof pullwiseApi.scans.status !== "function" ||
+          typeof upsertScan !== "function"
+        ) {
+          return;
+        }
+        const scanIds = expectedScanIdsMissing.length
+          ? expectedScanIdsMissing
+          : normalizedExpectedScanIds;
+        if (!scanIds.length) return;
+        try {
+          const payload = await pullwiseApi.scans.status(scanIds);
+          if (cancelled) return;
+          for (const scan of scansFromStatusPayload(payload)) {
+            upsertScan(scan);
+          }
+        } catch {
+          // The list refresh above is still the fallback source while the scan is propagating.
+        }
+      };
+      refreshExpectedScans();
     }, HISTORY_EXPECTED_SCAN_RETRY_MS);
-    return () => clearTimeout(handle);
-  }, [waitingForExpectedScans, loading, reload, expectedScanRetryCount]);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [
+    waitingForExpectedScans,
+    loading,
+    reload,
+    expectedScanRetryCount,
+    expectedScanIdsMissing,
+    normalizedExpectedScanIds,
+    upsertScan,
+  ]);
 
   useEffect(() => {
     if (

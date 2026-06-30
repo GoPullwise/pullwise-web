@@ -68,6 +68,15 @@ Keep route and polling changes aligned with the current scale model.
   available.
 - Status and active scan polling should pause while `document.visibilityState`
   is hidden and refresh when the tab becomes visible.
+- Batch scan submission that navigates to Scan history must pass the newly
+  created scan ids as pending/expected ids. Scan history should keep the
+  skeleton state and quietly refresh until the loaded list contains every
+  expected id; only then should it switch to the list UI. Do not rely only on
+  the first paginated history page while waiting: use a targeted by-id status
+  refresh for missing expected ids so newly created scans can be inserted even
+  when pagination or ordering keeps them out of the current list page. If that
+  wait expires, show the existing refresh guidance rather than rendering a
+  partial/empty list as if the batch were loaded.
 - Batch issue status updates should use the batch endpoint for bulk "mark fixed"
   flows. Keep single-issue update only as a narrow fallback.
 - Retry scan actions should update or replace the affected scan from the inline

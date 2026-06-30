@@ -9,6 +9,7 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
       get: vi.fn(() => Promise.resolve({})),
+      status: vi.fn(() => Promise.resolve({ items: [] })),
       auditBundle: vi.fn(),
       auditBundleArchive: vi.fn(),
     },
@@ -843,6 +844,62 @@ describe("HistoryScreen queue state", () => {
       });
 
       expect(reload).toHaveBeenCalledWith({ quiet: true });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("fetches expected scans by id when the first history page is missing them", async () => {
+    vi.useFakeTimers();
+    const reload = vi.fn(() => Promise.resolve({}));
+    const upsertScan = vi.fn();
+    pullwiseApi.scans.status.mockResolvedValueOnce({
+      items: [
+        {
+          id: "sc_new",
+          repo: "octocat/new-repo",
+          branch: "main",
+          commit: "pending",
+          status: "queued",
+        },
+      ],
+    });
+    try {
+      useScans.mockReturnValue({
+        items: [
+          {
+            id: "sc_old",
+            repo: "octocat/old-repo",
+            branch: "main",
+            commit: "abc123",
+            status: "done",
+            time: "earlier",
+            by: "you",
+          },
+        ],
+        loading: false,
+        loadingMore: false,
+        error: "",
+        reload,
+        loadMore: vi.fn(),
+        upsertScan,
+        meta: { total: 1 },
+      });
+
+      render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
+
+      await act(async () => {
+        vi.advanceTimersByTime(1500);
+        await Promise.resolve();
+      });
+
+      await waitFor(() => expect(reload).toHaveBeenCalledWith({ quiet: true }));
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(["sc_new"]));
+      await waitFor(() =>
+        expect(upsertScan).toHaveBeenCalledWith(
+          expect.objectContaining({ id: "sc_new", repo: "octocat/new-repo", status: "queued" })
+        )
+      );
     } finally {
       vi.useRealTimers();
     }

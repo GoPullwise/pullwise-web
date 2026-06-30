@@ -368,6 +368,28 @@ describe("useScans", () => {
     unmount();
   });
 
+  it("keeps upserted scans while the scan filter is all", async () => {
+    pullwiseApi.scans.list.mockResolvedValueOnce({ items: [] });
+
+    const { result, unmount } = renderHook(() =>
+      useScans({ pollIntervalMs: 10000, status: "all" })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => {
+      result.current.upsertScan({
+        id: "sc_new",
+        repo: "owner/repo",
+        branch: "main",
+        status: "queued",
+      });
+    });
+
+    expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_new"]);
+    unmount();
+  });
+
   it("includes the scan request id when creating a scan", async () => {
     pullwiseApi.scans.create.mockResolvedValueOnce({
       id: "sc_1",
