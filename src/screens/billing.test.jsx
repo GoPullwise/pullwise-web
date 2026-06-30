@@ -156,7 +156,8 @@ describe("BillingScreen", () => {
         expect.objectContaining({
           plan: "pro",
           interval: "month",
-        })
+        }),
+        expect.objectContaining({ signal: expect.any(Object) })
       );
       expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_test");
     });
@@ -196,7 +197,8 @@ describe("BillingScreen", () => {
         expect.objectContaining({
           plan: "max",
           interval: "month",
-        })
+        }),
+        expect.objectContaining({ signal: expect.any(Object) })
       );
       expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_max");
     });
@@ -235,7 +237,11 @@ describe("BillingScreen", () => {
       plans: [...billingCatalog.plans, maxPlan],
       account: { status: "none", plan: "free" },
     });
-    pullwiseApi.billing.createCheckoutSession.mockReturnValue(new Promise(() => {}));
+    let checkoutOptions;
+    pullwiseApi.billing.createCheckoutSession.mockImplementation((_payload, options) => {
+      checkoutOptions = options;
+      return new Promise(() => {});
+    });
     const user = userEvent.setup();
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
@@ -261,6 +267,36 @@ describe("BillingScreen", () => {
       expect(maxButton).toBeEnabled();
       expect(proButton.querySelector(".spin")).not.toBeInTheDocument();
     });
+    expect(checkoutOptions.signal.aborted).toBe(true);
+  });
+
+  it("aborts a pending pricing checkout when unmounted", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none", plan: "free" },
+    });
+    let checkoutOptions;
+    pullwiseApi.billing.createCheckoutSession.mockImplementation((_payload, options) => {
+      checkoutOptions = options;
+      return new Promise(() => {});
+    });
+    const user = userEvent.setup();
+
+    const { unmount } = render(
+      <PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />
+    );
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    await user.click(proButton);
+
+    await waitFor(() => {
+      expect(proButton).toBeDisabled();
+      expect(checkoutOptions.signal.aborted).toBe(false);
+    });
+
+    unmount();
+
+    expect(checkoutOptions.signal.aborted).toBe(true);
   });
 
   it("times out a stalled pricing checkout and ignores the stale response", async () => {
@@ -269,11 +305,13 @@ describe("BillingScreen", () => {
       account: { status: "none", plan: "free" },
     });
     let resolveCheckout;
-    pullwiseApi.billing.createCheckoutSession.mockReturnValue(
-      new Promise((resolve) => {
+    let checkoutOptions;
+    pullwiseApi.billing.createCheckoutSession.mockImplementation((_payload, options) => {
+      checkoutOptions = options;
+      return new Promise((resolve) => {
         resolveCheckout = resolve;
-      })
-    );
+      });
+    });
     const navigate = vi.fn();
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
@@ -286,6 +324,7 @@ describe("BillingScreen", () => {
         fireEvent.click(proButton);
       });
       expect(proButton).toBeDisabled();
+      expect(checkoutOptions.signal.aborted).toBe(false);
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(15 * 1000);
@@ -293,6 +332,7 @@ describe("BillingScreen", () => {
 
       expect(screen.getByRole("alert")).toHaveTextContent(/taking longer/i);
       expect(proButton).toBeEnabled();
+      expect(checkoutOptions.signal.aborted).toBe(true);
 
       await act(async () => {
         resolveCheckout({ provider: "creem", url: "https://creem.io/checkout/stale" });
@@ -304,6 +344,47 @@ describe("BillingScreen", () => {
     }
   });
 
+  it("uses the server-provided checkout timeout before reopening pricing buttons", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      checkoutTimeoutMs: 30 * 1000,
+      account: { status: "none", plan: "free" },
+    });
+    let checkoutOptions;
+    pullwiseApi.billing.createCheckoutSession.mockImplementation((_payload, options) => {
+      checkoutOptions = options;
+      return new Promise(() => {});
+    });
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    vi.useFakeTimers();
+
+    try {
+      act(() => {
+        fireEvent.click(proButton);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15 * 1000);
+      });
+
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(proButton).toBeDisabled();
+      expect(checkoutOptions.signal.aborted).toBe(false);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15 * 1000);
+      });
+
+      expect(screen.getByRole("alert")).toHaveTextContent(/taking longer/i);
+      expect(proButton).toBeEnabled();
+      expect(checkoutOptions.signal.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("shows Max-specific reasoning and yearly savings", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -723,7 +804,8 @@ describe("BillingScreen", () => {
         expect.objectContaining({
           plan: "pro",
           interval: "year",
-        })
+        }),
+        expect.objectContaining({ signal: expect.any(Object) })
       );
       expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_yearly");
     });
@@ -817,7 +899,7 @@ describe("BillingScreen", () => {
           plan: "max",
           interval: "month",
           usage: { period: "2026-05", used: 12, limit: 90, remaining: 78 },
-          },
+        },
       });
     pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
       provider: "creem",
@@ -961,7 +1043,9 @@ describe("BillingScreen", () => {
     expect((await screen.findAllByText("Pullwise Max")).length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: /switch to pro/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /switch to monthly/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("dialog", { name: /confirm billing change/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", { name: /confirm billing change/i })
+    ).not.toBeInTheDocument();
     expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
   });
 

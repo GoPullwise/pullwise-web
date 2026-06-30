@@ -132,6 +132,19 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(2, "/status/system", { signal: controller.signal });
   });
 
+  it("passes abort signals to billing checkout sessions", async () => {
+    request.mockResolvedValue({});
+    const controller = new AbortController();
+
+    await pullwiseApi.billing.createCheckoutSession({ plan: "pro" }, { signal: controller.signal });
+
+    expect(request).toHaveBeenCalledWith("/billing/checkout-sessions", {
+      method: "POST",
+      body: { plan: "pro" },
+      signal: controller.signal,
+    });
+  });
+
   it("rejects empty dynamic path segments before making a request", () => {
     expect(() => pullwiseApi.scans.get("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.scans.retry("")).toThrow(/path segment/i);

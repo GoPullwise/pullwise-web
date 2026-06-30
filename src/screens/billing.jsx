@@ -273,7 +273,10 @@ function repositoryCheckoutFeatureText(plan) {
   const parts = [];
   if (limits.maxFiles) parts.push(`${limits.maxFiles.toLocaleString("en-US")} files`);
   if (limits.maxBytes) parts.push(formatCompactBytes(limits.maxBytes));
-  return T(`Repository checkout up to ${parts.join(" / ")}`, `仓库 checkout 最高 ${parts.join(" / ")}`);
+  return T(
+    `Repository checkout up to ${parts.join(" / ")}`,
+    `仓库 checkout 最高 ${parts.join(" / ")}`
+  );
 }
 
 function usagePercent(usage) {
@@ -295,7 +298,9 @@ function usageText(usage) {
 
 function quotaActivityRecords(account) {
   return Array.isArray(account?.quotaActivity)
-    ? account.quotaActivity.filter((record) => record && typeof record === "object" && record.scanId)
+    ? account.quotaActivity.filter(
+        (record) => record && typeof record === "object" && record.scanId
+      )
     : [];
 }
 
@@ -304,9 +309,7 @@ function quotaActivityRecordKey(record, index) {
 }
 
 function quotaActivityAction(record) {
-  return ["reserved", "released", "refunded"].includes(record?.action)
-    ? record.action
-    : "consumed";
+  return ["reserved", "released", "refunded"].includes(record?.action) ? record.action : "consumed";
 }
 
 function quotaActivityTitle(record) {
@@ -386,7 +389,9 @@ function subscriptionRecordTitle(record) {
 
 function subscriptionRecordMeta(record) {
   const subject = record?.subscriptionId || record?.customerId || T("Subscription", "Subscription");
-  return [subject, record?.status || "none", record?.interval || "month"].filter(Boolean).join(" - ");
+  return [subject, record?.status || "none", record?.interval || "month"]
+    .filter(Boolean)
+    .join(" - ");
 }
 
 function subscriptionEventText(record) {
@@ -621,7 +626,9 @@ export function BillingScreen({
     if (!changeDraft) return null;
     const targetPlan = paidPlanById[changeDraft.targetPlan] || currentPlan;
     const targetInterval = changeDraft.targetInterval || subscriptionInterval;
-    if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, targetPlan, targetInterval)) {
+    if (
+      !subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, targetPlan, targetInterval)
+    ) {
       return null;
     }
     const deltaText = billingChangeDeltaText(
@@ -645,9 +652,7 @@ export function BillingScreen({
       impactText: billingChangeImpactText(),
       callout: chargeCallout(deltaText),
       featureDeltas: planFeatureDeltas(currentPlan, targetPlan),
-      renewalDate: formatRenewalDate(
-        account.currentPeriodEnd || account.current_period_end
-      ),
+      renewalDate: formatRenewalDate(account.currentPeriodEnd || account.current_period_end),
       actionKey: subscriptionChangeActionKey(targetPlan.id, targetInterval),
     };
   }, [changeDraft, currentPlan, paidPlanById, subscriptionInterval, account]);
@@ -657,7 +662,9 @@ export function BillingScreen({
     targetInterval = subscriptionInterval,
   }) => {
     const requestedPlan = paidPlanById[targetPlan] || currentPlan;
-    if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)) {
+    if (
+      !subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)
+    ) {
       setError("This subscription change is not supported from Pullwise.");
       setChangeDraft(null);
       return;
@@ -715,7 +722,9 @@ export function BillingScreen({
   }) => {
     setError("");
     const requestedPlan = paidPlanById[targetPlan] || currentPlan;
-    if (!subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)) {
+    if (
+      !subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, requestedPlan, targetInterval)
+    ) {
       setError("This subscription change is not supported from Pullwise.");
       setChangeDraft(null);
       return;
@@ -919,7 +928,9 @@ export function BillingScreen({
                             >
                               <div className="quota-activity-main">
                                 <span className="quota-activity-icon" aria-hidden="true">
-                                  {["refunded", "released"].includes(quotaActivityAction(record)) ? (
+                                  {["refunded", "released"].includes(
+                                    quotaActivityAction(record)
+                                  ) ? (
                                     <I.Refresh size={13} />
                                   ) : (
                                     <I.Activity size={13} />
@@ -1121,9 +1132,7 @@ export function BillingScreen({
                       {changeDetails.currentIntervalShort}
                     </span>
                   </em>
-                  <span className="billing-change-cadence">
-                    {changeDetails.currentCadence}
-                  </span>
+                  <span className="billing-change-cadence">{changeDetails.currentCadence}</span>
                 </div>
                 <I.ArrowR className="billing-change-arrow" size={18} />
                 <div className="billing-change-box billing-change-box-target">
@@ -1135,9 +1144,7 @@ export function BillingScreen({
                       {changeDetails.targetIntervalShort}
                     </span>
                   </em>
-                  <span className="billing-change-cadence">
-                    {changeDetails.targetCadence}
-                  </span>
+                  <span className="billing-change-cadence">{changeDetails.targetCadence}</span>
                 </div>
               </div>
 
@@ -1153,8 +1160,7 @@ export function BillingScreen({
                     <I.Refresh size={13} /> {T("Next renewal", "下次续费")}
                   </span>
                   <b>
-                    {changeDetails.renewalDate ||
-                      T("Calculated at confirmation", "确认时计算")}
+                    {changeDetails.renewalDate || T("Calculated at confirmation", "确认时计算")}
                   </b>
                 </div>
               </div>
@@ -1259,6 +1265,7 @@ export function PricingScreen({
   const signedIn = Boolean(auth?.authenticated);
   const checkoutTimeoutRef = useRef(null);
   const checkoutRequestRef = useRef(0);
+  const checkoutAbortRef = useRef(null);
 
   const clearCheckoutTimeout = useCallback(() => {
     if (checkoutTimeoutRef.current == null) return;
@@ -1266,11 +1273,22 @@ export function PricingScreen({
     checkoutTimeoutRef.current = null;
   }, []);
 
-  const resetCheckoutPending = useCallback(() => {
+  const abortCheckoutRequest = useCallback(() => {
+    if (checkoutAbortRef.current == null) return;
+    checkoutAbortRef.current.abort();
+    checkoutAbortRef.current = null;
+  }, []);
+
+  const invalidateCheckoutRequest = useCallback(() => {
     checkoutRequestRef.current += 1;
+    abortCheckoutRequest();
     clearCheckoutTimeout();
+  }, [abortCheckoutRequest, clearCheckoutTimeout]);
+
+  const resetCheckoutPending = useCallback(() => {
+    invalidateCheckoutRequest();
     setPendingAction("");
-  }, [clearCheckoutTimeout]);
+  }, [invalidateCheckoutRequest]);
 
   useEffect(() => {
     const handlePageShow = (event) => {
@@ -1280,9 +1298,9 @@ export function PricingScreen({
     window.addEventListener("pageshow", handlePageShow);
     return () => {
       window.removeEventListener("pageshow", handlePageShow);
-      clearCheckoutTimeout();
+      invalidateCheckoutRequest();
     };
-  }, [clearCheckoutTimeout, resetCheckoutPending]);
+  }, [invalidateCheckoutRequest, resetCheckoutPending]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1313,14 +1331,20 @@ export function PricingScreen({
   const account = billingAccount(plan);
   const activePaid = isActiveStatus(account.status) && account.plan && account.plan !== "free";
   const billingEnabled = Boolean(plan?.enabled);
-
+  const checkoutPendingTimeoutMs =
+    Number(plan?.checkoutTimeoutMs) > 0
+      ? Number(plan.checkoutTimeoutMs)
+      : CHECKOUT_PENDING_TIMEOUT_MS;
   const startCheckout = async (targetPlan) => {
     if (!signedIn) {
       go("login");
       return;
     }
-    const requestId = checkoutRequestRef.current + 1;
-    checkoutRequestRef.current = requestId;
+    checkoutRequestRef.current += 1;
+    abortCheckoutRequest();
+    const requestId = checkoutRequestRef.current;
+    const checkoutController = new AbortController();
+    checkoutAbortRef.current = checkoutController;
     clearCheckoutTimeout();
     setPendingAction(`checkout-${targetPlan.id}`);
     setError("");
@@ -1333,14 +1357,17 @@ export function PricingScreen({
         )
       );
       resetCheckoutPending();
-    }, CHECKOUT_PENDING_TIMEOUT_MS);
+    }, checkoutPendingTimeoutMs);
     try {
-      const session = await pullwiseApi.billing.createCheckoutSession({
-        plan: targetPlan.id,
-        interval,
-        successUrl: billingReturnUrl("success", "pricing"),
-        cancelUrl: billingReturnUrl("cancel", "pricing"),
-      });
+      const session = await pullwiseApi.billing.createCheckoutSession(
+        {
+          plan: targetPlan.id,
+          interval,
+          successUrl: billingReturnUrl("success", "pricing"),
+          cancelUrl: billingReturnUrl("cancel", "pricing"),
+        },
+        { signal: checkoutController.signal }
+      );
       if (checkoutRequestRef.current !== requestId) return;
       if (!session?.url) throw new Error("Billing provider did not return a checkout URL.");
       const checkoutUrl = safeBillingRedirectUrl(session.url, "billing checkout URL");
@@ -1352,7 +1379,10 @@ export function PricingScreen({
       setError(err?.message || "Unable to start checkout.");
       setPendingAction("");
     } finally {
-      if (checkoutRequestRef.current === requestId) clearCheckoutTimeout();
+      if (checkoutRequestRef.current === requestId) {
+        clearCheckoutTimeout();
+        if (checkoutAbortRef.current === checkoutController) checkoutAbortRef.current = null;
+      }
     }
   };
 
@@ -1525,7 +1555,11 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         {repositoryLimitText && (
           <li>
             <I.Check size={13} />{" "}
-            {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> : repositoryLimitText}
+            {loading ? (
+              <PricingSkeletonLine className="pricing-skeleton-feature" />
+            ) : (
+              repositoryLimitText
+            )}
           </li>
         )}
         <li>

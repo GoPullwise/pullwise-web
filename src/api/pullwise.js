@@ -43,8 +43,7 @@ export const pullwiseApi = {
   scans: {
     preflight: (payload) => request("/scans/preflight", { method: "POST", body: payload }),
     create: (payload) => request("/scans", { method: "POST", body: payload }),
-    get: (scanId, options = {}) =>
-      getRequest(`/scans/${pathSegment(scanId)}`, options),
+    get: (scanId, options = {}) => getRequest(`/scans/${pathSegment(scanId)}`, options),
     status: (ids = [], options = {}) =>
       request("/scans/status", { method: "POST", body: { ids }, signal: options.signal }),
     retry: (scanId, payload = {}) =>
@@ -55,19 +54,17 @@ export const pullwiseApi = {
         responseType: "blob",
         timeout: AUDIT_BUNDLE_ARCHIVE_TIMEOUT_MS,
       }),
-    list: (params = {}, options = {}) =>
-      getRequest(withSearchParams("/scans", params), options),
+    list: (params = {}, options = {}) => getRequest(withSearchParams("/scans", params), options),
     cancel: (scanId) => request(`/scans/${pathSegment(scanId)}/cancel`, { method: "POST" }),
   },
 
   issues: {
-    list: (params = {}, options = {}) =>
-      getRequest(withSearchParams("/issues", params), options),
-    get: (issueId, options = {}) =>
-      getRequest(`/issues/${pathSegment(issueId)}`, options),
+    list: (params = {}, options = {}) => getRequest(withSearchParams("/issues", params), options),
+    get: (issueId, options = {}) => getRequest(`/issues/${pathSegment(issueId)}`, options),
     updateStatus: (issueId, payload) =>
       request(`/issues/${pathSegment(issueId)}/status`, { method: "PATCH", body: payload }),
-    updateStatuses: (updates = []) => request("/issues/status", { method: "PATCH", body: { updates } }),
+    updateStatuses: (updates = []) =>
+      request("/issues/status", { method: "PATCH", body: { updates } }),
     previewFix: (issueId) =>
       request(`/issues/${pathSegment(issueId)}/fixes/preview`, { method: "POST" }),
     createPullRequest: (issueId) =>
@@ -97,8 +94,12 @@ export const pullwiseApi = {
   billing: {
     getBilling: () => request("/billing"),
     getPlan: () => request("/billing/plan"),
-    createCheckoutSession: (payload = {}) =>
-      request("/billing/checkout-sessions", { method: "POST", body: payload }),
+    createCheckoutSession: (payload = {}, options = {}) =>
+      request("/billing/checkout-sessions", {
+        method: "POST",
+        body: payload,
+        signal: options.signal,
+      }),
     changeSubscriptionInterval: (payload = {}) =>
       request("/billing/change-interval", { method: "POST", body: payload }),
     cancelSubscription: (payload = {}) =>
