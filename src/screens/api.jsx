@@ -274,8 +274,17 @@ export function ApiDocsScreen({ go, auth }) {
       path: "/api/v1/repositories/{repoId}/scans/current",
       scope: "scans:read",
       description: T(
-        "Read the latest scan status for the repository. Returns idle when no scan exists.",
-        "读取该仓库最近一次扫描状态。没有扫描时返回 idle。"
+        "Read the latest scan status for the repository. Completed scan payloads include agentFixPrompt for automation.",
+        "读取该仓库最近一次扫描状态。已完成扫描的 payload 会包含 agentFixPrompt，用于自动化修复。"
+      ),
+    },
+    {
+      method: "GET",
+      path: "/api/v1/repositories/{repoId}/scans/{scanId}/audit-bundle.zip",
+      scope: "scans:read",
+      description: T(
+        "Download the audit bundle ZIP referenced by agentFixPrompt for a scan in this repository.",
+        "下载 agentFixPrompt 引用的该仓库扫描审计包 ZIP。"
       ),
     },
     {

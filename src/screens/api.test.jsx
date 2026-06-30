@@ -96,7 +96,7 @@ describe("API screens", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
     expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
-    expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(5);
+    expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(6);
   });
 
   it("keeps a wider docs layout inside the marketing header bounds", () => {

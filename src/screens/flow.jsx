@@ -65,6 +65,15 @@ function formatBytes(value) {
   return `${rounded.toLocaleString()} ${units[unitIndex]}`;
 }
 
+function copyText(value) {
+  const clipboard = globalThis.navigator?.clipboard;
+  if (!value || !clipboard?.writeText) return Promise.resolve(false);
+  return clipboard
+    .writeText(value)
+    .then(() => true)
+    .catch(() => false);
+}
+
 function repositoryLimitReasonLabel(reason) {
   switch (reason) {
     case "file_count":
@@ -1892,6 +1901,8 @@ function ScanDetailSideSkeleton() {
 export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
   const [bundleLoading, setBundleLoading] = useState(false);
+  const [agentPromptCopied, setAgentPromptCopied] = useState(false);
+  const agentPromptResetRef = useRef(null);
   const resolvedScanIdRef = useRef("");
   const selectedRepos = useMemo(
     () => (Array.isArray(activeRepo?.selectedRepos) ? activeRepo.selectedRepos : []),
@@ -1934,6 +1945,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const retrying = batchMode ? false : Boolean(singleRun.retrying);
   const canceling = batchMode ? Boolean(batchRun.canceling) : Boolean(singleRun.canceling);
   const detailLoading = !batchMode && Boolean(scanId && singleRun.loading);
+  const agentFixPrompt = !batchMode && typeof scan?.agentFixPrompt === "string" ? scan.agentFixPrompt : "";
 
   useEffect(() => {
     if (batchMode || !scan?.id || typeof onScanResolved !== "function") return;
@@ -1941,6 +1953,21 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     resolvedScanIdRef.current = scan.id;
     onScanResolved(scan);
   }, [batchMode, scan, onScanResolved]);
+
+  useEffect(
+    () => () => {
+      if (agentPromptResetRef.current) clearTimeout(agentPromptResetRef.current);
+    },
+    []
+  );
+
+  useEffect(() => {
+    setAgentPromptCopied(false);
+    if (agentPromptResetRef.current) {
+      clearTimeout(agentPromptResetRef.current);
+      agentPromptResetRef.current = null;
+    }
+  }, [scan?.id]);
 
   const expectedBatchCount = batchRepositories.length;
   const status = batchMode
@@ -2016,6 +2043,23 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     } finally {
       setBundleLoading(false);
     }
+  };
+
+  const handleCopyAgentFixPrompt = async () => {
+    if (!agentFixPrompt) return;
+    const copied = await copyText(agentFixPrompt);
+    if (!copied) {
+      globalThis.alert?.(
+        T("Unable to copy agent fix prompt.", "无法复制 agent 修复提示。")
+      );
+      return;
+    }
+    setAgentPromptCopied(true);
+    if (agentPromptResetRef.current) clearTimeout(agentPromptResetRef.current);
+    agentPromptResetRef.current = setTimeout(() => {
+      setAgentPromptCopied(false);
+      agentPromptResetRef.current = null;
+    }, 2000);
   };
 
   const headerLabel = detailLoading
@@ -2151,6 +2195,22 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                           ? T("Preparing...", "准备中...")
                           : T("Audit bundle", "审计包")}
                       </button>
+                    )}
+                    {!batchMode && agentFixPrompt && (
+                      <>
+                        <span className="scanning-actions-sep" aria-hidden="true" />
+                        <button
+                          className="btn ghost"
+                          type="button"
+                          onClick={handleCopyAgentFixPrompt}
+                          aria-live="polite"
+                        >
+                          {agentPromptCopied ? <I.Check size={13} /> : <I.Copy size={13} />} {" "}
+                          {agentPromptCopied
+                            ? T("Copied", "已复制")
+                            : T("Use agent to fix", "使用 agent 修复")}
+                        </button>
+                      </>
                     )}
                     {!batchMode && <span className="scanning-actions-sep" aria-hidden="true" />}
                     <button className="btn primary" onClick={() => go("dashboard")}>

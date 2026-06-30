@@ -1026,6 +1026,57 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
+  it("copies the agent fix prompt from scan details without rendering it", async () => {
+    const user = userEvent.setup();
+    const originalClipboard = navigator.clipboard;
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const prompt = "AGENT_FIX_PROMPT_INTERNAL_TEXT\nAudit bundle ZIP: /api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip";
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        agentFixPrompt: prompt,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{
+            scanId: "sc_done",
+            fullName: "octocat/private-repo",
+            defaultBranch: "main",
+          }}
+        />
+      );
+
+      expect(screen.queryByText(/AGENT_FIX_PROMPT_INTERNAL_TEXT/)).not.toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /use agent to fix/i }));
+      expect(writeText).toHaveBeenCalledWith(prompt);
+      expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
+    } finally {
+      if (originalClipboard) {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
+      } else {
+        delete navigator.clipboard;
+      }
+    }
+  });
 
   it("keeps GraphVerified graph labels complete and nodes movable", () => {
     const styles = readFileSync("src/app.css", "utf8");
