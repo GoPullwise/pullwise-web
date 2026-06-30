@@ -53,6 +53,7 @@ function normalizeWorker(worker) {
     region: textValue(worker.region),
     hostname: textValue(worker.hostname),
     readyProviders: Array.isArray(worker.readyProviders) ? worker.readyProviders : [],
+    latest_command: worker.latest_command || worker.latestCommand || null,
   };
 }
 
@@ -71,6 +72,26 @@ function installCommandFromPayload(payload) {
 
 function workerTokenFromPayload(payload) {
   return textValue(payload?.worker_token || payload?.workerToken || payload?.token);
+}
+
+function commandStatus(command) {
+  return textValue(command?.status).toLowerCase();
+}
+
+function commandName(command) {
+  return textValue(command?.command).toLowerCase();
+}
+
+function activeLifecycleCommand(worker) {
+  const command = worker?.latest_command;
+  const status = commandStatus(command);
+  if (!["pending", "running"].includes(status)) return null;
+  return ["stop", "uninstall"].includes(commandName(command)) ? command : null;
+}
+
+function lifecycleText(command) {
+  const action = commandName(command) === "uninstall" ? T("Delete queued", "删除已排队") : T("Stop queued", "停止已排队");
+  return `${action} · ${statusLabel(commandStatus(command))}`;
 }
 
 function WorkerInstallResult({ result, onCopy }) {
@@ -126,6 +147,11 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
     }
   }, [editing, worker.name, worker.region, worker.version]);
 
+  const activeCommand = activeLifecycleCommand(worker);
+  const actionsDisabled = disabled || Boolean(activeCommand);
+  const deleteQueued = commandName(activeCommand) === "uninstall";
+  const deleteDisabled = disabled || (Boolean(activeCommand) && !deleteQueued);
+
   const save = async () => {
     const payload = await onAction("update", worker, {
       name: editName.trim(),
@@ -136,28 +162,26 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
   };
 
   return (
-    <article className="private-worker-row">
-      <div className="private-worker-main">
+    <article className="issue-row private-worker-row">
+      <div className="issue-sev sev-bg-info">
         <span className={`status-dot status-${worker.status || "unknown"}`} />
-        <div className="private-worker-title">
-          <strong>{worker.name}</strong>
-          <span>
-            {statusLabel(worker.status)} · {worker.region || T("No region", "未设置区域")}
-          </span>
-        </div>
+        {statusLabel(worker.status)}
       </div>
-      <div className="private-worker-facts">
-        <div>
-          <span>{T("Last heartbeat", "最近心跳")}</span>
-          <b>{formatTimestamp(worker.last_heartbeat_at)}</b>
-        </div>
-        <div>
-          <span>{T("Running", "运行中")}</span>
-          <b>{worker.running_jobs}</b>
-        </div>
-        <div>
-          <span>{T("Version", "版本")}</span>
-          <b>{worker.version || "-"}</b>
+      <div className="issue-id">{worker.worker_id}</div>
+      <div className="issue-main">
+        <div className="issue-t">{worker.name}</div>
+        <div className="issue-meta">
+          <span className="tag">{worker.region || T("No region", "未设置区域")}</span>
+          <span className="tag">
+            {T("Heartbeat", "心跳")} {formatTimestamp(worker.last_heartbeat_at)}
+          </span>
+          <span className="tag">
+            {T("Running", "运行中")} {worker.running_jobs}
+          </span>
+          <span className="tag">
+            {T("Version", "版本")} {worker.version || "-"}
+          </span>
+          {activeCommand && <span className="tag">{lifecycleText(activeCommand)}</span>}
         </div>
       </div>
       <div className="private-worker-actions">
@@ -171,27 +195,31 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
             </button>
           </>
         ) : (
-          <button className="btn sm" type="button" disabled={disabled} onClick={() => setEditing(true)}>
+          <button className="btn sm" type="button" disabled={actionsDisabled} onClick={() => setEditing(true)}>
             <I.Settings size={13} /> {T("Edit", "编辑")}
           </button>
         )}
         {isDisabled ? (
-          <button className="btn sm" type="button" disabled={disabled} onClick={() => onAction("enable", worker)}>
+          <button className="btn sm" type="button" disabled={actionsDisabled} onClick={() => onAction("enable", worker)}>
             <I.Check size={13} /> {T("Enable", "启用")}
           </button>
         ) : (
-          <button className="btn sm" type="button" disabled={disabled} onClick={() => onAction("disable", worker)}>
+          <button className="btn sm" type="button" disabled={actionsDisabled} onClick={() => onAction("disable", worker)}>
             <I.X size={13} /> {T("Disable", "停用")}
           </button>
         )}
-        <button className="btn sm" type="button" disabled={disabled} onClick={() => onAction("rotate", worker)}>
+        <button className="btn sm" type="button" disabled={actionsDisabled} onClick={() => onAction("rotate", worker)}>
           <I.Refresh size={13} /> {T("Rotate token", "轮换令牌")}
         </button>
         <button
           className="btn sm danger"
           type="button"
-          disabled={disabled}
+          disabled={deleteDisabled}
           onClick={() => {
+            if (deleteQueued) {
+              onAction("delete", worker);
+              return;
+            }
             if (confirmDelete) {
               setConfirmDelete(false);
               onAction("delete", worker);
@@ -200,7 +228,8 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
             }
           }}
         >
-          <I.X size={13} /> {confirmDelete ? T("Confirm delete", "确认删除") : T("Delete", "删除")}
+          <I.X size={13} />{" "}
+          {deleteQueued ? T("Delete queued", "删除已排队") : confirmDelete ? T("Confirm delete", "确认删除") : T("Delete", "删除")}
         </button>
       </div>
       {editing && (
@@ -215,7 +244,7 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
           </label>
           <label className="field">
             <span>{T("Version", "版本")}</span>
-            <input value={editVersion} onChange={(event) => setEditVersion(event.target.value)} placeholder="0.8.9" />
+            <input value={editVersion} onChange={(event) => setEditVersion(event.target.value)} placeholder="0.8.11" />
           </label>
         </div>
       )}
@@ -361,58 +390,88 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
               <I.X size={13} /> {error}
             </div>
           )}
-          {createdResult && <WorkerInstallResult result={createdResult} onCopy={copyValue} />}
-
-          <div className="private-worker-grid">
-            <form className="bill-card private-worker-create" onSubmit={createWorker}>
-              <div className="private-worker-create-head">
-                <span className="api-key-create-icon">
-                  <I.Terminal size={16} />
-                </span>
-                <div>
-                  <b>{T("Create private worker", "创建私有 Worker")}</b>
-                  <span>{T("Linux · Codex provider", "Linux · Codex provider")}</span>
-                </div>
-              </div>
-              <div className="form-grid compact">
-                <label className="field">
-                  <span>{T("Name", "名称")}</span>
-                  <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Home lab" />
-                </label>
-                <label className="field">
-                  <span>{T("Region", "区域")}</span>
-                  <input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="local" />
-                </label>
-                <label className="field">
-                  <span>{T("Version", "版本")}</span>
-                  <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="0.8.9" />
-                </label>
-              </div>
-              <button className="btn primary" type="submit" disabled={Boolean(pending)}>
-                <I.Plus size={14} /> {pending === "create" ? T("Creating...", "创建中...") : T("Create", "创建")}
+          <div className="set-shell">
+            <aside className="set-side">
+              <button className="set-side-i active">
+                <I.Terminal size={14} />
+                <span>{T("Workers", "Worker")}</span>
               </button>
-            </form>
+              <button className="set-side-i" type="button" disabled>
+                <I.Check size={14} />
+                <span>{T(`${activeCount} active`, `${activeCount} 个活跃`)}</span>
+              </button>
+            </aside>
 
-            <section className="private-worker-list">
+            <div className="set-body">
+              {createdResult && <WorkerInstallResult result={createdResult} onCopy={copyValue} />}
+
+              <form className="bill-card api-key-create private-worker-create" onSubmit={createWorker}>
+                <div className="api-key-create-head">
+                  <div className="api-key-create-icon">
+                    <I.Terminal size={16} />
+                  </div>
+                  <div>
+                    <b>{T("Create private worker", "创建私有 Worker")}</b>
+                    <span>{T("Linux · Codex provider", "Linux · Codex provider")}</span>
+                  </div>
+                </div>
+                <div className="api-key-create-main">
+                  <div className="private-worker-create-fields">
+                    <label className="auth-field">
+                      <span>{T("Name", "名称")}</span>
+                      <div className="auth-input">
+                        <I.Terminal size={14} />
+                        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Home lab" />
+                      </div>
+                    </label>
+                    <label className="auth-field">
+                      <span>{T("Region", "区域")}</span>
+                      <div className="auth-input">
+                        <I.Folder size={14} />
+                        <input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="local" />
+                      </div>
+                    </label>
+                    <label className="auth-field">
+                      <span>{T("Version", "版本")}</span>
+                      <div className="auth-input">
+                        <I.Package size={14} />
+                        <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="0.8.11" />
+                      </div>
+                    </label>
+                  </div>
+                  <button className="btn primary" type="submit" disabled={Boolean(pending)}>
+                    {pending === "create" && (
+                      <span className="spin" style={{ display: "inline-block" }}>
+                        <I.Refresh size={14} />
+                      </span>
+                    )}
+                    <I.Plus size={14} /> {pending === "create" ? T("Creating...", "创建中...") : T("Create worker", "创建 Worker")}
+                  </button>
+                </div>
+              </form>
+
               {loading ? (
-                <div className="bill-card private-worker-empty">{T("Loading...", "正在加载...")}</div>
-              ) : workers.length ? (
-                workers.map((worker) => (
-                  <WorkerRow
-                    key={worker.worker_id}
-                    worker={worker}
-                    pending={pending && pending.endsWith(worker.worker_id) ? pending : ""}
-                    result={actionResults[worker.worker_id]}
-                    onAction={runAction}
-                    onCopy={copyValue}
-                  />
-                ))
+                <div className="card section muted">{T("Loading...", "正在加载...")}</div>
               ) : (
-                <div className="bill-card private-worker-empty">
-                  {T("No private workers.", "暂无私有 Worker。")}
+                <div className="issue-list private-worker-list">
+                  {workers.map((worker) => (
+                    <WorkerRow
+                      key={worker.worker_id}
+                      worker={worker}
+                      pending={pending && pending.endsWith(worker.worker_id) ? pending : ""}
+                      result={actionResults[worker.worker_id]}
+                      onAction={runAction}
+                      onCopy={copyValue}
+                    />
+                  ))}
+                  {workers.length === 0 && (
+                    <div className="card section muted">
+                      {T("No private workers.", "暂无私有 Worker。")}
+                    </div>
+                  )}
                 </div>
               )}
-            </section>
+            </div>
           </div>
         </div>
       </div>
