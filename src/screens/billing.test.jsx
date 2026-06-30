@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -45,6 +45,18 @@ describe("BillingScreen", () => {
         },
       },
     ],
+  };
+
+  const maxPlan = {
+    id: "max",
+    name: "Pullwise Max",
+    description: "Higher-capacity repository review for production teams.",
+    reviewLimit: 90,
+    repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
+    prices: {
+      month: { amount: "49", currency: "USD", interval: "month", configured: true },
+      year: { amount: "490", currency: "USD", interval: "year", configured: true },
+    },
   };
 
   beforeEach(() => {
@@ -188,6 +200,108 @@ describe("BillingScreen", () => {
       );
       expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_max");
     });
+  });
+
+  it("clears pricing checkout pending state before redirecting", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [...billingCatalog.plans, maxPlan],
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      provider: "creem",
+      url: "https://creem.io/checkout/chk_test",
+    });
+    const navigate = vi.fn();
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    const maxButton = screen.getByRole("button", { name: /start max/i });
+    await user.click(proButton);
+
+    await waitFor(() => {
+      expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/chk_test");
+    });
+    expect(proButton).toBeEnabled();
+    expect(maxButton).toBeEnabled();
+    expect(proButton.querySelector(".spin")).not.toBeInTheDocument();
+  });
+
+  it("resets pricing checkout buttons when restored from browser history", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [...billingCatalog.plans, maxPlan],
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockReturnValue(new Promise(() => {}));
+    const user = userEvent.setup();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    const maxButton = screen.getByRole("button", { name: /start max/i });
+    await user.click(proButton);
+
+    await waitFor(() => {
+      expect(proButton).toBeDisabled();
+      expect(maxButton).toBeDisabled();
+      expect(proButton.querySelector(".spin")).toBeInTheDocument();
+    });
+
+    const pageShow = new Event("pageshow");
+    Object.defineProperty(pageShow, "persisted", { value: true });
+    act(() => {
+      window.dispatchEvent(pageShow);
+    });
+
+    await waitFor(() => {
+      expect(proButton).toBeEnabled();
+      expect(maxButton).toBeEnabled();
+      expect(proButton.querySelector(".spin")).not.toBeInTheDocument();
+    });
+  });
+
+  it("times out a stalled pricing checkout and ignores the stale response", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none", plan: "free" },
+    });
+    let resolveCheckout;
+    pullwiseApi.billing.createCheckoutSession.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCheckout = resolve;
+      })
+    );
+    const navigate = vi.fn();
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    vi.useFakeTimers();
+
+    try {
+      act(() => {
+        fireEvent.click(proButton);
+      });
+      expect(proButton).toBeDisabled();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15 * 1000);
+      });
+
+      expect(screen.getByRole("alert")).toHaveTextContent(/taking longer/i);
+      expect(proButton).toBeEnabled();
+
+      await act(async () => {
+        resolveCheckout({ provider: "creem", url: "https://creem.io/checkout/stale" });
+      });
+
+      expect(navigate).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("shows Max-specific reasoning and yearly savings", async () => {

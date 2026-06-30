@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { I } from "../icons.jsx";
@@ -8,6 +8,8 @@ import { formatQuotaResetAt, quotaResetText } from "../lib/quota-display.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
+
+const CHECKOUT_PENDING_TIMEOUT_MS = 15 * 1000;
 
 function billingReturnUrl(kind, screen = "billing") {
   const url = new URL(window.location.href);
@@ -1255,6 +1257,32 @@ export function PricingScreen({
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const signedIn = Boolean(auth?.authenticated);
+  const checkoutTimeoutRef = useRef(null);
+  const checkoutRequestRef = useRef(0);
+
+  const clearCheckoutTimeout = useCallback(() => {
+    if (checkoutTimeoutRef.current == null) return;
+    window.clearTimeout(checkoutTimeoutRef.current);
+    checkoutTimeoutRef.current = null;
+  }, []);
+
+  const resetCheckoutPending = useCallback(() => {
+    checkoutRequestRef.current += 1;
+    clearCheckoutTimeout();
+    setPendingAction("");
+  }, [clearCheckoutTimeout]);
+
+  useEffect(() => {
+    const handlePageShow = (event) => {
+      if (event.persisted) resetCheckoutPending();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      clearCheckoutTimeout();
+    };
+  }, [clearCheckoutTimeout, resetCheckoutPending]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1291,8 +1319,21 @@ export function PricingScreen({
       go("login");
       return;
     }
+    const requestId = checkoutRequestRef.current + 1;
+    checkoutRequestRef.current = requestId;
+    clearCheckoutTimeout();
     setPendingAction(`checkout-${targetPlan.id}`);
     setError("");
+    checkoutTimeoutRef.current = window.setTimeout(() => {
+      if (checkoutRequestRef.current !== requestId) return;
+      setError(
+        T(
+          "Checkout is taking longer than expected. Please try again.",
+          "Checkout is taking longer than expected. Please try again."
+        )
+      );
+      resetCheckoutPending();
+    }, CHECKOUT_PENDING_TIMEOUT_MS);
     try {
       const session = await pullwiseApi.billing.createCheckoutSession({
         plan: targetPlan.id,
@@ -1300,11 +1341,18 @@ export function PricingScreen({
         successUrl: billingReturnUrl("success", "pricing"),
         cancelUrl: billingReturnUrl("cancel", "pricing"),
       });
+      if (checkoutRequestRef.current !== requestId) return;
       if (!session?.url) throw new Error("Billing provider did not return a checkout URL.");
-      navigate(safeBillingRedirectUrl(session.url, "billing checkout URL"));
+      const checkoutUrl = safeBillingRedirectUrl(session.url, "billing checkout URL");
+      clearCheckoutTimeout();
+      setPendingAction("");
+      navigate(checkoutUrl);
     } catch (err) {
+      if (checkoutRequestRef.current !== requestId) return;
       setError(err?.message || "Unable to start checkout.");
       setPendingAction("");
+    } finally {
+      if (checkoutRequestRef.current === requestId) clearCheckoutTimeout();
     }
   };
 
