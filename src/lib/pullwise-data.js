@@ -47,6 +47,17 @@ function bulkScanStatusUnavailable(error) {
   return error?.status === 404 || error?.status === 405;
 }
 
+async function fetchScanStatusUpdates(scanIds, { signal } = {}) {
+  if (typeof pullwiseApi.scans.status === "function") {
+    try {
+      return await pullwiseApi.scans.status(scanIds, { signal });
+    } catch (error) {
+      if (!bulkScanStatusUnavailable(error)) throw error;
+    }
+  }
+  return Promise.all(scanIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal })));
+}
+
 function createAbortError() {
   if (typeof DOMException === "function") {
     return new DOMException("Request aborted", "AbortError");
@@ -1474,7 +1485,14 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
     }
     let alive = true;
     const controller = makeAbortController();
+    const pollDelayMs =
+      typeof pullwiseApi.scans.status === "function" ? pollIntervalMs : Math.max(pollIntervalMs, 50);
     const handle = setTimeout(() => {
+      if (typeof pullwiseApi.scans.status !== "function") {
+        load({ quiet: true });
+        return;
+      }
+
       const requestKey = stableCacheKey("scans-status-request", { ids: activeIds.join(",") });
       dedupedDataRequest(
         requestKey,
@@ -1483,15 +1501,17 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
             return await pullwiseApi.scans.status(activeIds, { signal });
           } catch (error) {
             if (!bulkScanStatusUnavailable(error)) throw error;
-            return Promise.all(
-              activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal }))
-            );
+            return null;
           }
         },
         controller?.signal
       )
         .then((payload) => {
           if (!alive) return;
+          if (payload === null) {
+            load({ quiet: true });
+            return;
+          }
           const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
           const byId = new Map(
             updates
@@ -1522,13 +1542,13 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           }));
           setPollRetryTick((tick) => tick + 1);
         });
-    }, pollIntervalMs);
+    }, pollDelayMs);
     return () => {
       alive = false;
       controller?.abort();
       clearTimeout(handle);
     };
-  }, [hasActiveScans, state.items, cacheKey, status, pollIntervalMs, pollRetryTick]);
+  }, [hasActiveScans, state.items, cacheKey, status, pollIntervalMs, pollRetryTick, load]);
 
   const loadMore = useCallback(() => {
     if (!state.meta.hasMore || state.loadingMore) return;
@@ -1703,13 +1723,7 @@ export function useScanRun({
     const controller = makeAbortController();
     const handle = setTimeout(async () => {
       try {
-        let payload;
-        try {
-          payload = await pullwiseApi.scans.status([scan.id], { signal: controller?.signal });
-        } catch (err) {
-          if (!bulkScanStatusUnavailable(err)) throw err;
-          payload = await pullwiseApi.scans.get(scan.id, { signal: controller?.signal });
-        }
+        const payload = await fetchScanStatusUpdates([scan.id], { signal: controller?.signal });
         const next = Array.isArray(payload)
           ? payload[0]
           : itemsFrom(payload, "items", "scans")[0] || payload;
@@ -1944,21 +1958,7 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
     const handle = setTimeout(async () => {
       try {
         const activeIds = activeScans.map((scan) => scan.id);
-        let payload;
-        if (typeof pullwiseApi.scans.status === "function") {
-          try {
-            payload = await pullwiseApi.scans.status(activeIds, { signal: controller?.signal });
-          } catch (err) {
-            if (!bulkScanStatusUnavailable(err)) throw err;
-            payload = await Promise.all(
-              activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal: controller?.signal }))
-            );
-          }
-        } else {
-          payload = await Promise.all(
-            activeIds.map((scanId) => pullwiseApi.scans.get(scanId, { signal: controller?.signal }))
-          );
-        }
+        const payload = await fetchScanStatusUpdates(activeIds, { signal: controller?.signal });
         const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
         if (!alive) return;
         const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
