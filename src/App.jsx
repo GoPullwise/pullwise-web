@@ -34,6 +34,7 @@ const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const HistoryScreen = lazyScreen(() => import("./screens/issues.jsx"), "HistoryScreen");
 const IssueDetailScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssueDetailScreen");
 const IssuesScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssuesScreen");
+const PrivateWorkersScreen = lazyScreen(() => import("./screens/private-workers.jsx"), "PrivateWorkersScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/issues.jsx"), "SettingsScreen");
 const PrivacyScreen = lazyScreen(() => import("./screens/legal.jsx"), "PrivacyScreen");
 const SecurityScreen = lazyScreen(() => import("./screens/legal.jsx"), "SecurityScreen");
@@ -198,6 +199,7 @@ function PrototypeNav({ go, current }) {
     { k: "issue", t: T("Issue", "详情") },
     { k: "history", t: T("Scan history", "历史") },
     { k: "apiKeys", t: T("API Keys", "API Keys") },
+    { k: "privateWorkers", t: T("Private workers", "私有 Worker") },
     { k: "settings", t: T("Settings", "设置") },
     { k: "billing", t: T("Billing", "账单") },
     { k: "pricing", t: T("Pricing", "价格") },
@@ -660,6 +662,9 @@ export function App({ prototypeNav = false }) {
         break;
       case "apiKeys":
         body = <ApiKeysScreen go={go} setIssue={setIssue} />;
+        break;
+      case "privateWorkers":
+        body = <PrivateWorkersScreen go={go} setIssue={setIssue} />;
         break;
       case "settings":
         body = <SettingsScreen go={go} setIssue={setIssue} />;

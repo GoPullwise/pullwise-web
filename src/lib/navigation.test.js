@@ -64,6 +64,11 @@ describe("dashboard routes", () => {
     expect(screenFromPath("/dashboard/overview")).toBe("dashboard");
     expect(screenFromPath("/dashboard")).toBe("dashboard");
   });
+
+  it("routes private worker management as an account dashboard tab", () => {
+    expect(pathFromScreen("privateWorkers")).toBe("/private-workers");
+    expect(screenFromPath("/private-workers")).toBe("privateWorkers");
+  });
 });
 
 describe("developer docs routes", () => {
