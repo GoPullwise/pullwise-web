@@ -1,5 +1,5 @@
 const API_PREFIX = "/api";
-const DEFAULT_PULLWISE_API_ORIGIN = "https://api.pull-wise.com";
+const DEFAULT_PROXY_MAX_BODY_BYTES = 1024 * 1024;
 const HTML_SHELL_CACHE_CONTROL = "no-cache";
 const STATIC_SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
@@ -41,20 +41,21 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
   headers.set("X-Forwarded-Prefix", API_PREFIX);
 
   const methodHasBody = hasBody(request.method);
-  const bufferedBody = methodHasBody ? await request.clone().arrayBuffer() : undefined;
+  if (methodHasBody && requestBodyExceedsLimit(request, env)) {
+    return json({ message: "Request body is too large." }, 413);
+  }
+
   const init = {
     method: request.method,
     headers,
-    body: bufferedBody,
+    body: methodHasBody ? request.body : undefined,
+    duplex: methodHasBody ? "half" : undefined,
     redirect: "manual",
   };
-  if (methodHasBody) {
-    init.duplex = "half";
-  }
 
   let response = await fetchUpstream(targetUrl, init);
-  if (await shouldRetryCloudflare1003(response, upstreamOrigin, env)) {
-    const fallbackOrigin = apiOrigin(env.PULLWISE_API_FALLBACK_ORIGIN || DEFAULT_PULLWISE_API_ORIGIN);
+  const fallbackOrigin = fallbackApiOrigin(env);
+  if (await shouldRetryCloudflare1003(response, upstreamOrigin, fallbackOrigin, request)) {
     response = await fetchUpstream(new URL(backendPathWithSearch, fallbackOrigin), init);
   }
   return proxyResponse(response);
@@ -124,10 +125,10 @@ function isLoopbackHost(hostname) {
   return ["localhost", "127.0.0.1", "::1"].includes(normalized);
 }
 
-async function shouldRetryCloudflare1003(response, upstreamOrigin, env) {
+async function shouldRetryCloudflare1003(response, upstreamOrigin, fallbackOrigin, request) {
   if (response.status !== 403) return false;
-  const fallbackOrigin = apiOrigin(env.PULLWISE_API_FALLBACK_ORIGIN || DEFAULT_PULLWISE_API_ORIGIN);
   if (!fallbackOrigin || fallbackOrigin.origin === upstreamOrigin.origin) return false;
+  if (!canRetryFallback(request)) return false;
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("text/html") && !contentType.includes("text/plain")) return false;
   try {
@@ -135,6 +136,32 @@ async function shouldRetryCloudflare1003(response, upstreamOrigin, env) {
   } catch {
     return false;
   }
+}
+
+function fallbackApiOrigin(env) {
+  const configured = String(env.PULLWISE_API_FALLBACK_ORIGIN || "").trim();
+  return configured ? apiOrigin(configured) : null;
+}
+
+function canRetryFallback(request) {
+  if (!["GET", "HEAD"].includes(request.method.toUpperCase())) return false;
+  return !hasCredentialHeaders(request.headers);
+}
+
+function hasCredentialHeaders(headers) {
+  return ["authorization", "cookie", "x-pullwise-api-key"].some((name) => headers.has(name));
+}
+
+function requestBodyExceedsLimit(request, env) {
+  const rawLength = request.headers.get("content-length");
+  if (!rawLength) return false;
+  const contentLength = Number(rawLength);
+  return Number.isFinite(contentLength) && contentLength > proxyMaxBodyBytes(env);
+}
+
+function proxyMaxBodyBytes(env) {
+  const configured = Number(env.PULLWISE_PROXY_MAX_BODY_BYTES);
+  return Number.isFinite(configured) && configured >= 0 ? configured : DEFAULT_PROXY_MAX_BODY_BYTES;
 }
 
 function hasBody(method) {
