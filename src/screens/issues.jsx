@@ -117,13 +117,19 @@ function issueTotal(scan) {
 }
 
 function scanHasResults(scan) {
-  return ["done", "failed"].includes(scan?.status);
+  return ["done", "failed", "partial_completed"].includes(scan?.status);
 }
 
 function scanHistorySummary(scan) {
   const queueSummary = scanQueueSummary(scan);
   if (scan.status === "queued" && queueSummary) {
     return [T("queued", "排队中"), ...queueSummary.tags].join(" - ");
+  }
+  if (scan.status === "partial_completed") {
+    const total = issueTotal(scan);
+    return total > 0
+      ? T(`Partial result - ${total} confirmed`, `部分结果 - ${total} confirmed`)
+      : T("Partial result available", "部分结果可用");
   }
   if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
   if (scan.status === "lost") {
