@@ -1113,12 +1113,12 @@ const PHRASE_TRANSLATIONS = {
     fr: "Aucune preuve structurée n'a été fournie.",
     es: "No se proporcionó evidencia estructurada.",
   },
-  "No executable reproduction was provided.": {
-    zh: "未提供可执行复现。",
-    ja: "実行可能な再現は提供されていません。",
-    ko: "실행 가능한 재현이 제공되지 않았습니다.",
-    fr: "Aucune reproduction exécutable n'a été fournie.",
-    es: "No se proporcionó una reproducción ejecutable.",
+  "No executable validation was provided.": {
+    zh: "No executable validation was provided.",
+    ja: "No executable validation was provided.",
+    ko: "No executable validation was provided.",
+    fr: "No executable validation was provided.",
+    es: "No executable validation was provided.",
   },
   "No patch evidence was provided.": {
     zh: "未提供补丁证据。",
@@ -1289,22 +1289,22 @@ const PHRASE_TRANSLATIONS = {
     fr: "Ouvrir la ligne de preuve",
     es: "Abrir línea de evidencia",
   },
-  Reproduction: {
-    zh: "复现",
-    ja: "再現",
-    ko: "재현",
-    fr: "Reproduction",
-    es: "Reproducción",
+  Validation: {
+    zh: "Validation",
+    ja: "Validation",
+    ko: "Validation",
+    fr: "Validation",
+    es: "Validation",
   },
   Input: { zh: "输入", ja: "入力", ko: "입력", fr: "Entrée", es: "Entrada" },
   Expected: { zh: "预期", ja: "期待", ko: "기대", fr: "Attendu", es: "Esperado" },
   Actual: { zh: "实际", ja: "実際", ko: "실제", fr: "Réel", es: "Real" },
-  "Reproduction command": {
-    zh: "复现命令",
-    ja: "再現コマンド",
-    ko: "재현 명령",
-    fr: "Commande de reproduction",
-    es: "Comando de reproducción",
+  "Validation command": {
+    zh: "Validation command",
+    ja: "Validation command",
+    ko: "Validation command",
+    fr: "Validation command",
+    es: "Validation command",
   },
   Copy: { zh: "复制", ja: "コピー", ko: "복사", fr: "Copier", es: "Copiar" },
   "Trace coverage": {

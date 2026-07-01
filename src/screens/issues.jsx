@@ -228,7 +228,7 @@ function ReproductionCenter({ issue }) {
       {commands.length > 0 && (
         <div className="docs-code repro-command">
           <div className="docs-code-h">
-            <span>{T("Reproduction command", "\u590d\u73b0\u547d\u4ee4")}</span>
+            <span>{T("Validation command", "Validation command")}</span>
             <button className="docs-code-copy" type="button" onClick={() => copyText(commandText)}>
               <I.Copy size={12} /> {T("Copy", "\u590d\u5236")}
             </button>
@@ -319,7 +319,7 @@ function IssueSummaryDetail({ issue }) {
           </ul>
         </DetailSection>
       )}
-      <DetailSection title={T("Reproduction", "Reproduction")}>
+      <DetailSection title={T("Validation", "Validation")}>
         <ReproductionCenter issue={issue} />
       </DetailSection>
       <TextListSection title={T("Limitations", "Limitations")} items={issue.limitations} />
