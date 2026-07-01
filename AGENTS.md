@@ -112,3 +112,9 @@ intent-test validation, intent mining/planning/writing/running/failure
 analysis, validator disproof, final report, QA, artifact upload, result
 submission, and cleanup. Avoid retired review-pipeline labels in new
 user-facing copy.
+
+Worker readiness and status views may receive server-sanitized Codex app-server
+quota telemetry (`codexQuota` / `codex_quota`). Preserve that data when changing
+worker status or scan eligibility displays so users can distinguish an idle
+worker that cannot claim jobs because Codex quota is exhausted from an offline or
+misconfigured worker.
