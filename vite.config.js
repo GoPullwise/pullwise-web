@@ -50,7 +50,6 @@ export default defineConfig({
             return "vendor-react";
           }
           if (normalized.includes("/lucide-react/")) return "vendor-icons";
-          if (normalized.includes("/@xyflow/") || normalized.includes("/@dagrejs/")) return "vendor-graph";
           if (normalized.includes("/date-fns/")) return "vendor-date";
           if (normalized.includes("/axios/")) return "vendor-http";
           if (normalized.includes("/react-router-dom/") || normalized.includes("/react-router/")) return "vendor-router";

@@ -95,6 +95,9 @@ issue counts, and any normalized finding index the server exposes. Do not fetch
 or infer raw worker internals to construct terminal state. If future server data
 contains a natural graph or visual structure, render it from that explicit
 structure; otherwise use clear text/tables from supplied artifacts and summaries.
+Do not keep graph-rendering dependencies, global graph styles, or graph vendor
+chunks as placeholders. Add them only with an explicit server-provided v1 graph
+contract and regression tests for that display path.
 Treat `partial_completed` as a result-bearing terminal state for history/detail
 actions when the server exposes scan or `reviewRun` data. It may have fewer
 issues or artifacts than a completed scan, but it should not be hidden behind
