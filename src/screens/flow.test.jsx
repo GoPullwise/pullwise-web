@@ -924,6 +924,91 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
   });
 
+  it("renders server review run artifacts for a completed scan", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        reviewRun: {
+          runId: "run_job_1",
+          status: "completed",
+          resultStatus: "done",
+          artifactCount: 2,
+          qualityGate: { status: "pass" },
+          progress: { overall_percent: 100 },
+          summary: {
+            overall_risk: "medium",
+            result_status: "complete",
+            finding_counts: { confirmed_high: 1, confirmed_critical: 0 },
+          },
+          artifacts: [
+            {
+              artifactId: "art_report_agent",
+              name: "report.agent.json",
+              kind: "report.agent",
+              mediaType: "application/json",
+              sizeBytes: 2,
+              required: true,
+              storage: {
+                type: "server_artifact",
+                url: "/v1/review-runs/run_job_1/artifacts/art_report_agent",
+              },
+            },
+            {
+              artifactId: "art_worker_log",
+              name: "worker.log.jsonl",
+              kind: "worker_log",
+              mediaType: "application/jsonl",
+              sizeBytes: 128,
+              required: false,
+              storage: {
+                type: "server_artifact",
+                url: "/v1/review-runs/run_job_1/artifacts/art_worker_log",
+              },
+            },
+          ],
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Review run")).toBeInTheDocument();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("Passed")).toBeInTheDocument();
+    expect(screen.getByText("1 confirmed")).toBeInTheDocument();
+    expect(screen.getByText("medium")).toBeInTheDocument();
+    expect(screen.getByText("complete")).toBeInTheDocument();
+
+    const artifacts = screen.getByLabelText("Review artifacts");
+    const reportLink = within(artifacts).getByRole("link", { name: "report.agent.json" });
+    expect(reportLink).toHaveAttribute(
+      "href",
+      "/v1/review-runs/run_job_1/artifacts/art_report_agent"
+    );
+    expect(within(artifacts).getByText("report.agent")).toBeInTheDocument();
+    expect(within(artifacts).getByText("worker.log.jsonl")).toBeInTheDocument();
+    expect(within(artifacts).getByText("worker_log")).toBeInTheDocument();
+    expect(within(artifacts).getByText("required")).toBeInTheDocument();
+  });
+
   it("keeps long audit evidence card text inside the card without clamping", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 

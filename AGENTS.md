@@ -90,13 +90,18 @@ worker. Do not require extra derived artifacts or non-protocol report fields for
 scan detail, dashboard, issue, or audit-bundle views.
 
 Primary completed-run display should use server-provided `humanReport`, summary,
-progress snapshot, artifact metadata, issue counts, and any normalized finding
-index the server exposes. If future server data contains a natural graph or
-visual structure, render it from that explicit structure; otherwise use clear
-text/tables from supplied artifacts and summaries.
+progress snapshot, `reviewRun` terminal state, `reviewRun.artifacts` metadata,
+issue counts, and any normalized finding index the server exposes. Do not fetch
+or infer raw worker internals to construct terminal state. If future server data
+contains a natural graph or visual structure, render it from that explicit
+structure; otherwise use clear text/tables from supplied artifacts and summaries.
 
-Progress UI should follow the design phases: prepare workspace, app-server
-startup, Codex initialization/auth, helper bootstrap, inventory, token budget,
-repo map, risk routing, bundle planning/packing, reviewer fanout, validation,
-clustering/voting, validator disproof, final report, artifact upload, and result
-submission. Avoid retired review-pipeline labels in new user-facing copy.
+Progress UI should follow
+`../codex_full_repo_review_worker_spec_v1_2_FULL_SELF_CONTAINED.md`: prepare
+workspace, app-server startup, Codex initialization/auth, helper bootstrap,
+inventory, token budget, repo map, risk routing, bundle planning/packing,
+reviewer fanout, reviewer JSON/location validation, clustering/voting,
+intent-test validation, intent mining/planning/writing/running/failure
+analysis, validator disproof, final report, QA, artifact upload, result
+submission, and cleanup. Avoid retired review-pipeline labels in new
+user-facing copy.

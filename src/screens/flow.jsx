@@ -6,6 +6,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
+import { env } from "../config/env.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import { downloadBlob } from "../lib/download.js";
@@ -74,6 +75,129 @@ function formatBytes(value) {
   }
   const rounded = size >= 10 ? Math.round(size) : Math.round(size * 10) / 10;
   return `${rounded.toLocaleString()} ${units[unitIndex]}`;
+}
+
+function reviewRunArtifactHref(storage) {
+  const url = typeof storage?.url === "string" ? storage.url.trim() : "";
+  if (!url) return "";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return url;
+  const base = typeof env.VITE_API_BASE_URL === "string" ? env.VITE_API_BASE_URL.replace(/\/$/, "") : "";
+  return `${base}/${url.replace(/^\/+/, "")}`;
+}
+
+function reviewRunStatusLabel(status) {
+  switch (status) {
+    case "completed":
+      return T("Completed", "已完成");
+    case "failed":
+      return T("Failed", "失败");
+    case "cancelled":
+      return T("Cancelled", "已取消");
+    case "running":
+      return T("Running", "运行中");
+    case "leased":
+      return T("Leased", "已领取");
+    default:
+      return String(status || "unknown").replace(/_/g, " ");
+  }
+}
+
+function qualityGateLabel(status) {
+  switch (status) {
+    case "pass":
+      return T("Passed", "通过");
+    case "warn":
+      return T("Warnings", "警告");
+    case "fail":
+      return T("Failed", "失败");
+    default:
+      return String(status || "unknown").replace(/_/g, " ");
+  }
+}
+
+function ReviewRunSummary({ reviewRun }) {
+  if (!reviewRun || typeof reviewRun !== "object") return null;
+  const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
+  const summary = reviewRun.summary && typeof reviewRun.summary === "object" ? reviewRun.summary : {};
+  const qualityGate =
+    reviewRun.qualityGate && typeof reviewRun.qualityGate === "object" ? reviewRun.qualityGate : {};
+  const progress =
+    reviewRun.progress && typeof reviewRun.progress === "object" ? reviewRun.progress : {};
+  const findingCounts =
+    summary.finding_counts && typeof summary.finding_counts === "object" ? summary.finding_counts : {};
+  const countedConfirmed =
+    quotaNumber(findingCounts.confirmed_high) + quotaNumber(findingCounts.confirmed_critical);
+  const confirmed = countedConfirmed || quotaNumber(summary.top_findings?.length);
+  const progressLabel =
+    typeof progress.overall_percent === "number"
+      ? `${Math.round(progress.overall_percent)}%`
+      : reviewRun.status === "completed"
+        ? "100%"
+        : "—";
+
+  return (
+    <div className="review-run-card card section">
+      <div className="section-h">
+        <h3>{T("Review run", "审查运行")}</h3>
+      </div>
+      <div className="review-run-metrics">
+        <div>
+          <b>{reviewRunStatusLabel(reviewRun.status)}</b>
+          <span>{T("Run status", "运行状态")}</span>
+        </div>
+        <div>
+          <b>{qualityGateLabel(qualityGate.status)}</b>
+          <span>{T("Quality gate", "质量门")}</span>
+        </div>
+        <div>
+          <b>{progressLabel}</b>
+          <span>{T("Final progress", "最终进度")}</span>
+        </div>
+        <div>
+          <b>{formatCount(reviewRun.artifactCount || artifacts.length)}</b>
+          <span>{T("Artifacts", "产物")}</span>
+        </div>
+      </div>
+      {summary.overall_risk || summary.result_status || confirmed > 0 ? (
+        <div className="review-run-summary-line">
+          {summary.overall_risk && <span className="tag">{summary.overall_risk}</span>}
+          {summary.result_status && <span className="tag">{summary.result_status}</span>}
+          {confirmed > 0 && (
+            <span className="tag">
+              {T(`${confirmed} confirmed`, `${confirmed} 个已确认`)}
+            </span>
+          )}
+        </div>
+      ) : null}
+      {artifacts.length > 0 && (
+        <div className="review-run-artifacts" aria-label={T("Review artifacts", "审查产物")}>
+          {artifacts.slice(0, 8).map((artifact) => {
+            const href = reviewRunArtifactHref(artifact.storage);
+            const title = artifact.name || artifact.kind || artifact.artifactId;
+            return (
+              <div className="review-run-artifact" key={artifact.artifactId || title}>
+                <div className="review-run-artifact-main">
+                  <I.FileCode size={14} />
+                  {href ? (
+                    <a href={href} target="_blank" rel="noreferrer">
+                      {title}
+                    </a>
+                  ) : (
+                    <span>{title}</span>
+                  )}
+                </div>
+                <div className="review-run-artifact-meta">
+                  {artifact.kind && <span>{artifact.kind}</span>}
+                  {artifact.sizeBytes > 0 && <span>{formatBytes(artifact.sizeBytes)}</span>}
+                  {artifact.required && <span>{T("required", "必需")}</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function copyText(value) {
@@ -2003,6 +2127,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
   const humanReport = batchMode ? null : scan?.humanReport || null;
+  const reviewRun = batchMode ? null : scan?.reviewRun || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
   const terminal =
@@ -2317,6 +2442,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     );
                   })}
                 </div>
+                {reviewRun ? <ReviewRunSummary reviewRun={reviewRun} /> : null}
                 {humanReport ? <HumanReviewReport report={humanReport} /> : null}
               </>
             )}

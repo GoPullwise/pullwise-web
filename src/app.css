@@ -1144,6 +1144,93 @@ body.has-proto-nav {
   margin-top: 12px;
 }
 
+.review-run-card {
+  min-width: 0;
+  margin-top: 12px;
+}
+
+.review-run-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.review-run-metrics > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.review-run-metrics b {
+  display: block;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.review-run-metrics span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.review-run-summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.review-run-artifacts {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.review-run-artifact {
+  min-width: 0;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+
+.review-run-artifact-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.review-run-artifact-main a,
+.review-run-artifact-main span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.review-run-artifact-main a:hover {
+  color: var(--accent);
+}
+
+.review-run-artifact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.review-run-artifact-meta span:not(:last-child)::after {
+  content: "|";
+  margin-left: 6px;
+  color: var(--text-3);
+}
+
 .scan-human-report pre {
   margin: 0;
   max-height: 560px;
