@@ -1663,6 +1663,17 @@ describe("normalizeIssue", () => {
     });
   });
 
+  it("preserves scan agent fix prompts as multiline automation text", () => {
+    const prompt = [
+      "Task: fix the Pullwise scan findings in this repository.",
+      "Repository: acme/api",
+      "Audit bundle ZIP: /api/v1/repositories/repo_123/scans/sc_1/audit-bundle.zip",
+    ].join("\n");
+
+    expect(normalizeScan({ id: "sc_1", agentFixPrompt: prompt }).agentFixPrompt).toBe(prompt);
+    expect(normalizeScan({ id: "sc_bad", agentFixPrompt: { text: prompt } }).agentFixPrompt).toBe("");
+  });
+
   it("does not stringify object-shaped text fields into user-visible labels", () => {
     expect(
       normalizeRepo({

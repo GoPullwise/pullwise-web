@@ -150,6 +150,25 @@ describe("api proxy", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized proxy request bodies before forwarding", async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    const response = await onRequest({
+      env: { PULLWISE_API_ORIGIN: "https://api.internal", PULLWISE_PROXY_MAX_BODY_BYTES: "4" },
+      request: {
+        url: "https://pull-wise.com/api/auth/github/authorize",
+        method: "POST",
+        headers: new Headers({ "Content-Length": "5" }),
+        body: null,
+      },
+    });
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({ message: "Request body is too large." });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns a structured 502 when the backend fetch fails", async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error("connection failed"));
 
@@ -164,7 +183,26 @@ describe("api proxy", () => {
     });
   });
 
-  it("retries the default API origin when the upstream returns Cloudflare 1003", async () => {
+  it("does not retry a hardcoded default API origin when the upstream returns Cloudflare 1003", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response("error code: 1003", {
+        status: 403,
+        headers: { "content-type": "text/plain" },
+      })
+    );
+    globalThis.fetch = fetchMock;
+
+    const response = await onRequest({
+      env: { PULLWISE_API_ORIGIN: "https://198.51.100.10" },
+      request: new Request("https://pull-wise.com/api/auth/session"),
+    });
+
+    expect(response.status).toBe(403);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenNthCalledWith(1, new URL("https://198.51.100.10/auth/session"), expect.any(Object));
+  });
+
+  it("retries an explicit fallback origin for credentialless safe Cloudflare 1003 requests", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
@@ -177,12 +215,46 @@ describe("api proxy", () => {
     globalThis.fetch = fetchMock;
 
     const response = await onRequest({
-      env: { PULLWISE_API_ORIGIN: "https://198.51.100.10" },
+      env: {
+        PULLWISE_API_ORIGIN: "https://198.51.100.10",
+        PULLWISE_API_FALLBACK_ORIGIN: "https://api.internal",
+      },
       request: new Request("https://pull-wise.com/api/auth/session"),
     });
 
     expect(response.status).toBe(200);
     expect(fetchMock).toHaveBeenNthCalledWith(1, new URL("https://198.51.100.10/auth/session"), expect.any(Object));
-    expect(fetchMock).toHaveBeenNthCalledWith(2, new URL("https://api.pull-wise.com/auth/session"), expect.any(Object));
+    expect(fetchMock).toHaveBeenNthCalledWith(2, new URL("https://api.internal/auth/session"), expect.any(Object));
+  });
+
+  it("does not retry fallback origins for credentialed Cloudflare 1003 requests", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response("error code: 1003", {
+          status: 403,
+          headers: { "content-type": "text/plain" },
+        })
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ authenticated: true }), { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const response = await onRequest({
+      env: {
+        PULLWISE_API_ORIGIN: "https://198.51.100.10",
+        PULLWISE_API_FALLBACK_ORIGIN: "https://api.internal",
+      },
+      request: new Request("https://pull-wise.com/api/auth/session", {
+        headers: {
+          Authorization: "Bearer browser-secret",
+          Cookie: "pw_session=ses_1",
+          "X-Pullwise-Api-Key": "pwk_secret",
+        },
+      }),
+    });
+
+    expect(response.status).toBe(403);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenNthCalledWith(1, new URL("https://198.51.100.10/auth/session"), expect.any(Object));
   });
 });

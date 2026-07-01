@@ -1089,6 +1089,7 @@ export function normalizeScan(scan = {}) {
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),
+    agentFixPrompt: multilineTextValue(scan.agentFixPrompt, 20000),
     issues: normalizeIssueCounts(scan.issues),
     verification: normalizeVerificationCounts(scan.verification),
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),

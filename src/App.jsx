@@ -19,7 +19,8 @@ const ACCENT = "#6366f1";
 const LAYOUT = "list";
 const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
 const SESSION_SIGNED_OUT_CONFIRM_DELAY_MS = 2000;
-const ACTIVE_REPO_STORAGE_KEY = "pw-active-repo";
+const ACTIVE_REPO_LEGACY_STORAGE_KEY = "pw-active-repo";
+const ACTIVE_REPO_STORAGE_KEY_PREFIX = "pw-active-repo:v2";
 const BACK_TO_TOP_THRESHOLD_PX = 240;
 function lazyScreen(loader, exportName) {
   return lazy(() => loader().then((module) => ({ default: module[exportName] })));
@@ -119,14 +120,26 @@ function sessionIdentity(authenticated, session) {
   return identity ? `user:${String(identity)}` : `session:${sessionFingerprint(session)}`;
 }
 
+function activeRepoStorageKeyForIdentity(identity) {
+  return identity && identity !== "signed-out"
+    ? `${ACTIVE_REPO_STORAGE_KEY_PREFIX}:${encodeURIComponent(identity)}`
+    : "";
+}
+
+function activeRepoStorageKeyForAuth(auth) {
+  if (auth.status !== "ready" || !auth.authenticated) return "";
+  return activeRepoStorageKeyForIdentity(sessionIdentity(true, auth.session));
+}
+
 function isUsableActiveRepo(value) {
   if (!isObject(value)) return false;
   if (Array.isArray(value.selectedRepos)) return value.selectedRepos.length > 0;
   return Boolean(value.scanId || value.repoId || value.fullName || value.name || value.repo);
 }
 
-function storedActiveRepo() {
-  const raw = localStorageGet(ACTIVE_REPO_STORAGE_KEY, null);
+function storedActiveRepo(storageKey) {
+  if (!storageKey) return null;
+  const raw = localStorageGet(storageKey, null);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
@@ -253,7 +266,8 @@ export function App({ prototypeNav = false }) {
   const [routeIssueId, setRouteIssueId] = useState(() => issueIdFromPath(window.location.pathname));
   const [routeScanId, setRouteScanId] = useState(() => scanIdFromPath(window.location.pathname));
   const [issueScanFilter, setIssueScanFilter] = useState(null);
-  const [activeRepo, setActiveRepo] = useState(storedActiveRepo);
+  const [activeRepoStorageKey, setActiveRepoStorageKey] = useState("");
+  const [activeRepo, setActiveRepo] = useState(null);
   const [pendingHistoryScanIds, setPendingHistoryScanIds] = useState(() =>
     pendingScanIdsFromHistoryState(window.history.state)
   );
@@ -527,12 +541,28 @@ export function App({ prototypeNav = false }) {
   }, [theme]);
 
   useEffect(() => {
-    if (activeRepo) {
-      localStorageSet(ACTIVE_REPO_STORAGE_KEY, JSON.stringify(activeRepo));
-    } else {
-      localStorageSet(ACTIVE_REPO_STORAGE_KEY, null);
+    const nextStorageKey = activeRepoStorageKeyForAuth(auth);
+    localStorageSet(ACTIVE_REPO_LEGACY_STORAGE_KEY, null);
+    if (!nextStorageKey) {
+      if (activeRepoStorageKey) localStorageSet(activeRepoStorageKey, null);
+      setActiveRepoStorageKey("");
+      setActiveRepo(null);
+      return;
     }
-  }, [activeRepo]);
+    if (nextStorageKey === activeRepoStorageKey) return;
+    setActiveRepoStorageKey(nextStorageKey);
+    setActiveRepo(storedActiveRepo(nextStorageKey));
+  }, [auth.status, auth.authenticated, auth.session, activeRepoStorageKey]);
+
+  useEffect(() => {
+    localStorageSet(ACTIVE_REPO_LEGACY_STORAGE_KEY, null);
+    if (!activeRepoStorageKey || activeRepoStorageKey !== activeRepoStorageKeyForAuth(auth)) return;
+    if (activeRepo) {
+      localStorageSet(activeRepoStorageKey, JSON.stringify(activeRepo));
+    } else {
+      localStorageSet(activeRepoStorageKey, null);
+    }
+  }, [activeRepo, activeRepoStorageKey, auth.status, auth.authenticated, auth.session]);
 
   useEffect(() => {
     if (auth.status !== "ready" || !auth.authenticated || screen !== "repos") return;

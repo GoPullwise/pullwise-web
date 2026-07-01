@@ -77,6 +77,10 @@ function deferredPromise() {
   return { promise, resolve, reject };
 }
 
+const activeRepoStorageKey = (email) => `pw-active-repo:v2:${encodeURIComponent(`user:${email}`)}`;
+const DEV_ACTIVE_REPO_STORAGE_KEY = activeRepoStorageKey("dev@example.com");
+const OTHER_ACTIVE_REPO_STORAGE_KEY = activeRepoStorageKey("other@example.com");
+
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -188,7 +192,7 @@ describe("App", () => {
   it("restores persisted scan context from JSON on the scanning route", async () => {
     window.history.replaceState({}, "", "/scanning");
     localStorage.setItem(
-      "pw-active-repo",
+      DEV_ACTIVE_REPO_STORAGE_KEY,
       JSON.stringify({
         scanId: "sc_restore",
         fullName: "GoPullwise/pullwise-web",
@@ -231,7 +235,7 @@ describe("App", () => {
 
   it("loads a scan detail page directly from the scan id in the route", async () => {
     window.history.replaceState({}, "", "/scanning/sc_route");
-    localStorage.removeItem("pw-active-repo");
+    localStorage.removeItem(DEV_ACTIVE_REPO_STORAGE_KEY);
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -258,7 +262,7 @@ describe("App", () => {
   it("replaces a new scan route with the created scan id", async () => {
     window.history.replaceState({}, "", "/scanning");
     localStorage.setItem(
-      "pw-active-repo",
+      DEV_ACTIVE_REPO_STORAGE_KEY,
       JSON.stringify({
         fullName: "GoPullwise/pullwise-web",
         name: "pullwise-web",
@@ -289,13 +293,33 @@ describe("App", () => {
     });
     expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(1);
     await waitFor(() => {
-      expect(JSON.parse(localStorage.getItem("pw-active-repo")).scanId).toBe("sc_created_route");
+      expect(JSON.parse(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).scanId).toBe("sc_created_route");
     });
   });
 
   it("clears invalid persisted scan context instead of passing it to the scanning route", async () => {
     window.history.replaceState({}, "", "/scanning");
-    localStorage.setItem("pw-active-repo", "[object Object]");
+    localStorage.setItem(DEV_ACTIVE_REPO_STORAGE_KEY, "[object Object]");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).toBeNull();
+    });
+    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+
+  it("does not restore scan context from the legacy global active repo key", async () => {
+    window.history.replaceState({}, "", "/scanning");
+    localStorage.setItem(
+      "pw-active-repo",
+      JSON.stringify({ scanId: "sc_legacy", fullName: "Other/private", defaultBranch: "main" })
+    );
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
@@ -306,6 +330,27 @@ describe("App", () => {
     await waitFor(() => {
       expect(localStorage.getItem("pw-active-repo")).toBeNull();
     });
+    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+
+  it("does not restore scan context from another authenticated user", async () => {
+    window.history.replaceState({}, "", "/scanning");
+    localStorage.setItem(
+      OTHER_ACTIVE_REPO_STORAGE_KEY,
+      JSON.stringify({ scanId: "sc_other", fullName: "Other/private", defaultBranch: "main" })
+    );
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).toBeNull();
+    });
+    expect(localStorage.getItem(OTHER_ACTIVE_REPO_STORAGE_KEY)).not.toBeNull();
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
@@ -1436,7 +1481,7 @@ describe("App", () => {
 
   it("opens scan history details on a URL with the scan id", async () => {
     window.history.replaceState({}, "", "/history");
-    localStorage.removeItem("pw-active-repo");
+    localStorage.removeItem(DEV_ACTIVE_REPO_STORAGE_KEY);
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
