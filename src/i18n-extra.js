@@ -1264,13 +1264,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Normalisation des candidats",
     es: "Normalización de candidatos",
   },
-  "Isolated Codex workers": {
-    zh: "Isolated Codex workers",
-    ja: "Isolated Codex workers",
-    ko: "Isolated Codex workers",
-    fr: "Isolated Codex workers",
-    es: "Isolated Codex workers",
-  },
   "Validator review gate": {
     zh: "Validator 验证门禁",
     ja: "Validator 検証ゲート",

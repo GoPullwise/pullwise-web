@@ -37,6 +37,54 @@ function formatTimestamp(value) {
   });
 }
 
+function objectValue(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+}
+
+function quotaPercentValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.min(100, number)) : null;
+}
+
+function formatQuotaPercent(value) {
+  const number = quotaPercentValue(value);
+  if (number === null) return T("Unavailable", "不可用");
+  return `${Number.isInteger(number) ? number : number.toFixed(1)}%`;
+}
+
+function quotaWindowLabel(window) {
+  const kind = textValue(window?.windowKind || window?.window_kind).toLowerCase();
+  if (kind === "five_hour") return "5 hour";
+  if (kind === "weekly") return "Weekly";
+  return textValue(window?.label || window?.name, T("Quota window", "配额窗口"));
+}
+
+function workerCodexQuota(worker) {
+  return objectValue(worker?.codexQuota) || objectValue(worker?.codex_quota);
+}
+
+function WorkerQuotaTags({ quota }) {
+  if (!quota) return null;
+  const status = textValue(quota.status, quota.ready === false ? "not ready" : "unknown");
+  const windows = Array.isArray(quota.windows) ? quota.windows.filter(Boolean) : [];
+  return (
+    <>
+      <span className="tag private-worker-quota-status">
+        {T("Codex quota", "Codex 配额")} {statusLabel(status)}
+      </span>
+      {windows.slice(0, 2).map((window, index) => {
+        const label = quotaWindowLabel(window);
+        const remaining = formatQuotaPercent(window.remainingPercent ?? window.remaining_percent);
+        return (
+          <span className="tag private-worker-quota-window" key={`${label}-${index}`}>
+            {T(`${label} ${remaining} remaining`, `${label} ${remaining} remaining`)}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 function normalizeWorker(worker) {
   if (!worker || typeof worker !== "object") return null;
   const workerId = textValue(worker.worker_id || worker.workerId || worker.id);
@@ -53,6 +101,7 @@ function normalizeWorker(worker) {
     region: textValue(worker.region),
     hostname: textValue(worker.hostname),
     readyProviders: Array.isArray(worker.readyProviders) ? worker.readyProviders : [],
+    codexQuota: workerCodexQuota(worker),
     latest_command: worker.latest_command || worker.latestCommand || null,
   };
 }
@@ -178,6 +227,7 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
           <span className="tag">
             {T("Running", "运行中")} {worker.running_jobs}
           </span>
+          <WorkerQuotaTags quota={worker.codexQuota} />
           <span className="tag">
             {T("Version", "版本")} {worker.version || "-"}
           </span>
