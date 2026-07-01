@@ -20,6 +20,18 @@ import {
 import { quotaResetText } from "../lib/quota-display.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
+function HumanReviewReport({ report }) {
+  const markdown = typeof report?.summaryMarkdown === "string" ? report.summaryMarkdown.trim() : "";
+  if (!markdown) return null;
+  return (
+    <div className="scan-human-report card section">
+      <div className="section-h">
+        <h3>{T("Review report", "审查报告")}</h3>
+      </div>
+      <pre>{markdown}</pre>
+    </div>
+  );
+}
 function quotaNumber(value, fallback = 0) {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;
@@ -1992,6 +2004,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
   const graphVerifiedReport = batchMode ? null : scan?.graphVerifiedReport || null;
+  const humanReport = batchMode ? null : scan?.humanReport || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
   const terminal =
@@ -2307,7 +2320,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   })}
                 </div>
 
-                <GraphVerifiedReport report={graphVerifiedReport} showEmpty />
+                {humanReport ? (
+                  <HumanReviewReport report={humanReport} />
+                ) : graphVerifiedReport ? (
+                  <GraphVerifiedReport report={graphVerifiedReport} />
+                ) : null}
               </>
             )}
           </div>

@@ -1072,6 +1072,7 @@ export function normalizeScan(scan = {}) {
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   const graphVerifiedReport = normalizeGraphVerifiedReport(scan.graphVerifiedReport);
+  const humanReport = normalizeHumanReport(scan.humanReport);
   return {
     id: textValue(scan.id),
     repo: textValue(scan.repo),
@@ -1095,6 +1096,7 @@ export function normalizeScan(scan = {}) {
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),
     preflight: normalizePreflight(scan.preflight),
     graphVerifiedReport,
+    humanReport,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     queue: objectRecord(scan.queue) ? { ...scan.queue } : null,
@@ -1105,6 +1107,15 @@ export function normalizeScan(scan = {}) {
   };
 }
 
+function normalizeHumanReport(value) {
+  if (!objectRecord(value)) return null;
+  const summaryMarkdown = multilineTextValue(
+    value.summaryMarkdown ?? value.summary_markdown ?? value.markdown,
+    50000
+  );
+  if (!summaryMarkdown) return null;
+  return { summaryMarkdown };
+}
 function normalizeGraphVerifiedReport(value) {
   if (!objectRecord(value)) return null;
   const finalJson = objectRecord(value.finalJson)

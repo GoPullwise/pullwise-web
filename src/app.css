@@ -1139,6 +1139,20 @@ body.has-proto-nav {
   min-height: 20px;
 }
 
+.scan-human-report {
+  min-width: 0;
+  margin-top: 12px;
+}
+
+.scan-human-report pre {
+  margin: 0;
+  max-height: 560px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12.5px/1.55 var(--mono);
+  color: var(--text);
+}
 .graph-verified-graph {
   min-width: 0;
   margin: 10px 0 12px;

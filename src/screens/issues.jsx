@@ -1282,7 +1282,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               {isGraphVerifiedIssue ? (
                 <GraphVerifiedIssueDetail issue={issue} />
               ) : (
-                <GraphVerifiedReport report={graphVerifiedReport} showEmpty />
+                graphVerifiedReport ? <GraphVerifiedReport report={graphVerifiedReport} /> : null
               )}
             </div>
 

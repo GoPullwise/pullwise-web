@@ -643,7 +643,7 @@ describe("IssueDetailScreen direct loading", () => {
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
   });
 
-  it("shows a GraphVerified empty state for non-verified issues without a report", () => {
+  it("does not show the legacy GraphVerified empty state for non-verified issues without a report", () => {
     render(
       <IssueDetailScreen
         go={vi.fn()}
@@ -660,13 +660,13 @@ describe("IssueDetailScreen direct loading", () => {
       />
     );
 
-    expect(screen.getByText("GraphVerified findings")).toBeInTheDocument();
-    expect(screen.getByText("0 confirmed")).toBeInTheDocument();
+    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
+    expect(screen.queryByText("0 confirmed")).not.toBeInTheDocument();
     expect(
-      screen.getByText(
+      screen.queryByText(
         "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
       )
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
   });
 });

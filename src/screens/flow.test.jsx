@@ -1216,7 +1216,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("gv_run_empty")).toBeInTheDocument();
   });
 
-  it("shows the GraphVerified empty state when a terminal scan has no report", () => {
+  it("does not show the legacy GraphVerified empty state when a terminal scan has no report", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_without_graph_verified_report",
@@ -1243,15 +1243,43 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    expect(screen.getByText("GraphVerified findings")).toBeInTheDocument();
+    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
     expect(
-      screen.getByText(
+      screen.queryByText(
         "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
       )
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
+  it("shows the worker human report when a completed scan has no graph report", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_human_report",
+        repo: "octocat/report",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        humanReport: { summaryMarkdown: "# Review\n\nFound one high priority issue." },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_human_report", fullName: "octocat/report", defaultBranch: "main" }}
+      />
+    );
+
+    expect(screen.getByText("Review report")).toBeInTheDocument();
+    expect(screen.getByText(/Found one high priority issue/)).toBeInTheDocument();
+    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
+  });
   it("shows preflight evidence for a completed scan", () => {
     useScanRun.mockReturnValue({
       scan: {
