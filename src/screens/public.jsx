@@ -217,8 +217,8 @@ export function LandingScreen({ go, accent, auth }) {
             i: <I.Layers />,
             h: T("Repository context planning", "仓库上下文规划"),
             p: T(
-              "Build review context from repository symbols, callers, callees, impact radius, and entrypoints.",
-              "基于仓库符号、调用方、被调用方、影响半径和入口点构建审查上下文。"
+              "Classify inventory into risk tiers, map trust boundaries and entrypoints, then pack bounded review bundles.",
+              "将 inventory 分类为风险层级，映射信任边界和入口点，然后打包有边界的 review bundles。"
             ),
           },
           {
