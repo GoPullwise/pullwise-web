@@ -1601,14 +1601,14 @@ describe("ScanningScreen queue state", () => {
     expect(phases).not.toBeNull();
     expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
     expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
-    expect(within(phases).getByText("GraphVerified review")).toBeInTheDocument();
+    expect(within(phases).getByText("AI review")).toBeInTheDocument();
     expect(within(phases).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
     expect(
       within(phases).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")
     ).toBeInTheDocument();
     expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
-    expect(screen.getByText(`[${expectedLogTime}] GraphVerified review - Graph: mapping shards 12/80`)).toBeInTheDocument();
-    expect(screen.queryByText(`[${currentTime}] GraphVerified review - Graph: mapping shards 12/80`)).not.toBeInTheDocument();
+    expect(screen.getByText(`[${expectedLogTime}] AI review - Graph: mapping shards 12/80`)).toBeInTheDocument();
+    expect(screen.queryByText(`[${currentTime}] AI review - Graph: mapping shards 12/80`)).not.toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
     } finally {
@@ -1650,7 +1650,7 @@ describe("ScanningScreen queue state", () => {
 
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
     const logTimestamp = 1700000000;
-    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] GraphVerified review - Graph: mapping shards 12/80`;
+    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] AI review - Graph: mapping shards 12/80`;
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1740,7 +1740,7 @@ describe("ScanningScreen queue state", () => {
 
     expect(container.querySelector(".scanning-bar-wrap")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-bar")).not.toBeInTheDocument();
-    expect(screen.getByText("GraphVerified review")).toBeInTheDocument();
+    expect(screen.getByText("AI review")).toBeInTheDocument();
   });
 
   it("explains queued scans with queue position", () => {

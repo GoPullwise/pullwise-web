@@ -83,8 +83,20 @@ Keep route and polling changes aligned with the current scale model.
   retry payload or a targeted scan refresh. Avoid reloading the entire scan
   history after a single retry unless targeted refresh fails.
 
-## Graph-Verified Review Copy
+## Review Worker Result Display
 
-User-facing GraphVerified copy must describe a full-repository snapshot review
-of the current checkout. Scan/report views should tolerate and display
-review-unit coverage metadata even when no confirmed findings are present.
+Web displays only data supplied by the server for the `review-worker-protocol/v1`
+worker. Do not require graph generation or graph-specific report fields for new
+scan detail, dashboard, issue, or audit-bundle views.
+
+Primary completed-run display should use server-provided `humanReport`, summary,
+progress snapshot, artifact metadata, issue counts, and any normalized finding
+index the server exposes. If future server data contains a natural graph or
+visual structure, render it from that explicit structure; otherwise use clear
+text/tables from supplied artifacts and summaries.
+
+Progress UI should follow the design phases: prepare workspace, app-server
+startup, Codex initialization/auth, helper bootstrap, inventory, token budget,
+repo map, risk routing, bundle planning/packing, reviewer fanout, validation,
+clustering/voting, validator disproof, final report, artifact upload, and result
+submission. Avoid replaced graph-review labels in new user-facing copy.

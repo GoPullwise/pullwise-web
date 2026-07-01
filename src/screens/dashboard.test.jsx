@@ -147,7 +147,7 @@ describe("DashboardScreen issue list", () => {
     expect(screen.getByText(/Position 4 \/ 3 scans ahead/i)).toBeInTheDocument();
   });
 
-  it("shows active GraphVerified review progress on the dashboard", () => {
+  it("shows active AI review progress on the dashboard", () => {
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({
       items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
@@ -176,7 +176,7 @@ describe("DashboardScreen issue list", () => {
 
     const activeScan = screen.getByRole("region", { name: /active scan/i });
     expect(within(activeScan).getByText("acme/api")).toBeInTheDocument();
-    expect(within(activeScan).getByText("GraphVerified review")).toBeInTheDocument();
+    expect(within(activeScan).getByText("AI review")).toBeInTheDocument();
     expect(within(activeScan).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
     expect(
       within(activeScan).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")

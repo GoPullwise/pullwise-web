@@ -98,7 +98,7 @@ const ACTIVE_SCAN_STATUSES = new Set(["queued", "running"]);
 const SCAN_PHASE_LABELS = {
   clone: { en: "Cloning repository", zh: "克隆仓库" },
   index: { en: "Repository preflight", zh: "仓库预检" },
-  ai: { en: "GraphVerified review", zh: "GraphVerified 审查" },
+  ai: { en: "AI review", zh: "AI 审查" },
   report: { en: "Uploading report", zh: "上传报告" },
 };
 
