@@ -1243,12 +1243,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Planification du contexte de dépôt",
     es: "Planificación de contexto del repositorio",
   },
-  "Build review context from repository symbols, callers, callees, impact radius, and entrypoints.": {
-    zh: "基于仓库符号、调用方、被调用方、影响半径和入口点构建审查上下文。",
-    ja: "リポジトリシンボル、呼び出し元、呼び出し先、影響範囲、エントリポイントからレビューコンテキストを構築します。",
-    ko: "저장소 심볼, 호출자, 피호출자, 영향 반경 및 진입점으로 리뷰 컨텍스트를 구성합니다.",
-    fr: "Construit le contexte de revue à partir des symboles du dépôt, appelants, appelés, rayon d'impact et points d'entrée.",
-    es: "Construye contexto de revisión desde símbolos del repositorio, llamadores, llamados, radio de impacto y puntos de entrada.",
+  "Classify inventory into risk tiers, map trust boundaries and entrypoints, then pack bounded review bundles.": {
+    zh: "将 inventory 分类为风险层级，映射信任边界和入口点，然后打包有边界的 review bundles。",
+    ja: "インベントリをリスク階層に分類し、信頼境界とエントリポイントを整理して、境界付きレビュー bundle にまとめます。",
+    ko: "인벤토리를 위험 등급으로 분류하고 신뢰 경계와 진입점을 매핑한 뒤 제한된 review bundle로 묶습니다.",
+    fr: "Classe l'inventaire par niveaux de risque, cartographie les frontières de confiance et les points d'entrée, puis prépare des lots de revue bornés.",
+    es: "Clasifica el inventario en niveles de riesgo, mapea límites de confianza y puntos de entrada, y prepara paquetes de revisión acotados.",
   },
   "Sequential reviewer turns": {
     zh: "Sequential reviewer turns",
