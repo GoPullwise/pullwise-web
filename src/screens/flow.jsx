@@ -1395,7 +1395,7 @@ export function ReposScreen({
                     </div>
                     <div className="repo-desc">
                       {T(
-                        "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before graph review and shows the measured size.",
+                        "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before Codex review and shows the measured size.",
                         "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。"
                       )}
                     </div>
@@ -2396,7 +2396,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       <div className="muted scan-preflight-summary">
                         {preflight.repositoryLimitExceeded
                           ? T(
-                              "This checkout exceeded the worker limits, so graph review was not run.",
+                              "This checkout exceeded the worker limits, so Codex review was not run.",
                               "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。"
                             )
                           : T(

@@ -86,7 +86,7 @@ Keep route and polling changes aligned with the current scale model.
 ## Review Worker Result Display
 
 Web displays only data supplied by the server for the `review-worker-protocol/v1`
-worker. Do not require graph generation or graph-specific report fields for new
+worker. Do not require extra derived artifacts or non-protocol report fields for new
 scan detail, dashboard, issue, or audit-bundle views.
 
 Primary completed-run display should use server-provided `humanReport`, summary,
@@ -99,4 +99,4 @@ Progress UI should follow the design phases: prepare workspace, app-server
 startup, Codex initialization/auth, helper bootstrap, inventory, token budget,
 repo map, risk routing, bundle planning/packing, reviewer fanout, validation,
 clustering/voting, validator disproof, final report, artifact upload, and result
-submission. Avoid replaced graph-review labels in new user-facing copy.
+submission. Avoid retired review-pipeline labels in new user-facing copy.

@@ -164,8 +164,8 @@ describe("DashboardScreen issue list", () => {
           status: "running",
           phase: "ai",
           progress: 80,
-          progressMessage: "Graph: mapping shards 12/80",
-          logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
+          progressMessage: "Repo map: mapping shards 12/80",
+          logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
           time: "now",
         },
       ],
@@ -177,9 +177,9 @@ describe("DashboardScreen issue list", () => {
     const activeScan = screen.getByRole("region", { name: /active scan/i });
     expect(within(activeScan).getByText("acme/api")).toBeInTheDocument();
     expect(within(activeScan).getByText("AI review")).toBeInTheDocument();
-    expect(within(activeScan).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
+    expect(within(activeScan).getByText("Repo map: mapping shards 12/80")).toBeInTheDocument();
     expect(
-      within(activeScan).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")
+      within(activeScan).getByText("run=codex_run phase=repo_map progress=12/80 task=bundle-0012")
     ).toBeInTheDocument();
     expect(within(activeScan).getByText("80%")).toBeInTheDocument();
     expect(within(activeScan).getByRole("link", { name: /scan details/i })).toHaveAttribute(

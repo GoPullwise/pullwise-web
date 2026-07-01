@@ -1480,15 +1480,15 @@ describe("normalizeIssue", () => {
       started_at: "1700000000",
       updated_at: "1700000060",
       completed_at: 1700000120,
-      progressMessage: "Graph: repository census",
+      progressMessage: "Repo map: repository census",
       logsSummary: "stage=census",
       progressLogs: [
         {
           time: "1700000050",
           phase: "ai",
           progress: "80",
-          message: "Graph: mapping",
-          logs_summary: "stage=graph",
+          message: "Repo map: mapping",
+          logs_summary: "phase=repo_map",
         },
         { bad: {} },
       ],
@@ -1500,15 +1500,15 @@ describe("normalizeIssue", () => {
     });
 
     expect(scan.phase).toBe("index");
-    expect(scan.progressMessage).toBe("Graph: repository census");
+    expect(scan.progressMessage).toBe("Repo map: repository census");
     expect(scan.logsSummary).toBe("stage=census");
     expect(scan.progressLogs).toEqual([
       {
         time: 1700000050,
         phase: "ai",
         progress: 80,
-        message: "Graph: mapping",
-        logsSummary: "stage=graph",
+        message: "Repo map: mapping",
+        logsSummary: "phase=repo_map",
       },
     ]);
     expect(scan.startedAt).toBe(1700000000);

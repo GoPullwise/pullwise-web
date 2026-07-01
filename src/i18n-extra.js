@@ -66,9 +66,9 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Preuve du code",
     es: "Evidencia de código",
   },
-  Repro: { zh: "复现", ja: "再現", ko: "재현", fr: "Reproduction", es: "Reproducción" },
+  Repro: { zh: "复现", ja: "再現", ko: "재현", fr: "Validation", es: "Reproducción" },
   Proof: { zh: "证据", ja: "証明", ko: "증명", fr: "Preuve", es: "Prueba" },
-  Judge: { zh: "判定", ja: "判定", ko: "판정", fr: "Validation", es: "Validación" },
+  Validator: { zh: "判定", ja: "判定", ko: "판정", fr: "Validation", es: "Validación" },
   "Issue distribution": {
     zh: "问题分布",
     ja: "問題の分布",
@@ -897,12 +897,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Quels dépôts peuvent être scannés",
     es: "Qué repositorios se pueden escanear",
   },
-  "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before graph review and shows the measured size.": {
+  "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before Codex review and shows the measured size.": {
     zh: "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。",
     ja: "Pullwise は、GitHub 認可で選択され、アカウントとリポジトリのクォータがあり、worker の checkout サイズ制限内にあるリポジトリをスキャンできます。checkout が大きすぎる場合、グラフレビュー前にスキャンを停止し、測定サイズを表示します。",
     ko: "Pullwise는 GitHub 권한에서 선택되었고 계정 및 저장소 할당량이 있으며 worker checkout 크기 제한 내에 있는 저장소를 스캔할 수 있습니다. checkout이 너무 크면 그래프 리뷰 전에 스캔이 중지되고 측정된 크기가 표시됩니다.",
-    fr: "Pullwise peut scanner les dépôts sélectionnés dans l'autorisation GitHub, avec du quota disponible pour le compte et le dépôt, et dans les limites de taille de checkout du worker. Si un checkout est trop volumineux, le scan s'arrête avant la revue graphique et affiche la taille mesurée.",
-    es: "Pullwise puede escanear repositorios seleccionados en la autorización de GitHub, con cuota de cuenta y repositorio disponible, y dentro de los límites de tamaño de checkout del worker. Si un checkout es demasiado grande, el escaneo se detiene antes de la revisión de grafo y muestra el tamaño medido.",
+    fr: "Pullwise peut scanner les dépôts sélectionnés dans l'autorisation GitHub, avec du quota disponible pour le compte et le dépôt, et dans les limites de taille de checkout du worker. Si un checkout est trop volumineux, le scan s'arrête avant la revue Codex et affiche la taille mesurée.",
+    es: "Pullwise puede escanear repositorios seleccionados en la autorización de GitHub, con cuota de cuenta y repositorio disponible, y dentro de los límites de tamaño de checkout del worker. Si un checkout es demasiado grande, el escaneo se detiene antes de la revisión de contexto y muestra el tamaño medido.",
   },
   "Private repositories and forks can be scanned when authorized. Forks share repository quota with their source repository; language is detected for context and is not an allowlist. The selected branch must exist in GitHub.": {
     zh: "私有仓库和 fork 仓库只要已授权即可扫描。fork 会与源仓库共享仓库配额；语言只作为上下文识别，不是允许名单。所选分支必须存在于 GitHub。",
@@ -949,12 +949,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Limites de scan du dépôt",
     es: "Límites de escaneo del repositorio",
   },
-  "This checkout exceeded the worker limits, so graph review was not run.": {
+  "This checkout exceeded the worker limits, so Codex review was not run.": {
     zh: "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。",
     ja: "この checkout は worker 制限を超えたため、グラフレビューは実行されませんでした。",
     ko: "이 checkout은 worker 제한을 초과하여 그래프 리뷰가 실행되지 않았습니다.",
-    fr: "Ce checkout a dépassé les limites du worker, la revue graphique n'a donc pas été exécutée.",
-    es: "Este checkout superó los límites del worker, por lo que no se ejecutó la revisión de grafo.",
+    fr: "Ce checkout a dépassé les limites du worker, la revue Codex n'a donc pas été exécutée.",
+    es: "Este checkout superó los límites del worker, por lo que no se ejecutó la revisión de contexto.",
   },
   "This checkout was within the worker limits used for this scan.": {
     zh: "此仓库 checkout 未超过本次扫描使用的 worker 限制。",
@@ -1008,12 +1008,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   Type: { zh: "类型", ja: "種類", ko: "유형", fr: "Type", es: "Tipo" },
   "Log excerpt": { zh: "日志摘录", ja: "ログ抜粋", ko: "로그 발췌", fr: "Extrait de journal", es: "Extracto de log" },
   "Verification steps": { zh: "验证步骤", ja: "検証手順", ko: "검증 단계", fr: "Étapes de vérification", es: "Pasos de verificación" },
-  "Graph path exercised": {
+  "Context path checked": {
     zh: "已覆盖图路径",
     ja: "グラフパスを実行済み",
     ko: "그래프 경로가 실행됨",
-    fr: "Chemin de graphe exercé",
-    es: "Ruta de grafo ejercitada",
+    fr: "Chemin de contexte exercé",
+    es: "Ruta de contexto ejercitada",
   },
   Level: { zh: "级别", ja: "レベル", ko: "수준", fr: "Niveau", es: "Nivel" },
   "Safe to show user": {
@@ -1027,19 +1027,19 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   Observable: { zh: "可观测项", ja: "観測可能項目", ko: "관찰 가능 항목", fr: "Observable", es: "Observable" },
   Reason: { zh: "原因", ja: "理由", ko: "이유", fr: "Raison", es: "Motivo" },
   Behavior: { zh: "行为", ja: "挙動", ko: "동작", fr: "Comportement", es: "Comportamiento" },
-  "Reproduction proof": {
+  "Validation proof": {
     zh: "复现证明",
     ja: "再現証明",
     ko: "재현 증명",
-    fr: "Preuve de reproduction",
-    es: "Prueba de reproducción",
+    fr: "Preuve de validation",
+    es: "Prueba de validación",
   },
-  "Judge validation": {
-    zh: "Judge 验证",
-    ja: "Judge 検証",
-    ko: "Judge 검증",
-    fr: "Validation du juge",
-    es: "Validación del juez",
+  "Validator review": {
+    zh: "Validator 验证",
+    ja: "Validator 検証",
+    ko: "Validator 검증",
+    fr: "Validation du validator",
+    es: "Validación del validator",
   },
   "Why this matters": {
     zh: "为什么重要",
@@ -1190,12 +1190,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   },
   "Find broadly.": { zh: "广泛发现。", ja: "広く発見。", ko: "넓게 찾기.", fr: "Chercher largement.", es: "Detecta ampliamente." },
   "Prove locally.": { zh: "本地证明。", ja: "ローカルで証明。", ko: "로컬에서 증명.", fr: "Prouver localement.", es: "Prueba localmente." },
-  "Pullwise scans the current repository snapshot with Codex-built review context, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.": {
-    zh: "Pullwise 使用 Codex 构建的审查上下文扫描当前仓库快照，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。",
-    ja: "Pullwise は Codex が構築したレビューコンテキストで現在のリポジトリスナップショットをスキャンし、 focused agents を実行し、隔離 worker で高シグナル候補を再現し、judge 検証を通過した検出のみを報告します。",
-    ko: "Pullwise는 Codex가 만든 리뷰 컨텍스트로 현재 저장소 스냅샷을 스캔하고, 집중 agent를 실행하며, 격리된 worker에서 고신호 후보를 재현하고, judge 검증을 통과한 발견만 보고합니다.",
-    fr: "Pullwise scanne le snapshot actuel du dépôt avec un contexte de revue construit par Codex, exécute des agents ciblés, reproduit les candidats à fort signal dans des workers isolés et ne rapporte que les résultats validés par le juge.",
-    es: "Pullwise escanea la instantánea actual del repositorio con contexto de revisión creado por Codex, ejecuta agentes enfocados, reproduce candidatos de alta señal en workers aislados y solo informa hallazgos que superan la validación del juez.",
+  "Pullwise scans the current repository snapshot with isolated Codex full-repo workers, validates candidate findings through a disproof pass, and reports confirmed or plausible actionable findings.": {
+    zh: "Pullwise 使用 Codex 构建的审查上下文扫描当前仓库快照，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 validator 验证的发现。",
+    ja: "Pullwise は Codex が構築したレビューコンテキストで現在のリポジトリスナップショットをスキャンし、 focused agents を実行し、隔離 worker で高シグナル候補を再現し、validator 検証を通過した検出のみを報告します。",
+    ko: "Pullwise는 Codex가 만든 리뷰 컨텍스트로 현재 저장소 스냅샷을 스캔하고, 집중 agent를 실행하며, 격리된 worker에서 고신호 후보를 재현하고, validator 검증을 통과한 발견만 보고합니다.",
+    fr: "Pullwise scanne le snapshot actuel du dépôt avec un contexte de revue construit par Codex, exécute des agents ciblés, reviewduit les candidats à fort signal dans des workers isolés et ne rapporte que les résultats validés par le validator.",
+    es: "Pullwise escanea la instantánea actual del repositorio con contexto de revisión creado por Codex, ejecuta agentes enfocados, reviewduce candidatos de alta señal en workers aislados y solo informa hallazgos que superan la validación del validator.",
   },
   "Repository context evidence": {
     zh: "仓库上下文证据",
@@ -1204,11 +1204,11 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Preuve de contexte du dépôt",
     es: "Evidencia de contexto del repositorio",
   },
-  "Isolated reproduction": {
+  "Isolated Codex workers": {
     zh: "隔离复现",
     ja: "隔離再現",
     ko: "격리 재현",
-    fr: "Reproduction isolée",
+    fr: "Validation isolée",
     es: "Reproducción aislada",
   },
   "Confirmed-only reports": {
@@ -1219,9 +1219,9 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     es: "Informes solo confirmados",
   },
   Diff: { zh: "Diff", ja: "Diff", ko: "Diff", fr: "Diff", es: "Diff" },
-  "Graph slices": { zh: "图切片", ja: "グラフスライス", ko: "그래프 슬라이스", fr: "Tranches de graphe", es: "Segmentos de grafo" },
+  "Review bundles": { zh: "图切片", ja: "グラフスライス", ko: "그래프 슬라이스", fr: "Tranches de contexte", es: "Segmentos de contexto" },
   Report: { zh: "报告", ja: "レポート", ko: "보고서", fr: "Rapport", es: "Informe" },
-  Slice: { zh: "切片", ja: "スライス", ko: "슬라이스", fr: "Tranche", es: "Segmento" },
+  Bundle: { zh: "切片", ja: "スライス", ko: "슬라이스", fr: "Tranche", es: "Segmento" },
   Find: { zh: "发现", ja: "検出", ko: "찾기", fr: "Trouver", es: "Encontrar" },
   confirmed: { zh: "已确认", ja: "確認済み", ko: "확인됨", fr: "confirmé", es: "confirmado" },
   "Repository snapshot entry": {
@@ -1252,19 +1252,19 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Construit le contexte de revue à partir des symboles du dépôt, appelants, appelés, rayon d'impact et points d'entrée.",
     es: "Construye contexto de revisión desde símbolos del repositorio, llamadores, llamados, radio de impacto y puntos de entrada.",
   },
-  "Parallel finder agents": {
-    zh: "并行 Finder Agents",
-    ja: "並列 Finder Agents",
-    ko: "병렬 Finder Agents",
+  "Sequential reviewer turns": {
+    zh: "并行 Reviewer Agents",
+    ja: "並列 Reviewer Agents",
+    ko: "병렬 Reviewer Agents",
     fr: "Agents de recherche parallèles",
     es: "Agentes de búsqueda paralelos",
   },
-  "Run focused correctness, security, API contract, state, and repro-planning agents inside bounded slice context.": {
+  "Run security, correctness, test-gap, and correctness-lite reviewer turns over bounded repository bundles.": {
     zh: "在有边界的切片上下文中运行正确性、安全、API 契约、状态和复现规划等聚焦 agent。",
     ja: "境界付きスライスコンテキスト内で、正確性、セキュリティ、API 契約、状態、再現計画に特化した agent を実行します。",
     ko: "경계가 있는 슬라이스 컨텍스트 안에서 정확성, 보안, API 계약, 상태 및 재현 계획 agent를 실행합니다.",
-    fr: "Exécute des agents ciblés de correction, sécurité, contrat API, état et planification de reproduction dans un contexte de tranche borné.",
-    es: "Ejecuta agentes enfocados en corrección, seguridad, contrato API, estado y planificación de reproducción dentro de un contexto de segmento acotado.",
+    fr: "Exécute des agents ciblés de correction, sécurité, contrat API, état et planification de validation dans un contexte de tranche borné.",
+    es: "Ejecuta agentes enfocados en corrección, seguridad, contrato API, estado y planificación de validación dentro de un contexto de segmento acotado.",
   },
   "Candidate normalization": {
     zh: "候选问题归一化",
@@ -1273,47 +1273,47 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Normalisation des candidats",
     es: "Normalización de candidatos",
   },
-  "Validate evidence, dedupe similar claims, score risk, and send only strong candidates to reproduction.": {
+  "Validate evidence, dedupe similar claims, score risk, and send strong candidates to validator disproof.": {
     zh: "校验证据、去重相似主张、评估风险，并且只把高价值候选问题送入复现。",
     ja: "証拠を検証し、類似主張を重複排除し、リスクを採点し、強い候補だけを再現へ送ります。",
     ko: "증거를 검증하고 유사한 주장 중복을 제거하며 위험도를 점수화한 뒤 강한 후보만 재현으로 보냅니다.",
-    fr: "Valide les preuves, déduplique les affirmations similaires, score le risque et n'envoie que les candidats solides à la reproduction.",
-    es: "Valida evidencia, elimina reclamos similares, puntúa el riesgo y envía solo candidatos fuertes a reproducción.",
+    fr: "Valide les preuves, déduplique les affirmations similaires, score le risque et n'envoie que les candidats solides à la validation.",
+    es: "Valida evidencia, elimina reclamos similares, puntúa el riesgo y envía solo candidatos fuertes a validación.",
   },
-  "Isolated repro workers": {
+  "Isolated Codex workers": {
     zh: "隔离复现 Worker",
     ja: "隔離再現 Worker",
     ko: "격리 재현 Worker",
-    fr: "Workers de reproduction isolés",
-    es: "Workers de reproducción aislada",
+    fr: "Workers de validation isolés",
+    es: "Workers de validación aislada",
   },
-  "Give each candidate its own worker directory, generated minimal repro, command logs, and filesystem boundary checks.": {
+  "Give each run its own worker workspace, Codex state directories, artifact directory, and filesystem boundary checks.": {
     zh: "为每个候选问题分配独立 worker 目录、最小复现、命令日志和文件系统边界检查。",
     ja: "各候補に専用 worker ディレクトリ、生成された最小再現、コマンドログ、ファイルシステム境界チェックを与えます。",
     ko: "각 후보에 전용 worker 디렉터리, 생성된 최소 재현, 명령 로그 및 파일 시스템 경계 검사를 제공합니다.",
-    fr: "Donne à chaque candidat son propre répertoire worker, une reproduction minimale générée, des journaux de commandes et des contrôles de limites du système de fichiers.",
-    es: "Da a cada candidato su propio directorio worker, reproducción mínima generada, logs de comandos y comprobaciones de límites del sistema de archivos.",
+    fr: "Donne à chaque candidat son propre répertoire worker, une validation minimale générée, des journaux de commandes et des contrôles de limites du système de fichiers.",
+    es: "Da a cada candidato su propio directorio worker, validación mínima generada, logs de comandos y comprobaciones de límites del sistema de archivos.",
   },
-  "Judge validation gate": {
-    zh: "Judge 验证门禁",
-    ja: "Judge 検証ゲート",
-    ko: "Judge 검증 게이트",
-    fr: "Porte de validation du juge",
-    es: "Puerta de validación del juez",
+  "Validator review gate": {
+    zh: "Validator 验证门禁",
+    ja: "Validator 検証ゲート",
+    ko: "Validator 검증 게이트",
+    fr: "Porte de validation du validator",
+    es: "Puerta de validación del validator",
   },
-  "Reject static guesses, ambiguous logs, harness failures, missing reproduction, and workers that cross their boundaries.": {
+  "Reject static guesses, ambiguous evidence, missing locations, and findings the validator disproves.": {
     zh: "拒绝静态猜测、含糊日志、测试夹具失败、缺失复现，以及越过边界的 worker。",
     ja: "静的な推測、曖昧なログ、ハーネス失敗、再現不足、境界を越えた worker を拒否します。",
     ko: "정적 추측, 모호한 로그, 하네스 실패, 누락된 재현 및 경계를 넘은 worker를 거부합니다.",
-    fr: "Rejette les suppositions statiques, journaux ambigus, échecs de harnais, reproductions manquantes et workers qui dépassent leurs limites.",
-    es: "Rechaza conjeturas estáticas, logs ambiguos, fallos de harness, reproducciones ausentes y workers que cruzan sus límites.",
+    fr: "Rejette les suppositions statiques, journaux ambigus, échecs de harnais, validations manquantes et workers qui dépassent leurs limites.",
+    es: "Rechaza conjeturas estáticas, logs ambiguos, fallos de harness, reviewducciones ausentes y workers que cruzan sus límites.",
   },
-  "Final reports include confirmed findings with graph evidence, code evidence, trigger conditions, observed behavior, and repro commands.": {
+  "Final reports include confirmed and plausible findings with file locations, evidence, impact, recommendations, and next-agent tasks.": {
     zh: "最终报告包含已确认问题，以及图证据、代码证据、触发条件、观测行为和复现命令。",
     ja: "最終レポートには、グラフ証拠、コード証拠、トリガー条件、観測された挙動、再現コマンド付きの確認済み検出が含まれます。",
     ko: "최종 보고서에는 그래프 증거, 코드 증거, 트리거 조건, 관찰된 동작 및 재현 명령이 포함된 확인된 발견이 포함됩니다.",
-    fr: "Les rapports finaux incluent les résultats confirmés avec preuve graphique, preuve de code, conditions de déclenchement, comportement observé et commandes de reproduction.",
-    es: "Los informes finales incluyen hallazgos confirmados con evidencia de grafo, evidencia de código, condiciones de disparo, comportamiento observado y comandos de reproducción.",
+    fr: "Les rapports finaux incluent les résultats confirmés avec preuve Codex, preuve de code, conditions de déclenchement, comportement observé et commandes de validation.",
+    es: "Los informes finales incluyen hallazgos confirmados con evidencia de contexto, evidencia de código, condiciones de disparo, comportamiento observado y comandos de validación.",
   },
   "Debuggable pipeline history": {
     zh: "可调试流水线历史",
@@ -1322,12 +1322,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Historique de pipeline débogable",
     es: "Historial de pipeline depurable",
   },
-  "Keep repository snapshot files, slices, finder tasks, raw candidates, repro status, judge reasons, and timing for developer audit.": {
-    zh: "保留仓库快照文件、切片、finder 任务、原始候选、复现状态、judge 理由和耗时，便于开发者审计。",
-    ja: "開発者監査のため、リポジトリスナップショットファイル、スライス、finder タスク、生候補、再現状態、judge 理由、タイミングを保持します。",
-    ko: "개발자 감사용으로 저장소 스냅샷 파일, 슬라이스, finder 작업, 원시 후보, 재현 상태, judge 이유 및 타이밍을 보관합니다.",
-    fr: "Conserve les fichiers de snapshot du dépôt, tranches, tâches de recherche, candidats bruts, état de reproduction, raisons du juge et temps pour l'audit développeur.",
-    es: "Conserva archivos de instantánea del repositorio, segmentos, tareas finder, candidatos crudos, estado de reproducción, motivos del juez y tiempos para auditoría de desarrolladores.",
+  "Keep repository inventory, bundle plans, raw reviewer output, validator decisions, artifacts, and timing for developer audit.": {
+    zh: "保留仓库快照文件、切片、reviewer 任务、原始候选、复现状态、validator 理由和耗时，便于开发者审计。",
+    ja: "開発者監査のため、リポジトリスナップショットファイル、スライス、reviewer タスク、生候補、再現状態、validator 理由、タイミングを保持します。",
+    ko: "개발자 감사용으로 저장소 스냅샷 파일, 슬라이스, reviewer 작업, 원시 후보, 재현 상태, validator 이유 및 타이밍을 보관합니다.",
+    fr: "Conserve les fichiers de snapshot du dépôt, tranches, tâches de recherche, candidats bruts, état de validation, raisons du validator et temps pour l'audit développeur.",
+    es: "Conserva archivos de instantánea del repositorio, segmentos, tareas reviewer, candidatos crudos, estado de validación, motivos del validator y tiempos para auditoría de desarrolladores.",
   },
   "Local-first review boundary": {
     zh: "本地优先审查边界",
@@ -1336,12 +1336,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Limite de revue locale d'abord",
     es: "Límite de revisión local primero",
   },
-  "Default finder, repro, and judge runs avoid free network access, real credentials, production services, and destructive operations.": {
-    zh: "默认 finder、repro 和 judge 不自由联网，不使用真实凭据、生产服务或破坏性操作。",
-    ja: "デフォルトの finder、repro、judge 実行は、自由なネットワークアクセス、実認証情報、本番サービス、破壊的操作を避けます。",
-    ko: "기본 finder, repro, judge 실행은 자유로운 네트워크 접근, 실제 자격 증명, 프로덕션 서비스 및 파괴적 작업을 피합니다.",
-    fr: "Les exécutions finder, repro et judge par défaut évitent l'accès réseau libre, les vrais identifiants, les services de production et les opérations destructrices.",
-    es: "Las ejecuciones predeterminadas de finder, repro y judge evitan acceso libre a red, credenciales reales, servicios de producción y operaciones destructivas.",
+  "Default Codex worker turns avoid free network access, real credentials, production services, and destructive operations.": {
+    zh: "默认 reviewer、review 和 validator 不自由联网，不使用真实凭据、生产服务或破坏性操作。",
+    ja: "デフォルトの reviewer、review、validator 実行は、自由なネットワークアクセス、実認証情報、本番サービス、破壊的操作を避けます。",
+    ko: "기본 reviewer, review, validator 실행은 자유로운 네트워크 접근, 실제 자격 증명, 프로덕션 서비스 및 파괴적 작업을 피합니다.",
+    fr: "Les exécutions reviewer, review et validator par défaut évitent l'accès réseau libre, les vrais identifiants, les services de production et les opérations destructrices.",
+    es: "Las ejecuciones predeterminadas de reviewer, review y validator evitan acceso libre a red, credenciales reales, servicios de producción y operaciones destructivas.",
   },
   "GitHub repository workflow": {
     zh: "GitHub 仓库工作流",
@@ -1924,19 +1924,19 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Checkout de la référence demandée",
     es: "Haciendo checkout de la referencia solicitada",
   },
-  "Capturing manifests, tools, and graph context": {
+  "Capturing manifests, tools, and repository context": {
     zh: "采集清单、工具版本和验证器输出",
     ja: "マニフェスト、ツール、グラフコンテキストを収集中",
     ko: "매니페스트, 도구 및 그래프 컨텍스트 수집 중",
-    fr: "Capture des manifestes, outils et contexte graphique",
-    es: "Capturando manifiestos, herramientas y contexto de grafo",
+    fr: "Capture des manifestes, outils et contexte Codex",
+    es: "Capturando manifiestos, herramientas y contexto de contexto",
   },
-  "Checking graph evidence and reproduction": {
+  "Validating findings and locations": {
     zh: "检查图证据和复现结果",
     ja: "グラフ証拠と再現を確認中",
     ko: "그래프 증거와 재현 확인 중",
-    fr: "Vérification des preuves graphiques et de la reproduction",
-    es: "Comprobando evidencia de grafo y reproducción",
+    fr: "Vérification des preuves Codexs et de la validation",
+    es: "Comprobando evidencia de contexto y validación",
   },
   "Persisting findings and the audit bundle": {
     zh: "保存问题和审计包",

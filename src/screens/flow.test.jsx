@@ -1344,15 +1344,15 @@ describe("ScanningScreen queue state", () => {
         phase: "ai",
         progress: 80,
         updatedAt: currentTimestamp,
-        progressMessage: "Graph: mapping shards 12/80",
-        logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
+        progressMessage: "Repo map: mapping shards 12/80",
+        logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
         progressLogs: [
           {
             time: logTimestamp,
             phase: "ai",
             progress: 80,
-            message: "Graph: mapping shards 12/80",
-            logsSummary: "run=gv_run stage=graph progress=12/80 task=graph-0012",
+            message: "Repo map: mapping shards 12/80",
+            logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
           },
         ],
       },
@@ -1373,13 +1373,13 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
     expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
     expect(within(phases).getByText("AI review")).toBeInTheDocument();
-    expect(within(phases).getByText("Graph: mapping shards 12/80")).toBeInTheDocument();
+    expect(within(phases).getByText("Repo map: mapping shards 12/80")).toBeInTheDocument();
     expect(
-      within(phases).getByText("run=gv_run stage=graph progress=12/80 task=graph-0012")
+      within(phases).getByText("run=codex_run phase=repo_map progress=12/80 task=bundle-0012")
     ).toBeInTheDocument();
     expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
-    expect(screen.getByText(`[${expectedLogTime}] AI review - Graph: mapping shards 12/80`)).toBeInTheDocument();
-    expect(screen.queryByText(`[${currentTime}] AI review - Graph: mapping shards 12/80`)).not.toBeInTheDocument();
+    expect(screen.getByText(`[${expectedLogTime}] AI review - Repo map: mapping shards 12/80`)).toBeInTheDocument();
+    expect(screen.queryByText(`[${currentTime}] AI review - Repo map: mapping shards 12/80`)).not.toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
     } finally {
@@ -1421,7 +1421,7 @@ describe("ScanningScreen queue state", () => {
 
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
     const logTimestamp = 1700000000;
-    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] AI review - Graph: mapping shards 12/80`;
+    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] AI review - Repo map: mapping shards 12/80`;
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1436,7 +1436,7 @@ describe("ScanningScreen queue state", () => {
             time: logTimestamp,
             phase: "ai",
             progress: 80,
-            message: "Graph: mapping shards 12/80",
+            message: "Repo map: mapping shards 12/80",
           },
         ],
       },
