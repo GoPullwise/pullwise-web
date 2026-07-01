@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
@@ -2003,7 +2002,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const preflight = batchMode
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
-  const graphVerifiedReport = batchMode ? null : scan?.graphVerifiedReport || null;
   const humanReport = batchMode ? null : scan?.humanReport || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
@@ -2318,13 +2316,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       </div>
                     );
                   })}
-                </div>
-
-                {humanReport ? (
-                  <HumanReviewReport report={humanReport} />
-                ) : graphVerifiedReport ? (
-                  <GraphVerifiedReport report={graphVerifiedReport} />
-                ) : null}
+                </div>
+                {humanReport ? <HumanReviewReport report={humanReport} /> : null}
               </>
             )}
           </div>

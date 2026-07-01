@@ -188,92 +188,6 @@ function appendMarkdownSection(lines, title, content) {
   lines.push("", `## ${title}`, body);
 }
 
-function graphVerifiedLines(issue) {
-  const graph = issue.graphEvidence || {};
-  return [
-    graph.sliceId ? `- Slice: ${markdownText(graph.sliceId)}` : "",
-    ...(graph.pathSummary || []).map((item) => `- ${markdownText(item)}`),
-    ...(graph.codegraphFiles || []).map((file) => `- File: ${markdownText(file)}`),
-  ].filter(Boolean);
-}
-
-function codeEvidenceMarkdown(issue) {
-  return (issue.codeEvidence || [])
-    .map((item) => {
-      const location = [markdownText(item?.file), markdownText(item?.lines)]
-        .filter(Boolean)
-        .join(":");
-      const why = markdownText(item?.whyItMatters);
-      return [location ? `- ${location}` : "", why ? `  ${why}` : ""].filter(Boolean).join("\n");
-    })
-    .filter(Boolean);
-}
-
-function graphVerifiedReproductionMarkdown(issue) {
-  const reproduction = issue.reproduction || {};
-  const lines = [];
-  if (issue.reproductionPath) {
-    lines.push(`- Method: ${markdownText(issue.reproductionPath)}`);
-  }
-  if (reproduction.commands?.length) {
-    lines.push("### Commands", "```", reproduction.commands.join("\n"), "```");
-  }
-  if (reproduction.steps?.length) {
-    lines.push("### Verification steps", ...reproduction.steps.map((step) => `- ${markdownText(step)}`).filter(Boolean));
-  }
-  [
-    ["Input", reproduction.input || issue.triggerCondition],
-    ["Expected", reproduction.expected || issue.expectedBehavior],
-    ["Actual", reproduction.actual || issue.observedBehavior],
-    ["Log", reproduction.logPath],
-  ].forEach(([label, value]) => {
-    const text = markdownText(value);
-    if (text) lines.push(`- ${label}: ${text}`);
-  });
-  return lines;
-}
-
-function buildGraphVerifiedIssueMarkdown(issue, currentStatus) {
-  const title = markdownText(issue.title) || markdownText(issue.id) || "GraphVerified finding";
-  const primaryLocation = issue.affectedLocations?.[0] || null;
-  const lines = [`# ${title}`];
-  appendMarkdownSection(
-    lines,
-    "Metadata",
-    [
-      ["Issue", issue.id],
-      ["Status", currentStatus || issue.status],
-      ["Severity", issue.severity],
-      ["Category", issue.category],
-      ["Repository", issue.repo],
-      ["Branch", issue.branch],
-      ["Commit", issue.commit],
-      ["Scan", issue.scanId],
-      ["Candidate", issue.candidateId],
-      ["File", primaryLocation ? locationLabel(primaryLocation) : issue.file],
-    ]
-      .map(([label, value]) => {
-        const text = markdownText(value);
-        return text ? `- ${label}: ${text}` : "";
-      })
-      .filter(Boolean)
-  );
-  appendMarkdownSection(lines, "Summary", issue.summary);
-  appendMarkdownSection(lines, "Graph evidence", graphVerifiedLines(issue));
-  appendMarkdownSection(lines, "Code evidence", codeEvidenceMarkdown(issue));
-  appendMarkdownSection(lines, "Trigger", issue.triggerCondition);
-  appendMarkdownSection(lines, "Expected behavior", issue.expectedBehavior);
-  appendMarkdownSection(lines, "Observed behavior", issue.observedBehavior);
-  appendMarkdownSection(lines, "Reproduction", graphVerifiedReproductionMarkdown(issue));
-  appendMarkdownSection(lines, "Why this matters", issue.whyThisMatters);
-  appendMarkdownSection(lines, "Fix direction", issue.suggestedFixDirection);
-  appendMarkdownSection(lines, "Limitations", issue.limitations);
-  return `${lines
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim()}\n`;
-}
-
 function buildIssuePageMarkdown(issue, currentStatus) {
   if (issue.graphVerified) return buildGraphVerifiedIssueMarkdown(issue, currentStatus);
   const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
@@ -405,186 +319,28 @@ function TextListSection({ title, items }) {
   );
 }
 
-function codeEvidenceLocation(item) {
-  return [markdownText(item?.file), markdownText(item?.lines)].filter(Boolean).join(":");
-}
-
-function GraphVerifiedIssueDetail({ issue }) {
-  const graph = issue.graphEvidence || {};
-  const proof = issue.reproProof || {};
-  const judge = issue.judgeEvidence || {};
-  const graphLines = [
-    graph.sliceId ? `Slice: ${graph.sliceId}` : "",
-    ...(graph.pathSummary || []),
-    ...(graph.codegraphFiles || []).map((file) => `File: ${file}`),
-  ].filter(Boolean);
-  const behaviorFields = [
-    [T("Trigger", "Trigger"), issue.triggerCondition],
-    [T("Expected", "Expected"), issue.expectedBehavior],
-    [T("Observed", "Observed"), issue.observedBehavior],
-  ].filter(([, value]) => markdownText(value));
-  const hasReproduction = Boolean(
-    issue.reproductionPath ||
-      issue.reproduction?.commands?.length ||
-      issue.reproduction?.steps?.length ||
-      issue.reproduction?.input ||
-      issue.reproduction?.expected ||
-      issue.reproduction?.actual ||
-      issue.reproduction?.logPath ||
-      issue.reproduction?.exitCode !== undefined
-  );
-  const proofFields = [
-    [T("Type", "Type"), proof.type],
-    [T("Expected", "Expected"), proof.expected],
-    [T("Actual", "Actual"), proof.actual],
-    [T("Log excerpt", "Log excerpt"), proof.logExcerpt],
-    [T("Verification steps", "Verification steps"), proof.verificationSteps?.join(" | ")],
-    [T("Graph path exercised", "Graph path exercised"), proof.graphPathExercised ? "true" : ""],
-  ].filter(([, value]) => markdownText(value));
-  const judgeFields = [
-    [T("Status", "Status"), judge.status],
-    [T("Level", "Level"), judge.level],
-    [
-      T("Safe to show user", "Safe to show user"),
-      typeof judge.safeToShowUser === "boolean" ? (judge.safeToShowUser ? "true" : "false") : "",
-    ],
-    [T("Command", "Command"), judge.command],
-    [T("Log path", "Log path"), judge.logPath],
-    [T("Observable", "Observable"), judge.observable],
-    [T("Reason", "Reason"), judge.reason],
-  ].filter(([, value]) => markdownText(value));
-
+function IssueSummaryDetail({ issue }) {
   return (
     <>
-      <DetailSection title={T("Graph evidence", "Graph evidence")}>
-        <GraphVerifiedEvidenceGraph graph={graph} label={issue.id || issue.title} />
-        {!graphLines.length && <p className="muted">{T("No graph evidence available.", "No graph evidence available.")}</p>}
+      <DetailSection title={T("Summary", "Summary")} empty={T("No summary was provided.", "No summary was provided.")}>
+        {issue.summary && <p className="muted repro-field-text">{issue.summary}</p>}
       </DetailSection>
-
-      <DetailSection title={T("Code evidence", "Code evidence")}>
-        {issue.codeEvidence?.length > 0 && (
-          <div className="repro-fields">
-            {issue.codeEvidence.map((item, index) => {
-              const location = codeEvidenceLocation(item);
-              return (
-                <div key={`${location}-${index}`} className="repro-field">
-                  {location && <b className="repro-field-title">{location}</b>}
-                  {item.whyItMatters && (
-                    <p className="muted repro-field-text">{item.whyItMatters}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {issue.affectedLocations?.length > 0 && (
+        <DetailSection title={T("Affected locations", "Affected locations")}>
+          <ul className="legal-list-flat evidence-list">
+            {issue.affectedLocations.map((location, index) => (
+              <li key={`${locationLabel(location)}-${index}`}>{locationLabel(location)}</li>
+            ))}
+          </ul>
+        </DetailSection>
+      )}
+      <DetailSection title={T("Reproduction", "Reproduction")}>
+        <ReproductionCenter issue={issue} />
       </DetailSection>
-
-      {behaviorFields.length > 0 && (
-        <DetailSection title={T("Behavior", "Behavior")}>
-          <div className="repro-fields">
-            {behaviorFields.map(([label, value]) => (
-              <div key={label} className="repro-field">
-                <b className="repro-field-title">{label}</b>
-                <p className="muted repro-field-text">{value}</p>
-              </div>
-            ))}
-          </div>
-        </DetailSection>
-      )}
-
-      <DetailSection
-        title={T("Reproduction", "Reproduction")}
-        empty={T("No executable reproduction was provided.", "No executable reproduction was provided.")}
-      >
-        {hasReproduction && <ReproductionCenter issue={issue} />}
-      </DetailSection>
-
-      {proofFields.length > 0 && (
-        <DetailSection title={T("Reproduction proof", "Reproduction proof")}>
-          <div className="repro-fields">
-            {proofFields.map(([label, value]) => (
-              <div key={label} className="repro-field">
-                <b className="repro-field-title">{label}</b>
-                <p className="muted repro-field-text">{value}</p>
-              </div>
-            ))}
-          </div>
-        </DetailSection>
-      )}
-
-      {judgeFields.length > 0 && (
-        <DetailSection title={T("Judge validation", "Judge validation")}>
-          <div className="repro-fields">
-            {judgeFields.map(([label, value]) => (
-              <div key={label} className="repro-field">
-                <b className="repro-field-title">{label}</b>
-                <p className="muted repro-field-text">{value}</p>
-              </div>
-            ))}
-          </div>
-        </DetailSection>
-      )}
-
-      {issue.whyThisMatters && (
-        <DetailSection title={T("Why this matters", "Why this matters")}>
-          <p className="muted" style={{ color: "var(--text-2)" }}>
-            {issue.whyThisMatters}
-          </p>
-        </DetailSection>
-      )}
-
-      {issue.suggestedFixDirection && (
-        <DetailSection title={T("Fix direction", "Fix direction")}>
-          <p className="muted" style={{ color: "var(--text-2)" }}>
-            {issue.suggestedFixDirection}
-          </p>
-        </DetailSection>
-      )}
-
       <TextListSection title={T("Limitations", "Limitations")} items={issue.limitations} />
     </>
   );
 }
-
-function IssuesTableSkeleton() {
-  return (
-    <div className="issues-table-skeleton" aria-busy="true">
-      {Array.from({ length: 6 }, (_, index) => (
-        <div className="issues-trow skeleton-row" key={`issues-row-skeleton-${index}`}>
-          <div></div>
-          <div className="issues-title-c">
-            <div className="issues-title-meta">
-              <SkeletonLine className="sk-line sk-w-18 sk-h-20" />
-              <SkeletonLine className="sk-line sk-w-16" />
-            </div>
-            <SkeletonLine className="sk-line sk-w-70 sk-h-16" />
-            <SkeletonLine className="sk-line sk-w-42" />
-          </div>
-          <div className="issues-file">
-            <SkeletonLine className="sk-line sk-w-80" />
-          </div>
-          <div>
-            <SkeletonLine className="sk-line sk-w-48 sk-h-20" />
-          </div>
-          <div>
-            <div className="issues-evidence-cell">
-              <SkeletonLine className="sk-line sk-w-36 sk-h-20" />
-              <SkeletonLine className="sk-line sk-w-44" />
-            </div>
-          </div>
-          <div>
-            <SkeletonLine className="sk-line sk-w-36 sk-h-20" />
-          </div>
-          <div className="issues-row-actions">
-            <SkeletonLine className="sk-line sk-w-40 sk-h-28" />
-            <SkeletonLine className="sk-line sk-w-28 sk-h-28" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function IssueDetailSkeleton() {
   return (
     <div
@@ -979,7 +735,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                     <div>
                       <div className="issues-evidence-cell">
                         <span className="tag">
-                          {issue.graphVerified ? T("GraphVerified", "GraphVerified") : T("Confirmed", "Confirmed")}
+                          {T("Confirmed", "Confirmed")}
                         </span>
                         {issue.verificationLevel && (
                           <span className="issues-evidence-label">{issue.verificationLevel}</span>
