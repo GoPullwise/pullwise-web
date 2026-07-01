@@ -998,7 +998,7 @@ describe("ScanningScreen queue state", () => {
   it("shows terminal scan without requiring a generated review report", () => {
     useScanRun.mockReturnValue({
       scan: {
-        id: "sc_without_graph_verified_report",
+        id: "sc_without_generated_report",
         repo: "octocat/no-report",
         branch: "main",
         commit: "abc123",
@@ -1015,7 +1015,7 @@ describe("ScanningScreen queue state", () => {
       <ScanningScreen
         go={vi.fn()}
         activeRepo={{
-          scanId: "sc_without_graph_verified_report",
+          scanId: "sc_without_generated_report",
           fullName: "octocat/no-report",
           defaultBranch: "main",
         }}
@@ -1024,7 +1024,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
-  it("shows the worker human report when a completed scan has no graph report", () => {
+  it("shows the worker human report when a completed scan has no generated report", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_human_report",
@@ -1064,7 +1064,7 @@ describe("ScanningScreen queue state", () => {
         verification: { verified: 0, static_proof: 0, potential_risk: 0, unverified: 0 },
         preflight: {
           mode: "static",
-          execution: "graph_verified_review",
+          execution: "review_worker_run",
           summary: "Static preflight captured repository manifests and worker tool versions.",
           packageManagers: ["pnpm"],
           languages: ["JavaScript/TypeScript"],
@@ -1102,7 +1102,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.getByText("Preflight evidence")).toBeInTheDocument();
-    expect(screen.getByText("graph_verified_review")).toBeInTheDocument();
+    expect(screen.getByText("review_worker_run")).toBeInTheDocument();
     expect(screen.getByText("pnpm")).toBeInTheDocument();
     expect(screen.getByText("Repository scan limits")).toBeInTheDocument();
     expect(screen.getByText("Checkout: 2,001 files / 50 MB")).toBeInTheDocument();

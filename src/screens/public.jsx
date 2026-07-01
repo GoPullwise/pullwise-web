@@ -88,7 +88,7 @@ export function LandingScreen({ go, accent, auth }) {
 
       <section className="lp-hero">
         <h1 className="lp-title">
-          {T("Find broadly.", "广泛发现。")}
+          {T("Review broadly.", "广泛审查。")}
           <br />
           <span className="lp-title-em">
             {T("Prove locally.", "本地证明。")}
@@ -96,8 +96,8 @@ export function LandingScreen({ go, accent, auth }) {
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise scans the current repository snapshot with Codex-built review context, runs focused agents, reproduces high-signal candidates in isolated workers, and reports only findings that survive judge validation.",
-            "Pullwise 使用 Codex 构建的审查上下文扫描当前仓库快照，运行聚焦 agent，在隔离 worker 中复现高价值候选问题，并且只报告通过 judge 验证的发现。"
+            "Pullwise scans the current repository snapshot with isolated Codex full-repository review workers, routes risk tiers, runs sequential reviewer and validator turns, and submits stable reports plus versioned artifacts.",
+            "Pullwise 使用隔离的 Codex 全仓审查 worker 扫描当前仓库快照，进行风险分层，串行运行 reviewer 和 validator turns，并提交稳定报告与版本化 artifacts。"
           )}
         </p>
         <div className="lp-cta">
@@ -125,10 +125,10 @@ export function LandingScreen({ go, accent, auth }) {
             {T("Repository context evidence", "仓库上下文证据")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Isolated reproduction", "隔离复现")}
+            <I.Check size={12} /> {T("Codex worker isolation", "Codex worker 隔离")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Confirmed-only reports", "只报告已确认问题")}
+            <I.Check size={12} /> {T("Actionable reports", "可行动报告")}
           </span>
         </div>
       </section>
@@ -144,9 +144,9 @@ export function LandingScreen({ go, accent, auth }) {
           <div className="lp-preview-body">
             <div className="lp-preview-side">
               {[
-                T("Diff", "Diff"),
-                T("Graph slices", "图切片"),
-                T("Repro", "复现"),
+                T("Snapshot", "Snapshot"),
+                T("Risk routes", "风险路由"),
+                T("Validate", "验证"),
                 T("Report", "报告"),
               ].map((item, index) => (
                 <div key={item} className={"lp-preview-side-i" + (index === 1 ? " active" : "")}>
@@ -160,25 +160,25 @@ export function LandingScreen({ go, accent, auth }) {
                   <b>
                     <I.GitPull size={18} />
                   </b>
-                  <span>{T("Diff", "Diff")}</span>
+                  <span>{T("Snapshot", "Snapshot")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
                     <I.Layers size={18} />
                   </b>
-                  <span>{T("Slice", "切片")}</span>
+                  <span>{T("Bundle", "Bundle")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b style={{ color: accent }}>
                     <I.Bug size={18} />
                   </b>
-                  <span>{T("Find", "发现")}</span>
+                  <span>{T("Review", "审查")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
                     <I.Shield size={18} />
                   </b>
-                  <span>{T("Judge", "判定")}</span>
+                  <span>{T("Validate", "验证")}</span>
                 </div>
               </div>
               <div className="lp-preview-issues">
@@ -189,12 +189,12 @@ export function LandingScreen({ go, accent, auth }) {
                   </span>
                   <div className="lp-preview-issue-t">
                     {T(
-                      "Only reproduced, graph-linked findings reach the final report.",
-                      "只有已复现并关联图证据的问题会进入最终报告。"
+                      "Confirmed and plausible findings include file locations, evidence, impact, and next-agent tasks.",
+                      "已确认和可信的问题会包含文件位置、证据、影响与下一步 agent 任务。"
                     )}
                   </div>
                   <span className="lp-preview-issue-f">
-                    {T("Graph evidence + local repro + judge approval", "图证据 + 本地复现 + judge 批准")}
+                    {T("Stable envelope + versioned artifacts", "稳定 envelope + 版本化 artifacts")}
                   </span>
                 </div>
               </div>
@@ -223,58 +223,58 @@ export function LandingScreen({ go, accent, auth }) {
           },
           {
             i: <I.Bug />,
-            h: T("Parallel finder agents", "并行 Finder Agents"),
+            h: T("Sequential reviewer turns", "串行 reviewer turns"),
             p: T(
-              "Run focused correctness, security, API contract, state, and repro-planning agents inside bounded slice context.",
-              "在有边界的切片上下文中运行正确性、安全、API 契约、状态和复现规划等聚焦 agent。"
+              "Run security, correctness, test-gap, and correctness-lite reviewers as sequential Codex turns over planned bundles.",
+              "基于规划后的 bundles 串行运行安全、正确性、测试缺口和轻量正确性 reviewer turns。"
             ),
           },
           {
             i: <I.Filter />,
             h: T("Candidate normalization", "候选问题归一化"),
             p: T(
-              "Validate evidence, dedupe similar claims, score risk, and send only strong candidates to reproduction.",
-              "校验证据、去重相似主张、评估风险，并且只把高价值候选问题送入复现。"
+              "Validate reviewer JSON, verify locations, cluster duplicate claims, count votes, and route top candidates to validator disproof.",
+              "校验 reviewer JSON、验证位置、聚类重复主张、统计投票，并把候选送入 validator 反证。"
             ),
           },
           {
             i: <I.Terminal />,
-            h: T("Isolated repro workers", "隔离复现 Worker"),
+            h: T("Isolated Codex workers", "隔离 Codex Worker"),
             p: T(
-              "Give each candidate its own worker directory, generated minimal repro, command logs, and filesystem boundary checks.",
-              "为每个候选问题分配独立 worker 目录、最小复现、命令日志和文件系统边界检查。"
+              "Give each worker its own CODEX_HOME, CODEX_SQLITE_HOME, App Server, workspace, artifact root, and worker log.",
+              "每个 worker 拥有独立 CODEX_HOME、CODEX_SQLITE_HOME、App Server、workspace、artifact root 和 worker log。"
             ),
           },
           {
             i: <I.Shield />,
-            h: T("Judge validation gate", "Judge 验证门禁"),
+            h: T("Validator disproof gate", "Validator 反证门禁"),
             p: T(
-              "Reject static guesses, ambiguous logs, harness failures, missing reproduction, and workers that cross their boundaries.",
-              "拒绝静态猜测、含糊日志、测试夹具失败、缺失复现，以及越过边界的 worker。"
+              "Keep weak findings in the appendix and exclude disproven findings from the main report.",
+              "弱发现进入 appendix，已反证发现不进入主报告。"
             ),
           },
           {
             i: <I.FileCode />,
-            h: T("Confirmed-only reports", "只报告已确认问题"),
+            h: T("Actionable reports", "可行动报告"),
             p: T(
-              "Final reports include confirmed findings with graph evidence, code evidence, trigger conditions, observed behavior, and repro commands.",
-              "最终报告包含已确认问题，以及图证据、代码证据、触发条件、观测行为和复现命令。"
+              "Final reports include confirmed and plausible actionable findings with locations, evidence, impact, recommendations, and next-agent tasks.",
+              "最终报告包含已确认和可信的可行动发现，并带有位置、证据、影响、建议和下一步 agent 任务。"
             ),
           },
           {
             i: <I.Activity />,
             h: T("Debuggable pipeline history", "可调试流水线历史"),
             p: T(
-              "Keep repository snapshot files, slices, finder tasks, raw candidates, repro status, judge reasons, and timing for developer audit.",
-              "保留仓库快照文件、切片、finder 任务、原始候选、复现状态、judge 理由和耗时，便于开发者审计。"
+              "Keep inventory, token budgets, repo maps, risk routing, bundles, reviewer outputs, validation results, events, and timing for developer audit.",
+              "保留 inventory、token budget、repo map、risk routing、bundles、reviewer 输出、validation 结果、events 和耗时，便于开发者审计。"
             ),
           },
           {
             i: <I.Lock />,
             h: T("Local-first review boundary", "本地优先审查边界"),
             p: T(
-              "Default finder, repro, and judge runs avoid free network access, real credentials, production services, and destructive operations.",
-              "默认 finder、repro 和 judge 不自由联网，不使用真实凭据、生产服务或破坏性操作。"
+              "Review turns run without free network access and helper writes stay confined to .codex-review artifacts.",
+              "审查 turns 不自由联网，helper 写入限制在 .codex-review artifacts 内。"
             ),
           },
           {

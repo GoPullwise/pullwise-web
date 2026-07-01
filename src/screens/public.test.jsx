@@ -55,15 +55,14 @@ describe("public navigation links", () => {
   it("summarizes implemented product capabilities on the landing page", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
 
-    expect(screen.queryByText("Graph-verified code review")).not.toBeInTheDocument();
     expect(screen.getByText("Repository context planning")).toBeInTheDocument();
-    expect(screen.getByText("Parallel finder agents")).toBeInTheDocument();
-    expect(screen.getByText("Isolated repro workers")).toBeInTheDocument();
-    expect(screen.getByText("Judge validation gate")).toBeInTheDocument();
-    expect(screen.getAllByText("Confirmed-only reports").length).toBeGreaterThan(0);
+    expect(screen.getByText("Sequential reviewer turns")).toBeInTheDocument();
+    expect(screen.getByText("Isolated Codex workers")).toBeInTheDocument();
+    expect(screen.getByText("Validator disproof gate")).toBeInTheDocument();
+    expect(screen.getAllByText("Actionable reports").length).toBeGreaterThan(0);
     expect(screen.getByText("Automation-ready API")).toBeInTheDocument();
     expect(
-      screen.getByText(/only reproduced, graph-linked findings reach the final report/i)
+      screen.getByText(/confirmed and plausible findings include file locations/i)
     ).toBeInTheDocument();
   });
 

@@ -1026,14 +1026,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   "Log path": { zh: "日志路径", ja: "ログパス", ko: "로그 경로", fr: "Chemin du journal", es: "Ruta del log" },
   Observable: { zh: "可观测项", ja: "観測可能項目", ko: "관찰 가능 항목", fr: "Observable", es: "Observable" },
   Reason: { zh: "原因", ja: "理由", ko: "이유", fr: "Raison", es: "Motivo" },
-  "Graph evidence": { zh: "图证据", ja: "グラフ証拠", ko: "그래프 증거", fr: "Preuve graphique", es: "Evidencia de grafo" },
-  "No graph evidence available.": {
-    zh: "没有可用图证据。",
-    ja: "利用可能なグラフ証拠はありません。",
-    ko: "사용 가능한 그래프 증거가 없습니다.",
-    fr: "Aucune preuve graphique disponible.",
-    es: "No hay evidencia de grafo disponible.",
-  },
   Behavior: { zh: "行为", ja: "挙動", ko: "동작", fr: "Comportement", es: "Comportamiento" },
   "Reproduction proof": {
     zh: "复现证明",
@@ -1232,20 +1224,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   Slice: { zh: "切片", ja: "スライス", ko: "슬라이스", fr: "Tranche", es: "Segmento" },
   Find: { zh: "发现", ja: "検出", ko: "찾기", fr: "Trouver", es: "Encontrar" },
   confirmed: { zh: "已确认", ja: "確認済み", ko: "확인됨", fr: "confirmé", es: "confirmado" },
-  "Only reproduced, graph-linked findings reach the final report.": {
-    zh: "只有已复现并关联图证据的问题会进入最终报告。",
-    ja: "再現され、グラフにリンクされた検出のみが最終レポートに入ります。",
-    ko: "재현되고 그래프에 연결된 발견만 최종 보고서에 포함됩니다.",
-    fr: "Seuls les résultats reproduits et liés au graphe atteignent le rapport final.",
-    es: "Solo los hallazgos reproducidos y vinculados al grafo llegan al informe final.",
-  },
-  "Graph evidence + local repro + judge approval": {
-    zh: "图证据 + 本地复现 + judge 批准",
-    ja: "グラフ証拠 + ローカル再現 + judge 承認",
-    ko: "그래프 증거 + 로컬 재현 + judge 승인",
-    fr: "Preuve graphique + repro locale + approbation du juge",
-    es: "Evidencia de grafo + repro local + aprobación del juez",
-  },
   "Repository snapshot entry": {
     zh: "从仓库快照开始审查",
     ja: "リポジトリスナップショットから開始",
