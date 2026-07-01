@@ -592,58 +592,8 @@ describe("IssueDetailScreen direct loading", () => {
     );
   });
 
-  it("shows structured GraphVerified evidence from the issue payload", () => {
-    render(
-      <IssueDetailScreen
-        go={vi.fn()}
-        issue={{
-          id: "f_graph_verified",
-          graphVerified: true,
-          scanId: "sc_graph_verified",
-          repo: "acme/api",
-          severity: "high",
-          category: "Quality",
-          title: "Graph verified issue",
-          summary: "Confirmed issue f_graph_verified by repository graph evidence.",
-          file: "src/auth/session.ts",
-          status: "open",
-          graphEvidence: {
-            sliceId: "slice-1",
-            pathSummary: ["route -> handler -> session"],
-            codegraphFiles: ["src/auth/session.ts"],
-          },
-          codeEvidence: [
-            {
-              file: "src/auth/session.ts",
-              lines: "12-18",
-              whyItMatters: "The graph path reaches the failing session branch.",
-            },
-          ],
-          reproduction: {
-            commands: ["pytest tests/auth/session.test.ts"],
-            expected: "session succeeds",
-            actual: "session fails",
-          },
-        }}
-      />
-    );
 
-    expect(screen.getByText("Graph evidence")).toBeInTheDocument();
-    const graph = screen.getByTestId("graph-verified-graph-f_graph_verified");
-    expect(
-      within(graph).getByRole("img", { name: /graphverified code evidence path for f_graph_verified/i })
-    ).toBeInTheDocument();
-    expect(within(graph).getAllByText("route").length).toBeGreaterThan(0);
-    expect(within(graph).getAllByText("handler").length).toBeGreaterThan(0);
-    expect(within(graph).getAllByText("session").length).toBeGreaterThan(0);
-    expect(within(graph).getAllByText("src/auth/session.ts").length).toBeGreaterThan(0);
-    expect(screen.getByText("Code evidence")).toBeInTheDocument();
-    expect(screen.getByText("The graph path reaches the failing session branch.")).toBeInTheDocument();
-    expect(screen.getByText("pytest tests/auth/session.test.ts")).toBeInTheDocument();
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-  });
-
-  it("does not show the legacy GraphVerified empty state for non-verified issues without a report", () => {
+  it("shows generic issue details without a generated review report", () => {
     render(
       <IssueDetailScreen
         go={vi.fn()}
@@ -659,14 +609,6 @@ describe("IssueDetailScreen direct loading", () => {
         }}
       />
     );
-
-    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
-    expect(screen.queryByText("0 confirmed")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
-      )
-    ).not.toBeInTheDocument();
     expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
   });
 });
@@ -889,16 +831,13 @@ describe("HistoryScreen queue state", () => {
       render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
 
       await act(async () => {
-        vi.advanceTimersByTime(1500);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => expect(reload).toHaveBeenCalledWith({ quiet: true }));
-      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(["sc_new"]));
-      await waitFor(() =>
-        expect(upsertScan).toHaveBeenCalledWith(
-          expect.objectContaining({ id: "sc_new", repo: "octocat/new-repo", status: "queued" })
-        )
+      expect(reload).toHaveBeenCalledWith({ quiet: true });
+      expect(pullwiseApi.scans.status).toHaveBeenCalledWith(["sc_new"]);
+      expect(upsertScan).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "sc_new", repo: "octocat/new-repo", status: "queued" })
       );
     } finally {
       vi.useRealTimers();
@@ -1170,11 +1109,11 @@ describe("HistoryScreen queue state", () => {
     expect(go).not.toHaveBeenCalledWith("dashboard");
   });
 
-  it("hides GraphVerified findings from completed scan rows", () => {
+  it("shows completed scan rows without embedded report details", () => {
     useScans.mockReturnValue({
       items: [
         {
-          id: "sc_graph_verified",
+          id: "sc_review_done",
           repo: "octocat/private-repo",
           branch: "main",
           commit: "abc123",
@@ -1182,27 +1121,6 @@ describe("HistoryScreen queue state", () => {
           time: "now",
           by: "you",
           issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
-          graphVerifiedReport: {
-            runId: "gv_run_1",
-            confirmedCount: 1,
-            rejectedCount: 0,
-            blockedCount: 0,
-            finalJson: {
-              confirmed: [
-                {
-                  candidate: {
-                    candidate_id: "f_123",
-                    severity: "high",
-                    claim: "Confirmed issue f_123 with semantic graph evidence.",
-                    graph_evidence: {
-                      path_summary: ["controller -> service -> target"],
-                      codegraph_files: ["src/service.ts"],
-                    },
-                  },
-                },
-              ],
-            },
-          },
         },
       ],
       loading: false,
@@ -1210,14 +1128,8 @@ describe("HistoryScreen queue state", () => {
     });
 
     render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
-
-    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/confirmed issue f_123 with semantic graph evidence/i)
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(/graph verified:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/confirmed issue f_123 with review evidence/i)).not.toBeInTheDocument();
   });
-
   it("downloads a structured audit bundle for completed scans", async () => {
     const user = userEvent.setup();
     const scan = {
@@ -1363,7 +1275,7 @@ describe("IssueDetailScreen review detail", () => {
     expect(go).toHaveBeenCalledWith("issues");
   });
 
-  it("hides issue audit evidence while non-GraphVerified review is running", async () => {
+  it("hides issue audit evidence while review is running", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;

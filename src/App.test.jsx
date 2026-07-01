@@ -1,4 +1,4 @@
-﻿import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -314,11 +314,11 @@ describe("App", () => {
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
-  it("does not restore scan context from the legacy global active repo key", async () => {
+  it("does not restore scan context from the previous global active repo key", async () => {
     window.history.replaceState({}, "", "/scanning");
     localStorage.setItem(
       "pw-active-repo",
-      JSON.stringify({ scanId: "sc_legacy", fullName: "Other/private", defaultBranch: "main" })
+      JSON.stringify({ scanId: "sc_previous", fullName: "Other/private", defaultBranch: "main" })
     );
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,

@@ -59,20 +59,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Chemin de preuve du code",
     es: "Ruta de evidencia de código",
   },
-  "Shows how this finding connects through the code graph to the related files.": {
-    zh: "展示这个问题如何通过代码图关联到相关文件。",
-    ja: "この検出がコードグラフを通じて関連ファイルへどうつながるかを示します。",
-    ko: "이 발견이 코드 그래프를 통해 관련 파일과 어떻게 연결되는지 보여줍니다.",
-    fr: "Montre comment ce constat se relie aux fichiers concernés dans le graphe de code.",
-    es: "Muestra cómo este hallazgo se conecta con los archivos relacionados en el grafo de código.",
-  },
-  "GraphVerified findings": {
-    zh: "GraphVerified 问题",
-    ja: "GraphVerified の検出",
-    ko: "GraphVerified 발견",
-    fr: "Résultats GraphVerified",
-    es: "Hallazgos de GraphVerified",
-  },
   "Code evidence": {
     zh: "代码证据",
     ja: "コード証拠",
@@ -83,20 +69,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   Repro: { zh: "复现", ja: "再現", ko: "재현", fr: "Reproduction", es: "Reproducción" },
   Proof: { zh: "证据", ja: "証明", ko: "증명", fr: "Preuve", es: "Prueba" },
   Judge: { zh: "判定", ja: "判定", ko: "판정", fr: "Validation", es: "Validación" },
-  "No confirmed GraphVerified findings.": {
-    zh: "没有已确认的 GraphVerified 问题。",
-    ja: "確認済みの GraphVerified 検出はありません。",
-    ko: "확인된 GraphVerified 발견이 없습니다.",
-    fr: "Aucun résultat GraphVerified confirmé.",
-    es: "No hay hallazgos de GraphVerified confirmados.",
-  },
-  "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker.": {
-    zh: "这个扫描没有可用的 GraphVerified 报告。请使用 GraphVerified worker 重新运行。",
-    ja: "このスキャンには GraphVerified レポートがありません。GraphVerified worker で再実行してください。",
-    ko: "이 스캔에는 GraphVerified 보고서가 없습니다. GraphVerified worker로 다시 실행하세요.",
-    fr: "Aucun rapport GraphVerified n'est disponible pour ce scan. Relancez-le avec le worker GraphVerified.",
-    es: "No hay informe de GraphVerified disponible para este escaneo. Vuelve a ejecutarlo con el worker GraphVerified.",
-  },
   "Issue distribution": {
     zh: "问题分布",
     ja: "問題の分布",
@@ -1094,7 +1066,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     es: "Cargando detalles del problema",
   },
   Newest: { zh: "最新", ja: "最新", ko: "최신", fr: "Plus récent", es: "Más reciente" },
-  GraphVerified: { zh: "GraphVerified", ja: "GraphVerified", ko: "GraphVerified", fr: "GraphVerified", es: "GraphVerified" },
   Confirmed: { zh: "已确认", ja: "確認済み", ko: "확인됨", fr: "Confirmé", es: "Confirmado" },
   "Unable to load issue.": {
     zh: "无法加载问题。",
@@ -1961,13 +1932,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Pré-vérification du dépôt",
     es: "Preflight del repositorio",
   },
-  "GraphVerified review": {
-    zh: "GraphVerified 审查",
-    ja: "GraphVerified レビュー",
-    ko: "GraphVerified 리뷰",
-    fr: "Revue GraphVerified",
-    es: "Revisión GraphVerified",
-  },
   "Uploading report": {
     zh: "上传报告",
     ja: "レポートをアップロード中",
@@ -2027,32 +1991,6 @@ function severityLabel(value, lang) {
   return severityWords[String(value || "").toLowerCase()]?.[lang] || value;
 }
 
-function graphVerifiedCountSummary(match, lang) {
-  const [, confirmed, rejected, blocked] = match;
-  const parts = {
-    zh: [`${confirmed} 个已确认`],
-    ja: [`${confirmed} 件確認済み`],
-    ko: [`${confirmed}개 확인됨`],
-    fr: [`${confirmed} confirmés`],
-    es: [`${confirmed} confirmados`],
-  };
-  if (rejected) {
-    parts.zh.push(`${rejected} 个已拒绝`);
-    parts.ja.push(`${rejected} 件却下`);
-    parts.ko.push(`${rejected}개 거부됨`);
-    parts.fr.push(`${rejected} rejetés`);
-    parts.es.push(`${rejected} rechazados`);
-  }
-  if (blocked) {
-    parts.zh.push(`${blocked} 个阻塞`);
-    parts.ja.push(`${blocked} 件ブロック`);
-    parts.ko.push(`${blocked}개 차단됨`);
-    parts.fr.push(`${blocked} bloqués`);
-    parts.es.push(`${blocked} bloqueados`);
-  }
-  return parts[lang].join(" | ");
-}
-
 export const DYNAMIC_PHRASE_TRANSLATIONS = [
   {
     match: /^(.+) (.+) \((.+)%\)$/,
@@ -2090,26 +2028,6 @@ export const DYNAMIC_PHRASE_TRANSLATIONS = [
       ko: "$1 GitHub App 설치 관리",
       fr: "Gérer l'installation GitHub App de $1",
       es: "Gestionar instalación de GitHub App de $1",
-    },
-  },
-  {
-    match: /^GraphVerified code evidence path for (.+)$/,
-    translations: {
-      zh: "$1 的 GraphVerified 代码证据路径",
-      ja: "$1 の GraphVerified コード証拠パス",
-      ko: "$1의 GraphVerified 코드 증거 경로",
-      fr: "Chemin de preuve de code GraphVerified pour $1",
-      es: "Ruta de evidencia de código GraphVerified para $1",
-    },
-  },
-  {
-    match: /^(\d+) confirmed(?: \| (\d+) rejected)?(?: \| (\d+) blocked)?$/,
-    translations: {
-      zh: graphVerifiedCountSummary,
-      ja: graphVerifiedCountSummary,
-      ko: graphVerifiedCountSummary,
-      fr: graphVerifiedCountSummary,
-      es: graphVerifiedCountSummary,
     },
   },
   {

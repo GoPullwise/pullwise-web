@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
-import { GraphVerifiedEvidenceGraph, GraphVerifiedReport } from "../components/graph-verified-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
 import { I } from "../icons.jsx";
@@ -131,8 +130,7 @@ function scanHistorySummary(scan) {
     return T("Scan lost", "扫描丢失");
   }
   if (scan.issues) {
-    const graphVerified = scan.graphVerifiedReport || {};
-    const total = graphVerified.confirmedCount ?? issueTotal(scan);
+    const total = issueTotal(scan);
     return T(`${total} confirmed`, `${total} confirmed`);
   }
   return scan.status;
@@ -171,14 +169,6 @@ function markdownText(value) {
   return String(value ?? "").trim();
 }
 
-function plainObject(value) {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
-}
-
-function normalizeScanForIssueDisplay(scan) {
-  if (!plainObject(scan)) return null;
-  return normalizeScan(scan);
-}
 
 function appendMarkdownSection(lines, title, content) {
   const body = Array.isArray(content)
@@ -188,9 +178,7 @@ function appendMarkdownSection(lines, title, content) {
   lines.push("", `## ${title}`, body);
 }
 
-function buildIssuePageMarkdown(issue, currentStatus) {
-  if (issue.graphVerified) return buildGraphVerifiedIssueMarkdown(issue, currentStatus);
-  const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
+function buildIssuePageMarkdown(issue, currentStatus) {  const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const lines = [`# ${title}`];
   const metadata = [
@@ -322,9 +310,6 @@ function TextListSection({ title, items }) {
 function IssueSummaryDetail({ issue }) {
   return (
     <>
-      <DetailSection title={T("Summary", "Summary")} empty={T("No summary was provided.", "No summary was provided.")}>
-        {issue.summary && <p className="muted repro-field-text">{issue.summary}</p>}
-      </DetailSection>
       {issue.affectedLocations?.length > 0 && (
         <DetailSection title={T("Affected locations", "Affected locations")}>
           <ul className="legal-list-flat evidence-list">
@@ -339,6 +324,27 @@ function IssueSummaryDetail({ issue }) {
       </DetailSection>
       <TextListSection title={T("Limitations", "Limitations")} items={issue.limitations} />
     </>
+  );
+}
+
+function IssuesTableSkeleton() {
+  return (
+    <div className="issues-table-skeleton">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div className="issues-trow" key={`issues-skeleton-${index}`} aria-hidden="true">
+          <div></div>
+          <div className="issues-title-c">
+            <SkeletonLine className="sk-line sk-w-24" />
+            <SkeletonLine className="sk-line sk-w-48" />
+          </div>
+          <div><SkeletonLine className="sk-line sk-w-28" /></div>
+          <div><SkeletonLine className="sk-line sk-w-16" /></div>
+          <div><SkeletonLine className="sk-line sk-w-16" /></div>
+          <div><SkeletonLine className="sk-line sk-w-16" /></div>
+          <div></div>
+        </div>
+      ))}
+    </div>
   );
 }
 function IssueDetailSkeleton() {
@@ -845,10 +851,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     };
   }, [routeIssueId, setIssue]);
 
-  const embeddedScan = useMemo(() => {
-    if (plainObject(activeIssue?.scan)) return normalizeScanForIssueDisplay(activeIssue.scan);
-    return null;
-  }, [activeIssue]);
 
   useEffect(() => {
     setCurrentStatus(activeIssue?.status || "open");
@@ -918,9 +920,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   }
 
   const issue = activeIssue;
-  const graphVerifiedReport =
-    activeIssue?.graphVerifiedReport || embeddedScan?.graphVerifiedReport || null;
-  const isGraphVerifiedIssue = issue.graphVerified === true;
 
   const updateStatus = async (nextStatus) => {
     if (statusRequestRef.current) return;
@@ -994,9 +993,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   {severity}
                 </span>
                 <span className="issue-id">{issue.id}</span>
-                {issue.category && <span className="tag">{issue.category}</span>}
-                {isGraphVerifiedIssue && <span className="tag">GraphVerified</span>}
-                {issue.verificationLevel && <span className="tag">{issue.verificationLevel}</span>}
+                {issue.category && <span className="tag">{issue.category}</span>}                {issue.verificationLevel && <span className="tag">{issue.verificationLevel}</span>}
                 <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
@@ -1035,11 +1032,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           </div>
           <div className="issue-detail-grid">
             <div className="issue-detail-main-col">
-              {isGraphVerifiedIssue ? (
-                <GraphVerifiedIssueDetail issue={issue} />
-              ) : (
-                graphVerifiedReport ? <GraphVerifiedReport report={graphVerifiedReport} /> : null
-              )}
+              <IssueSummaryDetail issue={issue} />
             </div>
 
             <div className="card section issue-actions">

@@ -995,7 +995,7 @@ describe("ScanningScreen queue state", () => {
 
 
 
-  it("does not show the legacy GraphVerified empty state when a terminal scan has no report", () => {
+  it("shows terminal scan without requiring a generated review report", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_without_graph_verified_report",
@@ -1021,13 +1021,6 @@ describe("ScanningScreen queue state", () => {
         }}
       />
     );
-
-    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        "No GraphVerified report is available for this scan. Re-run it with the GraphVerified worker."
-      )
-    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
   });
 
@@ -1057,7 +1050,6 @@ describe("ScanningScreen queue state", () => {
 
     expect(screen.getByText("Review report")).toBeInTheDocument();
     expect(screen.getByText(/Found one high priority issue/)).toBeInTheDocument();
-    expect(screen.queryByText("GraphVerified findings")).not.toBeInTheDocument();
   });
   it("shows preflight evidence for a completed scan", () => {
     useScanRun.mockReturnValue({
@@ -1406,7 +1398,7 @@ describe("ScanningScreen queue state", () => {
         phase: "report",
         progress: 100,
         progressMessage: "Uploading failed result",
-        logsSummary: "GraphVerified completion gate failed.",
+        logsSummary: "Review completion gate failed.",
       },
       error: "",
       retry: vi.fn(),

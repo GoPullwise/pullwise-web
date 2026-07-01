@@ -253,7 +253,42 @@ function itemsFrom(payload, ...keys) {
   return [];
 }
 
-function formatTime(value) {
+
+function pageMeta(payload = {}, fallbackLimit = 50) {
+  const total = normalizeCount(payload.total ?? payload.count);
+  const limit = normalizeCount(payload.limit ?? fallbackLimit) || fallbackLimit;
+  const offset = normalizeCount(payload.offset);
+  const rawNextOffset = payload.nextOffset ?? payload.next_offset;
+  const nextOffset = rawNextOffset === null || rawNextOffset === undefined ? offset + limit : normalizeCount(rawNextOffset);
+  const inferredHasMore = total > 0 ? offset + limit < total : false;
+  const hasMore = Object.prototype.hasOwnProperty.call(payload, "hasMore")
+    ? normalizeBoolean(payload.hasMore)
+    : Object.prototype.hasOwnProperty.call(payload, "has_more")
+      ? normalizeBoolean(payload.has_more)
+      : inferredHasMore;
+  return { total, limit, offset, hasMore, nextOffset: hasMore ? nextOffset : null };
+}
+
+function listParams(params = {}) {
+  const result = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    if (key === "offset" && Number(value) <= 0) continue;
+    result[key] = value;
+  }
+  return result;
+}
+
+function baseListState(initialCachedState, shouldRefreshQuietly, limit) {
+  return {
+    items: [],
+    meta: pageMeta({}, limit),
+    ...(initialCachedState || {}),
+    loading: !shouldRefreshQuietly,
+    loadingMore: false,
+    error: "",
+  };
+}function formatTime(value) {
   if (!value) return "";
   if (typeof value === "number") {
     return new Date(value * 1000).toLocaleString();
@@ -993,7 +1028,22 @@ function normalizeHumanReport(value) {
   if (!summaryMarkdown) return null;
   return { summaryMarkdown };
 }
-export function scanQueueSummary(scan) {
+
+function countLabel(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function scanCountLabel(count) {
+  return countLabel(count, "scan", "scans");
+}
+
+function retryCountLabel(count) {
+  return countLabel(count, "retry", "retries");
+}
+
+function isActiveScan(scan) {
+  return Boolean(scan?.id && ["queued", "running"].includes(scan.status));
+}export function scanQueueSummary(scan) {
   const queue = scan?.queue;
   const retry = scan?.retry;
   if ((!queue || typeof queue !== "object" || Array.isArray(queue)) && !retry) return null;
@@ -1019,7 +1069,144 @@ export function scanQueueSummary(scan) {
   };
 }
 
-export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
+
+export function notifyIssuesChanged(detail = {}) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("pullwise:issues-changed", { detail }));
+}
+
+function usePagedList({ cacheName, limit, params, requestName, fetchList, normalizeItems, extraState = null, refreshOnChange = false, changeEvent = "" }) {
+  const requestIdRef = useRef(0);
+  const abortRef = useRef(null);
+  const cacheKey = stableCacheKey(cacheName, { limit, ...params });
+  const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
+  const [state, setState] = useState(() => ({
+    ...baseListState(initialCachedState, shouldRefreshQuietly, limit),
+    ...(extraState ? extraState(initialCachedState || {}) : {}),
+  }));
+
+  const load = useCallback(
+    async ({ quiet = false, append = false, offset = 0 } = {}) => {
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
+      abortRef.current?.abort?.();
+      const controller = makeAbortController();
+      abortRef.current = controller;
+      setState((current) => ({
+        ...current,
+        loading: quiet || append ? current.loading : true,
+        loadingMore: append,
+        error: "",
+      }));
+      try {
+        const requestParams = listParams({ limit, offset, ...params });
+        const payload = await dedupedDataRequest(
+          stableCacheKey(requestName, requestParams),
+          (signal) => fetchList(requestParams, { signal }),
+          controller?.signal
+        );
+        if (requestId !== requestIdRef.current) return;
+        const nextItems = normalizeItems(payload);
+        setState((current) => {
+          const nextState = {
+            ...current,
+            ...(extraState ? extraState(payload) : {}),
+            items: append ? [...current.items, ...nextItems] : nextItems,
+            loading: false,
+            loadingMore: false,
+            error: "",
+            meta: pageMeta(payload, limit),
+          };
+          rememberListState(cacheKey, nextState);
+          return nextState;
+        });
+      } catch (error) {
+        if (isAbortError(error)) return;
+        if (requestId !== requestIdRef.current) return;
+        setState((current) => ({
+          ...current,
+          loading: false,
+          loadingMore: false,
+          error: error?.message || "Unable to load data.",
+        }));
+      } finally {
+        if (abortRef.current === controller) abortRef.current = null;
+      }
+    },
+    [cacheKey, fetchList, limit, normalizeItems, params, requestName, extraState]
+  );
+
+  useEffect(() => {
+    load({ quiet: shouldRefreshQuietly });
+    return () => abortRef.current?.abort?.();
+  }, [load, shouldRefreshQuietly]);
+
+  useEffect(() => {
+    if (!refreshOnChange || !changeEvent || typeof window === "undefined") return undefined;
+    const refresh = () => load({ quiet: true });
+    window.addEventListener(changeEvent, refresh);
+    return () => window.removeEventListener(changeEvent, refresh);
+  }, [changeEvent, load, refreshOnChange]);
+
+  const loadMore = useCallback(() => {
+    if (!state.meta.hasMore || state.loadingMore) return;
+    load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
+  }, [load, state.meta, state.loadingMore, state.items.length]);
+
+  return { ...state, reload: load, loadMore };
+}
+
+export function useRepositories({ limit = 50 } = {}) {
+  const params = useMemoStable({});
+  const fetchList = useCallback((requestParams, options) => pullwiseApi.repositories.list(requestParams, options), []);
+  const normalizeItems = useCallback((payload) => itemsFrom(payload, "items", "repositories", "repos").map(normalizeRepo), []);
+  const extraState = useCallback((payload = {}) => {
+    payload = payload || {};
+    return {
+      installations: Array.isArray(payload.installations) ? payload.installations : [],
+      installationAccounts: Array.isArray(payload.installationAccounts) ? payload.installationAccounts : [],
+      needsAuthorization: normalizeBoolean(payload.needsAuthorization ?? payload.needs_authorization),
+      userQuota: normalizeQuotaUsage(payload.userQuota ?? payload.user_quota),
+    };
+  }, []);  return usePagedList({
+    cacheName: "repositories",
+    limit,
+    params,
+    requestName: "repositories-request",
+    fetchList,
+    normalizeItems,
+    extraState,
+  });
+}
+
+export function useIssues({ limit = 50, status = "", severity = "", q = "", scanId = "", refreshOnChange = true } = {}) {
+  const params = useMemoStable({ status, severity, q, scanId });
+  const fetchList = useCallback((requestParams, options) => pullwiseApi.issues.list(requestParams, options), []);
+  const normalizeItems = useCallback(
+    (payload) => applyCachedIssueUpdates(itemsFrom(payload, "items", "issues").map(normalizeIssue)).filter((issue) =>
+      issueMatchesRequestFilters(issue, params)
+    ),
+    [params]
+  );
+  return usePagedList({
+    cacheName: "issues",
+    limit,
+    params,
+    requestName: "issues-request",
+    fetchList,
+    normalizeItems,
+    refreshOnChange,
+    changeEvent: "pullwise:issues-changed",
+  });
+}
+
+function useMemoStable(value) {
+  const ref = useRef(value);
+  const nextKey = JSON.stringify(value);
+  const currentKey = JSON.stringify(ref.current);
+  if (nextKey !== currentKey) ref.current = value;
+  return ref.current;
+}export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
   const cacheKey = stableCacheKey("scans", { limit, status, repo });

@@ -48,41 +48,6 @@ beforeEach(() => {
 });
 
 describe("normalizeScan", () => {
-  it("preserves graph-verified report counts and confirmed JSON without markdown artifacts", () => {
-    const scan = normalizeScan({
-      id: "sc_1",
-      repo: "acme/app",
-      graphVerifiedReport: {
-        runId: "run_1",
-        mode: "standard",
-        confirmedCount: "1",
-        rejectedCount: "2",
-        blockedCount: "0",
-        coverage: { scope: "full-repository snapshot" },
-        reviewUnits: [{ unit_id: "unit-0001", status: "covered" }],
-        finalMarkdown: "# Graph-Verified Code Review Report",
-        finalJson: {
-          coverage: { reviewedFiles: 1 },
-          confirmed: [{ candidate: { issue_id: "issue_1" } }],
-        },
-      },
-    });
-
-    expect(scan.graphVerifiedReport).toMatchObject({
-      version: "graph-verified-code-review/1",
-      runId: "run_1",
-      mode: "standard",
-      confirmedCount: 1,
-      rejectedCount: 2,
-      blockedCount: 0,
-    });
-    expect(scan.graphVerifiedReport.finalMarkdown).toBeUndefined();
-    expect(scan.graphVerifiedReport.debugMarkdown).toBeUndefined();
-    expect(scan.graphVerifiedReport.coverage.scope).toBe("full-repository snapshot");
-    expect(scan.graphVerifiedReport.reviewUnits[0].unit_id).toBe("unit-0001");
-    expect(scan.graphVerifiedReport.finalJson.coverage.reviewedFiles).toBe(1);
-    expect(scan.graphVerifiedReport.finalJson.confirmed[0].candidate.issue_id).toBe("issue_1");
-  });
 });
 
 describe("useRepositories", () => {
@@ -955,37 +920,6 @@ describe("normalizeIssue", () => {
     expect(normalizeScan(null)).toMatchObject({ id: "", branch: "main", status: "queued" });
   });
 
-  it("normalizes graph-verified static proof issue fields", () => {
-    const issue = normalizeIssue({
-      id: "issue_static",
-      title: "Static lifecycle proof",
-      graphVerified: true,
-      verificationStatus: "static_proof",
-      confidenceLevel: "high",
-      reproductionPath: "Inspect the worker lifecycle state transition.",
-      reproduction: {
-        steps: ["Inspect src/worker.py", "Compare pending state with cleanup behavior"],
-        expected: "Pending uploads remain protected.",
-        actual: "Cleanup can unload the pending upload watcher.",
-      },
-      reproProof: {
-        type: "static-proof",
-        verification_steps: ["Inspect src/worker.py", "Confirm cleanup lacks pending upload guard"],
-      },
-    });
-
-    expect(issue.verificationStatus).toBe("static_proof");
-    expect(issue.confidenceLevel).toBe("high");
-    expect(issue.reproductionPath).toBe("Inspect the worker lifecycle state transition.");
-    expect(issue.reproduction.steps).toEqual([
-      "Inspect src/worker.py",
-      "Compare pending state with cleanup behavior",
-    ]);
-    expect(issue.reproProof.verificationSteps).toEqual([
-      "Inspect src/worker.py",
-      "Confirm cleanup lacks pending upload guard",
-    ]);
-  });
   it("normalizes repository text fields for search-safe rendering", () => {
     const repo = normalizeRepo({
       id: 42,
