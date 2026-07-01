@@ -95,6 +95,10 @@ issue counts, and any normalized finding index the server exposes. Do not fetch
 or infer raw worker internals to construct terminal state. If future server data
 contains a natural graph or visual structure, render it from that explicit
 structure; otherwise use clear text/tables from supplied artifacts and summaries.
+Treat `partial_completed` as a result-bearing terminal state for history/detail
+actions when the server exposes scan or `reviewRun` data. It may have fewer
+issues or artifacts than a completed scan, but it should not be hidden behind
+queued/running/failed-only UI gates.
 
 Progress UI should follow
 `../codex_full_repo_review_worker_spec_v1_2_FULL_SELF_CONTAINED.md`: prepare

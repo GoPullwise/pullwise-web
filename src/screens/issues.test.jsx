@@ -1066,6 +1066,41 @@ describe("HistoryScreen queue state", () => {
     expect(pullwiseApi.scans.auditBundleArchive).not.toHaveBeenCalled();
   });
 
+  it("opens partial-completed scan results from history", async () => {
+    const openScanIssues = vi.fn();
+    const user = userEvent.setup();
+    const scan = {
+      id: "sc_partial",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "abc123",
+      status: "partial_completed",
+      time: "now",
+      by: "you",
+      issues: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
+    };
+    useScans.mockReturnValue({
+      items: [scan],
+      loading: false,
+      error: "",
+    });
+
+    render(<HistoryScreen go={vi.fn()} openScanIssues={openScanIssues} />);
+
+    const row = screen.getByText("octocat/private-repo").closest(".scan-row");
+    expect(row).not.toBeNull();
+    expect(within(row).getByText("Partial result available")).toBeInTheDocument();
+
+    const issues = within(row).getByRole("button", { name: /^issues$/i });
+    expect(issues).not.toBeDisabled();
+    await user.click(issues);
+    expect(openScanIssues).toHaveBeenCalledWith(scan);
+
+    const more = within(row).getByRole("button", { name: /more actions/i });
+    await user.click(more);
+    expect(within(row).getByRole("menuitem", { name: /download zip/i })).not.toBeDisabled();
+  });
+
   it("opens completed scan instances from history", async () => {
     const openScan = vi.fn();
     const go = vi.fn();
