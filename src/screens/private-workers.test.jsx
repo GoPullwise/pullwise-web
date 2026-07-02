@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { PrivateWorkersScreen } from "./private-workers.jsx";
@@ -68,5 +69,27 @@ describe("PrivateWorkersScreen", () => {
     expect(within(row).getByText("Codex quota Exhausted")).toBeInTheDocument();
     expect(within(row).getByText("5 hour 0% remaining")).toBeInTheDocument();
     expect(within(row).getByText("Weekly 50% remaining")).toBeInTheDocument();
+  });
+
+  it("can pin the Codex CLI release when creating a private worker", async () => {
+    const user = userEvent.setup();
+    pullwiseApi.privateWorkers.list.mockResolvedValue({ workers: [] });
+    pullwiseApi.privateWorkers.create.mockResolvedValue({
+      worker: { worker_id: "wk_new", name: "Pinned private worker", status: "offline" },
+      worker_token: "pww_once",
+    });
+
+    render(<PrivateWorkersScreen go={vi.fn()} />);
+
+    await screen.findByText(/create private worker/i);
+    await user.click(screen.getByRole("checkbox", { name: /use latest/i }));
+    await user.type(screen.getByLabelText(/codex version/i), "0.13.0");
+    await user.click(screen.getByRole("button", { name: /create worker/i }));
+
+    await waitFor(() =>
+      expect(pullwiseApi.privateWorkers.create).toHaveBeenCalledWith(
+        expect.objectContaining({ codexUseLatest: false, codexVersion: "0.13.0" })
+      )
+    );
   });
 });

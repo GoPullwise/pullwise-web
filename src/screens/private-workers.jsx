@@ -309,6 +309,8 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
   const [name, setName] = useState("");
   const [region, setRegion] = useState("");
   const [version, setVersion] = useState("");
+  const [codexUseLatest, setCodexUseLatest] = useState(true);
+  const [codexVersion, setCodexVersion] = useState("");
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
@@ -367,12 +369,16 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
         name: name.trim() || T("Private worker", "私有 Worker"),
         region: region.trim(),
         version: version.trim(),
+        codexUseLatest,
+        codexVersion: codexUseLatest ? "" : codexVersion.trim(),
       });
       setCreatedResult(payload);
       upsertWorker(workerFromPayload(payload));
       setName("");
       setRegion("");
       setVersion("");
+      setCodexUseLatest(true);
+      setCodexVersion("");
     } catch (err) {
       setError(err?.message || T("Unable to create private worker.", "无法创建私有 Worker。"));
     } finally {
@@ -488,6 +494,30 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
                         <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="0.8.11" />
                       </div>
                     </label>
+                    <label className="auth-field private-worker-codex-latest">
+                      <span>{T("Codex CLI", "Codex CLI")}</span>
+                      <div className="auth-input">
+                        <input
+                          type="checkbox"
+                          checked={codexUseLatest}
+                          onChange={(event) => setCodexUseLatest(event.target.checked)}
+                        />
+                        <span>{T("Use latest", "Use latest")}</span>
+                      </div>
+                    </label>
+                    {!codexUseLatest && (
+                      <label className="auth-field">
+                        <span>{T("Codex version", "Codex version")}</span>
+                        <div className="auth-input">
+                          <I.Package size={14} />
+                          <input
+                            value={codexVersion}
+                            onChange={(event) => setCodexVersion(event.target.value)}
+                            placeholder="0.13.0"
+                          />
+                        </div>
+                      </label>
+                    )}
                   </div>
                   <button className="btn primary" type="submit" disabled={Boolean(pending)}>
                     {pending === "create" && (
