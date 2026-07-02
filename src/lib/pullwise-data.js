@@ -413,7 +413,7 @@ function normalizeProgress(value) {
 }
 
 const INCOMPLETE_TERMINAL_SCAN_PROGRESS_MAX = 94;
-const INCOMPLETE_TERMINAL_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
+const INCOMPLETE_TERMINAL_SCAN_STATUSES = new Set(["failed", "cancelled", "partial_completed", "lost"]);
 
 function normalizeScanProgressForStatus(status, value) {
   const progress = normalizeProgress(value);
@@ -546,7 +546,7 @@ function normalizeScanStatus(value) {
       complete: "done",
       completed: "done",
     }[status] || status;
-  return ["queued", "running", "done", "failed", "cancelled", "lost"].includes(normalized)
+  return ["queued", "running", "done", "failed", "cancelled", "partial_completed", "lost"].includes(normalized)
     ? normalized
     : "queued";
 }
@@ -986,6 +986,7 @@ export function normalizeScan(scan = {}) {
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   const humanReport = normalizeHumanReport(scan.humanReport);
+  const reviewRun = objectRecord(scan.reviewRun) ? { ...scan.reviewRun } : objectRecord(scan.review_run) ? { ...scan.review_run } : null;
   return {
     id: textValue(scan.id),
     repo: textValue(scan.repo),
@@ -1009,6 +1010,7 @@ export function normalizeScan(scan = {}) {
     aiUsage: normalizeAiUsage(scan.aiUsage, scan),
     preflight: normalizePreflight(scan.preflight),
     humanReport,
+    reviewRun,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     queue: objectRecord(scan.queue) ? { ...scan.queue } : null,
@@ -1392,7 +1394,7 @@ function useMemoStable(value) {
   return { ...state, reload: load, loadMore, upsertScan };
 }
 
-const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled", "lost"]);
+const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled", "partial_completed", "lost"]);
 
 export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));

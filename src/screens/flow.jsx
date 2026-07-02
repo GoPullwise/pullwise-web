@@ -88,15 +88,17 @@ function reviewRunArtifactHref(storage) {
 function reviewRunStatusLabel(status) {
   switch (status) {
     case "completed":
-      return T("Completed", "已完成");
+      return T("Completed", "Completed");
     case "failed":
-      return T("Failed", "失败");
+      return T("Failed", "Failed");
     case "cancelled":
-      return T("Cancelled", "已取消");
+      return T("Cancelled", "Cancelled");
+    case "partial_completed":
+      return T("Partially completed", "Partially completed");
     case "running":
-      return T("Running", "运行中");
+      return T("Running", "Running");
     case "leased":
-      return T("Leased", "已领取");
+      return T("Leased", "Leased");
     default:
       return String(status || "unknown").replace(/_/g, " ");
   }
@@ -575,7 +577,7 @@ function batchCreationSummary(batchRows, scans, expectedCount) {
 }
 
 function isTerminalBatchRow(row) {
-  return ["done", "failed", "cancelled"].includes(row?.status) || isTerminalScan(row?.scan);
+  return ["done", "failed", "cancelled", "partial_completed"].includes(row?.status) || isTerminalScan(row?.scan);
 }
 
 function scanErrorAction(error) {
@@ -1873,41 +1875,59 @@ export function ReposScreen({
   );
 }
 
+function scanPhase(k, t_en, d_en) {
+  return { k, t_en, t_zh: t_en, d_en, d_zh: d_en };
+}
+
 const PRODUCTION_SCAN_PHASES = [
-  {
-    k: "clone",
-    t_en: "Cloning repository",
-    t_zh: "克隆仓库",
-    d_en: "Checking out the requested ref",
-    d_zh: "检出请求的分支或 commit",
-  },
-  {
-    k: "index",
-    t_en: "Repository preflight",
-    t_zh: "仓库预检",
-    d_en: "Capturing manifests, tools, and repository context",
-    d_zh: "采集清单、工具版本和仓库上下文",
-  },
-  {
-    k: "ai",
-    t_en: "AI review",
-    t_zh: "AI 审查",
-    d_en: "Reviewing risks and validating findings",
-    d_zh: "审查风险并验证发现",
-  },
-  {
-    k: "report",
-    t_en: "Uploading report",
-    t_zh: "上传报告",
-    d_en: "Persisting findings and the audit bundle",
-    d_zh: "保存问题和审计包",
-  },
+  scanPhase("prepare_workspace", "Preparing workspace", "Creating the isolated review workspace"),
+  scanPhase("start_codex_app_server", "Starting Codex app server", "Opening the worker app-server bridge"),
+  scanPhase("initialize_codex_connection", "Initializing Codex connection", "Verifying the app-server transport"),
+  scanPhase("check_codex_auth", "Checking Codex auth", "Confirming provider credentials and quota readiness"),
+  scanPhase("bootstrap_helper_scripts", "Bootstrapping helper scripts", "Installing review helper scripts into the workspace"),
+  scanPhase("inventory_repository", "Inventorying repository", "Classifying files and repository metadata"),
+  scanPhase("token_budget", "Estimating token budget", "Sizing the review workload"),
+  scanPhase("repo_map", "Mapping repository", "Building repository structure and ownership context"),
+  scanPhase("risk_routing", "Routing risk areas", "Selecting files and concerns for review depth"),
+  scanPhase("bundle_planning", "Planning review bundles", "Grouping work into review bundles"),
+  scanPhase("bundle_packing", "Packing review bundles", "Materializing reviewer prompts and inputs"),
+  scanPhase("reviewer_fanout", "Running reviewers", "Executing focused reviewer passes"),
+  scanPhase("reviewer_json_validation", "Validating reviewer JSON", "Checking reviewer outputs against schemas"),
+  scanPhase("location_validation", "Validating locations", "Verifying finding file and line references"),
+  scanPhase("clustering_and_voting", "Clustering findings", "Merging duplicate findings and votes"),
+  scanPhase("intent_test_validation", "Validating intent-test policy", "Checking whether intent tests should run"),
+  scanPhase("intent_mining", "Mining intent evidence", "Extracting behavioral intent from the repository"),
+  scanPhase("intent_test_planning", "Planning intent tests", "Selecting targeted validation tests"),
+  scanPhase("validation_workspace_prepare", "Preparing validation workspace", "Creating a disposable test workspace"),
+  scanPhase("intent_test_writing", "Writing intent tests", "Generating focused validation tests"),
+  scanPhase("intent_test_running", "Running intent tests", "Executing generated tests in isolation"),
+  scanPhase("intent_test_failure_analysis", "Analyzing test failures", "Classifying validation results"),
+  scanPhase("validator_disproof", "Running validator disproof", "Checking whether findings are contradicted"),
+  scanPhase("final_report_json", "Building final report JSON", "Assembling structured review output"),
+  scanPhase("render_markdown_report", "Rendering report", "Rendering the human-readable audit report"),
+  scanPhase("qa_gate", "Running QA gate", "Checking required artifacts before submission"),
+  scanPhase("hash_artifacts", "Hashing artifacts", "Calculating artifact checksums"),
+  scanPhase("upload_artifacts", "Uploading artifacts", "Persisting reports and audit bundle artifacts"),
+  scanPhase("submit_result_envelope", "Submitting result envelope", "Sending terminal worker result metadata"),
+  scanPhase("cleanup_active_job", "Cleaning up active job", "Releasing worker state after terminal submission"),
 ];
+
+const LEGACY_SCAN_PHASE_ALIASES = {
+  clone: "prepare_workspace",
+  index: "inventory_repository",
+  ai: "reviewer_fanout",
+  report: "upload_artifacts",
+};
 
 const SCAN_PHASE_BY_KEY = new Map(PRODUCTION_SCAN_PHASES.map((phase) => [phase.k, phase]));
 
+function normalizedScanPhaseKey(phase) {
+  const key = String(phase || "").trim();
+  return LEGACY_SCAN_PHASE_ALIASES[key] || key;
+}
+
 function scanPhaseDefinition(phase) {
-  return SCAN_PHASE_BY_KEY.get(phase);
+  return SCAN_PHASE_BY_KEY.get(normalizedScanPhaseKey(phase));
 }
 
 function scanPhasesForPhase(_phase) {
@@ -2108,8 +2128,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const status = batchMode
     ? batchScanStatus(scans, expectedBatchCount, Boolean(error))
     : scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
-  const currentPhase =
-    scan?.phase || (status === "queued" ? null : status === "done" ? "report" : "clone");
+  const rawCurrentPhase =
+    scan?.phase || (status === "queued" ? null : ["done", "partial_completed"].includes(status) ? "cleanup_active_job" : "prepare_workspace");
+  const currentPhase = rawCurrentPhase ? normalizedScanPhaseKey(rawCurrentPhase) : null;
   const scanProgressMessage = batchMode ? "" : scan?.progressMessage || "";
   const scanProgressLogsSummary = batchMode ? "" : scan?.logsSummary || "";
   const liveLogEntries = batchMode
@@ -2204,7 +2225,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       ? batchMode
         ? T("Scan batch complete", "批量扫描完成")
         : T("Scan complete", "扫描完成")
-      : status === "failed"
+      : status === "partial_completed"
+        ? batchMode
+          ? T("Scan batch partially completed", "Scan batch partially completed")
+          : T("Scan partially completed", "Scan partially completed")
+        : status === "failed"
         ? batchMode
           ? T("Scan batch failed", "批量扫描失败")
           : T("Scan failed", "扫描失败")
@@ -2220,7 +2245,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 ? T("Scanning repositories", "正在扫描仓库")
                 : T("Scanning…", "扫描进行中");
 
-  const headerIcon = detailLoading ? null : status === "done" ? (
+  const headerIcon = detailLoading ? null : ["done", "partial_completed"].includes(status) ? (
     <I.Check size={18} />
   ) : status === "failed" || status === "cancelled" || status === "lost" ? (
     <I.X size={18} />

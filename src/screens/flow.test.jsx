@@ -28,7 +28,7 @@ vi.mock("../api/pullwise.js", () => ({
 }));
 
 vi.mock("../lib/pullwise-data.js", () => ({
-  isTerminalScan: (scan) => ["done", "failed", "cancelled"].includes(scan?.status),
+  isTerminalScan: (scan) => ["done", "failed", "cancelled", "partial_completed"].includes(scan?.status),
   scanQueueSummary: (scan) =>
     scan?.queue
       ? {
@@ -1457,16 +1457,16 @@ describe("ScanningScreen queue state", () => {
 
     const phases = document.querySelector(".scanning-phases");
     expect(phases).not.toBeNull();
-    expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
-    expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
-    expect(within(phases).getByText("AI review")).toBeInTheDocument();
+    expect(within(phases).getByText("Preparing workspace")).toBeInTheDocument();
+    expect(within(phases).getByText("Inventorying repository")).toBeInTheDocument();
+    expect(within(phases).getByText("Running reviewers")).toBeInTheDocument();
     expect(within(phases).getByText("Repo map: mapping shards 12/80")).toBeInTheDocument();
     expect(
       within(phases).getByText("run=codex_run phase=repo_map progress=12/80 task=bundle-0012")
     ).toBeInTheDocument();
-    expect(within(phases).getByText("Uploading report")).toBeInTheDocument();
-    expect(screen.getByText(`[${expectedLogTime}] AI review - Repo map: mapping shards 12/80`)).toBeInTheDocument();
-    expect(screen.queryByText(`[${currentTime}] AI review - Repo map: mapping shards 12/80`)).not.toBeInTheDocument();
+    expect(within(phases).getByText("Uploading artifacts")).toBeInTheDocument();
+    expect(screen.getByText(`[${expectedLogTime}] Running reviewers - Repo map: mapping shards 12/80`)).toBeInTheDocument();
+    expect(screen.queryByText(`[${currentTime}] Running reviewers - Repo map: mapping shards 12/80`)).not.toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
     } finally {
@@ -1508,7 +1508,7 @@ describe("ScanningScreen queue state", () => {
 
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
     const logTimestamp = 1700000000;
-    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] AI review - Repo map: mapping shards 12/80`;
+    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] Running reviewers - Repo map: mapping shards 12/80`;
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1568,8 +1568,8 @@ describe("ScanningScreen queue state", () => {
 
     const phases = document.querySelector(".scanning-phases");
     expect(phases).not.toBeNull();
-    expect(within(phases).getByText("Cloning repository")).toBeInTheDocument();
-    expect(within(phases).getByText("Repository preflight")).toBeInTheDocument();
+    expect(within(phases).getByText("Preparing workspace")).toBeInTheDocument();
+    expect(within(phases).getByText("Inventorying repository")).toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
   });
@@ -1598,7 +1598,7 @@ describe("ScanningScreen queue state", () => {
 
     expect(container.querySelector(".scanning-bar-wrap")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-bar")).not.toBeInTheDocument();
-    expect(screen.getByText("AI review")).toBeInTheDocument();
+    expect(screen.getByText("Running reviewers")).toBeInTheDocument();
   });
 
   it("explains queued scans with queue position", () => {
