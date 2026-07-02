@@ -502,9 +502,13 @@ body.has-proto-nav {
   min-width: 0;
 }
 
-:where(.chip, .pill, .kbd, .repos-org, .pill-btn, .seg-i) {
+:where(.chip, .pill, .kbd, .repos-org) {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.pill-btn, .seg-i) {
   white-space: nowrap;
 }
 

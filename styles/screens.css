@@ -1251,6 +1251,29 @@
   font-size: 11px;
   color: var(--text-3);
 }
+.scanning-log {
+  min-width: 0;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.scanning-log-body {
+  display: grid;
+  gap: 4px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-2);
+  font: 11.5px/1.55 var(--font-mono);
+}
+
+.scanning-log-line {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
 .scan-verification-verified {
   color: #16a34a;
 }
@@ -1803,6 +1826,202 @@
   overflow-wrap: anywhere;
 }
 
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.kpi {
+  min-width: 0;
+  min-height: 142px;
+  padding: 16px;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.dash-summary {
+  min-width: 0;
+  padding: 18px;
+}
+
+.dash-summary-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dash-summary-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.dash-donut-legend {
+  display: grid;
+  gap: 7px;
+}
+
+.dash-donut-legend .dash-donut-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: normal;
+}
+
+.dash-donut-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+}
+
+.dash-donut-legend .dash-donut-row > b {
+  color: var(--text);
+  font: 600 12px/1 var(--font-mono);
+  text-align: right;
+}
+
+.risk-hotspots {
+  margin-bottom: 18px;
+}
+
+.risk-hotspot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.risk-hotspot-list {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.risk-hotspot-list-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.risk-hotspot-list-h h4 {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.risk-hotspot-list-h span {
+  color: var(--text-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.risk-hotspot-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.risk-hotspot-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+.risk-hotspot-rank {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font: 700 11px/1 var(--font-mono);
+}
+
+.risk-hotspot-main {
+  min-width: 0;
+}
+
+.risk-hotspot-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.risk-hotspot-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.risk-hotspot-score,
+.risk-hotspot-context {
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.risk-hotspot-score {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.risk-hotspot-context {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-hotspot-heat {
+  height: 4px;
+  margin-top: 7px;
+  overflow: hidden;
+  background: var(--bg-soft);
+}
+
+.risk-hotspot-heat span {
+  display: block;
+  height: 100%;
+  background: var(--risk-hotspot-color, var(--accent));
+}
+
+.risk-hotspot-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.risk-hotspot-empty {
+  padding: 18px 0;
+  font-size: 12.5px;
+}
+
+.dash-issues-h {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 10px;
+}
 /* Issue list */
 .issue-list {
   display: flex;
@@ -1967,6 +2186,46 @@
 }
 
 /* ── Issues table ─────────────────────────────────────────── */
+.seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-soft);
+  overflow-x: auto;
+}
+
+.seg-i {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-2);
+  font: 500 12px/1 var(--font-sans);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.seg-i:hover {
+  background: var(--bg-elev);
+  color: var(--text);
+}
+
+.seg-i.active {
+  background: var(--text);
+  color: var(--bg);
+}
 .filters {
   padding: 14px;
   margin-bottom: 18px;
