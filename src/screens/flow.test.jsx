@@ -239,6 +239,8 @@ describe("ReposScreen scan selection", () => {
     expect(appStyles).toMatch(
       /\.repo-meta \.repo-branch-placeholder\s*{[^}]*visibility:\s*hidden;/
     );
+    expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-size:\s*18px;/s);
+    expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-weight:\s*650;/s);
   });
 
   it("reserves the branch slot before a repository is selected", async () => {

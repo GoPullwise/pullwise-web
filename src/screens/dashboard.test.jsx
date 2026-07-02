@@ -558,6 +558,9 @@ describe("DashboardScreen issue list", () => {
     expect(appCss).not.toMatch(/grid-template-rows:\s*auto auto 32px 20px;/);
     expect(appCss).toMatch(/\.kpi-h\s*\{[^}]*margin-bottom:\s*0;/s);
     expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*margin-bottom:\s*0;/s);
+    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*font-size:\s*30px;/s);
+    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*font-weight:\s*700;/s);
+    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*line-height:\s*36px;/s);
     expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*white-space:\s*nowrap;/s);
     expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*align-self:\s*end;/s);
     expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*line-height:\s*16px;/s);
