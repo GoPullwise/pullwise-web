@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
   clearPullwiseDataCache,
+  isTerminalScan,
   normalizeIssue,
   normalizeRepo,
   normalizeScan,
@@ -1472,6 +1473,13 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_cancelled", status: "cancelled", progress: 99 }).progress).toBe(94);
   });
 
+  it("preserves partial completed scans as result-bearing terminal scans", () => {
+    const scan = normalizeScan({ id: "sc_partial", status: "partial_completed", progress: 87 });
+
+    expect(scan.status).toBe("partial_completed");
+    expect(isTerminalScan(scan)).toBe(true);
+  });
+
   it("preserves scan phase and queue metadata for active scan rendering", () => {
     const scan = normalizeScan({
       id: "sc_active",
@@ -1576,6 +1584,23 @@ describe("normalizeIssue", () => {
 
     expect(normalizeScan({ id: "sc_done", status: "done" }).status).toBe("done");
     expect(normalizeScan({ id: "sc_running", status: "running" }).status).toBe("running");
+  });
+
+  it("preserves server review-run metadata from scan payloads", () => {
+    const reviewRun = {
+      runId: "run_1",
+      status: "completed",
+      resultStatus: "done",
+      artifactManifest: {
+        items: [{ artifactId: "art_report_human", kind: "report.human" }],
+      },
+      progressFinal: {
+        currentPhase: "submit_result_envelope",
+        overallPercent: 100,
+      },
+    };
+
+    expect(normalizeScan({ id: "sc_done", status: "done", reviewRun }).reviewRun).toMatchObject(reviewRun);
   });
 
   it("preserves scan account, repository, and quota summaries", () => {
