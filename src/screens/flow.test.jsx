@@ -18,6 +18,9 @@ vi.mock("../api/pullwise.js", () => ({
       auditBundle: vi.fn(),
       auditBundleArchive: vi.fn(),
     },
+    apiKeys: {
+      createAuditBundleKey: vi.fn(),
+    },
     repositories: {
       branches: vi.fn(),
     },
@@ -100,6 +103,12 @@ beforeEach(() => {
   );
   pullwiseApi.scans.auditBundle.mockReset();
   pullwiseApi.scans.auditBundleArchive.mockReset();
+  pullwiseApi.apiKeys.createAuditBundleKey.mockReset();
+  pullwiseApi.apiKeys.createAuditBundleKey.mockResolvedValue({
+    key: "pwk_temp_bundle_token",
+    expiresAt: 1780000900,
+    restrictions: { kind: "audit_bundle", scanId: "sc_done", repoId: "repo_123" },
+  });
   pullwiseApi.repositories.branches.mockReset();
   pullwiseApi.repositories.branches.mockResolvedValue({
     defaultBranch: "main",
@@ -1138,6 +1147,7 @@ describe("ScanningScreen queue state", () => {
         status: "done",
         progress: 100,
         issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        repoId: "repo_123",
         agentFixPrompt: prompt,
       },
       error: "",
@@ -1158,7 +1168,14 @@ describe("ScanningScreen queue state", () => {
 
       expect(screen.queryByText(/AGENT_FIX_PROMPT_INTERNAL_TEXT/)).not.toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /use agent to fix/i }));
-      expect(writeText).toHaveBeenCalledWith(prompt);
+      expect(pullwiseApi.apiKeys.createAuditBundleKey).toHaveBeenCalledWith("sc_done", "repo_123");
+      expect(writeText).toHaveBeenCalledTimes(1);
+      const copiedPrompt = writeText.mock.calls[0][0];
+      expect(copiedPrompt).toContain(prompt);
+      expect(copiedPrompt).toContain("Temporary audit bundle access:");
+      expect(copiedPrompt).toContain("Authorization: Bearer pwk_temp_bundle_token");
+      expect(copiedPrompt).toContain("curl -L");
+      expect(copiedPrompt).toContain("/api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip");
       expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
     } finally {
       if (originalClipboard) {

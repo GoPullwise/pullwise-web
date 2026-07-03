@@ -124,11 +124,21 @@ describe("pullwiseApi issue fix endpoints", () => {
 
     await pullwiseApi.apiKeys.list();
     await pullwiseApi.apiKeys.create({ name: "CI" });
+    await pullwiseApi.apiKeys.createAuditBundleKey("sc_1", "repo_1");
 
     expect(request).toHaveBeenNthCalledWith(1, "/api-keys");
     expect(request).toHaveBeenNthCalledWith(2, "/api-keys", {
       method: "POST",
       body: { name: "CI" },
+    });
+    expect(request).toHaveBeenNthCalledWith(3, "/api-keys", {
+      method: "POST",
+      body: {
+        name: "Audit bundle download sc_1",
+        scopes: ["scans:read"],
+        expiresInSeconds: 15 * 60,
+        restrictions: { kind: "audit_bundle", scanId: "sc_1", repoId: "repo_1" },
+      },
     });
   });
 
