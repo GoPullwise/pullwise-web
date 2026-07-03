@@ -283,8 +283,8 @@ export function ApiDocsScreen({ go, auth }) {
       path: "/api/v1/repositories/{repoId}/scans/{scanId}/audit-bundle.zip",
       scope: "scans:read",
       description: T(
-        "Download the audit bundle ZIP referenced by agentFixPrompt for a scan in this repository.",
-        "下载 agentFixPrompt 引用的该仓库扫描审计包 ZIP。"
+        "Download the audit bundle ZIP for a scan in this repository. The website /scans/{scanId}/audit-bundle.zip URL also accepts a scans:read API key for the owning account.",
+        "下载该仓库某次扫描的审计包 ZIP。网站 /scans/{scanId}/audit-bundle.zip 地址也接受所属账户的 scans:read API key。"
       ),
     },
     {
@@ -400,8 +400,8 @@ X-Pullwise-Api-Key: pwk_live_example`}
           </DocsCode>
           <p>
             {T(
-              "The API key management screen is authenticated with your Pullwise browser session. The public REST API endpoints below require an API key and one of these scopes: repositories:read, scans:write, scans:read, quota:read.",
-              "API key 管理页面使用你的 Pullwise 浏览器会话认证。下面的公开 REST API 端点需要 API key，并要求以下权限之一：repositories:read、scans:write、scans:read、quota:read。"
+              "The API key management screen is authenticated with your Pullwise browser session. Each public REST API endpoint below requires an API key with the scope listed for that endpoint.",
+              "API key 管理页面使用你的 Pullwise 浏览器会话认证。下面每个公开 REST API 端点都需要 API key，并要求该端点列出的权限。"
             )}
           </p>
           <DocsCode
@@ -421,8 +421,8 @@ Content-Type: application/json
           </h2>
           <p>
             {T(
-              "All public REST routes are account-scoped. Use repoId from the repository list when starting, stopping, or reading scans.",
-              "所有公开 REST 路由都以账户为边界。启动、停止或读取扫描时，请使用仓库列表返回的 repoId。"
+              "All public REST routes are account-scoped. Repository-scoped scan routes require repoId in the path; use repositories:read to list repositories and discover repoId values, or store repoId from setup when using a scans:read-only key.",
+              "所有公开 REST 路由都以账户为边界。仓库级扫描路由的路径需要 repoId；如需发现 repoId，请使用 repositories:read 列出仓库；如果只使用 scans:read 密钥，请在配置时保存 repoId。"
             )}
           </p>
           <div className="docs-endpoint-list">
