@@ -1890,7 +1890,15 @@ describe("ScanningScreen queue state", () => {
 
       const viewport = document.querySelector(".scanning-flow-viewport");
       const track = document.querySelector(".scanning-flow-track");
-      fireEvent.wheel(viewport, { deltaY: -100, clientX: 150, clientY: 120 });
+      const wheelEvent = new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -100,
+        clientX: 150,
+        clientY: 120,
+      });
+      viewport.dispatchEvent(wheelEvent);
+      expect(wheelEvent.defaultPrevented).toBe(true);
       expect(track).toHaveStyle("transform: translate(-21px, -16.8px) scale(1.14)");
 
       fireEvent.click(reset);

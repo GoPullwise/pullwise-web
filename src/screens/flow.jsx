@@ -2111,6 +2111,15 @@ function ScanProgressFlow({
     });
   }, []);
 
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return undefined;
+    viewport.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      viewport.removeEventListener("wheel", handleWheel);
+    };
+  }, [handleWheel]);
+
   const handlePointerDown = useCallback(
     (event) => {
       if (event.button !== undefined && event.button !== 0) return;
@@ -2214,7 +2223,6 @@ function ScanProgressFlow({
         onPointerMove={handlePointerMove}
         onPointerUp={finishDrag}
         onPointerCancel={finishDrag}
-        onWheel={handleWheel}
       >
         <div
           ref={trackRef}
