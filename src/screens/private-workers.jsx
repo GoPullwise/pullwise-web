@@ -581,7 +581,11 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
                       <span>{T("Version", "版本")}</span>
                       <div className="auth-input">
                         <I.Package size={14} />
-                        <input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="0.8.11" />
+                        <input
+                          value={version}
+                          onChange={(event) => setVersion(event.target.value)}
+                          placeholder={defaultWorkerVersion || "0.8.11"}
+                        />
                       </div>
                     </label>
                     <label className="auth-field private-worker-codex-latest">
@@ -628,6 +632,7 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
                     <WorkerRow
                       key={worker.worker_id}
                       worker={worker}
+                      defaultWorkerVersion={defaultWorkerVersion}
                       pending={pending && pending.endsWith(worker.worker_id) ? pending : ""}
                       result={actionResults[worker.worker_id]}
                       onAction={runAction}

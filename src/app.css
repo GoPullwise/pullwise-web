@@ -30,10 +30,15 @@
 
 .private-worker-edit {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elev) 74%, transparent);
+  border-radius: 8px;
+  padding: 12px;
 }
 
 .private-worker-row {
   grid-template-columns: 112px minmax(140px, 220px) minmax(0, 1fr) max-content;
+  align-items: start;
 }
 
 .private-worker-row .issue-sev {
@@ -62,6 +67,135 @@
 .private-worker-result > div {
   min-width: 0;
   width: 100%;
+}
+
+.private-worker-quota {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  min-width: 0;
+}
+
+.private-worker-quota-head,
+.private-worker-quota-window-head,
+.private-worker-quota-window-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.private-worker-quota-head > span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.private-worker-quota-status {
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.private-worker-quota-status.ok {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+}
+
+.private-worker-quota-status.low {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 46%, var(--border));
+}
+
+.private-worker-quota-status.exhausted {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 46%, var(--border));
+}
+
+.private-worker-quota-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.private-worker-quota-facts > div,
+.private-worker-quota-window {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.private-worker-quota-facts > div {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.private-worker-quota-facts span,
+.private-worker-quota-window-meta,
+.private-worker-quota-note {
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.private-worker-quota-facts b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.private-worker-quota-note {
+  margin: 0;
+}
+
+.private-worker-quota-windows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.private-worker-quota-window {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.private-worker-quota-window-head strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.private-worker-quota-window-head span,
+.private-worker-quota-window-meta span {
+  white-space: nowrap;
+}
+
+.private-worker-quota-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 62%, transparent);
+}
+
+.private-worker-quota-meter span {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  border-radius: inherit;
+  background: var(--accent);
 }
 
 .private-worker-codex-latest input[type="checkbox"] {
@@ -108,7 +242,8 @@
   .private-worker-create .api-key-create-main,
   .private-worker-create-fields,
   .private-worker-row,
-  .private-worker-edit {
+  .private-worker-edit,
+  .private-worker-quota-facts {
     grid-template-columns: minmax(0, 1fr);
   }
 

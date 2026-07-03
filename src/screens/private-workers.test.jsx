@@ -66,9 +66,34 @@ describe("PrivateWorkersScreen", () => {
     const row = (await screen.findByText("Quota worker")).closest(".private-worker-row");
 
     expect(row).toBeTruthy();
-    expect(within(row).getByText("Codex quota Exhausted")).toBeInTheDocument();
-    expect(within(row).getByText("5 hour 0% remaining")).toBeInTheDocument();
-    expect(within(row).getByText("Weekly 50% remaining")).toBeInTheDocument();
+    expect(within(row).getByText("Codex quota")).toBeInTheDocument();
+    expect(within(row).getByText("Exhausted")).toBeInTheDocument();
+    expect(within(row).getByText("0% remaining")).toBeInTheDocument();
+    expect(within(row).getByText("100% used")).toBeInTheDocument();
+    expect(within(row).getByText("50% remaining")).toBeInTheDocument();
+    expect(within(row).getByText("50% used")).toBeInTheDocument();
+  });
+
+  it("does not reserve quota space when a private worker has no Codex quota report", async () => {
+    pullwiseApi.privateWorkers.list.mockResolvedValue({
+      workers: [
+        {
+          worker_id: "wk_plain",
+          name: "Plain worker",
+          status: "idle",
+          region: "local",
+          version: "0.4.18",
+          running_jobs: 0,
+        },
+      ],
+    });
+
+    render(<PrivateWorkersScreen go={vi.fn()} />);
+
+    const row = (await screen.findByText("Plain worker")).closest(".private-worker-row");
+
+    expect(row).toBeTruthy();
+    expect(within(row).queryByText("Codex quota")).not.toBeInTheDocument();
   });
 
   it("can pin the Codex CLI release when creating a private worker", async () => {
