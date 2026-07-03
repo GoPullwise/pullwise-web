@@ -1983,6 +1983,9 @@ function ScanProgressFlow({
 }) {
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
   const dragRef = useRef(null);
+  const viewportRef = useRef(null);
+  const trackRef = useRef(null);
+  const focusedPhaseRef = useRef("");
 
   const zoomBy = useCallback((delta) => {
     setView((current) => ({ ...current, scale: clampFlowZoom(current.scale + delta) }));
@@ -2025,6 +2028,51 @@ function ScanProgressFlow({
     dragRef.current = null;
   }, []);
 
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    const target = trackRef.current?.querySelector('[data-flow-current="true"]');
+    if (!viewport || !target || dragRef.current) return;
+
+    const viewportRect = viewport.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    if (!viewportRect.width || !targetRect.width) return;
+
+    const phaseKey = currentPhase || target.getAttribute("data-phase-id") || "";
+    const shouldCenter = phaseKey && focusedPhaseRef.current !== phaseKey;
+    const margin = 24;
+    const viewportCenterX = viewportRect.left + viewportRect.width / 2;
+    const viewportCenterY = viewportRect.top + viewportRect.height / 2;
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    const targetCenterY = targetRect.top + targetRect.height / 2;
+    let deltaX = 0;
+    let deltaY = 0;
+
+    if (shouldCenter) {
+      deltaX = viewportCenterX - targetCenterX;
+      deltaY = viewportCenterY - targetCenterY;
+    } else if (targetRect.left < viewportRect.left + margin) {
+      deltaX = viewportRect.left + margin - targetRect.left;
+    } else if (targetRect.right > viewportRect.right - margin) {
+      deltaX = viewportRect.right - margin - targetRect.right;
+    }
+
+    if (!shouldCenter) {
+      if (targetRect.top < viewportRect.top + margin) {
+        deltaY = viewportRect.top + margin - targetRect.top;
+      } else if (targetRect.bottom > viewportRect.bottom - margin) {
+        deltaY = viewportRect.bottom - margin - targetRect.bottom;
+      }
+    }
+
+    focusedPhaseRef.current = phaseKey;
+    if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
+    setView((current) => ({
+      ...current,
+      x: Math.round((current.x + deltaX) * 100) / 100,
+      y: Math.round((current.y + deltaY) * 100) / 100,
+    }));
+  }, [currentPhase, phaseIdx, steps, view.scale]);
+
   return (
     <div className="scanning-flow" aria-label={T("Worker progress flow", "Worker progress flow")}>
       <div className="scanning-flow-toolbar" aria-label={T("Progress flow controls", "Progress flow controls")}>
@@ -2054,6 +2102,7 @@ function ScanProgressFlow({
         </button>
       </div>
       <div
+        ref={viewportRef}
         className="scanning-flow-viewport"
         role="group"
         aria-label={T("Pan worker progress flow", "Pan worker progress flow")}
@@ -2063,6 +2112,7 @@ function ScanProgressFlow({
         onPointerCancel={finishDrag}
       >
         <div
+          ref={trackRef}
           className="scanning-phases scanning-flow-track"
           style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
         >
@@ -2097,6 +2147,8 @@ function ScanProgressFlow({
               <div className="scanning-flow-step" key={key}>
                 <div
                   className={cls}
+                  data-phase-id={p.id || key}
+                  data-flow-current={isOn ? "true" : undefined}
                   data-status={stepStatus || "pending"}
                   aria-current={isOn ? "step" : undefined}
                 >
@@ -2133,29 +2185,62 @@ function ScanDetailSkeleton() {
     ["sk-w-28", "sk-w-62"],
     ["sk-w-32", "sk-w-70"],
     ["sk-w-26", "sk-w-56"],
-    ["sk-w-30", "sk-w-65"],
   ];
 
   return (
     <div
-      className="scan-detail-skeleton"
+      className="scan-detail-skeleton scanning-flow"
       role="status"
       aria-live="polite"
       aria-busy="true"
       aria-label={T("Loading scan details", "正在加载扫描详情")}
     >
-      <div className="scanning-phases scan-detail-skeleton-phases" aria-hidden="true">
-        {rows.map(([titleWidth, detailWidth], index) => (
-          <div className="scanning-phase skeleton-row" key={`scan-detail-skeleton-phase-${index}`}>
-            <div className="scanning-phase-bullet">
-              <SkeletonLine className="sk-line sk-w-100 sk-h-10" />
+      <div className="scanning-flow-toolbar" aria-hidden="true">
+        <SkeletonLine className="sk-line sk-w-10 sk-h-28" />
+        <SkeletonLine className="sk-line sk-w-14 sk-h-28" />
+        <SkeletonLine className="sk-line sk-w-10 sk-h-28" />
+      </div>
+      <div className="scanning-flow-viewport" aria-hidden="true">
+        <div className="scanning-phases scanning-flow-track scan-detail-skeleton-phases">
+          {rows.map(([titleWidth, detailWidth], index) => (
+            <div className="scanning-flow-step" key={`scan-detail-skeleton-phase-${index}`}>
+              <div className="scanning-phase skeleton-row">
+                <div className="scanning-phase-bullet">
+                  <SkeletonLine className="sk-line sk-w-100 sk-h-10" />
+                </div>
+                <div className="scanning-phase-body">
+                  <div className="scanning-phase-top">
+                    <SkeletonLine className={`sk-line ${titleWidth} sk-h-16`} />
+                    <SkeletonLine className="sk-line sk-w-12 sk-h-20" />
+                  </div>
+                  <SkeletonLine className={`sk-line ${detailWidth}`} />
+                  {index === 1 && <SkeletonLine className="sk-line sk-w-50" />}
+                </div>
+              </div>
+              {index < rows.length - 1 && (
+                <div className="scanning-flow-edge" aria-hidden="true">
+                  <span />
+                </div>
+              )}
             </div>
-            <div className="skeleton-stack">
-              <SkeletonLine className={`sk-line ${titleWidth} sk-h-16`} />
-              <SkeletonLine className={`sk-line ${detailWidth}`} />
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScanDetailProgressSkeleton() {
+  return (
+    <div className="scan-progress scanning-progress scan-progress-skeleton" aria-hidden="true">
+      <div className="scan-progress-head">
+        <SkeletonLine className="sk-line sk-w-34 sk-h-16" />
+        <SkeletonLine className="sk-line sk-w-12 sk-h-16" />
+      </div>
+      <SkeletonLine className="sk-line sk-w-70" />
+      <SkeletonLine className="sk-line sk-w-55" />
+      <div className="scan-progress-track">
+        <SkeletonLine className="sk-line sk-w-30 sk-h-10" />
       </div>
     </div>
   );
@@ -2174,6 +2259,11 @@ function ScanDetailSideSkeleton() {
             </div>
           ))}
         </div>
+        <SkeletonLine className="sk-line sk-w-34 sk-h-10 scan-detail-skeleton-subh" />
+        <div className="scan-preflight-meta scan-agent-meta">
+          <SkeletonLine className="sk-line sk-w-32 sk-h-22" />
+          <SkeletonLine className="sk-line sk-w-38 sk-h-22" />
+        </div>
       </div>
       <div className="card scanning-preflight scan-detail-skeleton-card">
         <SkeletonLine className="sk-line sk-w-50 sk-h-10" />
@@ -2182,6 +2272,12 @@ function ScanDetailSideSkeleton() {
           <SkeletonLine className="sk-line sk-w-24 sk-h-22" />
           <SkeletonLine className="sk-line sk-w-30 sk-h-22" />
           <SkeletonLine className="sk-line sk-w-20 sk-h-22" />
+        </div>
+        <div className="scan-preflight-meta">
+          <SkeletonLine className="sk-line sk-w-42" />
+          <SkeletonLine className="sk-line sk-w-36" />
+          <SkeletonLine className="sk-line sk-w-60" />
+          <SkeletonLine className="sk-line sk-w-48" />
         </div>
       </div>
       <div className="card scanning-log scan-detail-skeleton-card">
@@ -2196,6 +2292,59 @@ function ScanDetailSideSkeleton() {
   );
 }
 
+function ScanAgentUsageSlot({ tags }) {
+  return (
+    <>
+      <div className="scanning-counts-h scanning-counts-subh">
+        {T("Review agent", "审查代理")}
+      </div>
+      <div className="scan-preflight-meta scan-agent-meta">
+        {tags.length > 0 ? (
+          tags.map((tag) => (
+            <span key={tag} className="tag">
+              {tag}
+            </span>
+          ))
+        ) : (
+          <>
+            <SkeletonLine className="sk-line sk-w-32 sk-h-22" />
+            <SkeletonLine className="sk-line sk-w-38 sk-h-22" />
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+function ScanPreflightSkeleton() {
+  return (
+    <div className="card scanning-preflight scan-panel-loading" aria-busy="true">
+      <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
+      <SkeletonLine className="sk-line sk-w-80" />
+      <div className="scan-preflight-tags" aria-hidden="true">
+        <SkeletonLine className="sk-line sk-w-24 sk-h-22" />
+        <SkeletonLine className="sk-line sk-w-30 sk-h-22" />
+        <SkeletonLine className="sk-line sk-w-20 sk-h-22" />
+      </div>
+      <div className="scan-preflight-meta" aria-hidden="true">
+        <SkeletonLine className="sk-line sk-w-42" />
+        <SkeletonLine className="sk-line sk-w-36" />
+        <SkeletonLine className="sk-line sk-w-60" />
+        <SkeletonLine className="sk-line sk-w-48" />
+      </div>
+    </div>
+  );
+}
+
+function ScanLogSkeletonLines() {
+  return (
+    <div className="skeleton-stack" aria-hidden="true">
+      <SkeletonLine className="sk-line sk-w-70" />
+      <SkeletonLine className="sk-line sk-w-55" />
+      <SkeletonLine className="sk-line sk-w-62" />
+    </div>
+  );
+}
 export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
   const [bundleLoading, setBundleLoading] = useState(false);
@@ -2388,7 +2537,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 ? T("Scanning repositories", "正在扫描仓库")
                 : T("Scanning…", "扫描进行中");
 
-  const headerIcon = detailLoading ? null : ["done", "partial_completed"].includes(status) ? (
+  const headerIcon = detailLoading ? (
+    <SkeletonLine className="sk-line sk-w-18 sk-h-18" />
+  ) : ["done", "partial_completed"].includes(status) ? (
     <I.Check size={18} />
   ) : status === "failed" || status === "cancelled" || status === "lost" ? (
     <I.X size={18} />
@@ -2525,16 +2676,20 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               </div>
             </div>
 
-            {!detailLoading && !batchMode && scan && (
-              <ScanProgressBar
-                className="scanning-progress"
-                progress={scanProgress.progress}
-                label={scanProgress.label}
-                message={scanProgressMessage}
-                meta={scanProgressLogsSummary}
-                valueLabel={scanProgress.valueLabel}
-                ariaValueText={scanProgress.ariaValueText}
-              />
+            {!batchMode && (
+              detailLoading || !scanProgress ? (
+                <ScanDetailProgressSkeleton />
+              ) : (
+                <ScanProgressBar
+                  className="scanning-progress"
+                  progress={scanProgress.progress}
+                  label={scanProgress.label}
+                  message={scanProgressMessage}
+                  meta={scanProgressLogsSummary}
+                  valueLabel={scanProgress.valueLabel}
+                  ariaValueText={scanProgress.ariaValueText}
+                />
+              )
             )}
             {error && (
               <div
@@ -2610,23 +2765,10 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     <span>{T("Low", "低")}</span>
                   </div>
                 </div>
-                {aiUsageTags.length > 0 && (
-                  <>
-                    <div className="scanning-counts-h scanning-counts-subh">
-                      {T("Review agent", "审查代理")}
-                    </div>
-                    <div className="scan-preflight-meta">
-                      {aiUsageTags.map((tag) => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
+                <ScanAgentUsageSlot tags={aiUsageTags} />
               </div>
 
-              {preflight && (
+              {preflight ? (
                 <div className="card scanning-preflight">
                   <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
                   {preflight.summary && (
@@ -2730,19 +2872,22 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     )}
                   </div>
                 </div>
+              ) : (
+                <ScanPreflightSkeleton />
               )}
 
               <div className="card scanning-log">
                 <div className="scanning-counts-h">{T("Live log", "实时日志")}</div>
                 <div className="scanning-log-body">
-                  {liveLogLines.length === 0 && (
-                    <div className="muted">{T("Waiting for engine…", "等待引擎启动…")}</div>
+                  {liveLogLines.length === 0 ? (
+                    <ScanLogSkeletonLines />
+                  ) : (
+                    liveLogLines.map((l, i) => (
+                      <div key={i} className="scanning-log-line">
+                        {l}
+                      </div>
+                    ))
                   )}
-                  {liveLogLines.map((l, i) => (
-                    <div key={i} className="scanning-log-line">
-                      {l}
-                    </div>
-                  ))}
                 </div>
               </div>
 

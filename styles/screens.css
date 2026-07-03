@@ -1027,6 +1027,36 @@
   display: grid;
   gap: 12px;
 }
+.scan-detail-skeleton-subh {
+  margin-top: 14px;
+}
+.scan-progress-skeleton .scan-progress-track .sk-line {
+  height: 100%;
+  max-width: none;
+}
+.scanning-progress {
+  min-height: 86px;
+  box-sizing: border-box;
+}
+.scanning-side > .card,
+.scan-detail-skeleton-side > .card {
+  box-sizing: border-box;
+}
+.scanning-counts {
+  min-height: 206px;
+}
+.scan-agent-meta {
+  min-height: 24px;
+}
+.scanning-preflight {
+  min-height: 246px;
+}
+.scanning-log {
+  min-height: 210px;
+}
+.scanning-log-body {
+  min-height: 128px;
+}
 .scanning-h {
   display: flex;
   align-items: flex-start;

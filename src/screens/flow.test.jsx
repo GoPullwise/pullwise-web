@@ -891,12 +891,58 @@ describe("ScanningScreen queue state", () => {
 
     const skeleton = container.querySelector(".scan-detail-skeleton");
     expect(skeleton).toBeInTheDocument();
+    expect(container.querySelector(".scan-progress-skeleton")).toBeInTheDocument();
+    expect(container.querySelector(".scan-detail-skeleton .scanning-flow-viewport")).toBeInTheDocument();
     expect(screen.getByText("Loading scan details")).toBeInTheDocument();
     expect(container.querySelector(".scan-detail-loading-note")).not.toBeInTheDocument();
     expect(screen.queryByText(/not the final detail page yet/i)).not.toBeInTheDocument();
     expect(container.querySelector(".scan-detail-skeleton-side")).toBeInTheDocument();
     expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
+  });
+
+  it("reserves stable scan detail panel heights in CSS", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+
+    expect(styles).toMatch(/\.scanning-progress\s*\{[^}]*min-height:\s*86px;/s);
+    expect(styles).toMatch(/\.scanning-counts\s*\{[^}]*min-height:\s*206px;/s);
+    expect(styles).toMatch(/\.scanning-preflight\s*\{[^}]*min-height:\s*246px;/s);
+    expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
+  });
+
+  it("keeps scan detail side panels reserved while scan metadata is still syncing", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "ai",
+        progress: 32,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      },
+      loading: false,
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    const { container } = render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_running",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Live findings")).toBeInTheDocument();
+    expect(screen.getByText("Review agent")).toBeInTheDocument();
+    expect(screen.getByText("Preflight evidence")).toBeInTheDocument();
+    expect(container.querySelector(".scan-panel-loading")).toBeInTheDocument();
+    expect(container.querySelector(".scanning-log-body .skeleton-stack")).toBeInTheDocument();
   });
 
   it("notifies the parent when a single scan id is resolved", async () => {
@@ -1564,6 +1610,60 @@ describe("ScanningScreen queue state", () => {
     expect(progress).toHaveAttribute("aria-valuetext", "Scan failed at 94%");
     expect(screen.getByText("Failed at 94%")).toBeInTheDocument();
     expect(screen.queryByText("100%")).not.toBeInTheDocument();
+  });
+
+  it("keeps the active progress phase focused inside the flow viewport", () => {
+    const rect = (left, top, width, height) => ({
+      left,
+      top,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+      x: left,
+      y: top,
+      toJSON: () => ({}),
+    });
+    const originalRect = Element.prototype.getBoundingClientRect;
+    const rectSpy = vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function () {
+      if (this.classList?.contains("scanning-flow-viewport")) return rect(0, 0, 300, 264);
+      if (this.getAttribute?.("data-flow-current") === "true") return rect(500, 60, 244, 136);
+      return originalRect.call(this);
+    });
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "publish",
+        progress: 80,
+        progressSteps: [
+          { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+          { id: "review", label: "Review", status: "completed", percent: 100 },
+          { id: "publish", label: "Publish", status: "running", percent: 80 },
+        ],
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      );
+
+      const current = document.querySelector('[data-flow-current="true"]');
+      const track = document.querySelector(".scanning-flow-track");
+      expect(current).toHaveTextContent("Publish");
+      expect(track).toHaveStyle("transform: translate(-472px, 4px) scale(1)");
+    } finally {
+      rectSpy.mockRestore();
+    }
   });
 
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
