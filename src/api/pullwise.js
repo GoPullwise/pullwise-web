@@ -111,6 +111,20 @@ export const pullwiseApi = {
   apiKeys: {
     list: (params = {}) => request(withSearchParams("/api-keys", params)),
     create: (payload = {}) => request("/api-keys", { method: "POST", body: payload }),
+    createAuditBundleKey: (scanId, repoId = "") =>
+      request("/api-keys", {
+        method: "POST",
+        body: {
+          name: `Audit bundle download ${scanId}`,
+          scopes: ["scans:read"],
+          expiresInSeconds: 15 * 60,
+          restrictions: {
+            kind: "audit_bundle",
+            scanId,
+            ...(repoId ? { repoId } : {}),
+          },
+        },
+      }),
     revoke: (keyId) => request(`/api-keys/${pathSegment(keyId)}`, { method: "DELETE" }),
   },
 

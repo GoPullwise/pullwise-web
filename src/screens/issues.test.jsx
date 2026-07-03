@@ -1165,14 +1165,20 @@ describe("HistoryScreen queue state", () => {
     render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
     expect(screen.queryByText(/confirmed issue f_123 with review evidence/i)).not.toBeInTheDocument();
   });
-  it("copies worker debug bundle URLs from completed scan rows", async () => {
+  it("downloads worker debug bundles from completed scan rows", async () => {
     const user = userEvent.setup();
-    const writeText = vi.fn(() => Promise.resolve());
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText },
+    const createObjectURL = vi.fn(() => "blob:pullwise-debug");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalFetch = globalThis.fetch;
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () => Promise.resolve(new Blob(["debug zip"], { type: "application/zip" })),
     });
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
     useScans.mockReturnValue({
       items: [
         {
@@ -1195,19 +1201,31 @@ describe("HistoryScreen queue state", () => {
       render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
 
       await user.click(screen.getByRole("button", { name: /more actions/i }));
-      await user.click(screen.getByRole("menuitem", { name: /copy debug zip url/i }));
+      await user.click(screen.getByRole("menuitem", { name: /download debug zip/i }));
 
-      expect(writeText).toHaveBeenCalledWith(
-        `${window.location.origin}/v1/review-runs/run_job_1/artifacts/art_debug_bundle`
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        `${window.location.origin}/v1/review-runs/run_job_1/artifacts/art_debug_bundle`,
+        { credentials: "include" }
       );
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:pullwise-debug");
     } finally {
-      Object.defineProperty(navigator, "clipboard", {
-        configurable: true,
-        value: originalClipboard,
-      });
+      globalThis.fetch = originalFetch;
+      if (originalCreateObjectURL) {
+        Object.defineProperty(URL, "createObjectURL", { configurable: true, value: originalCreateObjectURL });
+      } else {
+        delete URL.createObjectURL;
+      }
+      if (originalRevokeObjectURL) {
+        Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: originalRevokeObjectURL });
+      } else {
+        delete URL.revokeObjectURL;
+      }
+      click.mockRestore();
     }
   });
-  it("copies a stable audit bundle URL for running scans before worker debug artifacts exist", async () => {
+  it("does not substitute audit bundle URLs when worker debug artifacts are missing", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;
@@ -1237,9 +1255,10 @@ describe("HistoryScreen queue state", () => {
       render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
 
       await user.click(screen.getByRole("button", { name: /more actions/i }));
-      await user.click(screen.getByRole("menuitem", { name: /copy debug zip url/i }));
+      const copyDebug = screen.getByRole("menuitem", { name: /download debug zip/i });
 
-      expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/scans/sc_running/audit-bundle.zip`);
+      expect(copyDebug).toBeDisabled();
+      expect(writeText).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(navigator, "clipboard", {
         configurable: true,

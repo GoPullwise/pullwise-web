@@ -102,12 +102,11 @@ Treat `partial_completed` as a result-bearing terminal state for history/detail
 actions when the server exposes scan or `reviewRun` data. It may have fewer
 issues or artifacts than a completed scan, but it should not be hidden behind
 queued/running/failed-only UI gates.
-Scan history debug-copy actions must be available as soon as a scan row has an
-id. Prefer the server-provided worker `debugBundleUrl` when present, but fall
-back to the stable scan audit bundle URL (`/scans/:id/audit-bundle.zip`) while
-the worker debug artifact is not uploaded yet. Do not disable Copy debug zip URL
-just because the run is still queued/running or failed before artifact upload.
-
+Scan history debug bundle actions must download a real server-provided
+`debugBundleUrl`. Do not copy debug URLs in the UI, and do not fall back to the
+stable scan audit bundle URL (`/scans/:id/audit-bundle.zip`) when the worker
+debug artifact is not uploaded yet. Disable or omit the debug bundle action
+until a real debug bundle endpoint exists for the scan row.
 Progress UI must be driven by worker-reported flow data exposed by the server,
 not by a web-owned or server-owned fixed step list. Job scan detail pages should
 render `progressSteps` / `reviewRun.progress.steps` from scan payloads exactly as
@@ -122,3 +121,12 @@ quota telemetry (`codexQuota` / `codex_quota`). Preserve that data when changing
 worker status or scan eligibility displays so users can distinguish an idle
 worker that cannot claim jobs because Codex quota is exhausted from an offline or
 misconfigured worker.
+## Debug Bundle Contract
+
+A debug bundle is not the audit bundle and must never silently fall back to the audit bundle.
+
+- A real debug bundle combines worker-side live evidence and server-side evidence for the same scan/job/run.
+- Worker-side evidence should include run-local logs, Codex app-server events, progress logs, run-state, phase outputs, terminal QA/error reports, and the worker artifact manifest. It must not include repository source files, raw API keys, unredacted environment dumps, or unrelated worker-instance state.
+- Server-side evidence should include only scoped records for the same scan/job/run: scan/job/attempt/run identifiers, phase/progress/error snapshots, review-run events, artifact metadata/storage references, retry state, quota state, and relevant timestamps. It must not include full database dumps, secrets, other users' data, or unrelated scans.
+- The UI must disable or omit debug bundle actions when no real debug_bundle artifact/server debug bundle endpoint exists. Do not substitute /scans/{scanId}/audit-bundle.zip as a debug zip URL.
+- Tests should protect this contract: missing debugBundleUrl must not produce an audit-bundle URL, and server/worker tests must verify failed runs still expose a real debug_bundle artifact or explicit absence.

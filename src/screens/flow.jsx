@@ -211,6 +211,58 @@ function copyText(value) {
     .catch(() => false);
 }
 
+function apiKeyTokenFromPayload(payload) {
+  return String(
+    payload?.key ||
+      payload?.token ||
+      payload?.apiKey?.key ||
+      payload?.apiKey?.token ||
+      (typeof payload?.key === "string" ? payload.key : "")
+  ).trim();
+}
+
+function agentFixBundlePath(scan) {
+  const scanId = String(scan?.id || "").trim();
+  if (!scanId) return "";
+  const repoId = String(scan?.repoId || "").trim();
+  if (repoId) {
+    return "/api/v1/repositories/" + encodeURIComponent(repoId) + "/scans/" + encodeURIComponent(scanId) + "/audit-bundle.zip";
+  }
+  return "/scans/" + encodeURIComponent(scanId) + "/audit-bundle.zip";
+}
+
+function agentFixBundleUrl(scan) {
+  const path = agentFixBundlePath(scan);
+  if (!path) return "";
+  const base = String(env.VITE_PUBLIC_API_BASE_URL || env.VITE_API_BASE_URL || globalThis.location?.origin || "").replace(/\/$/, "");
+  return base ? base + path : path;
+}
+
+function agentFixPromptWithBundleKey(basePrompt, scan, keyPayload) {
+  const token = apiKeyTokenFromPayload(keyPayload);
+  const bundleUrl = agentFixBundleUrl(scan);
+  if (!basePrompt || !token || !bundleUrl) return "";
+  const scanId = String(scan?.id || "scan").trim() || "scan";
+  const expiresAt = keyPayload?.expiresAt
+    ? new Date(Number(keyPayload.expiresAt) * 1000).toISOString()
+    : "15 minutes from creation";
+  return [
+    basePrompt.trim(),
+    "",
+    "Temporary audit bundle access:",
+    "- Use this short-lived Pullwise API key only to download this scan's audit bundle.",
+    "- Expires: " + expiresAt + ".",
+    "- Download command:",
+    "~~~bash",
+    "curl -L \"" + bundleUrl + "\" \\",
+    "  -H \"Authorization: Bearer " + token + "\" \\",
+    "  -o \"pullwise-audit-" + scanId + ".zip\"",
+    "unzip -o \"pullwise-audit-" + scanId + ".zip\" -d \"pullwise-audit-" + scanId + "\"",
+    "~~~",
+    "After unzipping, inspect pullwise-audit-" + scanId + "/report.md, pullwise-audit-" + scanId + "/scan/scan.json, and pullwise-audit-" + scanId + "/issues/*.md before editing code.",
+  ].join("\n");
+}
+
 function repositoryLimitReasonLabel(reason) {
   switch (reason) {
     case "file_count":
@@ -2348,6 +2400,7 @@ function ScanLogSkeletonLines() {
 export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
   const [bundleLoading, setBundleLoading] = useState(false);
+  const [agentPromptLoading, setAgentPromptLoading] = useState(false);
   const [agentPromptCopied, setAgentPromptCopied] = useState(false);
   const agentPromptResetRef = useRef(null);
   const resolvedScanIdRef = useRef("");
@@ -2495,20 +2548,32 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   };
 
   const handleCopyAgentFixPrompt = async () => {
-    if (!agentFixPrompt) return;
-    const copied = await copyText(agentFixPrompt);
-    if (!copied) {
+    if (!agentFixPrompt || agentPromptLoading || !scan?.id) return;
+    setAgentPromptLoading(true);
+    try {
+      const keyPayload = await pullwiseApi.apiKeys.createAuditBundleKey(scan.id, scan.repoId || repoId);
+      const prompt = agentFixPromptWithBundleKey(agentFixPrompt, scan, keyPayload);
+      if (!prompt) throw new Error(T("Unable to create audit bundle download key.", "Unable to create audit bundle download key."));
+      const copied = await copyText(prompt);
+      if (!copied) {
+        globalThis.alert?.(
+          T("Unable to copy agent fix prompt.", "Unable to copy agent fix prompt.")
+        );
+        return;
+      }
+      setAgentPromptCopied(true);
+      if (agentPromptResetRef.current) clearTimeout(agentPromptResetRef.current);
+      agentPromptResetRef.current = setTimeout(() => {
+        setAgentPromptCopied(false);
+        agentPromptResetRef.current = null;
+      }, 2000);
+    } catch (error) {
       globalThis.alert?.(
-        T("Unable to copy agent fix prompt.", "无法复制 agent 修复提示。")
+        error?.message || T("Unable to create audit bundle download key.", "Unable to create audit bundle download key.")
       );
-      return;
+    } finally {
+      setAgentPromptLoading(false);
     }
-    setAgentPromptCopied(true);
-    if (agentPromptResetRef.current) clearTimeout(agentPromptResetRef.current);
-    agentPromptResetRef.current = setTimeout(() => {
-      setAgentPromptCopied(false);
-      agentPromptResetRef.current = null;
-    }, 2000);
   };
 
   const headerLabel = detailLoading
@@ -2658,12 +2723,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                           className="btn ghost"
                           type="button"
                           onClick={handleCopyAgentFixPrompt}
+                          disabled={agentPromptLoading}
                           aria-live="polite"
                         >
                           {agentPromptCopied ? <I.Check size={13} /> : <I.Copy size={13} />} {" "}
-                          {agentPromptCopied
-                            ? T("Copied", "已复制")
-                            : T("Use agent to fix", "使用 agent 修复")}
+                          {agentPromptLoading
+                            ? T("Preparing...", "Preparing...")
+                            : agentPromptCopied
+                              ? T("Copied", "Copied")
+                              : T("Use agent to fix", "Use agent to fix")}
                         </button>
                       </>
                     )}
