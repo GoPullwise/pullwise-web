@@ -1598,6 +1598,10 @@ describe("normalizeIssue", () => {
         },
         { bad: {} },
       ],
+      progressSteps: [
+        { id: "checkout", label: "Checkout", status: "completed", percent: "100" },
+        { id: "worker_specific_review", label: "Worker specific review", status: "running", percent: "42" },
+      ],
       queue: {
         message: "Waiting for worker capacity",
         position: 2,
@@ -1616,6 +1620,10 @@ describe("normalizeIssue", () => {
         message: "Repo map: mapping",
         logsSummary: "phase=repo_map",
       },
+    ]);
+    expect(scan.progressSteps).toEqual([
+      { id: "checkout", index: 1, label: "Checkout", status: "completed", percent: 100 },
+      { id: "worker_specific_review", index: 2, label: "Worker specific review", status: "running", percent: 42 },
     ]);
     expect(scan.startedAt).toBe(1700000000);
     expect(scan.updatedAt).toBe(1700000060);

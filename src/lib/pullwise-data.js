@@ -929,6 +929,52 @@ function normalizeScanProgressLogs(value) {
   return value.map(normalizeScanProgressLog).filter(Boolean).slice(-20);
 }
 
+function normalizeProgressStepId(value) {
+  const id = textValue(value).slice(0, 80);
+  return /^[A-Za-z0-9_.:/-]+$/.test(id) ? id : "";
+}
+
+function normalizeProgressStepStatus(value) {
+  const status = textValue(value).toLowerCase();
+  return ["pending", "running", "completed", "skipped", "failed", "cancelled"].includes(status)
+    ? status
+    : "pending";
+}
+
+function normalizeScanProgressStep(value, index) {
+  if (!objectRecord(value)) return null;
+  const id = normalizeProgressStepId(value.id ?? value.phase ?? value.key);
+  const label = textValue(value.label, value.title, id).slice(0, 120);
+  if (!id && !label) return null;
+  const step = {
+    id: id || `step_${index}`,
+    index: normalizeCount(value.index) || index,
+    label: label || id,
+    status: normalizeProgressStepStatus(value.status),
+    percent: normalizeProgress(value.percent ?? value.progress),
+  };
+  const description = textValue(value.description, value.message).slice(0, 240);
+  if (description) step.description = description;
+  if (Object.prototype.hasOwnProperty.call(value, "targetPercent")) {
+    step.targetPercent = normalizeProgress(value.targetPercent);
+  } else if (Object.prototype.hasOwnProperty.call(value, "target_percent")) {
+    step.targetPercent = normalizeProgress(value.target_percent);
+  }
+  return step;
+}
+
+function normalizeScanProgressSteps(value) {
+  if (!Array.isArray(value)) return [];
+  const steps = [];
+  const seen = new Set();
+  value.slice(0, 80).forEach((item, index) => {
+    const step = normalizeScanProgressStep(item, index + 1);
+    if (!step || seen.has(step.id)) return;
+    seen.add(step.id);
+    steps.push(step);
+  });
+  return steps;
+}
 function fallbackPullRequestTitle(issueId, title) {
   return `Fix ${cleanPullRequestText(title) || cleanPullRequestText(issueId) || "issue"}`;
 }
@@ -1092,6 +1138,7 @@ export function normalizeScan(scan = {}) {
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),
+    progressSteps: normalizeScanProgressSteps(scan.progressSteps ?? scan.progress_steps ?? scan.reviewRun?.progress?.steps ?? scan.review_run?.progress?.steps),
     error: textValue(scan.error, scan.errorMessage, scan.error_message),
     errorCode: textValue(scan.errorCode, scan.error_code),
     agentFixPrompt: multilineTextValue(scan.agentFixPrompt, 20000),

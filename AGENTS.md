@@ -103,16 +103,15 @@ actions when the server exposes scan or `reviewRun` data. It may have fewer
 issues or artifacts than a completed scan, but it should not be hidden behind
 queued/running/failed-only UI gates.
 
-Progress UI should follow
-`../codex_full_repo_review_worker_spec_v1_2_FULL_SELF_CONTAINED.md`: prepare
-workspace, app-server startup, Codex initialization/auth, helper bootstrap,
-inventory, token budget, repo map, risk routing, bundle planning/packing,
-reviewer fanout, reviewer JSON/location validation, clustering/voting,
-intent-test validation, intent mining/planning/writing/running/failure
-analysis, validator disproof, final report, QA, artifact upload, result
-submission, and cleanup. Avoid retired review-pipeline labels in new
-user-facing copy.
-
+Progress UI must be driven by worker-reported flow data exposed by the server,
+not by a web-owned or server-owned fixed step list. Job scan detail pages should
+render `progressSteps` / `reviewRun.progress.steps` from scan payloads exactly as
+the worker reports them after server sanitization. Different worker types may
+report different phase ids, labels, counts, order, and progress states. Do not
+recreate the current Codex worker phase list in web code, do not assume 30
+steps, and do not map legacy phase aliases into a synthetic full flow. If older
+payloads lack `progressSteps`, show only the currently reported phase/log data
+rather than filling in a guessed pipeline.
 Worker readiness and status views may receive server-sanitized Codex app-server
 quota telemetry (`codexQuota` / `codex_quota`). Preserve that data when changing
 worker status or scan eligibility displays so users can distinguish an idle

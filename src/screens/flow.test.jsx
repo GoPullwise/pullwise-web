@@ -1414,7 +1414,7 @@ describe("ScanningScreen queue state", () => {
     expect(cancel.closest(".scanning-actions")).toBe(actionGroup);
   });
 
-  it("shows the production worker scan phases", () => {
+  it("shows worker-reported scan phases without a web-owned fixed flow", () => {
     const logTimestamp = 1700000000;
     const currentTimestamp = 1700007200;
     const expectedLogTime = new Date(logTimestamp * 1000).toLocaleTimeString();
@@ -1428,18 +1428,23 @@ describe("ScanningScreen queue state", () => {
         branch: "main",
         commit: "pending",
         status: "running",
-        phase: "ai",
-        progress: 80,
+        phase: "custom_review",
+        progress: 62,
         updatedAt: currentTimestamp,
-        progressMessage: "Repo map: mapping shards 12/80",
-        logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
+        progressMessage: "Reviewing billing guardrails",
+        logsSummary: "worker=custom-review phase=custom_review",
+        progressSteps: [
+          { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+          { id: "custom_review", label: "Custom review", status: "running", percent: 40 },
+          { id: "publish", label: "Publish", status: "pending", percent: 0 },
+        ],
         progressLogs: [
           {
             time: logTimestamp,
-            phase: "ai",
-            progress: 80,
-            message: "Repo map: mapping shards 12/80",
-            logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
+            phase: "custom_review",
+            progress: 62,
+            message: "Reviewing billing guardrails",
+            logsSummary: "worker=custom-review phase=custom_review",
           },
         ],
       },
@@ -1455,20 +1460,18 @@ describe("ScanningScreen queue state", () => {
         />
       );
 
-    const phases = document.querySelector(".scanning-phases");
-    expect(phases).not.toBeNull();
-    expect(within(phases).getByText("Preparing workspace")).toBeInTheDocument();
-    expect(within(phases).getByText("Inventorying repository")).toBeInTheDocument();
-    expect(within(phases).getByText("Running reviewers")).toBeInTheDocument();
-    expect(within(phases).getByText("Repo map: mapping shards 12/80")).toBeInTheDocument();
-    expect(
-      within(phases).getByText("run=codex_run phase=repo_map progress=12/80 task=bundle-0012")
-    ).toBeInTheDocument();
-    expect(within(phases).getByText("Uploading artifacts")).toBeInTheDocument();
-    expect(screen.getByText(`[${expectedLogTime}] Running reviewers - Repo map: mapping shards 12/80`)).toBeInTheDocument();
-    expect(screen.queryByText(`[${currentTime}] Running reviewers - Repo map: mapping shards 12/80`)).not.toBeInTheDocument();
-    expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
-    expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
+      const phases = document.querySelector(".scanning-phases");
+      expect(phases).not.toBeNull();
+      expect(within(phases).getByText("Checkout")).toBeInTheDocument();
+      expect(within(phases).getByText("Custom review")).toBeInTheDocument();
+      expect(within(phases).getByText("Reviewing billing guardrails")).toBeInTheDocument();
+      expect(within(phases).getByText("worker=custom-review phase=custom_review")).toBeInTheDocument();
+      expect(within(phases).getByText("Publish")).toBeInTheDocument();
+      expect(screen.getByText(`[${expectedLogTime}] Custom review - Reviewing billing guardrails`)).toBeInTheDocument();
+      expect(screen.queryByText(`[${currentTime}] Custom review - Reviewing billing guardrails`)).not.toBeInTheDocument();
+      expect(within(phases).queryByText("Preparing workspace")).not.toBeInTheDocument();
+      expect(within(phases).queryByText("Running reviewers")).not.toBeInTheDocument();
+      expect(within(phases).queryByText("Uploading artifacts")).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }
@@ -1508,7 +1511,7 @@ describe("ScanningScreen queue state", () => {
 
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
     const logTimestamp = 1700000000;
-    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] Running reviewers - Repo map: mapping shards 12/80`;
+    const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] Worker AI - Repo map: mapping shards 12/80`;
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1518,6 +1521,7 @@ describe("ScanningScreen queue state", () => {
         status: "running",
         phase: "ai",
         progress: 80,
+        progressSteps: [{ id: "ai", label: "Worker AI", status: "running", percent: 80 }],
         progressLogs: [
           {
             time: logTimestamp,
@@ -1568,8 +1572,8 @@ describe("ScanningScreen queue state", () => {
 
     const phases = document.querySelector(".scanning-phases");
     expect(phases).not.toBeNull();
-    expect(within(phases).getByText("Preparing workspace")).toBeInTheDocument();
-    expect(within(phases).getByText("Inventorying repository")).toBeInTheDocument();
+    expect(within(phases).getByText("Secrets")).toBeInTheDocument();
+    expect(within(phases).queryByText("Preparing workspace")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Scanning for secrets")).not.toBeInTheDocument();
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
   });
@@ -1584,6 +1588,7 @@ describe("ScanningScreen queue state", () => {
         status: "running",
         phase: "ai",
         progress: 80,
+        progressSteps: [{ id: "ai", label: "Worker AI", status: "running", percent: 80 }],
       },
       error: "",
       cancel: vi.fn(),
@@ -1598,7 +1603,7 @@ describe("ScanningScreen queue state", () => {
 
     expect(container.querySelector(".scanning-bar-wrap")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-bar")).not.toBeInTheDocument();
-    expect(screen.getByText("Running reviewers")).toBeInTheDocument();
+    expect(screen.getByText("Worker AI")).toBeInTheDocument();
   });
 
   it("explains queued scans with queue position", () => {

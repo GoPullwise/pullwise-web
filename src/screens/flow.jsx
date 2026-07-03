@@ -1875,65 +1875,41 @@ export function ReposScreen({
   );
 }
 
-function scanPhase(k, t_en, d_en) {
-  return { k, t_en, t_zh: t_en, d_en, d_zh: d_en };
+function workerPhaseLabel(phase) {
+  return String(phase || "")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/^\w/, (char) => char.toUpperCase());
 }
 
-const PRODUCTION_SCAN_PHASES = [
-  scanPhase("prepare_workspace", "Preparing workspace", "Creating the isolated review workspace"),
-  scanPhase("start_codex_app_server", "Starting Codex app server", "Opening the worker app-server bridge"),
-  scanPhase("initialize_codex_connection", "Initializing Codex connection", "Verifying the app-server transport"),
-  scanPhase("check_codex_auth", "Checking Codex auth", "Confirming provider credentials and quota readiness"),
-  scanPhase("bootstrap_helper_scripts", "Bootstrapping helper scripts", "Installing review helper scripts into the workspace"),
-  scanPhase("inventory_repository", "Inventorying repository", "Classifying files and repository metadata"),
-  scanPhase("token_budget", "Estimating token budget", "Sizing the review workload"),
-  scanPhase("repo_map", "Mapping repository", "Building repository structure and ownership context"),
-  scanPhase("risk_routing", "Routing risk areas", "Selecting files and concerns for review depth"),
-  scanPhase("bundle_planning", "Planning review bundles", "Grouping work into review bundles"),
-  scanPhase("bundle_packing", "Packing review bundles", "Materializing reviewer prompts and inputs"),
-  scanPhase("reviewer_fanout", "Running reviewers", "Executing focused reviewer passes"),
-  scanPhase("reviewer_json_validation", "Validating reviewer JSON", "Checking reviewer outputs against schemas"),
-  scanPhase("location_validation", "Validating locations", "Verifying finding file and line references"),
-  scanPhase("clustering_and_voting", "Clustering findings", "Merging duplicate findings and votes"),
-  scanPhase("intent_test_validation", "Validating intent-test policy", "Checking whether intent tests should run"),
-  scanPhase("intent_mining", "Mining intent evidence", "Extracting behavioral intent from the repository"),
-  scanPhase("intent_test_planning", "Planning intent tests", "Selecting targeted validation tests"),
-  scanPhase("validation_workspace_prepare", "Preparing validation workspace", "Creating a disposable test workspace"),
-  scanPhase("intent_test_writing", "Writing intent tests", "Generating focused validation tests"),
-  scanPhase("intent_test_running", "Running intent tests", "Executing generated tests in isolation"),
-  scanPhase("intent_test_failure_analysis", "Analyzing test failures", "Classifying validation results"),
-  scanPhase("validator_disproof", "Running validator disproof", "Checking whether findings are contradicted"),
-  scanPhase("final_report_json", "Building final report JSON", "Assembling structured review output"),
-  scanPhase("render_markdown_report", "Rendering report", "Rendering the human-readable audit report"),
-  scanPhase("qa_gate", "Running QA gate", "Checking required artifacts before submission"),
-  scanPhase("hash_artifacts", "Hashing artifacts", "Calculating artifact checksums"),
-  scanPhase("upload_artifacts", "Uploading artifacts", "Persisting reports and audit bundle artifacts"),
-  scanPhase("submit_result_envelope", "Submitting result envelope", "Sending terminal worker result metadata"),
-  scanPhase("cleanup_active_job", "Cleaning up active job", "Releasing worker state after terminal submission"),
-];
-
-const LEGACY_SCAN_PHASE_ALIASES = {
-  clone: "prepare_workspace",
-  index: "inventory_repository",
-  ai: "reviewer_fanout",
-  report: "upload_artifacts",
-};
-
-const SCAN_PHASE_BY_KEY = new Map(PRODUCTION_SCAN_PHASES.map((phase) => [phase.k, phase]));
-
-function normalizedScanPhaseKey(phase) {
-  const key = String(phase || "").trim();
-  return LEGACY_SCAN_PHASE_ALIASES[key] || key;
+function scanPhaseDefinition(scan, phase) {
+  const phaseKey = String(phase || "").trim();
+  if (!phaseKey) return null;
+  const step = (scan?.progressSteps || []).find((item) => item.id === phaseKey);
+  if (step) return step;
+  return { id: phaseKey, label: workerPhaseLabel(phaseKey), description: "" };
 }
 
-function scanPhaseDefinition(phase) {
-  return SCAN_PHASE_BY_KEY.get(normalizedScanPhaseKey(phase));
+function fallbackCurrentScanStep(scan, currentPhase, status) {
+  if (!currentPhase) return [];
+  const def = scanPhaseDefinition(scan, currentPhase);
+  if (!def) return [];
+  return [
+    {
+      ...def,
+      id: def.id || currentPhase,
+      status: status === "done" ? "completed" : status === "failed" ? "failed" : "running",
+      percent: scan?.progress || 0,
+    },
+  ];
 }
 
-function scanPhasesForPhase(_phase) {
-  return PRODUCTION_SCAN_PHASES;
+function scanPhasesForScan(scan, currentPhase, status) {
+  if (Array.isArray(scan?.progressSteps) && scan.progressSteps.length) {
+    return scan.progressSteps;
+  }
+  return fallbackCurrentScanStep(scan, currentPhase, status);
 }
-
 function scanLogDate(value) {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number") {
@@ -1958,7 +1934,7 @@ function fallbackScanProgressLogs(scan) {
   const phase = scan?.phase;
   const message = scan?.progressMessage || "";
   const logsSummary = scan?.logsSummary || "";
-  if (!phase || !scanPhaseDefinition(phase) || (!message && !logsSummary)) return [];
+  if (!phase || (!message && !logsSummary)) return [];
   return [
     {
       time: scan?.updatedAt ?? scan?.completedAt ?? scan?.startedAt ?? scan?.createdAt,
@@ -1972,8 +1948,8 @@ function fallbackScanProgressLogs(scan) {
 
 function scanProgressLogLine(entry, fallbackScan) {
   const phase = entry?.phase || fallbackScan?.phase;
-  const def = scanPhaseDefinition(phase);
-  const label = def ? T(def.t_en, def.t_zh) : phase || T("Worker update", "Worker update");
+  const def = scanPhaseDefinition(fallbackScan, phase);
+  const label = def?.label || phase || T("Worker update", "Worker update");
   const stamp = scanLogTimestamp({
     updatedAt: entry?.time ?? fallbackScan?.updatedAt,
     completedAt: fallbackScan?.completedAt,
@@ -2128,9 +2104,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const status = batchMode
     ? batchScanStatus(scans, expectedBatchCount, Boolean(error))
     : scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
-  const rawCurrentPhase =
-    scan?.phase || (status === "queued" ? null : ["done", "partial_completed"].includes(status) ? "cleanup_active_job" : "prepare_workspace");
-  const currentPhase = rawCurrentPhase ? normalizedScanPhaseKey(rawCurrentPhase) : null;
+  const reportedCurrentStep = scan?.progressSteps?.find((step) => ["running", "failed", "cancelled"].includes(step.status)) || null;
+  const rawCurrentPhase = scan?.phase || reportedCurrentStep?.id || null;
+  const currentPhase = rawCurrentPhase ? String(rawCurrentPhase).trim() : null;
   const scanProgressMessage = batchMode ? "" : scan?.progressMessage || "";
   const scanProgressLogsSummary = batchMode ? "" : scan?.logsSummary || "";
   const liveLogEntries = batchMode
@@ -2139,8 +2115,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       ? scan.progressLogs
       : fallbackScanProgressLogs(scan);
   const liveLogLines = liveLogEntries.map((entry) => scanProgressLogLine(entry, scan)).filter(Boolean);
-  const scanPhases = scanPhasesForPhase(currentPhase);
-  const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.k === currentPhase) : -1;
+  const scanPhases = scanPhasesForScan(scan, currentPhase, status);
+  const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.id === currentPhase) : -1;
   const found = batchMode
     ? scanIssueTotals(scans)
     : scan?.issues || { critical: 0, high: 0, medium: 0, low: 0 };
@@ -2430,8 +2406,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
 
                 <div className="scanning-phases">
                   {scanPhases.map((p, i) => {
-                    const isDone = phaseIdx > i || status === "done";
-                    const isOn = phaseIdx === i && !terminal;
+                    const stepStatus = String(p.status || "").toLowerCase();
+                    const isDone = ["completed", "skipped"].includes(stepStatus) || (phaseIdx > i && stepStatus !== "failed");
+                    const isOn = stepStatus === "running" || (phaseIdx === i && !terminal && !isDone);
                     const cls = isDone ? " done" : isOn ? " on" : "";
                     const bullet = isDone ? (
                       <I.Check size={11} />
@@ -2450,16 +2427,16 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       i + 1
                     );
                     return (
-                      <div className={"scanning-phase" + cls} key={p.k}>
+                      <div className={"scanning-phase" + cls} key={p.id}>
                         <div className="scanning-phase-bullet">{bullet}</div>
                         <div>
-                          <div className="scanning-phase-t">{T(p.t_en, p.t_zh)}</div>
+                          <div className="scanning-phase-t">{p.label || workerPhaseLabel(p.id)}</div>
                           <div className="scanning-phase-d">
-                            {p.k === currentPhase && scanProgressMessage
+                            {p.id === currentPhase && scanProgressMessage
                               ? scanProgressMessage
-                              : T(p.d_en, p.d_zh)}
+                              : p.description || ""}
                           </div>
-                          {p.k === currentPhase && scanProgressLogsSummary && (
+                          {p.id === currentPhase && scanProgressLogsSummary && (
                             <div className="scanning-phase-meta">{scanProgressLogsSummary}</div>
                           )}
                         </div>
