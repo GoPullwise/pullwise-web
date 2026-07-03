@@ -234,8 +234,10 @@ function agentFixBundlePath(scan) {
 function agentFixBundleUrl(scan) {
   const path = agentFixBundlePath(scan);
   if (!path) return "";
-  const base = String(env.VITE_PUBLIC_API_BASE_URL || env.VITE_API_BASE_URL || globalThis.location?.origin || "").replace(/\/$/, "");
-  return base ? base + path : path;
+  const configuredApiBase = String(env.VITE_API_BASE_URL || "");
+  const absoluteApiBase = /^[a-z][a-z0-9+.-]*:/i.test(configuredApiBase) ? configuredApiBase : "";
+  const base = String(env.VITE_PUBLIC_API_BASE_URL || absoluteApiBase || "https://api.pull-wise.com").replace(/\/$/, "");
+  return base + path;
 }
 
 function agentFixPromptWithBundleKey(basePrompt, scan, keyPayload) {
