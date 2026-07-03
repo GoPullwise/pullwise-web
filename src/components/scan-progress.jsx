@@ -68,6 +68,7 @@ export function ScanProgressBar({
   valueLabel = "",
   ariaValueText = "",
   compact = false,
+  barOnly = false,
   className = "",
 }) {
   const percent = clampProgress(progress);
@@ -87,12 +88,14 @@ export function ScanProgressBar({
       aria-valuenow={percent}
       aria-valuetext={valueText}
     >
-      <div className="scan-progress-head">
-        <span className="scan-progress-label">{title}</span>
-        <span className="scan-progress-value">{displayValue}</span>
-      </div>
-      {message && <div className="scan-progress-message">{message}</div>}
-      {meta && <div className="scan-progress-meta">{meta}</div>}
+      {!barOnly && (
+        <div className="scan-progress-head">
+          <span className="scan-progress-label">{title}</span>
+          <span className="scan-progress-value">{displayValue}</span>
+        </div>
+      )}
+      {!barOnly && message && <div className="scan-progress-message">{message}</div>}
+      {!barOnly && meta && <div className="scan-progress-meta">{meta}</div>}
       <div className="scan-progress-track" aria-hidden="true">
         <span style={{ width: `${percent}%` }} />
       </div>

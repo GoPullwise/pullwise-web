@@ -913,7 +913,7 @@ describe("ScanningScreen queue state", () => {
   it("reserves stable scan detail panel heights in CSS", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 
-    expect(styles).toMatch(/\.scanning-progress\s*\{[^}]*min-height:\s*86px;/s);
+    expect(styles).toMatch(/\.scanning-progress\s*\{[^}]*min-height:\s*36px;/s);
     expect(styles).toMatch(/\.scanning-counts\s*\{[^}]*min-height:\s*206px;/s);
     expect(styles).toMatch(/\.scanning-preflight\s*\{[^}]*min-height:\s*246px;/s);
     expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
@@ -1625,8 +1625,48 @@ describe("ScanningScreen queue state", () => {
     const progress = screen.getByRole("progressbar", { name: /progress before failure/i });
     expect(progress).toHaveAttribute("aria-valuenow", "94");
     expect(progress).toHaveAttribute("aria-valuetext", "Scan failed at 94%");
-    expect(screen.getByText("Failed at 94%")).toBeInTheDocument();
+    expect(screen.queryByText("Failed at 94%")).not.toBeInTheDocument();
     expect(screen.queryByText("100%")).not.toBeInTheDocument();
+  });
+
+  it("shows scan errors on the failed progress node", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_failed",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "failed",
+        phase: "qa_gate",
+        progress: 88,
+        error: "QA gate failed: validator output was incomplete.",
+        progressSteps: [
+          { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+          { id: "qa_gate", label: "QA gate", status: "failed", percent: 88 },
+          { id: "publish", label: "Publish", status: "pending", percent: 0 },
+        ],
+      },
+      error: "",
+      retry: vi.fn(),
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const phases = document.querySelector(".scanning-phases");
+    expect(phases).not.toBeNull();
+    const errorText = within(phases).getByText("QA gate failed: validator output was incomplete.");
+    const errorLine = errorText.closest(".scanning-phase-error");
+    expect(errorLine).toBeInTheDocument();
+    expect(errorLine.closest(".scanning-phase")).toHaveClass("failed", "errored");
+    expect(within(phases).getByText("Checkout").closest(".scanning-phase")).not.toHaveClass(
+      "errored"
+    );
   });
 
   it("keeps the active progress phase focused inside the flow viewport", () => {
@@ -1775,6 +1815,11 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
+    const progress = screen.getByRole("progressbar", { name: /estimated completion/i });
+    expect(progress.querySelector(".scan-progress-track")).toBeInTheDocument();
+    expect(progress.querySelector(".scan-progress-head")).not.toBeInTheDocument();
+    expect(progress.querySelector(".scan-progress-message")).not.toBeInTheDocument();
+    expect(progress.querySelector(".scan-progress-meta")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-bar-wrap")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-bar")).not.toBeInTheDocument();
     expect(screen.getByText("Worker AI")).toBeInTheDocument();

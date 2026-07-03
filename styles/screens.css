@@ -1035,7 +1035,7 @@
   max-width: none;
 }
 .scanning-progress {
-  min-height: 86px;
+  min-height: 36px;
   box-sizing: border-box;
 }
 .scanning-side > .card,
@@ -1337,6 +1337,23 @@
   color: var(--text-3);
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+.scanning-phase-error {
+  margin-top: 2px;
+  padding: 6px 7px;
+  border: 1px solid color-mix(in oklch, var(--sev-critical) 40%, var(--border));
+  background: color-mix(in oklch, var(--sev-critical) 7%, var(--bg));
+  color: var(--sev-critical);
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+  font: 10.5px/1.45 var(--font-mono);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.scanning-phase-error svg {
+  margin-top: 1px;
 }
 .scanning-flow-pulse {
   display: inline-block;

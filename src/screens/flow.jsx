@@ -2027,6 +2027,27 @@ function clampFlowZoom(value) {
   return Math.max(FLOW_ZOOM_MIN, Math.min(FLOW_ZOOM_MAX, Math.round(number * 100) / 100));
 }
 
+function cleanStepErrorMessage(value) {
+  return String(value || "")
+    .replaceAll("\x00", "")
+    .split(/\r?\n|\r/, 1)[0]
+    .trim();
+}
+
+function scanStepErrorMessage(step, currentPhase, errorMessage) {
+  const explicitError = cleanStepErrorMessage(
+    step?.error || step?.errorMessage || step?.error_message
+  );
+  if (explicitError) return explicitError;
+  const fallbackError = cleanStepErrorMessage(errorMessage);
+  if (!fallbackError) return "";
+  const stepStatus = String(step?.status || "").toLowerCase();
+  const stepId = String(step?.id || "").trim();
+  if (["failed", "cancelled"].includes(stepStatus)) return fallbackError;
+  if (currentPhase && stepId === currentPhase) return fallbackError;
+  return "";
+}
+
 function ScanProgressFlow({
   steps,
   currentPhase,
@@ -2034,6 +2055,7 @@ function ScanProgressFlow({
   terminal,
   progressMessage,
   logsSummary,
+  errorMessage = "",
 }) {
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
   const dragRef = useRef(null);
@@ -2176,17 +2198,21 @@ function ScanProgressFlow({
               ["completed", "skipped"].includes(stepStatus) ||
               (phaseIdx > i && stepStatus !== "failed");
             const isOn = stepStatus === "running" || (phaseIdx === i && !terminal && !isDone);
+            const stepError = scanStepErrorMessage(p, currentPhase, errorMessage);
             const isFailed = stepStatus === "failed";
             const cls = [
               "scanning-phase",
               isDone ? "done" : "",
               isOn ? "on" : "",
               isFailed ? "failed" : "",
+              stepError ? "errored" : "",
             ]
               .filter(Boolean)
               .join(" ");
             const bullet = isDone ? (
               <I.Check size={11} />
+            ) : isFailed || stepError ? (
+              <I.X size={11} />
             ) : isOn ? (
               <span className="pulse scanning-flow-pulse" />
             ) : (
@@ -2217,6 +2243,12 @@ function ScanProgressFlow({
                     <div className="scanning-phase-d">{detail}</div>
                     {p.id === currentPhase && logsSummary && (
                       <div className="scanning-phase-meta">{logsSummary}</div>
+                    )}
+                    {stepError && (
+                      <div className="scanning-phase-error" role="alert">
+                        <I.X size={11} />
+                        <span>{stepError}</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -2287,12 +2319,6 @@ function ScanDetailSkeleton() {
 function ScanDetailProgressSkeleton() {
   return (
     <div className="scan-progress scanning-progress scan-progress-skeleton" aria-hidden="true">
-      <div className="scan-progress-head">
-        <SkeletonLine className="sk-line sk-w-34 sk-h-16" />
-        <SkeletonLine className="sk-line sk-w-12 sk-h-16" />
-      </div>
-      <SkeletonLine className="sk-line sk-w-70" />
-      <SkeletonLine className="sk-line sk-w-55" />
       <div className="scan-progress-track">
         <SkeletonLine className="sk-line sk-w-30 sk-h-10" />
       </div>
@@ -2758,6 +2784,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   meta={scanProgressLogsSummary}
                   valueLabel={scanProgress.valueLabel}
                   ariaValueText={scanProgress.ariaValueText}
+                  barOnly
                 />
               )
             )}
@@ -2803,6 +2830,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   terminal={terminal}
                   progressMessage={scanProgressMessage}
                   logsSummary={scanProgressLogsSummary}
+                  errorMessage={scan?.error || publicError}
                 />
 
                 {reviewRun ? <ReviewRunSummary reviewRun={reviewRun} /> : null}

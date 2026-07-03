@@ -1643,7 +1643,7 @@ describe("normalizeIssue", () => {
       ],
       progressSteps: [
         { id: "checkout", label: "Checkout", status: "completed", percent: "100" },
-        { id: "worker_specific_review", label: "Worker specific review", status: "running", percent: "42" },
+        { id: "worker_specific_review", label: "Worker specific review", status: "running", percent: "42", errorMessage: "Worker stalled." },
       ],
       queue: {
         message: "Waiting for worker capacity",
@@ -1666,7 +1666,7 @@ describe("normalizeIssue", () => {
     ]);
     expect(scan.progressSteps).toEqual([
       { id: "checkout", index: 1, label: "Checkout", status: "completed", percent: 100 },
-      { id: "worker_specific_review", index: 2, label: "Worker specific review", status: "running", percent: 42 },
+      { id: "worker_specific_review", index: 2, label: "Worker specific review", status: "running", percent: 42, error: "Worker stalled." },
     ]);
     expect(scan.startedAt).toBe(1700000000);
     expect(scan.updatedAt).toBe(1700000060);

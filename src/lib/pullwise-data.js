@@ -955,6 +955,8 @@ function normalizeScanProgressStep(value, index) {
   };
   const description = textValue(value.description, value.message).slice(0, 240);
   if (description) step.description = description;
+  const error = textValue(value.error, value.errorMessage, value.error_message).slice(0, 300);
+  if (error) step.error = error;
   if (Object.prototype.hasOwnProperty.call(value, "targetPercent")) {
     step.targetPercent = normalizeProgress(value.targetPercent);
   } else if (Object.prototype.hasOwnProperty.call(value, "target_percent")) {
