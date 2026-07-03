@@ -171,6 +171,13 @@ function copyText(value) {
     .catch(() => false);
 }
 
+function absoluteAppUrl(path) {
+  const text = String(path || "").trim();
+  if (!text) return "";
+  if (/^https?:\/\//i.test(text)) return text;
+  const origin = globalThis.location?.origin || "";
+  return origin ? new URL(text, origin).href : text;
+}
 function markdownText(value) {
   return String(value ?? "").trim();
 }
@@ -1283,6 +1290,7 @@ function ScanRow({
   bundleLoading,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [debugUrlCopied, setDebugUrlCopied] = useState(false);
   const menuRef = useRef(null);
   const total = scanIssuesTotal(scan);
   const breakdown = scan?.issues || {};
@@ -1295,6 +1303,7 @@ function ScanRow({
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
   const showProgress = status === "queued" || status === "running";
   const progressDisplay = showProgress ? scanProgressPresentation(scan, { label: T("Progress", "进度") }) : null;
+  const debugBundleUrl = absoluteAppUrl(scan.debugBundleUrl);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -1331,6 +1340,16 @@ function ScanRow({
     }
   };
   const stopRowClick = (event) => event.stopPropagation();
+  const copyDebugBundleUrl = async () => {
+    if (!debugBundleUrl) return;
+    const copied = await copyText(debugBundleUrl);
+    if (!copied) {
+      globalThis.alert?.(T("Unable to copy debug zip URL.", "无法复制 debug zip URL。"));
+      return;
+    }
+    setDebugUrlCopied(true);
+    setTimeout(() => setDebugUrlCopied(false), 2000);
+  };
 
   return (
     <article
@@ -1452,6 +1471,19 @@ function ScanRow({
             >
               <I.Download size={12} />
               {isDownloading ? T("Preparing...", "准备中...") : T("Download zip", "下载 zip")}
+            </button>
+            <button
+              type="button"
+              className="scan-row-menu-item"
+              role="menuitem"
+              disabled={!debugBundleUrl}
+              onClick={() => {
+                setMenuOpen(false);
+                copyDebugBundleUrl();
+              }}
+            >
+              {debugUrlCopied ? <I.Check size={12} /> : <I.Copy size={12} />}
+              {debugUrlCopied ? T("Copied", "Copied") : T("Copy debug zip URL", "Copy debug zip URL")}
             </button>
           </div>
         )}

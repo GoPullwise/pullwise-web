@@ -551,6 +551,26 @@ function normalizeScanStatus(value) {
     : "queued";
 }
 
+function terminalScanStatusFromReviewRun(reviewRun) {
+  if (!objectRecord(reviewRun)) return "";
+  const status = normalizeScanStatus(reviewRun.resultStatus ?? reviewRun.result_status ?? reviewRun.status);
+  return TERMINAL_SCAN_STATUSES.has(status) ? status : "";
+}
+
+function inferredScanStatus(scan, reviewRun, rawStatus) {
+  if (!["queued", "running"].includes(rawStatus)) return rawStatus;
+  const terminalReviewStatus = terminalScanStatusFromReviewRun(reviewRun);
+  if (terminalReviewStatus) return terminalReviewStatus;
+  if (
+    textValue(scan.error, scan.errorMessage, scan.error_message) &&
+    (scan.completedAt || scan.completed_at || scan.failedAt || scan.failed_at)
+  ) {
+    return "failed";
+  }
+  return rawStatus;
+}
+
+
 function scalarText(value) {
   if (value === undefined || value === null || value === "") return "";
   if (["string", "number", "boolean"].includes(typeof value)) return String(value);
@@ -591,6 +611,54 @@ function normalizeTextList(values) {
 function objectRecord(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
+
+function scanItemsFromPayload(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (!objectRecord(payload)) return [];
+  if (Array.isArray(payload.items)) return payload.items;
+  if (Array.isArray(payload.scans)) return payload.scans;
+  if (objectRecord(payload.scan)) return [payload.scan];
+  if (objectRecord(payload.data?.scan)) return [payload.data.scan];
+  if (objectRecord(payload.result?.scan)) return [payload.result.scan];
+  return textValue(payload.id, payload.scanId, payload.scan_id) ||
+    textValue(payload.status, payload.reviewRun?.status, payload.reviewRun?.resultStatus)
+    ? [payload]
+    : [];
+}
+
+function normalizedScanUpdate(value, previous = null) {
+  if (!objectRecord(value)) return null;
+  const id = textValue(value.id, value.scanId, value.scan_id, previous?.id);
+  if (!id) return null;
+  return normalizeScan({ ...(previous || {}), ...value, id });
+}
+
+function scanUpdatesById(payload, previousScans = []) {
+  const previousById = new Map(
+    previousScans.filter((scan) => scan?.id).map((scan) => [String(scan.id), scan])
+  );
+  const fallbackPrevious = previousScans.length === 1 ? previousScans[0] : null;
+  return new Map(
+    scanItemsFromPayload(payload)
+      .map((item) => {
+        const itemId = textValue(item?.id, item?.scanId, item?.scan_id);
+        return normalizedScanUpdate(item, itemId ? previousById.get(itemId) : fallbackPrevious);
+      })
+      .filter((scan) => scan?.id)
+      .map((scan) => [scan.id, scan])
+  );
+}
+
+function scanMatchesStatusFilter(scan, status) {
+  return !status || status === "all" || scan.status === status;
+}
+
+function applyScanUpdates(items, byId, status = "") {
+  return items
+    .map((scan) => byId.get(scan.id) || scan)
+    .filter((scan) => scanMatchesStatusFilter(scan, status));
+}
+
 
 function normalizeQuotaCount(value, fallback = 0) {
   if (value === undefined || value === null || value === "") return fallback;
@@ -979,14 +1047,34 @@ export function normalizeIssue(issue = {}) {
   return normalized;
 }
 
+
+function artifactStorageUrl(artifact) {
+  if (!objectRecord(artifact)) return "";
+  const storage = objectRecord(artifact.storage) ? artifact.storage : {};
+  return textValue(storage.url, artifact.storageUrl, artifact.storage_url, artifact.url);
+}
+
+function reviewRunDebugBundleUrl(reviewRun) {
+  if (!objectRecord(reviewRun)) return "";
+  const explicit = textValue(reviewRun.debugBundleUrl, reviewRun.debug_bundle_url);
+  if (explicit) return explicit;
+  const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
+  const debugArtifact = artifacts.find((artifact) => {
+    if (!objectRecord(artifact)) return false;
+    return textValue(artifact.kind) === "debug_bundle" || textValue(artifact.name) === "debug-bundle.zip";
+  });
+  return artifactStorageUrl(debugArtifact);
+}
 export function normalizeScan(scan = {}) {
   scan = scan || {};
-  const status = normalizeScanStatus(scan.status);
+  const rawStatus = normalizeScanStatus(scan.status);
   const billingUsage = normalizeQuotaUsage(scan.billingUsage);
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   const humanReport = normalizeHumanReport(scan.humanReport);
   const reviewRun = objectRecord(scan.reviewRun) ? { ...scan.reviewRun } : objectRecord(scan.review_run) ? { ...scan.review_run } : null;
+  const debugBundleUrl = textValue(scan.debugBundleUrl, scan.debug_bundle_url) || reviewRunDebugBundleUrl(reviewRun);
+  const status = inferredScanStatus(scan, reviewRun, rawStatus);
   return {
     id: textValue(scan.id),
     repo: textValue(scan.repo),
@@ -1004,6 +1092,8 @@ export function normalizeScan(scan = {}) {
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),
+    error: textValue(scan.error, scan.errorMessage, scan.error_message),
+    errorCode: textValue(scan.errorCode, scan.error_code),
     agentFixPrompt: multilineTextValue(scan.agentFixPrompt, 20000),
     issues: normalizeIssueCounts(scan.issues),
     verification: normalizeVerificationCounts(scan.verification),
@@ -1011,6 +1101,7 @@ export function normalizeScan(scan = {}) {
     preflight: normalizePreflight(scan.preflight),
     humanReport,
     reviewRun,
+    debugBundleUrl,
     repoId: textValue(scan.repoId),
     githubRepoId: textValue(scan.githubRepoId),
     queue: objectRecord(scan.queue) ? { ...scan.queue } : null,
@@ -1323,18 +1414,10 @@ function useMemoStable(value) {
             load({ quiet: true });
             return;
           }
-          const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
-          const byId = new Map(
-            updates
-              .map(normalizeScan)
-              .filter((scan) => scan.id)
-              .map((scan) => [scan.id, scan])
-          );
+          const byId = scanUpdatesById(payload, state.items);
           if (!byId.size) return;
           setState((current) => {
-            const nextItems = current.items
-              .map((scan) => byId.get(scan.id) || scan)
-              .filter((scan) => !status || status === "all" || scan.status === status);
+            const nextItems = applyScanUpdates(current.items, byId, status);
             const nextState = {
               ...current,
               items: nextItems,
@@ -1347,10 +1430,17 @@ function useMemoStable(value) {
         })
         .catch((error) => {
           if (isAbortError(error) || !alive) return;
-          setState((current) => ({
-            ...current,
-            error: error?.message || "Unable to refresh scan status.",
-          }));
+          const byId = scanUpdatesById(error?.payload, state.items);
+          const message = error?.message || "Unable to refresh scan status.";
+          setState((current) => {
+            const nextState = {
+              ...current,
+              items: byId.size ? applyScanUpdates(current.items, byId, status) : current.items,
+              error: message,
+            };
+            if (byId.size) rememberListState(cacheKey, nextState);
+            return nextState;
+          });
           setPollRetryTick((tick) => tick + 1);
         });
     }, pollDelayMs);
@@ -1539,12 +1629,16 @@ export function useScanRun({
           ? payload[0]
           : itemsFrom(payload, "items", "scans")[0] || payload;
         if (alive) {
-          setScan(normalizeScan(next));
+          const byId = scanUpdatesById(payload, [scan]);
+          setScan(byId.get(scan.id) || normalizedScanUpdate(next, scan) || scan);
           clearRunError(["load", "poll"]);
         }
       } catch (err) {
         if (isAbortError(err)) return;
         if (alive) {
+          const byId = scanUpdatesById(err?.payload, [scan]);
+          const nextScan = byId.get(scan.id);
+          if (nextScan) setScan(nextScan);
           setRunError(err, "Unable to refresh scan status.", "poll");
           setPollRetryTick((tick) => tick + 1);
         }
@@ -1770,9 +1864,8 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       try {
         const activeIds = activeScans.map((scan) => scan.id);
         const payload = await fetchScanStatusUpdates(activeIds, { signal: controller?.signal });
-        const updates = Array.isArray(payload) ? payload : itemsFrom(payload, "items", "scans");
         if (!alive) return;
-        const byId = new Map(updates.map((scan) => [String(scan.id || ""), normalizeScan(scan)]));
+        const byId = scanUpdatesById(payload, activeScans);
         setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
         setBatchResults((current) =>
           current.map((row) => {
@@ -1784,6 +1877,16 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
       } catch (err) {
         if (isAbortError(err)) return;
         if (alive) {
+          const byId = scanUpdatesById(err?.payload, activeScans);
+          if (byId.size) {
+            setScans((current) => current.map((scan) => byId.get(scan.id) || scan));
+            setBatchResults((current) =>
+              current.map((row) => {
+                const nextScan = byId.get(row.scanId);
+                return nextScan ? { ...row, status: nextScan.status, scan: nextScan } : row;
+              })
+            );
+          }
           setRunError(err, "Unable to refresh scan status.", "poll");
           setPollRetryTick((tick) => tick + 1);
         }

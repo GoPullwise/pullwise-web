@@ -223,6 +223,47 @@ describe("useScans", () => {
     unmount();
   });
 
+  it("applies terminal scan payloads from active history polling errors", async () => {
+    const terminalError = Object.assign(new Error("worker result failed"), {
+      payload: {
+        items: [
+          {
+            id: "sc_history_failed",
+            repo: "owner/repo",
+            branch: "main",
+            status: "failed",
+            progress: 82,
+            completedAt: 1700000000,
+            error: "worker result failed",
+          },
+        ],
+      },
+    });
+    pullwiseApi.scans.status = vi.fn().mockRejectedValueOnce(terminalError);
+    pullwiseApi.scans.list.mockResolvedValueOnce({
+      items: [
+        {
+          id: "sc_history_failed",
+          repo: "owner/repo",
+          branch: "main",
+          status: "running",
+          progress: 82,
+        },
+      ],
+    });
+
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5, status: "all" }));
+
+    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
+      ["sc_history_failed"],
+      expect.objectContaining({ signal: expect.any(Object) })
+    ));
+    await waitFor(() => expect(result.current.items[0]?.status).toBe("failed"));
+    expect(result.current.items[0]?.error).toBe("worker result failed");
+    expect(result.current.error).toBe("worker result failed");
+    unmount();
+  });
+
   it("aborts in-flight scan list requests when clearing the data cache", async () => {
     const refresh = deferred();
     let signal;
@@ -610,6 +651,47 @@ describe("useScans", () => {
 
     await waitFor(() => expect(result.current.scan?.status).toBe("done"));
     expect(result.current.error).toBe("");
+    unmount();
+  });
+
+  it("marks scan detail failed from a terminal polling error payload", async () => {
+    const terminalError = Object.assign(new Error("worker result failed"), {
+      payload: {
+        scan: {
+          id: "sc_detail_failed",
+          repo: "owner/repo",
+          branch: "main",
+          status: "failed",
+          progress: 76,
+          completedAt: 1700000000,
+          error: "worker result failed",
+        },
+      },
+    });
+    pullwiseApi.scans.status = vi.fn().mockRejectedValueOnce(terminalError);
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_detail_failed",
+      repo: "owner/repo",
+      branch: "main",
+      status: "running",
+      progress: 76,
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useScanRun({
+        repo: "owner/repo",
+        branch: "main",
+        pollIntervalMs: 5,
+      })
+    );
+
+    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
+      ["sc_detail_failed"],
+      expect.objectContaining({ signal: expect.any(Object) })
+    ));
+    await waitFor(() => expect(result.current.scan?.status).toBe("failed"));
+    expect(result.current.scan?.error).toBe("worker result failed");
+    expect(result.current.error).toBe("worker result failed");
     unmount();
   });
 
@@ -1480,6 +1562,22 @@ describe("normalizeIssue", () => {
     expect(isTerminalScan(scan)).toBe(true);
   });
 
+  it("infers terminal scan status from terminal review run payloads", () => {
+    const scan = normalizeScan({
+      id: "sc_review_failed",
+      status: "running",
+      progress: 81,
+      reviewRun: {
+        status: "failed",
+        resultStatus: "failed",
+        error: { message: "review worker failed" },
+      },
+    });
+
+    expect(scan.status).toBe("failed");
+    expect(isTerminalScan(scan)).toBe(true);
+  });
+
   it("preserves scan phase and queue metadata for active scan rendering", () => {
     const scan = normalizeScan({
       id: "sc_active",
@@ -1601,6 +1699,26 @@ describe("normalizeIssue", () => {
     };
 
     expect(normalizeScan({ id: "sc_done", status: "done", reviewRun }).reviewRun).toMatchObject(reviewRun);
+  });
+
+  it("normalizes worker debug bundle URLs from review-run artifacts", () => {
+    const scan = normalizeScan({
+      id: "sc_debug",
+      status: "done",
+      reviewRun: {
+        runId: "run_job_1",
+        artifacts: [
+          {
+            artifactId: "art_debug_bundle",
+            kind: "debug_bundle",
+            name: "debug-bundle.zip",
+            storage: { type: "server_artifact", url: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle" },
+          },
+        ],
+      },
+    });
+
+    expect(scan.debugBundleUrl).toBe("/v1/review-runs/run_job_1/artifacts/art_debug_bundle");
   });
 
   it("preserves scan account, repository, and quota summaries", () => {
