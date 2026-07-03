@@ -59,29 +59,97 @@ function quotaWindowLabel(window) {
   return textValue(window?.label || window?.name, T("Quota window", "配额窗口"));
 }
 
+function quotaResetLabel(value) {
+  return formatTimestamp(value);
+}
+
+function quotaStatusClass(status) {
+  const normalized = textValue(status, "unknown").toLowerCase();
+  if (["low", "exhausted"].includes(normalized)) return normalized;
+  if (normalized === "ok") return "ok";
+  return "unknown";
+}
+
 function workerCodexQuota(worker) {
   return objectValue(worker?.codexQuota) || objectValue(worker?.codex_quota);
 }
 
-function WorkerQuotaTags({ quota }) {
+function defaultWorkerVersionFromPayload(payload) {
+  return textValue(
+    payload?.workerVersion ||
+      payload?.latestWorkerVersion ||
+      payload?.release?.latestVersion ||
+      payload?.version ||
+      payload?.defaults?.version
+  );
+}
+
+function WorkerQuotaPanel({ quota }) {
   if (!quota) return null;
   const status = textValue(quota.status, quota.ready === false ? "not ready" : "unknown");
+  const statusClass = quotaStatusClass(status);
   const windows = Array.isArray(quota.windows) ? quota.windows.filter(Boolean) : [];
+  const resetCredits = objectValue(quota.rateLimitResetCredits)?.availableCount;
+
   return (
-    <>
-      <span className="tag private-worker-quota-status">
-        {T("Codex quota", "Codex 配额")} {statusLabel(status)}
-      </span>
-      {windows.slice(0, 2).map((window, index) => {
-        const label = quotaWindowLabel(window);
-        const remaining = formatQuotaPercent(window.remainingPercent ?? window.remaining_percent);
-        return (
-          <span className="tag private-worker-quota-window" key={`${label}-${index}`}>
-            {T(`${label} ${remaining} remaining`, `${label} ${remaining} remaining`)}
-          </span>
-        );
-      })}
-    </>
+    <section className="private-worker-quota" aria-label={T("Codex quota", "Codex 配额")}>
+      <div className="private-worker-quota-head">
+        <span>{T("Codex quota", "Codex 配额")}</span>
+        <b className={`private-worker-quota-status ${statusClass}`}>{statusLabel(status)}</b>
+      </div>
+      <div className="private-worker-quota-facts">
+        <div>
+          <span>{T("Plan", "套餐")}</span>
+          <b>{textValue(quota.planType, T("Unavailable", "不可用"))}</b>
+        </div>
+        <div>
+          <span>{T("Remaining", "剩余")}</span>
+          <b>{formatQuotaPercent(quota.remainingPercent)}</b>
+        </div>
+        <div>
+          <span>{T("Reset credits", "重置额度")}</span>
+          <b>{resetCredits ?? T("Unavailable", "不可用")}</b>
+        </div>
+        <div>
+          <span>{T("Checked", "检查时间")}</span>
+          <b>{quotaResetLabel(quota.checkedAt)}</b>
+        </div>
+      </div>
+      {quota.rateLimitReachedType && (
+        <p className="private-worker-quota-note">
+          {T("Rate limit reached", "触发速率限制")}: {textValue(quota.rateLimitReachedType)}
+        </p>
+      )}
+      {windows.length > 0 && (
+        <div className="private-worker-quota-windows">
+          {windows.map((window, index) => {
+            const label = quotaWindowLabel(window);
+            const remaining = quotaPercentValue(window.remainingPercent ?? window.remaining_percent);
+            return (
+              <div className="private-worker-quota-window" key={`${window.windowKind || window.name || "window"}-${index}`}>
+                <div className="private-worker-quota-window-head">
+                  <strong>{label}</strong>
+                  <span>
+                    {formatQuotaPercent(window.remainingPercent ?? window.remaining_percent)} {T("remaining", "剩余")}
+                  </span>
+                </div>
+                <div className="private-worker-quota-meter" aria-hidden="true">
+                  <span style={{ width: `${remaining ?? 0}%` }} />
+                </div>
+                <div className="private-worker-quota-window-meta">
+                  <span>
+                    {formatQuotaPercent(window.usedPercent ?? window.used_percent)} {T("used", "已用")}
+                  </span>
+                  <span>
+                    {T("Resets", "重置")} {quotaResetLabel(window.resetsAt ?? window.resets_at)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -179,22 +247,23 @@ function WorkerInstallResult({ result, onCopy }) {
   );
 }
 
-function WorkerRow({ worker, pending, result, onAction, onCopy }) {
+function WorkerRow({ worker, pending, result, defaultWorkerVersion, onAction, onCopy }) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editName, setEditName] = useState(worker.name || "");
   const [editRegion, setEditRegion] = useState(worker.region || "");
-  const [editVersion, setEditVersion] = useState(worker.version || "");
+  const [editVersion, setEditVersion] = useState(worker.version || defaultWorkerVersion || "");
   const disabled = Boolean(pending);
   const isDisabled = worker.enabled === false;
+  const displayVersion = worker.version || defaultWorkerVersion || "";
 
   useEffect(() => {
     if (!editing) {
       setEditName(worker.name || "");
       setEditRegion(worker.region || "");
-      setEditVersion(worker.version || "");
+      setEditVersion(worker.version || defaultWorkerVersion || "");
     }
-  }, [editing, worker.name, worker.region, worker.version]);
+  }, [defaultWorkerVersion, editing, worker.name, worker.region, worker.version]);
 
   const activeCommand = activeLifecycleCommand(worker);
   const actionsDisabled = disabled || Boolean(activeCommand);
@@ -227,12 +296,12 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
           <span className="tag">
             {T("Running", "运行中")} {worker.running_jobs}
           </span>
-          <WorkerQuotaTags quota={worker.codexQuota} />
           <span className="tag">
-            {T("Version", "版本")} {worker.version || "-"}
+            {T("Version", "版本")} {displayVersion || "-"}
           </span>
           {activeCommand && <span className="tag">{lifecycleText(activeCommand)}</span>}
         </div>
+        <WorkerQuotaPanel quota={worker.codexQuota} />
       </div>
       <div className="private-worker-actions">
         {editing ? (
@@ -283,18 +352,31 @@ function WorkerRow({ worker, pending, result, onAction, onCopy }) {
         </button>
       </div>
       {editing && (
-        <div className="private-worker-edit form-grid compact">
-          <label className="field">
+        <div className="private-worker-edit">
+          <label className="auth-field">
             <span>{T("Name", "名称")}</span>
-            <input value={editName} onChange={(event) => setEditName(event.target.value)} />
+            <div className="auth-input">
+              <I.Terminal size={14} />
+              <input value={editName} onChange={(event) => setEditName(event.target.value)} />
+            </div>
           </label>
-          <label className="field">
+          <label className="auth-field">
             <span>{T("Region", "区域")}</span>
-            <input value={editRegion} onChange={(event) => setEditRegion(event.target.value)} />
+            <div className="auth-input">
+              <I.Folder size={14} />
+              <input value={editRegion} onChange={(event) => setEditRegion(event.target.value)} />
+            </div>
           </label>
-          <label className="field">
+          <label className="auth-field">
             <span>{T("Version", "版本")}</span>
-            <input value={editVersion} onChange={(event) => setEditVersion(event.target.value)} placeholder="0.8.11" />
+            <div className="auth-input">
+              <I.Package size={14} />
+              <input
+                value={editVersion}
+                onChange={(event) => setEditVersion(event.target.value)}
+                placeholder={defaultWorkerVersion || "0.8.11"}
+              />
+            </div>
           </label>
         </div>
       )}
@@ -309,6 +391,7 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
   const [name, setName] = useState("");
   const [region, setRegion] = useState("");
   const [version, setVersion] = useState("");
+  const [defaultWorkerVersion, setDefaultWorkerVersion] = useState("");
   const [codexUseLatest, setCodexUseLatest] = useState(true);
   const [codexVersion, setCodexVersion] = useState("");
   const [loading, setLoading] = useState(true);
@@ -327,6 +410,11 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
     setError("");
     try {
       const payload = await pullwiseApi.privateWorkers.list();
+      const payloadDefaultVersion = defaultWorkerVersionFromPayload(payload);
+      if (payloadDefaultVersion) {
+        setDefaultWorkerVersion(payloadDefaultVersion);
+        setVersion((current) => current || payloadDefaultVersion);
+      }
       setWorkers(itemsFrom(payload, "workers", "items").map(normalizeWorker).filter(Boolean));
     } catch (err) {
       setWorkers([]);
@@ -343,8 +431,10 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
   const upsertWorker = (worker) => {
     if (!worker) return;
     setWorkers((current) => {
+      const existing = current.find((item) => item.worker_id === worker.worker_id);
+      const merged = existing ? { ...existing, ...worker } : worker;
       const next = current.filter((item) => item.worker_id !== worker.worker_id);
-      return [worker, ...next];
+      return [merged, ...next];
     });
   };
 
@@ -368,7 +458,7 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
       const payload = await pullwiseApi.privateWorkers.create({
         name: name.trim() || T("Private worker", "私有 Worker"),
         region: region.trim(),
-        version: version.trim(),
+        version: version.trim() || defaultWorkerVersion,
         codexUseLatest,
         codexVersion: codexUseLatest ? "" : codexVersion.trim(),
       });
@@ -376,7 +466,7 @@ export function PrivateWorkersScreen({ go, setIssue = null }) {
       upsertWorker(workerFromPayload(payload));
       setName("");
       setRegion("");
-      setVersion("");
+      setVersion(defaultWorkerVersion);
       setCodexUseLatest(true);
       setCodexVersion("");
     } catch (err) {
