@@ -31,7 +31,8 @@ vi.mock("../api/pullwise.js", () => ({
 }));
 
 vi.mock("../lib/pullwise-data.js", () => ({
-  isTerminalScan: (scan) => ["done", "failed", "cancelled", "partial_completed"].includes(scan?.status),
+  isTerminalScan: (scan) =>
+    ["done", "failed", "cancelled", "partial_completed"].includes(scan?.status),
   scanQueueSummary: (scan) =>
     scan?.queue
       ? {
@@ -901,7 +902,9 @@ describe("ScanningScreen queue state", () => {
     const skeleton = container.querySelector(".scan-detail-skeleton");
     expect(skeleton).toBeInTheDocument();
     expect(container.querySelector(".scan-progress-skeleton")).toBeInTheDocument();
-    expect(container.querySelector(".scan-detail-skeleton .scanning-flow-viewport")).toBeInTheDocument();
+    expect(
+      container.querySelector(".scan-detail-skeleton .scanning-flow-viewport")
+    ).toBeInTheDocument();
     expect(screen.getByText("Loading scan details")).toBeInTheDocument();
     expect(container.querySelector(".scan-detail-loading-note")).not.toBeInTheDocument();
     expect(screen.queryByText(/not the final detail page yet/i)).not.toBeInTheDocument();
@@ -913,7 +916,7 @@ describe("ScanningScreen queue state", () => {
   it("reserves stable scan detail panel heights in CSS", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 
-    expect(styles).toMatch(/\.scanning-progress\s*\{[^}]*min-height:\s*36px;/s);
+    expect(styles).toMatch(/\.scanning-progress\s*\{[^}]*min-height:\s*8px;/s);
     expect(styles).toMatch(/\.scanning-counts\s*\{[^}]*min-height:\s*206px;/s);
     expect(styles).toMatch(/\.scanning-preflight\s*\{[^}]*min-height:\s*246px;/s);
     expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
@@ -1128,7 +1131,6 @@ describe("ScanningScreen queue state", () => {
     expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
   });
 
-
   it("copies the agent fix prompt from scan details without rendering it", async () => {
     const user = userEvent.setup();
     const originalClipboard = navigator.clipboard;
@@ -1137,7 +1139,8 @@ describe("ScanningScreen queue state", () => {
       configurable: true,
       value: { writeText },
     });
-    const prompt = "AGENT_FIX_PROMPT_INTERNAL_TEXT\nAudit bundle ZIP: /api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip";
+    const prompt =
+      "AGENT_FIX_PROMPT_INTERNAL_TEXT\nAudit bundle ZIP: /api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip";
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -1175,7 +1178,9 @@ describe("ScanningScreen queue state", () => {
       expect(copiedPrompt).toContain("Temporary audit bundle access:");
       expect(copiedPrompt).toContain("Authorization: Bearer pwk_temp_bundle_token");
       expect(copiedPrompt).toContain("curl -L");
-      expect(copiedPrompt).toContain("/api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip");
+      expect(copiedPrompt).toContain(
+        "/api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip"
+      );
       expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
     } finally {
       if (originalClipboard) {
@@ -1188,8 +1193,6 @@ describe("ScanningScreen queue state", () => {
       }
     }
   });
-
-
 
   it("shows terminal scan without requiring a generated review report", () => {
     useScanRun.mockReturnValue({
@@ -1240,7 +1243,11 @@ describe("ScanningScreen queue state", () => {
     render(
       <ScanningScreen
         go={vi.fn()}
-        activeRepo={{ scanId: "sc_human_report", fullName: "octocat/report", defaultBranch: "main" }}
+        activeRepo={{
+          scanId: "sc_human_report",
+          fullName: "octocat/report",
+          defaultBranch: "main",
+        }}
       />
     );
 
@@ -1579,10 +1586,16 @@ describe("ScanningScreen queue state", () => {
       expect(within(phases).getByText("Checkout")).toBeInTheDocument();
       expect(within(phases).getByText("Custom review")).toBeInTheDocument();
       expect(within(phases).getByText("Reviewing billing guardrails")).toBeInTheDocument();
-      expect(within(phases).getByText("worker=custom-review phase=custom_review")).toBeInTheDocument();
+      expect(
+        within(phases).getByText("worker=custom-review phase=custom_review")
+      ).toBeInTheDocument();
       expect(within(phases).getByText("Publish")).toBeInTheDocument();
-      expect(screen.getByText(`[${expectedLogTime}] Custom review - Reviewing billing guardrails`)).toBeInTheDocument();
-      expect(screen.queryByText(`[${currentTime}] Custom review - Reviewing billing guardrails`)).not.toBeInTheDocument();
+      expect(
+        screen.getByText(`[${expectedLogTime}] Custom review - Reviewing billing guardrails`)
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(`[${currentTime}] Custom review - Reviewing billing guardrails`)
+      ).not.toBeInTheDocument();
       expect(within(phases).queryByText("Preparing workspace")).not.toBeInTheDocument();
       expect(within(phases).queryByText("Running reviewers")).not.toBeInTheDocument();
       expect(within(phases).queryByText("Uploading artifacts")).not.toBeInTheDocument();
@@ -1682,11 +1695,13 @@ describe("ScanningScreen queue state", () => {
       toJSON: () => ({}),
     });
     const originalRect = Element.prototype.getBoundingClientRect;
-    const rectSpy = vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function () {
-      if (this.classList?.contains("scanning-flow-viewport")) return rect(0, 0, 300, 264);
-      if (this.getAttribute?.("data-flow-current") === "true") return rect(500, 60, 244, 136);
-      return originalRect.call(this);
-    });
+    const rectSpy = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function () {
+        if (this.classList?.contains("scanning-flow-viewport")) return rect(0, 0, 300, 264);
+        if (this.getAttribute?.("data-flow-current") === "true") return rect(500, 60, 244, 136);
+        return originalRect.call(this);
+      });
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1792,7 +1807,7 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).queryByText("Analyzing dependencies")).not.toBeInTheDocument();
   });
 
-  it("does not render a standalone progress track in scan details", () => {
+  it("renders scan detail progress as a plain bar in the header", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1816,6 +1831,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     const progress = screen.getByRole("progressbar", { name: /estimated completion/i });
+    expect(progress.closest(".scanning-copy")).toBeInTheDocument();
     expect(progress.querySelector(".scan-progress-track")).toBeInTheDocument();
     expect(progress.querySelector(".scan-progress-head")).not.toBeInTheDocument();
     expect(progress.querySelector(".scan-progress-message")).not.toBeInTheDocument();
@@ -1823,6 +1839,71 @@ describe("ScanningScreen queue state", () => {
     expect(container.querySelector(".scanning-bar-wrap")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-bar")).not.toBeInTheDocument();
     expect(screen.getByText("Worker AI")).toBeInTheDocument();
+  });
+
+  it("zooms the scan progress flow with the wheel and uses an icon-only reset control", () => {
+    const rect = (left, top, width, height) => ({
+      left,
+      top,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+      x: left,
+      y: top,
+      toJSON: () => ({}),
+    });
+    const originalRect = Element.prototype.getBoundingClientRect;
+    const rectSpy = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function () {
+        if (this.classList?.contains("scanning-flow-viewport")) return rect(0, 0, 300, 264);
+        return originalRect.call(this);
+      });
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "ai",
+        progress: 80,
+        progressSteps: [{ id: "ai", label: "Worker AI", status: "running", percent: 80 }],
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      );
+
+      expect(
+        screen.queryByRole("button", { name: /zoom in progress flow/i })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /zoom out progress flow/i })
+      ).not.toBeInTheDocument();
+
+      const reset = screen.getByRole("button", { name: /reset progress flow view/i });
+      expect(reset).toHaveTextContent("");
+      expect(reset.querySelector("svg")).toBeInTheDocument();
+
+      const viewport = document.querySelector(".scanning-flow-viewport");
+      const track = document.querySelector(".scanning-flow-track");
+      fireEvent.wheel(viewport, { deltaY: -100, clientX: 150, clientY: 120 });
+      expect(track).toHaveStyle("transform: translate(-21px, -16.8px) scale(1.14)");
+
+      fireEvent.click(reset);
+      expect(track).toHaveStyle("transform: translate(0px, 0px) scale(1)");
+    } finally {
+      rectSpy.mockRestore();
+    }
   });
 
   it("explains queued scans with queue position", () => {

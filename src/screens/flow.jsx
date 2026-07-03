@@ -81,7 +81,8 @@ function reviewRunArtifactHref(storage) {
   const url = typeof storage?.url === "string" ? storage.url.trim() : "";
   if (!url) return "";
   if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return url;
-  const base = typeof env.VITE_API_BASE_URL === "string" ? env.VITE_API_BASE_URL.replace(/\/$/, "") : "";
+  const base =
+    typeof env.VITE_API_BASE_URL === "string" ? env.VITE_API_BASE_URL.replace(/\/$/, "") : "";
   return `${base}/${url.replace(/^\/+/, "")}`;
 }
 
@@ -120,13 +121,16 @@ function qualityGateLabel(status) {
 function ReviewRunSummary({ reviewRun }) {
   if (!reviewRun || typeof reviewRun !== "object") return null;
   const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
-  const summary = reviewRun.summary && typeof reviewRun.summary === "object" ? reviewRun.summary : {};
+  const summary =
+    reviewRun.summary && typeof reviewRun.summary === "object" ? reviewRun.summary : {};
   const qualityGate =
     reviewRun.qualityGate && typeof reviewRun.qualityGate === "object" ? reviewRun.qualityGate : {};
   const progress =
     reviewRun.progress && typeof reviewRun.progress === "object" ? reviewRun.progress : {};
   const findingCounts =
-    summary.finding_counts && typeof summary.finding_counts === "object" ? summary.finding_counts : {};
+    summary.finding_counts && typeof summary.finding_counts === "object"
+      ? summary.finding_counts
+      : {};
   const countedConfirmed =
     quotaNumber(findingCounts.confirmed_high) + quotaNumber(findingCounts.confirmed_critical);
   const confirmed = countedConfirmed || quotaNumber(summary.top_findings?.length);
@@ -165,9 +169,7 @@ function ReviewRunSummary({ reviewRun }) {
           {summary.overall_risk && <span className="tag">{summary.overall_risk}</span>}
           {summary.result_status && <span className="tag">{summary.result_status}</span>}
           {confirmed > 0 && (
-            <span className="tag">
-              {T(`${confirmed} confirmed`, `${confirmed} 个已确认`)}
-            </span>
+            <span className="tag">{T(`${confirmed} confirmed`, `${confirmed} 个已确认`)}</span>
           )}
         </div>
       ) : null}
@@ -226,7 +228,13 @@ function agentFixBundlePath(scan) {
   if (!scanId) return "";
   const repoId = String(scan?.repoId || "").trim();
   if (repoId) {
-    return "/api/v1/repositories/" + encodeURIComponent(repoId) + "/scans/" + encodeURIComponent(scanId) + "/audit-bundle.zip";
+    return (
+      "/api/v1/repositories/" +
+      encodeURIComponent(repoId) +
+      "/scans/" +
+      encodeURIComponent(scanId) +
+      "/audit-bundle.zip"
+    );
   }
   return "/scans/" + encodeURIComponent(scanId) + "/audit-bundle.zip";
 }
@@ -236,7 +244,9 @@ function agentFixBundleUrl(scan) {
   if (!path) return "";
   const configuredApiBase = String(env.VITE_API_BASE_URL || "");
   const absoluteApiBase = /^[a-z][a-z0-9+.-]*:/i.test(configuredApiBase) ? configuredApiBase : "";
-  const base = String(env.VITE_PUBLIC_API_BASE_URL || absoluteApiBase || "https://api.pull-wise.com").replace(/\/$/, "");
+  const base = String(
+    env.VITE_PUBLIC_API_BASE_URL || absoluteApiBase || "https://api.pull-wise.com"
+  ).replace(/\/$/, "");
   return base + path;
 }
 
@@ -256,12 +266,18 @@ function agentFixPromptWithBundleKey(basePrompt, scan, keyPayload) {
     "- Expires: " + expiresAt + ".",
     "- Download command:",
     "~~~bash",
-    "curl -L \"" + bundleUrl + "\" \\",
-    "  -H \"Authorization: Bearer " + token + "\" \\",
-    "  -o \"pullwise-audit-" + scanId + ".zip\"",
-    "unzip -o \"pullwise-audit-" + scanId + ".zip\" -d \"pullwise-audit-" + scanId + "\"",
+    'curl -L "' + bundleUrl + '" \\',
+    '  -H "Authorization: Bearer ' + token + '" \\',
+    '  -o "pullwise-audit-' + scanId + '.zip"',
+    'unzip -o "pullwise-audit-' + scanId + '.zip" -d "pullwise-audit-' + scanId + '"',
     "~~~",
-    "After unzipping, inspect pullwise-audit-" + scanId + "/report.md, pullwise-audit-" + scanId + "/scan/scan.json, and pullwise-audit-" + scanId + "/issues/*.md before editing code.",
+    "After unzipping, inspect pullwise-audit-" +
+      scanId +
+      "/report.md, pullwise-audit-" +
+      scanId +
+      "/scan/scan.json, and pullwise-audit-" +
+      scanId +
+      "/issues/*.md before editing code.",
   ].join("\n");
 }
 
@@ -631,7 +647,10 @@ function batchCreationSummary(batchRows, scans, expectedCount) {
 }
 
 function isTerminalBatchRow(row) {
-  return ["done", "failed", "cancelled", "partial_completed"].includes(row?.status) || isTerminalScan(row?.scan);
+  return (
+    ["done", "failed", "cancelled", "partial_completed"].includes(row?.status) ||
+    isTerminalScan(row?.scan)
+  );
 }
 
 function scanErrorAction(error) {
@@ -2017,9 +2036,9 @@ function scanProgressLogLine(entry, fallbackScan) {
   return `${stamp ? `[${stamp}] ` : ""}${label}${detail}`;
 }
 
-const FLOW_ZOOM_STEP = 0.15;
 const FLOW_ZOOM_MIN = 0.65;
 const FLOW_ZOOM_MAX = 1.35;
+const FLOW_WHEEL_ZOOM_SPEED = 0.0014;
 
 function clampFlowZoom(value) {
   const number = Number(value);
@@ -2063,12 +2082,33 @@ function ScanProgressFlow({
   const trackRef = useRef(null);
   const focusedPhaseRef = useRef("");
 
-  const zoomBy = useCallback((delta) => {
-    setView((current) => ({ ...current, scale: clampFlowZoom(current.scale + delta) }));
-  }, []);
-
   const resetView = useCallback(() => {
     setView({ scale: 1, x: 0, y: 0 });
+  }, []);
+
+  const handleWheel = useCallback((event) => {
+    event.preventDefault();
+    const viewport = viewportRef.current;
+    const rect = viewport?.getBoundingClientRect();
+    if (!rect?.width || !rect?.height) return;
+
+    const pointerX = event.clientX - rect.left;
+    const pointerY = event.clientY - rect.top;
+    setView((current) => {
+      const nextScale = clampFlowZoom(
+        current.scale *
+          (1 -
+            Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 120) * FLOW_WHEEL_ZOOM_SPEED)
+      );
+      if (nextScale === current.scale) return current;
+      const contentX = (pointerX - current.x) / current.scale;
+      const contentY = (pointerY - current.y) / current.scale;
+      return {
+        scale: nextScale,
+        x: Math.round((pointerX - contentX * nextScale) * 100) / 100,
+        y: Math.round((pointerY - contentY * nextScale) * 100) / 100,
+      };
+    });
   }, []);
 
   const handlePointerDown = useCallback(
@@ -2151,30 +2191,18 @@ function ScanProgressFlow({
 
   return (
     <div className="scanning-flow" aria-label={T("Worker progress flow", "Worker progress flow")}>
-      <div className="scanning-flow-toolbar" aria-label={T("Progress flow controls", "Progress flow controls")}>
+      <div
+        className="scanning-flow-toolbar"
+        aria-label={T("Progress flow controls", "Progress flow controls")}
+      >
         <button
-          className="btn ghost sm scanning-flow-control"
+          className="btn ghost sm scanning-flow-locate"
           type="button"
-          onClick={() => zoomBy(-FLOW_ZOOM_STEP)}
-          aria-label={T("Zoom out progress flow", "Zoom out progress flow")}
-          title={T("Zoom out", "Zoom out")}
+          onClick={resetView}
+          aria-label={T("Reset progress flow view", "Reset progress flow view")}
+          title={T("Reset view", "Reset view")}
         >
-          <I.Minus size={12} />
-        </button>
-        <span className="scanning-flow-zoom" aria-label={T("Progress flow zoom", "Progress flow zoom")}>
-          {view.scale.toFixed(2)}x
-        </span>
-        <button
-          className="btn ghost sm scanning-flow-control"
-          type="button"
-          onClick={() => zoomBy(FLOW_ZOOM_STEP)}
-          aria-label={T("Zoom in progress flow", "Zoom in progress flow")}
-          title={T("Zoom in", "Zoom in")}
-        >
-          <I.Plus size={12} />
-        </button>
-        <button className="btn ghost sm" type="button" onClick={resetView}>
-          <I.Compass size={12} /> {T("Reset view", "Reset view")}
+          <I.Compass size={13} />
         </button>
       </div>
       <div
@@ -2186,6 +2214,7 @@ function ScanProgressFlow({
         onPointerMove={handlePointerMove}
         onPointerUp={finishDrag}
         onPointerCancel={finishDrag}
+        onWheel={handleWheel}
       >
         <div
           ref={trackRef}
@@ -2221,7 +2250,8 @@ function ScanProgressFlow({
             const percent = Number(p.percent);
             const hasPercent = Number.isFinite(percent);
             const label = p.label || workerPhaseLabel(p.id);
-            const detail = p.id === currentPhase && progressMessage ? progressMessage : p.description || "";
+            const detail =
+              p.id === currentPhase && progressMessage ? progressMessage : p.description || "";
             const key = p.id || `${label}-${i}`;
             return (
               <div className="scanning-flow-step" key={key}>
@@ -2253,7 +2283,10 @@ function ScanProgressFlow({
                   </div>
                 </div>
                 {i < steps.length - 1 && (
-                  <div className={"scanning-flow-edge" + (isDone ? " done" : "")} aria-hidden="true">
+                  <div
+                    className={"scanning-flow-edge" + (isDone ? " done" : "")}
+                    aria-hidden="true"
+                  >
                     <span />
                   </div>
                 )}
@@ -2282,8 +2315,6 @@ function ScanDetailSkeleton() {
       aria-label={T("Loading scan details", "正在加载扫描详情")}
     >
       <div className="scanning-flow-toolbar" aria-hidden="true">
-        <SkeletonLine className="sk-line sk-w-10 sk-h-28" />
-        <SkeletonLine className="sk-line sk-w-14 sk-h-28" />
         <SkeletonLine className="sk-line sk-w-10 sk-h-28" />
       </div>
       <div className="scanning-flow-viewport" aria-hidden="true">
@@ -2375,9 +2406,7 @@ function ScanDetailSideSkeleton() {
 function ScanAgentUsageSlot({ tags }) {
   return (
     <>
-      <div className="scanning-counts-h scanning-counts-subh">
-        {T("Review agent", "审查代理")}
-      </div>
+      <div className="scanning-counts-h scanning-counts-subh">{T("Review agent", "审查代理")}</div>
       <div className="scan-preflight-meta scan-agent-meta">
         {tags.length > 0 ? (
           tags.map((tag) => (
@@ -2473,7 +2502,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const retrying = batchMode ? false : Boolean(singleRun.retrying);
   const canceling = batchMode ? Boolean(batchRun.canceling) : Boolean(singleRun.canceling);
   const detailLoading = !batchMode && Boolean(scanId && singleRun.loading);
-  const agentFixPrompt = !batchMode && typeof scan?.agentFixPrompt === "string" ? scan.agentFixPrompt : "";
+  const agentFixPrompt =
+    !batchMode && typeof scan?.agentFixPrompt === "string" ? scan.agentFixPrompt : "";
 
   useEffect(() => {
     if (batchMode || !scan?.id || typeof onScanResolved !== "function") return;
@@ -2501,7 +2531,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const status = batchMode
     ? batchScanStatus(scans, expectedBatchCount, Boolean(error))
     : scan?.status || (error ? "failed" : repoFullName ? "queued" : "no_repo");
-  const reportedCurrentStep = scan?.progressSteps?.find((step) => ["running", "failed", "cancelled"].includes(step.status)) || null;
+  const reportedCurrentStep =
+    scan?.progressSteps?.find((step) => ["running", "failed", "cancelled"].includes(step.status)) ||
+    null;
   const rawCurrentPhase = scan?.phase || reportedCurrentStep?.id || null;
   const currentPhase = rawCurrentPhase ? String(rawCurrentPhase).trim() : null;
   const scanProgressMessage = batchMode ? "" : scan?.progressMessage || "";
@@ -2511,7 +2543,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     : scan?.progressLogs?.length
       ? scan.progressLogs
       : fallbackScanProgressLogs(scan);
-  const liveLogLines = liveLogEntries.map((entry) => scanProgressLogLine(entry, scan)).filter(Boolean);
+  const liveLogLines = liveLogEntries
+    .map((entry) => scanProgressLogLine(entry, scan))
+    .filter(Boolean);
   const scanPhases = scanPhasesForScan(scan, currentPhase, status);
   const phaseIdx = currentPhase ? scanPhases.findIndex((p) => p.id === currentPhase) : -1;
   const found = batchMode
@@ -2579,9 +2613,18 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     if (!agentFixPrompt || agentPromptLoading || !scan?.id) return;
     setAgentPromptLoading(true);
     try {
-      const keyPayload = await pullwiseApi.apiKeys.createAuditBundleKey(scan.id, scan.repoId || repoId);
+      const keyPayload = await pullwiseApi.apiKeys.createAuditBundleKey(
+        scan.id,
+        scan.repoId || repoId
+      );
       const prompt = agentFixPromptWithBundleKey(agentFixPrompt, scan, keyPayload);
-      if (!prompt) throw new Error(T("Unable to create audit bundle download key.", "Unable to create audit bundle download key."));
+      if (!prompt)
+        throw new Error(
+          T(
+            "Unable to create audit bundle download key.",
+            "Unable to create audit bundle download key."
+          )
+        );
       const copied = await copyText(prompt);
       if (!copied) {
         globalThis.alert?.(
@@ -2597,7 +2640,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       }, 2000);
     } catch (error) {
       globalThis.alert?.(
-        error?.message || T("Unable to create audit bundle download key.", "Unable to create audit bundle download key.")
+        error?.message ||
+          T(
+            "Unable to create audit bundle download key.",
+            "Unable to create audit bundle download key."
+          )
       );
     } finally {
       setAgentPromptLoading(false);
@@ -2615,20 +2662,20 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
           ? T("Scan batch partially completed", "Scan batch partially completed")
           : T("Scan partially completed", "Scan partially completed")
         : status === "failed"
-        ? batchMode
-          ? T("Scan batch failed", "批量扫描失败")
-          : T("Scan failed", "扫描失败")
-        : status === "lost"
-          ? T("Scan lost", "Scan lost")
-          : status === "cancelled"
-            ? batchMode
-              ? T("Scan batch cancelled", "批量扫描已取消")
-              : T("Scan cancelled", "扫描已取消")
-            : status === "no_repo"
-              ? T("No repository selected", "未选择仓库")
-              : batchMode
-                ? T("Scanning repositories", "正在扫描仓库")
-                : T("Scanning…", "扫描进行中");
+          ? batchMode
+            ? T("Scan batch failed", "批量扫描失败")
+            : T("Scan failed", "扫描失败")
+          : status === "lost"
+            ? T("Scan lost", "Scan lost")
+            : status === "cancelled"
+              ? batchMode
+                ? T("Scan batch cancelled", "批量扫描已取消")
+                : T("Scan cancelled", "扫描已取消")
+              : status === "no_repo"
+                ? T("No repository selected", "未选择仓库")
+                : batchMode
+                  ? T("Scanning repositories", "正在扫描仓库")
+                  : T("Scanning…", "扫描进行中");
 
   const headerIcon = detailLoading ? (
     <SkeletonLine className="sk-line sk-w-18 sk-h-18" />
@@ -2707,6 +2754,21 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     </>
                   )}
                 </div>
+                {!batchMode &&
+                  (detailLoading || !scanProgress ? (
+                    <ScanDetailProgressSkeleton />
+                  ) : (
+                    <ScanProgressBar
+                      className="scanning-progress"
+                      progress={scanProgress.progress}
+                      label={scanProgress.label}
+                      message={scanProgressMessage}
+                      meta={scanProgressLogsSummary}
+                      valueLabel={scanProgress.valueLabel}
+                      ariaValueText={scanProgress.ariaValueText}
+                      barOnly
+                    />
+                  ))}
               </div>
               <div className="scanning-actions">
                 <button className="btn ghost" onClick={handleBack}>
@@ -2754,7 +2816,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                           disabled={agentPromptLoading}
                           aria-live="polite"
                         >
-                          {agentPromptCopied ? <I.Check size={13} /> : <I.Copy size={13} />} {" "}
+                          {agentPromptCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
                           {agentPromptLoading
                             ? T("Preparing...", "Preparing...")
                             : agentPromptCopied
@@ -2772,22 +2834,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               </div>
             </div>
 
-            {!batchMode && (
-              detailLoading || !scanProgress ? (
-                <ScanDetailProgressSkeleton />
-              ) : (
-                <ScanProgressBar
-                  className="scanning-progress"
-                  progress={scanProgress.progress}
-                  label={scanProgress.label}
-                  message={scanProgressMessage}
-                  meta={scanProgressLogsSummary}
-                  valueLabel={scanProgress.valueLabel}
-                  ariaValueText={scanProgress.ariaValueText}
-                  barOnly
-                />
-              )
-            )}
             {error && (
               <div
                 className="auth-error"

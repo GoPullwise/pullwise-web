@@ -1035,7 +1035,7 @@
   max-width: none;
 }
 .scanning-progress {
-  min-height: 36px;
+  min-height: 8px;
   box-sizing: border-box;
 }
 .scanning-side > .card,
@@ -1143,10 +1143,18 @@
   font-variant-numeric: tabular-nums;
 }
 .scanning-progress {
-  margin: 14px 0 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.scanning-progress .scan-progress-track {
+  height: 8px;
+  border: 0;
+  background: transparent;
+}
+.scanning-progress .scan-progress-track span {
+  height: 8px;
 }
 .scanning-queue {
   margin: -12px 0 18px;
@@ -1170,7 +1178,7 @@
 
 .scanning-flow {
   display: grid;
-  gap: 10px;
+  position: relative;
   min-width: 0;
 }
 .scanning-flow-toolbar {
@@ -1178,20 +1186,17 @@
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
   min-width: 0;
 }
-.scanning-flow-control {
-  width: 30px;
+.scanning-flow-locate {
+  width: 32px;
+  height: 32px;
   padding: 0;
   justify-content: center;
-}
-.scanning-flow-zoom {
-  min-width: 44px;
-  padding: 0 8px;
-  color: var(--text-3);
-  font: 600 11px/30px var(--font-mono);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
 }
 .scanning-flow-viewport {
   position: relative;
@@ -7005,8 +7010,8 @@
 
 @media (max-width: 900px) {
   .scanning-flow-toolbar {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    top: 6px;
+    right: 6px;
   }
   .scanning-flow-viewport {
     height: 244px;
