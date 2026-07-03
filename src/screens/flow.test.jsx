@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n.jsx";
@@ -226,6 +226,52 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByRole("tab", { name: "@GoDelta" }));
 
     expect(screen.getByRole("tab", { name: "@GoDelta" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("requests the selected owner page when an owner tab has no repositories in the current page", async () => {
+    const user = userEvent.setup();
+    const firstPageRepos = Array.from({ length: 50 }, (_, index) => ({
+      ...repoAlpha,
+      id: `repo_octocat_${index}`,
+      name: `repo-${index}`,
+      fullName: `octocat/repo-${index}`,
+    }));
+    const acmeRepo = {
+      ...repoAlpha,
+      id: "repo_acme_api",
+      name: "api",
+      fullName: "acme/api",
+    };
+    const acmeRepos = [acmeRepo];
+
+    const reload = vi.fn();
+    const loadMore = vi.fn();
+    useRepositories.mockImplementation(({ owner = "" } = {}) => ({
+      items: owner === "acme" ? acmeRepos : firstPageRepos,
+      installations: [],
+      installationAccounts: ["octocat", "acme"],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      needsAuthorization: false,
+      meta:
+        owner === "acme"
+          ? { total: 1, hasMore: false, nextOffset: null }
+          : { total: 114, hasMore: true, nextOffset: 50 },
+      reload,
+      loadMore,
+    }));
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(screen.getByText("octocat/repo-0")).toBeInTheDocument();
+    expect(screen.queryByText("acme/api")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "@acme" }));
+
+    expect(useRepositories).toHaveBeenLastCalledWith({ owner: "acme", q: "" });
+    expect(screen.getByText("acme/api")).toBeInTheDocument();
+    expect(screen.queryByText("More repositories available")).not.toBeInTheDocument();
   });
 
   it("keeps scan list metadata in two rows before selection", () => {
@@ -1460,8 +1506,13 @@ describe("ScanningScreen queue state", () => {
         />
       );
 
+      const flow = screen.getByLabelText("Worker progress flow");
       const phases = document.querySelector(".scanning-phases");
+      expect(flow).toBeInTheDocument();
       expect(phases).not.toBeNull();
+      expect(phases).toHaveClass("scanning-flow-track");
+      expect(document.querySelectorAll(".scanning-flow-step")).toHaveLength(3);
+      expect(document.querySelectorAll(".scanning-flow-edge")).toHaveLength(2);
       expect(within(phases).getByText("Checkout")).toBeInTheDocument();
       expect(within(phases).getByText("Custom review")).toBeInTheDocument();
       expect(within(phases).getByText("Reviewing billing guardrails")).toBeInTheDocument();
@@ -1472,6 +1523,12 @@ describe("ScanningScreen queue state", () => {
       expect(within(phases).queryByText("Preparing workspace")).not.toBeInTheDocument();
       expect(within(phases).queryByText("Running reviewers")).not.toBeInTheDocument();
       expect(within(phases).queryByText("Uploading artifacts")).not.toBeInTheDocument();
+
+      expect(screen.getByLabelText("Progress flow zoom")).toHaveTextContent("1.00x");
+      fireEvent.click(screen.getByRole("button", { name: /zoom in progress flow/i }));
+      expect(screen.getByLabelText("Progress flow zoom")).toHaveTextContent("1.15x");
+      fireEvent.click(screen.getByRole("button", { name: /zoom out progress flow/i }));
+      expect(screen.getByLabelText("Progress flow zoom")).toHaveTextContent("1.00x");
     } finally {
       vi.useRealTimers();
     }

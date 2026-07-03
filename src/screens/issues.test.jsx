@@ -1207,6 +1207,46 @@ describe("HistoryScreen queue state", () => {
       });
     }
   });
+  it("copies a stable audit bundle URL for running scans before worker debug artifacts exist", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_running",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "pending",
+          status: "running",
+          progress: 12,
+          time: "now",
+          by: "you",
+          issues: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
+        },
+      ],
+      loading: false,
+      error: "",
+    });
+
+    try {
+      render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
+
+      await user.click(screen.getByRole("button", { name: /more actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /copy debug zip url/i }));
+
+      expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/scans/sc_running/audit-bundle.zip`);
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: originalClipboard,
+      });
+    }
+  });
   it("downloads a structured audit bundle for completed scans", async () => {
     const user = userEvent.setup();
     const scan = {

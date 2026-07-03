@@ -32,6 +32,7 @@ export const I = {
   Check: (p) => <Icon {...p} d="M20 6 9 17l-5-5" />,
   X: (p) => <Icon {...p} d={["M18 6 6 18", "m6 6 12 12"]} />,
   Plus: (p) => <Icon {...p} d={["M12 5v14", "M5 12h14"]} />,
+  Minus: (p) => <Icon {...p} d="M5 12h14" />,
   ChevR: (p) => <Icon {...p} d="m9 6 6 6-6 6" />,
   ChevD: (p) => <Icon {...p} d="m6 9 6 6 6-6" />,
   ChevU: (p) => <Icon {...p} d="m18 15-6-6-6 6" />,

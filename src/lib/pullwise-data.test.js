@@ -178,6 +178,49 @@ describe("useRepositories", () => {
     expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(2, { limit: 1, offset: 1 }, expect.objectContaining({ signal: expect.any(Object) }));
     unmount();
   });
+
+  it("passes owner and query filters to repository pages", async () => {
+    pullwiseApi.repositories.list
+      .mockResolvedValueOnce({
+        items: [{ id: "repo_1", fullName: "acme/api" }],
+        total: 2,
+        limit: 1,
+        offset: 0,
+        hasMore: true,
+        nextOffset: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "repo_2", fullName: "acme/web" }],
+        total: 2,
+        limit: 1,
+        offset: 1,
+        hasMore: false,
+        nextOffset: null,
+      });
+
+    const { result, unmount } = renderHook(() =>
+      useRepositories({ limit: 1, owner: "acme", q: "api" })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(
+      1,
+      { limit: 1, owner: "acme", q: "api" },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
+
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(
+      2,
+      { limit: 1, offset: 1, owner: "acme", q: "api" },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
+    unmount();
+  });
 });
 
 describe("useScans", () => {

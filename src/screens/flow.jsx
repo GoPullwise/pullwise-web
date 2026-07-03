@@ -911,6 +911,9 @@ export function ReposScreen({
   const [repoBranches, setRepoBranches] = useState({});
   const [selectedBranches, setSelectedBranches] = useState({});
   const branchRequestsRef = useRef(new Map());
+  const [org, setOrg] = useState("All");
+  const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
+  const query = q.trim().toLowerCase();
   const {
     items: availableRepos,
     installations,
@@ -923,7 +926,7 @@ export function ReposScreen({
     meta: repositoriesMeta = {},
     reload,
     loadMore,
-  } = useRepositories();
+  } = useRepositories({ owner: activeOwner, q: query });
   const displayError = error || connectError || authorizationError;
   const hasInstallationDetails = Array.isArray(installations) && installations.length > 0;
   const [scanPolicyLimits, setScanPolicyLimits] = useState(null);
@@ -937,8 +940,6 @@ export function ReposScreen({
     ],
     [allLabel, availableRepos, installationAccounts]
   );
-  const [org, setOrg] = useState(allLabel);
-  const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
   const ownerTabsRef = useRef(null);
   const ownerTabsScrollable = orgs.length > 4;
   const scrollOwnerTabs = useCallback((direction) => {
@@ -960,7 +961,6 @@ export function ReposScreen({
       behavior: "smooth",
     });
   }, []);
-  const query = q.trim().toLowerCase();
   const refreshGitHubRepositoryAccess = useCallback(async () => {
     await reload({ sync: true });
   }, [reload]);
@@ -1899,7 +1899,9 @@ function fallbackCurrentScanStep(scan, currentPhase, status) {
       ...def,
       id: def.id || currentPhase,
       status: status === "done" ? "completed" : status === "failed" ? "failed" : "running",
-      percent: scan?.progress || 0,
+      percent: ["failed", "cancelled", "lost"].includes(status)
+        ? Math.min(scan?.progress || 0, 94)
+        : scan?.progress || 0,
     },
   ];
 }
@@ -1959,6 +1961,171 @@ function scanProgressLogLine(entry, fallbackScan) {
   const detailText = entry?.message || entry?.logsSummary || "";
   const detail = detailText ? ` - ${detailText}` : "";
   return `${stamp ? `[${stamp}] ` : ""}${label}${detail}`;
+}
+
+const FLOW_ZOOM_STEP = 0.15;
+const FLOW_ZOOM_MIN = 0.65;
+const FLOW_ZOOM_MAX = 1.35;
+
+function clampFlowZoom(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 1;
+  return Math.max(FLOW_ZOOM_MIN, Math.min(FLOW_ZOOM_MAX, Math.round(number * 100) / 100));
+}
+
+function ScanProgressFlow({
+  steps,
+  currentPhase,
+  phaseIdx,
+  terminal,
+  progressMessage,
+  logsSummary,
+}) {
+  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
+  const dragRef = useRef(null);
+
+  const zoomBy = useCallback((delta) => {
+    setView((current) => ({ ...current, scale: clampFlowZoom(current.scale + delta) }));
+  }, []);
+
+  const resetView = useCallback(() => {
+    setView({ scale: 1, x: 0, y: 0 });
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (event.target?.closest?.("button,a,input,textarea,select")) return;
+      dragRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        x: view.x,
+        y: view.y,
+      };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    },
+    [view.x, view.y]
+  );
+
+  const handlePointerMove = useCallback((event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    setView((current) => ({
+      ...current,
+      x: drag.x + event.clientX - drag.startX,
+      y: drag.y + event.clientY - drag.startY,
+    }));
+  }, []);
+
+  const finishDrag = useCallback((event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    dragRef.current = null;
+  }, []);
+
+  return (
+    <div className="scanning-flow" aria-label={T("Worker progress flow", "Worker progress flow")}>
+      <div className="scanning-flow-toolbar" aria-label={T("Progress flow controls", "Progress flow controls")}>
+        <button
+          className="btn ghost sm scanning-flow-control"
+          type="button"
+          onClick={() => zoomBy(-FLOW_ZOOM_STEP)}
+          aria-label={T("Zoom out progress flow", "Zoom out progress flow")}
+          title={T("Zoom out", "Zoom out")}
+        >
+          <I.Minus size={12} />
+        </button>
+        <span className="scanning-flow-zoom" aria-label={T("Progress flow zoom", "Progress flow zoom")}>
+          {view.scale.toFixed(2)}x
+        </span>
+        <button
+          className="btn ghost sm scanning-flow-control"
+          type="button"
+          onClick={() => zoomBy(FLOW_ZOOM_STEP)}
+          aria-label={T("Zoom in progress flow", "Zoom in progress flow")}
+          title={T("Zoom in", "Zoom in")}
+        >
+          <I.Plus size={12} />
+        </button>
+        <button className="btn ghost sm" type="button" onClick={resetView}>
+          <I.Compass size={12} /> {T("Reset view", "Reset view")}
+        </button>
+      </div>
+      <div
+        className="scanning-flow-viewport"
+        role="group"
+        aria-label={T("Pan worker progress flow", "Pan worker progress flow")}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+      >
+        <div
+          className="scanning-phases scanning-flow-track"
+          style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
+        >
+          {steps.map((p, i) => {
+            const stepStatus = String(p.status || "").toLowerCase();
+            const isDone =
+              ["completed", "skipped"].includes(stepStatus) ||
+              (phaseIdx > i && stepStatus !== "failed");
+            const isOn = stepStatus === "running" || (phaseIdx === i && !terminal && !isDone);
+            const isFailed = stepStatus === "failed";
+            const cls = [
+              "scanning-phase",
+              isDone ? "done" : "",
+              isOn ? "on" : "",
+              isFailed ? "failed" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            const bullet = isDone ? (
+              <I.Check size={11} />
+            ) : isOn ? (
+              <span className="pulse scanning-flow-pulse" />
+            ) : (
+              i + 1
+            );
+            const percent = Number(p.percent);
+            const hasPercent = Number.isFinite(percent);
+            const label = p.label || workerPhaseLabel(p.id);
+            const detail = p.id === currentPhase && progressMessage ? progressMessage : p.description || "";
+            const key = p.id || `${label}-${i}`;
+            return (
+              <div className="scanning-flow-step" key={key}>
+                <div
+                  className={cls}
+                  data-status={stepStatus || "pending"}
+                  aria-current={isOn ? "step" : undefined}
+                >
+                  <div className="scanning-phase-bullet">{bullet}</div>
+                  <div className="scanning-phase-body">
+                    <div className="scanning-phase-top">
+                      <div className="scanning-phase-t">{label}</div>
+                      {hasPercent && (
+                        <span className="scanning-phase-percent">{Math.round(percent)}%</span>
+                      )}
+                    </div>
+                    <div className="scanning-phase-d">{detail}</div>
+                    {p.id === currentPhase && logsSummary && (
+                      <div className="scanning-phase-meta">{logsSummary}</div>
+                    )}
+                  </div>
+                </div>
+                {i < steps.length - 1 && (
+                  <div className={"scanning-flow-edge" + (isDone ? " done" : "")} aria-hidden="true">
+                    <span />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ScanDetailSkeleton() {
@@ -2404,46 +2571,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   </div>
                 )}
 
-                <div className="scanning-phases">
-                  {scanPhases.map((p, i) => {
-                    const stepStatus = String(p.status || "").toLowerCase();
-                    const isDone = ["completed", "skipped"].includes(stepStatus) || (phaseIdx > i && stepStatus !== "failed");
-                    const isOn = stepStatus === "running" || (phaseIdx === i && !terminal && !isDone);
-                    const cls = isDone ? " done" : isOn ? " on" : "";
-                    const bullet = isDone ? (
-                      <I.Check size={11} />
-                    ) : isOn ? (
-                      <span
-                        className="pulse"
-                        style={{
-                          display: "inline-block",
-                          width: 6,
-                          height: 6,
-                          borderRadius: 999,
-                          background: "currentColor",
-                        }}
-                      />
-                    ) : (
-                      i + 1
-                    );
-                    return (
-                      <div className={"scanning-phase" + cls} key={p.id}>
-                        <div className="scanning-phase-bullet">{bullet}</div>
-                        <div>
-                          <div className="scanning-phase-t">{p.label || workerPhaseLabel(p.id)}</div>
-                          <div className="scanning-phase-d">
-                            {p.id === currentPhase && scanProgressMessage
-                              ? scanProgressMessage
-                              : p.description || ""}
-                          </div>
-                          {p.id === currentPhase && scanProgressLogsSummary && (
-                            <div className="scanning-phase-meta">{scanProgressLogsSummary}</div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <ScanProgressFlow
+                  steps={scanPhases}
+                  currentPhase={currentPhase}
+                  phaseIdx={phaseIdx}
+                  terminal={terminal}
+                  progressMessage={scanProgressMessage}
+                  logsSummary={scanProgressLogsSummary}
+                />
+
                 {reviewRun ? <ReviewRunSummary reviewRun={reviewRun} /> : null}
                 {humanReport ? <HumanReviewReport report={humanReport} /> : null}
               </>

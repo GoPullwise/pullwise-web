@@ -1296,8 +1296,8 @@ function usePagedList({ cacheName, limit, params, requestName, fetchList, normal
   return { ...state, reload: load, loadMore };
 }
 
-export function useRepositories({ limit = 50 } = {}) {
-  const params = useMemoStable({});
+export function useRepositories({ limit = 50, owner = "", q = "" } = {}) {
+  const params = useMemoStable({ owner, q });
   const fetchList = useCallback((requestParams, options) => pullwiseApi.repositories.list(requestParams, options), []);
   const normalizeItems = useCallback((payload) => itemsFrom(payload, "items", "repositories", "repos").map(normalizeRepo), []);
   const extraState = useCallback((payload = {}) => {

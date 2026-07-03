@@ -102,6 +102,11 @@ Treat `partial_completed` as a result-bearing terminal state for history/detail
 actions when the server exposes scan or `reviewRun` data. It may have fewer
 issues or artifacts than a completed scan, but it should not be hidden behind
 queued/running/failed-only UI gates.
+Scan history debug-copy actions must be available as soon as a scan row has an
+id. Prefer the server-provided worker `debugBundleUrl` when present, but fall
+back to the stable scan audit bundle URL (`/scans/:id/audit-bundle.zip`) while
+the worker debug artifact is not uploaded yet. Do not disable Copy debug zip URL
+just because the run is still queued/running or failed before artifact upload.
 
 Progress UI must be driven by worker-reported flow data exposed by the server,
 not by a web-owned or server-owned fixed step list. Job scan detail pages should

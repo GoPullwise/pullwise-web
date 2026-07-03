@@ -178,6 +178,13 @@ function absoluteAppUrl(path) {
   const origin = globalThis.location?.origin || "";
   return origin ? new URL(text, origin).href : text;
 }
+
+function scanDebugZipUrl(scan) {
+  const explicit = absoluteAppUrl(scan?.debugBundleUrl);
+  if (explicit) return explicit;
+  const scanId = String(scan?.id || "").trim();
+  return scanId ? absoluteAppUrl(`/scans/${encodeURIComponent(scanId)}/audit-bundle.zip`) : "";
+}
 function markdownText(value) {
   return String(value ?? "").trim();
 }
@@ -1303,7 +1310,7 @@ function ScanRow({
   const aiUsageBadges = scanAiUsageBadges(scan.aiUsage);
   const showProgress = status === "queued" || status === "running";
   const progressDisplay = showProgress ? scanProgressPresentation(scan, { label: T("Progress", "进度") }) : null;
-  const debugBundleUrl = absoluteAppUrl(scan.debugBundleUrl);
+  const debugBundleUrl = scanDebugZipUrl(scan);
 
   useEffect(() => {
     if (!menuOpen) return undefined;

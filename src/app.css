@@ -423,6 +423,10 @@ body.has-proto-nav {
   .scanning-h,
   .scanning-copy,
   .scanning-actions,
+  .scanning-flow,
+  .scanning-flow-viewport,
+  .scanning-flow-track,
+  .scanning-flow-step,
   .scanning-phase,
   .scanning-side,
   .hist-row,
@@ -1341,8 +1345,10 @@ body.has-proto-nav {
   overflow-wrap: anywhere;
   word-break: break-word;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
 }
 
 .scanning-sub {
