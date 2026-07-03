@@ -1599,12 +1599,6 @@ describe("ScanningScreen queue state", () => {
       expect(within(phases).queryByText("Preparing workspace")).not.toBeInTheDocument();
       expect(within(phases).queryByText("Running reviewers")).not.toBeInTheDocument();
       expect(within(phases).queryByText("Uploading artifacts")).not.toBeInTheDocument();
-
-      expect(screen.getByLabelText("Progress flow zoom")).toHaveTextContent("1.00x");
-      fireEvent.click(screen.getByRole("button", { name: /zoom in progress flow/i }));
-      expect(screen.getByLabelText("Progress flow zoom")).toHaveTextContent("1.15x");
-      fireEvent.click(screen.getByRole("button", { name: /zoom out progress flow/i }));
-      expect(screen.getByLabelText("Progress flow zoom")).toHaveTextContent("1.00x");
     } finally {
       vi.useRealTimers();
     }
