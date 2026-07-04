@@ -2093,7 +2093,15 @@ function cleanStepErrorMessage(value) {
 
 function scanStepErrorMessage(step, currentPhase, errorMessage) {
   const explicitError = cleanStepErrorMessage(
-    step?.error || step?.errorMessage || step?.error_message
+    step?.error ||
+      step?.errorMessage ||
+      step?.error_message ||
+      step?.errorReason ||
+      step?.error_reason ||
+      step?.failureReason ||
+      step?.failure_reason ||
+      step?.reason ||
+      step?.cause
   );
   if (explicitError) return explicitError;
   const fallbackError = cleanStepErrorMessage(errorMessage);
@@ -2277,13 +2285,6 @@ function ScanProgressFlow({
             ) : (
               i + 1
             );
-            const percent = Number(p.percent);
-            const hasPercent = Number.isFinite(percent);
-            const progressWidth = hasPercent
-              ? `${Math.max(0, Math.min(100, Math.round(percent)))}%`
-              : isDone
-                ? "100%"
-                : "0%";
             const label = p.label || workerPhaseLabel(p.id);
             const detail =
               p.id === currentPhase && progressMessage ? progressMessage : p.description || "";
@@ -2305,7 +2306,6 @@ function ScanProgressFlow({
                   data-flow-current={isOn ? "true" : undefined}
                   data-status={stepStatus || "pending"}
                   aria-current={isOn ? "step" : undefined}
-                  style={{ "--phase-progress": progressWidth }}
                 >
                   <div className="scanning-phase-bullet">{bullet}</div>
                   <div className="scanning-phase-body">
@@ -2313,13 +2313,7 @@ function ScanProgressFlow({
                       <div className="scanning-phase-t">{label}</div>
                       <div className="scanning-phase-kpis">
                         <span className="scanning-phase-status">{statusLabel}</span>
-                        {hasPercent && (
-                          <span className="scanning-phase-percent">{Math.round(percent)}%</span>
-                        )}
                       </div>
-                    </div>
-                    <div className="scanning-phase-progress" aria-hidden="true">
-                      <span />
                     </div>
                     <div className="scanning-phase-d">{detail}</div>
                     {p.id === currentPhase && logsSummary && (

@@ -48,8 +48,7 @@ beforeEach(() => {
   clearPullwiseDataCache();
 });
 
-describe("normalizeScan", () => {
-});
+describe("normalizeScan", () => {});
 
 describe("useRepositories", () => {
   beforeEach(() => {
@@ -167,7 +166,11 @@ describe("useRepositories", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/one"]);
     expect(result.current.meta.total).toBe(2);
-    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(1, { limit: 1 }, expect.objectContaining({ signal: expect.any(Object) }));
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(
+      1,
+      { limit: 1 },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
 
     await act(async () => {
       result.current.loadMore();
@@ -175,7 +178,11 @@ describe("useRepositories", () => {
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
     expect(result.current.items.map((repo) => repo.fullName)).toEqual(["owner/one", "owner/two"]);
-    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(2, { limit: 1, offset: 1 }, expect.objectContaining({ signal: expect.any(Object) }));
+    expect(pullwiseApi.repositories.list).toHaveBeenNthCalledWith(
+      2,
+      { limit: 1, offset: 1 },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
     unmount();
   });
 
@@ -297,10 +304,12 @@ describe("useScans", () => {
 
     const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5, status: "all" }));
 
-    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
-      ["sc_history_failed"],
-      expect.objectContaining({ signal: expect.any(Object) })
-    ));
+    await waitFor(() =>
+      expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
+        ["sc_history_failed"],
+        expect.objectContaining({ signal: expect.any(Object) })
+      )
+    );
     await waitFor(() => expect(result.current.items[0]?.status).toBe("failed"));
     expect(result.current.items[0]?.error).toBe("worker result failed");
     expect(result.current.error).toBe("worker result failed");
@@ -355,23 +364,31 @@ describe("useScans", () => {
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(pullwiseApi.scans.list).toHaveBeenNthCalledWith(1, {
-      limit: 1,
-      status: "done",
-      repo: "owner/repo",
-    }, expect.objectContaining({ signal: expect.any(Object) }));
+    expect(pullwiseApi.scans.list).toHaveBeenNthCalledWith(
+      1,
+      {
+        limit: 1,
+        status: "done",
+        repo: "owner/repo",
+      },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
 
     await act(async () => {
       result.current.loadMore();
     });
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
-    expect(pullwiseApi.scans.list).toHaveBeenNthCalledWith(2, {
-      limit: 1,
-      offset: 1,
-      status: "done",
-      repo: "owner/repo",
-    }, expect.objectContaining({ signal: expect.any(Object) }));
+    expect(pullwiseApi.scans.list).toHaveBeenNthCalledWith(
+      2,
+      {
+        limit: 1,
+        offset: 1,
+        status: "done",
+        repo: "owner/repo",
+      },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
   });
 
   it("shows cached scans without blocking loading while refreshing after remount", async () => {
@@ -402,9 +419,7 @@ describe("useScans", () => {
     const refresh = deferred();
     pullwiseApi.scans.list.mockReturnValueOnce(refresh.promise);
 
-    const { result, unmount } = renderHook(() =>
-      useScans({ pollIntervalMs: 10000, limit: 1 })
-    );
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 10000, limit: 1 }));
 
     expect(result.current.loading).toBe(true);
     expect(result.current.items).toEqual([]);
@@ -571,7 +586,10 @@ describe("useScans", () => {
     );
 
     await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_running", expect.objectContaining({ signal: expect.any(Object) }));
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
+        "sc_running",
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
@@ -617,9 +635,15 @@ describe("useScans", () => {
     });
 
     expect(pullwiseApi.scans.cancel).toHaveBeenCalledTimes(2);
-    expect(result.current.scans.find((scan) => scan.id === "sc_cancel_alpha")?.status).toBe("cancelled");
-    expect(result.current.scans.find((scan) => scan.id === "sc_cancel_beta")?.status).toBe("running");
-    expect(result.current.batchResults.find((row) => row.scanId === "sc_cancel_beta")?.error).toBe("cancel beta failed");
+    expect(result.current.scans.find((scan) => scan.id === "sc_cancel_alpha")?.status).toBe(
+      "cancelled"
+    );
+    expect(result.current.scans.find((scan) => scan.id === "sc_cancel_beta")?.status).toBe(
+      "running"
+    );
+    expect(result.current.batchResults.find((row) => row.scanId === "sc_cancel_beta")?.error).toBe(
+      "cancel beta failed"
+    );
     expect(result.current.error).toBe("cancel beta failed");
     unmount();
   });
@@ -728,10 +752,12 @@ describe("useScans", () => {
       })
     );
 
-    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
-      ["sc_detail_failed"],
-      expect.objectContaining({ signal: expect.any(Object) })
-    ));
+    await waitFor(() =>
+      expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
+        ["sc_detail_failed"],
+        expect.objectContaining({ signal: expect.any(Object) })
+      )
+    );
     await waitFor(() => expect(result.current.scan?.status).toBe("failed"));
     expect(result.current.scan?.error).toBe("worker result failed");
     expect(result.current.error).toBe("worker result failed");
@@ -798,14 +824,18 @@ describe("useScans", () => {
     );
 
     await waitFor(() => expect(result.current.scans[0]?.status).toBe("running"));
-    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
-      ["sc_bulk_unavailable"],
-      expect.objectContaining({ signal: expect.any(Object) })
-    ));
-    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
-      "sc_bulk_unavailable",
-      expect.objectContaining({ signal: expect.any(Object) })
-    ));
+    await waitFor(() =>
+      expect(pullwiseApi.scans.status).toHaveBeenCalledWith(
+        ["sc_bulk_unavailable"],
+        expect.objectContaining({ signal: expect.any(Object) })
+      )
+    );
+    await waitFor(() =>
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
+        "sc_bulk_unavailable",
+        expect.objectContaining({ signal: expect.any(Object) })
+      )
+    );
     await act(async () => {
       fallbackStatus.resolve({
         id: "sc_bulk_unavailable",
@@ -850,27 +880,35 @@ describe("useIssues", () => {
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(pullwiseApi.issues.list).toHaveBeenNthCalledWith(1, {
-      limit: 1,
-      status: "open",
-      severity: "high",
-      q: "auth",
-      scanId: "sc_1",
-    }, expect.objectContaining({ signal: expect.any(Object) }));
+    expect(pullwiseApi.issues.list).toHaveBeenNthCalledWith(
+      1,
+      {
+        limit: 1,
+        status: "open",
+        severity: "high",
+        q: "auth",
+        scanId: "sc_1",
+      },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
 
     await act(async () => {
       result.current.loadMore();
     });
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
-    expect(pullwiseApi.issues.list).toHaveBeenNthCalledWith(2, {
-      limit: 1,
-      offset: 1,
-      status: "open",
-      severity: "high",
-      q: "auth",
-      scanId: "sc_1",
-    }, expect.objectContaining({ signal: expect.any(Object) }));
+    expect(pullwiseApi.issues.list).toHaveBeenNthCalledWith(
+      2,
+      {
+        limit: 1,
+        offset: 1,
+        status: "open",
+        severity: "high",
+        q: "auth",
+        scanId: "sc_1",
+      },
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
   });
 
   it("keeps locally fixed issues out of the open list after remount when refresh is stale", async () => {
@@ -1595,7 +1633,9 @@ describe("normalizeIssue", () => {
     expect(normalizeScan({ id: "sc_ok", progress: "42.5" }).progress).toBe(42.5);
     expect(normalizeScan({ id: "sc_done", status: "done", progress: 80 }).progress).toBe(100);
     expect(normalizeScan({ id: "sc_failed", status: "failed", progress: 100 }).progress).toBe(94);
-    expect(normalizeScan({ id: "sc_cancelled", status: "cancelled", progress: 99 }).progress).toBe(94);
+    expect(normalizeScan({ id: "sc_cancelled", status: "cancelled", progress: 99 }).progress).toBe(
+      94
+    );
   });
 
   it("preserves partial completed scans as result-bearing terminal scans", () => {
@@ -1643,7 +1683,13 @@ describe("normalizeIssue", () => {
       ],
       progressSteps: [
         { id: "checkout", label: "Checkout", status: "completed", percent: "100" },
-        { id: "worker_specific_review", label: "Worker specific review", status: "running", percent: "42", errorMessage: "Worker stalled." },
+        {
+          id: "worker_specific_review",
+          label: "Worker specific review",
+          status: "running",
+          percent: "42",
+          failureReason: "Worker stalled.",
+        },
       ],
       queue: {
         message: "Waiting for worker capacity",
@@ -1666,7 +1712,14 @@ describe("normalizeIssue", () => {
     ]);
     expect(scan.progressSteps).toEqual([
       { id: "checkout", index: 1, label: "Checkout", status: "completed", percent: 100 },
-      { id: "worker_specific_review", index: 2, label: "Worker specific review", status: "running", percent: 42, error: "Worker stalled." },
+      {
+        id: "worker_specific_review",
+        index: 2,
+        label: "Worker specific review",
+        status: "running",
+        percent: 42,
+        error: "Worker stalled.",
+      },
     ]);
     expect(scan.startedAt).toBe(1700000000);
     expect(scan.updatedAt).toBe(1700000060);
@@ -1749,7 +1802,9 @@ describe("normalizeIssue", () => {
       },
     };
 
-    expect(normalizeScan({ id: "sc_done", status: "done", reviewRun }).reviewRun).toMatchObject(reviewRun);
+    expect(normalizeScan({ id: "sc_done", status: "done", reviewRun }).reviewRun).toMatchObject(
+      reviewRun
+    );
   });
 
   it("normalizes worker debug bundle URLs from review-run artifacts", () => {
@@ -1763,7 +1818,10 @@ describe("normalizeIssue", () => {
             artifactId: "art_debug_bundle",
             kind: "debug_bundle",
             name: "debug-bundle.zip",
-            storage: { type: "server_artifact", url: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle" },
+            storage: {
+              type: "server_artifact",
+              url: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle",
+            },
           },
         ],
       },
@@ -1799,7 +1857,9 @@ describe("normalizeIssue", () => {
     ].join("\n");
 
     expect(normalizeScan({ id: "sc_1", agentFixPrompt: prompt }).agentFixPrompt).toBe(prompt);
-    expect(normalizeScan({ id: "sc_bad", agentFixPrompt: { text: prompt } }).agentFixPrompt).toBe("");
+    expect(normalizeScan({ id: "sc_bad", agentFixPrompt: { text: prompt } }).agentFixPrompt).toBe(
+      ""
+    );
   });
 
   it("does not stringify object-shaped text fields into user-visible labels", () => {

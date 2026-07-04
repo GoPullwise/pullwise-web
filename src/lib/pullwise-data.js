@@ -35,7 +35,7 @@ function stableCacheKey(name, params = {}) {
     ...Object.entries(params)
       .filter(([, value]) => value !== "" && value !== undefined && value !== null)
       .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key}:${String(value)}`),
+      .map(([key, value]) => `${key}:${String(value)}`),
   ].join("|");
 }
 
@@ -186,14 +186,15 @@ function applyCachedIssueUpdates(items) {
 export function applyCachedIssueUpdate(issue) {
   const normalized = normalizeIssue(issue);
   const updated =
-    issueUpdateCache.get(issueUpdateKey(normalized)) ||
-    issueUpdateByIdCache.get(normalized.id);
+    issueUpdateCache.get(issueUpdateKey(normalized)) || issueUpdateByIdCache.get(normalized.id);
   return updated ? { ...normalized, ...updated } : normalized;
 }
 
 function issueFiltersFromCacheKey(cacheKey) {
   const filters = {};
-  for (const part of String(cacheKey || "").split("|").slice(1)) {
+  for (const part of String(cacheKey || "")
+    .split("|")
+    .slice(1)) {
     const separatorIndex = part.indexOf(":");
     if (separatorIndex <= 0) continue;
     filters[part.slice(0, separatorIndex)] = part.slice(separatorIndex + 1);
@@ -253,13 +254,15 @@ function itemsFrom(payload, ...keys) {
   return [];
 }
 
-
 function pageMeta(payload = {}, fallbackLimit = 50) {
   const total = normalizeCount(payload.total ?? payload.count);
   const limit = normalizeCount(payload.limit ?? fallbackLimit) || fallbackLimit;
   const offset = normalizeCount(payload.offset);
   const rawNextOffset = payload.nextOffset ?? payload.next_offset;
-  const nextOffset = rawNextOffset === null || rawNextOffset === undefined ? offset + limit : normalizeCount(rawNextOffset);
+  const nextOffset =
+    rawNextOffset === null || rawNextOffset === undefined
+      ? offset + limit
+      : normalizeCount(rawNextOffset);
   const inferredHasMore = total > 0 ? offset + limit < total : false;
   const hasMore = Object.prototype.hasOwnProperty.call(payload, "hasMore")
     ? normalizeBoolean(payload.hasMore)
@@ -288,7 +291,8 @@ function baseListState(initialCachedState, shouldRefreshQuietly, limit) {
     loadingMore: false,
     error: "",
   };
-}function formatTime(value) {
+}
+function formatTime(value) {
   if (!value) return "";
   if (typeof value === "number") {
     return new Date(value * 1000).toLocaleString();
@@ -413,7 +417,12 @@ function normalizeProgress(value) {
 }
 
 const INCOMPLETE_TERMINAL_SCAN_PROGRESS_MAX = 94;
-const INCOMPLETE_TERMINAL_SCAN_STATUSES = new Set(["failed", "cancelled", "partial_completed", "lost"]);
+const INCOMPLETE_TERMINAL_SCAN_STATUSES = new Set([
+  "failed",
+  "cancelled",
+  "partial_completed",
+  "lost",
+]);
 
 function normalizeScanProgressForStatus(status, value) {
   const progress = normalizeProgress(value);
@@ -453,14 +462,18 @@ function normalizeQueueCount(value, { positive = false } = {}) {
 
 function normalizeScanRetry(value) {
   if (!objectRecord(value)) return null;
-  const maxAttempts = normalizeQueueCount(value.maxAttempts ?? value.max_attempts, { positive: true }) || 1;
+  const maxAttempts =
+    normalizeQueueCount(value.maxAttempts ?? value.max_attempts, { positive: true }) || 1;
   const attempt = normalizeQueueCount(value.attempt) || 0;
-  const retryAttempts = normalizeQueueCount(value.retryAttempts ?? value.retry_attempts) ?? Math.max(0, maxAttempts - 1);
+  const retryAttempts =
+    normalizeQueueCount(value.retryAttempts ?? value.retry_attempts) ??
+    Math.max(0, maxAttempts - 1);
   const remainingAttempts = Math.min(
     maxAttempts,
     normalizeQueueCount(value.remainingAttempts ?? value.remaining_attempts) || 0
   );
-  const attemptedWorkers = normalizeQueueCount(value.attemptedWorkers ?? value.attempted_workers) || 0;
+  const attemptedWorkers =
+    normalizeQueueCount(value.attemptedWorkers ?? value.attempted_workers) || 0;
   return {
     attempt,
     maxAttempts,
@@ -546,14 +559,18 @@ function normalizeScanStatus(value) {
       complete: "done",
       completed: "done",
     }[status] || status;
-  return ["queued", "running", "done", "failed", "cancelled", "partial_completed", "lost"].includes(normalized)
+  return ["queued", "running", "done", "failed", "cancelled", "partial_completed", "lost"].includes(
+    normalized
+  )
     ? normalized
     : "queued";
 }
 
 function terminalScanStatusFromReviewRun(reviewRun) {
   if (!objectRecord(reviewRun)) return "";
-  const status = normalizeScanStatus(reviewRun.resultStatus ?? reviewRun.result_status ?? reviewRun.status);
+  const status = normalizeScanStatus(
+    reviewRun.resultStatus ?? reviewRun.result_status ?? reviewRun.status
+  );
   return TERMINAL_SCAN_STATUSES.has(status) ? status : "";
 }
 
@@ -569,7 +586,6 @@ function inferredScanStatus(scan, reviewRun, rawStatus) {
   }
   return rawStatus;
 }
-
 
 function scalarText(value) {
   if (value === undefined || value === null || value === "") return "";
@@ -658,7 +674,6 @@ function applyScanUpdates(items, byId, status = "") {
     .map((scan) => byId.get(scan.id) || scan)
     .filter((scan) => scanMatchesStatusFilter(scan, status));
 }
-
 
 function normalizeQuotaCount(value, fallback = 0) {
   if (value === undefined || value === null || value === "") return fallback;
@@ -946,16 +961,30 @@ function normalizeScanProgressStep(value, index) {
   const id = normalizeProgressStepId(value.id ?? value.phase ?? value.key);
   const label = textValue(value.label, value.title, id).slice(0, 120);
   if (!id && !label) return null;
+  const status = normalizeProgressStepStatus(value.status);
   const step = {
     id: id || `step_${index}`,
     index: normalizeCount(value.index) || index,
     label: label || id,
-    status: normalizeProgressStepStatus(value.status),
+    status,
     percent: normalizeProgress(value.percent ?? value.progress),
   };
   const description = textValue(value.description, value.message).slice(0, 240);
   if (description) step.description = description;
-  const error = textValue(value.error, value.errorMessage, value.error_message).slice(0, 300);
+  let error = textValue(
+    value.error,
+    value.errorMessage,
+    value.error_message,
+    value.errorReason,
+    value.error_reason,
+    value.failureReason,
+    value.failure_reason,
+    value.reason,
+    value.cause
+  ).slice(0, 300);
+  if (!error && ["failed", "cancelled"].includes(status)) {
+    error = textValue(value.message, value.description).slice(0, 300);
+  }
   if (error) step.error = error;
   if (Object.prototype.hasOwnProperty.call(value, "targetPercent")) {
     step.targetPercent = normalizeProgress(value.targetPercent);
@@ -1095,7 +1124,6 @@ export function normalizeIssue(issue = {}) {
   return normalized;
 }
 
-
 function artifactStorageUrl(artifact) {
   if (!objectRecord(artifact)) return "";
   const storage = objectRecord(artifact.storage) ? artifact.storage : {};
@@ -1109,7 +1137,9 @@ function reviewRunDebugBundleUrl(reviewRun) {
   const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
   const debugArtifact = artifacts.find((artifact) => {
     if (!objectRecord(artifact)) return false;
-    return textValue(artifact.kind) === "debug_bundle" || textValue(artifact.name) === "debug-bundle.zip";
+    return (
+      textValue(artifact.kind) === "debug_bundle" || textValue(artifact.name) === "debug-bundle.zip"
+    );
   });
   return artifactStorageUrl(debugArtifact);
 }
@@ -1120,8 +1150,13 @@ export function normalizeScan(scan = {}) {
   const repoUsage = normalizeQuotaUsage(scan.repoUsage);
   const quotaBucketIds = objectRecord(scan.quotaBucketIds) ? { ...scan.quotaBucketIds } : {};
   const humanReport = normalizeHumanReport(scan.humanReport);
-  const reviewRun = objectRecord(scan.reviewRun) ? { ...scan.reviewRun } : objectRecord(scan.review_run) ? { ...scan.review_run } : null;
-  const debugBundleUrl = textValue(scan.debugBundleUrl, scan.debug_bundle_url) || reviewRunDebugBundleUrl(reviewRun);
+  const reviewRun = objectRecord(scan.reviewRun)
+    ? { ...scan.reviewRun }
+    : objectRecord(scan.review_run)
+      ? { ...scan.review_run }
+      : null;
+  const debugBundleUrl =
+    textValue(scan.debugBundleUrl, scan.debug_bundle_url) || reviewRunDebugBundleUrl(reviewRun);
   const status = inferredScanStatus(scan, reviewRun, rawStatus);
   return {
     id: textValue(scan.id),
@@ -1140,7 +1175,12 @@ export function normalizeScan(scan = {}) {
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),
-    progressSteps: normalizeScanProgressSteps(scan.progressSteps ?? scan.progress_steps ?? scan.reviewRun?.progress?.steps ?? scan.review_run?.progress?.steps),
+    progressSteps: normalizeScanProgressSteps(
+      scan.progressSteps ??
+        scan.progress_steps ??
+        scan.reviewRun?.progress?.steps ??
+        scan.review_run?.progress?.steps
+    ),
     error: textValue(scan.error, scan.errorMessage, scan.error_message),
     errorCode: textValue(scan.errorCode, scan.error_code),
     agentFixPrompt: multilineTextValue(scan.agentFixPrompt, 20000),
@@ -1185,7 +1225,8 @@ function retryCountLabel(count) {
 
 function isActiveScan(scan) {
   return Boolean(scan?.id && ["queued", "running"].includes(scan.status));
-}export function scanQueueSummary(scan) {
+}
+export function scanQueueSummary(scan) {
   const queue = scan?.queue;
   const retry = scan?.retry;
   if ((!queue || typeof queue !== "object" || Array.isArray(queue)) && !retry) return null;
@@ -1211,13 +1252,22 @@ function isActiveScan(scan) {
   };
 }
 
-
 export function notifyIssuesChanged(detail = {}) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("pullwise:issues-changed", { detail }));
 }
 
-function usePagedList({ cacheName, limit, params, requestName, fetchList, normalizeItems, extraState = null, refreshOnChange = false, changeEvent = "" }) {
+function usePagedList({
+  cacheName,
+  limit,
+  params,
+  requestName,
+  fetchList,
+  normalizeItems,
+  extraState = null,
+  refreshOnChange = false,
+  changeEvent = "",
+}) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
   const cacheKey = stableCacheKey(cacheName, { limit, ...params });
@@ -1300,17 +1350,28 @@ function usePagedList({ cacheName, limit, params, requestName, fetchList, normal
 
 export function useRepositories({ limit = 50, owner = "", q = "" } = {}) {
   const params = useMemoStable({ owner, q });
-  const fetchList = useCallback((requestParams, options) => pullwiseApi.repositories.list(requestParams, options), []);
-  const normalizeItems = useCallback((payload) => itemsFrom(payload, "items", "repositories", "repos").map(normalizeRepo), []);
+  const fetchList = useCallback(
+    (requestParams, options) => pullwiseApi.repositories.list(requestParams, options),
+    []
+  );
+  const normalizeItems = useCallback(
+    (payload) => itemsFrom(payload, "items", "repositories", "repos").map(normalizeRepo),
+    []
+  );
   const extraState = useCallback((payload = {}) => {
     payload = payload || {};
     return {
       installations: Array.isArray(payload.installations) ? payload.installations : [],
-      installationAccounts: Array.isArray(payload.installationAccounts) ? payload.installationAccounts : [],
-      needsAuthorization: normalizeBoolean(payload.needsAuthorization ?? payload.needs_authorization),
+      installationAccounts: Array.isArray(payload.installationAccounts)
+        ? payload.installationAccounts
+        : [],
+      needsAuthorization: normalizeBoolean(
+        payload.needsAuthorization ?? payload.needs_authorization
+      ),
       userQuota: normalizeQuotaUsage(payload.userQuota ?? payload.user_quota),
     };
-  }, []);  return usePagedList({
+  }, []);
+  return usePagedList({
     cacheName: "repositories",
     limit,
     params,
@@ -1321,13 +1382,24 @@ export function useRepositories({ limit = 50, owner = "", q = "" } = {}) {
   });
 }
 
-export function useIssues({ limit = 50, status = "", severity = "", q = "", scanId = "", refreshOnChange = true } = {}) {
+export function useIssues({
+  limit = 50,
+  status = "",
+  severity = "",
+  q = "",
+  scanId = "",
+  refreshOnChange = true,
+} = {}) {
   const params = useMemoStable({ status, severity, q, scanId });
-  const fetchList = useCallback((requestParams, options) => pullwiseApi.issues.list(requestParams, options), []);
+  const fetchList = useCallback(
+    (requestParams, options) => pullwiseApi.issues.list(requestParams, options),
+    []
+  );
   const normalizeItems = useCallback(
-    (payload) => applyCachedIssueUpdates(itemsFrom(payload, "items", "issues").map(normalizeIssue)).filter((issue) =>
-      issueMatchesRequestFilters(issue, params)
-    ),
+    (payload) =>
+      applyCachedIssueUpdates(itemsFrom(payload, "items", "issues").map(normalizeIssue)).filter(
+        (issue) => issueMatchesRequestFilters(issue, params)
+      ),
     [params]
   );
   return usePagedList({
@@ -1348,7 +1420,8 @@ function useMemoStable(value) {
   const currentKey = JSON.stringify(ref.current);
   if (nextKey !== currentKey) ref.current = value;
   return ref.current;
-}export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
+}
+export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
   const cacheKey = stableCacheKey("scans", { limit, status, repo });
@@ -1437,7 +1510,9 @@ function useMemoStable(value) {
     let alive = true;
     const controller = makeAbortController();
     const pollDelayMs =
-      typeof pullwiseApi.scans.status === "function" ? pollIntervalMs : Math.max(pollIntervalMs, 50);
+      typeof pullwiseApi.scans.status === "function"
+        ? pollIntervalMs
+        : Math.max(pollIntervalMs, 50);
     const handle = setTimeout(() => {
       if (typeof pullwiseApi.scans.status !== "function") {
         load({ quiet: true });
@@ -1533,7 +1608,13 @@ function useMemoStable(value) {
   return { ...state, reload: load, loadMore, upsertScan };
 }
 
-const TERMINAL_SCAN_STATUSES = new Set(["done", "failed", "cancelled", "partial_completed", "lost"]);
+const TERMINAL_SCAN_STATUSES = new Set([
+  "done",
+  "failed",
+  "cancelled",
+  "partial_completed",
+  "lost",
+]);
 
 export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
@@ -1544,7 +1625,9 @@ export function retryResponseScanPayload(payload) {
   if (objectRecord(payload?.data?.scan)) return payload.data.scan;
   if (objectRecord(payload?.result?.scan)) return payload.result.scan;
   if (objectRecord(payload?.retry)) return payload.retry;
-  return objectRecord(payload) && textValue(payload.id, payload.scanId, payload.scan_id) ? payload : null;
+  return objectRecord(payload) && textValue(payload.id, payload.scanId, payload.scan_id)
+    ? payload
+    : null;
 }
 
 export function retryResponseScanId(payload, fallback = "") {
@@ -1652,7 +1735,11 @@ export function useScanRun({
       .catch((err) => {
         if (isAbortError(err)) return;
         if (alive) {
-          setRunError(err, "Unable to load scan.", seedScan?.id === scanId ? "load" : "initial-load");
+          setRunError(
+            err,
+            "Unable to load scan.",
+            seedScan?.id === scanId ? "load" : "initial-load"
+          );
         }
       })
       .finally(() => {

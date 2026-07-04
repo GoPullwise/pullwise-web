@@ -1602,6 +1602,9 @@ describe("ScanningScreen queue state", () => {
         within(phases).getByText("worker=custom-review phase=custom_review")
       ).toBeInTheDocument();
       expect(within(phases).getByText("Publish")).toBeInTheDocument();
+      expect(within(phases).queryByText("40%")).not.toBeInTheDocument();
+      expect(phases.querySelector(".scanning-phase-percent")).not.toBeInTheDocument();
+      expect(phases.querySelector(".scanning-phase-progress")).not.toBeInTheDocument();
       expect(
         screen.getByText(`[${expectedLogTime}] Custom review - Reviewing billing guardrails`)
       ).toBeInTheDocument();
@@ -1656,12 +1659,18 @@ describe("ScanningScreen queue state", () => {
         branch: "main",
         commit: "pending",
         status: "failed",
-        phase: "qa_gate",
+        phase: "publish",
         progress: 88,
-        error: "QA gate failed: validator output was incomplete.",
+        error: "Fallback failure text.",
         progressSteps: [
           { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
-          { id: "qa_gate", label: "QA gate", status: "failed", percent: 88 },
+          {
+            id: "qa_gate",
+            label: "QA gate",
+            status: "failed",
+            percent: 88,
+            reason: "QA gate failed: validator output was incomplete.",
+          },
           { id: "publish", label: "Publish", status: "pending", percent: 0 },
         ],
       },
