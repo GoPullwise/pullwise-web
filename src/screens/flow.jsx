@@ -704,8 +704,30 @@ function uniqueStrings(values) {
   return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
+function hasRawPreflightEvidence(preflight) {
+  if (!preflight) return false;
+  const environment = preflight.environment || {};
+  return Boolean(
+    preflight.summary ||
+      preflight.execution ||
+      preflight.mode ||
+      preflight.repositoryStats ||
+      preflight.repositoryLimits ||
+      preflight.repositoryLimitExceeded ||
+      preflight.repositoryLimitReasons?.length ||
+      preflight.packageManagers?.length ||
+      preflight.languages?.length ||
+      preflight.availableScripts?.length ||
+      preflight.manifests?.length ||
+      preflight.toolVersions?.length ||
+      environment.os ||
+      environment.osRelease ||
+      environment.machine
+  );
+}
+
 function scanPreflightSummary(scans) {
-  const preflights = scans.map((scan) => scan?.preflight).filter(Boolean);
+  const preflights = scans.map((scan) => scan?.preflight).filter(hasRawPreflightEvidence);
   if (!preflights.length) return null;
   const environments = preflights.map((preflight) => preflight.environment).filter(Boolean);
   const environmentLabels = uniqueStrings(
@@ -747,6 +769,22 @@ function scanPreflightSummary(scans) {
     ),
     environmentLabels,
   };
+}
+
+function hasScanPreflightEvidence(preflight) {
+  if (!preflight) return false;
+  return Boolean(
+    preflight.summary ||
+      preflight.execution ||
+      preflight.mode ||
+      preflight.packageManagers?.length ||
+      preflight.languages?.length ||
+      preflight.availableScripts?.length ||
+      preflight.manifestsCount > 0 ||
+      preflight.toolCount > 0 ||
+      preflight.environmentLabels?.length ||
+      hasRepositoryLimitEvidence(preflight)
+  );
 }
 
 function scanAiUsageSummary(scans) {
@@ -2257,9 +2295,23 @@ function ScanProgressFlow({
             );
             const percent = Number(p.percent);
             const hasPercent = Number.isFinite(percent);
+            const progressWidth = hasPercent
+              ? `${Math.max(0, Math.min(100, Math.round(percent)))}%`
+              : isDone
+                ? "100%"
+                : "0%";
             const label = p.label || workerPhaseLabel(p.id);
             const detail =
               p.id === currentPhase && progressMessage ? progressMessage : p.description || "";
+            const statusLabel = isFailed
+              ? T("Failed", "失败")
+              : stepError
+                ? T("Error", "错误")
+                : isOn
+                  ? T("Running", "运行中")
+                  : isDone
+                    ? T("Complete", "已完成")
+                    : T("Queued", "排队中");
             const key = p.id || `${label}-${i}`;
             return (
               <div className="scanning-flow-step" key={key}>
@@ -2269,14 +2321,21 @@ function ScanProgressFlow({
                   data-flow-current={isOn ? "true" : undefined}
                   data-status={stepStatus || "pending"}
                   aria-current={isOn ? "step" : undefined}
+                  style={{ "--phase-progress": progressWidth }}
                 >
                   <div className="scanning-phase-bullet">{bullet}</div>
                   <div className="scanning-phase-body">
                     <div className="scanning-phase-top">
                       <div className="scanning-phase-t">{label}</div>
-                      {hasPercent && (
-                        <span className="scanning-phase-percent">{Math.round(percent)}%</span>
-                      )}
+                      <div className="scanning-phase-kpis">
+                        <span className="scanning-phase-status">{statusLabel}</span>
+                        {hasPercent && (
+                          <span className="scanning-phase-percent">{Math.round(percent)}%</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="scanning-phase-progress" aria-hidden="true">
+                      <span />
                     </div>
                     <div className="scanning-phase-d">{detail}</div>
                     {p.id === currentPhase && logsSummary && (
@@ -2412,44 +2471,18 @@ function ScanDetailSideSkeleton() {
 }
 
 function ScanAgentUsageSlot({ tags }) {
+  if (!tags.length) return null;
   return (
     <>
       <div className="scanning-counts-h scanning-counts-subh">{T("Review agent", "审查代理")}</div>
       <div className="scan-preflight-meta scan-agent-meta">
-        {tags.length > 0 ? (
-          tags.map((tag) => (
-            <span key={tag} className="tag">
-              {tag}
-            </span>
-          ))
-        ) : (
-          <>
-            <SkeletonLine className="sk-line sk-w-32 sk-h-22" />
-            <SkeletonLine className="sk-line sk-w-38 sk-h-22" />
-          </>
-        )}
+        {tags.map((tag) => (
+          <span key={tag} className="tag">
+            {tag}
+          </span>
+        ))}
       </div>
     </>
-  );
-}
-
-function ScanPreflightSkeleton() {
-  return (
-    <div className="card scanning-preflight scan-panel-loading" aria-busy="true">
-      <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
-      <SkeletonLine className="sk-line sk-w-80" />
-      <div className="scan-preflight-tags" aria-hidden="true">
-        <SkeletonLine className="sk-line sk-w-24 sk-h-22" />
-        <SkeletonLine className="sk-line sk-w-30 sk-h-22" />
-        <SkeletonLine className="sk-line sk-w-20 sk-h-22" />
-      </div>
-      <div className="scan-preflight-meta" aria-hidden="true">
-        <SkeletonLine className="sk-line sk-w-42" />
-        <SkeletonLine className="sk-line sk-w-36" />
-        <SkeletonLine className="sk-line sk-w-60" />
-        <SkeletonLine className="sk-line sk-w-48" />
-      </div>
-    </div>
   );
 }
 
@@ -2562,6 +2595,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const preflight = batchMode
     ? scanPreflightSummary(scans)
     : scanPreflightSummary(scan ? [scan] : []);
+  const showPreflight = hasScanPreflightEvidence(preflight);
   const humanReport = batchMode ? null : scan?.humanReport || null;
   const reviewRun = batchMode ? null : scan?.reviewRun || null;
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
@@ -2920,7 +2954,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 <ScanAgentUsageSlot tags={aiUsageTags} />
               </div>
 
-              {preflight ? (
+              {showPreflight && (
                 <div className="card scanning-preflight">
                   <div className="scanning-counts-h">{T("Preflight evidence", "预检证据")}</div>
                   {preflight.summary && (
@@ -3024,8 +3058,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     )}
                   </div>
                 </div>
-              ) : (
-                <ScanPreflightSkeleton />
               )}
 
               <div className="card scanning-log">

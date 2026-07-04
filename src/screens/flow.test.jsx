@@ -922,7 +922,7 @@ describe("ScanningScreen queue state", () => {
     expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
   });
 
-  it("keeps scan detail side panels reserved while scan metadata is still syncing", () => {
+  it("hides empty scan detail evidence and agent panels after metadata loads", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -933,6 +933,18 @@ describe("ScanningScreen queue state", () => {
         phase: "ai",
         progress: 32,
         issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        aiUsage: {},
+        preflight: {
+          mode: "",
+          execution: "",
+          summary: "",
+          packageManagers: [],
+          languages: [],
+          availableScripts: [],
+          manifests: [],
+          toolVersions: [],
+          environment: null,
+        },
       },
       loading: false,
       error: "",
@@ -951,9 +963,9 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.getByText("Live findings")).toBeInTheDocument();
-    expect(screen.getByText("Review agent")).toBeInTheDocument();
-    expect(screen.getByText("Preflight evidence")).toBeInTheDocument();
-    expect(container.querySelector(".scan-panel-loading")).toBeInTheDocument();
+    expect(screen.queryByText("Review agent")).not.toBeInTheDocument();
+    expect(screen.queryByText("Preflight evidence")).not.toBeInTheDocument();
+    expect(container.querySelector(".scan-panel-loading")).not.toBeInTheDocument();
     expect(container.querySelector(".scanning-log-body .skeleton-stack")).toBeInTheDocument();
   });
 

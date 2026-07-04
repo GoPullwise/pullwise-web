@@ -1205,19 +1205,34 @@
   overflow: hidden;
   border: 1px solid var(--border);
   background:
-    linear-gradient(var(--bg-soft), var(--bg-soft)) padding-box,
+    radial-gradient(
+      circle at 18px 18px,
+      color-mix(in oklch, var(--text) 7%, transparent) 1px,
+      transparent 1.5px
+    ),
     repeating-linear-gradient(
       90deg,
       transparent 0,
       transparent 23px,
-      color-mix(in oklch, var(--border) 58%, transparent) 24px
+      color-mix(in oklch, var(--border) 52%, transparent) 24px
     ),
     repeating-linear-gradient(
       0deg,
       transparent 0,
       transparent 23px,
-      color-mix(in oklch, var(--border) 42%, transparent) 24px
+      color-mix(in oklch, var(--border) 38%, transparent) 24px
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--bg-soft) 94%, var(--accent) 6%),
+      var(--bg-soft) 52%,
+      color-mix(in oklch, var(--bg-soft) 88%, var(--text) 4%)
     );
+  background-size:
+    24px 24px,
+    auto,
+    auto,
+    auto;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -1244,47 +1259,85 @@
   min-width: 0;
 }
 .scanning-phase {
+  --phase-accent: var(--text-4);
+  --phase-accent-soft: color-mix(in oklch, var(--phase-accent) 9%, transparent);
+  --phase-accent-line: color-mix(in oklch, var(--phase-accent) 46%, var(--border));
+  --phase-surface: color-mix(in oklch, var(--bg-elev) 96%, var(--phase-accent) 4%);
   position: relative;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 13px;
   align-items: flex-start;
-  width: 244px;
-  min-height: 136px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--bg-elev);
+  width: 258px;
+  min-height: 150px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--phase-accent-line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--phase-accent) 8%, transparent), transparent 46px),
+    linear-gradient(180deg, var(--phase-surface), var(--bg-elev));
   color: var(--text-3);
-  box-shadow: 0 1px 0 color-mix(in oklch, var(--text) 4%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklch, var(--text) 7%, transparent),
+    0 14px 34px color-mix(in oklch, var(--text) 7%, transparent);
   transition:
     background 80ms var(--ease-out),
     border-color 80ms var(--ease-out),
     color 80ms var(--ease-out),
     box-shadow 80ms var(--ease-out);
 }
+.scanning-phase::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--phase-accent),
+    color-mix(in oklch, var(--phase-accent) 36%, transparent)
+  );
+}
+.scanning-phase::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: 7px;
+  box-shadow: inset 0 1px 0 color-mix(in oklch, white 58%, transparent);
+}
 .scanning-phase.on {
-  background: color-mix(in oklch, var(--accent) 7%, var(--bg-elev));
-  border-color: color-mix(in oklch, var(--accent) 60%, var(--border));
+  --phase-accent: var(--accent);
+  --phase-accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+  transform: translateY(-2px);
   color: var(--text);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 10%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in oklch, var(--accent) 13%, transparent),
+    0 18px 42px color-mix(in oklch, var(--accent) 18%, transparent),
+    0 8px 18px color-mix(in oklch, var(--text) 8%, transparent);
 }
 .scanning-phase.done {
+  --phase-accent: color-mix(in oklch, var(--accent) 78%, var(--text-2));
   color: var(--text-2);
 }
 .scanning-phase.failed {
-  border-color: color-mix(in oklch, var(--sev-critical) 50%, var(--border));
-  background: color-mix(in oklch, var(--sev-critical) 6%, var(--bg-elev));
+  --phase-accent: var(--sev-critical);
+  --phase-accent-soft: color-mix(in oklch, var(--sev-critical) 13%, transparent);
+  color: var(--text);
 }
 .scanning-phase-bullet {
-  width: 24px;
-  height: 24px;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 0;
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in oklch, var(--phase-accent) 64%, var(--border));
+  border-radius: 8px;
   display: grid;
   place-items: center;
   font: 500 11px/1 var(--font-mono);
-  background: var(--bg-elev);
+  background:
+    linear-gradient(180deg, color-mix(in oklch, white 62%, transparent), transparent),
+    color-mix(in oklch, var(--phase-accent) 9%, var(--bg-elev));
+  color: var(--phase-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, white 36%, transparent);
   transition: all 200ms var(--ease-out);
 }
 .scanning-phase.done .scanning-phase-bullet {
@@ -1293,60 +1346,100 @@
   color: white;
 }
 .scanning-phase.on .scanning-phase-bullet {
-  color: var(--accent);
+  color: var(--accent-fg);
   border-color: var(--accent);
+  background: var(--accent);
+  box-shadow:
+    0 0 0 4px color-mix(in oklch, var(--accent) 15%, transparent),
+    inset 0 1px 0 color-mix(in oklch, white 34%, transparent);
 }
 .scanning-phase.failed .scanning-phase-bullet {
-  color: var(--sev-critical);
+  color: white;
   border-color: var(--sev-critical);
+  background: var(--sev-critical);
 }
 .scanning-phase-body {
   min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 .scanning-phase-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 .scanning-phase-t {
   min-width: 0;
-  font-size: 13.5px;
-  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1.28;
 }
+.scanning-phase-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.scanning-phase-status,
 .scanning-phase-percent {
-  padding: 2px 5px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
-  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in oklch, var(--phase-accent) 38%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--phase-accent) 10%, var(--bg-elev));
+  color: color-mix(in oklch, var(--phase-accent) 80%, var(--text));
   font: 600 10px/1 var(--font-mono);
+  text-transform: uppercase;
+}
+.scanning-phase-percent {
   font-variant-numeric: tabular-nums;
 }
+.scanning-phase-progress {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--border) 72%, transparent);
+}
+.scanning-phase-progress span {
+  display: block;
+  width: var(--phase-progress, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--phase-accent),
+    color-mix(in oklch, var(--phase-accent) 74%, white 26%)
+  );
+}
 .scanning-phase-d {
-  min-height: 30px;
-  font-size: 11.5px;
-  line-height: 1.35;
-  color: var(--text-3);
+  min-height: 34px;
+  font-size: 12px;
+  line-height: 1.42;
+  color: var(--text-2);
   margin-top: 0;
 }
 .scanning-phase-meta {
   margin-top: 2px;
-  padding: 6px 7px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  padding: 7px 8px;
+  border: 1px solid color-mix(in oklch, var(--phase-accent) 22%, var(--border));
+  border-radius: 7px;
+  background: color-mix(in oklch, var(--bg) 86%, var(--phase-accent) 8%);
   font: 10.5px/1.45 var(--font-mono);
-  color: var(--text-3);
+  color: var(--text-2);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 .scanning-phase-error {
   margin-top: 2px;
-  padding: 6px 7px;
+  padding: 7px 8px;
   border: 1px solid color-mix(in oklch, var(--sev-critical) 40%, var(--border));
+  border-radius: 7px;
   background: color-mix(in oklch, var(--sev-critical) 7%, var(--bg));
   color: var(--sev-critical);
   display: grid;
@@ -1369,23 +1462,35 @@
 }
 .scanning-flow-edge {
   position: relative;
-  width: 74px;
-  height: 2px;
-  flex: 0 0 74px;
-  background: var(--border);
+  width: 82px;
+  height: 3px;
+  flex: 0 0 82px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--border-strong) 80%, transparent),
+      color-mix(in oklch, var(--border) 72%, transparent)
+    );
 }
 .scanning-flow-edge span {
   position: absolute;
   right: -1px;
   top: 50%;
-  width: 7px;
-  height: 7px;
-  border-right: 2px solid var(--border-strong);
-  border-top: 2px solid var(--border-strong);
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid color-mix(in oklch, var(--border-strong) 82%, transparent);
+  border-top: 2px solid color-mix(in oklch, var(--border-strong) 82%, transparent);
   transform: translateY(-50%) rotate(45deg);
 }
 .scanning-flow-edge.done {
-  background: color-mix(in oklch, var(--accent) 70%, var(--border));
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--accent) 82%, var(--border)),
+      color-mix(in oklch, var(--accent) 42%, var(--border))
+    );
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 8%, transparent);
 }
 .scanning-flow-edge.done span {
   border-color: var(--accent);
