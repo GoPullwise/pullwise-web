@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n.jsx";
@@ -1909,7 +1909,9 @@ describe("ScanningScreen queue state", () => {
         clientX: 150,
         clientY: 120,
       });
-      viewport.dispatchEvent(wheelEvent);
+      act(() => {
+        viewport.dispatchEvent(wheelEvent);
+      });
       expect(wheelEvent.defaultPrevented).toBe(true);
       expect(track).toHaveStyle("transform: translate(-21px, -16.8px) scale(1.14)");
 

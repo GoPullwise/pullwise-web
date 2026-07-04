@@ -119,7 +119,6 @@ function SearchModal({ close, go, setIssue }) {
     { k: "repos", t: T("Repositories", "仓库"), i: <I.Folder size={14} /> },
     { k: "history", t: T("Scan history", "扫描历史"), i: <I.Clock size={14} /> },
     { k: "apiKeys", t: T("API Keys", "API Keys"), i: <I.Code size={14} /> },
-    { k: "privateWorkers", t: T("Private workers", "私有 Worker"), i: <I.Terminal size={14} /> },
     { k: "billing", t: T("Billing", "支付"), i: <I.Package size={14} /> },
     { k: "pricing", t: T("Pricing", "Pricing"), i: <I.Trend size={14} /> },
     { k: "api", t: T("API docs", "API docs"), i: <I.FileCode size={14} /> },
@@ -300,7 +299,6 @@ export function Sidebar({ section, go }) {
       badge: scanCount || null,
     },
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} />, badge: null },
-    { k: "privateWorkers", label: T("Private workers", "私有 Worker"), icon: <I.Terminal size={15} />, badge: null },
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} />, badge: null },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];

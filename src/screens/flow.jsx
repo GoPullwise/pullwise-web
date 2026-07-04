@@ -709,20 +709,20 @@ function hasRawPreflightEvidence(preflight) {
   const environment = preflight.environment || {};
   return Boolean(
     preflight.summary ||
-      preflight.execution ||
-      preflight.mode ||
-      preflight.repositoryStats ||
-      preflight.repositoryLimits ||
-      preflight.repositoryLimitExceeded ||
-      preflight.repositoryLimitReasons?.length ||
-      preflight.packageManagers?.length ||
-      preflight.languages?.length ||
-      preflight.availableScripts?.length ||
-      preflight.manifests?.length ||
-      preflight.toolVersions?.length ||
-      environment.os ||
-      environment.osRelease ||
-      environment.machine
+    preflight.execution ||
+    preflight.mode ||
+    preflight.repositoryStats ||
+    preflight.repositoryLimits ||
+    preflight.repositoryLimitExceeded ||
+    preflight.repositoryLimitReasons?.length ||
+    preflight.packageManagers?.length ||
+    preflight.languages?.length ||
+    preflight.availableScripts?.length ||
+    preflight.manifests?.length ||
+    preflight.toolVersions?.length ||
+    environment.os ||
+    environment.osRelease ||
+    environment.machine
   );
 }
 
@@ -775,15 +775,15 @@ function hasScanPreflightEvidence(preflight) {
   if (!preflight) return false;
   return Boolean(
     preflight.summary ||
-      preflight.execution ||
-      preflight.mode ||
-      preflight.packageManagers?.length ||
-      preflight.languages?.length ||
-      preflight.availableScripts?.length ||
-      preflight.manifestsCount > 0 ||
-      preflight.toolCount > 0 ||
-      preflight.environmentLabels?.length ||
-      hasRepositoryLimitEvidence(preflight)
+    preflight.execution ||
+    preflight.mode ||
+    preflight.packageManagers?.length ||
+    preflight.languages?.length ||
+    preflight.availableScripts?.length ||
+    preflight.manifestsCount > 0 ||
+    preflight.toolCount > 0 ||
+    preflight.environmentLabels?.length ||
+    hasRepositoryLimitEvidence(preflight)
   );
 }
 

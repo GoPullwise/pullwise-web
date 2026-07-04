@@ -1260,7 +1260,6 @@
 }
 .scanning-phase {
   --phase-accent: var(--text-4);
-  --phase-accent-soft: color-mix(in oklch, var(--phase-accent) 9%, transparent);
   --phase-accent-line: color-mix(in oklch, var(--phase-accent) 46%, var(--border));
   --phase-surface: color-mix(in oklch, var(--bg-elev) 96%, var(--phase-accent) 4%);
   position: relative;
@@ -1275,7 +1274,11 @@
   border: 1px solid var(--phase-accent-line);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, color-mix(in oklch, var(--phase-accent) 8%, transparent), transparent 46px),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--phase-accent) 8%, transparent),
+      transparent 46px
+    ),
     linear-gradient(180deg, var(--phase-surface), var(--bg-elev));
   color: var(--text-3);
   box-shadow:
@@ -1308,7 +1311,6 @@
 }
 .scanning-phase.on {
   --phase-accent: var(--accent);
-  --phase-accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
   transform: translateY(-2px);
   color: var(--text);
   box-shadow:
@@ -1322,7 +1324,6 @@
 }
 .scanning-phase.failed {
   --phase-accent: var(--sev-critical);
-  --phase-accent-soft: color-mix(in oklch, var(--sev-critical) 13%, transparent);
   color: var(--text);
 }
 .scanning-phase-bullet {
@@ -1466,12 +1467,11 @@
   height: 3px;
   flex: 0 0 82px;
   border-radius: 999px;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in oklch, var(--border-strong) 80%, transparent),
-      color-mix(in oklch, var(--border) 72%, transparent)
-    );
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--border-strong) 80%, transparent),
+    color-mix(in oklch, var(--border) 72%, transparent)
+  );
 }
 .scanning-flow-edge span {
   position: absolute;
@@ -1484,12 +1484,11 @@
   transform: translateY(-50%) rotate(45deg);
 }
 .scanning-flow-edge.done {
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in oklch, var(--accent) 82%, var(--border)),
-      color-mix(in oklch, var(--accent) 42%, var(--border))
-    );
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--accent) 82%, var(--border)),
+    color-mix(in oklch, var(--accent) 42%, var(--border))
+  );
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 8%, transparent);
 }
 .scanning-flow-edge.done span {

@@ -65,9 +65,9 @@ describe("dashboard routes", () => {
     expect(screenFromPath("/dashboard")).toBe("dashboard");
   });
 
-  it("routes private worker management as an account dashboard tab", () => {
-    expect(pathFromScreen("privateWorkers")).toBe("/private-workers");
-    expect(screenFromPath("/private-workers")).toBe("privateWorkers");
+  it("does not expose private worker management", () => {
+    expect(pathFromScreen("privateWorkers")).toBe("/404");
+    expect(screenFromPath("/private-workers")).toBeNull();
   });
 });
 

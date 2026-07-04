@@ -9,7 +9,6 @@ const SCREEN_TO_PATH = {
   issue: "/issues/detail",
   history: "/history",
   apiKeys: "/api-keys",
-  privateWorkers: "/private-workers",
   settings: "/settings",
   billing: "/billing",
   pricing: "/pricing",

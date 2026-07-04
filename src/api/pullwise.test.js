@@ -55,11 +55,6 @@ describe("pullwiseApi issue fix endpoints", () => {
       githubIdentityId: "ghi_1",
     });
     await pullwiseApi.apiKeys.revoke("key/with spaces#1");
-    await pullwiseApi.privateWorkers.update("worker/with spaces#1", { name: "Lab" });
-    await pullwiseApi.privateWorkers.enable("worker/with spaces#1");
-    await pullwiseApi.privateWorkers.disable("worker/with spaces#1");
-    await pullwiseApi.privateWorkers.rotateToken("worker/with spaces#1");
-    await pullwiseApi.privateWorkers.delete("worker/with spaces#1");
     await pullwiseApi.repositories.branches("repo/with spaces#1");
 
     expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231");
@@ -100,23 +95,7 @@ describe("pullwiseApi issue fix endpoints", () => {
     expect(request).toHaveBeenNthCalledWith(12, "/api-keys/key%2Fwith%20spaces%231", {
       method: "DELETE",
     });
-    expect(request).toHaveBeenNthCalledWith(13, "/private-workers/worker%2Fwith%20spaces%231", {
-      method: "PATCH",
-      body: { name: "Lab" },
-    });
-    expect(request).toHaveBeenNthCalledWith(14, "/private-workers/worker%2Fwith%20spaces%231/enable", {
-      method: "POST",
-    });
-    expect(request).toHaveBeenNthCalledWith(15, "/private-workers/worker%2Fwith%20spaces%231/disable", {
-      method: "POST",
-    });
-    expect(request).toHaveBeenNthCalledWith(16, "/private-workers/worker%2Fwith%20spaces%231/rotate-token", {
-      method: "POST",
-    });
-    expect(request).toHaveBeenNthCalledWith(17, "/private-workers/worker%2Fwith%20spaces%231", {
-      method: "DELETE",
-    });
-    expect(request).toHaveBeenNthCalledWith(18, "/repositories/repo%2Fwith%20spaces%231/branches");
+    expect(request).toHaveBeenNthCalledWith(13, "/repositories/repo%2Fwith%20spaces%231/branches");
   });
 
   it("calls API key endpoints", async () => {
@@ -139,19 +118,6 @@ describe("pullwiseApi issue fix endpoints", () => {
         expiresInSeconds: 15 * 60,
         restrictions: { kind: "audit_bundle", scanId: "sc_1", repoId: "repo_1" },
       },
-    });
-  });
-
-  it("calls private worker collection endpoints", async () => {
-    request.mockResolvedValue({});
-
-    await pullwiseApi.privateWorkers.list();
-    await pullwiseApi.privateWorkers.create({ name: "Lab" });
-
-    expect(request).toHaveBeenNthCalledWith(1, "/private-workers");
-    expect(request).toHaveBeenNthCalledWith(2, "/private-workers", {
-      method: "POST",
-      body: { name: "Lab" },
     });
   });
 
@@ -204,11 +170,6 @@ describe("pullwiseApi issue fix endpoints", () => {
       /path segment/i
     );
     expect(() => pullwiseApi.apiKeys.revoke("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.privateWorkers.update("", {})).toThrow(/path segment/i);
-    expect(() => pullwiseApi.privateWorkers.enable("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.privateWorkers.disable("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.privateWorkers.rotateToken("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.privateWorkers.delete("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.repositories.branches("")).toThrow(/path segment/i);
 
     expect(request).not.toHaveBeenCalled();

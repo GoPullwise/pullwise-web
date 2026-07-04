@@ -128,18 +128,6 @@ export const pullwiseApi = {
     revoke: (keyId) => request(`/api-keys/${pathSegment(keyId)}`, { method: "DELETE" }),
   },
 
-  privateWorkers: {
-    list: () => request("/private-workers"),
-    create: (payload = {}) => request("/private-workers", { method: "POST", body: payload }),
-    update: (workerId, payload = {}) =>
-      request(`/private-workers/${pathSegment(workerId)}`, { method: "PATCH", body: payload }),
-    enable: (workerId) => request(`/private-workers/${pathSegment(workerId)}/enable`, { method: "POST" }),
-    disable: (workerId) => request(`/private-workers/${pathSegment(workerId)}/disable`, { method: "POST" }),
-    rotateToken: (workerId) =>
-      request(`/private-workers/${pathSegment(workerId)}/rotate-token`, { method: "POST" }),
-    delete: (workerId) => request(`/private-workers/${pathSegment(workerId)}`, { method: "DELETE" }),
-  },
-
   docs: {
     getSubscriptionPlanConfigs: (options = {}) =>
       request("/docs/subscription-plans", { signal: options.signal }),
