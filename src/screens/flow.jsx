@@ -2201,40 +2201,24 @@ function ScanProgressFlow({
     if (!viewportRect.width || !targetRect.width) return;
 
     const phaseKey = currentPhase || target.getAttribute("data-phase-id") || "";
-    const shouldCenter = phaseKey && focusedPhaseRef.current !== phaseKey;
-    const margin = 24;
+    const focusKey = `${phaseKey}:${phaseIdx}`;
+    if (!phaseKey || focusedPhaseRef.current === focusKey) return;
+
     const viewportCenterX = viewportRect.left + viewportRect.width / 2;
     const viewportCenterY = viewportRect.top + viewportRect.height / 2;
     const targetCenterX = targetRect.left + targetRect.width / 2;
     const targetCenterY = targetRect.top + targetRect.height / 2;
-    let deltaX = 0;
-    let deltaY = 0;
+    const deltaX = viewportCenterX - targetCenterX;
+    const deltaY = viewportCenterY - targetCenterY;
 
-    if (shouldCenter) {
-      deltaX = viewportCenterX - targetCenterX;
-      deltaY = viewportCenterY - targetCenterY;
-    } else if (targetRect.left < viewportRect.left + margin) {
-      deltaX = viewportRect.left + margin - targetRect.left;
-    } else if (targetRect.right > viewportRect.right - margin) {
-      deltaX = viewportRect.right - margin - targetRect.right;
-    }
-
-    if (!shouldCenter) {
-      if (targetRect.top < viewportRect.top + margin) {
-        deltaY = viewportRect.top + margin - targetRect.top;
-      } else if (targetRect.bottom > viewportRect.bottom - margin) {
-        deltaY = viewportRect.bottom - margin - targetRect.bottom;
-      }
-    }
-
-    focusedPhaseRef.current = phaseKey;
+    focusedPhaseRef.current = focusKey;
     if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
     setView((current) => ({
       ...current,
       x: Math.round((current.x + deltaX) * 100) / 100,
       y: Math.round((current.y + deltaY) * 100) / 100,
     }));
-  }, [currentPhase, phaseIdx, steps, view.scale]);
+  }, [currentPhase, phaseIdx]);
 
   return (
     <div className="scanning-flow" aria-label={T("Worker progress flow", "Worker progress flow")}>

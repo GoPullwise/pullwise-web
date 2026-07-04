@@ -1744,6 +1744,98 @@ describe("ScanningScreen queue state", () => {
     }
   });
 
+  it("does not refocus the progress flow on same-phase detail refreshes", () => {
+    const rect = (left, top, width, height) => ({
+      left,
+      top,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+      x: left,
+      y: top,
+      toJSON: () => ({}),
+    });
+    const originalRect = Element.prototype.getBoundingClientRect;
+    const rectSpy = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function () {
+        if (this.classList?.contains("scanning-flow-viewport")) return rect(0, 0, 300, 264);
+        if (this.getAttribute?.("data-flow-current") === "true") return rect(500, 60, 244, 136);
+        return originalRect.call(this);
+      });
+    const cancel = vi.fn();
+    let scan = {
+      id: "sc_running",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "pending",
+      status: "running",
+      phase: "publish",
+      progress: 80,
+      progressSteps: [
+        { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+        { id: "review", label: "Review", status: "completed", percent: 100 },
+        { id: "publish", label: "Publish", status: "running", percent: 80 },
+        { id: "report", label: "Report", status: "pending", percent: 0 },
+      ],
+    };
+    useScanRun.mockImplementation(() => ({
+      scan,
+      error: "",
+      cancel,
+    }));
+
+    try {
+      const scanScreen = (
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      );
+      const { rerender } = render(scanScreen);
+      const viewport = document.querySelector(".scanning-flow-viewport");
+      const track = document.querySelector(".scanning-flow-track");
+
+      expect(track).toHaveStyle("transform: translate(-472px, 4px) scale(1)");
+
+      fireEvent.pointerDown(viewport, { button: 0, pointerId: 1, clientX: 10, clientY: 10 });
+      fireEvent.pointerMove(viewport, { pointerId: 1, clientX: 60, clientY: 30 });
+      fireEvent.pointerUp(viewport, { pointerId: 1, clientX: 60, clientY: 30 });
+      expect(track).toHaveStyle("transform: translate(-422px, 24px) scale(1)");
+
+      scan = {
+        ...scan,
+        progress: 81,
+        progressMessage: "Publishing updated artifact manifest",
+        progressSteps: [
+          { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+          { id: "review", label: "Review", status: "completed", percent: 100 },
+          { id: "publish", label: "Publish", status: "running", percent: 81 },
+          { id: "report", label: "Report", status: "pending", percent: 0 },
+        ],
+      };
+      rerender(scanScreen);
+      expect(track).toHaveStyle("transform: translate(-422px, 24px) scale(1)");
+
+      scan = {
+        ...scan,
+        phase: "report",
+        progress: 90,
+        progressSteps: [
+          { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+          { id: "review", label: "Review", status: "completed", percent: 100 },
+          { id: "publish", label: "Publish", status: "completed", percent: 100 },
+          { id: "report", label: "Report", status: "running", percent: 90 },
+        ],
+      };
+      rerender(scanScreen);
+      expect(track).toHaveStyle("transform: translate(-894px, 28px) scale(1)");
+    } finally {
+      rectSpy.mockRestore();
+    }
+  });
+
   it("does not duplicate live log rows when scan details rerender without new progress", () => {
     const logTimestamp = 1700000000;
     const liveLogLine = `[${new Date(logTimestamp * 1000).toLocaleTimeString()}] Worker AI - Repo map: mapping shards 12/80`;
