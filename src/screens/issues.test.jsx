@@ -1165,7 +1165,7 @@ describe("HistoryScreen queue state", () => {
     render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
     expect(screen.queryByText(/confirmed issue f_123 with review evidence/i)).not.toBeInTheDocument();
   });
-  it("downloads worker debug bundles from completed scan rows", async () => {
+  it("downloads worker debug bundles from failed scan rows", async () => {
     const user = userEvent.setup();
     const createObjectURL = vi.fn(() => "blob:pullwise-debug");
     const revokeObjectURL = vi.fn();
@@ -1182,11 +1182,11 @@ describe("HistoryScreen queue state", () => {
     useScans.mockReturnValue({
       items: [
         {
-          id: "sc_done",
+          id: "sc_failed",
           repo: "octocat/private-repo",
           branch: "main",
           commit: "abc123",
-          status: "done",
+          status: "failed",
           time: "now",
           by: "you",
           debugBundleUrl: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle",
