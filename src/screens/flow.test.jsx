@@ -54,6 +54,21 @@ import { useRepositories, useScanBatchRun, useScanRun } from "../lib/pullwise-da
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
 import { pullwiseApi } from "../api/pullwise.js";
 
+function firePointerEvent(target, type, options = {}) {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    button: options.button ?? 0,
+    clientX: options.clientX ?? 0,
+    clientY: options.clientY ?? 0,
+  });
+  Object.defineProperty(event, "pointerId", {
+    configurable: true,
+    value: options.pointerId ?? 1,
+  });
+  fireEvent(target, event);
+}
+
 const repoAlpha = {
   id: "repo_alpha",
   name: "alpha",
@@ -1835,21 +1850,27 @@ describe("ScanningScreen queue state", () => {
     }));
 
     try {
-      const scanScreen = (
+      const scanScreen = () => (
         <ScanningScreen
           go={vi.fn()}
           activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
         />
       );
-      const { rerender } = render(scanScreen);
+      const { rerender } = render(scanScreen());
       const viewport = document.querySelector(".scanning-flow-viewport");
       const track = document.querySelector(".scanning-flow-track");
 
       expect(track).toHaveStyle("transform: translate(-472px, 4px) scale(1)");
 
-      fireEvent.pointerDown(viewport, { button: 0, pointerId: 1, clientX: 10, clientY: 10 });
-      fireEvent.pointerMove(viewport, { pointerId: 1, clientX: 60, clientY: 30 });
-      fireEvent.pointerUp(viewport, { pointerId: 1, clientX: 60, clientY: 30 });
+      firePointerEvent(viewport, "pointerdown", {
+        button: 0,
+        pointerId: 1,
+        clientX: 10,
+        clientY: 10,
+      });
+      firePointerEvent(viewport, "pointermove", { pointerId: 1, clientX: 60, clientY: 30 });
+      firePointerEvent(viewport, "pointerup", { pointerId: 1, clientX: 60, clientY: 30 });
+      fireEvent.pointerUp(viewport, { pointerId: 1 });
       expect(track).toHaveStyle("transform: translate(-422px, 24px) scale(1)");
 
       scan = {
@@ -1863,7 +1884,7 @@ describe("ScanningScreen queue state", () => {
           { id: "report", label: "Report", status: "pending", percent: 0 },
         ],
       };
-      rerender(scanScreen);
+      rerender(scanScreen());
       expect(track).toHaveStyle("transform: translate(-422px, 24px) scale(1)");
 
       scan = {
@@ -1877,7 +1898,7 @@ describe("ScanningScreen queue state", () => {
           { id: "report", label: "Report", status: "running", percent: 90 },
         ],
       };
-      rerender(scanScreen);
+      rerender(scanScreen());
       expect(track).toHaveStyle("transform: translate(-894px, 28px) scale(1)");
     } finally {
       rectSpy.mockRestore();
