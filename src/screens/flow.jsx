@@ -2084,6 +2084,14 @@ function clampFlowZoom(value) {
   return Math.max(FLOW_ZOOM_MIN, Math.min(FLOW_ZOOM_MAX, Math.round(number * 100) / 100));
 }
 
+function pointerEventCoordinate(event, key) {
+  for (const value of [event?.[key], event?.nativeEvent?.[key]]) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return 0;
+}
+
 function cleanStepErrorMessage(value) {
   return String(value || "")
     .replaceAll("\x00", "")
@@ -2172,10 +2180,10 @@ function ScanProgressFlow({
       if (event.target?.closest?.("button,a,input,textarea,select")) return;
       dragRef.current = {
         pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        x: view.x,
-        y: view.y,
+        startX: pointerEventCoordinate(event, "clientX"),
+        startY: pointerEventCoordinate(event, "clientY"),
+        x: Number.isFinite(Number(view.x)) ? Number(view.x) : 0,
+        y: Number.isFinite(Number(view.y)) ? Number(view.y) : 0,
       };
       event.currentTarget.setPointerCapture?.(event.pointerId);
     },
@@ -2185,10 +2193,12 @@ function ScanProgressFlow({
   const handlePointerMove = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
+    const clientX = pointerEventCoordinate(event, "clientX");
+    const clientY = pointerEventCoordinate(event, "clientY");
     setView((current) => ({
       ...current,
-      x: drag.x + event.clientX - drag.startX,
-      y: drag.y + event.clientY - drag.startY,
+      x: drag.x + clientX - drag.startX,
+      y: drag.y + clientY - drag.startY,
     }));
   }, []);
 
