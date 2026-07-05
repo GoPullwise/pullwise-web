@@ -2261,6 +2261,7 @@ function ScanProgressFlow({
         >
           {steps.map((p, i) => {
             const stepStatus = String(p.status || "").toLowerCase();
+            const isPartial = stepStatus === "partial_completed";
             const isDone =
               ["completed", "skipped"].includes(stepStatus) ||
               (phaseIdx > i && stepStatus !== "failed");
@@ -2272,13 +2273,14 @@ function ScanProgressFlow({
               isDone ? "done" : "",
               isOn ? "on" : "",
               isFailed ? "failed" : "",
+              isPartial ? "partial" : "",
               stepError ? "errored" : "",
             ]
               .filter(Boolean)
               .join(" ");
             const bullet = isDone ? (
               <I.Check size={11} />
-            ) : isFailed || stepError ? (
+            ) : isFailed || isPartial || stepError ? (
               <I.X size={11} />
             ) : isOn ? (
               <span className="pulse scanning-flow-pulse" />
@@ -2292,11 +2294,13 @@ function ScanProgressFlow({
               ? T("Failed", "失败")
               : stepError
                 ? T("Error", "错误")
-                : isOn
-                  ? T("Running", "运行中")
-                  : isDone
-                    ? T("Complete", "已完成")
-                    : T("Queued", "排队中");
+                : isPartial
+                  ? T("Partially completed", "部分完成")
+                  : isOn
+                    ? T("Running", "运行中")
+                    : isDone
+                      ? T("Complete", "已完成")
+                      : T("Queued", "排队中");
             const key = p.id || `${label}-${i}`;
             return (
               <div className="scanning-flow-step" key={key}>

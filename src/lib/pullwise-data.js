@@ -951,7 +951,15 @@ function normalizeProgressStepId(value) {
 
 function normalizeProgressStepStatus(value) {
   const status = textValue(value).toLowerCase();
-  return ["pending", "running", "completed", "skipped", "failed", "cancelled"].includes(status)
+  return [
+    "pending",
+    "running",
+    "completed",
+    "skipped",
+    "failed",
+    "cancelled",
+    "partial_completed",
+  ].includes(status)
     ? status
     : "pending";
 }
