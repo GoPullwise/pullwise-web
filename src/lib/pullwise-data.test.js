@@ -1639,10 +1639,18 @@ describe("normalizeIssue", () => {
   });
 
   it("preserves partial completed scans as result-bearing terminal scans", () => {
-    const scan = normalizeScan({ id: "sc_partial", status: "partial_completed", progress: 87 });
+    const scan = normalizeScan({
+      id: "sc_partial",
+      status: "partial_completed",
+      progress: 87,
+      progressSteps: [
+        { id: "qa_gate", label: "QA gate", status: "partial_completed", percent: 100 },
+      ],
+    });
 
     expect(scan.status).toBe("partial_completed");
     expect(isTerminalScan(scan)).toBe(true);
+    expect(scan.progressSteps[0].status).toBe("partial_completed");
   });
 
   it("infers terminal scan status from terminal review run payloads", () => {

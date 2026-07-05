@@ -1697,6 +1697,45 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
+  it("shows partial completed progress nodes without downgrading them to queued", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_partial",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "partial_completed",
+        phase: "qa_gate",
+        progress: 99,
+        progressSteps: [
+          {
+            id: "render_markdown_report",
+            label: "Render markdown report",
+            status: "completed",
+            percent: 100,
+          },
+          { id: "qa_gate", label: "QA gate", status: "partial_completed", percent: 100 },
+          { id: "hash_artifacts", label: "Hash artifacts", status: "pending", percent: 0 },
+        ],
+      },
+      error: "",
+      retry: vi.fn(),
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    const qaNode = screen.getByText("QA gate").closest(".scanning-phase");
+    expect(qaNode).toHaveClass("partial");
+    expect(within(qaNode).getByText("Partially completed")).toBeInTheDocument();
+    expect(within(qaNode).queryByText("Queued")).not.toBeInTheDocument();
+  });
+
   it("keeps the active progress phase focused inside the flow viewport", () => {
     const rect = (left, top, width, height) => ({
       left,
