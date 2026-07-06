@@ -174,31 +174,38 @@ function ReviewRunSummary({ reviewRun }) {
         </div>
       ) : null}
       {artifacts.length > 0 && (
-        <div className="review-run-artifacts" aria-label={T("Review artifacts", "审查产物")}>
-          {artifacts.slice(0, 8).map((artifact) => {
-            const href = reviewRunArtifactHref(artifact.storage);
-            const title = artifact.name || artifact.kind || artifact.artifactId;
-            return (
-              <div className="review-run-artifact" key={artifact.artifactId || title}>
-                <div className="review-run-artifact-main">
-                  <I.FileCode size={14} />
-                  {href ? (
-                    <a href={href} target="_blank" rel="noreferrer">
-                      {title}
-                    </a>
-                  ) : (
-                    <span>{title}</span>
-                  )}
+        <details className="review-run-artifacts" aria-label={T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}>
+          <summary className="btn sm ghost">
+            <I.Archive size={14} />
+            <span>{T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}</span>
+            <span className="tag">{formatCount(artifacts.length)}</span>
+          </summary>
+          <div className="review-run-artifact-menu">
+            {artifacts.map((artifact) => {
+              const href = reviewRunArtifactHref(artifact.storage);
+              const title = artifact.name || artifact.kind || artifact.artifactId;
+              return (
+                <div className="review-run-artifact" key={artifact.artifactId || title}>
+                  <div className="review-run-artifact-main">
+                    <I.FileCode size={14} />
+                    {href ? (
+                      <a href={href} target="_blank" rel="noreferrer">
+                        {title}
+                      </a>
+                    ) : (
+                      <span>{title}</span>
+                    )}
+                  </div>
+                  <div className="review-run-artifact-meta">
+                    {artifact.kind && <span>{artifact.kind}</span>}
+                    {artifact.sizeBytes > 0 && <span>{formatBytes(artifact.sizeBytes)}</span>}
+                    {artifact.required && <span>{T("required", "\u5fc5\u9700")}</span>}
+                  </div>
                 </div>
-                <div className="review-run-artifact-meta">
-                  {artifact.kind && <span>{artifact.kind}</span>}
-                  {artifact.sizeBytes > 0 && <span>{formatBytes(artifact.sizeBytes)}</span>}
-                  {artifact.required && <span>{T("required", "必需")}</span>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </details>
       )}
     </div>
   );

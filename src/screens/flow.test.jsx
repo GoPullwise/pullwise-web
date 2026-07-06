@@ -1131,6 +1131,12 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("complete")).toBeInTheDocument();
 
     const artifacts = screen.getByLabelText("Review artifacts");
+    expect(artifacts).not.toHaveAttribute("open");
+    const artifactSummary = within(artifacts).getByText("Review artifacts").closest("summary");
+    expect(artifactSummary).not.toBeNull();
+    fireEvent.click(artifactSummary);
+    expect(artifacts).toHaveAttribute("open");
+
     const reportLink = within(artifacts).getByRole("link", { name: "report.agent.json" });
     expect(reportLink).toHaveAttribute(
       "href",
