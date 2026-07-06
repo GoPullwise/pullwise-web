@@ -191,6 +191,13 @@ function reviewRunArtifactHref(storage) {
   return `${base}/${url.replace(/^\/+/, "")}`;
 }
 
+function reviewRunDebugBundleArtifact(artifacts) {
+  return artifacts.find((artifact) => {
+    if (!artifact || typeof artifact !== "object") return false;
+    return artifact.kind === "debug_bundle" || artifact.name === "debug-bundle.zip";
+  });
+}
+
 function reviewRunStatusLabel(status) {
   switch (status) {
     case "completed":
@@ -234,6 +241,11 @@ function informativeSummaryTag(value, hiddenValues = []) {
 function ReviewRunSummary({ reviewRun }) {
   if (!reviewRun || typeof reviewRun !== "object") return null;
   const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
+  const debugBundleArtifact = reviewRunDebugBundleArtifact(artifacts);
+  const debugBundleHref =
+    reviewRunArtifactHref(debugBundleArtifact?.storage) ||
+    reviewRunArtifactHref({ url: reviewRun.debugBundleUrl });
+  const debugBundleTitle = debugBundleArtifact?.name || "debug-bundle.zip";
   const summary =
     reviewRun.summary && typeof reviewRun.summary === "object" ? reviewRun.summary : {};
   const qualityGate =
@@ -288,42 +300,25 @@ function ReviewRunSummary({ reviewRun }) {
           )}
         </div>
       ) : null}
-      {artifacts.length > 0 && (
-        <details
-          className="review-run-artifacts"
-          aria-label={T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}
-        >
-          <summary className="btn sm ghost">
-            <I.Archive size={14} />
-            <span>{T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}</span>
-            <span className="tag">{formatCount(artifacts.length)}</span>
-          </summary>
+      {debugBundleHref && (
+        <div className="review-run-artifacts" aria-label={T("Debug bundle", "Debug bundle")}>
           <div className="review-run-artifact-menu">
-            {artifacts.map((artifact) => {
-              const href = reviewRunArtifactHref(artifact.storage);
-              const title = artifact.name || artifact.kind || artifact.artifactId;
-              return (
-                <div className="review-run-artifact" key={artifact.artifactId || title}>
-                  <div className="review-run-artifact-main">
-                    <I.FileCode size={14} />
-                    {href ? (
-                      <a href={href} target="_blank" rel="noreferrer">
-                        {title}
-                      </a>
-                    ) : (
-                      <span>{title}</span>
-                    )}
-                  </div>
-                  <div className="review-run-artifact-meta">
-                    {artifact.kind && <span>{artifact.kind}</span>}
-                    {artifact.sizeBytes > 0 && <span>{formatBytes(artifact.sizeBytes)}</span>}
-                    {artifact.required && <span>{T("required", "\u5fc5\u9700")}</span>}
-                  </div>
-                </div>
-              );
-            })}
+            <div className="review-run-artifact">
+              <div className="review-run-artifact-main">
+                <I.Archive size={14} />
+                <a href={debugBundleHref} target="_blank" rel="noreferrer">
+                  {debugBundleTitle}
+                </a>
+              </div>
+              <div className="review-run-artifact-meta">
+                <span>{T("debug bundle", "debug bundle")}</span>
+                {debugBundleArtifact?.sizeBytes > 0 && (
+                  <span>{formatBytes(debugBundleArtifact.sizeBytes)}</span>
+                )}
+              </div>
+            </div>
           </div>
-        </details>
+        </div>
       )}
     </div>
   );

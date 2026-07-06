@@ -1057,7 +1057,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText("168 tokens")).not.toBeInTheDocument();
   });
 
-  it("renders server review run artifacts for a completed scan", () => {
+  it("renders only the debug bundle download for completed scan artifacts", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -1072,7 +1072,8 @@ describe("ScanningScreen queue state", () => {
           runId: "run_job_1",
           status: "completed",
           resultStatus: "done",
-          artifactCount: 2,
+          artifactCount: 3,
+          debugBundleUrl: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle",
           qualityGate: { status: "pass" },
           progress: { overall_percent: 100 },
           summary: {
@@ -1105,6 +1106,18 @@ describe("ScanningScreen queue state", () => {
                 url: "/v1/review-runs/run_job_1/artifacts/art_worker_log",
               },
             },
+            {
+              artifactId: "art_debug_bundle",
+              name: "debug-bundle.zip",
+              kind: "debug_bundle",
+              mediaType: "application/zip",
+              sizeBytes: 512,
+              required: false,
+              storage: {
+                type: "server_artifact",
+                url: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle",
+              },
+            },
           ],
         },
       },
@@ -1130,22 +1143,16 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("medium")).toBeInTheDocument();
     expect(screen.queryByText("complete")).not.toBeInTheDocument();
 
-    const artifacts = screen.getByLabelText("Review artifacts");
-    expect(artifacts).not.toHaveAttribute("open");
-    const artifactSummary = within(artifacts).getByText("Review artifacts").closest("summary");
-    expect(artifactSummary).not.toBeNull();
-    fireEvent.click(artifactSummary);
-    expect(artifacts).toHaveAttribute("open");
-
-    const reportLink = within(artifacts).getByRole("link", { name: "report.agent.json" });
-    expect(reportLink).toHaveAttribute(
+    const debugBundle = screen.getByLabelText("Debug bundle");
+    const debugBundleLink = within(debugBundle).getByRole("link", { name: "debug-bundle.zip" });
+    expect(debugBundleLink).toHaveAttribute(
       "href",
-      "/v1/review-runs/run_job_1/artifacts/art_report_agent"
+      "/v1/review-runs/run_job_1/artifacts/art_debug_bundle"
     );
-    expect(within(artifacts).getByText("report.agent")).toBeInTheDocument();
-    expect(within(artifacts).getByText("worker.log.jsonl")).toBeInTheDocument();
-    expect(within(artifacts).getByText("worker_log")).toBeInTheDocument();
-    expect(within(artifacts).getByText("required")).toBeInTheDocument();
+    expect(within(debugBundle).getByText("debug bundle")).toBeInTheDocument();
+    expect(within(debugBundle).getByText("512 B")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "report.agent.json" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "worker.log.jsonl" })).not.toBeInTheDocument();
   });
 
   it("hides uninformative review run summary tags", () => {
