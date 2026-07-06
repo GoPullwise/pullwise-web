@@ -123,7 +123,7 @@ function scanHasResults(scan) {
 function scanHistorySummary(scan) {
   const queueSummary = scanQueueSummary(scan);
   if (scan.status === "queued" && queueSummary) {
-    return [T("queued", "排队中"), ...queueSummary.tags].join(" - ");
+    return [T("queued", "排队�?), ...queueSummary.tags].join(" - ");
   }
   if (scan.status === "partial_completed") {
     const total = issueTotal(scan);
@@ -131,7 +131,7 @@ function scanHistorySummary(scan) {
       ? T(`Partial result - ${total} confirmed`, `部分结果 - ${total} confirmed`)
       : T("Partial result available", "部分结果可用");
   }
-  if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取消");
+  if (scan.status === "cancelled") return T("Scan cancelled", "扫描已取�?);
   if (scan.status === "lost") {
     return T("Scan lost", "扫描丢失");
   }
@@ -289,19 +289,19 @@ function ReproductionCenter({ issue }) {
         <div className="repro-tags">
           {reproduction.testFile && (
             <span className="tag">
-              {T("test:", { zh: "测试：", ja: "テスト:", ko: "테스트:", fr: "test :", es: "prueba:" })}{" "}
+              {T("test:", { zh: "测试�?, ja: "テス�?", ko: "테스�?", fr: "test :", es: "prueba:" })}{" "}
               {reproduction.testFile}
             </span>
           )}
           {reproduction.logPath && (
             <span className="tag">
-              {T("log:", { zh: "日志：", ja: "ログ:", ko: "로그:", fr: "journal :", es: "registro:" })}{" "}
+              {T("log:", { zh: "日志�?, ja: "ログ:", ko: "로그:", fr: "journal :", es: "registro:" })}{" "}
               {reproduction.logPath}
             </span>
           )}
           {reproduction.exitCode !== undefined && (
             <span className="tag">
-              {T("exit:", { zh: "退出码：", ja: "終了:", ko: "종료:", fr: "sortie :", es: "salida:" })}{" "}
+              {T("exit:", { zh: "退出码�?, ja: "終了:", ko: "종료:", fr: "sortie :", es: "salida:" })}{" "}
               {reproduction.exitCode}
             </span>
           )}
@@ -481,7 +481,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       await reload();
       notifyIssuesChanged({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
     } catch (error) {
-      setStatusActionError(error?.message || T("Issue status update failed.", "问题状态更新失败。"));
+      setStatusActionError(error?.message || T("Issue status update failed.", "问题状态更新失败�?));
     } finally {
       statusUpdatingRef.current.delete(rowKey);
       setStatusUpdating((current) => {
@@ -564,7 +564,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         globalThis.alert?.(message);
       }
     } catch (error) {
-      setStatusActionError(error?.message || T("Issue status update failed.", "问题状态更新失败。"));
+      setStatusActionError(error?.message || T("Issue status update failed.", "问题状态更新失败�?));
     } finally {
       rowKeys.forEach((rowKey) => statusUpdatingRef.current.delete(rowKey));
       setStatusUpdating((current) => {
@@ -621,7 +621,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                 <I.Check size={14} />{" "}
                 {bulkStatusLoading
                   ? T("Marking...", "正在标记...")
-                  : T("Mark all fixed", "全部标记已修复")}
+                  : T("Mark all fixed", "全部标记已修�?)}
               </button>
               <button
                 className="btn"
@@ -631,9 +631,9 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               >
                 <I.Sort size={14} />{" "}
                 {sortBy === "severity"
-                  ? T("Severity", "严重度")
+                  ? T("Severity", "严重�?)
                   : sortBy === "newest"
-                    ? T("Newest", "最新")
+                    ? T("Newest", "最�?)
                     : T("File", "文件")}
               </button>
             </div>
@@ -663,7 +663,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             </div>
             <div className="filters-row">
               <div className="filter-pills">
-                <span className="filter-l">{T("Severity", "严重度")}</span>
+                <span className="filter-l">{T("Severity", "严重�?)}</span>
                 {["all", "critical", "high", "medium", "low", "info"].map((item) => (
                   <button
                     key={item}
@@ -712,7 +712,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div>{T("File", "文件")}</div>
               <div>{T("Category", "类别")}</div>
               <div>{T("Proof", "证据")}</div>
-              <div>{T("Status", "状态")}</div>
+              <div>{T("Status", "状�?)}</div>
               <div></div>
             </div>
             {loading && <IssuesTableSkeleton />}
@@ -720,7 +720,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             {statusActionError && <div className="muted issues-table-message">{statusActionError}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="muted issues-table-empty">
-                {T("No findings are available yet.", "暂无问题。")}
+                {T("No findings are available yet.", "暂无问题�?)}
               </div>
             )}
             {!loading &&
@@ -784,7 +784,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                           disabled={updatingStatus}
                           onClick={() => updateStatus(issue, "fixed")}
                         >
-                          {T("Mark fixed", "标记已修复")}
+                          {T("Mark fixed", "标记已修�?)}
                         </button>
                       )}
                       <button
@@ -858,7 +858,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       })
       .catch((error) => {
         if (cancelled) return;
-        setLoadError(error?.message || T("Unable to load issue.", "无法加载问题。"));
+        setLoadError(error?.message || T("Unable to load issue.", "无法加载问题�?));
       })
       .finally(() => {
         if (!cancelled) setLoadingIssue(false);
@@ -925,7 +925,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           <Sidebar section="issues" go={go} />
           <div className="main">
             <div className="card section muted">
-              {T("Select an issue from the list first.", "请先从列表选择一个问题。")}
+              {T("Select an issue from the list first.", "请先从列表选择一个问题�?)}
             </div>
             <a className="btn" style={{ marginTop: 12 }} {...screenLinkProps(go, "issues")}>
               <I.ArrowL size={13} /> {T("Back to issues", "返回问题列表")}
@@ -958,7 +958,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         status: mergedIssue.status,
       });
     } catch (error) {
-      setActionError(error?.message || T("Unable to update issue status.", "无法更新问题状态。"));
+      setActionError(error?.message || T("Unable to update issue status.", "无法更新问题状态�?));
     } finally {
       statusRequestRef.current = false;
       setStatusLoading("");
@@ -1078,7 +1078,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               )}
               <button className="btn sm" onClick={copyPage} aria-live="polite">
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
-                {pageCopied ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
+                {pageCopied ? T("Copied", "已复�?) : T("Copy Page", "复制页面")}
               </button>
               <div className="divider" />
               {currentStatus === "open" ? (
@@ -1088,7 +1088,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                     disabled={Boolean(statusLoading)}
                     onClick={() => updateStatus("fixed")}
                   >
-                    <I.Check size={13} /> {T("Mark fixed", "标记已修复")}
+                    <I.Check size={13} /> {T("Mark fixed", "标记已修�?)}
                   </button>
                   <button
                     className="btn sm"
@@ -1173,7 +1173,7 @@ function groupScansByDay(scans) {
 function groupScansByTime(scans) {
   const groups = new Map();
   for (const scan of scans) {
-    const time = scanTimeLabel(scan) || "—";
+    const time = scanTimeLabel(scan) || "�?;
     if (!groups.has(time)) groups.set(time, []);
     groups.get(time).push(scan);
   }
@@ -1262,9 +1262,9 @@ function HistoryGroups({
 
 const SEVERITY_LEGEND = [
   { key: "critical", labelEn: "Critical", labelZh: "关键" },
-  { key: "high", labelEn: "High", labelZh: "高" },
-  { key: "medium", labelEn: "Medium", labelZh: "中" },
-  { key: "low", labelEn: "Low", labelZh: "低" },
+  { key: "high", labelEn: "High", labelZh: "�? },
+  { key: "medium", labelEn: "Medium", labelZh: "�? },
+  { key: "low", labelEn: "Low", labelZh: "�? },
 ];
 
 function severityLabel(legend) {
@@ -1281,7 +1281,7 @@ function scanAiUsageBadges(aiUsage) {
   push(aiUsage.agentCli || aiUsage.provider);
   push(aiUsage.model);
   if (aiUsage.reasoningEffort) {
-    push(T(`reasoning: ${aiUsage.reasoningEffort}`, `推理：${aiUsage.reasoningEffort}`));
+    push(T(`reasoning: ${aiUsage.reasoningEffort}`, `推理�?{aiUsage.reasoningEffort}`));
   }
   return badges;
 }
@@ -1395,7 +1395,7 @@ function ScanRow({
               `${total} 个问题：关键 ${breakdown.critical || 0}，高 ${breakdown.high || 0}，中 ${breakdown.medium || 0}，低 ${breakdown.low || 0}`
             )}
           >
-            {/* Default: severity capsules (no big colored bar — those get read as a progress meter) */}
+            {/* Default: severity capsules (no big colored bar �?those get read as a progress meter) */}
             <div className="scan-severity-capsules">
               {SEVERITY_LEGEND.filter((s) => Number(breakdown[s.key] || 0) > 0).map((s) => (
                 <span key={s.key} className={`scan-severity-capsule scan-severity-${s.key}`}>
@@ -1457,7 +1457,7 @@ function ScanRow({
           title={T("More actions", "更多操作")}
           onClick={() => setMenuOpen((open) => !open)}
         >
-          ⋯
+          �?
         </button>
         {menuOpen && (
           <div className="scan-row-menu" role="menu">
@@ -1472,7 +1472,7 @@ function ScanRow({
               }}
             >
               <I.Download size={12} />
-              {isDownloading ? T("Preparing...", "准备中...") : T("Download zip", "下载 zip")}
+              {isDownloading ? T("Preparing...", "准备�?..") : T("Download zip", "下载 zip")}
             </button>
             <button
               type="button"
@@ -1537,6 +1537,65 @@ function cleanExpectedScanIds(value) {
   return ids;
 }
 
+function cleanExpectedScanRequests(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => ({
+      repoId: String(item?.repoId || "").trim(),
+      repo: String(item?.repo || "").trim(),
+      branch: String(item?.branch || "main").trim() || "main",
+      requestId: String(item?.requestId || "").trim(),
+    }))
+    .filter((item) => item.repoId || item.repo || item.requestId);
+}
+
+function normalizeExpectedScanStartedAt(value) {
+  const timestamp = Number(value);
+  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null;
+}
+
+function scanHistoryTimestamp(scan) {
+  const value = Number(scan?.createdAt ?? scan?.startedAt ?? scan?.updatedAt);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return value > 1000000000000 ? Math.floor(value / 1000) : value;
+}
+
+function scanIsAfterHistoryHandoff(scan, expectedScanStartedAt) {
+  if (!expectedScanStartedAt) return true;
+  const timestamp = scanHistoryTimestamp(scan);
+  return timestamp !== null && timestamp >= expectedScanStartedAt - 5;
+}
+
+function scanMatchesExpectedRequest(scan, request, expectedScanStartedAt) {
+  const requestId = String(request?.requestId || "").trim();
+  if (requestId && String(scan?.requestId || "").trim() === requestId) return true;
+
+  const expectedRepoId = String(request?.repoId || "").trim();
+  const expectedRepo = String(request?.repo || "").trim();
+  const expectedBranch = String(request?.branch || "main").trim() || "main";
+  const scanRepoId = String(scan?.repoId || "").trim();
+  const scanRepo = String(scan?.repo || "").trim();
+  const scanBranch = String(scan?.branch || "main").trim() || "main";
+  const repoMatches =
+    (expectedRepoId && scanRepoId && expectedRepoId === scanRepoId) ||
+    (expectedRepo && scanRepo && expectedRepo === scanRepo);
+  return repoMatches && expectedBranch === scanBranch && scanIsAfterHistoryHandoff(scan, expectedScanStartedAt);
+}
+
+function scanListIncludesExpectedRequests(scans, expectedScanRequests, expectedScanStartedAt) {
+  if (!expectedScanRequests.length) return true;
+  if (!Array.isArray(scans) || !scans.length) return false;
+  const used = new Set();
+  for (const request of expectedScanRequests) {
+    const matchIndex = scans.findIndex(
+      (scan, index) => !used.has(index) && scanMatchesExpectedRequest(scan, request, expectedScanStartedAt)
+    );
+    if (matchIndex < 0) return false;
+    used.add(matchIndex);
+  }
+  return true;
+}
+
 function scanListIncludesExpectedIds(scans, expectedScanIds) {
   if (!expectedScanIds.length) return true;
   if (!Array.isArray(scans) || !scans.length) return false;
@@ -1569,6 +1628,8 @@ export function HistoryScreen({
   openScanIssues = null,
   setIssue = null,
   expectedScanIds = [],
+  expectedScanRequests = [],
+  expectedScanStartedAt = null,
   onExpectedScansLoaded = null,
 }) {
   useLang();
@@ -1598,21 +1659,43 @@ export function HistoryScreen({
     () => normalizedExpectedScanIds.join("|"),
     [normalizedExpectedScanIds]
   );
+  const normalizedExpectedScanRequests = useMemo(
+    () => cleanExpectedScanRequests(expectedScanRequests),
+    [expectedScanRequests]
+  );
+  const expectedScanRequestsKey = useMemo(
+    () => JSON.stringify(normalizedExpectedScanRequests),
+    [normalizedExpectedScanRequests]
+  );
+  const normalizedExpectedScanStartedAt = normalizeExpectedScanStartedAt(expectedScanStartedAt);
+  const hasExpectedScans =
+    normalizedExpectedScanIds.length > 0 || normalizedExpectedScanRequests.length > 0;
   const expectedScansLoaded = useMemo(
-    () => scanListIncludesExpectedIds(filtered, normalizedExpectedScanIds),
-    [filtered, normalizedExpectedScanIds]
+    () =>
+      scanListIncludesExpectedIds(filtered, normalizedExpectedScanIds) &&
+      scanListIncludesExpectedRequests(
+        filtered,
+        normalizedExpectedScanRequests,
+        normalizedExpectedScanStartedAt
+      ),
+    [
+      filtered,
+      normalizedExpectedScanIds,
+      normalizedExpectedScanRequests,
+      normalizedExpectedScanStartedAt,
+    ]
   );
   const expectedScanIdsMissing = useMemo(
     () => missingExpectedScanIds(filtered, normalizedExpectedScanIds),
     [filtered, normalizedExpectedScanIds]
   );
   const expectedScanWaitExpired =
-    normalizedExpectedScanIds.length > 0 &&
+    hasExpectedScans &&
     !expectedScansLoaded &&
     !error &&
     expectedScanRetryCount >= HISTORY_EXPECTED_SCAN_MAX_RETRIES;
   const waitingForExpectedScans =
-    normalizedExpectedScanIds.length > 0 &&
+    hasExpectedScans &&
     !expectedScansLoaded &&
     !error &&
     !expectedScanWaitExpired;
@@ -1621,7 +1704,7 @@ export function HistoryScreen({
 
   useEffect(() => {
     setExpectedScanRetryCount(0);
-  }, [expectedScanIdsKey, status]);
+  }, [expectedScanIdsKey, expectedScanRequestsKey, normalizedExpectedScanStartedAt, status]);
 
   useEffect(() => {
     if (!waitingForExpectedScans || loading) return undefined;
@@ -1675,13 +1758,13 @@ export function HistoryScreen({
 
   useEffect(() => {
     if (
-      normalizedExpectedScanIds.length > 0 &&
+      hasExpectedScans &&
       expectedScansLoaded &&
       typeof onExpectedScansLoaded === "function"
     ) {
       onExpectedScansLoaded();
     }
-  }, [expectedScansLoaded, normalizedExpectedScanIds.length, onExpectedScansLoaded]);
+  }, [expectedScansLoaded, hasExpectedScans, onExpectedScansLoaded]);
 
   const viewScan = (scan) => {
     if (openScan) {
@@ -1706,7 +1789,7 @@ export function HistoryScreen({
       downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
     } catch (error) {
       globalThis.alert?.(
-        error?.message || T("Unable to download audit bundle.", "无法下载审计包。")
+        error?.message || T("Unable to download audit bundle.", "无法下载审计包�?)
       );
     } finally {
       setBundleLoading("");
@@ -1718,11 +1801,11 @@ export function HistoryScreen({
     setDebugBundleLoading(scan.id);
     try {
       const response = await fetch(debugUrl, { credentials: "include" });
-      if (!response.ok) throw new Error(T("Unable to download debug bundle.", "无法下载 debug bundle。"));
+      if (!response.ok) throw new Error(T("Unable to download debug bundle.", "无法下载 debug bundle�?));
       const bundle = await response.blob();
       downloadBlob(`pullwise-debug-${scan.id}.zip`, bundle, "application/zip");
     } catch (error) {
-      globalThis.alert?.(error?.message || T("Unable to download debug bundle.", "无法下载 debug bundle。"));
+      globalThis.alert?.(error?.message || T("Unable to download debug bundle.", "无法下载 debug bundle�?));
     } finally {
       setDebugBundleLoading("");
     }
@@ -1743,7 +1826,7 @@ export function HistoryScreen({
         await reload({ quiet: true });
       }
     } catch (actionError) {
-      setActionError(actionError?.message || T("Unable to retry scan.", "无法重试扫描。"));
+      setActionError(actionError?.message || T("Unable to retry scan.", "无法重试扫描�?));
     } finally {
       setRetryLoading("");
     }
@@ -1756,7 +1839,7 @@ export function HistoryScreen({
       await reload({ quiet: true });
     } catch (refreshError) {
       setActionError(
-        refreshError?.message || T("Unable to refresh scan history.", "无法刷新扫描历史。")
+        refreshError?.message || T("Unable to refresh scan history.", "无法刷新扫描历史�?)
       );
     } finally {
       setRefreshLoading(false);
@@ -1812,7 +1895,7 @@ export function HistoryScreen({
                 {refreshLoading ? T("Refreshing...", "正在刷新...") : T("Refresh", "刷新")}
               </button>
               <a className="btn primary" {...screenLinkProps(go, "repos")}>
-                <I.Play size={11} /> {T("New scan", "新扫描")}
+                <I.Play size={11} /> {T("New scan", "新扫�?)}
               </a>
             </div>
           </div>
@@ -1838,7 +1921,7 @@ export function HistoryScreen({
                   fontSize: 13,
                 }}
               >
-                {T("No scans yet.", "暂无扫描。")}
+                {T("No scans yet.", "暂无扫描�?)}
               </div>
             )}
             {!displayLoading && filtered.length > 0 && (
@@ -1951,7 +2034,7 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) {
         setIntegrationError(
           error?.message ||
-            T("Unable to refresh GitHub repository access.", "无法刷新 GitHub 仓库访问。")
+            T("Unable to refresh GitHub repository access.", "无法刷新 GitHub 仓库访问�?)
         );
       }
       throw error;
@@ -1972,7 +2055,7 @@ export function SettingsScreen({ go, setIssue = null }) {
     )
   );
   const githubAccount = githubAccountNames.length ? ` on ${githubAccountNames.join(", ")}` : "";
-  const githubAccountZh = githubAccountNames.length ? `（${githubAccountNames.join(", ")}）` : "";
+  const githubAccountZh = githubAccountNames.length ? `�?{githubAccountNames.join(", ")}）` : "";
   const hasGitHubInstallationDetails =
     Array.isArray(github?.installations) && github.installations.length > 0;
   const reviewOutputLanguage = reviewOutputLanguageValue(settings);
@@ -2015,7 +2098,7 @@ export function SettingsScreen({ go, setIssue = null }) {
       if (requestId === integrationRequestIdRef.current) {
         setIntegrationError(
           error?.message ||
-            T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问。")
+            T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问�?)
         );
       }
     }
@@ -2037,7 +2120,7 @@ export function SettingsScreen({ go, setIssue = null }) {
     } catch (error) {
       if (requestId === integrationRequestIdRef.current) {
         setIntegrationError(
-          error?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装。")
+          error?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装�?)
         );
       }
     } finally {
@@ -2054,7 +2137,7 @@ export function SettingsScreen({ go, setIssue = null }) {
           <div className="page-h">
             <div>
               <h1>{T("Settings", "设置")}</h1>
-              <div className="sub">{T("Account and integrations", "账号与集成")}</div>
+              <div className="sub">{T("Account and integrations", "账号与集�?)}</div>
             </div>
           </div>
           {initialLoadError && (
@@ -2114,11 +2197,11 @@ export function SettingsScreen({ go, setIssue = null }) {
                     <div>
                       <b>{T("Session", "会话")}</b>
                       <div className="muted">
-                        {T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天。")}
+                        {T("Stay signed in for 7 days on this browser.", "此浏览器保持登录 7 天�?)}
                       </div>
                     </div>
                     <button className="btn sm" onClick={signOut}>
-                      {T("Sign out", "退出登录")}
+                      {T("Sign out", "退出登�?)}
                     </button>
                   </div>
                 </div>
@@ -2131,7 +2214,7 @@ export function SettingsScreen({ go, setIssue = null }) {
                   <div className="set-pref">
                     <div>
                       <b>{T("Review output language", "产出语言偏好")}</b>
-                      <div className="muted">{T("Default is English.", "默认英语。")}</div>
+                      <div className="muted">{T("Default is English.", "默认英语�?)}</div>
                     </div>
                     <select
                       className="set-select"
@@ -2172,7 +2255,7 @@ export function SettingsScreen({ go, setIssue = null }) {
                               )
                             : T(
                                 "Connect repositories when you are ready to scan. Pullwise uses GitHub App repository access for checkout, fix branches, and pull requests.",
-                                "准备扫描时再连接仓库。Pullwise 使用 GitHub App 仓库权限进行 checkout、修复分支和 PR 创建。"
+                                "准备扫描时再连接仓库。Pullwise 使用 GitHub App 仓库权限进行 checkout、修复分支和 PR 创建�?
                               )}
                         </div>
                       )}
@@ -2185,11 +2268,11 @@ export function SettingsScreen({ go, setIssue = null }) {
                       }}
                     >
                       <span className="dot"></span>{" "}
-                      {github?.connected ? T("Connected", "已连接") : T("Disconnected", "未连接")}
+                      {github?.connected ? T("Connected", "已连�?) : T("Disconnected", "未连�?)}
                     </span>
                     <button className="btn sm" onClick={authorizeRepositories}>
                       {github?.connected
-                        ? T("Add account or organization", "添加账号或组织")
+                        ? T("Add account or organization", "添加账号或组�?)
                         : T("Connect repositories", "连接仓库")}
                     </button>
                   </div>

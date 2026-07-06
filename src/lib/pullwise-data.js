@@ -1168,6 +1168,13 @@ export function normalizeScan(scan = {}) {
   const status = inferredScanStatus(scan, reviewRun, rawStatus);
   return {
     id: textValue(scan.id),
+    requestId: textValue(
+      scan.requestId,
+      scan.request_id,
+      scan.clientRequestId,
+      scan.client_request_id
+    ),
+    jobId: textValue(scan.jobId, scan.job_id),
     repo: textValue(scan.repo),
     branch: textValue(scan.branch) || "main",
     commit: textValue(scan.commit) || "-",

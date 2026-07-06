@@ -195,8 +195,30 @@ function cleanPendingScanIds(value) {
   return ids;
 }
 
+function cleanPendingScanRequests(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => ({
+      repoId: String(item?.repoId || "").trim(),
+      repo: String(item?.repo || "").trim(),
+      branch: String(item?.branch || "main").trim() || "main",
+      requestId: String(item?.requestId || "").trim(),
+    }))
+    .filter((item) => item.repoId || item.repo || item.requestId);
+}
+
 function pendingScanIdsFromHistoryState(state) {
   return isObject(state) ? cleanPendingScanIds(state.pendingScanIds) : [];
+}
+
+function pendingScanRequestsFromHistoryState(state) {
+  return isObject(state) ? cleanPendingScanRequests(state.pendingScanRequests) : [];
+}
+
+function pendingScanStartedAtFromHistoryState(state) {
+  if (!isObject(state)) return null;
+  const timestamp = Number(state.pendingScanStartedAt);
+  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null;
 }
 
 function PrototypeNav({ go, current }) {
@@ -204,9 +226,9 @@ function PrototypeNav({ go, current }) {
     { k: "landing", t: T("Landing", "首页") },
     { k: "login", t: T("Sign in", "登录") },
     { k: "oauth", t: T("GitHub OAuth", "GitHub 授权") },
-    { k: "repos", t: T("Repositories", "选仓库") },
-    { k: "scanning", t: T("Scanning…", "扫描中") },
-    { k: "dashboard", t: T("Dashboard", "工作台") },
+    { k: "repos", t: T("Repositories", "选仓�?) },
+    { k: "scanning", t: T("Scanning�?, "扫描�?) },
+    { k: "dashboard", t: T("Dashboard", "工作�?) },
     { k: "issues", t: T("Issues", "问题") },
     { k: "issue", t: T("Issue", "详情") },
     { k: "history", t: T("Scan history", "历史") },
@@ -219,7 +241,7 @@ function PrototypeNav({ go, current }) {
     { k: "privacy", t: T("Privacy Policy", "隐私") },
     { k: "terms", t: T("Terms of Service", "条款") },
     { k: "security", t: T("Security", "安全") },
-    { k: "status", t: T("Status", "状态") },
+    { k: "status", t: T("Status", "状�?) },
     { k: "notfound", t: "404" },
   ];
 
@@ -230,7 +252,7 @@ function PrototypeNav({ go, current }) {
           {T("PR · Prototype", {
             zh: "PR · 原型",
             ja: "PR · プロトタイプ",
-            ko: "PR · 프로토타입",
+            ko: "PR · 프로토타�?,
             fr: "PR · Prototype",
             es: "PR · Prototipo",
           })}
@@ -269,6 +291,12 @@ export function App({ prototypeNav = false }) {
   const [pendingHistoryScanIds, setPendingHistoryScanIds] = useState(() =>
     pendingScanIdsFromHistoryState(window.history.state)
   );
+  const [pendingHistoryScanRequests, setPendingHistoryScanRequests] = useState(() =>
+    pendingScanRequestsFromHistoryState(window.history.state)
+  );
+  const [pendingHistoryScanStartedAt, setPendingHistoryScanStartedAt] = useState(() =>
+    pendingScanStartedAtFromHistoryState(window.history.state)
+  );
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -282,9 +310,19 @@ export function App({ prototypeNav = false }) {
     const nextScanId = nextScreen === "scanning" ? scanIdFromPath(path) : "";
     const nextPendingHistoryScanIds =
       nextScreen === "history" ? cleanPendingScanIds(params.pendingScanIds) : [];
+    const nextPendingHistoryScanRequests =
+      nextScreen === "history" ? cleanPendingScanRequests(params.pendingScanRequests) : [];
+    const nextPendingHistoryScanStartedAt =
+      nextScreen === "history" ? pendingScanStartedAtFromHistoryState(params) : null;
     const historyState = { screen: nextScreen, issueId: nextIssueId, scanId: nextScanId };
     if (nextPendingHistoryScanIds.length) {
       historyState.pendingScanIds = nextPendingHistoryScanIds;
+    }
+    if (nextPendingHistoryScanRequests.length) {
+      historyState.pendingScanRequests = nextPendingHistoryScanRequests;
+    }
+    if (nextPendingHistoryScanStartedAt) {
+      historyState.pendingScanStartedAt = nextPendingHistoryScanStartedAt;
     }
     if (window.location.pathname !== path) {
       window.history.pushState(historyState, "", path);
@@ -294,6 +332,8 @@ export function App({ prototypeNav = false }) {
     setRouteIssueId(nextIssueId);
     setRouteScanId(nextScanId);
     setPendingHistoryScanIds(nextPendingHistoryScanIds);
+    setPendingHistoryScanRequests(nextPendingHistoryScanRequests);
+    setPendingHistoryScanStartedAt(nextPendingHistoryScanStartedAt);
     setScreen(nextScreen);
     window.scrollTo({ top: 0 });
   };
@@ -305,6 +345,12 @@ export function App({ prototypeNav = false }) {
       setRouteScanId(nextScreen === "scanning" ? scanIdFromPath(window.location.pathname) : "");
       setPendingHistoryScanIds(
         nextScreen === "history" ? pendingScanIdsFromHistoryState(event.state) : []
+      );
+      setPendingHistoryScanRequests(
+        nextScreen === "history" ? pendingScanRequestsFromHistoryState(event.state) : []
+      );
+      setPendingHistoryScanStartedAt(
+        nextScreen === "history" ? pendingScanStartedAtFromHistoryState(event.state) : null
       );
       setScreen(nextScreen);
     };
@@ -385,7 +431,7 @@ export function App({ prototypeNav = false }) {
 
   // Session check: runs on mount, retries on failure, re-checks on focus/visibility return.
   // This is the standard pattern used by NextAuth, Supabase, and Firebase Auth for SPA session
-  // recovery — a single check on mount is not enough because the user may navigate away (e.g. to
+  // recovery �?a single check on mount is not enough because the user may navigate away (e.g. to
   // an OAuth provider) and return with a new session cookie that the app must detect.
   const sessionAbortRef = useRef(null);
   const sessionCheckingRef = useRef(false);
@@ -594,9 +640,13 @@ export function App({ prototypeNav = false }) {
 
   const clearPendingHistoryScanIds = useCallback(() => {
     setPendingHistoryScanIds([]);
+    setPendingHistoryScanRequests([]);
+    setPendingHistoryScanStartedAt(null);
     if (screen !== "history") return;
     const currentState = isObject(window.history.state) ? { ...window.history.state } : {};
     delete currentState.pendingScanIds;
+    delete currentState.pendingScanRequests;
+    delete currentState.pendingScanStartedAt;
     window.history.replaceState(currentState, "", window.location.pathname);
   }, [screen]);
 
@@ -611,11 +661,11 @@ export function App({ prototypeNav = false }) {
             <img className="brand-mark" src="/favicon.ico" alt="" aria-hidden="true" width="24" height="24" />
             <span style={{ fontSize: 16 }}>Pullwise</span>
           </div>
-          <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
+          <h2 className="auth-title">{T("Checking session", "正在检查会�?)}</h2>
           <p className="auth-sub">
             {T(
               "Restoring your account if this browser is still signed in.",
-              "如果此浏览器仍保持登录，将恢复账户。"
+              "如果此浏览器仍保持登录，将恢复账户�?
             )}
           </p>
         </div>
@@ -684,6 +734,8 @@ export function App({ prototypeNav = false }) {
             openScanIssues={openScanIssues}
             setIssue={setIssue}
             expectedScanIds={pendingHistoryScanIds}
+            expectedScanRequests={pendingHistoryScanRequests}
+            expectedScanStartedAt={pendingHistoryScanStartedAt}
             onExpectedScansLoaded={clearPendingHistoryScanIds}
           />
         );
@@ -730,7 +782,7 @@ export function App({ prototypeNav = false }) {
       {prototypeNav && (
         <>
           <button className="proto-nav-toggle" onClick={() => setNavOpen((open) => !open)}>
-            {navOpen ? "▲" : "●"}
+            {navOpen ? "�? : "�?}
           </button>
           {navOpen && <PrototypeNav go={go} current={screen} />}
         </>
@@ -794,7 +846,7 @@ export function App({ prototypeNav = false }) {
         className="theme-toggle"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
         title={
-          theme === "light" ? T("Switch to dark", "切换到暗色") : T("Switch to light", "切换到亮色")
+          theme === "light" ? T("Switch to dark", "切换到暗�?) : T("Switch to light", "切换到亮�?)
         }
         aria-label={T("Toggle theme", "切换主题")}
       >
