@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
 import { I } from "../icons.jsx";
@@ -142,18 +143,6 @@ function scanHistorySummary(scan) {
   return scan.status;
 }
 
-function DetailSection({ title, children, empty = "" }) {
-  if (!children && !empty) return null;
-  return (
-    <div className="card section">
-      <div className="section-h">
-        <h3>{title}</h3>
-      </div>
-      {children || <div className="muted">{empty}</div>}
-    </div>
-  );
-}
-
 function locationLabel(item) {
   if (!item?.file) return "";
   if (item.startLine && item.endLine && item.endLine !== item.startLine) {
@@ -264,8 +253,9 @@ function buildIssuePageMarkdown(issue, currentStatus) {
     .trim()}\n`;
 }
 
-function cleanTextItems(items) {
-  return (Array.isArray(items) ? items : []).map((item) => String(item || "").trim()).filter(Boolean);
+function issuePageMarkdown(issue, currentStatus) {
+  const rawMarkdown = markdownText(issue.rawMarkdown);
+  return rawMarkdown || buildIssuePageMarkdown(issue, currentStatus);
 }
 
 function confidenceLabel(issue) {
@@ -273,244 +263,6 @@ function confidenceLabel(issue) {
   const confidence = Number(issue.confidence);
   if (!Number.isFinite(confidence) || confidence <= 0) return "";
   return confidence <= 1 ? `${Math.round(confidence * 100)}%` : String(confidence);
-}
-
-function SourceValue({ value }) {
-  if (Array.isArray(value)) {
-    return (
-      <div className="issue-source-list">
-        {value.map((item, index) => (
-          <span key={`source-item-${index}`}>{issueSourceValueText(item)}</span>
-        ))}
-      </div>
-    );
-  }
-  if (value && typeof value === "object") {
-    return (
-      <div className="issue-source-list">
-        {Object.entries(value).map(([key, item]) => (
-          <span key={key}>
-            <b>{key}</b>: {issueSourceValueText(item)}
-          </span>
-        ))}
-      </div>
-    );
-  }
-  return <span>{String(value || "")}</span>;
-}
-
-function IssueNarrativeSection({ issue }) {
-  const rows = [
-    [T("Summary", "Summary"), issue.summary || issue.failureScenario],
-    [T("Impact", "Impact"), issue.impact],
-    [T("Detection reasoning", "Detection reasoning"), issue.detectionReasoning],
-    [T("Verification summary", "Verification summary"), issue.verificationSummary],
-    [T("Disproof attempt", "Disproof attempt"), issue.disproofAttempt],
-  ].filter(([, value]) => markdownText(value));
-  if (!rows.length) return null;
-  return (
-    <DetailSection title={T("What the worker found", "What the worker found")}>
-      <div className="issue-narrative-grid">
-        {rows.map(([label, value]) => (
-          <div className="issue-narrative-row" key={label}>
-            <b>{label}</b>
-            <p>{value}</p>
-          </div>
-        ))}
-      </div>
-    </DetailSection>
-  );
-}
-
-function IssueLocationsSection({ issue }) {
-  const locations = Array.isArray(issue.affectedLocations) ? issue.affectedLocations : [];
-  if (!locations.length) return null;
-  return (
-    <DetailSection title={T("Affected locations", "Affected locations")}>
-      <div className="issue-location-list">
-        {locations.map((location, index) => {
-          const label = locationLabel(location);
-          return (
-            <div className="issue-location-row" key={`${label}-${index}`}>
-              <I.FileCode size={14} />
-              {location.url ? (
-                <a href={location.url} target="_blank" rel="noreferrer">
-                  {label}
-                </a>
-              ) : (
-                <span>{label}</span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </DetailSection>
-  );
-}
-
-function IssueEvidenceSection({ issue }) {
-  const evidence = Array.isArray(issue.evidence) ? issue.evidence : [];
-  if (!evidence.length) return null;
-  return (
-    <DetailSection title={T("Evidence", "Evidence")}>
-      <div className="issue-evidence-list">
-        {evidence.map((item, index) => {
-          const objectItem = item && typeof item === "object" ? item : { summary: String(item || "") };
-          const label = objectItem.label || objectItem.type || T("Evidence", "Evidence");
-          const location = objectItem.file ? locationLabel(objectItem) : "";
-          return (
-            <div className="issue-evidence-card" key={`evidence-${index}`}>
-              <div className="issue-evidence-head">
-                <span className="tag">{label}</span>
-                {location && <span className="issue-evidence-location">{location}</span>}
-              </div>
-              {objectItem.summary && <p>{objectItem.summary}</p>}
-              {objectItem.command && <code className="evidence-command">{objectItem.command}</code>}
-              <div className="issue-evidence-meta">
-                {objectItem.logPath && <span>{T("log", "log")}: {objectItem.logPath}</span>}
-                {objectItem.exitCode !== undefined && <span>{T("exit", "exit")}: {objectItem.exitCode}</span>}
-                {objectItem.outputRedacted && <span>{T("output captured", "output captured")}</span>}
-                {objectItem.url && (
-                  <a href={objectItem.url} target="_blank" rel="noreferrer">
-                    {T("Open source", "Open source")}
-                  </a>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </DetailSection>
-  );
-}
-
-function IssueTraceSection({ issue }) {
-  const stages = Array.isArray(issue.evidenceTrace) ? issue.evidenceTrace : [];
-  if (!stages.length) return null;
-  return (
-    <DetailSection title={T("Evidence trace", "Evidence trace")}>
-      <div className="issue-trace">
-        {stages.map((stage) => {
-          const items = cleanTextItems(stage.items);
-          return (
-            <div className="issue-trace-stage" key={stage.id || stage.label}>
-              <div className="issue-trace-marker" />
-              <div>
-                <b>{stage.label || stage.id}</b>
-                {items.length ? (
-                  <ul className="legal-list-flat evidence-list">
-                    {items.map((item, index) => <li key={`${stage.id}-${index}`}>{item}</li>)}
-                  </ul>
-                ) : (
-                  <p className="muted">{stage.empty}</p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </DetailSection>
-  );
-}
-
-function IssueReasoningSection({ issue }) {
-  const breakdown = issue.reasoningBreakdown || {};
-  const groups = [
-    [T("Facts", "Facts"), breakdown.facts],
-    [T("Inferences", "Inferences"), breakdown.inferences],
-    [T("Recommendations", "Recommendations"), breakdown.recommendations],
-  ].map(([label, items]) => [label, cleanTextItems(items)]).filter(([, items]) => items.length);
-  if (!groups.length) return null;
-  return (
-    <DetailSection title={T("Reasoning", "Reasoning")}>
-      <div className="issue-reasoning-grid">
-        {groups.map(([label, items]) => (
-          <div className="issue-reasoning-col" key={label}>
-            <b>{label}</b>
-            <ul className="legal-list-flat evidence-list">
-              {items.map((item, index) => <li key={`${label}-${index}`}>{item}</li>)}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </DetailSection>
-  );
-}
-
-function IssueRemediationSection({ issue }) {
-  const steps = cleanTextItems(issue.steps);
-  const hasContent = issue.recommendation || issue.nextAgentTask || issue.fixBenefits || issue.fixRisks || steps.length;
-  if (!hasContent) return null;
-  return (
-    <DetailSection title={T("Fix plan", "Fix plan")}>
-      <div className="issue-fix-plan">
-        {issue.recommendation && (
-          <div className="issue-callout">
-            <b>{T("Recommendation", "Recommendation")}</b>
-            <p>{issue.recommendation}</p>
-          </div>
-        )}
-        {issue.nextAgentTask && (
-          <div className="issue-callout issue-callout-strong">
-            <b>{T("Next agent task", "Next agent task")}</b>
-            <p>{issue.nextAgentTask}</p>
-          </div>
-        )}
-        {steps.length > 0 && (
-          <ul className="legal-list-flat evidence-list">
-            {steps.map((step, index) => <li key={`step-${index}`}>{step}</li>)}
-          </ul>
-        )}
-        {(issue.fixBenefits || issue.fixRisks) && (
-          <div className="issue-fix-notes">
-            {issue.fixBenefits && <span><b>{T("Benefit", "Benefit")}</b> {issue.fixBenefits}</span>}
-            {issue.fixRisks && <span><b>{T("Risk", "Risk")}</b> {issue.fixRisks}</span>}
-          </div>
-        )}
-      </div>
-    </DetailSection>
-  );
-}
-
-function CodeLinesBlock({ title, lines }) {
-  const values = cleanTextItems(lines);
-  if (!values.length) return null;
-  return (
-    <div className="docs-code issue-code-block">
-      <div className="docs-code-h"><span>{title}</span></div>
-      <pre>{values.join("\n")}</pre>
-    </div>
-  );
-}
-
-function IssueCodeSection({ issue }) {
-  const hasCode = cleanTextItems(issue.badCode).length || cleanTextItems(issue.goodCode).length;
-  if (!hasCode) return null;
-  return (
-    <DetailSection title={T("Code evidence", "Code evidence")}>
-      <div className="issue-code-compare">
-        <CodeLinesBlock title={T("Current", "Current")} lines={issue.badCode} />
-        <CodeLinesBlock title={T("Suggested", "Suggested")} lines={issue.goodCode} />
-      </div>
-    </DetailSection>
-  );
-}
-
-function IssueValidationSourcesSection({ issue }) {
-  const rows = issueValidationSourceRows(issue.validationSources).filter(([, value]) => value);
-  if (!rows.length) return null;
-  return (
-    <DetailSection title={T("Validation sources", "Validation sources")}>
-      <div className="issue-source-table">
-        {rows.map(([key, value]) => (
-          <div className="issue-source-row" key={key}>
-            <b>{key}</b>
-            <SourceValue value={value} />
-          </div>
-        ))}
-      </div>
-    </DetailSection>
-  );
 }
 
 function IssueChecklistSection({ issue }) {
@@ -530,179 +282,15 @@ function IssueChecklistSection({ issue }) {
     </div>
   );
 }
-function ReproductionCenter({ issue }) {
-  const reproduction = issue.reproduction || {};
-  const commands = Array.isArray(reproduction.commands) ? reproduction.commands : [];
-  const steps = Array.isArray(reproduction.steps) ? reproduction.steps : [];
-  const commandText = commands.join("\n");
-  const hasStructuredRepro =
-    commands.length ||
-    steps.length ||
-    reproduction.input ||
-    reproduction.expected ||
-    reproduction.actual ||
-    reproduction.testFile ||
-    reproduction.logPath ||
-    reproduction.exitCode !== undefined;
-  if (!hasStructuredRepro && !issue.reproductionPath) return null;
+function IssueSummaryDetail({ issue, currentStatus }) {
+  const markdown = issuePageMarkdown(issue, currentStatus);
   return (
-    <div className="repro-center">
-      {issue.reproductionPath && <p className="muted repro-note">{issue.reproductionPath}</p>}
-      {commands.length > 0 && (
-        <div className="docs-code repro-command">
-          <div className="docs-code-h">
-            <span>{T("Validation command", "Validation command")}</span>
-            <button className="docs-code-copy" type="button" onClick={() => copyText(commandText)}>
-              <I.Copy size={12} /> {T("Copy", "\u590d\u5236")}
-            </button>
-          </div>
-          <pre>{commandText}</pre>
-        </div>
-      )}
-      {steps.length > 0 && (
-        <div className="repro-fields">
-          {steps.map((step, index) => (
-            <div key={`verification-step-${index}-${step}`} className="repro-field">
-              <b className="repro-field-title">
-                {T("Verification step", "\u9a8c\u8bc1\u6b65\u9aa4")}
-              </b>
-              <p className="muted repro-field-text">{step}</p>
-            </div>
-          ))}
-        </div>
-      )}
-      {(reproduction.input || reproduction.expected || reproduction.actual) && (
-        <div className="repro-fields">
-          {reproduction.input && (
-            <div className="repro-field">
-              <b className="repro-field-title">{T("Input", "\u8f93\u5165")}</b>
-              <p className="muted repro-field-text">{reproduction.input}</p>
-            </div>
-          )}
-          {reproduction.expected && (
-            <div className="repro-field">
-              <b className="repro-field-title">{T("Expected", "\u9884\u671f")}</b>
-              <p className="muted repro-field-text">{reproduction.expected}</p>
-            </div>
-          )}
-          {reproduction.actual && (
-            <div className="repro-field">
-              <b className="repro-field-title">{T("Actual", "\u5b9e\u9645")}</b>
-              <p className="muted repro-field-text">{reproduction.actual}</p>
-            </div>
-          )}
-        </div>
-      )}
-      {(reproduction.testFile || reproduction.logPath || reproduction.exitCode) && (
-        <div className="repro-tags">
-          {reproduction.testFile && (
-            <span className="tag">
-              {T("test:", {
-                zh: "测试：",
-                ja: "テスト:",
-                ko: "테스트:",
-                fr: "test :",
-                es: "prueba:",
-              })}{" "}
-              {reproduction.testFile}
-            </span>
-          )}
-          {reproduction.logPath && (
-            <span className="tag">
-              {T("log:", {
-                zh: "日志：",
-                ja: "ログ:",
-                ko: "로그:",
-                fr: "journal :",
-                es: "registro:",
-              })}{" "}
-              {reproduction.logPath}
-            </span>
-          )}
-          {reproduction.exitCode !== undefined && (
-            <span className="tag">
-              {T("exit:", {
-                zh: "退出码：",
-                ja: "終了:",
-                ko: "종료:",
-                fr: "sortie :",
-                es: "salida:",
-              })}{" "}
-              {reproduction.exitCode}
-            </span>
-          )}
-        </div>
-      )}
+    <div className="scan-human-report issue-markdown-report card section">
+      <div className="section-h">
+        <h3>{T("Issue report", "Issue report")}</h3>
+      </div>
+      <MarkdownReport markdown={markdown} />
     </div>
-  );
-}
-
-function TextListSection({ title, items }) {
-  if (!items?.length) return null;
-  return (
-    <DetailSection title={title}>
-      <ul className="legal-list-flat evidence-list">
-        {items.map((item, index) => (
-          <li key={`${title}-${index}-${item}`}>{item}</li>
-        ))}
-      </ul>
-    </DetailSection>
-  );
-}
-
-function issueHasReproduction(issue) {
-  const reproduction = issue.reproduction || {};
-  const commands = Array.isArray(reproduction.commands) ? reproduction.commands : [];
-  const steps = Array.isArray(reproduction.steps) ? reproduction.steps : [];
-  return Boolean(
-    issue.reproductionPath ||
-      commands.length ||
-      steps.length ||
-      reproduction.input ||
-      reproduction.expected ||
-      reproduction.actual ||
-      reproduction.testFile ||
-      reproduction.logPath ||
-      reproduction.exitCode !== undefined
-  );
-}
-
-function IssueSummaryDetail({ issue }) {
-  return (
-    <>
-      <IssueNarrativeSection issue={issue} />
-      <IssueLocationsSection issue={issue} />
-      <IssueEvidenceSection issue={issue} />
-      <IssueTraceSection issue={issue} />
-      <IssueReasoningSection issue={issue} />
-      {issueHasReproduction(issue) && (
-        <DetailSection title={T("Validation", "Validation")}>
-          <ReproductionCenter issue={issue} />
-        </DetailSection>
-      )}
-      <IssueRemediationSection issue={issue} />
-      <IssueCodeSection issue={issue} />
-      <IssueValidationSourcesSection issue={issue} />
-      <TextListSection title={T("False-positive checks", "False-positive checks")} items={issue.whyNotFalsePositive} />
-      <TextListSection title={T("Limitations", "Limitations")} items={issue.limitations} />
-      {Array.isArray(issue.references) && issue.references.length > 0 && (
-        <DetailSection title={T("References", "References")}>
-          <div className="issue-reference-list">
-            {issue.references.map((reference, index) => {
-              const title = reference?.title || reference?.url || reference;
-              const url = reference?.url || "";
-              return url ? (
-                <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer">
-                  {title}
-                </a>
-              ) : (
-                <span key={`${title}-${index}`}>{title}</span>
-              );
-            })}
-          </div>
-        </DetailSection>
-      )}
-    </>
   );
 }
 
@@ -1348,7 +936,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const confidence = confidenceLabel(issue);
   const copyPage = async () => {
-    const copied = await copyText(buildIssuePageMarkdown(issue, currentStatus));
+    const copied = await copyText(issuePageMarkdown(issue, currentStatus));
     if (!copied) return;
     setPageCopied(true);
     if (pageCopyResetRef.current) clearTimeout(pageCopyResetRef.current);
@@ -1432,7 +1020,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           </div>
           <div className="issue-detail-grid">
             <div className="issue-detail-main-col">
-              <IssueSummaryDetail issue={issue} />
+              <IssueSummaryDetail issue={issue} currentStatus={currentStatus} />
             </div>
 
             <div className="card section issue-actions">

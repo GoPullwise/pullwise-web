@@ -1277,20 +1277,8 @@ describe("HistoryScreen queue state", () => {
       screen.queryByText(/confirmed issue f_123 with review evidence/i)
     ).not.toBeInTheDocument();
   });
-  it("downloads worker debug bundles from failed scan rows", async () => {
+  it("omits worker debug bundle downloads from scan history rows", async () => {
     const user = userEvent.setup();
-    const createObjectURL = vi.fn(() => "blob:pullwise-debug");
-    const revokeObjectURL = vi.fn();
-    const originalCreateObjectURL = URL.createObjectURL;
-    const originalRevokeObjectURL = URL.revokeObjectURL;
-    const originalFetch = globalThis.fetch;
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      blob: () => Promise.resolve(new Blob(["debug zip"], { type: "application/zip" })),
-    });
-    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
-    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
     useScans.mockReturnValue({
       items: [
         {
@@ -1309,48 +1297,17 @@ describe("HistoryScreen queue state", () => {
       error: "",
     });
 
-    try {
-      render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
+    render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
 
-      await user.click(screen.getByRole("button", { name: /more actions/i }));
-      await user.click(screen.getByRole("menuitem", { name: /download debug zip/i }));
+    await user.click(screen.getByRole("button", { name: /more actions/i }));
 
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        `${window.location.origin}/v1/review-runs/run_job_1/artifacts/art_debug_bundle`,
-        { credentials: "include" }
-      );
-      expect(createObjectURL).toHaveBeenCalledTimes(1);
-      expect(click).toHaveBeenCalledTimes(1);
-      expect(revokeObjectURL).toHaveBeenCalledWith("blob:pullwise-debug");
-    } finally {
-      globalThis.fetch = originalFetch;
-      if (originalCreateObjectURL) {
-        Object.defineProperty(URL, "createObjectURL", {
-          configurable: true,
-          value: originalCreateObjectURL,
-        });
-      } else {
-        delete URL.createObjectURL;
-      }
-      if (originalRevokeObjectURL) {
-        Object.defineProperty(URL, "revokeObjectURL", {
-          configurable: true,
-          value: originalRevokeObjectURL,
-        });
-      } else {
-        delete URL.revokeObjectURL;
-      }
-      click.mockRestore();
-    }
+    expect(screen.getByRole("menuitem", { name: /download zip/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: /download debug zip/i })
+    ).not.toBeInTheDocument();
   });
   it("does not substitute audit bundle URLs when worker debug artifacts are missing", async () => {
     const user = userEvent.setup();
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText },
-    });
     useScans.mockReturnValue({
       items: [
         {
@@ -1369,20 +1326,13 @@ describe("HistoryScreen queue state", () => {
       error: "",
     });
 
-    try {
-      render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
+    render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
 
-      await user.click(screen.getByRole("button", { name: /more actions/i }));
-      const copyDebug = screen.getByRole("menuitem", { name: /download debug zip/i });
+    await user.click(screen.getByRole("button", { name: /more actions/i }));
 
-      expect(copyDebug).toBeDisabled();
-      expect(writeText).not.toHaveBeenCalled();
-    } finally {
-      Object.defineProperty(navigator, "clipboard", {
-        configurable: true,
-        value: originalClipboard,
-      });
-    }
+    expect(
+      screen.queryByRole("menuitem", { name: /download debug zip/i })
+    ).not.toBeInTheDocument();
   });
   it("downloads a structured audit bundle for completed scans", async () => {
     const user = userEvent.setup();
@@ -1528,7 +1478,7 @@ describe("IssueDetailScreen review detail", () => {
     expect(go).toHaveBeenCalledWith("issues");
   });
 
-  it("hides issue audit evidence while review is running", async () => {
+  it("renders issue raw markdown instead of structured audit sections", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;
@@ -1545,6 +1495,7 @@ describe("IssueDetailScreen review detail", () => {
       severity: "high",
       category: "Security",
       title: "Validate redirect targets",
+      rawMarkdown: "# Worker finding\n\n- Keep redirect targets on the allowlist.\n\n```py\nreturn safe_redirect(next_url)\n```",
       summary: "The redirect endpoint accepts arbitrary URLs.",
       status: "open",
       verificationSummary: "A focused request test reproduces the redirect behavior.",
@@ -1582,6 +1533,12 @@ describe("IssueDetailScreen review detail", () => {
       render(<IssueDetailScreen go={vi.fn()} issue={issue} />);
 
       expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
+      expect(screen.getByText("Issue report")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Worker finding" })).toBeInTheDocument();
+      expect(screen.getByRole("listitem")).toHaveTextContent("Keep redirect targets on the allowlist.");
+      expect(document.querySelector(".issue-markdown-report pre")).toHaveTextContent(
+        "return safe_redirect(next_url)"
+      );
       expect(screen.queryByText("Confidence evidence")).not.toBeInTheDocument();
       expect(screen.queryByText("Evidence trace")).not.toBeInTheDocument();
       expect(screen.queryByText("Facts, reasoning, recommendations")).not.toBeInTheDocument();
@@ -1594,7 +1551,9 @@ describe("IssueDetailScreen review detail", () => {
       await user.click(screen.getByRole("button", { name: /copy page/i }));
 
       const markdown = writeText.mock.calls[0][0];
-      expect(markdown).toContain("# Validate redirect targets");
+      expect(markdown).toBe(
+        "# Worker finding\n\n- Keep redirect targets on the allowlist.\n\n```py\nreturn safe_redirect(next_url)\n```"
+      );
       expect(markdown).not.toContain("## Confidence evidence");
       expect(markdown).not.toContain("## Evidence trace");
       expect(markdown).not.toContain("## Evidence chain");

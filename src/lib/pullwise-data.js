@@ -1082,6 +1082,16 @@ export function normalizeIssue(issue = {}) {
     repo: textValue(issue.repo),
     branch: textValue(issue.branch, issue.audit?.branch),
     title,
+    rawMarkdown: multilineTextValue(
+      issue.rawMarkdown ??
+        issue.raw_markdown ??
+        issue.markdown ??
+        issue.bodyMarkdown ??
+        issue.body_markdown ??
+        issue.descriptionMarkdown ??
+        issue.description_markdown,
+      50000
+    ),
     summary: textValue(issue.summary, issue.description),
     impact: textValue(issue.impact),
     detectionReasoning: textValue(issue.detectionReasoning),
