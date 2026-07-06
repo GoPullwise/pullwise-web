@@ -20,15 +20,122 @@ import {
 import { quotaResetText } from "../lib/quota-display.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
+function renderInlineMarkdown(text, keyPrefix) {
+  return String(text || "")
+    .split(/(`[^`]+`|\*\*[^*]+\*\*)/g)
+    .filter((part) => part !== "")
+    .map((part, index) => {
+      const key = `${keyPrefix}-${index}`;
+      if (part.startsWith("`") && part.endsWith("`")) {
+        return <code key={key}>{part.slice(1, -1)}</code>;
+      }
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={key}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+}
+
+function MarkdownReport({ markdown }) {
+  const lines = String(markdown || "").split(/?
+/);
+  const blocks = [];
+  let paragraph = [];
+  let list = [];
+  let code = [];
+  let inCode = false;
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    const text = paragraph.join(" ").trim();
+    if (text) {
+      blocks.push(
+        <p key={`p-${blocks.length}`}>{renderInlineMarkdown(text, `p-${blocks.length}`)}</p>
+      );
+    }
+    paragraph = [];
+  };
+  const flushList = () => {
+    if (!list.length) return;
+    blocks.push(
+      <ul key={`ul-${blocks.length}`}>
+        {list.map((item, index) => (
+          <li key={index}>{renderInlineMarkdown(item, `li-${blocks.length}-${index}`)}</li>
+        ))}
+      </ul>
+    );
+    list = [];
+  };
+  const flushCode = () => {
+    blocks.push(
+      <pre key={`code-${blocks.length}`}>
+        <code>{code.join("
+")}</code>
+      </pre>
+    );
+    code = [];
+  };
+
+  lines.forEach((line) => {
+    if (line.trim().startsWith("```")) {
+      if (inCode) {
+        flushCode();
+        inCode = false;
+      } else {
+        flushParagraph();
+        flushList();
+        inCode = true;
+      }
+      return;
+    }
+    if (inCode) {
+      code.push(line);
+      return;
+    }
+    if (!line.trim()) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const level = Math.min(6, Math.max(4, heading[1].length + 3));
+      const Tag = `h${level}`;
+      blocks.push(
+        <Tag key={`h-${blocks.length}`}>
+          {renderInlineMarkdown(heading[2].trim(), `h-${blocks.length}`)}
+        </Tag>
+      );
+      return;
+    }
+    const bullet = line.match(/^\s*[-*]\s+(.+)$/);
+    if (bullet) {
+      flushParagraph();
+      list.push(bullet[1].trim());
+      return;
+    }
+    flushList();
+    paragraph.push(line.trim());
+  });
+
+  if (inCode || code.length) flushCode();
+  flushParagraph();
+  flushList();
+
+  return <div className="scan-human-report-markdown">{blocks}</div>;
+}
+
 function HumanReviewReport({ report }) {
   const markdown = typeof report?.summaryMarkdown === "string" ? report.summaryMarkdown.trim() : "";
   if (!markdown) return null;
   return (
     <div className="scan-human-report card section">
       <div className="section-h">
-        <h3>{T("Review report", "审查报告")}</h3>
+        <h3>{T("Review report", "????")}</h3>
       </div>
-      <pre>{markdown}</pre>
+      <MarkdownReport markdown={markdown} />
     </div>
   );
 }
@@ -118,6 +225,14 @@ function qualityGateLabel(status) {
   }
 }
 
+function informativeSummaryTag(value, hiddenValues = []) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const normalized = text.toLowerCase().replace(/_/g, " ");
+  const hidden = new Set(["unknown", "none", "n/a", "not available", ...hiddenValues]);
+  return hidden.has(normalized) ? "" : text;
+}
+
 function ReviewRunSummary({ reviewRun }) {
   if (!reviewRun || typeof reviewRun !== "object") return null;
   const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
@@ -134,6 +249,8 @@ function ReviewRunSummary({ reviewRun }) {
   const countedConfirmed =
     quotaNumber(findingCounts.confirmed_high) + quotaNumber(findingCounts.confirmed_critical);
   const confirmed = countedConfirmed || quotaNumber(summary.top_findings?.length);
+  const overallRiskTag = informativeSummaryTag(summary.overall_risk);
+  const resultStatusTag = informativeSummaryTag(summary.result_status, ["complete", "completed"]);
   const progressLabel =
     typeof progress.overall_percent === "number"
       ? `${Math.round(progress.overall_percent)}%`
@@ -164,12 +281,12 @@ function ReviewRunSummary({ reviewRun }) {
           <span>{T("Artifacts", "产物")}</span>
         </div>
       </div>
-      {summary.overall_risk || summary.result_status || confirmed > 0 ? (
+      {overallRiskTag || resultStatusTag || confirmed > 0 ? (
         <div className="review-run-summary-line">
-          {summary.overall_risk && <span className="tag">{summary.overall_risk}</span>}
-          {summary.result_status && <span className="tag">{summary.result_status}</span>}
+          {overallRiskTag && <span className="tag">{overallRiskTag}</span>}
+          {resultStatusTag && <span className="tag">{resultStatusTag}</span>}
           {confirmed > 0 && (
-            <span className="tag">{T(`${confirmed} confirmed`, `${confirmed} 个已确认`)}</span>
+            <span className="tag">{T(`${confirmed} confirmed`, `${confirmed} ????`)}</span>
           )}
         </div>
       ) : null}

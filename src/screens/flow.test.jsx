@@ -1128,7 +1128,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Passed")).toBeInTheDocument();
     expect(screen.getByText("1 confirmed")).toBeInTheDocument();
     expect(screen.getByText("medium")).toBeInTheDocument();
-    expect(screen.getByText("complete")).toBeInTheDocument();
+    expect(screen.queryByText("complete")).not.toBeInTheDocument();
 
     const artifacts = screen.getByLabelText("Review artifacts");
     expect(artifacts).not.toHaveAttribute("open");
@@ -1146,6 +1146,46 @@ describe("ScanningScreen queue state", () => {
     expect(within(artifacts).getByText("worker.log.jsonl")).toBeInTheDocument();
     expect(within(artifacts).getByText("worker_log")).toBeInTheDocument();
     expect(within(artifacts).getByText("required")).toBeInTheDocument();
+  });
+
+  it("hides uninformative review run summary tags", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+        reviewRun: {
+          runId: "run_job_1",
+          status: "completed",
+          qualityGate: { status: "pass" },
+          progress: { overall_percent: 100 },
+          summary: { overall_risk: "unknown", result_status: "complete" },
+          artifacts: [],
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Review run")).toBeInTheDocument();
+    expect(screen.queryByText("unknown")).not.toBeInTheDocument();
+    expect(screen.queryByText("complete")).not.toBeInTheDocument();
+    expect(document.querySelector(".review-run-summary-line")).not.toBeInTheDocument();
   });
 
   it("keeps long audit evidence card text inside the card without clamping", () => {
@@ -1267,7 +1307,7 @@ describe("ScanningScreen queue state", () => {
         phase: "report",
         progress: 100,
         issues: { critical: 0, high: 1, medium: 0, low: 0 },
-        humanReport: { summaryMarkdown: "# Review\n\nFound one high priority issue." },
+        humanReport: { summaryMarkdown: "# Review\n\n- Found one high priority issue." },
       },
       error: "",
       cancel: vi.fn(),
@@ -1285,7 +1325,9 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.getByText("Review report")).toBeInTheDocument();
-    expect(screen.getByText(/Found one high priority issue/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
+    expect(screen.getByRole("listitem")).toHaveTextContent("Found one high priority issue.");
+    expect(document.querySelector(".scan-human-report pre")).not.toBeInTheDocument();
   });
   it("shows preflight evidence for a completed scan", () => {
     useScanRun.mockReturnValue({

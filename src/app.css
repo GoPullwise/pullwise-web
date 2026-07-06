@@ -1198,14 +1198,49 @@ body.has-proto-nav {
   color: var(--text-3);
 }
 
-.scan-human-report pre {
+.scan-human-report-markdown {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.scan-human-report-markdown h4,
+.scan-human-report-markdown h5,
+.scan-human-report-markdown h6,
+.scan-human-report-markdown p,
+.scan-human-report-markdown ul,
+.scan-human-report-markdown pre {
   margin: 0;
-  max-height: 560px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scan-human-report-markdown h4 {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.scan-human-report-markdown h5,
+.scan-human-report-markdown h6 {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.scan-human-report-markdown ul {
+  padding-left: 18px;
+}
+
+.scan-human-report-markdown pre {
+  max-height: 360px;
   overflow: auto;
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
   font: 12.5px/1.55 var(--mono);
-  color: var(--text);
+}
+
+.scan-human-report-markdown code {
+  font-family: var(--mono);
 }
 .scanning-h {
   align-items: flex-start;
