@@ -1323,6 +1323,7 @@
   color: var(--text-2);
 }
 .scanning-phase.failed,
+.scanning-phase.cancelled,
 .scanning-phase.partial {
   --phase-accent: var(--sev-critical);
   color: var(--text);
@@ -1356,6 +1357,7 @@
     inset 0 1px 0 color-mix(in oklch, white 34%, transparent);
 }
 .scanning-phase.failed .scanning-phase-bullet,
+.scanning-phase.cancelled .scanning-phase-bullet,
 .scanning-phase.partial .scanning-phase-bullet {
   color: white;
   border-color: var(--sev-critical);
@@ -1549,6 +1551,7 @@
   color: color-mix(in oklch, var(--text-2) 82%, var(--text));
 }
 [data-theme="dark"] .scanning-phase.failed,
+[data-theme="dark"] .scanning-phase.cancelled,
 [data-theme="dark"] .scanning-phase.partial {
   --phase-accent: var(--sev-critical);
   border-color: color-mix(in oklch, var(--sev-critical) 68%, white 8%);
@@ -1573,6 +1576,7 @@
 [data-theme="dark"] .scanning-phase.done .scanning-phase-bullet,
 [data-theme="dark"] .scanning-phase.on .scanning-phase-bullet,
 [data-theme="dark"] .scanning-phase.failed .scanning-phase-bullet,
+[data-theme="dark"] .scanning-phase.cancelled .scanning-phase-bullet,
 [data-theme="dark"] .scanning-phase.partial .scanning-phase-bullet {
   color: white;
   text-shadow: 0 1px 0 color-mix(in oklch, black 45%, transparent);
@@ -1596,6 +1600,7 @@
     inset 0 1px 0 color-mix(in oklch, white 22%, transparent);
 }
 [data-theme="dark"] .scanning-phase.failed .scanning-phase-bullet,
+[data-theme="dark"] .scanning-phase.cancelled .scanning-phase-bullet,
 [data-theme="dark"] .scanning-phase.partial .scanning-phase-bullet {
   box-shadow:
     0 0 0 4px color-mix(in oklch, var(--sev-critical) 20%, transparent),

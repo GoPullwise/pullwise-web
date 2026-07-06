@@ -717,7 +717,7 @@ describe("ReposScreen scan selection", () => {
     expect(screen.getByText("哪些仓库可以扫描")).toBeInTheDocument();
     expect(screen.getByText("1 个已授权仓库")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /同步/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /开始扫描/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /\u5f00\u59cb\u626b\u63cf/i })).toBeInTheDocument();
   });
 
   it("starts GitHub repository connection from the keyboard", async () => {
@@ -1758,6 +1758,42 @@ describe("ScanningScreen queue state", () => {
     expect(within(phases).getByText("Checkout").closest(".scanning-phase")).not.toHaveClass(
       "errored"
     );
+  });
+
+  it("shows cancelled scan progress nodes as cancelled instead of running", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_cancelled",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "cancelled",
+        phase: "publish",
+        progress: 62,
+        progressSteps: [
+          { id: "checkout", label: "Checkout", status: "completed", percent: 100 },
+          { id: "publish", label: "Publish", status: "running", percent: 62 },
+          { id: "report", label: "Report", status: "pending", percent: 0 },
+        ],
+      },
+      error: "",
+      retry: vi.fn(),
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    );
+
+    expect(screen.getByText("Scan cancelled")).toBeInTheDocument();
+    const publishNode = screen.getByText("Publish").closest(".scanning-phase");
+    expect(publishNode).toHaveClass("cancelled");
+    expect(within(publishNode).getByText("Cancelled")).toBeInTheDocument();
+    expect(within(publishNode).queryByText("Running")).not.toBeInTheDocument();
+    expect(publishNode).not.toHaveAttribute("data-flow-current", "true");
   });
 
   it("shows partial completed progress nodes without downgrading them to queued", () => {
