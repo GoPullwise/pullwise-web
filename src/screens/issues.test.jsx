@@ -1445,6 +1445,18 @@ describe("IssueDetailScreen review detail", () => {
     expect(auditTagBlock).toMatch(/white-space:\s*normal;/);
   });
 
+  it("keeps the issue detail back-to-list action left aligned", () => {
+    const appCss = appStyles();
+    const backBlock =
+      appCss.match(/\.issue-detail-back\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+
+    expect(backBlock).toMatch(/align-self:\s*flex-start;/);
+    expect(backBlock).toMatch(/display:\s*inline-flex;/);
+    expect(backBlock).toMatch(/justify-content:\s*flex-start;/);
+    expect(backBlock).toMatch(/width:\s*fit-content;/);
+    expect(backBlock).toMatch(/margin:\s*0 0 12px 0;/);
+  });
+
   it("exposes issue detail recovery navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
@@ -1469,6 +1481,7 @@ describe("IssueDetailScreen review detail", () => {
 
     const backToList = screen.getByRole("link", { name: /back to list/i });
     expect(backToList).toHaveAttribute("href", "/issues");
+    expect(backToList).toHaveClass("issue-detail-back");
 
     await user.click(backToList);
     expect(go).toHaveBeenCalledWith("issues");

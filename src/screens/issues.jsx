@@ -881,11 +881,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         <div className="with-side">
           <Sidebar section="issues" go={go} />
           <div className="main" style={{ maxWidth: "none" }}>
-            <a
-              className="btn ghost sm"
-              style={{ marginBottom: 12 }}
-              {...screenLinkProps(go, "issues")}
-            >
+            <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
               <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
             </a>
             <IssueDetailSkeleton />
@@ -966,11 +962,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       <div className="with-side">
         <Sidebar section="issues" go={go} />
         <div className="main" style={{ maxWidth: "none" }}>
-          <a
-            className="btn ghost sm"
-            style={{ marginBottom: 12 }}
-            {...screenLinkProps(go, "issues")}
-          >
+          <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
           </a>
           {loadError && (

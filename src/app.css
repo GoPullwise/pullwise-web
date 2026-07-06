@@ -452,6 +452,14 @@ body.has-proto-nav {
   vertical-align: middle;
 }
 
+.issue-detail-back {
+  align-self: flex-start;
+  display: inline-flex;
+  justify-content: flex-start;
+  width: fit-content;
+  margin: 0 0 12px 0;
+}
+
 .btn > svg,
 .btn .spin,
 .tag > svg,
