@@ -27,7 +27,6 @@ import { Sidebar, Topbar } from "../shell.jsx";
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
 const HISTORY_EXPECTED_SCAN_RETRY_MS = 1500;
-const HISTORY_EXPECTED_SCAN_MAX_RETRIES = 5;
 const REVIEW_OUTPUT_LANGUAGES = [
   { value: "en", labelEn: "English", labelZh: "英文" },
   { value: "zh-CN", labelEn: "Chinese", labelZh: "中文" },
@@ -1652,13 +1651,7 @@ export function HistoryScreen({
     () => missingExpectedScanIds(filtered, normalizedExpectedScanIds),
     [filtered, normalizedExpectedScanIds]
   );
-  const expectedScanWaitExpired =
-    hasExpectedScans &&
-    !expectedScansLoaded &&
-    !error &&
-    expectedScanRetryCount >= HISTORY_EXPECTED_SCAN_MAX_RETRIES;
-  const waitingForExpectedScans =
-    hasExpectedScans && !expectedScansLoaded && !error && !expectedScanWaitExpired;
+  const waitingForExpectedScans = hasExpectedScans && !expectedScansLoaded && !error;
   const displayLoading = loading || waitingForExpectedScans;
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 
@@ -1847,14 +1840,9 @@ export function HistoryScreen({
                 {error}
               </div>
             )}
-            {!error && (actionError || expectedScanWaitExpired) && (
+            {!error && actionError && (
               <div className="auth-error" role="alert" style={{ margin: "18px 18px 0" }}>
-                <I.X size={13} />{" "}
-                {actionError ||
-                  T(
-                    "New scan has not appeared yet. Refresh scan history to try again.",
-                    "New scan has not appeared yet. Refresh scan history to try again."
-                  )}
+                <I.X size={13} /> {actionError}
               </div>
             )}
             {displayLoading && <HistorySkeleton />}

@@ -954,7 +954,7 @@ describe("HistoryScreen queue state", () => {
     }
   });
 
-  it("shows cached scan history with a warning when expected new scans never arrive", async () => {
+  it("keeps the skeleton up across repeated refreshes while expected new scans are missing", async () => {
     vi.useFakeTimers();
     const reload = vi.fn();
     try {
@@ -986,9 +986,9 @@ describe("HistoryScreen queue state", () => {
         });
       }
 
-      expect(container.querySelector(".history-skeleton")).not.toBeInTheDocument();
-      expect(screen.getByText("octocat/old-repo")).toBeInTheDocument();
-      expect(screen.getByRole("alert")).toHaveTextContent(/new scan has not appeared/i);
+      expect(container.querySelector(".history-skeleton")).toBeInTheDocument();
+      expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(reload).toHaveBeenCalledTimes(5);
     } finally {
       vi.useRealTimers();
