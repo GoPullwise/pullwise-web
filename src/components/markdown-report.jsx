@@ -26,7 +26,9 @@ export function MarkdownReport({ markdown, className = "scan-human-report-markdo
     if (!paragraph.length) return;
     const text = paragraph.join(" ").trim();
     if (text) {
-      blocks.push(<p key={`p-${blocks.length}`}>{renderInlineMarkdown(text, `p-${blocks.length}`)}</p>);
+      blocks.push(
+        <p key={`p-${blocks.length}`}>{renderInlineMarkdown(text, `p-${blocks.length}`)}</p>
+      );
     }
     paragraph = [];
   };

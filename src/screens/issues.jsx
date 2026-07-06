@@ -238,14 +238,22 @@ function buildIssuePageMarkdown(issue, currentStatus) {
   appendMarkdownSection(lines, "Impact", issue.impact);
   appendMarkdownSection(lines, "Detection reasoning", issue.detectionReasoning);
   appendMarkdownSection(lines, "Verification", issue.verificationSummary);
-  appendMarkdownListSection(lines, "Affected locations", (issue.affectedLocations || []).map(locationLabel));
+  appendMarkdownListSection(
+    lines,
+    "Affected locations",
+    (issue.affectedLocations || []).map(locationLabel)
+  );
   appendMarkdownListSection(lines, "Evidence", (issue.evidence || []).map(issueEvidenceText));
   appendMarkdownListSection(lines, "False-positive checks", issue.whyNotFalsePositive);
   appendMarkdownSection(lines, "Recommendation", issue.recommendation);
   appendMarkdownSection(lines, "Next agent task", issue.nextAgentTask);
   appendMarkdownListSection(lines, "Remediation steps", issue.steps);
   appendMarkdownSection(lines, "Disproof attempt", issue.disproofAttempt);
-  appendMarkdownKeyValueSection(lines, "Validation sources", issueValidationSourceRows(issue.validationSources));
+  appendMarkdownKeyValueSection(
+    lines,
+    "Validation sources",
+    issueValidationSourceRows(issue.validationSources)
+  );
   appendMarkdownListSection(lines, "Limitations", issue.limitations);
   return `${lines
     .join("\n")
@@ -272,7 +280,9 @@ function IssueChecklistSection({ issue }) {
     <div className="issue-checklist">
       {checklist.map((item) => (
         <div className="issue-check" key={item.id || item.label}>
-          <span className={item.met ? "issue-check-dot met" : "issue-check-dot"}>{item.met ? <I.Check size={10} /> : null}</span>
+          <span className={item.met ? "issue-check-dot met" : "issue-check-dot"}>
+            {item.met ? <I.Check size={10} /> : null}
+          </span>
           <div>
             <b>{item.label || item.id}</b>
             {item.detail && <span>{item.detail}</span>}
@@ -981,7 +991,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 <span className="issue-id">{issue.id}</span>
                 {issue.category && <span className="tag">{issue.category}</span>}{" "}
                 {confidence && <span className="tag">{confidence}</span>}
-                {issue.verificationStatus && <span className="tag">{issue.verificationStatus}</span>}
+                {issue.verificationStatus && (
+                  <span className="tag">{issue.verificationStatus}</span>
+                )}
                 <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>

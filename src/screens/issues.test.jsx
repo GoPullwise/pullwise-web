@@ -1302,9 +1302,7 @@ describe("HistoryScreen queue state", () => {
     await user.click(screen.getByRole("button", { name: /more actions/i }));
 
     expect(screen.getByRole("menuitem", { name: /download zip/i })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("menuitem", { name: /download debug zip/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: /download debug zip/i })).not.toBeInTheDocument();
   });
   it("does not substitute audit bundle URLs when worker debug artifacts are missing", async () => {
     const user = userEvent.setup();
@@ -1330,9 +1328,7 @@ describe("HistoryScreen queue state", () => {
 
     await user.click(screen.getByRole("button", { name: /more actions/i }));
 
-    expect(
-      screen.queryByRole("menuitem", { name: /download debug zip/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: /download debug zip/i })).not.toBeInTheDocument();
   });
   it("downloads a structured audit bundle for completed scans", async () => {
     const user = userEvent.setup();
@@ -1495,7 +1491,8 @@ describe("IssueDetailScreen review detail", () => {
       severity: "high",
       category: "Security",
       title: "Validate redirect targets",
-      rawMarkdown: "# Worker finding\n\n- Keep redirect targets on the allowlist.\n\n```py\nreturn safe_redirect(next_url)\n```",
+      rawMarkdown:
+        "# Worker finding\n\n- Keep redirect targets on the allowlist.\n\n```py\nreturn safe_redirect(next_url)\n```",
       summary: "The redirect endpoint accepts arbitrary URLs.",
       status: "open",
       verificationSummary: "A focused request test reproduces the redirect behavior.",
@@ -1535,7 +1532,9 @@ describe("IssueDetailScreen review detail", () => {
       expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
       expect(screen.getByText("Issue report")).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: "Worker finding" })).toBeInTheDocument();
-      expect(screen.getByRole("listitem")).toHaveTextContent("Keep redirect targets on the allowlist.");
+      expect(screen.getByRole("listitem")).toHaveTextContent(
+        "Keep redirect targets on the allowlist."
+      );
       expect(document.querySelector(".issue-markdown-report pre")).toHaveTextContent(
         "return safe_redirect(next_url)"
       );
