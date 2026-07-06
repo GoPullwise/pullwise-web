@@ -2191,3 +2191,265 @@ body.has-proto-nav {
     min-width: 0;
   }
 }
+
+.issue-narrative-grid,
+.issue-evidence-list,
+.issue-fix-plan,
+.issue-source-table,
+.issue-reference-list,
+.issue-checklist {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.issue-narrative-row,
+.issue-evidence-card,
+.issue-callout,
+.issue-source-row,
+.issue-check,
+.issue-location-row,
+.issue-trace-stage,
+.issue-reasoning-col {
+  min-width: 0;
+}
+
+.issue-narrative-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.issue-narrative-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.issue-narrative-row b,
+.issue-reasoning-col b,
+.issue-callout b,
+.issue-source-row b,
+.issue-check b {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.issue-narrative-row p,
+.issue-callout p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.issue-location-list {
+  display: grid;
+  gap: 8px;
+}
+
+.issue-location-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.issue-location-row svg {
+  flex: 0 0 auto;
+  color: var(--text-3);
+}
+
+.issue-location-row a,
+.issue-source-row a,
+.issue-reference-list a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.issue-evidence-card {
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+.issue-evidence-head,
+.issue-evidence-meta,
+.issue-fix-notes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.issue-evidence-location {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.issue-evidence-card p {
+  margin: 8px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.issue-evidence-meta {
+  margin-top: 8px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.issue-trace {
+  display: grid;
+  gap: 0;
+}
+
+.issue-trace-stage {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 0 0 14px;
+  position: relative;
+}
+
+.issue-trace-stage:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 13px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
+.issue-trace-marker {
+  width: 11px;
+  height: 11px;
+  margin-top: 3px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--surface);
+  z-index: 1;
+}
+
+.issue-trace-stage b {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.issue-reasoning-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.issue-reasoning-col {
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+.issue-callout {
+  padding: 12px;
+  border-left: 3px solid var(--border-strong);
+  background: var(--bg);
+}
+
+.issue-callout-strong {
+  border-left-color: var(--accent);
+}
+
+.issue-fix-notes span,
+.issue-source-list span,
+.issue-check span {
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.issue-code-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.issue-code-block {
+  margin: 0;
+}
+
+.issue-source-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+
+.issue-source-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.issue-source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  min-width: 0;
+}
+
+.issue-reference-list {
+  gap: 8px;
+}
+
+.issue-check {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+
+.issue-check-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.issue-check-dot.met {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .issue-reasoning-grid,
+  .issue-code-compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .issue-narrative-row,
+  .issue-source-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+}

@@ -194,11 +194,55 @@ function appendMarkdownSection(lines, title, content) {
   lines.push("", `## ${title}`, body);
 }
 
+function markdownListItems(items) {
+  return (Array.isArray(items) ? items : []).map(markdownText).filter(Boolean);
+}
+
+function appendMarkdownListSection(lines, title, items) {
+  const values = markdownListItems(items);
+  if (!values.length) return;
+  lines.push("", `## ${title}`, ...values.map((item) => `- ${item}`));
+}
+
+function appendMarkdownKeyValueSection(lines, title, rows) {
+  const values = rows
+    .map(([label, value]) => [label, markdownText(value)])
+    .filter(([, value]) => value);
+  if (!values.length) return;
+  lines.push("", `## ${title}`, ...values.map(([label, value]) => `- ${label}: ${value}`));
+}
+
+function issueEvidenceText(item) {
+  if (typeof item === "string") return markdownText(item);
+  if (!item || typeof item !== "object") return "";
+  const label = markdownText(item.label || item.type || "Evidence");
+  const summary = markdownText(item.summary || item.text || item.output || item.actual);
+  const location = item.file ? locationLabel(item) : "";
+  const command = markdownText(item.command);
+  return [label, summary, location, command].filter(Boolean).join(" - ");
+}
+
+function issueValidationSourceRows(sources) {
+  if (!sources || typeof sources !== "object") return [];
+  return Object.entries(sources).map(([key, value]) => [key, issueSourceValueText(value)]);
+}
+
+function issueSourceValueText(value) {
+  if (Array.isArray(value)) return value.map(issueSourceValueText).filter(Boolean).join(", ");
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .map(([key, item]) => `${key}: ${issueSourceValueText(item)}`)
+      .filter(Boolean)
+      .join("; ");
+  }
+  return markdownText(value);
+}
+
 function buildIssuePageMarkdown(issue, currentStatus) {
   const title = markdownText(issue.title) || markdownText(issue.id) || "Issue";
   const primaryLocation = issue.affectedLocations?.[0] || null;
   const lines = [`# ${title}`];
-  const metadata = [
+  appendMarkdownKeyValueSection(lines, "Metadata", [
     ["Issue", issue.id],
     ["Status", currentStatus || issue.status],
     ["Severity", issue.severity],
@@ -209,21 +253,294 @@ function buildIssuePageMarkdown(issue, currentStatus) {
     ["Scan", issue.scanId],
     ["Job", issue.jobId],
     ["File", primaryLocation ? locationLabel(primaryLocation) : issue.file],
-  ]
-    .map(([label, value]) => {
-      const text = markdownText(value);
-      return text ? `- ${label}: ${text}` : "";
-    })
-    .filter(Boolean);
-
-  appendMarkdownSection(lines, "Metadata", metadata);
-  appendMarkdownSection(lines, "Summary", issue.summary);
+    ["Confidence", issue.confidenceLevel || issue.confidence],
+    ["Verification", issue.verificationStatus],
+  ]);
+  appendMarkdownSection(lines, "Summary", issue.summary || issue.failureScenario);
+  appendMarkdownSection(lines, "Impact", issue.impact);
+  appendMarkdownSection(lines, "Detection reasoning", issue.detectionReasoning);
+  appendMarkdownSection(lines, "Verification", issue.verificationSummary);
+  appendMarkdownListSection(lines, "Affected locations", (issue.affectedLocations || []).map(locationLabel));
+  appendMarkdownListSection(lines, "Evidence", (issue.evidence || []).map(issueEvidenceText));
+  appendMarkdownListSection(lines, "False-positive checks", issue.whyNotFalsePositive);
+  appendMarkdownSection(lines, "Recommendation", issue.recommendation);
+  appendMarkdownSection(lines, "Next agent task", issue.nextAgentTask);
+  appendMarkdownListSection(lines, "Remediation steps", issue.steps);
+  appendMarkdownSection(lines, "Disproof attempt", issue.disproofAttempt);
+  appendMarkdownKeyValueSection(lines, "Validation sources", issueValidationSourceRows(issue.validationSources));
+  appendMarkdownListSection(lines, "Limitations", issue.limitations);
   return `${lines
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()}\n`;
 }
 
+function cleanTextItems(items) {
+  return (Array.isArray(items) ? items : []).map((item) => String(item || "").trim()).filter(Boolean);
+}
+
+function confidenceLabel(issue) {
+  if (issue.confidenceLevel) return issue.confidenceLevel;
+  const confidence = Number(issue.confidence);
+  if (!Number.isFinite(confidence) || confidence <= 0) return "";
+  return confidence <= 1 ? `${Math.round(confidence * 100)}%` : String(confidence);
+}
+
+function SourceValue({ value }) {
+  if (Array.isArray(value)) {
+    return (
+      <div className="issue-source-list">
+        {value.map((item, index) => (
+          <span key={`source-item-${index}`}>{issueSourceValueText(item)}</span>
+        ))}
+      </div>
+    );
+  }
+  if (value && typeof value === "object") {
+    return (
+      <div className="issue-source-list">
+        {Object.entries(value).map(([key, item]) => (
+          <span key={key}>
+            <b>{key}</b>: {issueSourceValueText(item)}
+          </span>
+        ))}
+      </div>
+    );
+  }
+  return <span>{String(value || "")}</span>;
+}
+
+function IssueNarrativeSection({ issue }) {
+  const rows = [
+    [T("Summary", "Summary"), issue.summary || issue.failureScenario],
+    [T("Impact", "Impact"), issue.impact],
+    [T("Detection reasoning", "Detection reasoning"), issue.detectionReasoning],
+    [T("Verification summary", "Verification summary"), issue.verificationSummary],
+    [T("Disproof attempt", "Disproof attempt"), issue.disproofAttempt],
+  ].filter(([, value]) => markdownText(value));
+  if (!rows.length) return null;
+  return (
+    <DetailSection title={T("What the worker found", "What the worker found")}>
+      <div className="issue-narrative-grid">
+        {rows.map(([label, value]) => (
+          <div className="issue-narrative-row" key={label}>
+            <b>{label}</b>
+            <p>{value}</p>
+          </div>
+        ))}
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueLocationsSection({ issue }) {
+  const locations = Array.isArray(issue.affectedLocations) ? issue.affectedLocations : [];
+  if (!locations.length) return null;
+  return (
+    <DetailSection title={T("Affected locations", "Affected locations")}>
+      <div className="issue-location-list">
+        {locations.map((location, index) => {
+          const label = locationLabel(location);
+          return (
+            <div className="issue-location-row" key={`${label}-${index}`}>
+              <I.FileCode size={14} />
+              {location.url ? (
+                <a href={location.url} target="_blank" rel="noreferrer">
+                  {label}
+                </a>
+              ) : (
+                <span>{label}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueEvidenceSection({ issue }) {
+  const evidence = Array.isArray(issue.evidence) ? issue.evidence : [];
+  if (!evidence.length) return null;
+  return (
+    <DetailSection title={T("Evidence", "Evidence")}>
+      <div className="issue-evidence-list">
+        {evidence.map((item, index) => {
+          const objectItem = item && typeof item === "object" ? item : { summary: String(item || "") };
+          const label = objectItem.label || objectItem.type || T("Evidence", "Evidence");
+          const location = objectItem.file ? locationLabel(objectItem) : "";
+          return (
+            <div className="issue-evidence-card" key={`evidence-${index}`}>
+              <div className="issue-evidence-head">
+                <span className="tag">{label}</span>
+                {location && <span className="issue-evidence-location">{location}</span>}
+              </div>
+              {objectItem.summary && <p>{objectItem.summary}</p>}
+              {objectItem.command && <code className="evidence-command">{objectItem.command}</code>}
+              <div className="issue-evidence-meta">
+                {objectItem.logPath && <span>{T("log", "log")}: {objectItem.logPath}</span>}
+                {objectItem.exitCode !== undefined && <span>{T("exit", "exit")}: {objectItem.exitCode}</span>}
+                {objectItem.outputRedacted && <span>{T("output captured", "output captured")}</span>}
+                {objectItem.url && (
+                  <a href={objectItem.url} target="_blank" rel="noreferrer">
+                    {T("Open source", "Open source")}
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueTraceSection({ issue }) {
+  const stages = Array.isArray(issue.evidenceTrace) ? issue.evidenceTrace : [];
+  if (!stages.length) return null;
+  return (
+    <DetailSection title={T("Evidence trace", "Evidence trace")}>
+      <div className="issue-trace">
+        {stages.map((stage) => {
+          const items = cleanTextItems(stage.items);
+          return (
+            <div className="issue-trace-stage" key={stage.id || stage.label}>
+              <div className="issue-trace-marker" />
+              <div>
+                <b>{stage.label || stage.id}</b>
+                {items.length ? (
+                  <ul className="legal-list-flat evidence-list">
+                    {items.map((item, index) => <li key={`${stage.id}-${index}`}>{item}</li>)}
+                  </ul>
+                ) : (
+                  <p className="muted">{stage.empty}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueReasoningSection({ issue }) {
+  const breakdown = issue.reasoningBreakdown || {};
+  const groups = [
+    [T("Facts", "Facts"), breakdown.facts],
+    [T("Inferences", "Inferences"), breakdown.inferences],
+    [T("Recommendations", "Recommendations"), breakdown.recommendations],
+  ].map(([label, items]) => [label, cleanTextItems(items)]).filter(([, items]) => items.length);
+  if (!groups.length) return null;
+  return (
+    <DetailSection title={T("Reasoning", "Reasoning")}>
+      <div className="issue-reasoning-grid">
+        {groups.map(([label, items]) => (
+          <div className="issue-reasoning-col" key={label}>
+            <b>{label}</b>
+            <ul className="legal-list-flat evidence-list">
+              {items.map((item, index) => <li key={`${label}-${index}`}>{item}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueRemediationSection({ issue }) {
+  const steps = cleanTextItems(issue.steps);
+  const hasContent = issue.recommendation || issue.nextAgentTask || issue.fixBenefits || issue.fixRisks || steps.length;
+  if (!hasContent) return null;
+  return (
+    <DetailSection title={T("Fix plan", "Fix plan")}>
+      <div className="issue-fix-plan">
+        {issue.recommendation && (
+          <div className="issue-callout">
+            <b>{T("Recommendation", "Recommendation")}</b>
+            <p>{issue.recommendation}</p>
+          </div>
+        )}
+        {issue.nextAgentTask && (
+          <div className="issue-callout issue-callout-strong">
+            <b>{T("Next agent task", "Next agent task")}</b>
+            <p>{issue.nextAgentTask}</p>
+          </div>
+        )}
+        {steps.length > 0 && (
+          <ul className="legal-list-flat evidence-list">
+            {steps.map((step, index) => <li key={`step-${index}`}>{step}</li>)}
+          </ul>
+        )}
+        {(issue.fixBenefits || issue.fixRisks) && (
+          <div className="issue-fix-notes">
+            {issue.fixBenefits && <span><b>{T("Benefit", "Benefit")}</b> {issue.fixBenefits}</span>}
+            {issue.fixRisks && <span><b>{T("Risk", "Risk")}</b> {issue.fixRisks}</span>}
+          </div>
+        )}
+      </div>
+    </DetailSection>
+  );
+}
+
+function CodeLinesBlock({ title, lines }) {
+  const values = cleanTextItems(lines);
+  if (!values.length) return null;
+  return (
+    <div className="docs-code issue-code-block">
+      <div className="docs-code-h"><span>{title}</span></div>
+      <pre>{values.join("\n")}</pre>
+    </div>
+  );
+}
+
+function IssueCodeSection({ issue }) {
+  const hasCode = cleanTextItems(issue.badCode).length || cleanTextItems(issue.goodCode).length;
+  if (!hasCode) return null;
+  return (
+    <DetailSection title={T("Code evidence", "Code evidence")}>
+      <div className="issue-code-compare">
+        <CodeLinesBlock title={T("Current", "Current")} lines={issue.badCode} />
+        <CodeLinesBlock title={T("Suggested", "Suggested")} lines={issue.goodCode} />
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueValidationSourcesSection({ issue }) {
+  const rows = issueValidationSourceRows(issue.validationSources).filter(([, value]) => value);
+  if (!rows.length) return null;
+  return (
+    <DetailSection title={T("Validation sources", "Validation sources")}>
+      <div className="issue-source-table">
+        {rows.map(([key, value]) => (
+          <div className="issue-source-row" key={key}>
+            <b>{key}</b>
+            <SourceValue value={value} />
+          </div>
+        ))}
+      </div>
+    </DetailSection>
+  );
+}
+
+function IssueChecklistSection({ issue }) {
+  const checklist = Array.isArray(issue.evidenceChecklist) ? issue.evidenceChecklist : [];
+  if (!checklist.length) return null;
+  return (
+    <div className="issue-checklist">
+      {checklist.map((item) => (
+        <div className="issue-check" key={item.id || item.label}>
+          <span className={item.met ? "issue-check-dot met" : "issue-check-dot"}>{item.met ? <I.Check size={10} /> : null}</span>
+          <div>
+            <b>{item.label || item.id}</b>
+            {item.detail && <span>{item.detail}</span>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 function ReproductionCenter({ issue }) {
   const reproduction = issue.reproduction || {};
   const commands = Array.isArray(reproduction.commands) ? reproduction.commands : [];
@@ -344,22 +661,58 @@ function TextListSection({ title, items }) {
   );
 }
 
+function issueHasReproduction(issue) {
+  const reproduction = issue.reproduction || {};
+  const commands = Array.isArray(reproduction.commands) ? reproduction.commands : [];
+  const steps = Array.isArray(reproduction.steps) ? reproduction.steps : [];
+  return Boolean(
+    issue.reproductionPath ||
+      commands.length ||
+      steps.length ||
+      reproduction.input ||
+      reproduction.expected ||
+      reproduction.actual ||
+      reproduction.testFile ||
+      reproduction.logPath ||
+      reproduction.exitCode !== undefined
+  );
+}
+
 function IssueSummaryDetail({ issue }) {
   return (
     <>
-      {issue.affectedLocations?.length > 0 && (
-        <DetailSection title={T("Affected locations", "Affected locations")}>
-          <ul className="legal-list-flat evidence-list">
-            {issue.affectedLocations.map((location, index) => (
-              <li key={`${locationLabel(location)}-${index}`}>{locationLabel(location)}</li>
-            ))}
-          </ul>
+      <IssueNarrativeSection issue={issue} />
+      <IssueLocationsSection issue={issue} />
+      <IssueEvidenceSection issue={issue} />
+      <IssueTraceSection issue={issue} />
+      <IssueReasoningSection issue={issue} />
+      {issueHasReproduction(issue) && (
+        <DetailSection title={T("Validation", "Validation")}>
+          <ReproductionCenter issue={issue} />
         </DetailSection>
       )}
-      <DetailSection title={T("Validation", "Validation")}>
-        <ReproductionCenter issue={issue} />
-      </DetailSection>
+      <IssueRemediationSection issue={issue} />
+      <IssueCodeSection issue={issue} />
+      <IssueValidationSourcesSection issue={issue} />
+      <TextListSection title={T("False-positive checks", "False-positive checks")} items={issue.whyNotFalsePositive} />
       <TextListSection title={T("Limitations", "Limitations")} items={issue.limitations} />
+      {Array.isArray(issue.references) && issue.references.length > 0 && (
+        <DetailSection title={T("References", "References")}>
+          <div className="issue-reference-list">
+            {issue.references.map((reference, index) => {
+              const title = reference?.title || reference?.url || reference;
+              const url = reference?.url || "";
+              return url ? (
+                <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer">
+                  {title}
+                </a>
+              ) : (
+                <span key={`${title}-${index}`}>{title}</span>
+              );
+            })}
+          </div>
+        </DetailSection>
+      )}
     </>
   );
 }
@@ -1004,6 +1357,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   };
   const severity = issue.severity || "info";
   const primaryLocation = issue.affectedLocations?.[0] || null;
+  const confidence = confidenceLabel(issue);
   const copyPage = async () => {
     const copied = await copyText(buildIssuePageMarkdown(issue, currentStatus));
     if (!copied) return;
@@ -1049,7 +1403,8 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 </span>
                 <span className="issue-id">{issue.id}</span>
                 {issue.category && <span className="tag">{issue.category}</span>}{" "}
-                {issue.verificationLevel && <span className="tag">{issue.verificationLevel}</span>}
+                {confidence && <span className="tag">{confidence}</span>}
+                {issue.verificationStatus && <span className="tag">{issue.verificationStatus}</span>}
                 <span className="tag">{currentStatus}</span>
               </div>
               <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
@@ -1109,6 +1464,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                   </div>
                 )}
               </div>
+              <IssueChecklistSection issue={issue} />
               <div className="divider" />
               {actionError && (
                 <div className="auth-error" role="alert">
