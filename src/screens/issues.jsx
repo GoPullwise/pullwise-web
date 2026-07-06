@@ -171,17 +171,6 @@ function copyText(value) {
     .catch(() => false);
 }
 
-function absoluteAppUrl(path) {
-  const text = String(path || "").trim();
-  if (!text) return "";
-  if (/^https?:\/\//i.test(text)) return text;
-  const origin = globalThis.location?.origin || "";
-  return origin ? new URL(text, origin).href : text;
-}
-
-function scanDebugZipUrl(scan) {
-  return absoluteAppUrl(scan?.debugBundleUrl);
-}
 function markdownText(value) {
   return String(value ?? "").trim();
 }
@@ -1583,8 +1572,6 @@ function HistoryGroups({
   retryLoading,
   downloadAuditBundle,
   bundleLoading,
-  downloadDebugBundle,
-  debugBundleLoading,
 }) {
   const dayGroups = useMemo(() => groupScansByDay(scans), [scans]);
   if (scans.length === 0) return null;
@@ -1624,8 +1611,6 @@ function HistoryGroups({
                       retryLoading={retryLoading}
                       downloadAuditBundle={downloadAuditBundle}
                       bundleLoading={bundleLoading}
-                      downloadDebugBundle={downloadDebugBundle}
-                      debugBundleLoading={debugBundleLoading}
                     />
                   ) : (
                     <div className="scan-stack">
@@ -1639,8 +1624,6 @@ function HistoryGroups({
                           retryLoading={retryLoading}
                           downloadAuditBundle={downloadAuditBundle}
                           bundleLoading={bundleLoading}
-                          downloadDebugBundle={downloadDebugBundle}
-                          debugBundleLoading={debugBundleLoading}
                         />
                       ))}
                     </div>
@@ -1693,8 +1676,6 @@ function ScanRow({
   retryLoading,
   downloadAuditBundle,
   bundleLoading,
-  downloadDebugBundle,
-  debugBundleLoading,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -1703,7 +1684,6 @@ function ScanRow({
   const status = scan.status || "info";
   const hasResults = scanHasResults(scan);
   const isDownloading = bundleLoading === scan.id;
-  const isDebugDownloading = debugBundleLoading === scan.id;
   const isRetrying = retryLoading === scan.id;
   const canRetry = isRetryableHistoryScan(scan);
   const summary = scanHistorySummary(scan);
@@ -1712,7 +1692,6 @@ function ScanRow({
   const progressDisplay = showProgress
     ? scanProgressPresentation(scan, { label: T("Progress", "进度") })
     : null;
-  const debugBundleUrl = scanDebugZipUrl(scan);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -1871,21 +1850,6 @@ function ScanRow({
               <I.Download size={12} />
               {isDownloading ? T("Preparing...", "准备中...") : T("Download zip", "下载 zip")}
             </button>
-            <button
-              type="button"
-              className="scan-row-menu-item"
-              role="menuitem"
-              disabled={!debugBundleUrl || isDebugDownloading}
-              onClick={() => {
-                setMenuOpen(false);
-                downloadDebugBundle(scan);
-              }}
-            >
-              <I.Download size={12} />
-              {isDebugDownloading
-                ? T("Preparing debug zip...", "正在准备 debug zip...")
-                : T("Download debug zip", "下载 debug zip")}
-            </button>
           </div>
         )}
       </div>
@@ -2043,7 +2007,6 @@ export function HistoryScreen({
   useLang();
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
-  const [debugBundleLoading, setDebugBundleLoading] = useState("");
   const [retryLoading, setRetryLoading] = useState("");
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [expectedScanRetryCount, setExpectedScanRetryCount] = useState(0);
@@ -2196,24 +2159,6 @@ export function HistoryScreen({
       setBundleLoading("");
     }
   };
-  const downloadDebugBundle = async (scan) => {
-    const debugUrl = scanDebugZipUrl(scan);
-    if (!scan?.id || !debugUrl || debugBundleLoading) return;
-    setDebugBundleLoading(scan.id);
-    try {
-      const response = await fetch(debugUrl, { credentials: "include" });
-      if (!response.ok)
-        throw new Error(T("Unable to download debug bundle.", "无法下载 debug bundle。"));
-      const bundle = await response.blob();
-      downloadBlob(`pullwise-debug-${scan.id}.zip`, bundle, "application/zip");
-    } catch (error) {
-      globalThis.alert?.(
-        error?.message || T("Unable to download debug bundle.", "无法下载 debug bundle。")
-      );
-    } finally {
-      setDebugBundleLoading("");
-    }
-  };
   const retryScan = async (scan) => {
     if (!scan?.id || retryLoading) return;
     setActionError("");
@@ -2342,8 +2287,6 @@ export function HistoryScreen({
                 retryLoading={retryLoading}
                 downloadAuditBundle={downloadAuditBundle}
                 bundleLoading={bundleLoading}
-                downloadDebugBundle={downloadDebugBundle}
-                debugBundleLoading={debugBundleLoading}
               />
             )}
             {!displayLoading && meta.hasMore && (
