@@ -226,9 +226,9 @@ function PrototypeNav({ go, current }) {
     { k: "landing", t: T("Landing", "首页") },
     { k: "login", t: T("Sign in", "登录") },
     { k: "oauth", t: T("GitHub OAuth", "GitHub 授权") },
-    { k: "repos", t: T("Repositories", "选仓�?) },
-    { k: "scanning", t: T("Scanning�?, "扫描�?) },
-    { k: "dashboard", t: T("Dashboard", "工作�?) },
+    { k: "repos", t: T("Repositories", "选仓库") },
+    { k: "scanning", t: T("Scanning…", "扫描中") },
+    { k: "dashboard", t: T("Dashboard", "工作台") },
     { k: "issues", t: T("Issues", "问题") },
     { k: "issue", t: T("Issue", "详情") },
     { k: "history", t: T("Scan history", "历史") },
@@ -241,7 +241,7 @@ function PrototypeNav({ go, current }) {
     { k: "privacy", t: T("Privacy Policy", "隐私") },
     { k: "terms", t: T("Terms of Service", "条款") },
     { k: "security", t: T("Security", "安全") },
-    { k: "status", t: T("Status", "状�?) },
+    { k: "status", t: T("Status", "状态") },
     { k: "notfound", t: "404" },
   ];
 
@@ -252,7 +252,7 @@ function PrototypeNav({ go, current }) {
           {T("PR · Prototype", {
             zh: "PR · 原型",
             ja: "PR · プロトタイプ",
-            ko: "PR · 프로토타�?,
+            ko: "PR · 프로토타입",
             fr: "PR · Prototype",
             es: "PR · Prototipo",
           })}
@@ -431,7 +431,7 @@ export function App({ prototypeNav = false }) {
 
   // Session check: runs on mount, retries on failure, re-checks on focus/visibility return.
   // This is the standard pattern used by NextAuth, Supabase, and Firebase Auth for SPA session
-  // recovery �?a single check on mount is not enough because the user may navigate away (e.g. to
+  // recovery — a single check on mount is not enough because the user may navigate away (e.g. to
   // an OAuth provider) and return with a new session cookie that the app must detect.
   const sessionAbortRef = useRef(null);
   const sessionCheckingRef = useRef(false);
@@ -539,15 +539,17 @@ export function App({ prototypeNav = false }) {
   // Many transient issues (server cold start, brief network hiccup) resolve within seconds.
   useEffect(() => {
     let disposed = false;
-    checkSession({ deferUnauthenticated: true, preserveAuthenticatedOnError: true }).then((result) => {
-      if (disposed) return;
-      if (result?.authenticated || result?.aborted || result?.skipped) return;
-      // Keep login actions disabled until a second check confirms that the browser is actually
-      // signed out. This avoids a transient signed-out UI during cold starts or weak networks.
-      setTimeout(() => {
-        if (!disposed) checkSession({ isRetry: true, preserveAuthenticatedOnError: true });
-      }, INITIAL_SESSION_RETRY_DELAY_MS);
-    });
+    checkSession({ deferUnauthenticated: true, preserveAuthenticatedOnError: true }).then(
+      (result) => {
+        if (disposed) return;
+        if (result?.authenticated || result?.aborted || result?.skipped) return;
+        // Keep login actions disabled until a second check confirms that the browser is actually
+        // signed out. This avoids a transient signed-out UI during cold starts or weak networks.
+        setTimeout(() => {
+          if (!disposed) checkSession({ isRetry: true, preserveAuthenticatedOnError: true });
+        }, INITIAL_SESSION_RETRY_DELAY_MS);
+      }
+    );
     return () => {
       disposed = true;
       if (sessionAbortRef.current) sessionAbortRef.current.abort();
@@ -658,14 +660,21 @@ export function App({ prototypeNav = false }) {
       <div className="auth-wrap fade-in">
         <div className="auth-card">
           <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
-            <img className="brand-mark" src="/favicon.ico" alt="" aria-hidden="true" width="24" height="24" />
+            <img
+              className="brand-mark"
+              src="/favicon.ico"
+              alt=""
+              aria-hidden="true"
+              width="24"
+              height="24"
+            />
             <span style={{ fontSize: 16 }}>Pullwise</span>
           </div>
-          <h2 className="auth-title">{T("Checking session", "正在检查会�?)}</h2>
+          <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
           <p className="auth-sub">
             {T(
               "Restoring your account if this browser is still signed in.",
-              "如果此浏览器仍保持登录，将恢复账户�?
+              "如果此浏览器仍保持登录，将恢复账户。"
             )}
           </p>
         </div>
@@ -718,12 +727,7 @@ export function App({ prototypeNav = false }) {
         break;
       case "issue":
         body = (
-          <IssueDetailScreen
-            go={go}
-            issue={issue}
-            issueId={routeIssueId}
-            setIssue={setIssue}
-          />
+          <IssueDetailScreen go={go} issue={issue} issueId={routeIssueId} setIssue={setIssue} />
         );
         break;
       case "history":
@@ -782,7 +786,7 @@ export function App({ prototypeNav = false }) {
       {prototypeNav && (
         <>
           <button className="proto-nav-toggle" onClick={() => setNavOpen((open) => !open)}>
-            {navOpen ? "�? : "�?}
+            {navOpen ? "▲" : "●"}
           </button>
           {navOpen && <PrototypeNav go={go} current={screen} />}
         </>
@@ -846,7 +850,7 @@ export function App({ prototypeNav = false }) {
         className="theme-toggle"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
         title={
-          theme === "light" ? T("Switch to dark", "切换到暗�?) : T("Switch to light", "切换到亮�?)
+          theme === "light" ? T("Switch to dark", "切换到暗色") : T("Switch to light", "切换到亮色")
         }
         aria-label={T("Toggle theme", "切换主题")}
       >

@@ -227,7 +227,10 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_restore", expect.objectContaining({ signal: expect.any(Object) }));
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
+        "sc_restore",
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
     expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
@@ -253,7 +256,10 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_route", expect.objectContaining({ signal: expect.any(Object) }));
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
+        "sc_route",
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
     expect(screen.getByText("GoPullwise/pullwise-server")).toBeInTheDocument();
@@ -293,7 +299,9 @@ describe("App", () => {
     });
     expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(1);
     await waitFor(() => {
-      expect(JSON.parse(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).scanId).toBe("sc_created_route");
+      expect(JSON.parse(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).scanId).toBe(
+        "sc_created_route"
+      );
     });
   });
 
@@ -1325,10 +1333,7 @@ describe("App", () => {
       repositories: [],
     });
     pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
-    const historyResponses = [
-      Promise.resolve({ items: [oldScan] }),
-      staleHistoryReload.promise,
-    ];
+    const historyResponses = [Promise.resolve({ items: [oldScan] }), staleHistoryReload.promise];
     pullwiseApi.scans.list.mockImplementation((params = {}) => {
       if (params.limit === 1) return Promise.resolve({ items: [], total: 1 });
       return historyResponses.shift() || Promise.resolve({ items: [scanAlpha, scanBeta] });
@@ -1356,6 +1361,105 @@ describe("App", () => {
     expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
   });
 
+  it("keeps cached scan history behind a skeleton when batch create responses have no scan ids yet", async () => {
+    window.history.replaceState({}, "", "/history");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const repoAlpha = {
+      id: "repo_alpha",
+      name: "alpha",
+      fullName: "octocat/alpha",
+      desc: "Alpha service",
+      defaultBranch: "main",
+    };
+    const repoBeta = {
+      id: "repo_beta",
+      name: "beta",
+      fullName: "octocat/beta",
+      desc: "Beta service",
+      defaultBranch: "develop",
+    };
+    const oldScanAlpha = {
+      id: "sc_old_alpha",
+      repo: "octocat/alpha",
+      branch: "main",
+      commit: "abc123",
+      status: "done",
+      createdAt: 1710000000,
+      time: "Earlier",
+      by: "you",
+    };
+    const oldScanBeta = {
+      id: "sc_old_beta",
+      repo: "octocat/beta",
+      branch: "develop",
+      commit: "abc123",
+      status: "done",
+      createdAt: 1710000001,
+      time: "Earlier",
+      by: "you",
+    };
+    const staleHistoryReload = deferredPromise();
+    pullwiseApi.repositories.list.mockResolvedValue({
+      items: [repoAlpha, repoBeta],
+      needsAuthorization: false,
+    });
+    pullwiseApi.scans.preflight.mockResolvedValueOnce({
+      requestedCount: 2,
+      allowedCount: 2,
+      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
+      repositories: [],
+    });
+    pullwiseApi.scans.create
+      .mockImplementationOnce((payload) =>
+        Promise.resolve({
+          repo: payload.repo,
+          branch: payload.branch,
+          requestId: payload.requestId,
+          status: "queued",
+        })
+      )
+      .mockImplementationOnce((payload) =>
+        Promise.resolve({
+          repo: payload.repo,
+          branch: payload.branch,
+          requestId: payload.requestId,
+          status: "queued",
+        })
+      );
+    const historyResponses = [
+      Promise.resolve({ items: [oldScanAlpha, oldScanBeta] }),
+      staleHistoryReload.promise,
+    ];
+    pullwiseApi.scans.list.mockImplementation((params = {}) => {
+      if (params.limit === 1) return Promise.resolve({ items: [], total: 2 });
+      return historyResponses.shift() || Promise.resolve({ items: [oldScanAlpha, oldScanBeta] });
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: /new scan/i }));
+    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    await waitFor(() => expect(window.location.pathname).toBe("/history"));
+    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
+    expect(screen.queryByText("octocat/beta")).not.toBeInTheDocument();
+
+    await act(async () => {
+      staleHistoryReload.resolve({ items: [oldScanAlpha, oldScanBeta] });
+      await Promise.resolve();
+    });
+
+    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
+  });
   it("opens issue search results directly in the issue detail view", async () => {
     window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
@@ -1410,7 +1514,9 @@ describe("App", () => {
     });
     expect(window.location.pathname).toBe("/issues/f_redirect");
     await waitFor(() => expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_redirect"));
-    expect(await screen.findByRole("heading", { name: /unsafe redirect target/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: /unsafe redirect target/i })
+    ).toBeInTheDocument();
     expect(
       await screen.findByText("Redirects accept attacker-controlled URLs.")
     ).toBeInTheDocument();
@@ -1510,7 +1616,10 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(window.location.pathname).toBe("/scanning/sc_history_1");
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_history_1", expect.objectContaining({ signal: expect.any(Object) }));
+      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
+        "sc_history_1",
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });

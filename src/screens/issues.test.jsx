@@ -592,7 +592,6 @@ describe("IssueDetailScreen direct loading", () => {
     );
   });
 
-
   it("shows generic issue details without a generated review report", () => {
     render(
       <IssueDetailScreen
@@ -746,15 +745,88 @@ describe("HistoryScreen queue state", () => {
       meta: { total: 1 },
     });
 
-    const { container } = render(
-      <HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />
-    );
+    const { container } = render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
 
     expect(container.querySelector(".history-skeleton")).toBeInTheDocument();
     expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
     expect(screen.getByRole("status", { name: /^loading$/i })).toBeInTheDocument();
   });
 
+  it("keeps cached scan history hidden while expected new scan requests are missing", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_old",
+          repo: "octocat/alpha",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          createdAt: 1710000000,
+          time: "earlier",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    const { container } = render(
+      <HistoryScreen
+        go={vi.fn()}
+        expectedScanRequests={[
+          { repo: "octocat/alpha", branch: "main", requestId: "scan_req_new" },
+        ]}
+        expectedScanStartedAt={1710000100}
+      />
+    );
+
+    expect(container.querySelector(".history-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
+  });
+
+  it("renders scan history once expected new scan requests are present", async () => {
+    const onExpectedScansLoaded = vi.fn();
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_new",
+          requestId: "scan_req_new",
+          repo: "octocat/alpha",
+          branch: "main",
+          commit: "pending",
+          status: "queued",
+          createdAt: 1710000100,
+          time: "now",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    const { container } = render(
+      <HistoryScreen
+        go={vi.fn()}
+        expectedScanRequests={[
+          { repo: "octocat/alpha", branch: "main", requestId: "scan_req_new" },
+        ]}
+        expectedScanStartedAt={1710000000}
+        onExpectedScansLoaded={onExpectedScansLoaded}
+      />
+    );
+
+    expect(container.querySelector(".history-skeleton")).not.toBeInTheDocument();
+    expect(screen.getByText("octocat/alpha")).toBeInTheDocument();
+    await waitFor(() => expect(onExpectedScansLoaded).toHaveBeenCalledTimes(1));
+  });
   it("quietly reloads scan history while expected new scans are missing", () => {
     vi.useFakeTimers();
     const reload = vi.fn();
@@ -1163,7 +1235,9 @@ describe("HistoryScreen queue state", () => {
     });
 
     render(<HistoryScreen go={vi.fn()} openScan={vi.fn()} />);
-    expect(screen.queryByText(/confirmed issue f_123 with review evidence/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/confirmed issue f_123 with review evidence/i)
+    ).not.toBeInTheDocument();
   });
   it("downloads worker debug bundles from failed scan rows", async () => {
     const user = userEvent.setup();
@@ -1213,12 +1287,18 @@ describe("HistoryScreen queue state", () => {
     } finally {
       globalThis.fetch = originalFetch;
       if (originalCreateObjectURL) {
-        Object.defineProperty(URL, "createObjectURL", { configurable: true, value: originalCreateObjectURL });
+        Object.defineProperty(URL, "createObjectURL", {
+          configurable: true,
+          value: originalCreateObjectURL,
+        });
       } else {
         delete URL.createObjectURL;
       }
       if (originalRevokeObjectURL) {
-        Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: originalRevokeObjectURL });
+        Object.defineProperty(URL, "revokeObjectURL", {
+          configurable: true,
+          value: originalRevokeObjectURL,
+        });
       } else {
         delete URL.revokeObjectURL;
       }
@@ -1366,8 +1446,7 @@ describe("IssueDetailScreen review detail", () => {
       appCss.match(/\.issue-detail-h > div:first-child > div:first-child\s*\{(?<body>[^}]*)\}/s)
         ?.groups?.body || "";
     const auditTagBlock =
-      appCss.match(/\.evidence-command,\s*\.audit-tag\s*\{(?<body>[^}]*)\}/s)?.groups?.body ||
-      "";
+      appCss.match(/\.evidence-command,\s*\.audit-tag\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
 
     expect(tagBlock).toMatch(/min-height:\s*20px;/);
     expect(tagBlock).not.toMatch(/^\s*height:\s*20px;/m);

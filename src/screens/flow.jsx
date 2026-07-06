@@ -153,8 +153,8 @@ function repoQuotaLabel(quota) {
   const scope = quota.scope === "user" ? "account" : "repo";
   if (!limit) {
     return scope === "account"
-      ? T("account quota unavailable", "账户配额不可�?)
-      : T("repo quota unavailable", "仓库配额不可�?);
+      ? T("account quota unavailable", "账户配额不可用")
+      : T("repo quota unavailable", "仓库配额不可用");
   }
   const reset = quotaResetText(quota);
   const leftText =
@@ -254,7 +254,7 @@ function ReviewRunSummary({ reviewRun }) {
       ? `${Math.round(progress.overall_percent)}%`
       : reviewRun.status === "completed"
         ? "100%"
-        : "�?;
+        : "—";
 
   return (
     <div className="review-run-card card section">
@@ -264,15 +264,15 @@ function ReviewRunSummary({ reviewRun }) {
       <div className="review-run-metrics">
         <div>
           <b>{reviewRunStatusLabel(reviewRun.status)}</b>
-          <span>{T("Run status", "运行状�?)}</span>
+          <span>{T("Run status", "运行状态")}</span>
         </div>
         <div>
           <b>{qualityGateLabel(qualityGate.status)}</b>
-          <span>{T("Quality gate", "质量�?)}</span>
+          <span>{T("Quality gate", "质量门")}</span>
         </div>
         <div>
           <b>{progressLabel}</b>
-          <span>{T("Final progress", "最终进�?)}</span>
+          <span>{T("Final progress", "最终进度")}</span>
         </div>
         <div>
           <b>{formatCount(reviewRun.artifactCount || artifacts.length)}</b>
@@ -289,7 +289,10 @@ function ReviewRunSummary({ reviewRun }) {
         </div>
       ) : null}
       {artifacts.length > 0 && (
-        <details className="review-run-artifacts" aria-label={T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}>
+        <details
+          className="review-run-artifacts"
+          aria-label={T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}
+        >
           <summary className="btn sm ghost">
             <I.Archive size={14} />
             <span>{T("Review artifacts", "\u5ba1\u67e5\u4ea7\u7269")}</span>
@@ -408,7 +411,7 @@ function repositoryLimitReasonLabel(reason) {
     case "file_count":
       return T("file count", "文件数量");
     case "total_bytes":
-      return T("total size", "总大�?);
+      return T("total size", "总大小");
     default:
       return String(reason || "").replace(/_/g, " ");
   }
@@ -434,12 +437,12 @@ function repositoryScanPolicyLimitText(limits) {
   if (!limits) {
     return T(
       "Current checkout limits are confirmed during scan preflight and shown with the measured repository size.",
-      "当前 checkout 限制会在扫描预检中确认，并和实际仓库大小一起展示�?
+      "当前 checkout 限制会在扫描预检中确认，并和实际仓库大小一起展示。"
     );
   }
   return T(
     `Current checkout limit: ${formatCount(limits.maxFiles)} files / ${formatBytes(limits.maxBytes)}.`,
-    `当前 checkout 限制�?{formatCount(limits.maxFiles)} 个文�?/ ${formatBytes(limits.maxBytes)}。`
+    `当前 checkout 限制：${formatCount(limits.maxFiles)} 个文件 / ${formatBytes(limits.maxBytes)}。`
   );
 }
 
@@ -458,27 +461,27 @@ function quotaRemaining(quota) {
 }
 
 function scansWord(count) {
-  return count === 1 ? T("scan", "次扫�?) : T("scans", "次扫�?);
+  return count === 1 ? T("scan", "次扫描") : T("scans", "次扫描");
 }
 
 function accountQuotaNotice(remaining) {
   if (remaining === 0) {
     return T(
       "Your account has 0 scans left for this billing period. Upgrade or wait for the quota reset before selecting a repository.",
-      "此计费周期账户剩�?0 次扫描。请升级或等待配额重置后再选择仓库�?
+      "此计费周期账户剩余 0 次扫描。请升级或等待配额重置后再选择仓库。"
     );
   }
   return T(
     `Your account has ${remaining} ${scansWord(remaining)} left for this billing period. Deselect another repository before selecting more.`,
-    `此计费周期账户剩�?${remaining} ${scansWord(remaining)}。请先取消选择其他仓库，再选择更多仓库。`
+    `此计费周期账户剩余 ${remaining} ${scansWord(remaining)}。请先取消选择其他仓库，再选择更多仓库。`
   );
 }
 
 function repositoryQuotaNotice(repo) {
-  const label = repo?.fullName || repo?.name || T("This repository", "此仓�?);
+  const label = repo?.fullName || repo?.name || T("This repository", "此仓库");
   return T(
     `${label} has 0 repository scans left for this billing period.`,
-    `${label} 此计费周期仓库扫描剩�?0 次。`
+    `${label} 此计费周期仓库扫描剩余 0 次。`
   );
 }
 
@@ -815,8 +818,8 @@ const REVIEW_RUNNER_CLI_RE = /\b[A-Za-z][A-Za-z0-9_-]*\s+cli\b/gi;
 function publicScanErrorMessage(error) {
   const message = typeof error === "object" && error ? error.message : error;
   return String(message || "")
-    .replace(REVIEW_RUNNER_CLI_RE, T("Review runner", "审查运行�?))
-    .replace(/\bcli\b/gi, T("review runner", "审查运行�?));
+    .replace(REVIEW_RUNNER_CLI_RE, T("Review runner", "审查运行器"))
+    .replace(/\bcli\b/gi, T("review runner", "审查运行器"));
 }
 
 function scanIssueTotals(scans) {
@@ -952,7 +955,7 @@ function scanAiUsageTags(aiUsage) {
   push(aiUsage.agentCli || aiUsage.provider);
   push(aiUsage.model);
   if (aiUsage.reasoningEffort) {
-    push(T(`reasoning: ${aiUsage.reasoningEffort}`, `推理�?{aiUsage.reasoningEffort}`));
+    push(T(`reasoning: ${aiUsage.reasoningEffort}`, `推理：${aiUsage.reasoningEffort}`));
   }
   return tags;
 }
@@ -1025,7 +1028,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
 
   const pickerClass = "repo-branch-picker" + (error ? " repo-branch-error" : "");
   const branchTitle = error || `Branch: ${value}`;
-  const branchValueLabel = loading ? T("Loading...", "加载�?..") : value;
+  const branchValueLabel = loading ? T("Loading...", "加载中...") : value;
 
   return (
     <span
@@ -1175,7 +1178,7 @@ export function ReposScreen({
   const displayError = error || connectError || authorizationError;
   const hasInstallationDetails = Array.isArray(installations) && installations.length > 0;
   const [scanPolicyLimits, setScanPolicyLimits] = useState(null);
-  const allLabel = T("All", "所�?);
+  const allLabel = T("All", "所有");
   const orgs = useMemo(
     () => [
       allLabel,
@@ -1427,8 +1430,8 @@ export function ReposScreen({
   );
   const hasVisibleSelection = visibleSelectedCount > 0;
   const selectAllLabel = hasVisibleSelection
-    ? T("Deselect all", "取消全�?)
-    : T("Select all", "全�?);
+    ? T("Deselect all", "取消全选")
+    : T("Select all", "全选");
 
   const toggleSelectAll = () => {
     if (repos.length === 0) return;
@@ -1487,11 +1490,11 @@ export function ReposScreen({
           remaining !== null && remaining < reposToScan.length
             ? T(
                 `Your account currently has ${remaining} ${scansWord(remaining)} left. Choose up to ${allowedCount} repositories to scan now.`,
-                `此账户当前剩�?${remaining} ${scansWord(remaining)}。请最多选择 ${allowedCount} 个仓库进行扫描。`
+                `此账户当前剩余 ${remaining} ${scansWord(remaining)}。请最多选择 ${allowedCount} 个仓库进行扫描。`
               )
             : T(
                 `Only ${allowedCount} of these repositories can be scanned right now based on current quota. Choose which repositories to scan.`,
-                `根据当前配额，现在只能扫描这些仓库中�?${allowedCount} 个。请选择要扫描的仓库。`
+                `根据当前配额，现在只能扫描这些仓库中的 ${allowedCount} 个。请选择要扫描的仓库。`
               );
         setQuotaPreflight({ ...preflight, selectedRepos: reposToScan });
         setQuotaDialogSelected([]);
@@ -1504,7 +1507,7 @@ export function ReposScreen({
         scanError?.message ||
           T(
             "Unable to start scan. Check quota and repository access, then try again.",
-            "无法启动扫描。请检查配额和仓库访问权限后重试�?
+            "无法启动扫描。请检查配额和仓库访问权限后重试。"
           )
       );
     } finally {
@@ -1535,7 +1538,7 @@ export function ReposScreen({
           ? repositoryQuotaNotice(repo)
           : T(
               "This repository cannot be scanned with the current GitHub authorization.",
-              "此仓库无法使用当�?GitHub 授权进行扫描�?
+              "此仓库无法使用当前 GitHub 授权进行扫描。"
             )
       );
       return;
@@ -1569,7 +1572,7 @@ export function ReposScreen({
         scanError?.message ||
           T(
             "Unable to start scan. Check quota and repository access, then try again.",
-            "无法启动扫描。请检查配额和仓库访问权限后重试�?
+            "无法启动扫描。请检查配额和仓库访问权限后重试。"
           )
       );
     } finally {
@@ -1588,7 +1591,7 @@ export function ReposScreen({
     } catch (authError) {
       setConnectError(
         authError?.message ||
-          T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问�?)
+          T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问。")
       );
     } finally {
       setConnecting(false);
@@ -1608,7 +1611,7 @@ export function ReposScreen({
       await reload();
     } catch (authError) {
       setConnectError(
-        authError?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装�?)
+        authError?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装。")
       );
     } finally {
       setManagingInstallationId("");
@@ -1640,7 +1643,7 @@ export function ReposScreen({
                   {needsAuthorization
                     ? T(
                         "GitHub repository access is not connected yet.",
-                        "尚未连接 GitHub 仓库权限�?
+                        "尚未连接 GitHub 仓库权限。"
                       )
                     : T(`${repositoryTotal} authorized repos`, `${repositoryTotal} 个已授权仓库`)}
                 </div>
@@ -1667,7 +1670,7 @@ export function ReposScreen({
                 ) : (
                   <I.Play size={12} />
                 )}{" "}
-                {checkingQuota ? T("Checking quota", "正在检查配�?) : T("Start scan", "开始扫�?)}{" "}
+                {checkingQuota ? T("Checking quota", "正在检查配额") : T("Start scan", "开始扫描")}{" "}
                 ({selected.length})
               </button>
             </div>
@@ -1699,13 +1702,13 @@ export function ReposScreen({
                 aria-pressed={hasVisibleSelection}
                 aria-label={
                   hasVisibleSelection
-                    ? T("Deselect all visible repositories", "取消全选可见仓�?)
-                    : T("Select all visible repositories", "全选可见仓�?)
+                    ? T("Deselect all visible repositories", "取消全选可见仓库")
+                    : T("Select all visible repositories", "全选可见仓库")
                 }
                 title={
                   hasVisibleSelection
-                    ? T("Deselect all visible repositories", "取消全选可见仓�?)
-                    : T("Select all visible repositories", "全选可见仓�?)
+                    ? T("Deselect all visible repositories", "取消全选可见仓库")
+                    : T("Select all visible repositories", "全选可见仓库")
                 }
               >
                 {hasVisibleSelection ? <I.X size={12} /> : <I.Check size={12} />}
@@ -1723,7 +1726,7 @@ export function ReposScreen({
               <button
                 type="button"
                 className="repos-org-scroll"
-                aria-label={T("Scroll repository filters left", "向左滑动仓库筛�?)}
+                aria-label={T("Scroll repository filters left", "向左滑动仓库筛选")}
                 onClick={() => scrollOwnerTabs(-1)}
                 disabled={!ownerTabsScrollable}
               >
@@ -1733,7 +1736,7 @@ export function ReposScreen({
                 ref={ownerTabsRef}
                 className="repos-orgs"
                 role="tablist"
-                aria-label={T("Repository owner filters", "仓库所有者筛�?)}
+                aria-label={T("Repository owner filters", "仓库所有者筛选")}
                 aria-orientation="horizontal"
                 data-scrollable={ownerTabsScrollable ? "true" : "false"}
               >
@@ -1753,7 +1756,7 @@ export function ReposScreen({
               <button
                 type="button"
                 className="repos-org-scroll"
-                aria-label={T("Scroll repository filters right", "向右滑动仓库筛�?)}
+                aria-label={T("Scroll repository filters right", "向右滑动仓库筛选")}
                 onClick={() => scrollOwnerTabs(1)}
                 disabled={!ownerTabsScrollable}
               >
@@ -1778,7 +1781,7 @@ export function ReposScreen({
                     <div className="repo-desc">
                       {T(
                         "Pullwise can scan repositories selected in GitHub authorization, with account and repository quota available, and within worker checkout size limits. If a checkout is too large, the scan stops before Codex review and shows the measured size.",
-                        "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并�?checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小�?
+                        "Pullwise 只能扫描已在 GitHub 授权中选中、账户和仓库配额仍可用、并且 checkout 后未超过 worker 体积限制的仓库。如果仓库过大，扫描会在验证器和 AI 审查前停止，并显示实际大小。"
                       )}
                     </div>
                     <div className="repo-desc">
@@ -1787,7 +1790,7 @@ export function ReposScreen({
                     <div className="repo-desc">
                       {T(
                         "Private repositories and forks can be scanned when authorized. Forks share repository quota with their source repository; language is detected for context and is not an allowlist. The selected branch must exist in GitHub.",
-                        "私有仓库�?fork 仓库只要已授权即可扫描。fork 会与源仓库共享仓库配额；语言只作为上下文识别，不是允许名单。所选分支必须存在于 GitHub�?
+                        "私有仓库和 fork 仓库只要已授权即可扫描。fork 会与源仓库共享仓库配额；语言只作为上下文识别，不是允许名单。所选分支必须存在于 GitHub。"
                       )}
                     </div>
                   </div>
@@ -1833,7 +1836,7 @@ export function ReposScreen({
                       <div className="repo-desc">
                         {T(
                           "Choose the repositories Pullwise can read for this scan.",
-                          "选择 Pullwise 可只读访问并扫描的仓库�?
+                          "选择 Pullwise 可只读访问并扫描的仓库。"
                         )}
                       </div>
                     </div>
@@ -1865,7 +1868,7 @@ export function ReposScreen({
                         <span>{T("Loading repositories", "正在加载仓库")}</span>
                       </div>
                       <div className="repo-desc">
-                        {T("Reading GitHub App authorization.", "正在读取 GitHub App 授权�?)}
+                        {T("Reading GitHub App authorization.", "正在读取 GitHub App 授权。")}
                       </div>
                     </div>
                   </div>
@@ -1877,12 +1880,12 @@ export function ReposScreen({
                     </div>
                     <div className="repo-main">
                       <div className="repo-name">
-                        <span>{T("No authorized repositories", "没有已授权仓�?)}</span>
+                        <span>{T("No authorized repositories", "没有已授权仓库")}</span>
                       </div>
                       <div className="repo-desc">
                         {T(
                           "Authorize repositories in GitHub, then sync again.",
-                          "请先�?GitHub 授权仓库，然后重新同步�?
+                          "请先在 GitHub 授权仓库，然后重新同步。"
                         )}
                       </div>
                     </div>
@@ -1926,7 +1929,7 @@ export function ReposScreen({
                               {T("private", {
                                 zh: "私有",
                                 ja: "プライベート",
-                                ko: "비공�?,
+                                ko: "비공개",
                                 fr: "privé",
                                 es: "privado",
                               })}
@@ -2019,7 +2022,7 @@ export function ReposScreen({
                       <div className="repo-desc">
                         {T(
                           `Loaded ${loadedRepositoryCount} of ${repositoryTotal} repositories.`,
-                          `已加�?${loadedRepositoryCount} / ${repositoryTotal} 个仓库。`
+                          `已加载 ${loadedRepositoryCount} / ${repositoryTotal} 个仓库。`
                         )}
                       </div>
                     </div>
@@ -2034,13 +2037,13 @@ export function ReposScreen({
 
           <div className="repos-foot">
             <span className="muted">
-              {T("Missing a repository? ", "缺少仓库�?)}
+              {T("Missing a repository? ", "缺少仓库？")}
               <button
                 type="button"
                 className="auth-link"
                 onClick={() => connectRepositories({ add: true })}
               >
-                {T("Add GitHub account or organization", "添加 GitHub 账号或组�?)}
+                {T("Add GitHub account or organization", "添加 GitHub 账号或组织")}
               </button>
             </span>
           </div>
@@ -2068,7 +2071,7 @@ export function ReposScreen({
             <div className="quota-choice-count">
               {T(
                 `${quotaDialogSelected.length} of ${quotaDialogAllowed} selected`,
-                `已�?${quotaDialogSelected.length} / ${quotaDialogAllowed}`
+                `已选 ${quotaDialogSelected.length} / ${quotaDialogAllowed}`
               )}
             </div>
             <div className="quota-choice-list">
@@ -2092,7 +2095,7 @@ export function ReposScreen({
                     <span className="quota-choice-copy">
                       <strong>{repo.fullName || repo.name}</strong>
                       <span>
-                        {quotaLabel || repo.desc || T("Authorized repository", "已授权仓�?)}
+                        {quotaLabel || repo.desc || T("Authorized repository", "已授权仓库")}
                       </span>
                     </span>
                   </button>
@@ -2121,7 +2124,7 @@ export function ReposScreen({
                 disabled={!quotaDialogCanConfirm}
                 onClick={confirmQuotaDialogSelection}
               >
-                <I.Play size={12} /> {T("Scan selected", "扫描所�?)}
+                <I.Play size={12} /> {T("Scan selected", "扫描所选")}
               </button>
             </div>
           </div>
@@ -2801,7 +2804,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       downloadBlob(`pullwise-audit-${targetScanId}.zip`, bundle, "application/zip");
     } catch (error) {
       globalThis.alert?.(
-        error?.message || T("Unable to download audit bundle.", "无法下载审计包�?)
+        error?.message || T("Unable to download audit bundle.", "无法下载审计包。")
       );
     } finally {
       setBundleLoading(false);
@@ -2868,13 +2871,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
             ? T("Scan lost", "Scan lost")
             : status === "cancelled"
               ? batchMode
-                ? T("Scan batch cancelled", "批量扫描已取�?)
-                : T("Scan cancelled", "扫描已取�?)
+                ? T("Scan batch cancelled", "批量扫描已取消")
+                : T("Scan cancelled", "扫描已取消")
               : status === "no_repo"
                 ? T("No repository selected", "未选择仓库")
                 : batchMode
                   ? T("Scanning repositories", "正在扫描仓库")
-                  : T("Scanning�?, "扫描进行�?);
+                  : T("Scanning…", "扫描进行中");
 
   const headerIcon = detailLoading ? (
     <SkeletonLine className="sk-line sk-w-18 sk-h-18" />
@@ -2907,13 +2910,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     ? headerLabel
                     : status === "queued"
                       ? batchMode
-                        ? T("Scan batch queued", "批量扫描排队�?)
+                        ? T("Scan batch queued", "批量扫描排队中")
                         : T("Scan queued", "Scan queued")
                       : headerLabel}{" "}
                   <b>
                     {batchMode
                       ? T(`${expectedBatchCount} repositories`, `${expectedBatchCount} 个仓库`)
-                      : scan?.repo || repoFullName || "�?}
+                      : scan?.repo || repoFullName || "—"}
                   </b>
                 </div>
                 <div className="scanning-sub">
@@ -2922,7 +2925,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       {batchSummary.failedToCreate
                         ? T(
                             `${batchSummary.created}/${batchSummary.expected} scans created, ${batchSummary.failedToCreate} not created`,
-                            `${batchSummary.created}/${batchSummary.expected} 个扫描已创建�?{batchSummary.failedToCreate} 个未创建`
+                            `${batchSummary.created}/${batchSummary.expected} 个扫描已创建，${batchSummary.failedToCreate} 个未创建`
                           )
                         : T(
                             `${batchSummary.created}/${batchSummary.expected} scans created`,
@@ -3001,8 +3004,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       >
                         <I.Download size={13} />{" "}
                         {bundleLoading
-                          ? T("Preparing...", "准备�?..")
-                          : T("Audit bundle", "审计�?)}
+                          ? T("Preparing...", "准备中...")
+                          : T("Audit bundle", "审计包")}
                       </button>
                     )}
                     {!batchMode && agentFixPrompt && (
@@ -3097,15 +3100,15 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   </div>
                   <div>
                     <b style={{ color: "var(--sev-high)" }}>{found.high || 0}</b>
-                    <span>{T("High", "�?)}</span>
+                    <span>{T("High", "高")}</span>
                   </div>
                   <div>
                     <b style={{ color: "var(--sev-medium)" }}>{found.medium || 0}</b>
-                    <span>{T("Medium", "�?)}</span>
+                    <span>{T("Medium", "中")}</span>
                   </div>
                   <div>
                     <b style={{ color: "var(--sev-low)" }}>{found.low || 0}</b>
-                    <span>{T("Low", "�?)}</span>
+                    <span>{T("Low", "低")}</span>
                   </div>
                 </div>
                 <ScanAgentUsageSlot tags={aiUsageTags} />
@@ -3146,11 +3149,11 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                         {preflight.repositoryLimitExceeded
                           ? T(
                               "This checkout exceeded the worker limits, so Codex review was not run.",
-                              "此仓�?checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查�?
+                              "此仓库 checkout 超过 worker 限制，因此未运行验证器命令和 AI 审查。"
                             )
                           : T(
                               "This checkout was within the worker limits used for this scan.",
-                              "此仓�?checkout 未超过本次扫描使用的 worker 限制�?
+                              "此仓库 checkout 未超过本次扫描使用的 worker 限制。"
                             )}
                       </div>
                       <div className="scan-preflight-meta">
@@ -3160,7 +3163,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                           >
                             {T(
                               `Checkout: ${formatCount(preflight.repositoryStats.fileCount)} files / ${formatBytes(preflight.repositoryStats.totalBytes)}`,
-                              `检出规模：${formatCount(preflight.repositoryStats.fileCount)} 个文�?/ ${formatBytes(preflight.repositoryStats.totalBytes)}`
+                              `检出规模：${formatCount(preflight.repositoryStats.fileCount)} 个文件 / ${formatBytes(preflight.repositoryStats.totalBytes)}`
                             )}
                           </span>
                         )}
@@ -3168,7 +3171,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                           <span>
                             {T(
                               `Limit: ${formatCount(preflight.repositoryLimits.maxFiles)} files / ${formatBytes(preflight.repositoryLimits.maxBytes)}`,
-                              `限制�?{formatCount(preflight.repositoryLimits.maxFiles)} 个文�?/ ${formatBytes(preflight.repositoryLimits.maxBytes)}`
+                              `限制：${formatCount(preflight.repositoryLimits.maxFiles)} 个文件 / ${formatBytes(preflight.repositoryLimits.maxBytes)}`
                             )}
                           </span>
                         )}
@@ -3179,7 +3182,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                             ).join(", ");
                             return (
                               <span className="preflight-warn">
-                                {T(`Reasons: ${reasons}`, `命中限制�?{reasons}`)}
+                                {T(`Reasons: ${reasons}`, `命中限制：${reasons}`)}
                               </span>
                             );
                           })()}
@@ -3187,7 +3190,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                           <span className="preflight-warn">
                             {T(
                               "Counting stopped after a limit was reached.",
-                              "达到限制后已停止继续计数�?
+                              "达到限制后已停止继续计数。"
                             )}
                           </span>
                         )}
@@ -3238,7 +3241,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   <div className="scanning-log-body">
                     {batchRows.length === 0 && (
                       <div className="muted">
-                        {T("Creating scan requests�?, "正在创建扫描请求�?)}
+                        {T("Creating scan requests…", "正在创建扫描请求…")}
                       </div>
                     )}
                     {batchRows.map((row) => (
@@ -3246,7 +3249,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                         key={row.requestId || row.repo || row.scanId}
                         className="scanning-log-line"
                       >
-                        <b>{row.repo || "�?}</b>
+                        <b>{row.repo || "—"}</b>
                         <span className="tag" style={{ marginLeft: 8 }}>
                           {row.status}
                         </span>
