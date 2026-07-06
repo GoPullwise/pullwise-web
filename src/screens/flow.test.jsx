@@ -417,6 +417,21 @@ describe("ReposScreen scan selection", () => {
     expect(secondPayload.requestId).not.toBe(firstPayload.requestId);
     expect(go).toHaveBeenCalledWith("history", {
       pendingScanIds: ["sc_octocat_alpha", "sc_octocat_beta"],
+      pendingScanRequests: [
+        expect.objectContaining({
+          scanId: "sc_octocat_alpha",
+          repo: "octocat/alpha",
+          branch: firstPayload.branch,
+          requestId: firstPayload.requestId,
+        }),
+        expect.objectContaining({
+          scanId: "sc_octocat_beta",
+          repo: "octocat/beta",
+          branch: secondPayload.branch,
+          requestId: secondPayload.requestId,
+        }),
+      ],
+      pendingScanStartedAt: expect.any(Number),
     });
     expect(go).not.toHaveBeenCalledWith("scanning");
   });
@@ -447,9 +462,26 @@ describe("ReposScreen scan selection", () => {
 
     await waitFor(() => expect(setActiveRepo).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
+    const firstPayload = pullwiseApi.scans.create.mock.calls[0][0];
+    const secondPayload = pullwiseApi.scans.create.mock.calls[1][0];
     expect(setActiveRepo).toHaveBeenCalledWith(null);
     expect(go).toHaveBeenCalledWith("history", {
       pendingScanIds: ["sc_octocat_alpha", "sc_octocat_beta"],
+      pendingScanRequests: [
+        expect.objectContaining({
+          scanId: "sc_octocat_alpha",
+          repo: "octocat/alpha",
+          branch: firstPayload.branch,
+          requestId: firstPayload.requestId,
+        }),
+        expect.objectContaining({
+          scanId: "sc_octocat_beta",
+          repo: "octocat/beta",
+          branch: secondPayload.branch,
+          requestId: secondPayload.requestId,
+        }),
+      ],
+      pendingScanStartedAt: expect.any(Number),
     });
     expect(go).not.toHaveBeenCalledWith("scanning");
   });

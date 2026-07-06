@@ -712,9 +712,18 @@ function createdScanIdsFromBatchResults(results) {
 
 function createdScanRequestsFromBatchResults(results, scanInputs) {
   return (results || [])
-    .map((result, index) => (result?.status === "fulfilled" ? scanInputs?.[index] : null))
+    .map((result, index) => {
+      if (result?.status !== "fulfilled") return null;
+      const request = scanInputs?.[index];
+      if (!request) return null;
+      return {
+        ...request,
+        scanId: scanIdFromBatchCreateResult(result),
+      };
+    })
     .filter(Boolean)
     .map((request) => ({
+      scanId: request.scanId || "",
       repoId: request.repoId || "",
       repo: request.repo || "",
       branch: request.branch || "main",
@@ -1373,15 +1382,11 @@ export function ReposScreen({
       const pendingScanIds = createdScanIdsFromBatchResults(batchResults);
       const pendingScanRequests = createdScanRequestsFromBatchResults(batchResults, scanInputs);
       setActiveRepo(null);
-      go(
-        "history",
-        pendingScanIds.length
-          ? { pendingScanIds }
-          : {
-              pendingScanRequests,
-              pendingScanStartedAt: batchSubmittedAt,
-            }
-      );
+      go("history", {
+        pendingScanIds,
+        pendingScanRequests,
+        pendingScanStartedAt: batchSubmittedAt,
+      });
       return;
     }
     setActiveRepo({ ...selectedRepos[0], selectedRepos });

@@ -1940,12 +1940,13 @@ function cleanExpectedScanRequests(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => ({
+      scanId: String(item?.scanId || "").trim(),
       repoId: String(item?.repoId || "").trim(),
       repo: String(item?.repo || "").trim(),
       branch: String(item?.branch || "main").trim() || "main",
       requestId: String(item?.requestId || "").trim(),
     }))
-    .filter((item) => item.repoId || item.repo || item.requestId);
+    .filter((item) => item.scanId || item.repoId || item.repo || item.requestId);
 }
 
 function normalizeExpectedScanStartedAt(value) {
@@ -1966,6 +1967,9 @@ function scanIsAfterHistoryHandoff(scan, expectedScanStartedAt) {
 }
 
 function scanMatchesExpectedRequest(scan, request, expectedScanStartedAt) {
+  const expectedScanId = String(request?.scanId || "").trim();
+  if (expectedScanId && String(scan?.id || "").trim() === expectedScanId) return true;
+
   const requestId = String(request?.requestId || "").trim();
   if (requestId && String(scan?.requestId || "").trim() === requestId) return true;
 

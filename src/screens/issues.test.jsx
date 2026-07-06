@@ -827,6 +827,44 @@ describe("HistoryScreen queue state", () => {
     expect(screen.getByText("octocat/alpha")).toBeInTheDocument();
     await waitFor(() => expect(onExpectedScansLoaded).toHaveBeenCalledTimes(1));
   });
+
+  it("renders scan history once an expected request scan id is present", async () => {
+    const onExpectedScansLoaded = vi.fn();
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_new",
+          repo: "octocat/alpha",
+          branch: "main",
+          commit: "pending",
+          status: "queued",
+          time: "now",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    const { container } = render(
+      <HistoryScreen
+        go={vi.fn()}
+        expectedScanRequests={[
+          { scanId: "sc_new", repo: "octocat/alpha", branch: "main", requestId: "scan_req_new" },
+        ]}
+        expectedScanStartedAt={1710000000}
+        onExpectedScansLoaded={onExpectedScansLoaded}
+      />
+    );
+
+    expect(container.querySelector(".history-skeleton")).not.toBeInTheDocument();
+    expect(screen.getByText("octocat/alpha")).toBeInTheDocument();
+    await waitFor(() => expect(onExpectedScansLoaded).toHaveBeenCalledTimes(1));
+  });
   it("quietly reloads scan history while expected new scans are missing", () => {
     vi.useFakeTimers();
     const reload = vi.fn();
