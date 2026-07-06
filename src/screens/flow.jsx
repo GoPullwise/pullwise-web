@@ -37,8 +37,7 @@ function renderInlineMarkdown(text, keyPrefix) {
 }
 
 function MarkdownReport({ markdown }) {
-  const lines = String(markdown || "").split(/?
-/);
+  const lines = String(markdown || "").split(/\r?\n/);
   const blocks = [];
   let paragraph = [];
   let list = [];
@@ -69,8 +68,7 @@ function MarkdownReport({ markdown }) {
   const flushCode = () => {
     blocks.push(
       <pre key={`code-${blocks.length}`}>
-        <code>{code.join("
-")}</code>
+        <code>{code.join("\n")}</code>
       </pre>
     );
     code = [];
@@ -133,7 +131,7 @@ function HumanReviewReport({ report }) {
   return (
     <div className="scan-human-report card section">
       <div className="section-h">
-        <h3>{T("Review report", "????")}</h3>
+        <h3>{T("Review report", "Review report")}</h3>
       </div>
       <MarkdownReport markdown={markdown} />
     </div>
@@ -286,7 +284,7 @@ function ReviewRunSummary({ reviewRun }) {
           {overallRiskTag && <span className="tag">{overallRiskTag}</span>}
           {resultStatusTag && <span className="tag">{resultStatusTag}</span>}
           {confirmed > 0 && (
-            <span className="tag">{T(`${confirmed} confirmed`, `${confirmed} ????`)}</span>
+            <span className="tag">{T(`${confirmed} confirmed`, `${confirmed} confirmed`)}</span>
           )}
         </div>
       ) : null}
