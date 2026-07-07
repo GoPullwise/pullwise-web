@@ -415,6 +415,41 @@ describe("useScans", () => {
     next.unmount();
   });
 
+  it("shows cached scans for the selected filter immediately when switching back to all", async () => {
+    const allRefresh = deferred();
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({ items: [{ id: "sc_all_old", status: "queued" }] })
+      .mockReturnValueOnce(allRefresh.promise)
+      .mockResolvedValueOnce({ items: [{ id: "sc_done", status: "done" }] });
+
+    const first = renderHook(() => useScans({ pollIntervalMs: 10000, limit: 1, status: "all" }));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.items.map((scan) => scan.id)).toEqual(["sc_all_old"]);
+    first.unmount();
+
+    const { result, rerender, unmount } = renderHook(
+      ({ status }) => useScans({ pollIntervalMs: 10000, limit: 1, status }),
+      { initialProps: { status: "all" } }
+    );
+    expect(result.current.loading).toBe(false);
+    expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_all_old"]);
+
+    rerender({ status: "done" });
+    await waitFor(() => expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_done"]));
+
+    rerender({ status: "all" });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_all_old"]);
+
+    await act(async () => {
+      allRefresh.resolve({ items: [{ id: "sc_all_new", status: "running" }] });
+    });
+
+    await waitFor(() =>
+      expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_all_new"])
+    );
+    unmount();
+  });
   it("blocks with loading when scans have no cached state", async () => {
     const refresh = deferred();
     pullwiseApi.scans.list.mockReturnValueOnce(refresh.promise);

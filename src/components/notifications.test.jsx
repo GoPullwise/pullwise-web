@@ -19,15 +19,13 @@ function NotificationHarness() {
 }
 
 describe("NotificationProvider", () => {
-  it("keeps notification toasts rounded with a visible error accent bar", () => {
+  it("keeps notification toasts rounded without a left accent bar", () => {
     const styles = readFileSync("src/app.css", "utf8");
 
     expect(styles).toMatch(
       /\.notification-toast\s*\{[\s\S]*border-radius:\s*12px;[\s\S]*overflow:\s*hidden;/
     );
-    expect(styles).toMatch(
-      /\.notification-toast::before\s*\{[\s\S]*width:\s*5px;[\s\S]*background:\s*var\(--danger, #dc2626\);/
-    );
+    expect(styles).not.toMatch(/\.notification-toast::before/);
   });
   it("stacks multiple notifications and dismisses one manually", async () => {
     const user = userEvent.setup();
