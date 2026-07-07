@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -50,9 +50,8 @@ describe("NotificationProvider", () => {
     expect(screen.getByText("Second failure")).toBeInTheDocument();
   });
 
-  it("auto-dismisses notifications after five minutes", async () => {
+  it("auto-dismisses notifications after five minutes", () => {
     vi.useFakeTimers();
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     try {
       render(
         <NotificationProvider>
@@ -60,7 +59,7 @@ describe("NotificationProvider", () => {
         </NotificationProvider>
       );
 
-      await user.click(screen.getByRole("button", { name: /show first/i }));
+      fireEvent.click(screen.getByRole("button", { name: /show first/i }));
       expect(screen.getByRole("alert")).toHaveTextContent("First failure");
 
       act(() => {
@@ -71,7 +70,7 @@ describe("NotificationProvider", () => {
       act(() => {
         vi.advanceTimersByTime(1);
       });
-      await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }

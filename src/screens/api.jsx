@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
@@ -820,6 +821,10 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
+  useErrorNotification(error, {
+    title: T("API key error", "API key error"),
+    key: `api-keys:${error}`,
+  });
 
   const load = async () => {
     setLoading(true);
@@ -940,11 +945,6 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             </div>
           </div>
 
-          {error && (
-            <div className="auth-error" role="alert" style={{ marginBottom: 12 }}>
-              <I.X size={13} /> {error}
-            </div>
-          )}
           {createdToken && (
             <div className="auth-success" role="status" style={{ marginBottom: 12 }}>
               <I.Check size={14} />

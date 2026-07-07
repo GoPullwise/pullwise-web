@@ -672,7 +672,7 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
     await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/1 scan left/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/1 scan left/i);
     expect(
       screen.getByRole("button", { name: /select repository octocat\/alpha/i })
     ).toHaveAttribute("aria-pressed", "true");
@@ -793,15 +793,17 @@ describe("ScanningScreen queue state", () => {
     });
 
     render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          selectedRepos: [
-            { ...repoAlpha, scanRequestId: "scan_req_alpha" },
-            { ...repoBeta, scanRequestId: "scan_req_beta" },
-          ],
-        }}
-      />
+      <NotificationProvider>
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{
+            selectedRepos: [
+              { ...repoAlpha, scanRequestId: "scan_req_alpha" },
+              { ...repoBeta, scanRequestId: "scan_req_beta" },
+            ],
+          }}
+        />
+      </NotificationProvider>
     );
 
     expect(useScanBatchRun).toHaveBeenCalledWith(
@@ -1463,7 +1465,7 @@ describe("ScanningScreen queue state", () => {
     expect(limitMetaBlock).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\);/);
   });
 
-  it("marks a partial batch startup failure as failed after created scans finish", () => {
+  it("marks a partial batch startup failure as failed after created scans finish", async () => {
     useScanRun.mockReturnValue({
       scan: null,
       error: "",
@@ -1502,21 +1504,23 @@ describe("ScanningScreen queue state", () => {
     });
 
     render(
-      <ScanningScreen
-        go={vi.fn()}
-        activeRepo={{
-          selectedRepos: [
-            { ...repoAlpha, scanRequestId: "scan_req_alpha" },
-            { ...repoBeta, scanRequestId: "scan_req_beta" },
-          ],
-        }}
-      />
+      <NotificationProvider>
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{
+            selectedRepos: [
+              { ...repoAlpha, scanRequestId: "scan_req_alpha" },
+              { ...repoBeta, scanRequestId: "scan_req_beta" },
+            ],
+          }}
+        />
+      </NotificationProvider>
     );
 
     expect(screen.getByText(/scan batch failed/i)).toBeInTheDocument();
     expect(screen.queryByText(/scan batch queued/i)).not.toBeInTheDocument();
     expect(screen.getByText(/1\/2 scans created, 1 not created/i)).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
     expect(screen.getByRole("button", { name: /overview/i })).toBeInTheDocument();
   });
 
@@ -2272,9 +2276,10 @@ describe("ScanningScreen queue state", () => {
     const action = screen.getByRole("link", { name: /open settings/i });
     expect(action).toHaveAttribute("href", "/settings");
 
+    expect(await screen.findByRole("alert")).toHaveTextContent(/review provider is disabled/i);
+
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/review provider is disabled/i);
     expect(go).toHaveBeenCalledWith("settings");
   });
 
@@ -2285,9 +2290,10 @@ describe("ScanningScreen queue state", () => {
     const action = screen.getByRole("link", { name: /sync repositories/i });
     expect(action).toHaveAttribute("href", "/repos");
 
+    expect(await screen.findByRole("alert")).toHaveTextContent(/sync github repositories/i);
+
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/sync github repositories/i);
     expect(go).toHaveBeenCalledWith("repos");
   });
 
@@ -2298,9 +2304,10 @@ describe("ScanningScreen queue state", () => {
     const action = screen.getByRole("link", { name: /retry/i });
     expect(action).toHaveAttribute("href", "/repos");
 
+    expect(await screen.findByRole("alert")).toHaveTextContent(/account quota reached/i);
+
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/account quota reached/i);
     expect(go).toHaveBeenCalledWith("repos");
   });
 
@@ -2314,9 +2321,10 @@ describe("ScanningScreen queue state", () => {
     const action = screen.getByRole("link", { name: /open billing/i });
     expect(action).toHaveAttribute("href", "/billing");
 
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+
     await user.click(action);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(message);
     expect(go).toHaveBeenCalledWith("billing");
   });
 
@@ -2329,10 +2337,12 @@ describe("ScanningScreen queue state", () => {
       const action = screen.getByRole("link", { name: /open settings/i });
       expect(action).toHaveAttribute("href", "/settings");
 
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent(/review runner is missing/i);
+      expect(alert).not.toHaveTextContent(/codex/i);
+
       await user.click(action);
 
-      expect(screen.getByRole("alert")).toHaveTextContent(/review runner is missing/i);
-      expect(screen.getByRole("alert")).not.toHaveTextContent(/codex/i);
       expect(go).toHaveBeenCalledWith("settings");
     }
   );

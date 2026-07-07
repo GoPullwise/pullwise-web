@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -560,6 +561,10 @@ export function BillingScreen({
   useLang();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState("");
+  useErrorNotification(error, {
+    title: T("Billing error", "Billing error"),
+    key: `billing:${error}`,
+  });
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState("");
   const [changeDraft, setChangeDraft] = useState(null);
@@ -837,11 +842,6 @@ export function BillingScreen({
             </div>
           </div>
 
-          {error && (
-            <div className="auth-error" role="alert" style={{ marginBottom: 12 }}>
-              <I.X size={13} /> {error}
-            </div>
-          )}
 
           <div className="set-shell">
             <aside className="set-side">
@@ -1261,6 +1261,10 @@ export function PricingScreen({
   const [plan, setPlan] = useState(null);
   const [interval, setInterval] = useState("month");
   const [error, setError] = useState("");
+  useErrorNotification(error, {
+    title: T("Pricing error", "Pricing error"),
+    key: `pricing:${error}`,
+  });
   const [pendingAction, setPendingAction] = useState("");
   const signedIn = Boolean(auth?.authenticated);
   const checkoutTimeoutRef = useRef(null);
@@ -1420,11 +1424,6 @@ export function PricingScreen({
         </div>
       </section>
 
-      {error && (
-        <div className="auth-error" role="alert" style={{ maxWidth: 760, margin: "0 auto 12px" }}>
-          <I.X size={13} /> {error}
-        </div>
-      )}
 
       <section className="pricing-tiers">
         <PlanCard

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { I } from "../icons.jsx";
+import { useErrorNotification } from "../components/notifications.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -340,6 +341,10 @@ export function LoginScreen({ go } = {}) {
   useLang();
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
+  useErrorNotification(error, {
+    title: T("Sign in error", "Sign in error"),
+    key: `login:${error}`,
+  });
   const pending = Boolean(pendingAction);
   const loginAbortRef = useRef(null);
 
@@ -403,11 +408,6 @@ export function LoginScreen({ go } = {}) {
           )}
         </button>
 
-        {error && (
-          <div className="auth-error" role="alert">
-            <I.X size={13} /> {error}
-          </div>
-        )}
 
         <div className="auth-next">
           <div className="auth-next-i">
@@ -438,6 +438,10 @@ export function OAuthScreen({ go, auth }) {
   useLang();
   const [authing, setAuthing] = useState(false);
   const [error, setError] = useState("");
+  useErrorNotification(error, {
+    title: T("Authorization error", "Authorization error"),
+    key: `oauth:${error}`,
+  });
   const backTarget = auth?.authenticated ? "repos" : "login";
 
   const handleAuthorize = async () => {
@@ -528,11 +532,6 @@ export function OAuthScreen({ go, auth }) {
           </div>
         </div>
 
-        {error && (
-          <div className="oauth-error" role="alert">
-            <I.X size={13} /> {error}
-          </div>
-        )}
 
         <div className="oauth-actions">
           {authing ? (

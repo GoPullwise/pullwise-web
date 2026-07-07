@@ -331,12 +331,16 @@ describe("IssuesScreen list resilience", () => {
       meta: {},
     });
 
-    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+    render(
+      <NotificationProvider>
+        <IssuesScreen go={vi.fn()} setIssue={vi.fn()} />
+      </NotificationProvider>
+    );
 
     const markFixed = screen.getByRole("button", { name: /mark fixed/i });
     await user.click(markFixed);
 
-    expect(await screen.findByText("offline")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("offline");
     expect(markFixed).not.toBeDisabled();
     expect(reload).not.toHaveBeenCalled();
   });
@@ -517,7 +521,7 @@ describe("IssueDetailScreen direct loading", () => {
 
     render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={setIssue} />);
 
-    expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
+    expect((await screen.findAllByText("Validate redirect targets")).length).toBeGreaterThan(0);
     expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
     expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
     expect(screen.queryByRole("group", { name: /issue feedback/i })).not.toBeInTheDocument();
@@ -541,7 +545,7 @@ describe("IssueDetailScreen direct loading", () => {
 
     render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={vi.fn()} />);
 
-    expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
+    expect((await screen.findAllByText("Validate redirect targets")).length).toBeGreaterThan(0);
     expect(screen.getByText("fixed")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /mark fixed/i })).not.toBeInTheDocument();
   });
@@ -587,8 +591,8 @@ describe("IssueDetailScreen direct loading", () => {
       await detail.promise;
     });
 
-    expect(await screen.findByRole("heading", { name: /full issue title/i })).toBeInTheDocument();
-    expect(screen.getByText("Detailed issue summary")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: /full issue title/i })).toBeInTheDocument();
+    expect(screen.getAllByText("Detailed issue summary").length).toBeGreaterThan(0);
     expect(setIssue).toHaveBeenCalledWith(
       expect.objectContaining({ id: "f_123", title: "Full issue title" })
     );

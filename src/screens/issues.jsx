@@ -400,7 +400,6 @@ function IssueDetailSkeleton() {
 
 export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilter = null }) {
   useLang();
-  const notify = useNotify();
   const [sev, setSev] = useState("all");
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
@@ -437,6 +436,14 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   ].filter((issue) => issueMatchesListFilters(issue, { status, severity: sev, q: query }));
   const filtered = sortIssues(issuesWithLocalStatus, sortBy);
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
+  useErrorNotification(error, {
+    title: T("Issues error", "Issues error"),
+    key: `issues-list:${error}`,
+  });
+  useErrorNotification(statusActionError, {
+    title: T("Issue action error", "Issue action error"),
+    key: `issue-action:${statusActionError}`,
+  });
   const bulkFixableIssues = filtered.filter((issue) => issue.status !== "fixed");
 
   const updateStatus = async (issue, nextStatus) => {
@@ -541,7 +548,6 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
           `${failureCount} 个问题状态更新失败。`
         );
         setStatusActionError(message);
-        notify.error(message, { title: T("Issue action error", "Issue action error") });
       }
     } catch (error) {
       setStatusActionError(
@@ -700,11 +706,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div></div>
             </div>
             {loading && <IssuesTableSkeleton />}
-            {error && <div className="muted issues-table-message">{error}</div>}
-            {statusActionError && (
-              <div className="muted issues-table-message">{statusActionError}</div>
-            )}
-            {!loading && !error && filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <div className="muted issues-table-empty">
                 {T("No findings are available yet.", "\u6682\u65e0\u95ee\u9898\u3002")}
               </div>
@@ -806,9 +808,17 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const [loadedIssue, setLoadedIssue] = useState(null);
   const [loadingIssue, setLoadingIssue] = useState(Boolean(routeIssueId));
   const [loadError, setLoadError] = useState("");
+  useErrorNotification(loadError, {
+    title: T("Issue load error", "Issue load error"),
+    key: `issue-load:${routeIssueId}:${loadError}`,
+  });
   const activeIssue = routeIssueId ? loadedIssue : initialIssue;
   const [currentStatus, setCurrentStatus] = useState(activeIssue?.status || "open");
   const [actionError, setActionError] = useState("");
+  useErrorNotification(actionError, {
+    title: T("Issue action error", "Issue action error"),
+    key: `issue-detail-action:${routeIssueId || activeIssue?.id || "issue"}:${actionError}`,
+  });
   const [statusLoading, setStatusLoading] = useState("");
   const [pageCopied, setPageCopied] = useState(false);
   const statusRequestRef = useRef(false);
@@ -972,11 +982,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
           <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
           </a>
-          {loadError && (
-            <div className="auth-error" role="alert" style={{ margin: "0 0 12px" }}>
-              <I.X size={13} /> {loadError}
-            </div>
-          )}
           <div className="issue-detail-h">
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
@@ -1054,11 +1059,6 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               </div>
               <IssueChecklistSection issue={issue} />
               <div className="divider" />
-              {actionError && (
-                <div className="auth-error" role="alert">
-                  <I.X size={13} /> {actionError}
-                </div>
-              )}
               <button className="btn sm" onClick={copyPage} aria-live="polite">
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
                 {pageCopied ? T("Copied", "\u5df2\u590d\u5236") : T("Copy Page", "????")}
@@ -1664,7 +1664,6 @@ export function HistoryScreen({
   );
   const waitingForExpectedScans = hasExpectedScans && !expectedScansLoaded && !error;
   const displayLoading = loading || waitingForExpectedScans;
-  const hasVisibleScans = filtered.length > 0;
   useErrorNotification(error, {
     title: T("Scan history error", "Scan history error"),
     key: `scan-history:${status}:${error}`,
@@ -1945,6 +1944,26 @@ export function SettingsScreen({ go, setIssue = null }) {
   const [initialLoadError, setInitialLoadError] = useState("");
   const [integrations, setIntegrations] = useState(null);
   const [integrationError, setIntegrationError] = useState("");
+  useErrorNotification(initialLoadError, {
+    title: T("Settings error", "Settings error"),
+    key: `settings-load:${initialLoadError}`,
+    action: {
+      label: settingsLoading ? T("Retrying...", "Retrying...") : T("Retry", "Retry"),
+      onClick: () => loadSettingsPayloads(),
+    },
+  });
+  useErrorNotification(profileError, {
+    title: T("Profile error", "Profile error"),
+    key: `settings-profile:${profileError}`,
+  });
+  useErrorNotification(settingsError, {
+    title: T("Settings error", "Settings error"),
+    key: `settings-preferences:${settingsError}`,
+  });
+  useErrorNotification(integrationError, {
+    title: T("Integration error", "Integration error"),
+    key: `settings-integrations:${integrationError}`,
+  });
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const integrationRequestIdRef = useRef(0);
 
@@ -2133,20 +2152,6 @@ export function SettingsScreen({ go, setIssue = null }) {
               <div className="sub">{T("Account and integrations", "\u8d26\u53f7\u4e0e\u96c6\u6210")}</div>
             </div>
           </div>
-          {initialLoadError && (
-            <div className="auth-error" role="alert" style={{ marginBottom: 12 }}>
-              <I.X size={13} />
-              <span style={{ flex: 1 }}>{initialLoadError}</span>
-              <button
-                className="btn sm"
-                type="button"
-                onClick={() => loadSettingsPayloads()}
-                disabled={settingsLoading}
-              >
-                {settingsLoading ? T("Retrying...", "Retrying...") : T("Retry", "Retry")}
-              </button>
-            </div>
-          )}
           <div className="set-shell">
             <aside className="set-side">
               {settingsTabs.map((item) => (
@@ -2166,11 +2171,6 @@ export function SettingsScreen({ go, setIssue = null }) {
                   <div className="section-h">
                     <h3>{T("Profile", "个人资料")}</h3>
                   </div>
-                  {profileError && (
-                    <div className="auth-error" role="alert">
-                      <I.X size={13} /> {profileError}
-                    </div>
-                  )}
                   <div className="set-row">
                     <div className="set-av" style={{ background: "var(--accent)" }}>
                       {(user?.name || "?").slice(0, 1).toUpperCase()}
@@ -2228,11 +2228,6 @@ export function SettingsScreen({ go, setIssue = null }) {
                       ))}
                     </select>
                   </div>
-                  {settingsError && (
-                    <div className="auth-error" role="alert">
-                      <I.X size={13} /> {settingsError}
-                    </div>
-                  )}
                 </div>
               )}
               {tab === "integrations" && (
@@ -2289,11 +2284,6 @@ export function SettingsScreen({ go, setIssue = null }) {
                       onManage={manageInstallation}
                       managingInstallationId={managingInstallationId}
                     />
-                  )}
-                  {integrationError && (
-                    <div className="auth-error" role="alert">
-                      <I.X size={13} /> {integrationError}
-                    </div>
                   )}
                 </div>
               )}

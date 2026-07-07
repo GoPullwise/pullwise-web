@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -561,6 +562,10 @@ export function StatusScreen({ go, auth }) {
   const [health, setHealth] = useState(null);
   const [systemStatus, setSystemStatus] = useState(null);
   const [error, setError] = useState("");
+  useErrorNotification(error, {
+    title: T("Status error", "Status error"),
+    key: `status:${error}`,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -736,11 +741,6 @@ export function StatusScreen({ go, auth }) {
             status={scanStatus === "ok" ? "operational" : scanStatus === "degraded" ? "degraded" : "incident"}
             detail={scanSystemDetail}
           />
-          {error && (
-            <div className="auth-error" role="alert" style={{ marginTop: 14 }}>
-              <I.X size={13} /> {error}
-            </div>
-          )}
         </div>
 
         {readinessAvailable(health) && (
