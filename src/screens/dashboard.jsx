@@ -20,6 +20,7 @@ import {
 } from "../components/distribution-primitives.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
+import { useErrorNotification, useNotify } from "../components/notifications.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function Sparkline({ data, color, height = 28 }) {
@@ -393,6 +394,7 @@ function DashboardSkeleton() {
 
 export function DashboardScreen({ go, setIssue, accent }) {
   useLang();
+  const notify = useNotify();
   const [retryingScanId, setRetryingScanId] = useState("");
   const {
     items: issues,
@@ -411,6 +413,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
     loading: scansLoading,
     reload: reloadScans,
     upsertScan,
+    error: scansError,
     meta: scansMeta = {},
   } = useScans({ limit: 50 });
   const {
@@ -420,6 +423,14 @@ export function DashboardScreen({ go, setIssue, accent }) {
     meta: repositoriesMeta = {},
   } = useRepositories();
   const issuesHasMore = Boolean(issuesMeta.hasMore);
+  useErrorNotification(issuesError, {
+    title: T("Dashboard error", "Dashboard error"),
+    key: `dashboard-issues:${issuesError}`,
+  });
+  useErrorNotification(scansError, {
+    title: T("Scan history error", "Scan history error"),
+    key: `dashboard-scans:${scansError}`,
+  });
   const completingOpenIssuePages = !issuesError && (issuesHasMore || issuesLoadingMore);
 
   useEffect(() => {
@@ -513,7 +524,9 @@ export function DashboardScreen({ go, setIssue, accent }) {
         await reloadScans({ quiet: true });
       }
     } catch (retryError) {
-      window.alert(retryError?.message || T("Unable to retry scan.", "无法重试扫描。"));
+      notify.error(retryError?.message || T("Unable to retry scan.", "Unable to retry scan."), {
+        title: T("Scan retry failed", "Scan retry failed"),
+      });
     } finally {
       setRetryingScanId("");
     }

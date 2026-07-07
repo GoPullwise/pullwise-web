@@ -4,6 +4,7 @@ import { GitHubInstallationsList } from "../components/github-installations.jsx"
 import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
+import { useErrorNotification, useNotify } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
@@ -399,6 +400,7 @@ function IssueDetailSkeleton() {
 
 export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilter = null }) {
   useLang();
+  const notify = useNotify();
   const [sev, setSev] = useState("all");
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
@@ -539,7 +541,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
           `${failureCount} 个问题状态更新失败。`
         );
         setStatusActionError(message);
-        globalThis.alert?.(message);
+        notify.error(message, { title: T("Issue action error", "Issue action error") });
       }
     } catch (error) {
       setStatusActionError(
@@ -1604,6 +1606,7 @@ export function HistoryScreen({
   onExpectedScansLoaded = null,
 }) {
   useLang();
+  const notify = useNotify();
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
   const [retryPendingScanIds, setRetryPendingScanIds] = useState(() => new Set());
@@ -1662,7 +1665,14 @@ export function HistoryScreen({
   const waitingForExpectedScans = hasExpectedScans && !expectedScansLoaded && !error;
   const displayLoading = loading || waitingForExpectedScans;
   const hasVisibleScans = filtered.length > 0;
-  const visibleHistoryError = hasVisibleScans && error !== "Cancel failed." ? error || actionError : actionError;
+  useErrorNotification(error, {
+    title: T("Scan history error", "Scan history error"),
+    key: `scan-history:${status}:${error}`,
+  });
+  useErrorNotification(actionError, {
+    title: T("Scan action error", "Scan action error"),
+    key: `scan-action:${actionError}`,
+  });
   const retryPendingKey = useMemo(
     () => Array.from(retryPendingScanIds).sort().join("|"),
     [retryPendingScanIds]
@@ -1796,9 +1806,9 @@ export function HistoryScreen({
       const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);
       downloadBlob(`pullwise-audit-${scan.id}.zip`, bundle, "application/zip");
     } catch (error) {
-      globalThis.alert?.(
-        error?.message || T("Unable to download audit bundle.", "\u65e0\u6cd5\u4e0b\u8f7d\u5ba1\u8ba1\u5305\u3002")
-      );
+      notify.error(error?.message || T("Unable to download audit bundle.", "Unable to download audit bundle."), {
+        title: T("Download failed", "Download failed"),
+      });
     } finally {
       setBundleLoading("");
     }
@@ -1885,21 +1895,6 @@ export function HistoryScreen({
           </div>
 
           <div className="hist-list card">
-            {!hasVisibleScans && !waitingForExpectedScans && error && (
-              <div className="muted" style={{ padding: 18 }}>
-                {error}
-              </div>
-            )}
-            {visibleHistoryError && (
-              <div className="auth-error" role="alert" style={{ margin: "18px 18px 0" }}>
-                <I.X size={13} /> {visibleHistoryError}
-              </div>
-            )}
-            {!hasVisibleScans && !error && actionError && (
-              <div className="auth-error" role="alert" style={{ margin: "18px 18px 0" }}>
-                <I.X size={13} /> {actionError}
-              </div>
-            )}
             {displayLoading && <HistorySkeleton />}
             {!displayLoading && !error && filtered.length === 0 && (
               <div

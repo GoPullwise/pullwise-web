@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { HistoryScreen, IssueDetailScreen, IssuesScreen } from "./issues.jsx";
+import { NotificationProvider } from "../components/notifications.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -822,7 +823,7 @@ describe("HistoryScreen queue state", () => {
     expect(screen.getByText("octocat/good-repo")).toBeInTheDocument();
   });
 
-  it("keeps visible scan rows when a history refresh reports an error", () => {
+  it("keeps visible scan rows and notifies when a history refresh reports an error", async () => {
     useScans.mockReturnValue({
       items: [
         {
@@ -843,9 +844,13 @@ describe("HistoryScreen queue state", () => {
       meta: { total: 1 },
     });
 
-    render(<HistoryScreen go={vi.fn()} />);
+    render(
+      <NotificationProvider>
+        <HistoryScreen go={vi.fn()} />
+      </NotificationProvider>
+    );
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Temporary scan history error");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Temporary scan history error");
     expect(screen.getByText("octocat/private-repo")).toBeInTheDocument();
   });
   it("keeps a retried failed scan disabled until the server reports it running", async () => {

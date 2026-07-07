@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n.jsx";
 import { ReposScreen, ScanningScreen } from "./flow.jsx";
+import { NotificationProvider } from "../components/notifications.jsx";
 
 vi.mock("../lib/auth.js", () => ({
   connectGitHubRepositories: vi.fn(),
@@ -152,10 +153,12 @@ function renderScanError(error, errorCode = "") {
   });
 
   render(
-    <ScanningScreen
-      go={go}
-      activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
-    />
+    <NotificationProvider>
+      <ScanningScreen
+        go={go}
+        activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+      />
+    </NotificationProvider>
   );
 
   return { go };

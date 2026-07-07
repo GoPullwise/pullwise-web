@@ -179,6 +179,134 @@
   display: block;
 }
 
+.notification-stack {
+  position: fixed;
+  right: 18px;
+  bottom: 72px;
+  z-index: 90;
+  width: min(390px, calc(100vw - 28px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.notification-toast {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--danger, #dc2626);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-elev) 94%, white 6%);
+  color: var(--text);
+  box-shadow: var(--shadow-3);
+}
+
+.notification-success {
+  border-left-color: var(--ok, #16a34a);
+}
+
+.notification-warning {
+  border-left-color: var(--warn, #b45309);
+}
+
+.notification-info {
+  border-left-color: var(--accent);
+}
+
+.notification-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--danger, #dc2626) 12%, transparent);
+  color: var(--danger, #dc2626);
+}
+
+.notification-success .notification-icon {
+  background: color-mix(in srgb, var(--ok, #16a34a) 12%, transparent);
+  color: var(--ok, #16a34a);
+}
+
+.notification-warning .notification-icon {
+  background: color-mix(in srgb, var(--warn, #b45309) 12%, transparent);
+  color: var(--warn, #b45309);
+}
+
+.notification-info .notification-icon {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.notification-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.notification-title {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.notification-message {
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.notification-action {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.notification-close {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.notification-close:hover,
+.notification-close:focus-visible {
+  background: var(--bg-soft);
+  color: var(--text);
+  outline: 0;
+}
+
+@media (max-width: 520px) {
+  .notification-stack {
+    right: 14px;
+    bottom: 70px;
+  }
+
+  .notification-toast {
+    grid-template-columns: 24px minmax(0, 1fr) 28px;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .notification-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+
 @media (max-width: 420px) {
   .lang-picker {
     right: 62px;

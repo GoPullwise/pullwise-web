@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
+import { NotificationProvider } from "./components/notifications.jsx";
 import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
@@ -783,7 +784,7 @@ export function App({ prototypeNav = false }) {
     }
 
   return (
-    <>
+    <NotificationProvider>
       {prototypeNav && (
         <>
           <button className="proto-nav-toggle" onClick={() => setNavOpen((open) => !open)}>
@@ -857,6 +858,6 @@ export function App({ prototypeNav = false }) {
       >
         {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
       </button>
-    </>
+    </NotificationProvider>
   );
 }

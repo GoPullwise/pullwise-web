@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardScreen } from "./dashboard.jsx";
+import { NotificationProvider } from "../components/notifications.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -370,10 +371,9 @@ describe("DashboardScreen issue list", () => {
     expect(reload).not.toHaveBeenCalled();
   });
 
-  it("alerts when retrying the latest scan fails", async () => {
+  it("notifies when retrying the latest scan fails", async () => {
     const user = userEvent.setup();
     const reload = vi.fn();
-    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
     pullwiseApi.scans.retry.mockRejectedValueOnce(new Error("Retry service unavailable"));
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({
@@ -396,11 +396,15 @@ describe("DashboardScreen issue list", () => {
       reload,
     });
 
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+    render(
+      <NotificationProvider>
+        <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
+      </NotificationProvider>
+    );
 
     await user.click(screen.getByRole("button", { name: /^retry$/i }));
 
-    await waitFor(() => expect(alert).toHaveBeenCalledWith("Retry service unavailable"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Retry service unavailable");
     expect(reload).not.toHaveBeenCalled();
   });
 
