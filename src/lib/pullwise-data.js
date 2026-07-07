@@ -228,7 +228,7 @@ export function rememberIssueUpdate(issue, updatedIssue) {
 
 function useInitialCachedListState(cacheKey) {
   const initialCacheRef = useRef(null);
-  if (!initialCacheRef.current) {
+  if (!initialCacheRef.current || initialCacheRef.current.cacheKey !== cacheKey) {
     const state = cachedListState(cacheKey);
     initialCacheRef.current = {
       cacheKey,
@@ -236,10 +236,9 @@ function useInitialCachedListState(cacheKey) {
       hasState: Boolean(state),
     };
   }
-  const isInitialCacheKey = initialCacheRef.current.cacheKey === cacheKey;
   return {
-    initialCachedState: isInitialCacheKey ? initialCacheRef.current.state : null,
-    shouldRefreshQuietly: isInitialCacheKey && initialCacheRef.current.hasState,
+    initialCachedState: initialCacheRef.current.state,
+    shouldRefreshQuietly: initialCacheRef.current.hasState,
   };
 }
 
@@ -1446,21 +1445,33 @@ function useMemoStable(value) {
   if (nextKey !== currentKey) ref.current = value;
   return ref.current;
 }
+
+function scanListStateForCacheKey(cacheKey, limit, cachedState = cachedListState(cacheKey)) {
+  return {
+    cacheKey,
+    items: [],
+    meta: pageMeta({}, limit),
+    ...(cachedState || {}),
+    loading: !cachedState,
+    loadingMore: false,
+    error: "",
+  };
+}
+
 export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
   const cacheKey = stableCacheKey("scans", { limit, status, repo });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
-  const [state, setState] = useState(() => ({
-    items: [],
-    meta: pageMeta({}, limit),
-    ...(initialCachedState || {}),
-    loading: !shouldRefreshQuietly,
-    loadingMore: false,
-    error: "",
-  }));
+  const [state, setState] = useState(() =>
+    scanListStateForCacheKey(cacheKey, limit, initialCachedState)
+  );
+  const visibleState =
+    state.cacheKey === cacheKey
+      ? state
+      : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
   const [pollRetryTick, setPollRetryTick] = useState(0);
-  const hasActiveScans = state.items.some(isActiveScan);
+  const hasActiveScans = visibleState.items.some(isActiveScan);
   const hasActiveScansRef = useRef(hasActiveScans);
   hasActiveScansRef.current = hasActiveScans;
 
@@ -1471,12 +1482,18 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
       abortRef.current?.abort?.();
       const controller = makeAbortController();
       abortRef.current = controller;
-      setState((current) => ({
-        ...current,
-        loading: quiet || append ? current.loading : true,
-        loadingMore: append,
-        error: "",
-      }));
+      setState((current) => {
+        const baseState =
+          current.cacheKey === cacheKey
+            ? current
+            : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
+        return {
+          ...baseState,
+          loading: quiet || append ? baseState.loading : true,
+          loadingMore: append,
+          error: "",
+        };
+      });
       try {
         const params = listParams({ limit, offset, status, repo });
         const payload = await dedupedDataRequest(
@@ -1487,8 +1504,14 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
         if (requestId !== requestIdRef.current) return;
         const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
         setState((current) => {
+          const baseState =
+            current.cacheKey === cacheKey
+              ? current
+              : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
           const nextState = {
-            items: append ? [...current.items, ...nextItems] : nextItems,
+            ...baseState,
+            cacheKey,
+            items: append ? [...baseState.items, ...nextItems] : nextItems,
             loading: false,
             loadingMore: false,
             error: "",
@@ -1501,13 +1524,19 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
         if (isAbortError(error)) return;
         if (requestId !== requestIdRef.current) return;
         const message = error?.message || "Unable to load scans.";
-        setState((current) => ({
-          items: current.items,
-          loading: false,
-          loadingMore: false,
-          error: message,
-          meta: current.meta,
-        }));
+        setState((current) => {
+          const baseState =
+            current.cacheKey === cacheKey
+              ? current
+              : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
+          return {
+            ...baseState,
+            cacheKey,
+            loading: false,
+            loadingMore: false,
+            error: message,
+          };
+        });
         if (hasActiveScansRef.current) {
           setPollRetryTick((tick) => tick + 1);
         }
@@ -1515,7 +1544,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
         if (abortRef.current === controller) abortRef.current = null;
       }
     },
-    [cacheKey, limit, status, repo]
+    [cacheKey, initialCachedState, limit, status, repo]
   );
 
   useEffect(() => {
@@ -1524,7 +1553,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
   }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
-    const activeIds = state.items
+    const activeIds = visibleState.items
       .filter(isActiveScan)
       .map((scan) => scan.id)
       .filter(Boolean);
@@ -1563,7 +1592,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
             load({ quiet: true });
             return;
           }
-          const byId = scanUpdatesById(payload, state.items);
+          const byId = scanUpdatesById(payload, visibleState.items);
           if (!byId.size) return;
           setState((current) => {
             const nextItems = applyScanUpdates(current.items, byId, status);
@@ -1579,7 +1608,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
         })
         .catch((error) => {
           if (isAbortError(error) || !alive) return;
-          const byId = scanUpdatesById(error?.payload, state.items);
+          const byId = scanUpdatesById(error?.payload, visibleState.items);
           const message = error?.message || "Unable to refresh scan status.";
           setState((current) => {
             const nextState = {
@@ -1598,39 +1627,44 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
       controller?.abort();
       clearTimeout(handle);
     };
-  }, [hasActiveScans, state.items, cacheKey, status, pollIntervalMs, pollRetryTick, load]);
+  }, [hasActiveScans, visibleState.items, cacheKey, status, pollIntervalMs, pollRetryTick, load]);
 
   const loadMore = useCallback(() => {
-    if (!state.meta.hasMore || state.loadingMore) return;
-    load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
-  }, [load, state.meta, state.loadingMore, state.items.length]);
+    if (!visibleState.meta.hasMore || visibleState.loadingMore) return;
+    load({ append: true, offset: visibleState.meta.nextOffset ?? visibleState.items.length });
+  }, [load, visibleState.meta, visibleState.loadingMore, visibleState.items.length]);
 
   const upsertScan = useCallback(
     (scan, replacedScanId = "") => {
       const normalized = normalizeScan(scan);
       if (!normalized.id) return;
       setState((current) => {
+        const baseState =
+          current.cacheKey === cacheKey
+            ? current
+            : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
         const shouldInclude = !status || status === "all" || normalized.status === status;
-        const remainingItems = current.items.filter(
+        const remainingItems = baseState.items.filter(
           (item) => item.id !== normalized.id && item.id !== replacedScanId
         );
         const nextItems = shouldInclude ? [normalized, ...remainingItems] : remainingItems;
         const nextState = {
-          ...current,
+          ...baseState,
+          cacheKey,
           items: nextItems,
           meta: {
-            ...current.meta,
-            total: Math.max(current.meta.total || 0, nextItems.length),
+            ...baseState.meta,
+            total: Math.max(baseState.meta.total || 0, nextItems.length),
           },
         };
         rememberListState(cacheKey, nextState);
         return nextState;
       });
     },
-    [cacheKey, status]
+    [cacheKey, initialCachedState, limit, status]
   );
 
-  return { ...state, reload: load, loadMore, upsertScan };
+  return { ...visibleState, reload: load, loadMore, upsertScan };
 }
 
 const TERMINAL_SCAN_STATUSES = new Set([
