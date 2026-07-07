@@ -969,6 +969,24 @@ describe("ScanningScreen queue state", () => {
     expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
   });
 
+  it("keeps scan progress flow nodes flat with tuned dark-mode colors", () => {
+    const styles = readFileSync("styles/screens.css", "utf8");
+    const flowBlock = styles.match(
+      /\.scanning-flow\s*\{(?<body>[\s\S]*?)\n\.scanning-side\s*\{/s
+    )?.groups?.body;
+    const darkNodeBlock = styles.match(
+      /\[data-theme="dark"\] \.scanning-phase\s*\{(?<body>[^}]*)\}/s
+    )?.groups?.body;
+
+    expect(flowBlock).toBeTruthy();
+    expect(flowBlock).not.toMatch(/box-shadow\s*:/);
+    expect(darkNodeBlock).toBeTruthy();
+    expect(darkNodeBlock).toMatch(
+      /--phase-surface:\s*color-mix\(in oklch, var\(--bg-elev\) 90%, var\(--phase-accent\) 10%\);/
+    );
+    expect(darkNodeBlock).not.toMatch(/radial-gradient/);
+  });
+
   it("hides empty scan detail evidence and agent panels after metadata loads", () => {
     useScanRun.mockReturnValue({
       scan: {

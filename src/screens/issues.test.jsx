@@ -774,6 +774,79 @@ describe("HistoryScreen queue state", () => {
     );
   });
 
+  it("keeps scan history visible and isolates worker artifact errors to one row", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_bad_artifact",
+          repo: "octocat/bad-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "failed",
+          errorCode: "WORKER_ARTIFACT_INVALID",
+          error: "Uploaded review artifacts do not match result manifest: art_worker_log",
+          issues: { critical: 0, high: 3, medium: 0, low: 0, info: 0 },
+          time: "now",
+          by: "you",
+        },
+        {
+          id: "sc_done",
+          repo: "octocat/good-repo",
+          branch: "main",
+          commit: "def456",
+          status: "done",
+          issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
+          time: "earlier",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 2 },
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    const badRow = screen.getByText("octocat/bad-repo").closest(".scan-row");
+    expect(badRow).toHaveTextContent("failed");
+    expect(badRow).toHaveTextContent(
+      "Uploaded review artifacts do not match result manifest: art_worker_log"
+    );
+    expect(within(badRow).queryByText("main")).not.toBeInTheDocument();
+    expect(within(badRow).queryByText(/3 issues/i)).not.toBeInTheDocument();
+    expect(within(badRow).queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByText("octocat/good-repo")).toBeInTheDocument();
+  });
+
+  it("keeps visible scan rows when a history refresh reports an error", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_done",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          time: "now",
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "Temporary scan history error",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Temporary scan history error");
+    expect(screen.getByText("octocat/private-repo")).toBeInTheDocument();
+  });
   it("renders scan history skeleton rows while scans are loading", () => {
     useScans.mockReturnValue({
       items: [],
