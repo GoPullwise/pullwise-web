@@ -1,8 +1,9 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
+import { NotificationProvider } from "./components/notifications.jsx";
 import { setLang } from "./i18n.jsx";
 import {
   connectGitHubRepositories,
@@ -47,6 +48,10 @@ vi.mock("./lib/auth.js", () => ({
   manageGitHubInstallation: vi.fn(),
   signOut: vi.fn(),
 }));
+
+function render(ui, options) {
+  return rtlRender(<NotificationProvider>{ui}</NotificationProvider>, options);
+}
 
 function blockedStorage() {
   return {
@@ -262,7 +267,7 @@ describe("App", () => {
       );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-    expect(screen.getByText("GoPullwise/pullwise-server")).toBeInTheDocument();
+    expect(await screen.findByText("GoPullwise/pullwise-server")).toBeInTheDocument();
   });
 
   it("replaces a new scan route with the created scan id", async () => {
@@ -394,7 +399,9 @@ describe("App", () => {
     await waitFor(() => {
       expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
     });
-    expect(await screen.findByText("Validate redirect targets")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Validate redirect targets" })
+    ).toBeInTheDocument();
   });
 
   it("keeps multiple detail status updates when returning to the issue list", async () => {
@@ -1515,11 +1522,9 @@ describe("App", () => {
     expect(window.location.pathname).toBe("/issues/f_redirect");
     await waitFor(() => expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_redirect"));
     expect(
-      await screen.findByRole("heading", { name: /unsafe redirect target/i })
+      await screen.findByRole("heading", { level: 1, name: /unsafe redirect target/i })
     ).toBeInTheDocument();
-    expect(
-      await screen.findByText("Redirects accept attacker-controlled URLs.")
-    ).toBeInTheDocument();
+    expect(await screen.findAllByText("Redirects accept attacker-controlled URLs.")).not.toHaveLength(0);
   });
 
   it("opens scan history issues with a scanId filter", async () => {

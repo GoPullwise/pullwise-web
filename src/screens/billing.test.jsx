@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { NotificationProvider } from "../components/notifications.jsx";
 import { BillingScreen, PricingScreen } from "./billing.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -16,6 +17,10 @@ vi.mock("../api/pullwise.js", () => ({
     },
   },
 }));
+
+function render(ui, options) {
+  return rtlRender(<NotificationProvider>{ui}</NotificationProvider>, options);
+}
 
 describe("BillingScreen", () => {
   const billingCatalog = {

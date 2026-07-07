@@ -1,8 +1,9 @@
-﻿import { render, screen, waitFor, within } from "@testing-library/react";
+﻿import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { NotificationProvider } from "../components/notifications.jsx";
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
@@ -27,6 +28,10 @@ vi.mock("../lib/pullwise-data.js", () => ({
   useRepositories: vi.fn(),
   useScans: vi.fn(),
 }));
+
+function render(ui, options) {
+  return rtlRender(<NotificationProvider>{ui}</NotificationProvider>, options);
+}
 
 describe("API screens", () => {
   beforeEach(() => {
