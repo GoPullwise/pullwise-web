@@ -46,8 +46,6 @@ export const pullwiseApi = {
     get: (scanId, options = {}) => getRequest(`/scans/${pathSegment(scanId)}`, options),
     status: (ids = [], options = {}) =>
       request("/scans/status", { method: "POST", body: { ids }, signal: options.signal }),
-    retry: (scanId, payload = {}) =>
-      request(`/scans/${pathSegment(scanId)}/retry`, { method: "POST", body: payload }),
     auditBundle: (scanId) => request(`/scans/${pathSegment(scanId)}/audit-bundle`),
     auditBundleArchive: (scanId) =>
       request(`/scans/${pathSegment(scanId)}/audit-bundle.zip`, {

@@ -5,8 +5,6 @@ import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
   normalizeScan,
-  retryResponseScanId,
-  retryResponseScanPayload,
   scanQueueSummary,
   useIssues,
   useRepositories,
@@ -20,9 +18,8 @@ import {
 } from "../components/distribution-primitives.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
-import { useErrorNotification, useNotify } from "../components/notifications.jsx";
+import { useErrorNotification } from "../components/notifications.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
-
 function Sparkline({ data, color, height = 28 }) {
   const values = data.length > 1 ? data : [0, 0];
   const w = 200;
@@ -94,7 +91,6 @@ function scanAgentConfigLabel(scan) {
 const SEVERITY_WEIGHTS = { critical: 10, high: 7, medium: 4, low: 2, info: 1 };
 const SEVERITY_RANK = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
 const HOTSPOT_LIMIT = 5;
-const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
 const ACTIVE_SCAN_STATUSES = new Set(["queued", "running"]);
 const SCAN_PHASE_LABELS = {
   clone: { en: "Cloning repository", zh: "克隆仓库" },
@@ -394,8 +390,6 @@ function DashboardSkeleton() {
 
 export function DashboardScreen({ go, setIssue, accent }) {
   useLang();
-  const notify = useNotify();
-  const [retryingScanId, setRetryingScanId] = useState("");
   const {
     items: issues,
     loading: issuesLoading,
@@ -477,9 +471,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
     ? latestScanQueueSummary.tags.join(" / ")
     : "";
   const latestScanAgentLabel = latestScanQueueLabel || latestScanBaseAgentLabel;
-  const canRetryLatestScan = Boolean(
-    latestScan?.id && RETRYABLE_SCAN_STATUSES.has(String(latestScan.status || "").toLowerCase())
-  );
   const activeScanProgress = activeScan
     ? scanProgressPresentation(activeScan, { label: scanPhaseLabel(activeScan) })
     : null;
@@ -508,29 +499,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
     : repositories.length;
 
   const dashboardLoading = issuesLoading || completingOpenIssuePages || scansLoading || reposLoading;
-
-  const retryLatestScan = async () => {
-    if (!canRetryLatestScan || retryingScanId) return;
-    setRetryingScanId(latestScan.id);
-    try {
-      const payload = await pullwiseApi.scans.retry(latestScan.id);
-      const inlinePayload = retryResponseScanPayload(payload);
-      const refreshed = inlinePayload
-        ? normalizeScan(inlinePayload)
-        : normalizeScan(await pullwiseApi.scans.get(retryResponseScanId(payload, latestScan.id)));
-      if (typeof upsertScan === "function") {
-        upsertScan(refreshed, latestScan.id);
-      } else if (typeof reloadScans === "function") {
-        await reloadScans({ quiet: true });
-      }
-    } catch (retryError) {
-      notify.error(retryError?.message || T("Unable to retry scan.", "Unable to retry scan."), {
-        title: T("Scan retry failed", "Scan retry failed"),
-      });
-    } finally {
-      setRetryingScanId("");
-    }
-  };
 
   return (
     <div className="app fade-in">
@@ -625,18 +593,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
                 <div className="kpi card">
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Scans", "扫描")}</span>
-                    {canRetryLatestScan && (
-                      <button
-                        type="button"
-                        className="btn sm kpi-retry-btn"
-                        disabled={retryingScanId === latestScan.id}
-                        onClick={retryLatestScan}
-                      >
-                        {retryingScanId === latestScan.id
-                          ? T("Retrying...", "正在重试...")
-                          : T("Retry", "重试")}
-                      </button>
-                    )}
                   </div>
                   <div className="kpi-v">{scansLoading ? "-" : scanTotal}</div>
                   <div className="kpi-foot">

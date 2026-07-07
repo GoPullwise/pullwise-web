@@ -17,8 +17,6 @@ import {
   issueUpdateKey,
   notifyIssuesChanged,
   rememberIssueUpdate,
-  retryResponseScanId,
-  retryResponseScanPayload,
   scanQueueSummary,
   useIssues,
   useScans,
@@ -28,7 +26,6 @@ import { Sidebar, Topbar } from "../shell.jsx";
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
 const HISTORY_EXPECTED_SCAN_RETRY_MS = 1500;
-const HISTORY_RETRY_STATUS_POLL_MS = 1500;
 const REVIEW_OUTPUT_LANGUAGES = [
   { value: "en", labelEn: "English", labelZh: "英文" },
   { value: "zh-CN", labelEn: "Chinese", labelZh: "中文" },
@@ -1167,8 +1164,6 @@ function HistoryGroups({
   scans,
   viewScan,
   viewScanIssues,
-  retryScan,
-  retryPendingScanIds,
   downloadAuditBundle,
   bundleLoading,
 }) {
@@ -1206,8 +1201,6 @@ function HistoryGroups({
                       scan={timeItems[0]}
                       viewScan={viewScan}
                       viewScanIssues={viewScanIssues}
-                      retryScan={retryScan}
-                      retryPendingScanIds={retryPendingScanIds}
                       downloadAuditBundle={downloadAuditBundle}
                       bundleLoading={bundleLoading}
                     />
@@ -1219,8 +1212,6 @@ function HistoryGroups({
                           scan={scan}
                           viewScan={viewScan}
                           viewScanIssues={viewScanIssues}
-                          retryScan={retryScan}
-                          retryPendingScanIds={retryPendingScanIds}
                           downloadAuditBundle={downloadAuditBundle}
                           bundleLoading={bundleLoading}
                         />
@@ -1263,16 +1254,10 @@ function scanAiUsageBadges(aiUsage) {
   return badges;
 }
 
-function isRetryableHistoryScan(scan) {
-  return Boolean(scan?.id && ["failed", "cancelled", "lost"].includes(scan.status));
-}
-
 function ScanRow({
   scan,
   viewScan,
   viewScanIssues,
-  retryScan,
-  retryPendingScanIds,
   downloadAuditBundle,
   bundleLoading,
 }) {
@@ -1284,8 +1269,6 @@ function ScanRow({
   const status = scan.status || "info";
   const hasResults = scanHasResults(scan) && !blockingError;
   const isDownloading = bundleLoading === scan.id;
-  const isRetrying = retryPendingScanIds.has(scan.id);
-  const canRetry = isRetryableHistoryScan(scan) && !blockingError;
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = blockingError ? [] : scanAiUsageBadges(scan.aiUsage);
   const showProgress = !blockingError && (status === "queued" || status === "running");
@@ -1410,11 +1393,6 @@ function ScanRow({
         )}
       </div>
       {!blockingError && <div className="scan-row-actions" ref={menuRef} onClick={stopRowClick}>
-        {canRetry && (
-          <button className="btn sm" disabled={isRetrying} onClick={() => retryScan(scan)}>
-            {isRetrying ? T("Retrying...", "正在重试...") : T("Retry", "重试")}
-          </button>
-        )}
         <button
           className="btn sm"
           disabled={!scan.id || !hasResults}
@@ -1609,7 +1587,6 @@ export function HistoryScreen({
   const notify = useNotify();
   const [status, setStatus] = useState("all");
   const [bundleLoading, setBundleLoading] = useState("");
-  const [retryPendingScanIds, setRetryPendingScanIds] = useState(() => new Set());
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [expectedScanRetryCount, setExpectedScanRetryCount] = useState(0);
   const [actionError, setActionError] = useState("");
@@ -1672,20 +1649,6 @@ export function HistoryScreen({
     title: T("Scan action error", "Scan action error"),
     key: `scan-action:${actionError}`,
   });
-  const retryPendingKey = useMemo(
-    () => Array.from(retryPendingScanIds).sort().join("|"),
-    [retryPendingScanIds]
-  );
-
-  const addRetryPendingScan = useCallback((scanId) => {
-    setRetryPendingScanIds((current) => {
-      if (current.has(scanId)) return current;
-      const next = new Set(current);
-      next.add(scanId);
-      return next;
-    });
-  }, []);
-
   const removeRetryPendingScans = useCallback((scanIds) => {
     const ids = Array.isArray(scanIds) ? scanIds : [scanIds];
     setRetryPendingScanIds((current) => {
@@ -1756,33 +1719,6 @@ export function HistoryScreen({
     }
   }, [expectedScansLoaded, hasExpectedScans, onExpectedScansLoaded]);
 
-  useEffect(() => {
-    if (!retryPendingScanIds.size || typeof upsertScan !== "function") return undefined;
-    let cancelled = false;
-    const scanIds = Array.from(retryPendingScanIds);
-    const handle = setTimeout(async () => {
-      try {
-        const payload =
-          typeof pullwiseApi.scans.status === "function"
-            ? await pullwiseApi.scans.status(scanIds)
-            : await Promise.all(scanIds.map((scanId) => pullwiseApi.scans.get(scanId)));
-        if (cancelled) return;
-        const runningScanIds = [];
-        for (const scan of scansFromStatusPayload(payload)) {
-          upsertScan(scan);
-          if (scan.status === "running") runningScanIds.push(scan.id);
-        }
-        if (runningScanIds.length) removeRetryPendingScans(runningScanIds);
-      } catch {
-        // Keep the row dimmed and poll again until the server reports the retry has started.
-      }
-    }, HISTORY_RETRY_STATUS_POLL_MS);
-    return () => {
-      cancelled = true;
-      clearTimeout(handle);
-    };
-  }, [retryPendingKey, retryPendingScanIds, removeRetryPendingScans, upsertScan]);
-
   const viewScan = (scan) => {
     if (openScan) {
       openScan(scan);
@@ -1810,28 +1746,6 @@ export function HistoryScreen({
       });
     } finally {
       setBundleLoading("");
-    }
-  };
-  const retryScan = async (scan) => {
-    if (!scan?.id || retryPendingScanIds.has(scan.id)) return;
-    setActionError("");
-    addRetryPendingScan(scan.id);
-    try {
-      const payload = await pullwiseApi.scans.retry(scan.id);
-      const inlinePayload = retryResponseScanPayload(payload);
-      const refreshed = inlinePayload
-        ? normalizeScan(inlinePayload)
-        : normalizeScan(await pullwiseApi.scans.get(retryResponseScanId(payload, scan.id)));
-      if (typeof upsertScan === "function") {
-        upsertScan(refreshed, scan.id);
-      } else if (typeof reload === "function") {
-        await reload({ quiet: true });
-      }
-    } catch (actionError) {
-      setActionError(
-        actionError?.message || T("Unable to retry scan.", "\u65e0\u6cd5\u91cd\u8bd5\u626b\u63cf\u3002")
-      );
-      removeRetryPendingScans(scan.id);
     }
   };
   const refreshHistory = async () => {
@@ -1912,8 +1826,6 @@ export function HistoryScreen({
                 scans={filtered}
                 viewScan={viewScan}
                 viewScanIssues={viewScanIssues}
-                retryScan={retryScan}
-                retryPendingScanIds={retryPendingScanIds}
                 downloadAuditBundle={downloadAuditBundle}
                 bundleLoading={bundleLoading}
               />

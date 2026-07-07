@@ -10,7 +10,6 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
       get: vi.fn(),
-      retry: vi.fn(),
     },
   },
 }));
@@ -30,9 +29,7 @@ import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 
 describe("DashboardScreen issue list", () => {
   beforeEach(() => {
-    pullwiseApi.scans.retry.mockReset();
     pullwiseApi.scans.get.mockReset();
-    pullwiseApi.scans.retry.mockResolvedValue({});
     pullwiseApi.scans.get.mockResolvedValue({ id: "scan_retry_next", status: "queued" });
   });
 
@@ -324,10 +321,7 @@ describe("DashboardScreen issue list", () => {
     expect(screen.getByText("Showing 8 of 51 open issues")).toBeInTheDocument();
   });
 
-  it("retries the failed latest scan and updates the scan list from a targeted refresh", async () => {
-    const user = userEvent.setup();
-    const reload = vi.fn().mockResolvedValue(undefined);
-    const upsertScan = vi.fn();
+  it("does not render a manual retry action for the latest failed scan", () => {
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({
       items: [],
@@ -344,70 +338,14 @@ describe("DashboardScreen issue list", () => {
           status: "failed",
           time: "now",
         },
-        {
-          id: "scan_failed_old",
-          repo: "acme/api",
-          branch: "main",
-          commit: "def456",
-          status: "failed",
-          time: "earlier",
-        },
       ],
       loading: false,
-      reload,
-      upsertScan,
     });
 
     render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
 
-    await user.click(screen.getByRole("button", { name: /^retry$/i }));
-
-    expect(pullwiseApi.scans.retry).toHaveBeenCalledWith("scan_failed_latest");
-    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith("scan_failed_latest"));
-    expect(upsertScan).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "scan_retry_next", status: "queued" }),
-      "scan_failed_latest"
-    );
-    expect(reload).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /^retry$/i })).not.toBeInTheDocument();
   });
-
-  it("notifies when retrying the latest scan fails", async () => {
-    const user = userEvent.setup();
-    const reload = vi.fn();
-    pullwiseApi.scans.retry.mockRejectedValueOnce(new Error("Retry service unavailable"));
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [
-        {
-          id: "scan_cancelled_latest",
-          repo: "acme/api",
-          branch: "main",
-          commit: "abc123",
-          status: "cancelled",
-          time: "now",
-        },
-      ],
-      loading: false,
-      reload,
-    });
-
-    render(
-      <NotificationProvider>
-        <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
-      </NotificationProvider>
-    );
-
-    await user.click(screen.getByRole("button", { name: /^retry$/i }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("Retry service unavailable");
-    expect(reload).not.toHaveBeenCalled();
-  });
-
   it("keeps overview KPI sparklines aligned across all cards", () => {
     useIssues.mockReturnValue({ items: [], loading: false, error: "" });
     useRepositories.mockReturnValue({

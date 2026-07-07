@@ -1679,29 +1679,6 @@ export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
 }
 
-export function retryResponseScanPayload(payload) {
-  if (objectRecord(payload?.scan)) return payload.scan;
-  if (objectRecord(payload?.data?.scan)) return payload.data.scan;
-  if (objectRecord(payload?.result?.scan)) return payload.result.scan;
-  if (objectRecord(payload?.retry)) return payload.retry;
-  return objectRecord(payload) && textValue(payload.id, payload.scanId, payload.scan_id)
-    ? payload
-    : null;
-}
-
-export function retryResponseScanId(payload, fallback = "") {
-  return textValue(
-    payload?.scanId,
-    payload?.scan_id,
-    payload?.retryScanId,
-    payload?.retry_scan_id,
-    payload?.newScanId,
-    payload?.new_scan_id,
-    payload?.id,
-    fallback
-  );
-}
-
 function scanCreatePayload({ repoId = "", repo, branch, commit = "pending", requestId = "" }) {
   const payload = { branch: branch || "main", commit: commit || "pending" };
   if (repoId) payload.repoId = repoId;
@@ -1727,7 +1704,6 @@ export function useScanRun({
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [pollRetryTick, setPollRetryTick] = useState(0);
-  const [retrying, setRetrying] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const initialScanRef = useRef(initialScan);
   const errorSourceRef = useRef("");
@@ -1876,32 +1852,7 @@ export function useScanRun({
     }
   };
 
-  const retry = async () => {
-    if (!scan?.id || !["failed", "cancelled", "lost"].includes(scan.status)) return null;
-    setRetrying(true);
-    clearRunError();
-    try {
-      const payload = await pullwiseApi.scans.retry(scan.id);
-      const inlinePayload = retryResponseScanPayload(payload);
-      if (inlinePayload && textValue(inlinePayload.id, inlinePayload.scanId)) {
-        const normalized = normalizeScan(inlinePayload);
-        setScan(normalized);
-        return normalized;
-      }
-      const targetScanId = retryResponseScanId(payload, scan.id);
-      if (!targetScanId) return null;
-      const refreshed = normalizeScan(await pullwiseApi.scans.get(targetScanId));
-      setScan(refreshed);
-      return refreshed;
-    } catch (err) {
-      setRunError(err, "Retry failed.", "retry");
-      return null;
-    } finally {
-      setRetrying(false);
-    }
-  };
-
-  return { scan, loading, error, errorCode, cancel, retry, retrying, canceling };
+  return { scan, loading, error, errorCode, cancel, canceling };
 }
 
 function scanRequestKey(request) {

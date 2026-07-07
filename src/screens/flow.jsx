@@ -861,12 +861,6 @@ function scanAiUsageTags(aiUsage) {
   return tags;
 }
 
-const RETRYABLE_SCAN_STATUSES = new Set(["failed", "cancelled", "lost"]);
-
-function isRetryableScan(scan) {
-  return Boolean(scan?.id && RETRYABLE_SCAN_STATUSES.has(scan.status));
-}
-
 function BranchPicker({ repoLabel, value, options, loading, error, disabled, onChange }) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0, minWidth: 0 });
@@ -2597,8 +2591,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const error = batchMode ? batchRun.error : singleRun.error;
   const errorCode = batchMode ? batchRun.errorCode : singleRun.errorCode;
   const cancel = batchMode ? batchRun.cancel : singleRun.cancel;
-  const retry = batchMode ? null : singleRun.retry;
-  const retrying = batchMode ? false : Boolean(singleRun.retrying);
   const canceling = batchMode ? Boolean(batchRun.canceling) : Boolean(singleRun.canceling);
   const detailLoading = !batchMode && Boolean(scanId && singleRun.loading);
   const agentFixPrompt =
@@ -2671,7 +2663,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     (batchMode
       ? !canceling && scans.some((item) => item?.id && !isTerminalScan(item))
       : Boolean(scan && !terminal && !canceling));
-  const canRetry = !detailLoading && !batchMode && isRetryableScan(scan);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
   const publicError = error ? publicScanErrorMessage(error) : "";
   const errorNotificationAction = errorAction
@@ -2693,14 +2684,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const handleBack = () => {
     go("history");
   };
-  const handleRetry = async () => {
-    if (!canRetry || typeof retry !== "function") return;
-    const nextScan = await retry();
-    if (nextScan?.id && nextScan.id !== scan?.id) {
-      go("scanning", { scanId: nextScan.id });
-    }
-  };
-
   const handleDownloadBundle = async () => {
     const targetScanId = batchMode ? "" : scanId;
     if (!targetScanId || bundleLoading || !terminal) return;
@@ -2888,15 +2871,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     <span className="scanning-actions-sep" aria-hidden="true" />
                     <button className="btn ghost" disabled={canceling} onClick={handleCancel}>
                       <I.X size={13} /> {T("Cancel", "取消")}
-                    </button>
-                  </>
-                )}
-                {canRetry && (
-                  <>
-                    <span className="scanning-actions-sep" aria-hidden="true" />
-                    <button className="btn ghost" disabled={retrying} onClick={handleRetry}>
-                      <I.Refresh size={13} />{" "}
-                      {retrying ? T("Retrying...", "正在重试...") : T("Retry", "重试")}
                     </button>
                   </>
                 )}
