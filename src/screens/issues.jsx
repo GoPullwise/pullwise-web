@@ -1654,7 +1654,6 @@ export function HistoryScreen({
     if (!waitingForExpectedScans || loading) return undefined;
     let cancelled = false;
     const handle = setTimeout(() => {
-      setExpectedScanRetryCount((count) => count + 1);
       const refreshExpectedScans = async () => {
         if (typeof reload === "function") {
           try {
@@ -1684,7 +1683,9 @@ export function HistoryScreen({
           // The list refresh above is still the fallback source while the scan is propagating.
         }
       };
-      refreshExpectedScans();
+      refreshExpectedScans().finally(() => {
+        if (!cancelled) setExpectedScanRetryCount((count) => count + 1);
+      });
     }, HISTORY_EXPECTED_SCAN_RETRY_MS);
     return () => {
       cancelled = true;

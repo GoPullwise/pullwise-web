@@ -1129,6 +1129,68 @@ describe("HistoryScreen queue state", () => {
     }
   });
 
+  it("fetches expected scans by id after a slow history reload while waiting", async () => {
+    vi.useFakeTimers();
+    const slowReload = deferredPromise();
+    const reload = vi.fn(() => slowReload.promise);
+    const upsertScan = vi.fn();
+    pullwiseApi.scans.status.mockClear();
+    pullwiseApi.scans.status.mockResolvedValueOnce({
+      items: [
+        {
+          id: "sc_new",
+          repo: "octocat/new-repo",
+          branch: "main",
+          commit: "pending",
+          status: "queued",
+        },
+      ],
+    });
+    try {
+      useScans.mockReturnValue({
+        items: [
+          {
+            id: "sc_old",
+            repo: "octocat/old-repo",
+            branch: "main",
+            commit: "abc123",
+            status: "done",
+            time: "earlier",
+            by: "you",
+          },
+        ],
+        loading: false,
+        loadingMore: false,
+        error: "",
+        reload,
+        loadMore: vi.fn(),
+        upsertScan,
+        meta: { total: 1 },
+      });
+
+      render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
+      });
+
+      expect(reload).toHaveBeenCalledWith({ quiet: true });
+      expect(pullwiseApi.scans.status).not.toHaveBeenCalled();
+
+      await act(async () => {
+        slowReload.resolve({ items: [{ id: "sc_old" }] });
+        await slowReload.promise;
+        await Promise.resolve();
+      });
+
+      expect(pullwiseApi.scans.status).toHaveBeenCalledWith(["sc_new"]);
+      expect(upsertScan).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "sc_new", repo: "octocat/new-repo", status: "queued" })
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("keeps the skeleton up across repeated refreshes while expected new scans are missing", async () => {
     vi.useFakeTimers();
     const reload = vi.fn();
@@ -1156,8 +1218,8 @@ describe("HistoryScreen queue state", () => {
       const { container } = render(<HistoryScreen go={vi.fn()} expectedScanIds={["sc_new"]} />);
 
       for (let index = 0; index < 5; index += 1) {
-        act(() => {
-          vi.advanceTimersByTime(1500);
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1500);
         });
       }
 
