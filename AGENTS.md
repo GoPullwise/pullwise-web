@@ -68,6 +68,7 @@ Keep route and polling changes aligned with the current scale model.
   available.
 - Status and active scan polling should pause while `document.visibilityState`
   is hidden and refresh when the tab becomes visible.
+- Repository selection on the scan setup screen must survive owner/organization filters, search, and paginated repository pages. Keep selected repository ids, repository objects, and selected branch state independent from the current `useRepositories({ owner, q })` page; do not prune selected repositories merely because they are absent from the currently visible owner page.
 - Batch scan submission that navigates to Scan history must pass the newly
   created scan ids as pending/expected ids. Scan history should keep the
   skeleton state and quietly refresh until the loaded list contains every
@@ -118,6 +119,13 @@ quota telemetry (`codexQuota` / `codex_quota`). Preserve that data when changing
 worker status or scan eligibility displays so users can distinguish an idle
 worker that cannot claim jobs because Codex quota is exhausted from an offline or
 misconfigured worker.
+## Audit Bundle Actions
+
+Audit bundle download controls must share the same eligibility rule everywhere in the web app. Use `scanCanDownloadAuditBundle(scan)` from `src/lib/pullwise-data.js` for Scan history row menus and Scan detail header actions instead of recreating local status checks.
+
+- Result-bearing scans are `done`, `failed`, and `partial_completed` unless they carry the blocking `WORKER_ARTIFACT_INVALID` error.
+- `cancelled`, `lost`, `queued`, and `running` scans must not start audit bundle downloads; keep the control disabled when the surface shows a disabled action.
+- The Scan detail terminal action area should reserve the primary action slot for Audit bundle. Do not reintroduce the old Overview button there unless product direction changes.
 ## Debug Bundle Contract
 
 A debug bundle is not the audit bundle and must never silently fall back to the audit bundle.

@@ -14,6 +14,7 @@ import { screenLinkProps } from "../lib/navigation.js";
 import { downloadBlob } from "../lib/download.js";
 import {
   isTerminalScan,
+  scanCanDownloadAuditBundle,
   scanQueueSummary,
   useRepositories,
   useScanBatchRun,
@@ -1250,7 +1251,7 @@ export function ReposScreen({
     setSelectedReposById((current) => {
       let next = current;
       for (const repo of availableRepos) {
-        if (!selected.includes(repo.id)) continue;
+        if (!selected.includes(repo.id) || current[repo.id] === repo) continue;
         if (next === current) next = { ...current };
         next[repo.id] = repo;
       }
@@ -1263,12 +1264,12 @@ export function ReposScreen({
       ...availableRepos.map(repoBranchKey).filter(Boolean),
       ...selected.map((id) => repoBranchKey(selectedReposById[id])).filter(Boolean),
     ]);
-    setSelectedBranches((current) =>
-      Object.fromEntries(Object.entries(current).filter(([key]) => availableKeys.has(key)))
-    );
-    setRepoBranches((current) =>
-      Object.fromEntries(Object.entries(current).filter(([key]) => availableKeys.has(key)))
-    );
+    const keepAvailableKeys = (current) => {
+      const entries = Object.entries(current).filter(([key]) => availableKeys.has(key));
+      return entries.length === Object.keys(current).length ? current : Object.fromEntries(entries);
+    };
+    setSelectedBranches(keepAvailableKeys);
+    setRepoBranches(keepAvailableKeys);
   }, [availableRepos, selected, selectedReposById]);
 
   useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
@@ -2691,6 +2692,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         batchRows.every(isTerminalBatchRow)
       : isTerminalScan(scan));
   const queueSummary = scanQueueSummary(scan);
+  const canDownloadAuditBundle = !batchMode && scanCanDownloadAuditBundle(scan);
   const canCancel =
     !detailLoading &&
     (batchMode
@@ -2718,8 +2720,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
     go("history");
   };
   const handleDownloadBundle = async () => {
-    const targetScanId = batchMode ? "" : scanId;
-    if (!targetScanId || bundleLoading || !terminal) return;
+    const targetScanId = batchMode ? "" : scan?.id;
+    if (!targetScanId || bundleLoading || !terminal || !canDownloadAuditBundle) return;
     setBundleLoading(true);
     try {
       const bundle = await pullwiseApi.scans.auditBundleArchive(targetScanId);
@@ -2910,18 +2912,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 {terminal && (
                   <>
                     <span className="scanning-actions-sep" aria-hidden="true" />
-                    {!batchMode && (
-                      <button
-                        className="btn ghost"
-                        disabled={bundleLoading}
-                        onClick={handleDownloadBundle}
-                      >
-                        <I.Download size={13} />{" "}
-                        {bundleLoading
-                          ? T("Preparing...", "准备中...")
-                          : T("Audit bundle", "审计包")}
-                      </button>
-                    )}
+
                     {!batchMode && agentFixPrompt && (
                       <>
                         <span className="scanning-actions-sep" aria-hidden="true" />
@@ -2941,10 +2932,22 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                         </button>
                       </>
                     )}
-                    {!batchMode && <span className="scanning-actions-sep" aria-hidden="true" />}
-                    <button className="btn primary" onClick={() => go("dashboard")}>
-                      <I.Layout size={13} /> {T("Overview", "总览")}
-                    </button>
+                    {!batchMode && (
+                      <>
+                        <span className="scanning-actions-sep" aria-hidden="true" />
+                        <button
+                          className="btn primary"
+                          type="button"
+                          disabled={!canDownloadAuditBundle || bundleLoading}
+                          onClick={handleDownloadBundle}
+                        >
+                          <I.Download size={13} />{" "}
+                          {bundleLoading
+                            ? T("Preparing...", "准备中...")
+                            : T("Audit bundle", "审计包")}
+                        </button>
+                      </>
+                    )}
                   </>
                 )}
               </div>

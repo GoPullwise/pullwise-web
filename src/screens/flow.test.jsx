@@ -34,6 +34,9 @@ vi.mock("../api/pullwise.js", () => ({
 vi.mock("../lib/pullwise-data.js", () => ({
   isTerminalScan: (scan) =>
     ["done", "failed", "cancelled", "partial_completed"].includes(scan?.status),
+  scanCanDownloadAuditBundle: (scan) =>
+    ["done", "failed", "partial_completed"].includes(scan?.status) &&
+    !(scan?.error && scan?.errorCode === "WORKER_ARTIFACT_INVALID"),
   scanQueueSummary: (scan) =>
     scan?.queue
       ? {
@@ -1408,7 +1411,8 @@ describe("ScanningScreen queue state", () => {
         }}
       />
     );
-    expect(screen.getByRole("button", { name: /audit bundle/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /audit bundle/i })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 
   it("shows the worker human report when a completed scan has no generated report", () => {
@@ -1574,7 +1578,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText(/scan batch queued/i)).not.toBeInTheDocument();
     expect(screen.getByText(/1\/2 scans created, 1 not created/i)).toBeInTheDocument();
     expect(await screen.findByRole("alert")).toHaveTextContent(/repository quota exhausted/i);
-    expect(screen.getByRole("button", { name: /overview/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 
   it("returns terminal scans to scan history", async () => {
@@ -1605,9 +1609,17 @@ describe("ScanningScreen queue state", () => {
     expect(go).toHaveBeenCalledWith("history");
   });
 
-  it("opens the dashboard overview from completed scans", async () => {
+  it("downloads audit bundles from completed scan details", async () => {
     const go = vi.fn();
     const user = userEvent.setup();
+    const createObjectURL = vi.fn(() => "blob:pullwise-audit");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    pullwiseApi.scans.auditBundleArchive.mockResolvedValueOnce(
+      new Blob(["zip"], { type: "application/zip" })
+    );
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -1620,19 +1632,76 @@ describe("ScanningScreen queue state", () => {
       error: "",
       cancel: vi.fn(),
     });
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
+
+    try {
+      render(
+        <ScanningScreen
+          go={go}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      );
+
+      expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /audit bundle/i }));
+
+      expect(go).not.toHaveBeenCalledWith("dashboard");
+      expect(pullwiseApi.scans.auditBundleArchive).toHaveBeenCalledWith("sc_done");
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:pullwise-audit");
+    } finally {
+      if (originalCreateObjectURL) {
+        Object.defineProperty(URL, "createObjectURL", {
+          configurable: true,
+          value: originalCreateObjectURL,
+        });
+      } else {
+        delete URL.createObjectURL;
+      }
+      if (originalRevokeObjectURL) {
+        Object.defineProperty(URL, "revokeObjectURL", {
+          configurable: true,
+          value: originalRevokeObjectURL,
+        });
+      } else {
+        delete URL.revokeObjectURL;
+      }
+      click.mockRestore();
+    }
+  });
+
+  it("disables audit bundle downloads for cancelled scan details", async () => {
+    const user = userEvent.setup();
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_cancelled",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "cancelled",
+        progress: 62,
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
 
     render(
       <ScanningScreen
-        go={go}
+        go={vi.fn()}
         activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /overview/i }));
+    const auditBundle = screen.getByRole("button", { name: /audit bundle/i });
+    expect(auditBundle).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
 
-    expect(go).toHaveBeenCalledWith("dashboard");
+    await user.click(auditBundle);
+
+    expect(pullwiseApi.scans.auditBundleArchive).not.toHaveBeenCalled();
   });
-
   it("returns active scans to history without cancelling them", async () => {
     const go = vi.fn();
     const cancel = vi.fn();

@@ -17,6 +17,9 @@ import {
   issueUpdateKey,
   notifyIssuesChanged,
   rememberIssueUpdate,
+  scanCanDownloadAuditBundle,
+  scanHasBlockingError,
+  scanHasResults,
   scanQueueSummary,
   useIssues,
   useScans,
@@ -115,13 +118,6 @@ function issueTotal(scan) {
   return Object.values(scan.issues).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
-function scanHasResults(scan) {
-  return ["done", "failed", "partial_completed"].includes(scan?.status);
-}
-
-function scanHasBlockingError(scan) {
-  return Boolean(scan?.error && scan?.errorCode === "WORKER_ARTIFACT_INVALID");
-}
 
 function scanHistorySummary(scan) {
   if (scanHasBlockingError(scan)) return scan.error;
@@ -1267,7 +1263,7 @@ function ScanRow({
   const total = blockingError ? 0 : scanIssuesTotal(scan);
   const breakdown = blockingError ? {} : scan?.issues || {};
   const status = scan.status || "info";
-  const hasResults = scanHasResults(scan) && !blockingError;
+  const hasResults = scanCanDownloadAuditBundle(scan);
   const isDownloading = bundleLoading === scan.id;
   const summary = scanHistorySummary(scan);
   const aiUsageBadges = blockingError ? [] : scanAiUsageBadges(scan.aiUsage);
@@ -1726,7 +1722,7 @@ export function HistoryScreen({
     go("issues");
   };
   const downloadAuditBundle = async (scan) => {
-    if (!scan?.id || !scanHasResults(scan) || bundleLoading) return;
+    if (!scan?.id || !scanCanDownloadAuditBundle(scan) || bundleLoading) return;
     setBundleLoading(scan.id);
     try {
       const bundle = await pullwiseApi.scans.auditBundleArchive(scan.id);

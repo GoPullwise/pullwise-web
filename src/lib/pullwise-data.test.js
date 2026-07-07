@@ -8,6 +8,7 @@ import {
   normalizeRepo,
   normalizeScan,
   rememberIssueUpdate,
+  scanCanDownloadAuditBundle,
   scanQueueSummary,
   useIssues,
   useRepositories,
@@ -1686,6 +1687,24 @@ describe("normalizeIssue", () => {
     expect(scan.status).toBe("partial_completed");
     expect(isTerminalScan(scan)).toBe(true);
     expect(scan.progressSteps[0].status).toBe("partial_completed");
+  });
+
+  it("matches scan audit bundle eligibility to result-bearing non-blocked scans", () => {
+    expect(scanCanDownloadAuditBundle({ id: "sc_done", status: "done" })).toBe(true);
+    expect(scanCanDownloadAuditBundle({ id: "sc_failed", status: "failed" })).toBe(true);
+    expect(scanCanDownloadAuditBundle({ id: "sc_partial", status: "partial_completed" })).toBe(
+      true
+    );
+    expect(scanCanDownloadAuditBundle({ id: "sc_cancelled", status: "cancelled" })).toBe(false);
+    expect(scanCanDownloadAuditBundle({ id: "sc_lost", status: "lost" })).toBe(false);
+    expect(
+      scanCanDownloadAuditBundle({
+        id: "sc_bad_artifact",
+        status: "failed",
+        error: "Uploaded review artifacts do not match result manifest.",
+        errorCode: "WORKER_ARTIFACT_INVALID",
+      })
+    ).toBe(false);
   });
 
   it("infers terminal scan status from terminal review run payloads", () => {

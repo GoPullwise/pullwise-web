@@ -1634,9 +1634,22 @@ const TERMINAL_SCAN_STATUSES = new Set([
   "partial_completed",
   "lost",
 ]);
+const RESULT_BEARING_SCAN_STATUSES = new Set(["done", "failed", "partial_completed"]);
 
 export function isTerminalScan(scan) {
   return Boolean(scan && TERMINAL_SCAN_STATUSES.has(scan.status));
+}
+
+export function scanHasResults(scan) {
+  return Boolean(scan && RESULT_BEARING_SCAN_STATUSES.has(scan.status));
+}
+
+export function scanHasBlockingError(scan) {
+  return Boolean(scan?.error && scan?.errorCode === "WORKER_ARTIFACT_INVALID");
+}
+
+export function scanCanDownloadAuditBundle(scan) {
+  return scanHasResults(scan) && !scanHasBlockingError(scan);
 }
 
 function scanCreatePayload({ repoId = "", repo, branch, commit = "pending", requestId = "" }) {
