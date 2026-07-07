@@ -1765,7 +1765,7 @@ export function HistoryScreen({
         <div className="main" style={{ maxWidth: "none" }}>
           <div className="page-h">
             <div>
-              <h1>{T("Scan history", "扫描历史")}</h1>
+              <h1 className="page-title-truncate">{T("Scan history", "扫描历史")}</h1>
             </div>
             <div className="actions">
               <div className="seg">

@@ -618,6 +618,33 @@ describe("IssueDetailScreen direct loading", () => {
 });
 
 describe("HistoryScreen queue state", () => {
+  it("keeps the scan history page title on one truncated line", () => {
+    useScans.mockReturnValue({
+      items: [],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.getByRole("heading", { name: /^scan history$/i })).toHaveClass(
+      "page-title-truncate"
+    );
+
+    const css = appStyles();
+    const titleBlock = css.match(
+      /\.page-h h1\.page-title-truncate\s*\{(?<body>[^}]*)\}/s
+    )?.groups?.body;
+
+    expect(titleBlock).toBeTruthy();
+    expect(titleBlock).toMatch(/\boverflow\s*:\s*hidden\s*;/);
+    expect(titleBlock).toMatch(/\btext-overflow\s*:\s*ellipsis\s*;/);
+    expect(titleBlock).toMatch(/\bwhite-space\s*:\s*nowrap\s*;/);
+  });
+
   it("keeps scan history groups visually flat without row separators", () => {
     const css = baseStyles();
     const dayGroupBlock = css.match(/\.scan-day-group\s*\{(?<body>[^}]*)\}/s)?.groups?.body;

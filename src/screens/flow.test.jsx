@@ -1450,6 +1450,41 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 
+  it("shows a debug bundle download action from completed scan details", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        debugBundleUrl: "/v1/review-runs/run_job_1/artifacts/art_debug_bundle",
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: /audit bundle/i })).toBeEnabled();
+    expect(screen.getByRole("link", { name: /debug bundle/i })).toHaveAttribute(
+      "href",
+      "/v1/review-runs/run_job_1/artifacts/art_debug_bundle"
+    );
+  });
+
   it("shows the worker human report when a completed scan has no generated report", () => {
     useScanRun.mockReturnValue({
       scan: {

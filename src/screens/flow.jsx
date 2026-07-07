@@ -96,6 +96,20 @@ function reviewRunDebugBundleArtifact(artifacts) {
   });
 }
 
+function reviewRunDebugBundleHref(reviewRun) {
+  if (!reviewRun || typeof reviewRun !== "object") return "";
+  const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
+  const debugBundleArtifact = reviewRunDebugBundleArtifact(artifacts);
+  return (
+    reviewRunArtifactHref(debugBundleArtifact?.storage) ||
+    reviewRunArtifactHref({ url: reviewRun.debugBundleUrl })
+  );
+}
+
+function scanDebugBundleHref(scan, reviewRun) {
+  return reviewRunDebugBundleHref(reviewRun) || reviewRunArtifactHref({ url: scan?.debugBundleUrl });
+}
+
 function reviewRunStatusLabel(status) {
   switch (status) {
     case "completed":
@@ -140,9 +154,7 @@ function ReviewRunSummary({ reviewRun }) {
   if (!reviewRun || typeof reviewRun !== "object") return null;
   const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
   const debugBundleArtifact = reviewRunDebugBundleArtifact(artifacts);
-  const debugBundleHref =
-    reviewRunArtifactHref(debugBundleArtifact?.storage) ||
-    reviewRunArtifactHref({ url: reviewRun.debugBundleUrl });
+  const debugBundleHref = reviewRunDebugBundleHref(reviewRun);
   const debugBundleTitle = debugBundleArtifact?.name || "debug-bundle.zip";
   const summary =
     reviewRun.summary && typeof reviewRun.summary === "object" ? reviewRun.summary : {};
@@ -2682,6 +2694,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const showPreflight = hasScanPreflightEvidence(preflight);
   const humanReport = batchMode ? null : scan?.humanReport || null;
   const reviewRun = batchMode ? null : scan?.reviewRun || null;
+  const debugBundleHref = batchMode ? "" : scanDebugBundleHref(scan, reviewRun);
   const aiUsage = batchMode ? scanAiUsageSummary(scans) : scan?.aiUsage || null;
   const aiUsageTags = scanAiUsageTags(aiUsage);
   const terminal =
@@ -2933,6 +2946,20 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     {!batchMode && (
                       <>
                         <span className="scanning-actions-sep" aria-hidden="true" />
+                        {debugBundleHref && (
+                          <>
+                            <a
+                              className="btn ghost"
+                              href={debugBundleHref}
+                              target="_blank"
+                              rel="noreferrer"
+                              download
+                            >
+                              <I.Archive size={13} /> {T("Debug bundle", "Debug bundle")}
+                            </a>
+                            <span className="scanning-actions-sep" aria-hidden="true" />
+                          </>
+                        )}
                         <button
                           className="btn primary"
                           type="button"

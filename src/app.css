@@ -611,6 +611,14 @@ body.has-proto-nav {
   text-overflow: ellipsis;
 }
 
+.page-h h1.page-title-truncate {
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .page-h .sub {
   display: block;
   line-height: 1.45;
@@ -2176,6 +2184,12 @@ body.has-proto-nav {
   .page-h .sub {
     overflow: visible;
     text-overflow: clip;
+  }
+
+  .page-h h1.page-title-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .repo-meta {
