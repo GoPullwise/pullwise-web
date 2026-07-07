@@ -2911,8 +2911,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 )}
                 {terminal && (
                   <>
-                    <span className="scanning-actions-sep" aria-hidden="true" />
-
                     {!batchMode && agentFixPrompt && (
                       <>
                         <span className="scanning-actions-sep" aria-hidden="true" />

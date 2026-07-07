@@ -1385,6 +1385,41 @@ describe("ScanningScreen queue state", () => {
     }
   });
 
+  it("renders one separator between each completed scan header action", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { critical: 0, high: 1, medium: 0, low: 0 },
+        repoId: "repo_123",
+        agentFixPrompt: "Use the audit bundle to fix the finding.",
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    const actions = screen.getByRole("button", { name: /back/i }).closest(".scanning-actions");
+    expect(actions).not.toBeNull();
+    expect(within(actions).getAllByRole("button")).toHaveLength(3);
+    expect(actions.querySelectorAll(".scanning-actions-sep")).toHaveLength(2);
+    expect(actions.querySelector(".scanning-actions-sep + .scanning-actions-sep")).toBeNull();
+  });
+
   it("shows terminal scan without requiring a generated review report", () => {
     useScanRun.mockReturnValue({
       scan: {
