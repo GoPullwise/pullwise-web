@@ -659,6 +659,34 @@ describe("HistoryScreen queue state", () => {
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
+  it("keeps transient history errors out of the space above the Today group", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_today_error",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          createdAt: new Date().toISOString(),
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "Cancel failed.",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.getByText("Today")).toBeInTheDocument();
+    expect(screen.getByText("octocat/private-repo")).toBeInTheDocument();
+    expect(screen.queryByText("Cancel failed.")).not.toBeInTheDocument();
+  });
+
   it("omits the page-level scan count above the Today group", () => {
     const now = new Date().toISOString();
     useScans.mockReturnValue({

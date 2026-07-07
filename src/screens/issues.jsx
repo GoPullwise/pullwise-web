@@ -1653,6 +1653,7 @@ export function HistoryScreen({
   );
   const waitingForExpectedScans = hasExpectedScans && !expectedScansLoaded && !error;
   const displayLoading = loading || waitingForExpectedScans;
+  const hasVisibleScans = filtered.length > 0;
 
   useEffect(() => {
     setExpectedScanRetryCount(0);
@@ -1824,12 +1825,12 @@ export function HistoryScreen({
           </div>
 
           <div className="hist-list card">
-            {!waitingForExpectedScans && error && (
+            {!hasVisibleScans && !waitingForExpectedScans && error && (
               <div className="muted" style={{ padding: 18 }}>
                 {error}
               </div>
             )}
-            {!error && actionError && (
+            {!hasVisibleScans && !error && actionError && (
               <div className="auth-error" role="alert" style={{ margin: "18px 18px 0" }}>
                 <I.X size={13} /> {actionError}
               </div>
