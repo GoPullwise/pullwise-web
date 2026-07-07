@@ -18,14 +18,15 @@ export async function onRequest(context) {
   headers.set("X-Forwarded-Host", incomingUrl.host);
   headers.set("X-Forwarded-Prefix", "/api");
   const methodHasBody = hasBody(context.request.method);
-  if (methodHasBody && requestBodyExceedsLimit(context.request, context.env)) {
+  const proxyBody = methodHasBody ? await proxyRequestBody(context.request, context.env) : { body: undefined };
+  if (proxyBody.tooLarge) {
     return json({ message: "Request body is too large." }, 413);
   }
 
   const init = {
     method: context.request.method,
     headers,
-    body: methodHasBody ? context.request.body : undefined,
+    body: proxyBody.body,
     duplex: methodHasBody ? "half" : undefined,
     redirect: "manual",
   };
@@ -103,11 +104,44 @@ function hasCredentialHeaders(headers) {
   return ["authorization", "cookie", "x-pullwise-api-key"].some((name) => headers.has(name));
 }
 
-function requestBodyExceedsLimit(request, env) {
+async function proxyRequestBody(request, env) {
+  const maxBytes = proxyMaxBodyBytes(env);
   const rawLength = request.headers.get("content-length");
-  if (!rawLength) return false;
   const contentLength = Number(rawLength);
-  return Number.isFinite(contentLength) && contentLength > proxyMaxBodyBytes(env);
+  if (rawLength && Number.isFinite(contentLength)) {
+    return contentLength > maxBytes ? { tooLarge: true } : { body: request.body };
+  }
+  if (!request.body) return { body: undefined };
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        return { tooLarge: true };
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { tooLarge: true };
+  }
+  return { body: concatChunks(chunks, totalBytes) };
+}
+
+function concatChunks(chunks, totalBytes) {
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
 }
 
 function proxyMaxBodyBytes(env) {

@@ -169,6 +169,23 @@ describe("api proxy", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized proxy request bodies when Content-Length is missing", async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    const response = await onRequest({
+      env: { PULLWISE_API_ORIGIN: "https://api.internal", PULLWISE_PROXY_MAX_BODY_BYTES: "4" },
+      request: new Request("https://pull-wise.com/api/auth/github/authorize", {
+        method: "POST",
+        body: "0123456789",
+      }),
+    });
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({ message: "Request body is too large." });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns a structured 502 when the backend fetch fails", async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error("connection failed"));
 

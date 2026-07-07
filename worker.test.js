@@ -222,6 +222,23 @@ describe("Cloudflare Worker API proxy", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized proxied request bodies when Content-Length is missing", async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    const response = await worker.fetch(
+      new Request("https://pull-wise.com/api/scans", {
+        method: "POST",
+        body: "0123456789",
+      }),
+      { PULLWISE_API_ORIGIN: "https://api.pull-wise.com", PULLWISE_PROXY_MAX_BODY_BYTES: "4" }
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({ message: "Request body is too large." });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("streams proxied request bodies without buffering them first", async () => {
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }));
     globalThis.fetch = fetchMock;
