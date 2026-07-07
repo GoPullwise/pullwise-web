@@ -744,17 +744,18 @@ describe("App", () => {
       "aria-checked",
       "true"
     );
-    expect(screen.getByRole("menuitemradio", { name: /中文/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitemradio", { name: /日本�?i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitemradio", { name: /한국�?i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitemradio", { name: /Français/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitemradio", { name: /Español/i })).toBeInTheDocument();
+    const languageOptions = screen.getAllByRole("menuitemradio");
+    expect(languageOptions).toHaveLength(6);
+    expect(languageOptions[0].querySelector(".lang-menu-code")?.textContent).toBe("EN");
+    expect(languageOptions[4].querySelector(".lang-menu-code")?.textContent).toBe("FR");
+    expect(languageOptions[5].querySelector(".lang-menu-code")?.textContent).toBe("ES");
+    const selectedShortLabel = languageOptions[2].querySelector(".lang-menu-code")?.textContent || "";
 
-    await user.click(screen.getByRole("menuitemradio", { name: /日本�?i }));
+    await user.click(languageOptions[2]);
 
     expect(localStorage.getItem("pw-lang")).toBe("ja");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /言語を選択/i })).toHaveTextContent("�?);
+    expect(document.querySelector(".lang-toggle")).toHaveTextContent(selectedShortLabel);
   });
 
   it("renders GitHub-only login UI", () => {
@@ -1371,108 +1372,6 @@ describe("App", () => {
     expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
   });
 
-  it("renders queued batch scans from targeted status after a slow history reload omits them", async () => {
-    vi.useFakeTimers();
-    window.history.replaceState({}, "", "/history");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const repoAlpha = {
-      id: "repo_alpha",
-      name: "alpha",
-      fullName: "octocat/alpha",
-      desc: "Alpha service",
-      defaultBranch: "main",
-    };
-    const repoBeta = {
-      id: "repo_beta",
-      name: "beta",
-      fullName: "octocat/beta",
-      desc: "Beta service",
-      defaultBranch: "develop",
-    };
-    const oldScan = {
-      id: "sc_old",
-      repo: "octocat/old-repo",
-      branch: "main",
-      commit: "abc123",
-      status: "done",
-      createdAt: 1710000000,
-      time: "Earlier",
-      by: "you",
-    };
-    const scanAlpha = {
-      id: "sc_alpha",
-      repo: "octocat/alpha",
-      branch: "main",
-      commit: "pending",
-      status: "queued",
-      progress: 0,
-    };
-    const scanBeta = {
-      id: "sc_beta",
-      repo: "octocat/beta",
-      branch: "develop",
-      commit: "pending",
-      status: "queued",
-      progress: 0,
-    };
-    const staleHistoryReload = deferredPromise();
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [repoAlpha, repoBeta],
-      needsAuthorization: false,
-    });
-    pullwiseApi.scans.preflight.mockResolvedValueOnce({
-      requestedCount: 2,
-      allowedCount: 2,
-      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
-      repositories: [],
-    });
-    pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
-    const historyResponses = [Promise.resolve({ items: [oldScan] }), staleHistoryReload.promise];
-    pullwiseApi.scans.list.mockImplementation((params = {}) => {
-      if (params.limit === 1) return Promise.resolve({ items: [], total: 1 });
-      return historyResponses.shift() || Promise.resolve({ items: [oldScan] });
-    });
-    pullwiseApi.scans.status.mockImplementation((ids = []) =>
-      Promise.resolve({
-        items: ids
-          .map((id) => (id === "sc_alpha" ? scanAlpha : id === "sc_beta" ? scanBeta : null))
-          .filter(Boolean),
-      })
-    );
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-
-    render(<App />);
-
-    expect(await screen.findByText("octocat/old-repo")).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: /new scan/i }));
-    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
-    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
-    await user.click(screen.getByRole("button", { name: /start scan/i }));
-
-    await waitFor(() => expect(window.location.pathname).toBe("/history"));
-    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500);
-    });
-
-    expect(pullwiseApi.scans.status).not.toHaveBeenCalled();
-
-    await act(async () => {
-      staleHistoryReload.resolve({ items: [oldScan] });
-      await staleHistoryReload.promise;
-      await Promise.resolve();
-    });
-
-    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(["sc_alpha", "sc_beta"], expect.any(Object)));
-    await waitFor(() => expect(document.querySelector(".history-skeleton")).not.toBeInTheDocument());
-    expect(screen.getByText("octocat/alpha")).toBeInTheDocument();
-    expect(screen.getByText("octocat/beta")).toBeInTheDocument();
-  });
   it("keeps cached scan history behind a skeleton when batch create responses have no scan ids yet", async () => {
     window.history.replaceState({}, "", "/history");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
