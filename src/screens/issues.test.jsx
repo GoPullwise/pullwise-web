@@ -9,6 +9,7 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     scans: {
       get: vi.fn(() => Promise.resolve({})),
+      retry: vi.fn(() => Promise.resolve({})),
       status: vi.fn(() => Promise.resolve({ items: [] })),
       auditBundle: vi.fn(),
       auditBundleArchive: vi.fn(),
@@ -847,6 +848,70 @@ describe("HistoryScreen queue state", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Temporary scan history error");
     expect(screen.getByText("octocat/private-repo")).toBeInTheDocument();
   });
+  it("keeps a retried failed scan disabled until the server reports it running", async () => {
+    const user = userEvent.setup();
+    const upsertScan = vi.fn();
+    const failedScan = {
+      id: "sc_failed_retry",
+      repo: "octocat/private-repo",
+      branch: "main",
+      commit: "abc123",
+      status: "failed",
+      time: "now",
+      by: "you",
+    };
+
+    pullwiseApi.scans.retry.mockReset();
+    pullwiseApi.scans.get.mockReset();
+    pullwiseApi.scans.status.mockReset();
+    pullwiseApi.scans.retry.mockResolvedValueOnce({});
+    pullwiseApi.scans.get.mockResolvedValueOnce(failedScan);
+    pullwiseApi.scans.status.mockResolvedValueOnce({
+      items: [{ ...failedScan, status: "running", progress: 4 }],
+    });
+
+    const scanState = {
+      items: [failedScan],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      upsertScan,
+      meta: { total: 1 },
+    };
+    useScans.mockReturnValue(scanState);
+
+    const { rerender } = render(<HistoryScreen go={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^retry$/i }));
+
+    expect(pullwiseApi.scans.retry).toHaveBeenCalledWith("sc_failed_retry");
+    expect(screen.getByRole("button", { name: /retrying/i })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: /retrying/i }));
+    expect(pullwiseApi.scans.retry).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(pullwiseApi.scans.get).toHaveBeenCalledWith("sc_failed_retry"));
+    expect(screen.getByRole("button", { name: /retrying/i })).toBeDisabled();
+
+    await waitFor(
+      () => expect(pullwiseApi.scans.status).toHaveBeenCalledWith(["sc_failed_retry"]),
+      { timeout: 2500 }
+    );
+    await waitFor(() =>
+      expect(upsertScan).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "sc_failed_retry", status: "running" })
+      )
+    );
+
+    useScans.mockReturnValue({
+      ...scanState,
+      items: [{ ...failedScan, status: "running", progress: 4 }],
+    });
+    rerender(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.queryByRole("button", { name: /retry/i })).not.toBeInTheDocument();
+  });
+
   it("renders scan history skeleton rows while scans are loading", () => {
     useScans.mockReturnValue({
       items: [],
