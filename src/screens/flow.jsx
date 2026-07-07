@@ -3,6 +3,7 @@ import { GitHubInstallationsList } from "../components/github-installations.jsx"
 import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
+import { useErrorNotification, useNotify } from "../components/notifications.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -2553,6 +2554,7 @@ function ScanLogSkeletonLines() {
 }
 export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved = null }) {
   useLang();
+  const notify = useNotify();
   const [bundleLoading, setBundleLoading] = useState(false);
   const [agentPromptLoading, setAgentPromptLoading] = useState(false);
   const [agentPromptCopied, setAgentPromptCopied] = useState(false);
@@ -2672,6 +2674,14 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const canRetry = !detailLoading && !batchMode && isRetryableScan(scan);
   const errorAction = error ? scanErrorAction({ message: error, code: errorCode }) : null;
   const publicError = error ? publicScanErrorMessage(error) : "";
+  const errorNotificationAction = errorAction
+    ? { label: errorAction.label, ...screenLinkProps(go, errorAction.screen) }
+    : null;
+  useErrorNotification(publicError, {
+    title: batchMode ? T("Scan batch error", "Scan batch error") : T("Scan error", "Scan error"),
+    action: errorNotificationAction,
+    key: `${batchMode ? "batch" : scan?.id || scanId || repoFullName}:error:${errorCode}:${publicError}`,
+  });
   const batchSummary = batchMode
     ? batchCreationSummary(batchRows, scans, expectedBatchCount)
     : null;
@@ -2699,9 +2709,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       const bundle = await pullwiseApi.scans.auditBundleArchive(targetScanId);
       downloadBlob(`pullwise-audit-${targetScanId}.zip`, bundle, "application/zip");
     } catch (error) {
-      globalThis.alert?.(
-        error?.message || T("Unable to download audit bundle.", "无法下载审计包。")
-      );
+      notify.error(error?.message || T("Unable to download audit bundle.", "Unable to download audit bundle."), {
+        title: T("Download failed", "Download failed"),
+      });
     } finally {
       setBundleLoading(false);
     }
@@ -2725,9 +2735,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         );
       const copied = await copyText(prompt);
       if (!copied) {
-        globalThis.alert?.(
-          T("Unable to copy agent fix prompt.", "Unable to copy agent fix prompt.")
-        );
+        notify.error(T("Unable to copy agent fix prompt.", "Unable to copy agent fix prompt."), {
+          title: T("Copy failed", "Copy failed"),
+        });
         return;
       }
       setAgentPromptCopied(true);
@@ -2737,12 +2747,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         agentPromptResetRef.current = null;
       }, 2000);
     } catch (error) {
-      globalThis.alert?.(
+      notify.error(
         error?.message ||
           T(
             "Unable to create audit bundle download key.",
             "Unable to create audit bundle download key."
-          )
+          ),
+        { title: T("Key creation failed", "Key creation failed") }
       );
     } finally {
       setAgentPromptLoading(false);
@@ -2931,22 +2942,6 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 )}
               </div>
             </div>
-
-            {error && (
-              <div
-                className="auth-error"
-                role="alert"
-                style={{ margin: "0 0 12px", alignItems: "center" }}
-              >
-                <I.X size={13} />
-                <span style={{ flex: 1 }}>{publicError}</span>
-                {errorAction && (
-                  <a className="btn sm" {...screenLinkProps(go, errorAction.screen)}>
-                    {errorAction.label} <I.ArrowR size={11} />
-                  </a>
-                )}
-              </div>
-            )}
 
             {detailLoading ? (
               <ScanDetailSkeleton />
