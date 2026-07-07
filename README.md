@@ -9,9 +9,10 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 - Scan creation, polling, cancellation, and history
 - Rich issue review plus manual triage/status changes
 - Deterministic fix preview and GitHub pull request creation for auto-fixable issues
-- Workspace-aware GitHub integration settings
-- Creem workspace billing through backend-created checkout, supported upgrades, and scheduled cancellation
-- Legal, privacy, security, and live status/readiness pages
+- Account-level GitHub integration settings
+- Creem account billing through backend-created checkout, supported upgrades, and scheduled cancellation
+- Batch scan creation, bulk status polling, retry/cancel flows, and audit bundle downloads
+- API-key documentation, legal, privacy, security, and live status/readiness pages
 
 Stage 2 remediation is intentionally narrow in this build. The browser can ask
 the backend to preview deterministic fix diffs and open GitHub pull requests for
@@ -107,11 +108,14 @@ styles/*            Existing CSS
 src/i18n.jsx        Inline language helper
 src/icons.jsx       Inline icon set
 src/shell.jsx       Shared authenticated shell components
-src/screens/*       Screen components
+src/components/*    Shared issue, repository, markdown, skeleton, and progress components
+src/screens/*       Screen components for product, docs, billing, API, status, scans, and issues
 src/api/http.js     Shared HTTP request helper
 src/api/pullwise.js Pullwise backend endpoint wrapper
 src/config/env.js   Frontend env validation with zod
-src/lib/auth.js     GitHub OAuth and GitHub App redirect helpers
+src/lib/*           Auth redirects, navigation, downloads, quota display, install popup, and data hooks
+worker.js           Cloudflare Worker static-assets/API proxy runtime
+functions/api/*     Cloudflare Pages Functions API proxy fallback
 vite.config.js      Vite dev/build config
 vitest.config.js    Vitest test config
 eslint.config.js    ESLint config
@@ -160,11 +164,18 @@ VITE_APP_URL=https://app.your-domain.com
 VITE_API_BASE_URL=/api
 VITE_GITHUB_APP_SLUG=your-github-app-slug
 PULLWISE_API_ORIGIN=https://api.your-domain.com
+# Optional read-only fallback for Cloudflare 1003 on unauthenticated GET/HEAD.
+PULLWISE_API_FALLBACK_ORIGIN=https://api-fallback.your-domain.com
+# Optional proxy request body cap; defaults to 1048576 bytes.
+PULLWISE_PROXY_MAX_BODY_BYTES=1048576
 ```
 
-`VITE_*` variables are bundled into browser code. `PULLWISE_API_ORIGIN` is read
-only by `worker.js` at runtime and should point to the deployed
-Python backend origin.
+`VITE_*` variables are bundled into browser code. `PULLWISE_API_ORIGIN`,
+optional `PULLWISE_API_FALLBACK_ORIGIN`, and optional
+`PULLWISE_PROXY_MAX_BODY_BYTES` are read only by `worker.js` or
+`functions/api/[[path]].js` at runtime. The fallback origin is only used for
+unauthenticated GET/HEAD requests when the primary upstream returns a
+Cloudflare 1003 page.
 
 ### Matching Backend Settings
 

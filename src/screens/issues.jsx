@@ -1653,7 +1653,6 @@ export function HistoryScreen({
   );
   const waitingForExpectedScans = hasExpectedScans && !expectedScansLoaded && !error;
   const displayLoading = loading || waitingForExpectedScans;
-  const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
 
   useEffect(() => {
     setExpectedScanRetryCount(0);
@@ -1795,16 +1794,6 @@ export function HistoryScreen({
           <div className="page-h">
             <div>
               <h1>{T("Scan history", "扫描历史")}</h1>
-              <div className="sub">
-                {displayLoading ? (
-                  <SkeletonLine className="sk-line sk-w-36" />
-                ) : (
-                  T(
-                    `${filtered.length} of ${totalCount} scans`,
-                    `${filtered.length} / ${totalCount} 次扫描`
-                  )
-                )}
-              </div>
             </div>
             <div className="actions">
               <div className="seg">

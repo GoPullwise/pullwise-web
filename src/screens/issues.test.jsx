@@ -659,6 +659,45 @@ describe("HistoryScreen queue state", () => {
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
+  it("omits the page-level scan count above the Today group", () => {
+    const now = new Date().toISOString();
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_today_1",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "done",
+          createdAt: now,
+          by: "you",
+        },
+        {
+          id: "sc_today_2",
+          repo: "octocat/second-repo",
+          branch: "main",
+          commit: "def456",
+          status: "done",
+          createdAt: now,
+          by: "you",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 6 },
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.queryByText("2 of 6 scans")).not.toBeInTheDocument();
+    const dayTitle = screen.getByText("Today").closest(".scan-day-title");
+    expect(dayTitle).toBeInTheDocument();
+    expect(within(dayTitle).getByText("2 scans")).toBeInTheDocument();
+  });
+
   it("refreshes scan history on demand without clearing the current list", async () => {
     const user = userEvent.setup();
     let resolveReload;
