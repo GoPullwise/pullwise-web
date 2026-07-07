@@ -37,6 +37,10 @@ export async function request(path, options = {}) {
 
     return response.data;
   } catch (error) {
+    if (axios.isCancel(error) || error?.code === "ERR_CANCELED") {
+      throw error;
+    }
+
     if (axios.isAxiosError(error)) {
       throw new ApiError(error.response?.data?.message || error.message, {
         status: error.response?.status,

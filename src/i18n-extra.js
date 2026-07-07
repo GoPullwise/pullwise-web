@@ -970,13 +970,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     es: "El conteo se detuvo después de alcanzar un límite.",
   },
   Scan: { zh: "扫描", ja: "スキャン", ko: "스캔", fr: "Scan", es: "Escaneo" },
-  "Unable to retry scan.": {
-    zh: "无法重试扫描。",
-    ja: "スキャンを再試行できません。",
-    ko: "스캔을 다시 시도할 수 없습니다.",
-    fr: "Impossible de réessayer le scan.",
-    es: "No se pudo reintentar el escaneo.",
-  },
   "Retrying...": { zh: "正在重试...", ja: "再試行中...", ko: "다시 시도 중...", fr: "Nouvelle tentative...", es: "Reintentando..." },
   "Unable to connect GitHub repository access.": {
     zh: "无法连接 GitHub 仓库访问。",
@@ -1652,12 +1645,12 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "En accédant à Pullwise ou en l'utilisant, vous acceptez ces Conditions. Si vous utilisez Pullwise pour le compte d'une organisation, vous déclarez avoir l'autorité de l'engager et de connecter les dépôts GitHub que vous autorisez.",
     es: "Al acceder a Pullwise o usarlo, aceptas estos Términos. Si usas Pullwise en nombre de una organización, declaras que tienes autoridad para vincular a esa organización y conectar los repositorios de GitHub que autorizas.",
   },
-  "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, run repository preflight checks, queue, cancel, and retry scans, store scan history, generate structured findings and reports, expose account-scoped REST API endpoints, manage API keys, show live configuration and status docs, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.": {
-    zh: "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、运行仓库预检、排队、取消和重试扫描、保存扫描历史、生成结构化发现和报告、提供账户范围的 REST API 端点、管理 API key、展示实时配置和状态文档，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。",
-    ja: "Pullwise は GitHub 連携コードレビューを提供します。サービスは、認可済みリポジトリの一覧、プリフライトチェック、スキャンのキュー投入、キャンセル、再試行、スキャン履歴保存、構造化検出とレポート生成、アカウントスコープ REST API、API キー管理、ライブ設定とステータス文書表示、機能と権限がある場合の決定的修正プレビューや GitHub プルリクエスト作成を支援できます。",
-    ko: "Pullwise는 GitHub 연결 코드 리뷰 워크플로를 제공합니다. 서비스는 승인된 저장소 목록 조회, 저장소 사전 점검 실행, 스캔 대기열 등록, 취소 및 재시도, 스캔 기록 저장, 구조화된 발견 및 보고서 생성, 계정 범위 REST API 엔드포인트 제공, API 키 관리, 실시간 구성 및 상태 문서 표시, 기능과 권한이 있을 때 결정적 수정 미리보기 또는 GitHub pull request 열기를 지원할 수 있습니다.",
-    fr: "Pullwise fournit des workflows de revue de code connectés à GitHub. Le service peut lister les dépôts autorisés, exécuter des pré-vérifications, mettre en file, annuler et réessayer des scans, stocker l'historique, générer résultats et rapports structurés, exposer des endpoints REST au niveau du compte, gérer les clés API, afficher la configuration et le statut en direct, et aider à prévisualiser des corrections déterministes ou ouvrir des pull requests GitHub lorsque ces fonctionnalités et autorisations sont disponibles.",
-    es: "Pullwise proporciona flujos de revisión de código conectados a GitHub. El servicio puede listar repositorios autorizados, ejecutar preflights, poner en cola, cancelar y reintentar escaneos, guardar historial, generar hallazgos e informes estructurados, exponer endpoints REST con alcance de cuenta, gestionar claves API, mostrar configuración y estado en vivo, y ayudar a previsualizar correcciones deterministas o abrir pull requests de GitHub cuando esas funciones y permisos estén disponibles.",
+  "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, run repository preflight checks, queue and cancel scans, store scan history, generate structured findings and reports, expose account-scoped REST API endpoints, manage API keys, show live configuration and status docs, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.": {
+    zh: "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、运行仓库预检、排队和取消扫描、保存扫描历史、生成结构化发现和报告、提供账户范围的 REST API 端点、管理 API key、展示实时配置和状态文档，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。",
+    ja: "Pullwise は GitHub 連携コードレビューを提供します。サービスは、認可済みリポジトリの一覧、プリフライトチェック、スキャンのキュー投入とキャンセル、スキャン履歴保存、構造化検出とレポート生成、アカウントスコープ REST API、API キー管理、ライブ設定とステータス文書表示、機能と権限がある場合の決定的修正プレビューや GitHub プルリクエスト作成を支援できます。",
+    ko: "Pullwise는 GitHub 연결 코드 리뷰 워크플로를 제공합니다. 서비스는 승인된 저장소 목록 조회, 저장소 사전 점검 실행, 스캔 대기열 등록 및 취소, 스캔 기록 저장, 구조화된 발견 및 보고서 생성, 계정 범위 REST API 엔드포인트 제공, API 키 관리, 실시간 구성 및 상태 문서 표시, 기능과 권한이 있을 때 결정적 수정 미리보기 또는 GitHub pull request 열기를 지원할 수 있습니다.",
+    fr: "Pullwise fournit des workflows de revue de code connectés à GitHub. Le service peut lister les dépôts autorisés, exécuter des pré-vérifications, mettre en file et annuler des scans, stocker l'historique, générer résultats et rapports structurés, exposer des endpoints REST au niveau du compte, gérer les clés API, afficher la configuration et le statut en direct, et aider à prévisualiser des corrections déterministes ou ouvrir des pull requests GitHub lorsque ces fonctionnalités et autorisations sont disponibles.",
+    es: "Pullwise proporciona flujos de revisión de código conectados a GitHub. El servicio puede listar repositorios autorizados, ejecutar preflights, poner en cola y cancelar escaneos, guardar historial, generar hallazgos e informes estructurados, exponer endpoints REST con alcance de cuenta, gestionar claves API, mostrar configuración y estado en vivo, y ayudar a previsualizar correcciones deterministas o abrir pull requests de GitHub cuando esas funciones y permisos estén disponibles.",
   },
   "Findings, summaries, generated reports, proposed fixes, and generated pull request content are recommendations. You are responsible for reviewing the underlying code and deciding whether to rely on or merge any result.": {
     zh: "发现、摘要、生成报告、建议修复和生成的 pull request 内容均为建议。你需要负责审查底层代码，并决定是否依赖或合并任何结果。",

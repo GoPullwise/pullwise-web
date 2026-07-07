@@ -1778,33 +1778,6 @@ describe("normalizeIssue", () => {
     });
   });
 
-  it("preserves scan retry metadata for active scan rendering", () => {
-    const scan = normalizeScan({
-      id: "sc_retrying",
-      status: "queued",
-      retry: {
-        attempt: 1,
-        maxAttempts: 2,
-        retryAttempts: 1,
-        remainingAttempts: 1,
-        attemptedWorkers: 1,
-        reason: "worker_result_failed",
-      },
-    });
-
-    expect(scan.retry).toEqual({
-      attempt: 1,
-      maxAttempts: 2,
-      retryAttempts: 1,
-      remainingAttempts: 1,
-      attemptedWorkers: 1,
-      reason: "worker_result_failed",
-    });
-    expect(scanQueueSummary(scan)).toEqual({
-      message: "",
-      tags: ["Attempt 1 of 2", "1 retry left", "Retrying after worker failure"],
-    });
-  });
 
   it("normalizes scan text fields and status for safe rendering", () => {
     expect(

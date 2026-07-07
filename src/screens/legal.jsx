@@ -269,8 +269,8 @@ export function TermsScreen({ go, auth }) {
       <Section id="service" title={sections[1].title}>
         <p>
           {T(
-            "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, run repository preflight checks, queue, cancel, and retry scans, store scan history, generate structured findings and reports, expose account-scoped REST API endpoints, manage API keys, show live configuration and status docs, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.",
-            "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、运行仓库预检、排队、取消和重试扫描、保存扫描历史、生成结构化发现和报告、提供账户范围的 REST API 端点、管理 API key、展示实时配置和状态文档，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。"
+            "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, run repository preflight checks, queue and cancel scans, store scan history, generate structured findings and reports, expose account-scoped REST API endpoints, manage API keys, show live configuration and status docs, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.",
+            "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、运行仓库预检、排队和取消扫描、保存扫描历史、生成结构化发现和报告、提供账户范围的 REST API 端点、管理 API key、展示实时配置和状态文档，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。"
           )}
         </p>
         <p>

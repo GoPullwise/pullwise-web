@@ -1,3 +1,4 @@
+import axios from "axios";
 import { describe, expect, it, vi } from "vitest";
 import { ApiError, SERVER_REQUEST_TIMEOUT_MS, http, request } from "./http.js";
 
@@ -33,6 +34,17 @@ describe("request", () => {
         responseType: "blob",
         timeout: SERVER_REQUEST_TIMEOUT_MS,
       })
+    );
+
+    httpRequest.mockRestore();
+  });
+
+  it("preserves axios cancellation errors so callers can ignore aborted requests", async () => {
+    const canceled = new axios.CanceledError("canceled");
+    const httpRequest = vi.spyOn(http, "request").mockRejectedValueOnce(canceled);
+
+    await expect(request("/scans", { signal: new AbortController().signal })).rejects.toBe(
+      canceled
     );
 
     httpRequest.mockRestore();

@@ -7,7 +7,7 @@ Currently wired backend responsibilities:
 - GitHub identity login
 - GitHub repository authorization through the GitHub App flow
 - Repository listing, branch lookup, and sync
-- Scan preflight, creation, bulk polling, retry, cancellation, history, and audit bundle downloads
+- Scan preflight, creation, bulk polling, cancellation, history, and audit bundle downloads
 - Rich issue review plus single and batch manual status changes
 - Deterministic issue fix preview
 - GitHub pull request creation for auto-fixable issue fixes

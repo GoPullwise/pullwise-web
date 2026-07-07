@@ -1649,15 +1649,6 @@ export function HistoryScreen({
     title: T("Scan action error", "Scan action error"),
     key: `scan-action:${actionError}`,
   });
-  const removeRetryPendingScans = useCallback((scanIds) => {
-    const ids = Array.isArray(scanIds) ? scanIds : [scanIds];
-    setRetryPendingScanIds((current) => {
-      if (!ids.some((scanId) => current.has(scanId))) return current;
-      const next = new Set(current);
-      for (const scanId of ids) next.delete(scanId);
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     setExpectedScanRetryCount(0);
