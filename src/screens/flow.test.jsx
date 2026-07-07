@@ -94,6 +94,18 @@ const repoBeta = {
   defaultBranch: "develop",
 };
 
+const repoGamma = {
+  id: "repo_gamma",
+  name: "gamma",
+  fullName: "acme/gamma",
+  desc: "Gamma service",
+  lang: "Go",
+  stars: 5,
+  branches: 1,
+  updated: "Today",
+  defaultBranch: "main",
+};
+
 beforeEach(() => {
   setLang("en");
   connectGitHubRepositories.mockReset();
@@ -254,6 +266,47 @@ describe("ReposScreen scan selection", () => {
     await user.click(screen.getByRole("tab", { name: "@GoDelta" }));
 
     expect(screen.getByRole("tab", { name: "@GoDelta" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("keeps selected repositories when switching owner filters before starting scans", async () => {
+    const go = vi.fn();
+    const setActiveRepo = vi.fn();
+    const user = userEvent.setup();
+    useRepositories.mockImplementation(({ owner = "" } = {}) => ({
+      items: owner === "acme" ? [repoGamma] : [repoAlpha, repoBeta],
+      installations: [],
+      installationAccounts: ["octocat", "acme"],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      needsAuthorization: false,
+      meta: owner === "acme" ? { total: 1 } : { total: 2 },
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+    }));
+
+    render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
+
+    await user.click(screen.getByRole("tab", { name: "@octocat" }));
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+    expect(screen.getByRole("button", { name: /start scan/i })).toHaveTextContent("(1)");
+
+    await user.click(screen.getByRole("tab", { name: "@acme" }));
+    expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /start scan/i })).toHaveTextContent("(1)");
+
+    await user.click(screen.getByText("acme/gamma").closest(".repo-row"));
+    await user.click(screen.getByRole("button", { name: /start scan/i }));
+
+    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
+    expect(pullwiseApi.scans.preflight).toHaveBeenCalledWith({
+      repositories: [
+        expect.objectContaining({ repo: "octocat/alpha" }),
+        expect.objectContaining({ repo: "acme/gamma" }),
+      ],
+    });
+    expect(setActiveRepo).toHaveBeenCalledWith(null);
+    expect(go).toHaveBeenCalledWith("history", expect.any(Object));
   });
 
   it("requests the selected owner page when an owner tab has no repositories in the current page", async () => {

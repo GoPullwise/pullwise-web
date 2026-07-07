@@ -1042,6 +1042,7 @@ export function ReposScreen({
   useLang();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState([]);
+  const [selectedReposById, setSelectedReposById] = useState({});
   const [connecting, setConnecting] = useState(false);
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const [connectError, setConnectError] = useState("");
@@ -1153,7 +1154,7 @@ export function ReposScreen({
     [repoBranches, selectedBranches]
   );
   const selectedRepoObjects = selected
-    .map((id) => availableRepos.find((item) => item.id === id))
+    .map((id) => selectedReposById[id] || availableRepos.find((item) => item.id === id))
     .filter(Boolean)
     .map((repo) => ({ ...repo, branch: branchForRepo(repo) }));
 
@@ -1245,18 +1246,30 @@ export function ReposScreen({
   }, [allLabel, org, orgs]);
 
   useEffect(() => {
-    setSelected((current) => current.filter((id) => availableRepos.some((repo) => repo.id === id)));
-  }, [availableRepos]);
+    if (!selected.length) return;
+    setSelectedReposById((current) => {
+      let next = current;
+      for (const repo of availableRepos) {
+        if (!selected.includes(repo.id)) continue;
+        if (next === current) next = { ...current };
+        next[repo.id] = repo;
+      }
+      return next;
+    });
+  }, [availableRepos, selected]);
 
   useEffect(() => {
-    const availableKeys = new Set(availableRepos.map(repoBranchKey).filter(Boolean));
+    const availableKeys = new Set([
+      ...availableRepos.map(repoBranchKey).filter(Boolean),
+      ...selected.map((id) => repoBranchKey(selectedReposById[id])).filter(Boolean),
+    ]);
     setSelectedBranches((current) =>
       Object.fromEntries(Object.entries(current).filter(([key]) => availableKeys.has(key)))
     );
     setRepoBranches((current) =>
       Object.fromEntries(Object.entries(current).filter(([key]) => availableKeys.has(key)))
     );
-  }, [availableRepos]);
+  }, [availableRepos, selected, selectedReposById]);
 
   useGitHubRepositoryAccessAutoRefresh(refreshGitHubRepositoryAccess);
 
@@ -1288,11 +1301,18 @@ export function ReposScreen({
     const isSelected = selected.includes(id);
     if (isSelected) {
       setSelected((current) => current.filter((item) => item !== id));
+      setSelectedReposById((current) => {
+        if (!current[id]) return current;
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
       setSelectionNotice("");
       return;
     }
 
     const repo = availableRepos.find((item) => item.id === id);
+    if (!repo) return;
     const repoRemaining = quotaRemaining(repo?.quota);
     if (repoRemaining !== null && repoRemaining <= 0) {
       setSelectionNotice(repositoryQuotaNotice(repo));
@@ -1304,6 +1324,7 @@ export function ReposScreen({
     }
 
     setSelectionNotice("");
+    setSelectedReposById((current) => ({ ...current, [id]: repo }));
     setSelected((current) => (current.includes(id) ? current : [...current, id]));
     loadRepoBranches(repo);
   };
@@ -1329,11 +1350,19 @@ export function ReposScreen({
     if (hasVisibleSelection) {
       const visibleSet = new Set(visibleRepoIds);
       setSelected((current) => current.filter((id) => !visibleSet.has(id)));
+      setSelectedReposById((current) => {
+        const next = { ...current };
+        for (const id of visibleSet) {
+          delete next[id];
+        }
+        return next;
+      });
       setSelectionNotice("");
       return;
     }
     const blocked = [];
     const next = [...selected];
+    const nextReposById = {};
     for (const repo of repos) {
       if (next.includes(repo.id)) continue;
       const repoRemaining = quotaRemaining(repo?.quota);
@@ -1346,7 +1375,11 @@ export function ReposScreen({
         break;
       }
       next.push(repo.id);
+      nextReposById[repo.id] = repo;
       loadRepoBranches(repo);
+    }
+    if (Object.keys(nextReposById).length > 0) {
+      setSelectedReposById((current) => ({ ...current, ...nextReposById }));
     }
     setSelected(next);
     if (blocked.length > 0) {
