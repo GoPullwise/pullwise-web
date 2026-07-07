@@ -27,6 +27,14 @@ describe("NotificationProvider", () => {
     );
     expect(styles).not.toMatch(/\.notification-toast::before/);
   });
+  it("anchors notification toasts beside the bottom control cluster", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+
+    expect(styles).toMatch(
+      /\.notification-stack\s*\{[\s\S]*right:\s*166px;[\s\S]*bottom:\s*18px;[\s\S]*width:\s*min\(390px,\s*calc\(100vw - 184px\)\);/
+    );
+    expect(styles).toMatch(/\.lang-picker\s*\{[\s\S]*z-index:\s*100;/);
+  });
   it("stacks multiple notifications and dismisses one manually", async () => {
     const user = userEvent.setup();
     render(

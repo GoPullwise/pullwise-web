@@ -2,7 +2,7 @@
   position: fixed;
   right: 66px;
   bottom: 18px;
-  z-index: 60;
+  z-index: 100;
 }
 
 .status-dot {
@@ -181,12 +181,13 @@
 
 .notification-stack {
   position: fixed;
-  right: 18px;
-  bottom: 72px;
+  right: 166px;
+  bottom: 18px;
   z-index: 90;
-  width: min(390px, calc(100vw - 28px));
+  width: min(390px, calc(100vw - 184px));
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   pointer-events: none;
 }
@@ -279,8 +280,9 @@
 
 @media (max-width: 520px) {
   .notification-stack {
-    right: 14px;
-    bottom: 70px;
+    right: 166px;
+    bottom: 18px;
+    width: calc(100vw - 184px);
   }
 
   .notification-toast {
