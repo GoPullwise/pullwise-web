@@ -635,10 +635,14 @@ describe("HistoryScreen queue state", () => {
     );
 
     const css = appStyles();
+    const titleBlocks = [
+      ...css.matchAll(/\.page-h h1\.page-title-truncate\s*\{(?<body>[^}]*)\}/g),
+    ].map((match) => match.groups?.body || "");
     const titleBlock = css.match(
       /\.page-h h1\.page-title-truncate\s*\{(?<body>[^}]*)\}/s
     )?.groups?.body;
 
+    expect(titleBlocks).toHaveLength(2);
     expect(titleBlock).toBeTruthy();
     expect(titleBlock).toMatch(/\boverflow\s*:\s*hidden\s*;/);
     expect(titleBlock).toMatch(/\btext-overflow\s*:\s*ellipsis\s*;/);
