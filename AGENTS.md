@@ -103,11 +103,12 @@ Treat `partial_completed` as a result-bearing terminal state for history/detail
 actions when the server exposes scan or `reviewRun` data. It may have fewer
 issues or artifacts than a completed scan, but it should not be hidden behind
 queued/running/failed-only UI gates.
-Scan history debug bundle actions must download a real server-provided
-`debugBundleUrl`. Do not copy debug URLs in the UI, and do not fall back to the
-stable scan audit bundle URL (`/scans/:id/audit-bundle.zip`) when the worker
-debug artifact is not uploaded yet. Disable or omit the debug bundle action
-until a real debug bundle endpoint exists for the scan row.
+Debug bundle downloads are a scan detail-only action. Do not expose debug bundle
+download controls from scan history rows or other Web pages. On scan detail, use
+only a real server-provided `debugBundleUrl`; do not copy debug URLs in the UI,
+and do not fall back to the stable scan audit bundle URL
+(`/scans/:id/audit-bundle.zip`) when the worker debug artifact is not uploaded
+yet.
 Progress UI must be driven by worker-reported flow data exposed by the server,
 not by a web-owned or server-owned fixed step list. Job scan detail pages should
 render `progressSteps` / `reviewRun.progress.steps` from scan payloads exactly as
