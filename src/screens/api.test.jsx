@@ -1,4 +1,4 @@
-﻿import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
+import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -179,7 +179,6 @@ describe("API screens", () => {
           id: "pro",
           name: "Pro",
           reviewLimit: 60,
-          repositoryReviewLimit: 60,
           repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
           agentConfig: {
             plan: "pro",
@@ -196,7 +195,6 @@ describe("API screens", () => {
           id: "free",
           name: "Free",
           reviewLimit: 5,
-          repositoryReviewLimit: 5,
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
@@ -213,7 +211,6 @@ describe("API screens", () => {
           id: "max",
           name: "Max",
           reviewLimit: 90,
-          repositoryReviewLimit: 90,
           repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
           agentConfig: {
             plan: "max",
@@ -298,16 +295,22 @@ describe("API screens", () => {
           title: "Plan quotas",
           fields: [
             { path: "plans.free.userReviewLimit", label: "Free user monthly scans", value: 11 },
-            {
-              path: "plans.free.repositoryReviewLimit",
-              label: "Free repository monthly scans",
-              value: 7,
-            },
             { path: "plans.free.maxRepoFiles", label: "Free repository file limit", value: 321 },
             {
               path: "plans.free.maxRepoBytes",
               label: "Free repository byte limit",
               value: 2 * 1024 * 1024,
+            },
+          ],
+        },
+        {
+          id: "quota",
+          title: "Repository quota",
+          fields: [
+            {
+              path: "quota.repositoryReviewLimit",
+              label: "Repository monthly scans",
+              value: 7,
             },
           ],
         },
@@ -330,7 +333,8 @@ describe("API screens", () => {
     expect(await screen.findByText("plan-card-model")).toBeInTheDocument();
     const freeCard = screen.getByText("free").closest(".docs-plan-card");
     expect(within(freeCard).getByText("11")).toBeInTheDocument();
-    expect(within(freeCard).getByText("7")).toBeInTheDocument();
+    const repoQuotaLabel = screen.getByText("Repository monthly scans");
+    expect(within(repoQuotaLabel.closest(".docs-config-row")).getByText("7")).toBeInTheDocument();
     expect(
       within(freeCard).getByText(/321 files \/ 2,097,152 bytes \(2.0 MiB\)/)
     ).toBeInTheDocument();
@@ -346,7 +350,6 @@ describe("API screens", () => {
           id: "free",
           name: "Free",
           reviewLimit: 5,
-          repositoryReviewLimit: 5,
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentCli: "unsupported-record-cli",
           cli: "unsupported-record-command",
@@ -388,7 +391,6 @@ describe("API screens", () => {
           id: "free",
           name: "Free",
           reviewLimit: 5,
-          repositoryReviewLimit: 3,
           repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
           agentConfig: {
             plan: "free",
@@ -417,12 +419,6 @@ describe("API screens", () => {
               description: "Maximum scans one Free user can start in a billing cycle.",
             },
             {
-              path: "plans.free.repositoryReviewLimit",
-              label: "Free repository monthly scans",
-              value: 3,
-              description: "Maximum scans one repository can receive in a billing cycle.",
-            },
-            {
               path: "plans.free.maxRepoFiles",
               label: "Free repository file limit",
               value: 200,
@@ -439,6 +435,18 @@ describe("API screens", () => {
               label: "API token",
               value: "pw_secret_docs",
               description: "This must never be rendered.",
+            },
+          ],
+        },
+        {
+          id: "quota",
+          title: "Repository quota",
+          fields: [
+            {
+              path: "quota.repositoryReviewLimit",
+              label: "Repository monthly scans",
+              value: 3,
+              description: "Maximum scans one repository can receive in the current calendar month.",
             },
           ],
         },
@@ -497,9 +505,10 @@ describe("API screens", () => {
     expect(screen.getByText(/200 files \/ 1,048,576 bytes \(1.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
-    expect(screen.queryByText("Free repository monthly scans")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository byte limit")).not.toBeInTheDocument();
+    const repoQuotaLabel = screen.getByText("Repository monthly scans");
+    expect(within(repoQuotaLabel.closest(".docs-config-row")).getByText("3")).toBeInTheDocument();
     const queuedLabel = screen.getByText("Global queued scans");
     expect(within(queuedLabel.closest(".docs-config-row")).getByText("4")).toBeInTheDocument();
     expect(screen.getByText("Requests per window")).toBeInTheDocument();
@@ -517,7 +526,6 @@ describe("API screens", () => {
           id: "free",
           name: "Free",
           reviewLimit: 8,
-          repositoryReviewLimit: 2,
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
@@ -537,11 +545,11 @@ describe("API screens", () => {
         plans: {
           free: {
             userReviewLimit: 8,
-            repositoryReviewLimit: 2,
             maxRepoFiles: 200,
             maxRepoBytes: 5 * 1024 * 1024,
           },
         },
+        quota: { repositoryReviewLimit: 2 },
         rateLimit: { enabled: true, requests: 90, windowSeconds: 60 },
         billing: { creemProProductCount: 1, creemMaxProductCount: 0 },
       },
@@ -553,6 +561,8 @@ describe("API screens", () => {
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
+    expect(screen.getByText("Repository monthly scans")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("Rate limiting enabled")).toBeInTheDocument();
     expect(screen.getByText("Enabled")).toBeInTheDocument();
     expect(screen.getByText("60 seconds")).toBeInTheDocument();

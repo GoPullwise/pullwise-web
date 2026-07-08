@@ -26,6 +26,9 @@ tests, and UI state should describe quota in account/user and repository terms.
   quota.
 - Forks share repository quota with their source repository; keep that copy and
   behavior visible where scan selection explains quota.
+- Repository scan quota is a single global monthly value from
+  `quota.repositoryReviewLimit`; do not parse, document, or display repository
+  scan quota as a subscription-plan field.
 
 ## Quota UI Behavior
 

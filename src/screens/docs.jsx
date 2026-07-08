@@ -43,6 +43,8 @@ const PLAN_SERVER_GROUP_IDS = new Set([
 
 const PUBLIC_SERVER_GROUP_IDS = new Set([
   ...PLAN_SERVER_GROUP_IDS,
+  "quota",
+  "repositoryquota",
   "scan",
   "scanlimits",
   "ratelimit",
@@ -66,12 +68,6 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
         description: `Maximum scans one ${PLAN_LABELS[plan]} user can start in a billing cycle.`,
       },
       {
-        path: `plans.${plan}.repositoryReviewLimit`,
-        candidates: [`plans.${plan}.repositoryReviewLimit`],
-        label: `${PLAN_LABELS[plan]} repository monthly scans`,
-        description: `Maximum scans one repository can receive in a billing cycle for ${PLAN_LABELS[plan]} users.`,
-      },
-      {
         path: `plans.${plan}.maxRepoFiles`,
         candidates: [`plans.${plan}.maxRepoFiles`],
         label: `${PLAN_LABELS[plan]} repository file limit`,
@@ -84,6 +80,19 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
         description: `Repository checkouts above this size stop before Codex review for ${PLAN_LABELS[plan]} users.`,
       },
     ]),
+  },
+  {
+    id: "quota",
+    title: "Repository quota",
+    description: "Global monthly scan quota enforced per repository.",
+    fields: [
+      {
+        path: "quota.repositoryReviewLimit",
+        candidates: ["quota.repositoryReviewLimit"],
+        label: "Repository monthly scans",
+        description: "Maximum scans one repository can receive in the current calendar month.",
+      },
+    ],
   },
   {
     id: "scan",
@@ -203,7 +212,6 @@ function normalizePlanConfig(record = {}) {
     plan,
     label: PLAN_LABELS[plan] || titleCase(rawPlan),
     reviewLimit: valueFromPlanRecord(record, "reviewLimit", "userReviewLimit"),
-    repositoryReviewLimit: valueFromPlanRecord(record, "repositoryReviewLimit"),
     repositoryLimits: normalizeRepositoryLimits(record.repositoryLimits) || normalizeRepositoryLimits(record),
     agentCli,
     model: textValue(providerConfig.model),
@@ -272,9 +280,6 @@ function mergePlanConfig(base, override) {
     plan,
     label: base.label || override.label || PLAN_LABELS[plan] || titleCase(plan),
     reviewLimit: hasConfigValue(override.reviewLimit) ? override.reviewLimit : base.reviewLimit,
-    repositoryReviewLimit: hasConfigValue(override.repositoryReviewLimit)
-      ? override.repositoryReviewLimit
-      : base.repositoryReviewLimit,
     repositoryLimits: mergeRepositoryLimits(base.repositoryLimits, override.repositoryLimits),
     agentCli: hasConfigValue(base.agentCli) ? base.agentCli : override.agentCli,
     model: hasConfigValue(base.model) ? base.model : override.model,
@@ -359,7 +364,7 @@ function serverConfigPathKey(path) {
 function isPlanServerConfigField(field) {
   const path = textValue(field.path, field.key, field.id, field.name);
   const pathKey = serverConfigPathKey(path);
-  return /^plans\.[^.]+\.(userreviewlimit|repositoryreviewlimit|reviewlimit|maxrepofiles|maxrepobytes)$/.test(
+  return /^plans\.[^.]+\.(userreviewlimit|reviewlimit|maxrepofiles|maxrepobytes)$/.test(
     pathKey
   );
 }
@@ -380,12 +385,13 @@ function isAllowedServerConfigField(field, group, options = {}) {
   if (!fieldText.trim() || SENSITIVE_CONFIG_FIELD_PATTERN.test(fieldText)) return false;
 
   const pathKey = serverConfigPathKey(path);
-  if (/^plans\.[^.]+\.(userreviewlimit|repositoryreviewlimit|reviewlimit|maxrepofiles|maxrepobytes)$/.test(pathKey)) {
+  if (/^plans\.[^.]+\.(userreviewlimit|reviewlimit|maxrepofiles|maxrepobytes)$/.test(pathKey)) {
     return true;
   }
 
   if (
     [
+      "quota.repositoryreviewlimit",
       "scan.maxqueuedscansglobal",
       "ratelimit.enabled",
       "ratelimit.requests",
@@ -407,6 +413,9 @@ function isAllowedServerConfigField(field, group, options = {}) {
   const labelKey = label.toLowerCase();
   if (groupId === "plans" || groupId === "planquotas" || groupId === "subscriptionplans") {
     return /quota|monthly scans|review limit|repository|repo|checkout|file limit|byte limit/.test(labelKey);
+  }
+  if (groupId === "quota" || groupId === "repositoryquota") {
+    return /quota|monthly scans|review limit|repository|repo/.test(labelKey);
   }
   if (groupId === "scan" || groupId === "scanlimits") {
     if (/per user|concurrent scans/.test(labelKey)) return false;
@@ -487,9 +496,6 @@ function planConfigFieldFromPath(path) {
   if (fieldKey === "userreviewlimit" || fieldKey === "reviewlimit") {
     return { plan, field: "reviewLimit" };
   }
-  if (fieldKey === "repositoryreviewlimit") {
-    return { plan, field: "repositoryReviewLimit" };
-  }
   if (fieldKey === "maxrepofiles" || fieldKey === "repositorylimits.maxfiles") {
     return { plan, field: "maxFiles" };
   }
@@ -506,7 +512,7 @@ function planRecordFor(records, plan) {
 
 function applyPlanConfigField(record, field, value) {
   if (!hasConfigValue(value)) return;
-  if (field === "reviewLimit" || field === "repositoryReviewLimit") {
+  if (field === "reviewLimit") {
     record[field] = value;
     return;
   }
@@ -523,7 +529,6 @@ function collectPlanRecordsFromSettings(payload, records) {
       if (!objectRecord(settings)) continue;
       const record = planRecordFor(records, String(plan).toLowerCase());
       applyPlanConfigField(record, "reviewLimit", settings.reviewLimit ?? settings.userReviewLimit);
-      applyPlanConfigField(record, "repositoryReviewLimit", settings.repositoryReviewLimit);
       const repositoryLimits =
         normalizeRepositoryLimits(settings.repositoryLimits) || normalizeRepositoryLimits(settings);
       if (repositoryLimits) {
@@ -887,15 +892,6 @@ export function DocsScreen({ go, auth }) {
                       value={formatServerConfigValue({
                         path: "plans.reviewLimit",
                         value: plan.reviewLimit,
-                      })}
-                    />
-                  </div>
-                  <div className="docs-plan-kv">
-                    <b>{T("Monthly repository scans", "Monthly repository scans")}</b>
-                    <ConfigValue
-                      value={formatServerConfigValue({
-                        path: "plans.repositoryReviewLimit",
-                        value: plan.repositoryReviewLimit,
                       })}
                     />
                   </div>

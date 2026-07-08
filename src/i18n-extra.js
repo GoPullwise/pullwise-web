@@ -777,13 +777,6 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
     fr: "Scans de compte mensuels",
     es: "Escaneos mensuales de cuenta",
   },
-  "Monthly repository scans": {
-    zh: "每月仓库扫描",
-    ja: "月間リポジトリスキャン",
-    ko: "월간 저장소 스캔",
-    fr: "Scans de dépôt mensuels",
-    es: "Escaneos mensuales de repositorio",
-  },
   "Repository checkout": {
     zh: "仓库 checkout",
     ja: "リポジトリ checkout",
