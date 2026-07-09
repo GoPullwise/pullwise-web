@@ -269,15 +269,22 @@ function agentFixBundlePath(scan) {
   return "/scans/" + encodeURIComponent(scanId) + "/audit-bundle.zip";
 }
 
+function effectiveApiDownloadBase() {
+  const publicApiBase = String(env.VITE_PUBLIC_API_BASE_URL || "").trim();
+  if (publicApiBase) return publicApiBase.replace(/\/$/, "");
+  const configuredApiBase = String(env.VITE_API_BASE_URL || "").trim();
+  if (/^[a-z][a-z0-9+.-]*:/i.test(configuredApiBase)) {
+    return configuredApiBase.replace(/\/$/, "");
+  }
+  const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+  if (origin) return origin;
+  return "https://api.pull-wise.com";
+}
+
 function agentFixBundleUrl(scan) {
   const path = agentFixBundlePath(scan);
   if (!path) return "";
-  const configuredApiBase = String(env.VITE_API_BASE_URL || "");
-  const absoluteApiBase = /^[a-z][a-z0-9+.-]*:/i.test(configuredApiBase) ? configuredApiBase : "";
-  const base = String(
-    env.VITE_PUBLIC_API_BASE_URL || absoluteApiBase || "https://api.pull-wise.com"
-  ).replace(/\/$/, "");
-  return base + path;
+  return effectiveApiDownloadBase() + path;
 }
 
 function agentFixPromptWithBundleKey(basePrompt, scan, keyPayload) {
@@ -2953,7 +2960,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                               href={debugBundleHref}
                               target="_blank"
                               rel="noreferrer"
-                              download
+                              download="debug-bundle.zip"
                             >
                               <I.Archive size={13} /> {T("Debug bundle", "Debug bundle")}
                             </a>

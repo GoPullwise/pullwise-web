@@ -1,4 +1,4 @@
-﻿import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
+import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -123,7 +123,7 @@ describe("API screens", () => {
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /copy page/i }));
       await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
-      expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/api/v1/repositories`);
+      expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/v1/repositories`);
       expect(writeText.mock.calls[0][0]).not.toContain("https://api.pull-wise.com");
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;

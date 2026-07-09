@@ -234,7 +234,28 @@ function DocsCode({ title, children }) {
   );
 }
 
-const API_BASE_URL = env.VITE_PUBLIC_API_BASE_URL || "https://api.pull-wise.com";
+function resolveApiBaseUrl() {
+  const publicApiBase = String(env.VITE_PUBLIC_API_BASE_URL || "").trim();
+  const configuredApiBase = publicApiBase || String(env.VITE_API_BASE_URL || "").trim();
+  if (!configuredApiBase) return "https://api.pull-wise.com";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(configuredApiBase)) {
+    return configuredApiBase.replace(/\/$/, "");
+  }
+  if (configuredApiBase.startsWith("/")) {
+    const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+    if (origin) return new URL(configuredApiBase, origin).href.replace(/\/$/, "");
+  }
+  return "https://api.pull-wise.com";
+}
+
+function apiDocsUrl(path, baseUrl) {
+  const base = String(baseUrl || resolveApiBaseUrl()).replace(/\/$/, "");
+  const relativePath = String(path || "").replace(/^\/+/, "");
+  if (base.endsWith("/api") && relativePath.startsWith("api/")) {
+    return `${base}/${relativePath.slice(4)}`;
+  }
+  return `${base}/${relativePath}`;
+}
 const CONTACT_EMAIL = "contact@pull-wise.com";
 
 export function ApiDocsScreen({ go, auth }) {
@@ -298,6 +319,7 @@ export function ApiDocsScreen({ go, auth }) {
       ),
     },
   ];
+  const apiBaseUrl = resolveApiBaseUrl();
   const nav = [
     ["overview", T("Overview", "概览")],
     ["authentication", T("Authentication", "认证")],
@@ -383,7 +405,7 @@ export function ApiDocsScreen({ go, auth }) {
               </p>
             </div>
           </div>
-          <DocsCode title={T("Base URL", "基础地址")}>{API_BASE_URL}</DocsCode>
+          <DocsCode title={T("Base URL", "基础地址")}>{apiBaseUrl}</DocsCode>
 
           <h2 id="authentication" className="docs-h2">
             {T("Authentication", "认证")}
@@ -445,7 +467,7 @@ Content-Type: application/json
             {T("Repositories", "仓库")}
           </h2>
           <DocsCode title={T("List authorized repositories", "列出已授权仓库")}>
-            {`curl ${API_BASE_URL}/api/v1/repositories \\
+            {`curl ${apiDocsUrl("/api/v1/repositories", apiBaseUrl)} \\
   -H "Authorization: Bearer $PULLWISE_API_KEY"`}
           </DocsCode>
           <DocsCode title={T("Repository response", "仓库响应")}>
@@ -522,7 +544,7 @@ Content-Type: application/json
             )}
           </p>
           <DocsCode title={T("Start a scan", "启动扫描")}>
-            {`curl -X POST ${API_BASE_URL}/api/v1/repositories/repo_123/scans \\
+            {`curl -X POST ${apiDocsUrl("/api/v1/repositories/repo_123/scans", apiBaseUrl)} \\
   -H "Authorization: Bearer $PULLWISE_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -590,11 +612,11 @@ Content-Type: application/json
 }`}
           </DocsCode>
           <DocsCode title={T("Read current scan", "读取当前扫描")}>
-            {`curl ${API_BASE_URL}/api/v1/repositories/repo_123/scans/current \\
+            {`curl ${apiDocsUrl("/api/v1/repositories/repo_123/scans/current", apiBaseUrl)} \\
   -H "Authorization: Bearer $PULLWISE_API_KEY"`}
           </DocsCode>
           <DocsCode title={T("Stop an active scan", "停止活动扫描")}>
-            {`curl -X POST ${API_BASE_URL}/api/v1/repositories/repo_123/scans/stop \\
+            {`curl -X POST ${apiDocsUrl("/api/v1/repositories/repo_123/scans/stop", apiBaseUrl)} \\
   -H "Authorization: Bearer $PULLWISE_API_KEY"`}
           </DocsCode>
 
@@ -615,7 +637,7 @@ Content-Type: application/json
             )}
           </p>
           <DocsCode title={T("Read remaining scan count", "读取剩余扫描次数")}>
-            {`curl ${API_BASE_URL}/api/v1/repositories/repo_123/quota \\
+            {`curl ${apiDocsUrl("/api/v1/repositories/repo_123/quota", apiBaseUrl)} \\
   -H "Authorization: Bearer $PULLWISE_API_KEY"`}
           </DocsCode>
           <DocsCode title={T("Quota response", "配额响应")}>
