@@ -805,10 +805,10 @@ describe("ReposScreen scan selection", () => {
 
     render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
-    expect(await screen.findByText("閫夋嫨瑕佹壂鎻忕殑浠撳簱")).toBeInTheDocument();
-    expect(screen.getByText("鍝簺浠撳簱鍙互鎵弿")).toBeInTheDocument();
-    expect(screen.getByText("1 涓凡鎺堟潈浠撳簱")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /鍚屾/i })).toBeInTheDocument();
+    expect(await screen.findByText("选择要扫描的仓库")).toBeInTheDocument();
+    expect(screen.getByText("哪些仓库可以扫描")).toBeInTheDocument();
+    expect(screen.getByText("1 个已授权仓库")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /同步/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /\u5f00\u59cb\u626b\u63cf/i })).toBeInTheDocument();
   });
 

@@ -124,7 +124,7 @@ describe("API screens", () => {
       await user.click(screen.getByRole("button", { name: /copy page/i }));
       await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
       expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/v1/repositories`);
-      expect(writeText.mock.calls[0][0]).not.toContain("https://api.pull-wise.com");
+      expect(writeText.mock.calls[0][0]).not.toContain("curl https://api.pull-wise.com");
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
       env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;

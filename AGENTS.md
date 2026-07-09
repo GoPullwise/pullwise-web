@@ -40,6 +40,10 @@ tests, and UI state should describe quota in account/user and repository terms.
 - Public REST API docs are account-scoped and should continue to describe
   repository listing, scan control, scan status, and quota checks with account
   and repository terminology.
+- When docs or copied examples derive the API base from a root-relative value
+  such as `/api`, resolve examples against the current browser origin and keep
+  generated `curl` URLs same-origin; do not fall back to
+  `https://api.pull-wise.com` for those examples.
 
 ## Public REST API Rate Limits
 
