@@ -1,9 +1,10 @@
-import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
+﻿import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { NotificationProvider } from "../components/notifications.jsx";
+import { env } from "../config/env.js";
 import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
@@ -102,6 +103,40 @@ describe("API screens", () => {
 
     expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
     expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(6);
+  });
+  it("resolves root-relative API base URLs for same-origin API docs examples", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = navigator.clipboard;
+    const originalApiBase = env.VITE_API_BASE_URL;
+    const originalPublicApiBase = env.VITE_PUBLIC_API_BASE_URL;
+    env.VITE_API_BASE_URL = "/api";
+    env.VITE_PUBLIC_API_BASE_URL = "";
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    try {
+      render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+      expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /copy page/i }));
+      await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+      expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/api/v1/repositories`);
+      expect(writeText.mock.calls[0][0]).not.toContain("https://api.pull-wise.com");
+    } finally {
+      env.VITE_API_BASE_URL = originalApiBase;
+      env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
+      if (originalClipboard) {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
+      } else {
+        delete navigator.clipboard;
+      }
+    }
   });
 
   it("keeps a wider docs layout inside the marketing header bounds", () => {
@@ -854,3 +889,4 @@ describe("API screens", () => {
     expect(screen.queryByRole("button", { name: /revoke/i })).not.toBeInTheDocument();
   });
 });
+

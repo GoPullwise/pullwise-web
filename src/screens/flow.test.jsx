@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -57,6 +57,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
 import { useRepositories, useScanBatchRun, useScanRun } from "../lib/pullwise-data.js";
 import { connectGitHubRepositories, manageGitHubInstallation } from "../lib/auth.js";
 import { pullwiseApi } from "../api/pullwise.js";
+import { env } from "../config/env.js";
 
 function firePointerEvent(target, type, options = {}) {
   const event = new MouseEvent(type, {
@@ -804,10 +805,10 @@ describe("ReposScreen scan selection", () => {
 
     render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
-    expect(await screen.findByText("选择要扫描的仓库")).toBeInTheDocument();
-    expect(screen.getByText("哪些仓库可以扫描")).toBeInTheDocument();
-    expect(screen.getByText("1 个已授权仓库")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /同步/i })).toBeInTheDocument();
+    expect(await screen.findByText("閫夋嫨瑕佹壂鎻忕殑浠撳簱")).toBeInTheDocument();
+    expect(screen.getByText("鍝簺浠撳簱鍙互鎵弿")).toBeInTheDocument();
+    expect(screen.getByText("1 涓凡鎺堟潈浠撳簱")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /鍚屾/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /\u5f00\u59cb\u626b\u63cf/i })).toBeInTheDocument();
   });
 
@@ -1332,6 +1333,10 @@ describe("ScanningScreen queue state", () => {
     });
     const prompt =
       "AGENT_FIX_PROMPT_INTERNAL_TEXT\nAudit bundle ZIP: /api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip";
+    const originalApiBase = env.VITE_API_BASE_URL;
+    const originalPublicApiBase = env.VITE_PUBLIC_API_BASE_URL;
+    env.VITE_API_BASE_URL = "/api";
+    env.VITE_PUBLIC_API_BASE_URL = "";
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_done",
@@ -1372,8 +1377,11 @@ describe("ScanningScreen queue state", () => {
       expect(copiedPrompt).toContain(
         "/api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip"
       );
+      expect(copiedPrompt).not.toContain("https://api.pull-wise.com");
       expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
     } finally {
+      env.VITE_API_BASE_URL = originalApiBase;
+      env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
       if (originalClipboard) {
         Object.defineProperty(navigator, "clipboard", {
           configurable: true,
@@ -1479,10 +1487,12 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.getByRole("button", { name: /audit bundle/i })).toBeEnabled();
-    expect(screen.getByRole("link", { name: /debug bundle/i })).toHaveAttribute(
+    const debugBundleAction = screen.getByRole("link", { name: /debug bundle/i });
+    expect(debugBundleAction).toHaveAttribute(
       "href",
       "/v1/review-runs/run_job_1/artifacts/art_debug_bundle"
     );
+    expect(debugBundleAction).toHaveAttribute("download", "debug-bundle.zip");
   });
 
   it("shows the worker human report when a completed scan has no generated report", () => {
@@ -2539,3 +2549,4 @@ describe("ScanningScreen queue state", () => {
     }
   );
 });
+
