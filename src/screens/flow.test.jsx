@@ -37,6 +37,7 @@ vi.mock("../lib/pullwise-data.js", () => ({
   scanCanDownloadAuditBundle: (scan) =>
     ["done", "failed", "partial_completed"].includes(scan?.status) &&
     !(scan?.error && scan?.errorCode === "WORKER_ARTIFACT_INVALID"),
+  scanHasResults: (scan) => ["done", "failed", "partial_completed"].includes(scan?.status),
   scanQueueSummary: (scan) =>
     scan?.queue
       ? {
@@ -1019,6 +1020,7 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByText(/not the final detail page yet/i)).not.toBeInTheDocument();
     expect(container.querySelector(".scan-detail-skeleton-side")).toBeInTheDocument();
     expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
+    expect(screen.queryByText("Finding summary")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 
@@ -1093,6 +1095,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
+    expect(screen.queryByText("Finding summary")).not.toBeInTheDocument();
     expect(screen.queryByText("Review agent")).not.toBeInTheDocument();
     expect(screen.queryByText("Preflight evidence")).not.toBeInTheDocument();
     expect(container.querySelector(".scan-panel-loading")).not.toBeInTheDocument();
@@ -1163,7 +1166,8 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    expect(screen.getByText("Live findings")).toBeInTheDocument();
+    expect(screen.getByText("Finding summary")).toBeInTheDocument();
+    expect(screen.getByText("1", { selector: ".scan-findings-total b" })).toBeInTheDocument();
     expect(screen.getByText("High")).toBeInTheDocument();
     expect(screen.getByText("Review agent")).toBeInTheDocument();
     expect(screen.getByText("codex")).toBeInTheDocument();

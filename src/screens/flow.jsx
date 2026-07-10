@@ -15,6 +15,7 @@ import { downloadBlob } from "../lib/download.js";
 import {
   isTerminalScan,
   scanCanDownloadAuditBundle,
+  scanHasResults,
   scanQueueSummary,
   useRepositories,
   useScanBatchRun,
@@ -27,12 +28,15 @@ function HumanReviewReport({ report }) {
   const markdown = typeof report?.summaryMarkdown === "string" ? report.summaryMarkdown.trim() : "";
   if (!markdown) return null;
   return (
-    <div className="scan-human-report card section">
-      <div className="section-h">
-        <h3>{T("Review report", "Review report")}</h3>
+    <section className="scan-human-report card section">
+      <div className="scan-detail-panel-head">
+        <div>
+          <span className="scan-detail-eyebrow">{T("Results", "扫描结果")}</span>
+          <h2>{T("Review report", "审查报告")}</h2>
+        </div>
       </div>
       <MarkdownReport markdown={markdown} />
-    </div>
+    </section>
   );
 }
 function quotaNumber(value, fallback = 0) {
@@ -2570,22 +2574,6 @@ function ScanDetailProgressSkeleton() {
 function ScanDetailSideSkeleton() {
   return (
     <div className="scanning-side scan-detail-skeleton-side" aria-hidden="true">
-      <div className="card scanning-counts scan-detail-skeleton-card">
-        <SkeletonLine className="sk-line sk-w-42 sk-h-10" />
-        <div className="scanning-counts-grid">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={`scan-detail-skeleton-count-${index}`}>
-              <SkeletonLine className="sk-line sk-w-35 sk-h-24" />
-              <SkeletonLine className="sk-line sk-w-55 sk-h-10" />
-            </div>
-          ))}
-        </div>
-        <SkeletonLine className="sk-line sk-w-34 sk-h-10 scan-detail-skeleton-subh" />
-        <div className="scan-preflight-meta scan-agent-meta">
-          <SkeletonLine className="sk-line sk-w-32 sk-h-22" />
-          <SkeletonLine className="sk-line sk-w-38 sk-h-22" />
-        </div>
-      </div>
       <div className="card scanning-preflight scan-detail-skeleton-card">
         <SkeletonLine className="sk-line sk-w-50 sk-h-10" />
         <SkeletonLine className="sk-line sk-w-80" />
@@ -2750,6 +2738,13 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         batchRows.length === expectedBatchCount &&
         batchRows.every(isTerminalBatchRow)
       : isTerminalScan(scan));
+  const hasResults =
+    !detailLoading &&
+    (batchMode ? scans.some((item) => scanHasResults(item)) : scanHasResults(scan));
+  const findingTotal = ["critical", "high", "medium", "low"].reduce(
+    (total, severity) => total + quotaNumber(found?.[severity]),
+    0
+  );
   const queueSummary = scanQueueSummary(scan);
   const canDownloadAuditBundle = !batchMode && scanCanDownloadAuditBundle(scan);
   const canCancel =
@@ -2859,9 +2854,21 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 : T("Scan cancelled", "扫描已取消")
               : status === "no_repo"
                 ? T("No repository selected", "未选择仓库")
+                : status === "queued"
+                  ? batchMode
+                    ? T("Scan batch queued", "批量扫描排队中")
+                    : T("Scan queued", "扫描排队中")
                 : batchMode
                   ? T("Scanning repositories", "正在扫描仓库")
                   : T("Scanning…", "扫描进行中");
+
+  const headerTone = ["done", "partial_completed"].includes(status)
+    ? "is-success"
+    : ["failed", "lost"].includes(status)
+      ? "is-danger"
+      : status === "cancelled" || status === "no_repo"
+        ? "is-neutral"
+        : "is-active";
 
   const headerIcon = detailLoading ? (
     <SkeletonLine className="sk-line sk-w-18 sk-h-18" />
@@ -2883,26 +2890,27 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         setIssue={setIssue}
         loading={detailLoading}
       />
-      <div className="main" style={{ margin: "0 auto", maxWidth: "none" }}>
+      <div className="main scan-detail-main">
         <div className="scanning scanning-wide">
           <div className="scanning-card card">
             <div className="scanning-h">
-              {headerIcon && <div className="scanning-icon">{headerIcon}</div>}
-              <div className="scanning-copy">
-                <div className="scanning-title">
-                  {detailLoading
-                    ? headerLabel
-                    : status === "queued"
-                      ? batchMode
-                        ? T("Scan batch queued", "批量扫描排队中")
-                        : T("Scan queued", "Scan queued")
-                      : headerLabel}{" "}
-                  <b>
-                    {batchMode
-                      ? T(`${expectedBatchCount} repositories`, `${expectedBatchCount} 个仓库`)
-                      : scan?.repo || repoFullName || "—"}
-                  </b>
+              {headerIcon && (
+                <div className={`scanning-icon ${headerTone}`} aria-hidden="true">
+                  {headerIcon}
                 </div>
+              )}
+              <div className="scanning-copy">
+                <div className="scanning-kicker">
+                  <span className="scan-detail-eyebrow">{T("Scan detail", "扫描详情")}</span>
+                  <span className={`scanning-state ${headerTone}`} aria-live="polite">
+                    {headerLabel}
+                  </span>
+                </div>
+                <h1 className="scanning-title">
+                  {batchMode
+                    ? T(`${expectedBatchCount} repositories`, `${expectedBatchCount} 个仓库`)
+                    : scan?.repo || repoFullName || "—"}
+                </h1>
                 <div className="scanning-sub">
                   {batchMode ? (
                     <span className="tag">
@@ -3023,11 +3031,24 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                 )}
               </div>
             </div>
+          </div>
 
-            {detailLoading ? (
-              <ScanDetailSkeleton />
-            ) : (
-              <>
+          <div className="scan-detail-primary">
+            {hasResults && humanReport ? <HumanReviewReport report={humanReport} /> : null}
+            <section className="card scan-execution-panel">
+              <div className="scan-detail-panel-head">
+                <div>
+                  <span className="scan-detail-eyebrow">{T("Execution", "执行过程")}</span>
+                  <h2>{T("Review pipeline", "审查流程")}</h2>
+                </div>
+                {!detailLoading && scanProgress?.valueLabel && (
+                  <span className="scan-detail-panel-status">{scanProgress.valueLabel}</span>
+                )}
+              </div>
+              {detailLoading ? (
+                <ScanDetailSkeleton />
+              ) : (
+                <>
                 {status === "queued" && queueSummary && (
                   <div className="scanning-queue">
                     {queueSummary.message && (
@@ -3052,39 +3073,50 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   logsSummary={scanProgressLogsSummary}
                   errorMessage={scan?.error || publicError}
                 />
-
-                {reviewRun ? <ReviewRunSummary reviewRun={reviewRun} /> : null}
-                {humanReport ? <HumanReviewReport report={humanReport} /> : null}
-              </>
-            )}
+                </>
+              )}
+            </section>
           </div>
 
           {detailLoading ? (
             <ScanDetailSideSkeleton />
           ) : (
             <div className="scanning-side">
-              <div className="card scanning-counts">
-                <div className="scanning-counts-h">{T("Live findings", "实时发现")}</div>
-                <div className="scanning-counts-grid">
-                  <div>
-                    <b style={{ color: "var(--sev-critical)" }}>{found.critical || 0}</b>
-                    <span>{T("Critical", "关键")}</span>
+              {hasResults && (
+                <div className="card scanning-counts">
+                  <div className="scan-findings-head">
+                    <div>
+                      <span className="scan-detail-eyebrow">{T("Results", "扫描结果")}</span>
+                      <h2>{T("Finding summary", "发现摘要")}</h2>
+                    </div>
+                    <div className="scan-findings-total">
+                      <b>{formatCount(findingTotal)}</b>
+                      <span>{T("total", "总计")}</span>
+                    </div>
                   </div>
-                  <div>
-                    <b style={{ color: "var(--sev-high)" }}>{found.high || 0}</b>
-                    <span>{T("High", "高")}</span>
+                  <div className="scanning-counts-grid">
+                    <div data-severity="critical">
+                      <b>{found.critical || 0}</b>
+                      <span>{T("Critical", "关键")}</span>
+                    </div>
+                    <div data-severity="high">
+                      <b>{found.high || 0}</b>
+                      <span>{T("High", "高")}</span>
+                    </div>
+                    <div data-severity="medium">
+                      <b>{found.medium || 0}</b>
+                      <span>{T("Medium", "中")}</span>
+                    </div>
+                    <div data-severity="low">
+                      <b>{found.low || 0}</b>
+                      <span>{T("Low", "低")}</span>
+                    </div>
                   </div>
-                  <div>
-                    <b style={{ color: "var(--sev-medium)" }}>{found.medium || 0}</b>
-                    <span>{T("Medium", "中")}</span>
-                  </div>
-                  <div>
-                    <b style={{ color: "var(--sev-low)" }}>{found.low || 0}</b>
-                    <span>{T("Low", "低")}</span>
-                  </div>
+                  <ScanAgentUsageSlot tags={aiUsageTags} />
                 </div>
-                <ScanAgentUsageSlot tags={aiUsageTags} />
-              </div>
+              )}
+
+              {reviewRun ? <ReviewRunSummary reviewRun={reviewRun} /> : null}
 
               {showPreflight && (
                 <div className="card scanning-preflight">
@@ -3193,7 +3225,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
               )}
 
               <div className="card scanning-log">
-                <div className="scanning-counts-h">{T("Live log", "实时日志")}</div>
+                <div className="scanning-counts-h">
+                  {terminal ? T("Run log", "运行日志") : T("Live log", "实时日志")}
+                </div>
                 <div className="scanning-log-body">
                   {liveLogLines.length === 0 ? (
                     <ScanLogSkeletonLines />
