@@ -49,8 +49,6 @@ beforeEach(() => {
   clearPullwiseDataCache();
 });
 
-describe("normalizeScan", () => {});
-
 describe("useRepositories", () => {
   beforeEach(() => {
     pullwiseApi.repositories.list.mockReset();
