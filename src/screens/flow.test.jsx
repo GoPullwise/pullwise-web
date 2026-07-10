@@ -1052,7 +1052,7 @@ describe("ScanningScreen queue state", () => {
     expect(darkNodeBlock).not.toMatch(/radial-gradient/);
   });
 
-  it("hides empty scan detail evidence and agent panels after metadata loads", () => {
+  it("hides result-only panels while a scan is still running", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_running",
@@ -1092,7 +1092,7 @@ describe("ScanningScreen queue state", () => {
       />
     );
 
-    expect(screen.getByText("Live findings")).toBeInTheDocument();
+    expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
     expect(screen.queryByText("Review agent")).not.toBeInTheDocument();
     expect(screen.queryByText("Preflight evidence")).not.toBeInTheDocument();
     expect(container.querySelector(".scan-panel-loading")).not.toBeInTheDocument();
