@@ -1035,6 +1035,9 @@ describe("ScanningScreen queue state", () => {
     );
     expect(styles).toMatch(/\.scanning-counts-grid\s*\{[^}]*gap:\s*0;/s);
     expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
+    expect(styles).toMatch(
+      /@media \(max-width: 900px\)\s*\{[\s\S]*?\.scanning,\s*\.scanning\.scanning-wide\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s
+    );
   });
 
   it("keeps scan progress flow nodes flat with tuned dark-mode colors", () => {

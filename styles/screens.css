@@ -5954,8 +5954,30 @@
 }
 
 @media (max-width: 900px) {
-  .scanning {
+  .scanning,
+  .scanning.scanning-wide {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .scanning-side {
+    display: contents;
+  }
+  .scanning-card {
+    order: 0;
+  }
+  .scanning-counts {
+    order: 1;
+  }
+  .scan-detail-primary {
+    order: 2;
+  }
+  .review-run-card {
+    order: 3;
+  }
+  .scanning-preflight {
+    order: 4;
+  }
+  .scanning-log {
+    order: 5;
   }
   .scanning-h {
     align-items: flex-start;
