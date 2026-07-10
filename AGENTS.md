@@ -127,6 +127,10 @@ recreate the current Codex worker phase list in web code, do not assume 30
 steps, and do not map legacy phase aliases into a synthetic full flow. If older
 payloads lack `progressSteps`, show only the currently reported phase/log data
 rather than filling in a guessed pipeline.
+Keep the scan detail flow as an accessible horizontal list: nodes use worker-reported
+status and `percent`, expose per-node progressbars, and connectors distinguish
+completed, active, and pending transitions. Preserve active-node auto-centering and
+pan/zoom behavior on narrow screens when changing the flow layout.
 Worker readiness and status views may receive server-sanitized Codex app-server
 quota telemetry (`codexQuota` / `codex_quota`). Preserve that data when changing
 worker status or scan eligibility displays so users can distinguish an idle

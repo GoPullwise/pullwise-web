@@ -1042,6 +1042,9 @@ describe("ScanningScreen queue state", () => {
 
     expect(flowBlock).toBeTruthy();
     expect(flowBlock).not.toMatch(/box-shadow\s*:/);
+    expect(flowBlock).not.toMatch(/radial-gradient/);
+    expect(flowBlock).toMatch(/\.scanning-phase\s*\{[^}]*border-radius:\s*0;/s);
+    expect(flowBlock).toMatch(/\.scanning-flow-edge\.active\s*\{/);
     expect(darkNodeBlock).toBeTruthy();
     expect(darkNodeBlock).toMatch(
       /--phase-surface:\s*color-mix\(in oklch, var\(--bg-elev\) 90%, var\(--phase-accent\) 10%\);/
