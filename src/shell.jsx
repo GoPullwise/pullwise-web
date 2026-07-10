@@ -92,9 +92,10 @@ function SearchModal({ close, go, setIssue }) {
   const [q, setQ] = React.useState("");
   const dialogRef = React.useRef(null);
   const inputRef = React.useRef(null);
-  const { items: issues } = useIssues();
-  const { items: repos } = useRepositories();
-  const query = q.trim().toLowerCase();
+  const searchQuery = q.trim();
+  const { items: issues } = useIssues({ q: searchQuery, limit: 5, refreshOnChange: false });
+  const { items: repos } = useRepositories({ q: searchQuery, limit: 4 });
+  const query = searchQuery.toLowerCase();
   const issueResults = issues
     .filter(
       (issue) =>

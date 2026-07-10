@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -55,6 +55,20 @@ describe("Topbar navigation", () => {
     const dialog = screen.getByRole("dialog", { name: /^search$/i });
     expect(dialog).toHaveAttribute("aria-modal", "true");
     expect(screen.getByRole("textbox", { name: /^search$/i })).toBeInTheDocument();
+  });
+
+  it("sends the typed global search query to the server-backed hooks", async () => {
+    const user = userEvent.setup();
+
+    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
+
+    await user.click(screen.getByRole("button", { name: /^search$/i }));
+    await user.type(screen.getByRole("textbox", { name: /^search$/i }), "needle");
+
+    await waitFor(() => {
+      expect(useIssues).toHaveBeenLastCalledWith({ q: "needle", limit: 5, refreshOnChange: false });
+      expect(useRepositories).toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
+    });
   });
 
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {

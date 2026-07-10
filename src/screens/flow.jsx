@@ -86,13 +86,19 @@ function formatBytes(value) {
 
 function reviewRunArtifactHref(storage) {
   const url = typeof storage?.url === "string" ? storage.url.trim() : "";
-  if (!url) return "";
-  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) {
-    return /^https?:/i.test(url) ? url : "";
+  if (!url || url.includes("\\") || url.includes("\x00") || /[\r\n]/.test(url)) return "";
+  if (/^https?:/i.test(url)) {
+    try {
+      const parsed = new URL(url);
+      return parsed.hostname ? url : "";
+    } catch {
+      return "";
+    }
   }
+  if (!url.startsWith("/") || url.startsWith("//")) return "";
   const base =
     typeof env.VITE_API_BASE_URL === "string" ? env.VITE_API_BASE_URL.replace(/\/$/, "") : "";
-  return `${base}/${url.replace(/^\/+/, "")}`;
+  return `${base}${url}`;
 }
 
 function reviewRunDebugBundleArtifact(artifacts) {

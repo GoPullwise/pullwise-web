@@ -93,7 +93,7 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/disabled \(not enabled\)/i)).toBeInTheDocument();
     expect(screen.getByText(/1000 global queued/i)).toBeInTheDocument();
     expect(screen.getByText(/Repo checkout 2,000 files \/ 50 MB/i)).toBeInTheDocument();
-    expect(screen.getByText(/Rate limiting enabled/i)).toBeInTheDocument();
+    expect(screen.getByText(/Public REST API.*rate limiting enabled/i)).toBeInTheDocument();
     expect(screen.queryByText(/\.pullwise\/pullwise\.sqlite3/i)).not.toBeInTheDocument();
   });
 

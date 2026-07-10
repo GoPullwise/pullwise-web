@@ -1631,6 +1631,45 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByRole("link", { name: /debug bundle/i })).not.toBeInTheDocument();
   });
 
+  it("does not render a debug bundle action for a backslash-prefixed artifact URL", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        reviewRun: {
+          artifacts: [
+            {
+              kind: "debug_bundle",
+              name: "debug-bundle.zip",
+              storage: { url: "\\\\evil.example/debug-bundle.zip" },
+            },
+          ],
+        },
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.queryByRole("link", { name: /debug bundle/i })).not.toBeInTheDocument();
+  });
+
   it("shows the worker human report when a completed scan has no generated report", () => {
     useScanRun.mockReturnValue({
       scan: {

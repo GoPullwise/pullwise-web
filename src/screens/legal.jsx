@@ -677,7 +677,7 @@ export function StatusScreen({ go, auth }) {
           `全局排队上限 ${limits.maxQueuedScansGlobal ?? "-"}`
         ),
         repositoryLimitDetail(limits),
-        `${T("Rate limiting", "限流")} ${limits.rateLimitEnabled ? T("enabled", "已启用") : T("disabled", "未启用")}`,
+        `${T("Public REST API rate limiting", "公共 REST API 限流")} ${limits.rateLimitEnabled ? T("enabled", "已启用") : T("disabled", "未启用")}`,
       ].filter(Boolean).join(" - ")
     : "";
   const databaseDetail = health?.database?.type
