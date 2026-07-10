@@ -1021,6 +1021,8 @@ describe("ScanningScreen queue state", () => {
     expect(container.querySelector(".scan-detail-skeleton-side")).toBeInTheDocument();
     expect(screen.queryByText("Live findings")).not.toBeInTheDocument();
     expect(screen.queryByText("Finding summary")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /back/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 

@@ -2969,72 +2969,74 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                     />
                   ))}
               </div>
-              <div className="scanning-actions">
-                <button className="btn ghost" onClick={handleBack}>
-                  <I.ArrowL size={13} /> {T("Back", "返回")}
-                </button>
-                {canCancel && (
-                  <>
-                    <span className="scanning-actions-sep" aria-hidden="true" />
-                    <button className="btn ghost" disabled={canceling} onClick={handleCancel}>
-                      <I.X size={13} /> {T("Cancel", "取消")}
-                    </button>
-                  </>
-                )}
-                {terminal && (
-                  <>
-                    {!batchMode && agentFixPrompt && (
-                      <>
-                        <span className="scanning-actions-sep" aria-hidden="true" />
-                        <button
-                          className="btn ghost"
-                          type="button"
-                          onClick={handleCopyAgentFixPrompt}
-                          disabled={agentPromptLoading}
-                          aria-live="polite"
-                        >
-                          {agentPromptCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
-                          {agentPromptLoading
-                            ? T("Preparing...", "Preparing...")
-                            : agentPromptCopied
-                              ? T("Copied", "Copied")
-                              : T("Use agent to fix", "Use agent to fix")}
-                        </button>
-                      </>
-                    )}
-                    {!batchMode && (
-                      <>
-                        <span className="scanning-actions-sep" aria-hidden="true" />
-                        {debugBundleHref && (
-                          <>
-                            <a
-                              className="btn ghost"
-                              href={debugBundleHref}
-                              target="_blank"
-                              rel="noreferrer"
-                              download="debug-bundle.zip"
-                            >
-                              <I.Archive size={13} /> {T("Debug bundle", "Debug bundle")}
-                            </a>
-                            <span className="scanning-actions-sep" aria-hidden="true" />
-                          </>
-                        )}
-                        <button
-                          className="btn primary"
-                          type="button"
-                          disabled={!canDownloadAuditBundle || bundleLoading}
-                          onClick={handleDownloadBundle}
-                        >
-                          <I.Download size={13} />{" "}
-                          {bundleLoading
-                            ? T("Preparing...", "准备中...")
-                            : T("Audit bundle", "审计包")}
-                        </button>
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
+              {!detailLoading && (
+                <div className="scanning-actions">
+                  <button className="btn ghost" onClick={handleBack}>
+                    <I.ArrowL size={13} /> {T("Back", "返回")}
+                  </button>
+                  {canCancel && (
+                    <>
+                      <span className="scanning-actions-sep" aria-hidden="true" />
+                      <button className="btn ghost" disabled={canceling} onClick={handleCancel}>
+                        <I.X size={13} /> {T("Cancel", "取消")}
+                      </button>
+                    </>
+                  )}
+                  {terminal && (
+                    <>
+                      {!batchMode && agentFixPrompt && (
+                        <>
+                          <span className="scanning-actions-sep" aria-hidden="true" />
+                          <button
+                            className="btn ghost"
+                            type="button"
+                            onClick={handleCopyAgentFixPrompt}
+                            disabled={agentPromptLoading}
+                            aria-live="polite"
+                          >
+                            {agentPromptCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
+                            {agentPromptLoading
+                              ? T("Preparing...", "Preparing...")
+                              : agentPromptCopied
+                                ? T("Copied", "Copied")
+                                : T("Use agent to fix", "Use agent to fix")}
+                          </button>
+                        </>
+                      )}
+                      {!batchMode && (
+                        <>
+                          <span className="scanning-actions-sep" aria-hidden="true" />
+                          {debugBundleHref && (
+                            <>
+                              <a
+                                className="btn ghost"
+                                href={debugBundleHref}
+                                target="_blank"
+                                rel="noreferrer"
+                                download="debug-bundle.zip"
+                              >
+                                <I.Archive size={13} /> {T("Debug bundle", "Debug bundle")}
+                              </a>
+                              <span className="scanning-actions-sep" aria-hidden="true" />
+                            </>
+                          )}
+                          <button
+                            className="btn primary"
+                            type="button"
+                            disabled={!canDownloadAuditBundle || bundleLoading}
+                            onClick={handleDownloadBundle}
+                          >
+                            <I.Download size={13} />{" "}
+                            {bundleLoading
+                              ? T("Preparing...", "准备中...")
+                              : T("Audit bundle", "审计包")}
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
