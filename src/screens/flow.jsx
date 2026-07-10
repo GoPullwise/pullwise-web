@@ -2231,6 +2231,12 @@ function scanStepErrorMessage(step, currentPhase, errorMessage) {
   return "";
 }
 
+function scanFlowStepPercent(step, isDone) {
+  const value = Number(step?.percent);
+  if (!Number.isFinite(value)) return isDone ? 100 : 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
 function ScanProgressFlow({
   steps,
   currentPhase,
@@ -2377,6 +2383,7 @@ function ScanProgressFlow({
         <div
           ref={trackRef}
           className="scanning-phases scanning-flow-track"
+          role="list"
           style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
         >
           {steps.map((p, i) => {
@@ -2389,6 +2396,8 @@ function ScanProgressFlow({
             const isOn = !terminal && (stepStatus === "running" || (phaseIdx === i && !isDone));
             const stepError = scanStepErrorMessage(p, currentPhase, errorMessage);
             const isFailed = stepStatus === "failed";
+            const stepPercent = scanFlowStepPercent(p, isDone);
+            const showStepPercent = isOn || isFailed || isCancelled || isPartial || Boolean(stepError);
             const cls = [
               "scanning-phase",
               isDone ? "done" : "",
@@ -2402,14 +2411,21 @@ function ScanProgressFlow({
               .join(" ");
             const bullet = isDone ? (
               <I.Check size={11} />
-            ) : isFailed || isCancelled || isPartial || stepError ? (
+            ) : isFailed || stepError ? (
               <I.X size={11} />
+            ) : isCancelled ? (
+              <I.Minus size={11} />
+            ) : isPartial ? (
+              <I.Activity size={11} />
             ) : isOn ? (
               <span className="pulse scanning-flow-pulse" />
             ) : (
               i + 1
             );
             const label = p.label || workerPhaseLabel(p.id);
+            const stepPosition = `${String(i + 1).padStart(2, "0")} / ${String(
+              steps.length
+            ).padStart(2, "0")}`;
             const detail =
               p.id === currentPhase && progressMessage ? progressMessage : p.description || "";
             const statusLabel = isFailed
@@ -2427,7 +2443,7 @@ function ScanProgressFlow({
                         : T("Queued", "Queued");
             const key = p.id || `${label}-${i}`;
             return (
-              <div className="scanning-flow-step" key={key}>
+              <div className="scanning-flow-step" key={key} role="listitem">
                 <div
                   className={cls}
                   data-phase-id={p.id || key}
@@ -2438,11 +2454,10 @@ function ScanProgressFlow({
                   <div className="scanning-phase-bullet">{bullet}</div>
                   <div className="scanning-phase-body">
                     <div className="scanning-phase-top">
-                      <div className="scanning-phase-t">{label}</div>
-                      <div className="scanning-phase-kpis">
-                        <span className="scanning-phase-status">{statusLabel}</span>
-                      </div>
+                      <span className="scanning-phase-index">{stepPosition}</span>
+                      <span className="scanning-phase-status">{statusLabel}</span>
                     </div>
+                    <div className="scanning-phase-t">{label}</div>
                     <div className="scanning-phase-d">{detail}</div>
                     {p.id === currentPhase && logsSummary && (
                       <div className="scanning-phase-meta">{logsSummary}</div>
@@ -2453,11 +2468,31 @@ function ScanProgressFlow({
                         <span>{stepError}</span>
                       </div>
                     )}
+                    <div
+                      className="scanning-phase-progress"
+                      role="progressbar"
+                      aria-label={T(`${label} progress`, `${label} progress`)}
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-valuenow={stepPercent}
+                    >
+                      <span className="scanning-phase-progress-track" aria-hidden="true">
+                        <span
+                          className="scanning-phase-progress-fill"
+                          style={{ width: `${stepPercent}%` }}
+                        />
+                      </span>
+                      {showStepPercent && (
+                        <span className="scanning-phase-percent">{stepPercent}%</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {i < steps.length - 1 && (
                   <div
-                    className={"scanning-flow-edge" + (isDone ? " done" : "")}
+                    className={
+                      "scanning-flow-edge" + (isDone ? " done" : isOn ? " active" : "")
+                    }
                     aria-hidden="true"
                   >
                     <span />
@@ -2500,11 +2535,13 @@ function ScanDetailSkeleton() {
                 </div>
                 <div className="scanning-phase-body">
                   <div className="scanning-phase-top">
-                    <SkeletonLine className={`sk-line ${titleWidth} sk-h-16`} />
+                    <SkeletonLine className="sk-line sk-w-20 sk-h-10" />
                     <SkeletonLine className="sk-line sk-w-12 sk-h-20" />
                   </div>
+                  <SkeletonLine className={`sk-line ${titleWidth} sk-h-16`} />
                   <SkeletonLine className={`sk-line ${detailWidth}`} />
                   {index === 1 && <SkeletonLine className="sk-line sk-w-50" />}
+                  <SkeletonLine className="sk-line sk-w-100 sk-h-10" />
                 </div>
               </div>
               {index < rows.length - 1 && (
