@@ -1325,8 +1325,16 @@
   border: 1px solid var(--border);
   background-color: color-mix(in oklch, var(--bg-soft) 92%, var(--bg) 8%);
   background-image:
-    linear-gradient(to right, color-mix(in oklch, var(--border) 58%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklch, var(--border) 46%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--border) 58%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--border) 46%, transparent) 1px,
+      transparent 1px
+    );
   background-position: -1px -1px;
   background-size: 24px 24px;
   cursor: grab;
@@ -1630,8 +1638,16 @@
   border-color: color-mix(in oklch, var(--border-strong) 74%, transparent);
   background-color: color-mix(in oklch, var(--bg-soft) 92%, var(--bg) 8%);
   background-image:
-    linear-gradient(to right, color-mix(in oklch, var(--border-strong) 48%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklch, var(--border-strong) 38%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--border-strong) 48%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--border-strong) 38%, transparent) 1px,
+      transparent 1px
+    );
 }
 [data-theme="dark"] .scanning-phase {
   --phase-accent-line: color-mix(in oklch, var(--phase-accent) 34%, rgba(255, 255, 255, 0.16));

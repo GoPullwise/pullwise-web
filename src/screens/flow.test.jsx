@@ -371,7 +371,7 @@ describe("ReposScreen scan selection", () => {
     expect(appStyles).toMatch(
       /\.repo-meta \.repo-branch-placeholder\s*{[^}]*visibility:\s*hidden;/
     );
-    expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-size:\s*18px;/s);
+    expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-size:\s*16px;/s);
     expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-weight:\s*650;/s);
   });
 
@@ -1039,9 +1039,8 @@ describe("ScanningScreen queue state", () => {
 
   it("keeps scan progress flow nodes flat with tuned dark-mode colors", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
-    const flowBlock = styles.match(
-      /\.scanning-flow\s*\{(?<body>[\s\S]*?)\n\.scanning-side\s*\{/s
-    )?.groups?.body;
+    const flowBlock = styles.match(/\.scanning-flow\s*\{(?<body>[\s\S]*?)\n\.scanning-side\s*\{/s)
+      ?.groups?.body;
     const darkNodeBlock = styles.match(
       /\[data-theme="dark"\] \.scanning-phase\s*\{(?<body>[^}]*)\}/s
     )?.groups?.body;
@@ -1573,7 +1572,9 @@ describe("ScanningScreen queue state", () => {
     expect(document.querySelector(".scan-human-report pre")).not.toBeInTheDocument();
     const report = document.querySelector(".scan-human-report");
     const execution = document.querySelector(".scan-execution-panel");
-    expect(report.compareDocumentPosition(execution) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      report.compareDocumentPosition(execution) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   });
   it("shows preflight evidence for a completed scan", () => {
     useScanRun.mockReturnValue({

@@ -113,7 +113,9 @@ function reviewRunDebugBundleHref(reviewRun) {
 }
 
 function scanDebugBundleHref(scan, reviewRun) {
-  return reviewRunDebugBundleHref(reviewRun) || reviewRunArtifactHref({ url: scan?.debugBundleUrl });
+  return (
+    reviewRunDebugBundleHref(reviewRun) || reviewRunArtifactHref({ url: scan?.debugBundleUrl })
+  );
 }
 
 function reviewRunStatusLabel(status) {
@@ -282,7 +284,8 @@ function effectiveApiDownloadBase() {
   if (/^[a-z][a-z0-9+.-]*:/i.test(configuredApiBase)) {
     return configuredApiBase.replace(/\/$/, "");
   }
-  const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+  const origin =
+    typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
   if (origin) return origin;
   return "https://api.pull-wise.com";
 }
@@ -2401,7 +2404,8 @@ function ScanProgressFlow({
             const stepError = scanStepErrorMessage(p, currentPhase, errorMessage);
             const isFailed = stepStatus === "failed";
             const stepPercent = scanFlowStepPercent(p, isDone);
-            const showStepPercent = isOn || isFailed || isCancelled || isPartial || Boolean(stepError);
+            const showStepPercent =
+              isOn || isFailed || isCancelled || isPartial || Boolean(stepError);
             const cls = [
               "scanning-phase",
               isDone ? "done" : "",
@@ -2494,9 +2498,7 @@ function ScanProgressFlow({
                 </div>
                 {i < steps.length - 1 && (
                   <div
-                    className={
-                      "scanning-flow-edge" + (isDone ? " done" : isOn ? " active" : "")
-                    }
+                    className={"scanning-flow-edge" + (isDone ? " done" : isOn ? " active" : "")}
                     aria-hidden="true"
                   >
                     <span />
@@ -2781,9 +2783,12 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       const bundle = await pullwiseApi.scans.auditBundleArchive(targetScanId);
       downloadBlob(`pullwise-audit-${targetScanId}.zip`, bundle, "application/zip");
     } catch (error) {
-      notify.error(error?.message || T("Unable to download audit bundle.", "Unable to download audit bundle."), {
-        title: T("Download failed", "Download failed"),
-      });
+      notify.error(
+        error?.message || T("Unable to download audit bundle.", "Unable to download audit bundle."),
+        {
+          title: T("Download failed", "Download failed"),
+        }
+      );
     } finally {
       setBundleLoading(false);
     }
@@ -2858,9 +2863,9 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   ? batchMode
                     ? T("Scan batch queued", "批量扫描排队中")
                     : T("Scan queued", "扫描排队中")
-                : batchMode
-                  ? T("Scanning repositories", "正在扫描仓库")
-                  : T("Scanning…", "扫描进行中");
+                  : batchMode
+                    ? T("Scanning repositories", "正在扫描仓库")
+                    : T("Scanning…", "扫描进行中");
 
   const headerTone = ["done", "partial_completed"].includes(status)
     ? "is-success"
@@ -3041,38 +3046,40 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                   <span className="scan-detail-eyebrow">{T("Execution", "执行过程")}</span>
                   <h2>{T("Review pipeline", "审查流程")}</h2>
                 </div>
-                {!detailLoading && scanProgress?.valueLabel && (
-                  <span className="scan-detail-panel-status">{scanProgress.valueLabel}</span>
+                {!detailLoading && typeof scanProgress?.progress === "number" && (
+                  <span className="scan-detail-panel-status">
+                    {Math.round(scanProgress.progress)}%
+                  </span>
                 )}
               </div>
               {detailLoading ? (
                 <ScanDetailSkeleton />
               ) : (
                 <>
-                {status === "queued" && queueSummary && (
-                  <div className="scanning-queue">
-                    {queueSummary.message && (
-                      <div className="scanning-queue-message">{queueSummary.message}</div>
-                    )}
-                    <div className="scanning-queue-meta">
-                      {queueSummary.tags.map((tag) => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
+                  {status === "queued" && queueSummary && (
+                    <div className="scanning-queue">
+                      {queueSummary.message && (
+                        <div className="scanning-queue-message">{queueSummary.message}</div>
+                      )}
+                      <div className="scanning-queue-meta">
+                        {queueSummary.tags.map((tag) => (
+                          <span key={tag} className="tag">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <ScanProgressFlow
-                  steps={scanPhases}
-                  currentPhase={currentPhase}
-                  phaseIdx={phaseIdx}
-                  terminal={terminal}
-                  progressMessage={scanProgressMessage}
-                  logsSummary={scanProgressLogsSummary}
-                  errorMessage={scan?.error || publicError}
-                />
+                  <ScanProgressFlow
+                    steps={scanPhases}
+                    currentPhase={currentPhase}
+                    phaseIdx={phaseIdx}
+                    terminal={terminal}
+                    progressMessage={scanProgressMessage}
+                    logsSummary={scanProgressLogsSummary}
+                    errorMessage={scan?.error || publicError}
+                  />
                 </>
               )}
             </section>
