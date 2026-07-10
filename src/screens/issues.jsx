@@ -1054,7 +1054,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
               <div className="divider" />
               <button className="btn sm" onClick={copyPage} aria-live="polite">
                 {pageCopied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
-                {pageCopied ? T("Copied", "\u5df2\u590d\u5236") : T("Copy Page", "????")}
+                {pageCopied ? T("Copied", "\u5df2\u590d\u5236") : T("Copy Page", "复制页面")}
               </button>
               <div className="divider" />
               {currentStatus === "open" ? (

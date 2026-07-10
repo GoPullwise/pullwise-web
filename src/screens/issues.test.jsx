@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { HistoryScreen, IssueDetailScreen, IssuesScreen } from "./issues.jsx";
 import { NotificationProvider } from "../components/notifications.jsx";
+import { setLang } from "../i18n.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -1660,6 +1661,30 @@ describe("HistoryScreen queue state", () => {
 });
 
 describe("IssueDetailScreen review detail", () => {
+  it("renders the Copy Page action in Chinese", () => {
+    act(() => setLang("zh"));
+    try {
+      render(
+        <IssueDetailScreen
+          go={vi.fn()}
+          issue={{
+            id: "f_123",
+            repo: "acme/api",
+            severity: "high",
+            category: "Security",
+            title: "Validate redirect targets",
+            status: "open",
+          }}
+        />
+      );
+
+      expect(screen.getByRole("button", { name: "复制页面" })).toBeInTheDocument();
+      expect(screen.queryByText("????")).not.toBeInTheDocument();
+    } finally {
+      act(() => setLang("en"));
+    }
+  });
+
   it("keeps clickable breadcrumbs vertically centered in the topbar", () => {
     const css = baseStyles();
     const crumbBlock =
