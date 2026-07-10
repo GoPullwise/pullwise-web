@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -68,6 +69,14 @@ describe("public navigation links", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps the public-page frame on one shared horizontal baseline", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+
+    expect(styles).toMatch(/\.lp-top\s*{[^}]*max-width:\s*1240px;/s);
+    expect(styles).toMatch(/\.lp-hero\s*{[^}]*max-width:\s*1240px;/s);
+    expect(styles).toMatch(/\.lp-preview\s*{[^}]*max-width:\s*1240px;/s);
+    expect(styles).toMatch(/\.lp-foot\s*{[^}]*max-width:\s*1240px;[^}]*padding:\s*28px 40px;/s);
+  });
   it("opens landing footer legal pages from real links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();

@@ -93,6 +93,14 @@ describe("BillingScreen", () => {
     expect(document.body).not.toHaveTextContent("Configured in provider");
   });
 
+  it("keeps the Pricing heading centered independently from the landing hero", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+
+    expect(styles).toMatch(
+      /\.pricing-hero\s*>\s*\.lp-title\s*{[^}]*margin:\s*0 auto 18px;[^}]*text-align:\s*center;/s
+    );
+    expect(styles).toMatch(/\.lp-hero\s*>\s*\.lp-title\s*{[^}]*grid-column:\s*1;/s);
+  });
   it("shows the topbar loading spinner only while billing data is loading", async () => {
     let resolvePlan;
     pullwiseApi.billing.getPlan.mockReturnValue(
