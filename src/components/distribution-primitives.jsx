@@ -149,6 +149,31 @@ export function Donut({
   );
 }
 
+function DistributionLegendItem({ bucket, active, onBucketClick, title, children }) {
+  if (!onBucketClick) {
+    return (
+      <li className="disto-legend-i" title={title}>
+        {children}
+      </li>
+    );
+  }
+  return (
+    <li>
+      <button
+        type="button"
+        className={
+          "disto-legend-i disto-legend-click" + (active ? " disto-legend-active" : "")
+        }
+        onClick={() => onBucketClick(bucket.key)}
+        aria-pressed={active}
+        title={title}
+      >
+        {children}
+      </button>
+    </li>
+  );
+}
+
 // A single distribution card: header + (stacked bar | donut) + legend.
 export function DistributionCard({
   title,
@@ -194,22 +219,16 @@ export function DistributionCard({
               const value = safeCount(counts[bucket.key]);
               const active = activeKey === bucket.key;
               return (
-                <li key={bucket.key}>
-                  <button
-                    type="button"
-                    className={
-                      "disto-legend-i disto-legend-click" +
-                      (active ? " disto-legend-active" : "")
-                    }
-                    onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
-                    disabled={!onBucketClick}
-                    aria-pressed={onBucketClick ? active : undefined}
-                  >
-                    <span className="disto-legend-dot" style={{ background: bucket.color }} />
-                    <span className="disto-legend-l">{bucket.label || bucket.key}</span>
-                    <b>{value}</b>
-                  </button>
-                </li>
+                <DistributionLegendItem
+                  key={bucket.key}
+                  bucket={bucket}
+                  active={active}
+                  onBucketClick={onBucketClick}
+                >
+                  <span className="disto-legend-dot" style={{ background: bucket.color }} />
+                  <span className="disto-legend-l">{bucket.label || bucket.key}</span>
+                  <b>{value}</b>
+                </DistributionLegendItem>
               );
             })}
           </ul>
@@ -224,26 +243,20 @@ export function DistributionCard({
             const pct = total > 0 ? Math.round((value / total) * 100) : 0;
             const active = activeKey === bucket.key;
             return (
-              <li key={bucket.key}>
-                <button
-                  type="button"
-                  className={
-                    "disto-legend-i disto-legend-click" +
-                    (active ? " disto-legend-active" : "")
-                  }
-                  onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
-                  disabled={!onBucketClick}
-                  aria-pressed={onBucketClick ? active : undefined}
-                  title={T(
+              <DistributionLegendItem
+                key={bucket.key}
+                bucket={bucket}
+                active={active}
+                onBucketClick={onBucketClick}
+                title={T(
                     `${value} ${bucket.label || bucket.key} (${pct}%)`,
                     `${value} ${bucket.label || bucket.key}（${pct}%）`
                   )}
-                >
-                  <span className="disto-legend-dot" style={{ background: bucket.color }} />
-                  <span className="disto-legend-l">{bucket.label || bucket.key}</span>
-                  <span className="disto-legend-pct">{pct}%</span>
-                </button>
-              </li>
+              >
+                <span className="disto-legend-dot" style={{ background: bucket.color }} />
+                <span className="disto-legend-l">{bucket.label || bucket.key}</span>
+                <span className="disto-legend-pct">{pct}%</span>
+              </DistributionLegendItem>
             );
           })}
         </ul>

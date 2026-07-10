@@ -27,4 +27,17 @@ describe("DistributionCard", () => {
 
     expect(onBucketClick).toHaveBeenCalledWith("high");
   });
+
+  it("keeps display-only buckets as plain list items", () => {
+    render(
+      <DistributionCard
+        title="Severity"
+        counts={{ high: 2 }}
+        buckets={[{ key: "high", label: "High", color: "red" }]}
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: /high/i })).not.toBeInTheDocument();
+    expect(screen.getByText("High").closest("li")).toBeInTheDocument();
+  });
 });
