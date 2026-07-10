@@ -569,6 +569,7 @@ export function BillingScreen({
   const [pendingAction, setPendingAction] = useState("");
   const [changeDraft, setChangeDraft] = useState(null);
   const [usageExpanded, setUsageExpanded] = useState(false);
+  const billingMutationRef = useRef("");
 
   const refreshBillingPlan = useCallback(async () => {
     const payload = await pullwiseApi.billing.getPlan();
@@ -675,6 +676,8 @@ export function BillingScreen({
       return;
     }
     const actionKey = subscriptionChangeActionKey(targetPlan, targetInterval);
+    if (billingMutationRef.current) return;
+    billingMutationRef.current = actionKey;
     setPendingAction(actionKey);
     setError("");
     try {
@@ -714,10 +717,11 @@ export function BillingScreen({
       }));
       await refreshBillingPlan();
       setChangeDraft(null);
-      setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to change subscription.");
-      setPendingAction("");
+    } finally {
+      if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
+      setPendingAction((current) => (current === actionKey ? "" : current));
     }
   };
 
@@ -753,7 +757,10 @@ export function BillingScreen({
   };
 
   const cancelSubscription = async () => {
-    setPendingAction("cancel");
+    const actionKey = "cancel";
+    if (billingMutationRef.current) return;
+    billingMutationRef.current = actionKey;
+    setPendingAction(actionKey);
     setError("");
     try {
       const result = await pullwiseApi.billing.cancelSubscription({
@@ -769,15 +776,19 @@ export function BillingScreen({
         },
       }));
       await refreshBillingPlan();
-      setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to cancel subscription.");
-      setPendingAction("");
+    } finally {
+      if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
+      setPendingAction((current) => (current === actionKey ? "" : current));
     }
   };
 
   const resumeSubscription = async () => {
-    setPendingAction("resume");
+    const actionKey = "resume";
+    if (billingMutationRef.current) return;
+    billingMutationRef.current = actionKey;
+    setPendingAction(actionKey);
     setError("");
     try {
       const result = await pullwiseApi.billing.resumeSubscription({
@@ -807,10 +818,11 @@ export function BillingScreen({
         },
       }));
       await refreshBillingPlan();
-      setPendingAction("");
     } catch (err) {
       setError(err?.message || "Unable to resume subscription.");
-      setPendingAction("");
+    } finally {
+      if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
+      setPendingAction((current) => (current === actionKey ? "" : current));
     }
   };
 
@@ -1285,7 +1297,6 @@ export function PricingScreen({
   }, []);
 
   const invalidateCheckoutRequest = useCallback(() => {
-    checkoutPendingRef.current = true;
     checkoutRequestRef.current += 1;
     abortCheckoutRequest();
     clearCheckoutTimeout();

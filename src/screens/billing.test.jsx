@@ -301,6 +301,29 @@ describe("BillingScreen", () => {
     expect(checkoutOptions.signal.aborted).toBe(true);
   });
 
+  it("starts another checkout after browser-history recovery", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockImplementation(() => new Promise(() => {}));
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    fireEvent.click(proButton);
+    expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(1);
+
+    const pageShow = new Event("pageshow");
+    Object.defineProperty(pageShow, "persisted", { value: true });
+    act(() => window.dispatchEvent(pageShow));
+
+    await waitFor(() => expect(proButton).toBeEnabled());
+    fireEvent.click(proButton);
+
+    expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(2);
+  });
+
   it("aborts a pending pricing checkout when unmounted", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -370,6 +393,34 @@ describe("BillingScreen", () => {
       });
 
       expect(navigate).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("starts another checkout after timeout recovery", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      checkoutTimeoutMs: 1000,
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockImplementation(() => new Promise(() => {}));
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(proButton);
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(1);
+
+      await act(async () => vi.advanceTimersByTimeAsync(1000));
+
+      expect(screen.getByRole("alert")).toHaveTextContent(/taking longer/i);
+      expect(proButton).toBeEnabled();
+      fireEvent.click(proButton);
+
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
     }
@@ -900,6 +951,32 @@ describe("BillingScreen", () => {
     expect(screen.queryByRole("button", { name: /manage billing/i })).not.toBeInTheDocument();
   });
 
+  it("coalesces same-frame subscription change confirmations", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockImplementation(
+      () => new Promise(() => {})
+    );
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+    const confirm = await screen.findByRole("button", { name: /confirm change/i });
+    act(() => {
+      confirm.click();
+      confirm.click();
+    });
+
+    expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledTimes(1);
+  });
+
   it("asks active Pro subscribers to confirm Max switching before changing billing", async () => {
     const maxPlan = {
       id: "max",
@@ -1124,6 +1201,29 @@ describe("BillingScreen", () => {
     expect(screen.queryByRole("button", { name: /cancel renewal/i })).not.toBeInTheDocument();
   });
 
+  it("coalesces same-frame subscription cancellation requests", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.cancelSubscription.mockImplementation(() => new Promise(() => {}));
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    const cancel = await screen.findByRole("button", { name: /cancel renewal/i });
+    act(() => {
+      cancel.click();
+      cancel.click();
+    });
+
+    expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledTimes(1);
+  });
+
   it("offers resume renewal while cancellation is scheduled", async () => {
     pullwiseApi.billing.getPlan
       .mockResolvedValueOnce({
@@ -1173,6 +1273,30 @@ describe("BillingScreen", () => {
       );
     });
     expect(await screen.findByRole("button", { name: /cancel renewal/i })).toBeInTheDocument();
+  });
+
+  it("coalesces same-frame subscription resume requests", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "canceling",
+        plan: "pro",
+        interval: "month",
+        cancelAtPeriodEnd: true,
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.resumeSubscription.mockImplementation(() => new Promise(() => {}));
+
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    const resume = await screen.findByRole("button", { name: /resume renewal/i });
+    act(() => {
+      resume.click();
+      resume.click();
+    });
+
+    expect(pullwiseApi.billing.resumeSubscription).toHaveBeenCalledTimes(1);
   });
 
   it("lets subscribers upgrade while cancellation is scheduled", async () => {
