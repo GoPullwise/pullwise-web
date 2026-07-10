@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { pullwiseApi } from "../api/pullwise.js";
+import { useEffect, useMemo } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import {
-  normalizeScan,
   scanQueueSummary,
   useIssues,
   useRepositories,
@@ -405,8 +403,6 @@ export function DashboardScreen({ go, setIssue, accent }) {
   const {
     items: scans,
     loading: scansLoading,
-    reload: reloadScans,
-    upsertScan,
     error: scansError,
     meta: scansMeta = {},
   } = useScans({ limit: 50 });

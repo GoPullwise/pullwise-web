@@ -600,7 +600,7 @@ export function App({ prototypeNav = false }) {
     if (nextStorageKey === activeRepoStorageKey) return;
     setActiveRepoStorageKey(nextStorageKey);
     setActiveRepo(storedActiveRepo(nextStorageKey));
-  }, [auth.status, auth.authenticated, auth.session, activeRepoStorageKey]);
+  }, [auth, activeRepoStorageKey]);
 
   useEffect(() => {
     localStorageSet(ACTIVE_REPO_LEGACY_STORAGE_KEY, null);
@@ -610,7 +610,7 @@ export function App({ prototypeNav = false }) {
     } else {
       localStorageSet(activeRepoStorageKey, null);
     }
-  }, [activeRepo, activeRepoStorageKey, auth.status, auth.authenticated, auth.session]);
+  }, [activeRepo, activeRepoStorageKey, auth]);
 
   useEffect(() => {
     if (auth.status !== "ready" || !auth.authenticated || screen !== "repos") return;

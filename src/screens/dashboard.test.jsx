@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardScreen } from "./dashboard.jsx";
-import { NotificationProvider } from "../components/notifications.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {

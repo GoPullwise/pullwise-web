@@ -99,7 +99,7 @@ describe("BillingScreen", () => {
     expect(styles).toMatch(
       /\.pricing-hero\s*>\s*\.lp-title\s*{[^}]*margin:\s*0 auto 18px;[^}]*text-align:\s*center;/s
     );
-    expect(styles).toMatch(/\.lp-hero\s*>\s*\.lp-title\s*{[^}]*grid-column:\s*1;/s);
+    expect(styles).toMatch(/\.pricing-hero\s*>\s*\.lp-title\s*{[^}]*grid-column:\s*auto;[^}]*grid-row:\s*auto;/s);
   });
   it("shows the topbar loading spinner only while billing data is loading", async () => {
     let resolvePlan;
@@ -217,6 +217,24 @@ describe("BillingScreen", () => {
     });
   });
 
+  it("coalesces rapid pricing checkout clicks into one request", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "none", plan: "free" },
+    });
+    pullwiseApi.billing.createCheckoutSession.mockImplementation(() => new Promise(() => {}));
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+
+    const proButton = await screen.findByRole("button", { name: /start pro/i });
+    act(() => {
+      proButton.click();
+      proButton.click();
+    });
+
+    expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(proButton).toBeDisabled();
+  });
   it("clears pricing checkout pending state before redirecting", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

@@ -2035,6 +2035,13 @@ export function SettingsScreen({ go, setIssue = null }) {
     }
   };
 
+  const visibleSettingsError =
+    initialLoadError ||
+    (tab === "preferences"
+      ? settingsError
+      : tab === "integrations"
+        ? integrationError
+        : profileError);
   return (
     <div className="app fade-in">
       <Topbar
@@ -2066,6 +2073,28 @@ export function SettingsScreen({ go, setIssue = null }) {
               ))}
             </aside>
             <div className="set-body">
+              {visibleSettingsError && (
+                <div className="settings-inline-error" role="alert">
+                  <div>
+                    <b>
+                      {initialLoadError
+                        ? T("Some settings could not be loaded.", "部分设置无法加载。")
+                        : T("Settings update failed.", "设置更新失败。")}
+                    </b>
+                    <div>{visibleSettingsError}</div>
+                  </div>
+                  {initialLoadError && (
+                    <button
+                      className="btn sm"
+                      type="button"
+                      disabled={settingsLoading}
+                      onClick={() => loadSettingsPayloads()}
+                    >
+                      {settingsLoading ? T("Retrying...", "正在重试...") : T("Retry", "重试")}
+                    </button>
+                  )}
+                </div>
+              )}
               {tab === "profile" && (
                 <div className="card section">
                   <div className="section-h">

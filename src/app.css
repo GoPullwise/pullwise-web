@@ -3191,3 +3191,76 @@ body.has-proto-nav {
     padding-left: 16px;
   }
 }
+
+/* Public frame alignment and Pricing isolation */
+.lp-foot {
+  max-width: 1240px;
+  padding: 28px 40px;
+}
+
+.pricing-hero > .lp-title {
+  grid-column: auto;
+  grid-row: auto;
+  max-width: 100%;
+  margin: 0 auto 18px;
+  font-size: clamp(42px, 6vw, 66px);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  text-align: center;
+}
+
+.pricing-hero > .lp-sub {
+  grid-column: auto;
+  width: auto;
+  max-width: 620px;
+  margin: 0 auto 32px;
+  font-size: 17px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .lp-foot {
+    padding: 24px 20px;
+  }
+}
+/* Settings inline recovery state */
+.settings-inline-error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--sev-high);
+  background: var(--bg-elev);
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.settings-inline-error > div {
+  min-width: 0;
+}
+
+.settings-inline-error b {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.settings-inline-error .btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 520px) {
+  .settings-inline-error {
+    flex-direction: column;
+  }
+
+  .settings-inline-error .btn {
+    width: 100%;
+  }
+}
