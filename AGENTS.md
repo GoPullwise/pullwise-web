@@ -88,6 +88,12 @@ Keep route and polling changes aligned with the current scale model.
 - Batch issue status updates should use the batch endpoint for bulk "mark fixed"
   flows. Keep single-issue update only as a narrow fallback.
 
+## Localization
+
+- For `T(english, chinese)` calls, the inline Chinese argument overrides the shared phrase table
+  while Chinese is active. Keep that argument production-ready; do not use placeholder text even
+  when the English key already exists in `PHRASE_TRANSLATIONS`.
+
 ## Review Worker Result Display
 
 Web displays only data supplied by the server for the `review-worker-protocol/v1`
