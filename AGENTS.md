@@ -100,6 +100,11 @@ issue counts, and any normalized finding index the server exposes. Do not fetch
 or infer raw worker internals to construct terminal state. If future server data
 contains a natural graph or visual structure, render it from that explicit
 structure; otherwise use clear text/tables from supplied artifacts and summaries.
+Treat every server-provided artifact/debug URL as untrusted display data. Links
+may use only same-origin root-relative paths (a single leading `/`, never
+protocol-relative `//`) or absolute `http:`/`https:` URLs; reject
+`javascript:`, `data:`, and every other scheme before rendering an anchor or
+starting a download.
 Do not keep graph-rendering dependencies, global graph styles, or graph vendor
 chunks as placeholders. Add them only with an explicit server-provided v1 graph
 contract and regression tests for that display path.
