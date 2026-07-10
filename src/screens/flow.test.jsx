@@ -1556,7 +1556,9 @@ describe("ScanningScreen queue state", () => {
 
     expect(screen.getByText("Review report")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
-    expect(screen.getByRole("listitem")).toHaveTextContent("Found one high priority issue.");
+    expect(
+      within(document.querySelector(".scan-human-report")).getByRole("listitem")
+    ).toHaveTextContent("Found one high priority issue.");
     expect(document.querySelector(".scan-human-report pre")).not.toBeInTheDocument();
   });
   it("shows preflight evidence for a completed scan", () => {
