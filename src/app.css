@@ -1211,25 +1211,41 @@ body.has-proto-nav {
 
 .scan-human-report {
   min-width: 0;
-  margin-top: 12px;
+  margin: 0;
 }
 
 .review-run-card {
   min-width: 0;
-  margin-top: 12px;
+  margin: 0;
+  padding: 16px;
+}
+
+.review-run-card .section-h {
+  margin-bottom: 12px;
 }
 
 .review-run-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid var(--border);
 }
 
 .review-run-metrics > div {
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+.review-run-metrics > div:nth-child(2n) {
+  border-right: 0;
+}
+
+.review-run-metrics > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
 }
 
 .review-run-metrics b {
@@ -1237,7 +1253,7 @@ body.has-proto-nav {
   min-width: 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 650;
   letter-spacing: 0;
   line-height: 1.25;
@@ -1444,7 +1460,7 @@ body.has-proto-nav {
 .scanning-sub {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px 8px;
   min-width: 0;
   overflow: visible;
@@ -1833,13 +1849,30 @@ body.has-proto-nav {
 
   .scanning-h {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .scanning-icon {
+    width: 38px;
+    height: 38px;
   }
 
   .scanning-actions {
-    grid-column: 2;
+    grid-column: 1 / -1;
     margin-left: 0;
     width: 100%;
+  }
+
+  .scan-execution-panel,
+  .scan-human-report {
+    padding: 14px;
+  }
+
+  .scan-detail-panel-head {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
   }
 
   .set-shell {

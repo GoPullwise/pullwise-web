@@ -1024,12 +1024,16 @@ describe("ScanningScreen queue state", () => {
     expect(screen.queryByRole("button", { name: /overview/i })).not.toBeInTheDocument();
   });
 
-  it("reserves stable scan detail panel heights in CSS", () => {
+  it("uses a full-width scan header and compact divided result bands", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 
     expect(styles).toMatch(/\.scanning-progress\s*\{[^}]*min-height:\s*8px;/s);
-    expect(styles).toMatch(/\.scanning-counts\s*\{[^}]*min-height:\s*206px;/s);
-    expect(styles).toMatch(/\.scanning-preflight\s*\{[^}]*min-height:\s*246px;/s);
+    expect(styles).toMatch(/\.scanning-card\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/s);
+    expect(styles).toMatch(/\.scan-detail-primary\s*\{[^}]*display:\s*grid;/s);
+    expect(styles).toMatch(
+      /\.scanning-counts-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/s
+    );
+    expect(styles).toMatch(/\.scanning-counts-grid\s*\{[^}]*gap:\s*0;/s);
     expect(styles).toMatch(/\.scanning-log-body\s*\{[^}]*min-height:\s*128px;/s);
   });
 
@@ -1567,6 +1571,9 @@ describe("ScanningScreen queue state", () => {
       within(document.querySelector(".scan-human-report")).getByRole("listitem")
     ).toHaveTextContent("Found one high priority issue.");
     expect(document.querySelector(".scan-human-report pre")).not.toBeInTheDocument();
+    const report = document.querySelector(".scan-human-report");
+    const execution = document.querySelector(".scan-execution-panel");
+    expect(report.compareDocumentPosition(execution) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
   it("shows preflight evidence for a completed scan", () => {
     useScanRun.mockReturnValue({
@@ -2024,6 +2031,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     const progress = screen.getByRole("progressbar", { name: /progress before failure/i });
+    expect(screen.getByText("Finding summary")).toBeInTheDocument();
     expect(progress).toHaveAttribute("aria-valuenow", "94");
     expect(progress).toHaveAttribute("aria-valuetext", "Scan failed at 94%");
     expect(screen.queryByText("Failed at 94%")).not.toBeInTheDocument();
@@ -2105,6 +2113,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     expect(screen.getByText("Scan cancelled")).toBeInTheDocument();
+    expect(screen.queryByText("Finding summary")).not.toBeInTheDocument();
     const publishNode = screen.getByText("Publish").closest(".scanning-phase");
     expect(publishNode).toHaveClass("cancelled");
     expect(within(publishNode).getByText("Cancelled")).toBeInTheDocument();
@@ -2146,6 +2155,7 @@ describe("ScanningScreen queue state", () => {
     );
 
     const qaNode = screen.getByText("QA gate").closest(".scanning-phase");
+    expect(screen.getByText("Finding summary")).toBeInTheDocument();
     expect(qaNode).toHaveClass("partial");
     expect(within(qaNode).getByText("Partially completed")).toBeInTheDocument();
     expect(within(qaNode).queryByText("Queued")).not.toBeInTheDocument();

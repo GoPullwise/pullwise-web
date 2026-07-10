@@ -2892,7 +2892,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
       />
       <div className="main scan-detail-main">
         <div className="scanning scanning-wide">
-          <div className="scanning-card card">
+          <div className={`scanning-card card ${headerTone}`}>
             <div className="scanning-h">
               {headerIcon && (
                 <div className={`scanning-icon ${headerTone}`} aria-hidden="true">
