@@ -194,18 +194,21 @@ export function DistributionCard({
               const value = safeCount(counts[bucket.key]);
               const active = activeKey === bucket.key;
               return (
-                <li
-                  key={bucket.key}
-                  className={
-                    "disto-legend-i" +
-                    (onBucketClick ? " disto-legend-click" : "") +
-                    (active ? " disto-legend-active" : "")
-                  }
-                  onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
-                >
-                  <span className="disto-legend-dot" style={{ background: bucket.color }} />
-                  <span className="disto-legend-l">{bucket.label || bucket.key}</span>
-                  <b>{value}</b>
+                <li key={bucket.key}>
+                  <button
+                    type="button"
+                    className={
+                      "disto-legend-i disto-legend-click" +
+                      (active ? " disto-legend-active" : "")
+                    }
+                    onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
+                    disabled={!onBucketClick}
+                    aria-pressed={onBucketClick ? active : undefined}
+                  >
+                    <span className="disto-legend-dot" style={{ background: bucket.color }} />
+                    <span className="disto-legend-l">{bucket.label || bucket.key}</span>
+                    <b>{value}</b>
+                  </button>
                 </li>
               );
             })}
@@ -221,22 +224,25 @@ export function DistributionCard({
             const pct = total > 0 ? Math.round((value / total) * 100) : 0;
             const active = activeKey === bucket.key;
             return (
-              <li
-                key={bucket.key}
-                className={
-                  "disto-legend-i" +
-                  (onBucketClick ? " disto-legend-click" : "") +
-                  (active ? " disto-legend-active" : "")
-                }
-                onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
-                title={T(
-                  `${value} ${bucket.label || bucket.key} (${pct}%)`,
-                  `${value} ${bucket.label || bucket.key}（${pct}%）`
-                )}
-              >
-                <span className="disto-legend-dot" style={{ background: bucket.color }} />
-                <span className="disto-legend-l">{bucket.label || bucket.key}</span>
-                <span className="disto-legend-pct">{pct}%</span>
+              <li key={bucket.key}>
+                <button
+                  type="button"
+                  className={
+                    "disto-legend-i disto-legend-click" +
+                    (active ? " disto-legend-active" : "")
+                  }
+                  onClick={onBucketClick ? () => onBucketClick(bucket.key) : undefined}
+                  disabled={!onBucketClick}
+                  aria-pressed={onBucketClick ? active : undefined}
+                  title={T(
+                    `${value} ${bucket.label || bucket.key} (${pct}%)`,
+                    `${value} ${bucket.label || bucket.key}（${pct}%）`
+                  )}
+                >
+                  <span className="disto-legend-dot" style={{ background: bucket.color }} />
+                  <span className="disto-legend-l">{bucket.label || bucket.key}</span>
+                  <span className="disto-legend-pct">{pct}%</span>
+                </button>
               </li>
             );
           })}

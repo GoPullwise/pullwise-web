@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { NOTIFICATION_AUTO_DISMISS_MS, NotificationProvider, useNotify } from "./notifications.jsx";
+import { setLang } from "../i18n.jsx";
 
 function NotificationHarness() {
   const notify = useNotify();
@@ -19,6 +20,24 @@ function NotificationHarness() {
 }
 
 describe("NotificationProvider", () => {
+  it("localizes default notification chrome in Chinese", async () => {
+    setLang("zh");
+    const user = userEvent.setup();
+    try {
+      render(
+        <NotificationProvider>
+          <NotificationHarness />
+        </NotificationProvider>
+      );
+
+      await user.click(screen.getByRole("button", { name: /show first/i }));
+
+      expect(screen.getByLabelText("通知")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "关闭通知" })).toBeInTheDocument();
+    } finally {
+      setLang("en");
+    }
+  });
   it("keeps notification toasts rounded without a left accent bar", () => {
     const styles = readFileSync("src/app.css", "utf8");
 

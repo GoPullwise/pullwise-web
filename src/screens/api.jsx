@@ -843,6 +843,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
+  const mutationInFlightRef = useRef(false);
   useErrorNotification(error, {
     title: T("API key error", "API key error"),
     key: `api-keys:${error}`,
@@ -877,7 +878,8 @@ export function ApiKeysScreen({ go, setIssue = null }) {
 
   const createKey = async (event) => {
     event.preventDefault();
-    if (pending) return;
+    if (mutationInFlightRef.current) return;
+    mutationInFlightRef.current = true;
     setPending("create");
     setError("");
     setCreatedToken("");
@@ -890,19 +892,29 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       const key = normalizeApiKey(createdApiKeyRecord(payload));
       const token = createdApiKeyToken(payload);
       if (!key) throw new Error(T("API key response was malformed.", "API key 响应格式错误。"));
-      setCreatedToken(token);
       setKeys((current) => [key, ...current.filter((item) => item.id !== key.id)]);
+      if (!token) {
+        throw new Error(
+          T(
+            "The API key was created, but its one-time token was missing. Revoke it and create another key.",
+            "API key 已创建，但响应中缺少仅显示一次的令牌。请吊销该密钥并重新创建。"
+          )
+        );
+      }
+      setCreatedToken(token);
       setName(T("Account automation", "账户自动化"));
       setSelectedScopes(API_KEY_SCOPE_VALUES);
     } catch (err) {
       setError(err?.message || T("Unable to create API key.", "无法创建 API key。"));
     } finally {
+      mutationInFlightRef.current = false;
       setPending("");
     }
   };
 
   const revokeKey = async (keyId) => {
-    if (!keyId || pending) return;
+    if (!keyId || mutationInFlightRef.current) return;
+    mutationInFlightRef.current = true;
     setPending(keyId);
     setError("");
     try {
@@ -911,6 +923,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     } catch (err) {
       setError(err?.message || T("Unable to revoke API key.", "无法吊销 API key。"));
     } finally {
+      mutationInFlightRef.current = false;
       setPending("");
     }
   };

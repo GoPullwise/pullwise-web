@@ -45,7 +45,7 @@ function NotificationAction({ action, onDismiss }) {
 }
 
 function NotificationToast({ notification, onDismiss }) {
-  const title = notification.title || T("Error", "Error");
+  const title = notification.title || T("Error", "错误");
   return (
     <div
       className={`notification-toast notification-${notification.tone}`}
@@ -64,8 +64,8 @@ function NotificationToast({ notification, onDismiss }) {
         type="button"
         className="notification-close"
         onClick={onDismiss}
-        title={T("Close notification", "Close notification")}
-        aria-label={T("Close notification", "Close notification")}
+        title={T("Close notification", "关闭通知")}
+        aria-label={T("Close notification", "关闭通知")}
       >
         <I.X size={13} />
       </button>
@@ -130,7 +130,7 @@ export function NotificationProvider({ children }) {
   return (
     <NotificationContext.Provider value={value}>
       {children}
-      <div className="notification-stack" aria-label={T("Notifications", "Notifications")}>
+      <div className="notification-stack" aria-label={T("Notifications", "通知")}>
         {notifications.map((notification) => (
           <NotificationToast
             key={notification.id}
@@ -147,7 +147,7 @@ export function useNotify() {
   return useContext(NotificationContext) || { notify: () => "", error: () => "", dismiss: () => {} };
 }
 
-export function useErrorNotification(message, { title = T("Error", "Error"), action = null, key = "" } = {}) {
+export function useErrorNotification(message, { title = T("Error", "错误"), action = null, key = "" } = {}) {
   const { error } = useNotify();
   const lastKeyRef = useRef("");
   const cleanMessage = notificationMessage(message);

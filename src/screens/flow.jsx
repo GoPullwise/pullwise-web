@@ -293,7 +293,20 @@ function effectiveApiDownloadBase() {
 function agentFixBundleUrl(scan) {
   const path = agentFixBundlePath(scan);
   if (!path) return "";
-  return effectiveApiDownloadBase() + path;
+  const fallbackOrigin =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : "https://api.pull-wise.com";
+  const base = new URL(effectiveApiDownloadBase(), fallbackOrigin);
+  const basePath = base.pathname.replace(/\/$/, "");
+  const finalPath =
+    basePath && (path === basePath || path.startsWith(`${basePath}/`))
+      ? path
+      : `${basePath}${path}`;
+  base.pathname = finalPath.replace(/\/{2,}/g, "/");
+  base.search = "";
+  base.hash = "";
+  return base.toString();
 }
 
 function agentFixPromptWithBundleKey(basePrompt, scan, keyPayload) {
@@ -1084,6 +1097,7 @@ export function ReposScreen({
   const [repoBranches, setRepoBranches] = useState({});
   const [selectedBranches, setSelectedBranches] = useState({});
   const branchRequestsRef = useRef(new Map());
+  const scanSubmissionInFlightRef = useRef(false);
   const [org, setOrg] = useState("All");
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
   const query = q.trim().toLowerCase();
@@ -1421,10 +1435,11 @@ export function ReposScreen({
   };
 
   const startScan = async () => {
-    if (checkingQuota || resolvingBranches) return;
+    if (scanSubmissionInFlightRef.current || checkingQuota || resolvingBranches) return;
     const selectedReposToScan = selectedRepoObjects;
     if (selectedReposToScan.length === 0) return;
 
+    scanSubmissionInFlightRef.current = true;
     setResolvingBranches(true);
     setConnectError("");
     setSelectionNotice("");
@@ -1464,6 +1479,7 @@ export function ReposScreen({
           )
       );
     } finally {
+      scanSubmissionInFlightRef.current = false;
       setResolvingBranches(false);
       setCheckingQuota(false);
     }
@@ -1513,8 +1529,9 @@ export function ReposScreen({
   };
 
   const confirmQuotaDialogSelection = async () => {
-    if (!quotaDialogCanConfirm) return;
+    if (!quotaDialogCanConfirm || scanSubmissionInFlightRef.current) return;
     const reposToScan = quotaDialogRepos.filter((repo) => quotaDialogSelected.includes(repo.id));
+    scanSubmissionInFlightRef.current = true;
     closeQuotaDialog();
     setCheckingQuota(true);
     setConnectError("");
@@ -1529,6 +1546,7 @@ export function ReposScreen({
           )
       );
     } finally {
+      scanSubmissionInFlightRef.current = false;
       setCheckingQuota(false);
     }
   };

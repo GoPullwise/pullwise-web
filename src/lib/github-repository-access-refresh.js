@@ -14,16 +14,29 @@ function storage() {
 
 export function markGitHubRepositoryAccessRefreshNeeded() {
   memoryRefreshNeeded = true;
-  storage()?.setItem(STORAGE_KEY, "1");
+  try {
+    storage()?.setItem(STORAGE_KEY, "1");
+  } catch {
+    // The in-memory flag remains authoritative when storage is blocked.
+  }
 }
 
 export function clearGitHubRepositoryAccessRefreshNeeded() {
   memoryRefreshNeeded = false;
-  storage()?.removeItem(STORAGE_KEY);
+  try {
+    storage()?.removeItem(STORAGE_KEY);
+  } catch {
+    // Clearing memory is sufficient for this page lifetime.
+  }
 }
 
 export function githubRepositoryAccessRefreshNeeded() {
-  return memoryRefreshNeeded || storage()?.getItem(STORAGE_KEY) === "1";
+  if (memoryRefreshNeeded) return true;
+  try {
+    return storage()?.getItem(STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 
 export function useGitHubRepositoryAccessAutoRefresh(onRefresh) {

@@ -1264,6 +1264,51 @@ describe("HistoryScreen queue state", () => {
     }
   });
 
+  it("stops waiting for a permanently absent expected scan and restores manual recovery", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-11T00:00:00Z"));
+    const reload = vi.fn();
+    try {
+      useScans.mockReturnValue({
+        items: [
+          {
+            id: "sc_old",
+            repo: "octocat/old-repo",
+            branch: "main",
+            status: "done",
+            time: "earlier",
+          },
+        ],
+        loading: false,
+        loadingMore: false,
+        error: "",
+        reload,
+        loadMore: vi.fn(),
+        meta: { total: 1 },
+      });
+
+      const { container } = render(
+        <HistoryScreen go={vi.fn()} expectedScanIds={["sc_never_arrives"]} />
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(30_000);
+      });
+      const callsAtExpiry = reload.mock.calls.length;
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3_000);
+      });
+
+      expect(container.querySelector(".history-skeleton")).not.toBeInTheDocument();
+      expect(screen.getByText("octocat/old-repo")).toBeInTheDocument();
+      expect(screen.getByText(/new scan is taking longer to appear/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^refresh$/i })).toBeEnabled();
+      expect(reload).toHaveBeenCalledTimes(callsAtExpiry);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("renders scan history once expected new scans are present", async () => {
     const onExpectedScansLoaded = vi.fn();
     useScans.mockReturnValue({

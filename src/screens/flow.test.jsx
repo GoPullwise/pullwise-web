@@ -111,6 +111,14 @@ const repoGamma = {
   defaultBranch: "main",
 };
 
+function deferredPromise() {
+  let resolve;
+  const promise = new Promise((next) => {
+    resolve = next;
+  });
+  return { promise, resolve };
+}
+
 beforeEach(() => {
   setLang("en");
   connectGitHubRepositories.mockReset();
@@ -495,6 +503,35 @@ describe("ReposScreen scan selection", () => {
       pendingScanStartedAt: expect.any(Number),
     });
     expect(go).not.toHaveBeenCalledWith("scanning");
+  });
+
+  it("serializes a batch scan submission before loading state is committed", async () => {
+    const preflight = deferredPromise();
+    pullwiseApi.scans.preflight.mockReturnValue(preflight.promise);
+    useRepositories.mockReturnValue({
+      items: [repoAlpha, repoBeta],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
+    const start = screen.getByRole("button", { name: /start scan/i });
+    act(() => {
+      start.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      start.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await waitFor(() => expect(pullwiseApi.scans.preflight).toHaveBeenCalledTimes(1));
+    preflight.resolve({ requestedCount: 2, allowedCount: 2, repositories: [] });
+    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
   });
 
   it("selects repositories from the keyboard before opening scan history", async () => {
@@ -1396,6 +1433,59 @@ describe("ScanningScreen queue state", () => {
       expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
+      env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
+      if (originalClipboard) {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
+      } else {
+        delete navigator.clipboard;
+      }
+    }
+  });
+
+  it("canonicalizes a root-relative public API base without duplicating the API prefix", async () => {
+    const user = userEvent.setup();
+    const originalClipboard = navigator.clipboard;
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const originalPublicApiBase = env.VITE_PUBLIC_API_BASE_URL;
+    env.VITE_PUBLIC_API_BASE_URL = "/api";
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { high: 1 },
+        repoId: "repo_123",
+        agentFixPrompt: "Fix the verified findings.",
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ scanId: "sc_done", fullName: "octocat/private-repo" }}
+        />
+      );
+      await user.click(screen.getByRole("button", { name: /use agent to fix/i }));
+
+      const copiedPrompt = writeText.mock.calls[0][0];
+      expect(copiedPrompt).toContain(
+        `${window.location.origin}/api/v1/repositories/repo_123/scans/sc_done/audit-bundle.zip`
+      );
+      expect(copiedPrompt).not.toContain("/api/api/");
+    } finally {
       env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
       if (originalClipboard) {
         Object.defineProperty(navigator, "clipboard", {

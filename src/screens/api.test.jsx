@@ -1,4 +1,4 @@
-import { render as rtlRender, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -32,6 +32,14 @@ vi.mock("../lib/pullwise-data.js", () => ({
 
 function render(ui, options) {
   return rtlRender(<NotificationProvider>{ui}</NotificationProvider>, options);
+}
+
+function deferredPromise() {
+  let resolve;
+  const promise = new Promise((next) => {
+    resolve = next;
+  });
+  return { promise, resolve };
 }
 
 describe("API screens", () => {
@@ -766,6 +774,46 @@ describe("API screens", () => {
     });
   });
 
+  it("serializes API key mutations before React pending state is committed", async () => {
+    const creation = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockReturnValue(creation.promise);
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    const form = (await screen.findByRole("button", { name: /create key/i })).closest("form");
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(1);
+
+    creation.resolve({
+      id: "key_serialized",
+      name: "Account automation",
+      prefix: "pwk_serialized",
+      key: "pwk_live_serialized",
+    });
+    expect(await screen.findByText("pwk_live_serialized")).toBeInTheDocument();
+  });
+
+  it("retains malformed created-key metadata for revocation when the one-time token is missing", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_without_token",
+      name: "Account automation",
+      prefix: "pwk_missing",
+    });
+    const user = userEvent.setup();
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /create key/i }));
+
+    expect(await screen.findByText("pwk_missing")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/one-time token was missing/i);
+    expect(screen.getByRole("button", { name: /revoke/i })).toBeInTheDocument();
+  });
+
   it("creates API keys with the selected scopes", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({
@@ -889,4 +937,3 @@ describe("API screens", () => {
     expect(screen.queryByRole("button", { name: /revoke/i })).not.toBeInTheDocument();
   });
 });
-

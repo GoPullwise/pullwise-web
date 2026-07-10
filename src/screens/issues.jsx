@@ -29,6 +29,7 @@ import { Sidebar, Topbar } from "../shell.jsx";
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 const DEFAULT_REVIEW_OUTPUT_LANGUAGE = "en";
 const HISTORY_EXPECTED_SCAN_RETRY_MS = 1500;
+const HISTORY_EXPECTED_SCAN_TIMEOUT_MS = 30_000;
 const REVIEW_OUTPUT_LANGUAGES = [
   { value: "en", labelEn: "English", labelZh: "英文" },
   { value: "zh-CN", labelEn: "Chinese", labelZh: "中文" },
@@ -1585,6 +1586,8 @@ export function HistoryScreen({
   const [bundleLoading, setBundleLoading] = useState("");
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [expectedScanRetryCount, setExpectedScanRetryCount] = useState(0);
+  const [expectedScanWaitStartedAt, setExpectedScanWaitStartedAt] = useState(() => Date.now());
+  const [expectedScanWaitExpired, setExpectedScanWaitExpired] = useState(false);
   const [actionError, setActionError] = useState("");
   const {
     items: scans,
@@ -1635,7 +1638,8 @@ export function HistoryScreen({
     () => missingExpectedScanIds(filtered, normalizedExpectedScanIds),
     [filtered, normalizedExpectedScanIds]
   );
-  const waitingForExpectedScans = hasExpectedScans && !expectedScansLoaded && !error;
+  const waitingForExpectedScans =
+    hasExpectedScans && !expectedScansLoaded && !expectedScanWaitExpired && !error;
   const displayLoading = loading || waitingForExpectedScans;
   useErrorNotification(error, {
     title: T("Scan history error", "Scan history error"),
@@ -1648,7 +1652,31 @@ export function HistoryScreen({
 
   useEffect(() => {
     setExpectedScanRetryCount(0);
+    setExpectedScanWaitStartedAt(Date.now());
+    setExpectedScanWaitExpired(false);
   }, [expectedScanIdsKey, expectedScanRequestsKey, normalizedExpectedScanStartedAt, status]);
+
+  useEffect(() => {
+    if (!hasExpectedScans || expectedScansLoaded || expectedScanWaitExpired || error) {
+      return undefined;
+    }
+    const handoffStartedAt = normalizedExpectedScanStartedAt
+      ? normalizedExpectedScanStartedAt * 1000
+      : expectedScanWaitStartedAt;
+    const remaining = Math.max(
+      0,
+      handoffStartedAt + HISTORY_EXPECTED_SCAN_TIMEOUT_MS - Date.now()
+    );
+    const handle = setTimeout(() => setExpectedScanWaitExpired(true), remaining);
+    return () => clearTimeout(handle);
+  }, [
+    error,
+    expectedScanWaitExpired,
+    expectedScanWaitStartedAt,
+    expectedScansLoaded,
+    hasExpectedScans,
+    normalizedExpectedScanStartedAt,
+  ]);
 
   useEffect(() => {
     if (!waitingForExpectedScans || loading) return undefined;
@@ -1796,6 +1824,14 @@ export function HistoryScreen({
           </div>
 
           <div className="hist-list card">
+            {expectedScanWaitExpired && !expectedScansLoaded && (
+              <div className="history-expected-scan-notice" role="status">
+                {T(
+                  "The new scan is taking longer to appear. Showing current history; use Refresh to try again.",
+                  "新扫描显示时间较长。当前已显示现有历史记录；请使用“刷新”重试。"
+                )}
+              </div>
+            )}
             {displayLoading && <HistorySkeleton />}
             {!displayLoading && !error && filtered.length === 0 && (
               <div
