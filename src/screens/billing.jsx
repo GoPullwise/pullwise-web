@@ -1267,6 +1267,7 @@ export function PricingScreen({
   });
   const [pendingAction, setPendingAction] = useState("");
   const signedIn = Boolean(auth?.authenticated);
+  const checkoutPendingRef = useRef(false);
   const checkoutTimeoutRef = useRef(null);
   const checkoutRequestRef = useRef(0);
   const checkoutAbortRef = useRef(null);
@@ -1284,12 +1285,14 @@ export function PricingScreen({
   }, []);
 
   const invalidateCheckoutRequest = useCallback(() => {
+    checkoutPendingRef.current = true;
     checkoutRequestRef.current += 1;
     abortCheckoutRequest();
     clearCheckoutTimeout();
   }, [abortCheckoutRequest, clearCheckoutTimeout]);
 
   const resetCheckoutPending = useCallback(() => {
+    checkoutPendingRef.current = false;
     invalidateCheckoutRequest();
     setPendingAction("");
   }, [invalidateCheckoutRequest]);
@@ -1340,10 +1343,12 @@ export function PricingScreen({
       ? Number(plan.checkoutTimeoutMs)
       : CHECKOUT_PENDING_TIMEOUT_MS;
   const startCheckout = async (targetPlan) => {
+    if (checkoutPendingRef.current) return;
     if (!signedIn) {
       go("login");
       return;
     }
+    checkoutPendingRef.current = true;
     checkoutRequestRef.current += 1;
     abortCheckoutRequest();
     const requestId = checkoutRequestRef.current;
@@ -1376,11 +1381,13 @@ export function PricingScreen({
       if (!session?.url) throw new Error("Billing provider did not return a checkout URL.");
       const checkoutUrl = safeBillingRedirectUrl(session.url, "billing checkout URL");
       clearCheckoutTimeout();
+      checkoutPendingRef.current = false;
       setPendingAction("");
       navigate(checkoutUrl);
     } catch (err) {
       if (checkoutRequestRef.current !== requestId) return;
       setError(err?.message || "Unable to start checkout.");
+      checkoutPendingRef.current = false;
       setPendingAction("");
     } finally {
       if (checkoutRequestRef.current === requestId) {
