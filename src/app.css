@@ -2726,8 +2726,12 @@ body.has-proto-nav {
   letter-spacing: 0.04em;
 }
 
-.lp-preview-kicker {
+.lp-preview-bar > span.lp-preview-kicker {
+  width: auto;
+  height: auto;
   flex: 0 0 auto;
+  border: 0;
+  background: transparent;
   color: var(--text-2);
 }
 
