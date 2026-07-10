@@ -87,8 +87,12 @@ export function LandingScreen({ go, accent, auth }) {
     <div className="landing fade-in">
       <PublicHeader go={go} current="landing" auth={auth} />
 
-      <section className="lp-hero">
-        <h1 className="lp-title">
+      <section className="lp-hero" aria-labelledby="lp-title">
+        <div className="lp-eyebrow">
+          <span>PULLWISE / 01</span>
+          <span>{T("Full-repository review system", "全仓库审查系统")}</span>
+        </div>
+        <h1 id="lp-title" className="lp-title">
           {T("Review broadly.", "广泛审查。")}
           <br />
           <span className="lp-title-em">
@@ -137,9 +141,7 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-preview">
         <div className="lp-preview-card">
           <div className="lp-preview-bar">
-            <span />
-            <span />
-            <span />
+            <span className="lp-preview-kicker">{T("REVIEW TRACE / LIVE", "审查轨迹 / 实时")}</span>
             <div className="lp-preview-url">pull-wise.com / dashboard</div>
           </div>
           <div className="lp-preview-body">
@@ -204,123 +206,95 @@ export function LandingScreen({ go, accent, auth }) {
         </div>
       </section>
 
-      <section className="lp-features">
-        {[
-          {
-            i: <I.Search />,
-            h: T("Repository snapshot entry", "从仓库快照开始审查"),
-            p: T(
-              "Start from the current HEAD tree, repository symbols, and Codex-built context instead of manufacturing a comparison base.",
-              "从当前 HEAD 树、仓库符号和 Codex 构建的上下文开始，而不是人为制造比较基线。"
-            ),
-          },
-          {
-            i: <I.Layers />,
-            h: T("Repository context planning", "仓库上下文规划"),
-            p: T(
-              "Classify inventory into risk tiers, map trust boundaries and entrypoints, then pack bounded review bundles.",
-              "将 inventory 分类为风险层级，映射信任边界和入口点，然后打包有边界的 review bundles。"
-            ),
-          },
-          {
-            i: <I.Bug />,
-            h: T("Sequential reviewer turns", "串行 reviewer turns"),
-            p: T(
-              "Run security, correctness, test-gap, and correctness-lite reviewers as sequential Codex turns over planned bundles.",
-              "基于规划后的 bundles 串行运行安全、正确性、测试缺口和轻量正确性 reviewer turns。"
-            ),
-          },
-          {
-            i: <I.Filter />,
-            h: T("Candidate normalization", "候选问题归一化"),
-            p: T(
-              "Validate reviewer JSON, verify locations, cluster duplicate claims, count votes, and route top candidates to validator disproof.",
-              "校验 reviewer JSON、验证位置、聚类重复主张、统计投票，并把候选送入 validator 反证。"
-            ),
-          },
-          {
-            i: <I.Terminal />,
-            h: T("Isolated Codex workers", "隔离 Codex Worker"),
-            p: T(
-              "Give each worker its own CODEX_HOME, CODEX_SQLITE_HOME, App Server, workspace, artifact root, and worker log.",
-              "每个 worker 拥有独立 CODEX_HOME、CODEX_SQLITE_HOME、App Server、workspace、artifact root 和 worker log。"
-            ),
-          },
-          {
-            i: <I.Shield />,
-            h: T("Validator disproof gate", "Validator 反证门禁"),
-            p: T(
-              "Keep weak findings in the appendix and exclude disproven findings from the main report.",
-              "弱发现进入 appendix，已反证发现不进入主报告。"
-            ),
-          },
-          {
-            i: <I.FileCode />,
-            h: T("Actionable reports", "可行动报告"),
-            p: T(
-              "Final reports include confirmed and plausible actionable findings with locations, evidence, impact, recommendations, and next-agent tasks.",
-              "最终报告包含已确认和可信的可行动发现，并带有位置、证据、影响、建议和下一步 agent 任务。"
-            ),
-          },
-          {
-            i: <I.Activity />,
-            h: T("Debuggable pipeline history", "可调试流水线历史"),
-            p: T(
-              "Keep inventory, token budgets, repo maps, risk routing, bundles, reviewer outputs, validation results, events, and timing for developer audit.",
-              "保留 inventory、token budget、repo map、risk routing、bundles、reviewer 输出、validation 结果、events 和耗时，便于开发者审计。"
-            ),
-          },
-          {
-            i: <I.Lock />,
-            h: T("Local-first review boundary", "本地优先审查边界"),
-            p: T(
-              "Review turns run without free network access and helper writes stay confined to .codex-review artifacts.",
-              "审查 turns 不自由联网，helper 写入限制在 .codex-review artifacts 内。"
-            ),
-          },
-          {
-            i: <I.Github />,
-            h: T("GitHub repository workflow", "GitHub 仓库工作流"),
-            p: T(
-              "Use GitHub identity, GitHub App repository authorization, server-backed scans, history, quotas, and account-scoped API keys.",
-              "使用 GitHub 身份、GitHub App 仓库授权、服务端扫描、历史记录、配额和账户范围 API 密钥。"
-            ),
-          },
-          {
-            i: <I.ArrowR />,
-            h: T("Triage and fix workflow", "分流与修复工作流"),
-            p: T(
-              "Review confirmed findings, mark workflow status, preview deterministic fixes, and open Pullwise pull requests when permitted.",
-              "审阅已确认问题、标记工作流状态、预览确定性修复，并在有权限时打开 Pullwise 拉取请求。"
-            ),
-          },
-          {
-            i: <I.Code />,
-            h: T("Automation-ready API", "面向自动化的 API"),
-            p: T(
-              "Drive repository listing, scan control, scan status, and quota checks from CI, internal tools, or scripts.",
-              "从 CI、内部工具或脚本驱动仓库列表、扫描控制、扫描状态和配额检查。"
-            ),
-          },
-        ].map((feature, index) => (
-          <div key={index} className="lp-feat">
-            <div className="lp-feat-i" style={{ color: accent }}>
-              {feature.i}
-            </div>
-            <h3>{feature.h}</h3>
-            <p>{feature.p}</p>
+      <section className="lp-capabilities" aria-labelledby="lp-capabilities-title">
+        <div className="lp-section-head">
+          <div className="lp-section-index">SYSTEM / 02</div>
+          <div>
+            <h2 id="lp-capabilities-title">{T("From snapshot to evidence.", "从快照到证据。")}</h2>
+            <p>
+              {T(
+                "Six operating layers keep every review inspectable, bounded, and ready for action.",
+                "六个运行层让每次审查都可检查、有边界，并可直接进入行动。"
+              )}
+            </p>
           </div>
-        ))}
+        </div>
+        <div className="lp-features">
+          {[
+            {
+              i: <I.Layers />,
+              h: T("Repository context planning", "仓库上下文规划"),
+              p: T(
+                "Start from the current HEAD tree and symbols, map trust boundaries and entrypoints, then pack risk-ranked review bundles.",
+                "从当前 HEAD 树和符号开始，映射信任边界与入口，再打包按风险排序的审查 bundles。"
+              ),
+            },
+            {
+              i: <I.Bug />,
+              h: T("Sequential reviewer turns", "串行 reviewer turns"),
+              p: T(
+                "Run security, correctness, test-gap, and correctness-lite reviewers as focused Codex turns over planned bundles.",
+                "基于规划后的 bundles，以聚焦的 Codex turns 串行运行安全、正确性、测试缺口和轻量正确性审查。"
+              ),
+            },
+            {
+              i: <I.Terminal />,
+              h: T("Isolated Codex workers", "隔离 Codex Worker"),
+              p: T(
+                "Give each worker its own Codex state, workspace, artifacts, and logs while keeping review turns inside a local-first boundary.",
+                "每个 worker 独享 Codex 状态、workspace、artifacts 与日志，并让审查 turns 保持在本地优先边界内。"
+              ),
+            },
+            {
+              i: <I.Shield />,
+              h: T("Validator disproof gate", "Validator 反证门禁"),
+              p: T(
+                "Normalize candidates, verify locations, cluster duplicate claims, and keep disproven findings out of the main report.",
+                "归一化候选、验证位置、聚类重复主张，并将已反证的问题排除在主报告之外。"
+              ),
+            },
+            {
+              i: <I.FileCode />,
+              h: T("Actionable reports", "可行动报告"),
+              p: T(
+                "Deliver evidence, impact, recommendations, and next-agent tasks, then move confirmed findings into triage and fix workflows.",
+                "交付证据、影响、建议与下一步 agent 任务，再将已确认问题送入分流和修复流程。"
+              ),
+            },
+            {
+              i: <I.Code />,
+              h: T("Automation-ready API", "面向自动化的 API"),
+              p: T(
+                "Connect GitHub identity, repository authorization, scans, history, quotas, and account API keys to CI and internal tools.",
+                "把 GitHub 身份、仓库授权、扫描、历史、配额和账户 API keys 接入 CI 与内部工具。"
+              ),
+            },
+          ].map((feature, index) => (
+            <article key={feature.h} className="lp-feat">
+              <div className="lp-feat-top">
+                <span className="lp-feat-n">{String(index + 1).padStart(2, "0")}</span>
+                <div className="lp-feat-i" style={{ color: accent }}>
+                  {feature.i}
+                </div>
+              </div>
+              <h3>{feature.h}</h3>
+              <p>{feature.p}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
-      <section className="lp-cta-band">
-        <h2>
-          {checkingSession
-            ? T("Restoring your account.", "正在恢复你的账户。")
-            : signedIn
-              ? T("Continue from your account.", "从你的账户继续。")
-              : T("Start with GitHub sign-in.", "使用 GitHub 登录开始。")}
-        </h2>
+      <section className="lp-cta-band" aria-labelledby="lp-cta-title">
+        <div>
+          <div className="lp-section-index">START / 03</div>
+          <h2 id="lp-cta-title">
+            {checkingSession
+              ? T("Restoring your account.", "正在恢复你的账户。")
+              : signedIn
+                ? T("Continue from your account.", "从你的账户继续。")
+                : T("Start with GitHub sign-in.", "使用 GitHub 登录开始。")}
+          </h2>
+        </div>
         {checkingSession ? (
           <button className="btn primary lg" type="button" disabled>
             {primaryActionIcon} {primaryActionLabel}

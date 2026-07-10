@@ -527,8 +527,8 @@ export function DashboardScreen({ go, setIssue, accent }) {
             <DashboardSkeleton />
           ) : (
             <>
-              <div className="kpi-row">
-                <div className="kpi card">
+              <section className="kpi-row" aria-label={T("Account health", "账户健康度")}>
+                <div className="kpi card" role="article">
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Open issues", "未解决问题")}</span>
                     {issueDelta !== 0 && (
@@ -549,7 +549,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     <Sparkline data={issueTrend} color={accent} height={20} />
                   </div>
                 </div>
-                <div className="kpi card">
+                <div className="kpi card" role="article">
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Critical", "关键")}</span>
                   </div>
@@ -572,7 +572,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     />
                   </div>
                 </div>
-                <div className="kpi card">
+                <div className="kpi card" role="article">
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Repositories", "仓库")}</span>
                   </div>
@@ -590,7 +590,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     />
                   </div>
                 </div>
-                <div className="kpi card">
+                <div className="kpi card" role="article">
                   <div className="kpi-h">
                     <span className="kpi-l">{T("Scans", "扫描")}</span>
                   </div>
@@ -609,7 +609,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     <Sparkline data={scanTrend} color={accent} height={20} />
                   </div>
                 </div>
-              </div>
+              </section>
 
               {activeScan && (
                 <section

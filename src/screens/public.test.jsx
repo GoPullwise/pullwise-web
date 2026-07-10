@@ -55,6 +55,8 @@ describe("public navigation links", () => {
   it("summarizes implemented product capabilities on the landing page", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
 
+    const pipeline = screen.getByRole("region", { name: /from snapshot to evidence/i });
+    expect(within(pipeline).getAllByRole("article")).toHaveLength(6);
     expect(screen.getByText("Repository context planning")).toBeInTheDocument();
     expect(screen.getByText("Sequential reviewer turns")).toBeInTheDocument();
     expect(screen.getByText("Isolated Codex workers")).toBeInTheDocument();

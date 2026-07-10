@@ -72,6 +72,8 @@ describe("DashboardScreen issue list", () => {
 
     expect(screen.getByRole("heading", { name: /overview/i })).toBeInTheDocument();
     expect(screen.getByText(/account overview/i)).toBeInTheDocument();
+    const accountHealth = screen.getByRole("region", { name: /account health/i });
+    expect(within(accountHealth).getAllByRole("article")).toHaveLength(4);
     expect(
       screen.queryByRole("heading", { name: /connected repositories/i })
     ).not.toBeInTheDocument();
