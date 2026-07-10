@@ -1953,8 +1953,12 @@ describe("ScanningScreen queue state", () => {
       expect(flow).toBeInTheDocument();
       expect(phases).not.toBeNull();
       expect(phases).toHaveClass("scanning-flow-track");
-      expect(document.querySelectorAll(".scanning-flow-step")).toHaveLength(3);
-      expect(document.querySelectorAll(".scanning-flow-edge")).toHaveLength(2);
+      expect(phases).toHaveAttribute("role", "list");
+      expect(within(phases).getAllByRole("listitem")).toHaveLength(3);
+      const edges = document.querySelectorAll(".scanning-flow-edge");
+      expect(edges).toHaveLength(2);
+      expect(edges[0]).toHaveClass("done");
+      expect(edges[1]).toHaveClass("active");
       expect(within(phases).getByText("Checkout")).toBeInTheDocument();
       expect(within(phases).getByText("Custom review")).toBeInTheDocument();
       expect(within(phases).getByText("Reviewing billing guardrails")).toBeInTheDocument();
@@ -1962,9 +1966,15 @@ describe("ScanningScreen queue state", () => {
         within(phases).getByText("worker=custom-review phase=custom_review")
       ).toBeInTheDocument();
       expect(within(phases).getByText("Publish")).toBeInTheDocument();
-      expect(within(phases).queryByText("40%")).not.toBeInTheDocument();
-      expect(phases.querySelector(".scanning-phase-percent")).not.toBeInTheDocument();
-      expect(phases.querySelector(".scanning-phase-progress")).not.toBeInTheDocument();
+      expect(within(phases).getByText("02 / 03")).toBeInTheDocument();
+      const phaseProgress = within(phases).getByRole("progressbar", {
+        name: "Custom review progress",
+      });
+      expect(phaseProgress).toHaveAttribute("aria-valuenow", "40");
+      expect(within(phaseProgress).getByText("40%")).toBeInTheDocument();
+      expect(phaseProgress.querySelector(".scanning-phase-progress-fill")).toHaveStyle({
+        width: "40%",
+      });
       expect(
         screen.getByText(`[${expectedLogTime}] Custom review - Reviewing billing guardrails`)
       ).toBeInTheDocument();
@@ -2580,4 +2590,3 @@ describe("ScanningScreen queue state", () => {
     }
   );
 });
-
