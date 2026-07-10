@@ -83,7 +83,9 @@ function formatBytes(value) {
 function reviewRunArtifactHref(storage) {
   const url = typeof storage?.url === "string" ? storage.url.trim() : "";
   if (!url) return "";
-  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return url;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) {
+    return /^https?:/i.test(url) ? url : "";
+  }
   const base =
     typeof env.VITE_API_BASE_URL === "string" ? env.VITE_API_BASE_URL.replace(/\/$/, "") : "";
   return `${base}/${url.replace(/^\/+/, "")}`;

@@ -144,3 +144,11 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - The UI must disable or omit debug bundle actions when no real debug_bundle artifact/server debug bundle endpoint exists. Do not substitute /scans/{scanId}/audit-bundle.zip as a debug zip URL.
 - Scan detail header actions should expose a Debug bundle download link whenever the scan payload or reviewRun debug_bundle artifact contains a real debugBundleUrl/storage URL.
 - Tests should protect this contract: missing debugBundleUrl must not produce an audit-bundle URL, and server/worker tests must verify failed runs still expose a real debug_bundle artifact or explicit absence.
+
+## Web Visual And Frontend Resilience
+
+- Keep the public UI editorial and hard-edged: zero decorative radius/shadow, a restrained monochrome palette, and one indigo accent. Landing, Pricing, the public header/footer, and major preview sections must share the same 1240px horizontal frame.
+- Landing may use an asymmetric hero, but Pricing owns a separate centered hero rule. Do not let generic landing title/subtitle selectors move the Pricing heading off center.
+- Prefer continuous divided data bands for dashboard metrics and summaries. Reserve standalone cards for interactive, result-bearing, or independently actionable content.
+- Async purchase/save/refresh actions need a synchronous in-flight guard in addition to disabled UI state so two clicks in one render frame cannot create duplicate requests.
+- Frontend regression coverage should include request timeout/recovery, abort/unmount, stale responses, rapid repeated actions, loading/error/empty states, long unbroken content, and a real 390px browser check where document scrollWidth equals clientWidth.

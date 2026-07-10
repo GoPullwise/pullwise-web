@@ -1865,6 +1865,32 @@ describe("normalizeIssue", () => {
     expect(scan.debugBundleUrl).toBe("/v1/review-runs/run_job_1/artifacts/art_debug_bundle");
   });
 
+  it("drops unsafe worker debug bundle URLs during scan normalization", () => {
+    expect(
+      normalizeScan({
+        id: "sc_debug",
+        status: "done",
+        debugBundleUrl: "javascript:alert(document.domain)",
+      }).debugBundleUrl
+    ).toBe("");
+
+    expect(
+      normalizeScan({
+        id: "sc_debug_artifact",
+        status: "done",
+        reviewRun: {
+          artifacts: [
+            {
+              kind: "debug_bundle",
+              name: "debug-bundle.zip",
+              storage: { type: "server_artifact", url: "data:text/html,unsafe" },
+            },
+          ],
+        },
+      }).debugBundleUrl
+    ).toBe("");
+  });
+
   it("preserves scan account, repository, and quota summaries", () => {
     expect(
       normalizeScan({

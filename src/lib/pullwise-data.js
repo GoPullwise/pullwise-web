@@ -594,6 +594,18 @@ function normalizeReferenceUrl(value) {
   }
 }
 
+function normalizeArtifactUrl(value) {
+  const raw = scalarText(value).trim();
+  if (!raw || raw.includes("\x00") || /[\r\n]/.test(raw)) return "";
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  try {
+    const parsed = new URL(raw);
+    return ["http:", "https:"].includes(parsed.protocol) && parsed.hostname ? raw : "";
+  } catch {
+    return "";
+  }
+}
+
 function normalizeTextList(values) {
   if (!Array.isArray(values)) return [];
   return values.map(firstLineText).filter(Boolean);
@@ -1120,12 +1132,16 @@ export function normalizeIssue(issue = {}) {
 function artifactStorageUrl(artifact) {
   if (!objectRecord(artifact)) return "";
   const storage = objectRecord(artifact.storage) ? artifact.storage : {};
-  return textValue(storage.url, artifact.storageUrl, artifact.storage_url, artifact.url);
+  return normalizeArtifactUrl(
+    textValue(storage.url, artifact.storageUrl, artifact.storage_url, artifact.url)
+  );
 }
 
 function reviewRunDebugBundleUrl(reviewRun) {
   if (!objectRecord(reviewRun)) return "";
-  const explicit = textValue(reviewRun.debugBundleUrl, reviewRun.debug_bundle_url);
+  const explicit = normalizeArtifactUrl(
+    textValue(reviewRun.debugBundleUrl, reviewRun.debug_bundle_url)
+  );
   if (explicit) return explicit;
   const artifacts = Array.isArray(reviewRun.artifacts) ? reviewRun.artifacts : [];
   const debugArtifact = artifacts.find((artifact) => {
@@ -1149,7 +1165,8 @@ export function normalizeScan(scan = {}) {
       ? { ...scan.review_run }
       : null;
   const debugBundleUrl =
-    textValue(scan.debugBundleUrl, scan.debug_bundle_url) || reviewRunDebugBundleUrl(reviewRun);
+    normalizeArtifactUrl(textValue(scan.debugBundleUrl, scan.debug_bundle_url)) ||
+    reviewRunDebugBundleUrl(reviewRun);
   const status = inferredScanStatus(scan, reviewRun, rawStatus);
   return {
     id: textValue(scan.id),

@@ -1495,6 +1495,37 @@ describe("ScanningScreen queue state", () => {
     expect(debugBundleAction).toHaveAttribute("download", "debug-bundle.zip");
   });
 
+  it("does not render a debug bundle action for an executable URL scheme", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        phase: "report",
+        progress: 100,
+        debugBundleUrl: "javascript:alert(document.domain)",
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{
+          scanId: "sc_done",
+          fullName: "octocat/private-repo",
+          defaultBranch: "main",
+        }}
+      />
+    );
+
+    expect(screen.queryByRole("link", { name: /debug bundle/i })).not.toBeInTheDocument();
+  });
+
   it("shows the worker human report when a completed scan has no generated report", () => {
     useScanRun.mockReturnValue({
       scan: {
