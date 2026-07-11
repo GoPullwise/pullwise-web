@@ -996,10 +996,9 @@ a.crumb-button:hover {
 .pop, .pop-h, .pop-foot, .pop-section, .pop-i-ic,
 /* Search modal */
 .search-h, .search-gh, .search-foot, .search-empty,
-/* Legal / Security / Status / Notifications / 404 */
+/* Legal / Status / Notifications / 404 */
 .legal-side, .legal-side-h, .legal-side-i, .legal-side-foot, .legal-side-l,
 .legal-crumbs, .legal-foot-actions,
-.security-cert-h, .security-cert-s, .security-card-i,
 .status-overall, .status-dot, .status-bar, .status-bar-i,
 .status-row-region, .status-row-pct, .status-legend,
 .status-inc-sev, .status-inc-tl-h,
@@ -1039,7 +1038,6 @@ a.crumb-button:hover {
 .docs-code-h,
 .docs-foot-actions,
 .legal-list-h,
-.security-section-h,
 .status-section-h,
 .status-card-h,
 .notfound-sub,

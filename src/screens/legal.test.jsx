@@ -1,45 +1,18 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { PrivacyScreen, SecurityScreen, TermsScreen } from "./legal.jsx";
+import { PrivacyScreen, TermsScreen } from "./legal.jsx";
 
 describe("legal pages", () => {
-  it("does not claim third-party security certifications that are not backed by the product", () => {
-    render(<SecurityScreen go={vi.fn()} />);
-
-    expect(screen.queryByText(/SOC 2/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/ISO 27001/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/GitHub App permissions/i)).toBeInTheDocument();
-  });
-
-  it("does not expose concrete review runner names on the security page", () => {
-    render(<SecurityScreen go={vi.fn()} />);
-
-    expect(screen.getByText(/review runner credentials/i)).toBeInTheDocument();
-    expect(screen.queryByText(/codex/i)).not.toBeInTheDocument();
-  });
-
-  it("shows dashboard actions instead of sign-in actions for signed-in users", () => {
-    render(<SecurityScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(screen.getByRole("link", { name: /^dashboard$/i })).toHaveAttribute(
-      "href",
-      "/dashboard/overview"
-    );
-    expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
-  });
-
   it("exposes legal chrome navigation as keyboard-accessible links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
 
-    render(<SecurityScreen go={go} />);
+    render(<PrivacyScreen go={go} />);
 
     const home = screen.getByRole("link", { name: /go to pullwise home/i });
     const chromeNav = within(screen.getByRole("navigation"));
     const product = chromeNav.getByRole("link", { name: /^product$/i });
-    const security = chromeNav.getByRole("link", { name: /^security$/i });
     const status = chromeNav.getByRole("link", { name: /^status$/i });
     const signIn = screen.getByRole("link", { name: /^sign in$/i });
     const getStarted = screen.getByRole("link", { name: /^get started$/i });
@@ -47,7 +20,7 @@ describe("legal pages", () => {
 
     expect(home).toHaveAttribute("href", "/");
     expect(product).toHaveAttribute("href", "/");
-    expect(security).toHaveAttribute("href", "/security");
+    expect(chromeNav.queryByRole("link", { name: /^security$/i })).not.toBeInTheDocument();
     expect(status).toHaveAttribute("href", "/status");
     expect(signIn).toHaveAttribute("href", "/login");
     expect(getStarted).toHaveAttribute("href", "/login");
@@ -91,12 +64,4 @@ describe("legal pages", () => {
     ).toBeInTheDocument();
   });
 
-  it("exposes the contact address as the security report mail link", () => {
-    render(<SecurityScreen go={vi.fn()} />);
-
-    expect(screen.getByRole("link", { name: /contact@pull-wise\.com/i })).toHaveAttribute(
-      "href",
-      "mailto:contact@pull-wise.com"
-    );
-  });
 });

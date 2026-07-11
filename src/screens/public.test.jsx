@@ -78,10 +78,10 @@ describe("public navigation links", () => {
     expect(styles).toMatch(/\.lp-preview\s*{[^}]*max-width:\s*1240px;/s);
     expect(styles).toMatch(/\.lp-foot\s*{[^}]*max-width:\s*1240px;[^}]*padding:\s*28px 40px;/s);
     expect(styles).toMatch(
-      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.security-hero,\s*\.security-section,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
+      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
     );
     expect(styles).toMatch(
-      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.security-hero,\s*\.security-section,\s*\.status-hero,\s*\.status-section\s*{[^}]*padding-left:\s*40px;[^}]*padding-right:\s*40px;/s
+      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*padding-left:\s*40px;[^}]*padding-right:\s*40px;/s
     );
     expect(styles).toMatch(/\.legal-main\s*{[^}]*max-width:\s*none;/s);
   });

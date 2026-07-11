@@ -500,7 +500,6 @@ body.has-proto-nav {
   .legal-main,
   .legal-table,
   .legal-table-r,
-  .security-card,
   .status-card,
   .notif-row,
   .notfound-card
@@ -603,7 +602,6 @@ body.has-proto-nav {
 .pricing-tag,
 .docs-lede,
 .legal-lede,
-.security-section-h p,
 .status-section-h p,
 .notfound-sub {
   overflow-wrap: anywhere;
@@ -3236,8 +3234,6 @@ body.has-proto-nav {
 .pricing-faq,
 .docs-shell,
 .legal-shell,
-.security-hero,
-.security-section,
 .status-hero,
 .status-section {
   width: 100%;
@@ -3283,8 +3279,6 @@ body.has-proto-nav {
   .pricing-faq,
   .docs-shell,
   .legal-shell,
-  .security-hero,
-  .security-section,
   .status-hero,
   .status-section {
     padding-left: 20px;
@@ -3298,8 +3292,6 @@ body.has-proto-nav {
   .pricing-faq,
   .docs-shell,
   .legal-shell,
-  .security-hero,
-  .security-section,
   .status-hero,
   .status-section {
     padding-left: 16px;

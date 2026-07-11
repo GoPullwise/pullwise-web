@@ -38,7 +38,6 @@ const IssueDetailScreen = lazyScreen(() => import("./screens/issues.jsx"), "Issu
 const IssuesScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssuesScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/issues.jsx"), "SettingsScreen");
 const PrivacyScreen = lazyScreen(() => import("./screens/legal.jsx"), "PrivacyScreen");
-const SecurityScreen = lazyScreen(() => import("./screens/legal.jsx"), "SecurityScreen");
 const StatusScreen = lazyScreen(() => import("./screens/legal.jsx"), "StatusScreen");
 const TermsScreen = lazyScreen(() => import("./screens/legal.jsx"), "TermsScreen");
 
@@ -58,7 +57,6 @@ const PUBLIC_SCREENS = new Set([
   "api",
   "privacy",
   "terms",
-  "security",
   "status",
   "notfound",
 ]);
@@ -242,7 +240,6 @@ function PrototypeNav({ go, current }) {
     { k: "api", t: T("API docs", "API 文档") },
     { k: "privacy", t: T("Privacy Policy", "隐私") },
     { k: "terms", t: T("Terms of Service", "条款") },
-    { k: "security", t: T("Security", "安全") },
     { k: "status", t: T("Status", "状态") },
     { k: "notfound", t: "404" },
   ];
@@ -769,9 +766,6 @@ export function App({ prototypeNav = false }) {
         break;
       case "terms":
         body = <TermsScreen go={go} auth={auth} />;
-        break;
-      case "security":
-        body = <SecurityScreen go={go} auth={auth} />;
         break;
       case "status":
         body = <StatusScreen go={go} auth={auth} />;

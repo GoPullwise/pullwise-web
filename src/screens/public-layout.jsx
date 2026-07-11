@@ -8,14 +8,12 @@ const HEADER_NAV = [
   { key: "pricing", labelEn: "Pricing", labelZh: "价格" },
   { key: "docs", labelEn: "Docs", labelZh: "Docs" },
   { key: "api", labelEn: "API", labelZh: "API" },
-  { key: "security", labelEn: "Security", labelZh: "安全" },
   { key: "status", labelEn: "Status", labelZh: "状态" },
 ];
 
 const FOOTER_LINKS = [
   { key: "privacy", labelEn: "Privacy", labelZh: "隐私" },
   { key: "terms", labelEn: "Terms", labelZh: "条款" },
-  { key: "security", labelEn: "Security", labelZh: "安全" },
   { key: "pricing", labelEn: "Pricing", labelZh: "价格" },
   { key: "docs", labelEn: "Docs", labelZh: "Docs" },
   { key: "api", labelEn: "API", labelZh: "API" },

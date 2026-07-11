@@ -154,7 +154,7 @@ describe("API screens", () => {
 
     expect(document.querySelector(".docs-toc")).not.toBeInTheDocument();
     expect(appStyles).toMatch(
-      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.security-hero,\s*\.security-section,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
+      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
     );
     expect(styles).toMatch(
       /\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/
