@@ -147,13 +147,15 @@ describe("API screens", () => {
     }
   });
 
-  it("keeps a wider docs layout inside the marketing header bounds", () => {
+  it("matches the docs layout width to the marketing header", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
     const styles = readFileSync("styles/screens.css", "utf8");
     const appStyles = readFileSync("src/app.css", "utf8");
 
     expect(document.querySelector(".docs-toc")).not.toBeInTheDocument();
-    expect(styles).toMatch(/\.docs-shell\s*{[^}]*max-width:\s*1120px;/);
+    expect(appStyles).toMatch(
+      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.security-hero,\s*\.security-section,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
+    );
     expect(styles).toMatch(
       /\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/
     );

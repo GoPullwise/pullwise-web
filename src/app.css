@@ -3231,6 +3231,27 @@ body.has-proto-nav {
   padding: 28px 40px;
 }
 
+.pricing-hero,
+.pricing-tiers,
+.pricing-faq,
+.docs-shell,
+.legal-shell,
+.security-hero,
+.security-section,
+.status-hero,
+.status-section {
+  width: 100%;
+  max-width: 1240px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.legal-main {
+  max-width: none;
+}
+
 .pricing-hero > .lp-title {
   grid-column: auto;
   grid-row: auto;
@@ -3255,6 +3276,34 @@ body.has-proto-nav {
 @media (max-width: 760px) {
   .lp-foot {
     padding: 24px 20px;
+  }
+
+  .pricing-hero,
+  .pricing-tiers,
+  .pricing-faq,
+  .docs-shell,
+  .legal-shell,
+  .security-hero,
+  .security-section,
+  .status-hero,
+  .status-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .pricing-hero,
+  .pricing-tiers,
+  .pricing-faq,
+  .docs-shell,
+  .legal-shell,
+  .security-hero,
+  .security-section,
+  .status-hero,
+  .status-section {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 /* Settings inline recovery state */
