@@ -897,6 +897,43 @@ describe("ReposScreen scan selection", () => {
     expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
     await act(async () => connection.resolve());
   });
+
+  it("shares the same-frame GitHub action lock across connect and manage", async () => {
+    const connection = deferredPromise();
+    connectGitHubRepositories.mockReturnValue(connection.promise);
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [
+        {
+          installationId: "130258770",
+          installationAccount: "octocat",
+          installationTargetType: "Organization",
+          repositorySelection: "selected",
+          repositoryCount: 1,
+        },
+      ],
+      installationAccounts: ["octocat"],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    const connect = await screen.findByRole("button", {
+      name: /add github account or organization/i,
+    });
+    const manage = screen.getByRole("button", { name: /manage octocat/i });
+    act(() => {
+      connect.click();
+      manage.click();
+    });
+
+    expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+    expect(manageGitHubInstallation).not.toHaveBeenCalled();
+    await act(async () => connection.resolve());
+  });
 });
 
 describe("ScanningScreen queue state", () => {

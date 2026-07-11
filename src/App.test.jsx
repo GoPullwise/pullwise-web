@@ -537,6 +537,29 @@ describe("App", () => {
     expect(screen.queryByText(/worker registry/i)).not.toBeInTheDocument();
   });
 
+  it("renders Not Found when browser history moves to an unknown private route", async () => {
+    window.history.replaceState({}, "", "/dashboard");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument();
+    });
+
+    act(() => {
+      window.history.replaceState({}, "", "/workers");
+      window.dispatchEvent(new PopStateEvent("popstate", { state: {} }));
+    });
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="notfound"]')).toBeInTheDocument();
+    });
+    expect(document.querySelector('[data-screen-label="landing"]')).not.toBeInTheDocument();
+  });
+
   it("renders the Docs route as a public screen", async () => {
     window.history.replaceState({}, "", "/developers/docs");
     pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));

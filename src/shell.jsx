@@ -96,24 +96,8 @@ function SearchModal({ close, go, setIssue }) {
   const { items: issues } = useIssues({ q: searchQuery, limit: 5, refreshOnChange: false });
   const { items: repos } = useRepositories({ q: searchQuery, limit: 4 });
   const query = searchQuery.toLowerCase();
-  const issueResults = issues
-    .filter(
-      (issue) =>
-        !query ||
-        [issue.title, issue.id, issue.file, issue.category, issue.repo]
-          .filter(Boolean)
-          .some((value) => value.toLowerCase().includes(query))
-    )
-    .slice(0, 5);
-  const repoResults = repos
-    .filter(
-      (repo) =>
-        !query ||
-        [repo.name, repo.fullName, repo.desc]
-          .filter(Boolean)
-          .some((value) => value.toLowerCase().includes(query))
-    )
-    .slice(0, 4);
+  const issueResults = issues.slice(0, 5);
+  const repoResults = repos.slice(0, 4);
   const allPages = [
     { k: "dashboard", t: T("Overview", "总览"), i: <I.Layout size={14} /> },
     { k: "issues", t: T("Issues", "问题"), i: <I.Bug size={14} /> },

@@ -342,7 +342,7 @@ export function App({ prototypeNav = false }) {
 
   useEffect(() => {
     const onPopState = (event) => {
-      const nextScreen = screenFromPath(window.location.pathname) || "landing";
+      const nextScreen = screenFromPath(window.location.pathname) || "notfound";
       setRouteIssueId(nextScreen === "issue" ? issueIdFromPath(window.location.pathname) : "");
       setRouteScanId(nextScreen === "scanning" ? scanIdFromPath(window.location.pathname) : "");
       setPendingHistoryScanIds(

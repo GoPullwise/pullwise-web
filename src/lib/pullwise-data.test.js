@@ -945,6 +945,44 @@ describe("useIssues", () => {
     );
   });
 
+  it("stops paginating when a page repeats its cursor without adding new issues", async () => {
+    pullwiseApi.issues.list
+      .mockResolvedValueOnce({
+        items: [{ id: "iss_1", status: "open", severity: "high" }],
+        total: 2,
+        limit: 1,
+        offset: 0,
+        hasMore: true,
+        nextOffset: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "iss_1", status: "open", severity: "high" }],
+        total: 2,
+        limit: 1,
+        offset: 1,
+        hasMore: true,
+        nextOffset: 1,
+      });
+
+    const { result, unmount } = renderHook(() =>
+      useIssues({ limit: 1, status: "open", refreshOnChange: false })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => {
+      result.current.loadMore();
+    });
+    await waitFor(() => expect(result.current.loadingMore).toBe(false));
+
+    expect(result.current.items.map((issue) => issue.id)).toEqual(["iss_1"]);
+    expect(result.current.meta.hasMore).toBe(false);
+    expect(result.current.error).toMatch(/pagination did not advance/i);
+
+    act(() => result.current.loadMore());
+    expect(pullwiseApi.issues.list).toHaveBeenCalledTimes(2);
+    unmount();
+  });
+
   it("keeps locally fixed issues out of the open list after remount when refresh is stale", async () => {
     const issue = {
       id: "iss_1",
@@ -1703,6 +1741,31 @@ describe("normalizeIssue", () => {
         errorCode: "WORKER_ARTIFACT_INVALID",
       })
     ).toBe(false);
+
+    for (const status of ["failed", "partial_completed", "done"]) {
+      expect(
+        scanCanDownloadAuditBundle(
+          normalizeScan({ id: `sc_code_${status}`, status, errorCode: "WORKER_ARTIFACT_INVALID" })
+        )
+      ).toBe(false);
+      expect(
+        scanCanDownloadAuditBundle(
+          normalizeScan({
+            id: `sc_snake_${status}`,
+            status,
+            error_code: "WORKER_ARTIFACT_INVALID",
+            error: "",
+          })
+        )
+      ).toBe(false);
+    }
+    expect(
+      scanCanDownloadAuditBundle({
+        id: "sc_message_only",
+        status: "failed",
+        error: "WORKER_ARTIFACT_INVALID",
+      })
+    ).toBe(true);
   });
 
   it("infers terminal scan status from terminal review run payloads", () => {

@@ -1104,6 +1104,7 @@ export function ReposScreen({
   const [selectedBranches, setSelectedBranches] = useState({});
   const branchRequestsRef = useRef(new Map());
   const scanSubmissionInFlightRef = useRef(false);
+  const githubActionInFlightRef = useRef(false);
   const [org, setOrg] = useState("All");
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
   const query = q.trim().toLowerCase();
@@ -1558,7 +1559,8 @@ export function ReposScreen({
   };
 
   const connectRepositories = async (options = {}) => {
-    if (connecting) return;
+    if (githubActionInFlightRef.current) return;
+    githubActionInFlightRef.current = true;
     setConnecting(true);
     setConnectError("");
     clearAuthorizationError();
@@ -1571,12 +1573,14 @@ export function ReposScreen({
           T("Unable to connect GitHub repository access.", "无法连接 GitHub 仓库访问。")
       );
     } finally {
+      githubActionInFlightRef.current = false;
       setConnecting(false);
     }
   };
 
   const manageInstallation = async (installation) => {
-    if (managingInstallationId) return;
+    if (githubActionInFlightRef.current) return;
+    githubActionInFlightRef.current = true;
     const targetInstallationId = installation?.id || installation?.installationId;
     setManagingInstallationId(targetInstallationId || "");
     setConnectError("");
@@ -1591,6 +1595,7 @@ export function ReposScreen({
         authError?.message || T("Unable to manage GitHub installation.", "无法管理 GitHub 安装。")
       );
     } finally {
+      githubActionInFlightRef.current = false;
       setManagingInstallationId("");
     }
   };

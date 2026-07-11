@@ -291,6 +291,36 @@ function baseListState(initialCachedState, shouldRefreshQuietly, limit) {
     error: "",
   };
 }
+
+function listItemIdentity(item) {
+  if (item && typeof item === "object") {
+    for (const field of ["id", "fullName", "requestId", "scanId"]) {
+      const value = item[field];
+      if (value !== undefined && value !== null && String(value)) {
+        return `${field}:${String(value)}`;
+      }
+    }
+    try {
+      return `json:${JSON.stringify(item)}`;
+    } catch {
+      return "";
+    }
+  }
+  return `${typeof item}:${String(item)}`;
+}
+
+function appendUniqueListItems(currentItems, nextItems) {
+  const identities = new Set(currentItems.map(listItemIdentity).filter(Boolean));
+  const appended = [];
+  for (const item of nextItems) {
+    const identity = listItemIdentity(item);
+    if (identity && identities.has(identity)) continue;
+    if (identity) identities.add(identity);
+    appended.push(item);
+  }
+  return { items: [...currentItems, ...appended], addedCount: appended.length };
+}
+
 function formatTime(value) {
   if (!value) return "";
   if (typeof value === "number") {
@@ -1271,6 +1301,7 @@ function usePagedList({
 }) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
+  const requestedOffsetsRef = useRef(new Set());
   const cacheKey = stableCacheKey(cacheName, { limit, ...params });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() => ({
@@ -1280,6 +1311,13 @@ function usePagedList({
 
   const load = useCallback(
     async ({ quiet = false, append = false, offset = 0 } = {}) => {
+      const requestedOffset = Number(offset) || 0;
+      if (append) {
+        if (requestedOffsetsRef.current.has(requestedOffset)) return;
+        requestedOffsetsRef.current.add(requestedOffset);
+      } else {
+        requestedOffsetsRef.current.clear();
+      }
       const requestId = requestIdRef.current + 1;
       requestIdRef.current = requestId;
       abortRef.current?.abort?.();
@@ -1301,14 +1339,29 @@ function usePagedList({
         if (requestId !== requestIdRef.current) return;
         const nextItems = normalizeItems(payload);
         setState((current) => {
+          const nextMeta = pageMeta(payload, limit);
+          const merged = append
+            ? appendUniqueListItems(current.items, nextItems)
+            : { items: nextItems, addedCount: nextItems.length };
+          const nextOffset = Number(nextMeta.nextOffset);
+          const paginationDidNotAdvance =
+            append &&
+            nextMeta.hasMore &&
+            (merged.addedCount === 0 ||
+              !Number.isFinite(nextOffset) ||
+              nextOffset <= requestedOffset);
           const nextState = {
             ...current,
             ...(extraState ? extraState(payload) : {}),
-            items: append ? [...current.items, ...nextItems] : nextItems,
+            items: merged.items,
             loading: false,
             loadingMore: false,
-            error: "",
-            meta: pageMeta(payload, limit),
+            error: paginationDidNotAdvance
+              ? "Pagination did not advance. Refresh to retry."
+              : "",
+            meta: paginationDidNotAdvance
+              ? { ...nextMeta, hasMore: false, nextOffset: null }
+              : nextMeta,
           };
           rememberListState(cacheKey, nextState);
           return nextState;
@@ -1316,6 +1369,7 @@ function usePagedList({
       } catch (error) {
         if (isAbortError(error)) return;
         if (requestId !== requestIdRef.current) return;
+        if (append) requestedOffsetsRef.current.delete(requestedOffset);
         setState((current) => ({
           ...current,
           loading: false,
@@ -1662,7 +1716,7 @@ export function scanHasResults(scan) {
 }
 
 export function scanHasBlockingError(scan) {
-  return Boolean(scan?.error && scan?.errorCode === "WORKER_ARTIFACT_INVALID");
+  return (scan?.errorCode || scan?.error_code) === "WORKER_ARTIFACT_INVALID";
 }
 
 export function scanCanDownloadAuditBundle(scan) {

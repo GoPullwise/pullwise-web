@@ -839,7 +839,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   const [keys, setKeys] = useState([]);
   const [name, setName] = useState(T("Account automation", "账户自动化"));
   const [selectedScopes, setSelectedScopes] = useState(API_KEY_SCOPE_VALUES);
-  const [createdToken, setCreatedToken] = useState("");
+  const [createdCredential, setCreatedCredential] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
@@ -882,7 +882,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     mutationInFlightRef.current = true;
     setPending("create");
     setError("");
-    setCreatedToken("");
+    setCreatedCredential(null);
     try {
       const scopes = API_KEY_SCOPE_VALUES.filter((scope) => selectedScopes.includes(scope));
       const payload = await pullwiseApi.apiKeys.create({
@@ -901,7 +901,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
           )
         );
       }
-      setCreatedToken(token);
+      setCreatedCredential({ keyId: key.id, token });
       setName(T("Account automation", "账户自动化"));
       setSelectedScopes(API_KEY_SCOPE_VALUES);
     } catch (err) {
@@ -920,6 +920,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     try {
       await pullwiseApi.apiKeys.revoke(keyId);
       setKeys((current) => current.filter((key) => key.id !== keyId));
+      setCreatedCredential((current) => (current?.keyId === keyId ? null : current));
     } catch (err) {
       setError(err?.message || T("Unable to revoke API key.", "无法吊销 API key。"));
     } finally {
@@ -929,7 +930,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   };
 
   const copyToken = async () => {
-    if (!createdToken) return;
+    if (!createdCredential?.token) return;
     setError("");
     if (!navigator.clipboard) {
       setError(
@@ -941,7 +942,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       return;
     }
     try {
-      await navigator.clipboard.writeText(createdToken);
+      await navigator.clipboard.writeText(createdCredential.token);
     } catch {
       setError(
         T(
@@ -980,7 +981,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             </div>
           </div>
 
-          {createdToken && (
+          {createdCredential?.token && (
             <div className="auth-success" role="status" style={{ marginBottom: 12 }}>
               <I.Check size={14} />
               <div>
@@ -998,7 +999,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                       <I.Copy size={12} /> {T("Copy", "复制")}
                     </button>
                   </div>
-                  <pre>{createdToken}</pre>
+                  <pre>{createdCredential.token}</pre>
                 </div>
               </div>
             </div>

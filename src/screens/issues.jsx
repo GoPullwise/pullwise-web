@@ -1902,6 +1902,7 @@ export function SettingsScreen({ go, setIssue = null }) {
   });
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const integrationRequestIdRef = useRef(0);
+  const githubActionInFlightRef = useRef(false);
 
   const loadSettingsPayloads = useCallback(async (cancelledRef = null) => {
     const requestId = integrationRequestIdRef.current + 1;
@@ -2030,6 +2031,8 @@ export function SettingsScreen({ go, setIssue = null }) {
     }
   };
   const authorizeRepositories = async () => {
+    if (githubActionInFlightRef.current) return;
+    githubActionInFlightRef.current = true;
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
     setIntegrationError("");
@@ -2044,10 +2047,13 @@ export function SettingsScreen({ go, setIssue = null }) {
             T("Unable to connect GitHub repository access.", "\u65e0\u6cd5\u8fde\u63a5 GitHub \u4ed3\u5e93\u8bbf\u95ee\u3002")
         );
       }
+    } finally {
+      githubActionInFlightRef.current = false;
     }
   };
   const manageInstallation = async (installation) => {
-    if (managingInstallationId) return;
+    if (githubActionInFlightRef.current) return;
+    githubActionInFlightRef.current = true;
     const targetInstallationId = installation?.id || installation?.installationId;
     const requestId = integrationRequestIdRef.current + 1;
     integrationRequestIdRef.current = requestId;
@@ -2067,7 +2073,8 @@ export function SettingsScreen({ go, setIssue = null }) {
         );
       }
     } finally {
-      if (requestId === integrationRequestIdRef.current) setManagingInstallationId("");
+      githubActionInFlightRef.current = false;
+      setManagingInstallationId("");
     }
   };
 

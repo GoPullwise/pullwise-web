@@ -772,8 +772,38 @@ describe("API screens", () => {
     await user.click(screen.getAllByRole("button", { name: /revoke/i })[0]);
 
     await waitFor(() => {
-      expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalled();
+      expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_2");
+      expect(screen.queryByText("pwk_live_secret")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^copy$/i })).not.toBeInTheDocument();
     });
+  });
+
+  it("keeps a newly created token visible when an unrelated key is revoked", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_old", name: "Old key", prefix: "pwk_old" }],
+    });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_new",
+      name: "New key",
+      prefix: "pwk_new",
+      key: "pwk_live_new_secret",
+    });
+    pullwiseApi.apiKeys.revoke.mockResolvedValue({});
+    const user = userEvent.setup();
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    const oldKey = await screen.findByText("Old key");
+    await user.click(screen.getByRole("button", { name: /create key/i }));
+    expect(await screen.findByText("pwk_live_new_secret")).toBeInTheDocument();
+
+    await user.click(within(oldKey.closest(".issue-row")).getByRole("button", { name: /revoke/i }));
+
+    await waitFor(() => {
+      expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_old");
+    });
+    expect(screen.getByText("pwk_live_new_secret")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^copy$/i })).toBeInTheDocument();
   });
 
   it("serializes API key mutations before React pending state is committed", async () => {

@@ -71,6 +71,37 @@ describe("Topbar navigation", () => {
     });
   });
 
+  it("keeps authoritative server matches whose display fields do not contain the literal query", async () => {
+    useIssues.mockImplementation(({ q }) => ({
+      items: q
+        ? [
+            {
+              id: "iss_ranked",
+              title: "Authentication boundary",
+              file: "src/auth.js",
+              category: "Security",
+              repo: "acme/service",
+              severity: "high",
+            },
+          ]
+        : [],
+    }));
+    useRepositories.mockImplementation(({ q }) => ({
+      items: q
+        ? [{ id: "repo_ranked", name: "api", fullName: "acme/api", desc: "Service repository" }]
+        : [],
+    }));
+    const user = userEvent.setup();
+
+    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^search$/i }));
+    await user.type(screen.getByRole("textbox", { name: /^search$/i }), "oauth-token-rotation");
+
+    expect(screen.getByText("Authentication boundary")).toBeInTheDocument();
+    expect(screen.getByText("acme/api")).toBeInTheDocument();
+  });
+
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
