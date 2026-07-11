@@ -872,6 +872,31 @@ describe("ReposScreen scan selection", () => {
 
     expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
   });
+
+  it("serializes same-frame GitHub connection actions before React rerenders", async () => {
+    const connection = deferredPromise();
+    connectGitHubRepositories.mockReturnValue(connection.promise);
+    useRepositories.mockReturnValue({
+      items: [],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: true,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    const connect = await screen.findByRole("button", { name: /connect github repositories/i });
+    act(() => {
+      connect.click();
+      connect.click();
+    });
+
+    expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+    await act(async () => connection.resolve());
+  });
 });
 
 describe("ScanningScreen queue state", () => {

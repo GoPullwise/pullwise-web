@@ -81,6 +81,33 @@ describe("SettingsScreen", () => {
     expect(go).not.toHaveBeenCalledWith("oauth");
   });
 
+  it("serializes same-frame GitHub authorization actions before React rerenders", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: {
+        connected: true,
+        installationAccount: "octocat",
+        repositories: ["octocat/private-repo"],
+      },
+    });
+    let resolveConnection;
+    connectGitHubRepositories.mockReturnValue(
+      new Promise((resolve) => {
+        resolveConnection = resolve;
+      })
+    );
+    render(<SettingsScreen go={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /integrations/i }));
+    const connect = await screen.findByRole("button", { name: /add account or organization/i });
+    act(() => {
+      connect.click();
+      connect.click();
+    });
+
+    expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
+    await act(async () => resolveConnection());
+  });
+
   it("summarizes multiple GitHub App installation accounts", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {
