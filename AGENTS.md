@@ -172,6 +172,10 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Frontend regression coverage should include request timeout/recovery, abort/unmount, stale responses, rapid repeated actions, loading/error/empty states, long unbroken content, and a real 390px browser check where document scrollWidth equals clientWidth.
 - API-key and batch-scan mutations must acquire a ref-backed synchronous lock before their first await; React loading state alone is not a duplicate-request guard.
 - A created API-key record without its one-time token is a committed partial success: keep the metadata visible for revocation and show a recovery error instead of treating the key as absent.
+- Associate a displayed one-time API token with its key id. Clear it only after that same key is successfully revoked, and preserve it when another key is revoked.
+- GitHub connect and installation-management actions on the same screen share one ref-backed synchronous lock across both action types.
+- Treat server-filtered global issue/repository results as authoritative; do not discard fuzzy or nonliteral matches with a narrower client-side substring filter. Shared pagination must de-duplicate stable identities and terminate with recoverable guidance when a page adds no identities or its next offset does not advance.
+- Audit-bundle blocking depends on the structured `WORKER_ARTIFACT_INVALID` code even when display copy is absent. Unknown initial and `popstate` routes must resolve consistently to Not Found.
 - Scan-history handoff polling must have a finite deadline. After expiry, stop automatic retries, reveal the current history, and restore manual Refresh.
 - Root-relative API bases and audit-bundle paths must resolve to an absolute browser URL without duplicating a shared `/api` prefix.
 - Repository-access refresh flags must fall back to memory when any individual `sessionStorage` operation throws.
