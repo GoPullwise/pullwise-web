@@ -13,6 +13,10 @@ const SHORTENED_ENGLISH_PLACEHOLDER =
   "Pullwise scans repository snapshots with isolated Codex full-repo workers, validator disproof, and actionable reports.";
 const METHODOLOGY_PROSE =
   "Pullwise scans the current repository snapshot with isolated Codex full-repo workers, validates candidate findings through a disproof pass, and reports confirmed or plausible actionable findings.";
+const ENGLISH_PLACEHOLDER_OVERRIDES = {
+  "Validation proof": "Validation evidence",
+  "Validating findings and locations": "Reviewing risks and validating findings",
+};
 
 describe("production locale catalog", () => {
   afterEach(() => setLang("en"));
@@ -25,6 +29,9 @@ describe("production locale catalog", () => {
         expect(T(english).trim()).not.toBe("");
       }
       expect(T(METHODOLOGY_PROSE)).not.toBe(SHORTENED_ENGLISH_PLACEHOLDER);
+      for (const [english, placeholder] of Object.entries(ENGLISH_PLACEHOLDER_OVERRIDES)) {
+        expect(T(english), `${locale}: ${english}`).not.toBe(placeholder);
+      }
     });
 
     it(`${locale} localizes dynamic worker state vocabulary`, () => {
