@@ -162,7 +162,7 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## Web Visual And Frontend Resilience
 
-- Keep the public UI editorial and hard-edged: zero decorative radius/shadow, a restrained monochrome palette, and one indigo accent. Landing, Pricing, the public header/footer, and major preview sections must share the same 1240px horizontal frame.
+- Keep the public UI editorial and hard-edged: zero decorative radius/shadow, a restrained monochrome palette, and one indigo accent. Landing, Pricing, Docs/API, Privacy/Terms, Security, Status, the public header/footer, and major preview sections must share the same 1240px horizontal frame with 40px desktop gutters. At 420px and below, keep the shared public frame on 16px gutters; do not cap the Privacy/Terms main column inside that frame.
 - Landing may use an asymmetric hero, but Pricing owns a separate centered hero rule. Do not let generic landing title/subtitle selectors move the Pricing heading off center.
 - Prefer continuous divided data bands for dashboard metrics and summaries. Reserve standalone cards for interactive, result-bearing, or independently actionable content.
 - Scan detail findings are result-only. Gate the Finding summary and review-agent metadata with `scanHasResults`; queued, running, cancelled, and lost scans should show execution/log context without a zero-filled result card.
