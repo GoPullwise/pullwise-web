@@ -537,6 +537,18 @@ describe("App", () => {
     expect(screen.queryByText(/worker registry/i)).not.toBeInTheDocument();
   });
 
+  it("renders Not Found for the removed Security page route", async () => {
+    window.history.replaceState({}, "", "/security");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({ authenticated: false });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-screen-label="notfound"]')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("heading", { name: /security baseline/i })).not.toBeInTheDocument();
+  });
+
   it("renders Not Found when browser history moves to an unknown private route", async () => {
     window.history.replaceState({}, "", "/dashboard");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({

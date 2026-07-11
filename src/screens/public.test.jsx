@@ -16,6 +16,7 @@ describe("public navigation links", () => {
     const pricing = within(headerNav).getByRole("link", { name: /^pricing$/i });
     const docs = within(headerNav).getByRole("link", { name: /^docs$/i });
     const api = within(headerNav).getByRole("link", { name: /^api$/i });
+    expect(within(headerNav).queryByRole("link", { name: /^security$/i })).not.toBeInTheDocument();
     const signIn = screen.getByRole("link", { name: /^sign in$/i });
     const getStarted = screen.getByRole("link", { name: /^get started$/i });
     const primaryActions = screen.getAllByRole("link", { name: /sign in with github/i });
@@ -92,6 +93,7 @@ describe("public navigation links", () => {
 
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
     expect(privacy).toHaveAttribute("href", "/privacy");
+    expect(screen.queryByRole("link", { name: /^security$/i })).not.toBeInTheDocument();
 
     privacy.focus();
     await user.keyboard("{Enter}");

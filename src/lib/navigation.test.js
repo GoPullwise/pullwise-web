@@ -78,6 +78,13 @@ describe("developer docs routes", () => {
   });
 });
 
+describe("removed public routes", () => {
+  it("does not expose the former Security page", () => {
+    expect(screenFromPath("/security")).toBeNull();
+    expect(pathFromScreen("security")).toBe("/404");
+  });
+});
+
 describe("issue detail routes", () => {
   it("encodes issue identity in the URL so detail pages can reload", () => {
     expect(pathFromScreen("issue", { issueId: "issue/with spaces#1" })).toBe(
