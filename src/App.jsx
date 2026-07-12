@@ -80,6 +80,12 @@ function clearRepositoryAuthorizationRequest() {
   window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
+function replaceAutomaticScreenPath(screen) {
+  const path = pathFromScreen(screen);
+  if (window.location.pathname === path) return;
+  window.history.replaceState({ screen, issueId: "", scanId: "" }, "", path);
+}
+
 function shouldShowSessionCheck(screen) {
   return screen === "login" || !PUBLIC_SCREENS.has(screen);
 }
@@ -425,6 +431,7 @@ export function App({ prototypeNav = false }) {
     if (auth.status !== "ready") return;
     if (auth.authenticated) return;
     if (PUBLIC_SCREENS.has(screen)) return;
+    replaceAutomaticScreenPath("login");
     setScreen("login");
   }, [screen, auth.status, auth.authenticated]);
 
@@ -497,9 +504,11 @@ export function App({ prototypeNav = false }) {
         setAuthState({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
           if (authenticated && current === "login") {
+            replaceAutomaticScreenPath("landing");
             return "landing";
           }
           if (!authenticated && !PUBLIC_SCREENS.has(current)) {
+            replaceAutomaticScreenPath("login");
             return "login";
           }
           return current;
@@ -517,7 +526,11 @@ export function App({ prototypeNav = false }) {
         }
         clearSessionConfirmTimer();
         setAuthState({ status: "ready", authenticated: false, session: null });
-        setScreen((current) => (PUBLIC_SCREENS.has(current) ? current : "login"));
+        setScreen((current) => {
+          if (PUBLIC_SCREENS.has(current)) return current;
+          replaceAutomaticScreenPath("login");
+          return "login";
+        });
         return { authenticated: false, error };
       } finally {
         sessionCheckingRef.current = false;

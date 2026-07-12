@@ -570,9 +570,19 @@ export function BillingScreen({
   const [changeDraft, setChangeDraft] = useState(null);
   const [usageExpanded, setUsageExpanded] = useState(false);
   const billingMutationRef = useRef("");
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      billingMutationRef.current = "";
+    };
+  }, []);
 
   const refreshBillingPlan = useCallback(async () => {
     const payload = await pullwiseApi.billing.getPlan();
+    if (!mountedRef.current) return payload;
     setPlan(payload);
     setError("");
     return payload;
@@ -686,6 +696,7 @@ export function BillingScreen({
         interval: targetInterval,
         returnUrl: billingReturnUrl("return"),
       });
+      if (!mountedRef.current) return;
       if (result?.url) {
         navigate(safeBillingRedirectUrl(result.url, "billing interval URL"));
         return;
@@ -716,12 +727,15 @@ export function BillingScreen({
         },
       }));
       await refreshBillingPlan();
+      if (!mountedRef.current) return;
       setChangeDraft(null);
     } catch (err) {
-      setError(err?.message || "Unable to change subscription.");
+      if (mountedRef.current) setError(err?.message || "Unable to change subscription.");
     } finally {
       if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
-      setPendingAction((current) => (current === actionKey ? "" : current));
+      if (mountedRef.current) {
+        setPendingAction((current) => (current === actionKey ? "" : current));
+      }
     }
   };
 
@@ -767,6 +781,7 @@ export function BillingScreen({
         mode: "scheduled",
         returnUrl: billingReturnUrl("return"),
       });
+      if (!mountedRef.current) return;
       setPlan((current) => ({
         ...current,
         account: {
@@ -777,10 +792,12 @@ export function BillingScreen({
       }));
       await refreshBillingPlan();
     } catch (err) {
-      setError(err?.message || "Unable to cancel subscription.");
+      if (mountedRef.current) setError(err?.message || "Unable to cancel subscription.");
     } finally {
       if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
-      setPendingAction((current) => (current === actionKey ? "" : current));
+      if (mountedRef.current) {
+        setPendingAction((current) => (current === actionKey ? "" : current));
+      }
     }
   };
 
@@ -794,6 +811,7 @@ export function BillingScreen({
       const result = await pullwiseApi.billing.resumeSubscription({
         returnUrl: billingReturnUrl("return"),
       });
+      if (!mountedRef.current) return;
       const nextStatus = result?.status || "active";
       const restoredSubscription = isRestoredSubscriptionStatus(nextStatus);
       setPlan((current) => ({
@@ -819,10 +837,12 @@ export function BillingScreen({
       }));
       await refreshBillingPlan();
     } catch (err) {
-      setError(err?.message || "Unable to resume subscription.");
+      if (mountedRef.current) setError(err?.message || "Unable to resume subscription.");
     } finally {
       if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
-      setPendingAction((current) => (current === actionKey ? "" : current));
+      if (mountedRef.current) {
+        setPendingAction((current) => (current === actionKey ? "" : current));
+      }
     }
   };
 

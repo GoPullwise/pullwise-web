@@ -1662,6 +1662,41 @@ describe("ScanningScreen queue state", () => {
     expect(debugBundleAction).toHaveAttribute("download", "debug-bundle.zip");
   });
 
+  it("does not duplicate an API prefix already present in a debug bundle URL", () => {
+    const originalApiBase = env.VITE_API_BASE_URL;
+    env.VITE_API_BASE_URL = "/api";
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc123",
+        status: "done",
+        progress: 100,
+        debugBundleUrl: "/api/v1/review-runs/run_job_1/artifacts/art_debug_bundle",
+        issues: { critical: 0, high: 0, medium: 0, low: 0 },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    try {
+      render(
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ scanId: "sc_done", fullName: "octocat/private-repo" }}
+        />
+      );
+
+      expect(screen.getByRole("link", { name: /debug bundle/i })).toHaveAttribute(
+        "href",
+        "/api/v1/review-runs/run_job_1/artifacts/art_debug_bundle"
+      );
+    } finally {
+      env.VITE_API_BASE_URL = originalApiBase;
+    }
+  });
+
   it("does not render a debug bundle action for an executable URL scheme", () => {
     useScanRun.mockReturnValue({
       scan: {

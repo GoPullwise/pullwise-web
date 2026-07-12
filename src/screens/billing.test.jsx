@@ -978,6 +978,37 @@ describe("BillingScreen", () => {
     expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledTimes(1);
   });
 
+  it("does not redirect after a pending subscription change unmounts", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    let resolveChange;
+    const pendingChange = new Promise((resolve) => {
+      resolveChange = resolve;
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockReturnValue(pendingChange);
+    const navigate = vi.fn();
+    const view = render(<BillingScreen go={vi.fn()} navigate={navigate} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /confirm change/i }));
+    await waitFor(() => expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledOnce());
+
+    view.unmount();
+    await act(async () => {
+      resolveChange({ url: "https://creem.io/checkout/late" });
+      await pendingChange;
+    });
+
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("asks active Pro subscribers to confirm Max switching before changing billing", async () => {
     const maxPlan = {
       id: "max",

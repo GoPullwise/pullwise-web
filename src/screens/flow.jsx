@@ -98,6 +98,18 @@ function reviewRunArtifactHref(storage) {
   if (!url.startsWith("/") || url.startsWith("//")) return "";
   const base =
     typeof env.VITE_API_BASE_URL === "string" ? env.VITE_API_BASE_URL.replace(/\/$/, "") : "";
+  if (base.startsWith("/") && (url === base || url.startsWith(`${base}/`))) return url;
+  if (/^https?:/i.test(base)) {
+    try {
+      const parsedBase = new URL(base);
+      const basePath = parsedBase.pathname.replace(/\/$/, "");
+      if (basePath && basePath !== "/" && (url === basePath || url.startsWith(`${basePath}/`))) {
+        return `${parsedBase.origin}${url}`;
+      }
+    } catch {
+      return "";
+    }
+  }
   return `${base}${url}`;
 }
 

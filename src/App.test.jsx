@@ -387,6 +387,7 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="landing"]')).toBeInTheDocument();
     });
+    expect(window.location.pathname).toBe("/");
   });
 
   it("loads an issue detail page directly from the issue id in the route", async () => {
@@ -520,6 +521,7 @@ describe("App", () => {
       },
       { timeout: 3500 }
     );
+    expect(window.location.pathname).toBe("/login");
   });
 
   it("does not expose the workers admin screen in the public web app", async () => {

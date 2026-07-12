@@ -885,6 +885,43 @@ describe("useScans", () => {
   });
 });
 
+describe("useScans pagination guards", () => {
+  it("deduplicates overlapping scan pages and stops a repeated cursor", async () => {
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_1", status: "done" }],
+        total: 2,
+        limit: 1,
+        offset: 0,
+        hasMore: true,
+        nextOffset: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_1", status: "done" }],
+        total: 2,
+        limit: 1,
+        offset: 1,
+        hasMore: true,
+        nextOffset: 1,
+      });
+
+    const { result, unmount } = renderHook(() =>
+      useScans({ limit: 1, pollIntervalMs: 30000 })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => result.current.loadMore());
+    await waitFor(() => expect(result.current.loadingMore).toBe(false));
+
+    expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_1"]);
+    expect(result.current.meta.hasMore).toBe(false);
+    expect(result.current.error).toMatch(/pagination did not advance/i);
+    act(() => result.current.loadMore());
+    expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(2);
+    unmount();
+  });
+});
+
 describe("useIssues", () => {
   beforeEach(() => {
     pullwiseApi.issues.list.mockReset();

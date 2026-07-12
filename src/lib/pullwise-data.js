@@ -1492,6 +1492,7 @@ function scanListStateForCacheKey(cacheKey, limit, cachedState = cachedListState
 export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo = "" } = {}) {
   const requestIdRef = useRef(0);
   const abortRef = useRef(null);
+  const requestedOffsetsRef = useRef(new Set());
   const cacheKey = stableCacheKey("scans", { limit, status, repo });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
   const [state, setState] = useState(() =>
@@ -1508,6 +1509,13 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
 
   const load = useCallback(
     async ({ quiet = false, append = false, offset = 0 } = {}) => {
+      const requestedOffset = Number(offset) || 0;
+      if (append) {
+        if (requestedOffsetsRef.current.has(requestedOffset)) return;
+        requestedOffsetsRef.current.add(requestedOffset);
+      } else {
+        requestedOffsetsRef.current.clear();
+      }
       const requestId = requestIdRef.current + 1;
       requestIdRef.current = requestId;
       abortRef.current?.abort?.();
@@ -1539,14 +1547,29 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
             current.cacheKey === cacheKey
               ? current
               : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
+          const nextMeta = pageMeta(payload, limit);
+          const merged = append
+            ? appendUniqueListItems(baseState.items, nextItems)
+            : { items: nextItems, addedCount: nextItems.length };
+          const nextOffset = Number(nextMeta.nextOffset);
+          const paginationDidNotAdvance =
+            append &&
+            nextMeta.hasMore &&
+            (merged.addedCount === 0 ||
+              !Number.isFinite(nextOffset) ||
+              nextOffset <= requestedOffset);
           const nextState = {
             ...baseState,
             cacheKey,
-            items: append ? [...baseState.items, ...nextItems] : nextItems,
+            items: merged.items,
             loading: false,
             loadingMore: false,
-            error: "",
-            meta: pageMeta(payload, limit),
+            error: paginationDidNotAdvance
+              ? "Pagination did not advance. Refresh to retry."
+              : "",
+            meta: paginationDidNotAdvance
+              ? { ...nextMeta, hasMore: false, nextOffset: null }
+              : nextMeta,
           };
           rememberListState(cacheKey, nextState);
           return nextState;
@@ -1554,6 +1577,7 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
       } catch (error) {
         if (isAbortError(error)) return;
         if (requestId !== requestIdRef.current) return;
+        if (append) requestedOffsetsRef.current.delete(requestedOffset);
         const message = error?.message || "Unable to load scans.";
         setState((current) => {
           const baseState =
