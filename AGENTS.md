@@ -93,6 +93,7 @@ Keep route and polling changes aligned with the current scale model.
 - For `T(english, chinese)` calls, the inline Chinese argument overrides the shared phrase table
   while Chinese is active. Keep that argument production-ready; do not use placeholder text even
   when the English key already exists in `PHRASE_TRANSLATIONS`.
+- Review output-language saves use a synchronous ref-backed in-flight lock. Disabled select state alone is not the mutation guard, because programmatic or same-render-frame change events must not start overlapping saves.
 
 ## Review Worker Result Display
 
