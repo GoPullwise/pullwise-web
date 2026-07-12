@@ -185,3 +185,7 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Global search must pass the typed query to the server-backed issue and repository hooks; do not search only the first cached client page.
 - Public status copy for `rateLimitEnabled` must say public REST API rate limiting so browser users do not infer that ordinary browser traffic shares the API/API-key limit.
 - Keep Vitest suites non-empty; Vitest 4 treats an empty `describe(...)` block as a suite failure even when every collected assertion passes.
+- Automatic session redirects must replace both the rendered screen and `window.history` path (`/login` or `/`) so reload/back navigation cannot revive the stale route.
+- `useScans` pagination must de-duplicate stable scan ids and terminate with recoverable guidance when an appended page adds no ids or returns a non-advancing cursor, matching the shared paged-list contract.
+- Billing subscription mutation completions must not navigate or update state after `BillingScreen` unmounts.
+- When joining a root-relative API base to a server-provided debug artifact URL, preserve URLs that already contain that base path; `/api` plus `/api/v1/...` must remain `/api/v1/...`.

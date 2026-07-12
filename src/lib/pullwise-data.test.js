@@ -919,6 +919,7 @@ describe("useScans pagination guards", () => {
     act(() => result.current.loadMore());
     expect(pullwiseApi.scans.list).toHaveBeenCalledTimes(2);
     unmount();
+    pullwiseApi.scans.list.mockReset();
   });
 });
 
