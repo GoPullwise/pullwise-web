@@ -1501,7 +1501,7 @@ export function PricingScreen({
         })}
       </section>
 
-      {!billingEnabled && !error && (
+      {!pricingLoading && !billingEnabled && !error && (
         <div className="pricing-faq" style={{ paddingTop: 0 }}>
           <div className="muted">
             {T(

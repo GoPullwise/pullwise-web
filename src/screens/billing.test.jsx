@@ -79,6 +79,7 @@ describe("BillingScreen", () => {
     expect(screen.getByRole("heading", { name: "Pullwise Max" })).toBeInTheDocument();
     expect(document.querySelectorAll(".pricing-skeleton").length).toBeGreaterThanOrEqual(6);
     expect(screen.getByRole("button", { name: /start max/i })).toBeDisabled();
+    expect(screen.queryByText(/billing is not configured/i)).not.toBeInTheDocument();
   });
 
   it("keeps pricing skeletons after the initial pricing request times out", async () => {

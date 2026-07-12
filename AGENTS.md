@@ -171,6 +171,7 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Keep scan detail result-first: use a full-width scan identity header, place the human report before the execution trace, and collapse `.scanning.scanning-wide` to one column at 900px or below. On narrow screens, keep the result summary before the report/trace while the progress flow remains internally pannable without creating document overflow.
 - Async purchase/save/refresh actions need a synchronous in-flight guard in addition to disabled UI state so two clicks in one render frame cannot create duplicate requests.
 - Frontend regression coverage should include request timeout/recovery, abort/unmount, stale responses, rapid repeated actions, loading/error/empty states, long unbroken content, and a real 390px browser check where document scrollWidth equals clientWidth.
+- Pricing must not render the backend-billing-unconfigured notice until the initial plan request has resolved; loading skeletons represent unknown configuration, not disabled billing.
 - API-key and batch-scan mutations must acquire a ref-backed synchronous lock before their first await; React loading state alone is not a duplicate-request guard.
 - A created API-key record without its one-time token is a committed partial success: keep the metadata visible for revocation and show a recovery error instead of treating the key as absent.
 - Associate a displayed one-time API token with its key id. Clear it only after that same key is successfully revoked, and preserve it when another key is revoked.
