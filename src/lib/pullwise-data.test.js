@@ -947,7 +947,7 @@ describe("useIssues", () => {
       });
 
     const { result } = renderHook(() =>
-      useIssues({ limit: 1, status: "open", severity: "high", q: "auth", scanId: "sc_1" })
+      useIssues({ limit: 1, status: "open", severity: "high", q: "auth", scanId: "sc_1", sort: "severity" })
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -959,6 +959,7 @@ describe("useIssues", () => {
         severity: "high",
         q: "auth",
         scanId: "sc_1",
+        sort: "severity",
       },
       expect.objectContaining({ signal: expect.any(Object) })
     );
@@ -977,6 +978,7 @@ describe("useIssues", () => {
         severity: "high",
         q: "auth",
         scanId: "sc_1",
+        sort: "severity",
       },
       expect.objectContaining({ signal: expect.any(Object) })
     );

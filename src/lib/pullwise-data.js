@@ -1443,9 +1443,10 @@ export function useIssues({
   severity = "",
   q = "",
   scanId = "",
+  sort = "",
   refreshOnChange = true,
 } = {}) {
-  const params = useMemoStable({ status, severity, q, scanId });
+  const params = useMemoStable({ status, severity, q, scanId, sort });
   const fetchList = useCallback(
     (requestParams, options) => pullwiseApi.issues.list(requestParams, options),
     []
