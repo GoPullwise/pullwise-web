@@ -1903,6 +1903,7 @@ export function SettingsScreen({ go, setIssue = null }) {
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const integrationRequestIdRef = useRef(0);
   const githubActionInFlightRef = useRef(false);
+  const reviewOutputLanguageSaveInFlightRef = useRef(false);
 
   const loadSettingsPayloads = useCallback(async (cancelledRef = null) => {
     const requestId = integrationRequestIdRef.current + 1;
@@ -2013,6 +2014,8 @@ export function SettingsScreen({ go, setIssue = null }) {
     { k: "integrations", t: T("Integrations", "集成"), i: <I.Github size={14} /> },
   ];
   const updateReviewOutputLanguage = async (event) => {
+    if (reviewOutputLanguageSaveInFlightRef.current) return;
+    reviewOutputLanguageSaveInFlightRef.current = true;
     const outputLanguage = event.target.value;
     const previousSettings = settings;
     setSettingsError("");
@@ -2027,6 +2030,7 @@ export function SettingsScreen({ go, setIssue = null }) {
       setSettings(previousSettings);
       setSettingsError(reviewOutputLanguageSaveError(error));
     } finally {
+      reviewOutputLanguageSaveInFlightRef.current = false;
       setSettingsSaving("");
     }
   };
