@@ -469,6 +469,36 @@ describe("SettingsScreen", () => {
     });
   });
 
+  it("uses a synchronous lock for repeated review language change events", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({ github: { connected: false, repositories: [] } });
+    pullwiseApi.settings.get.mockResolvedValueOnce({
+      profile: { name: "Taylor", email: "taylor@example.com" },
+      review: { outputLanguage: "en" },
+    });
+    let resolveUpdate;
+    pullwiseApi.settings.update.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+    const user = userEvent.setup();
+
+    render(<SettingsScreen go={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /preferences/i }));
+    const select = await screen.findByRole("combobox", { name: /review output language/i });
+
+    act(() => {
+      fireEvent.change(select, { target: { value: "zh-CN" } });
+      fireEvent.change(select, { target: { value: "ja" } });
+    });
+
+    expect(pullwiseApi.settings.update).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.settings.update).toHaveBeenCalledWith({ review: { outputLanguage: "zh-CN" } });
+    await act(async () => {
+      resolveUpdate({ review: { outputLanguage: "zh-CN" } });
+    });
+  });
+
   it("explains server origin configuration when review language save is rejected", async () => {
     pullwiseApi.integrations.list.mockResolvedValue({
       github: {
