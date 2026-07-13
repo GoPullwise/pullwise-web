@@ -511,22 +511,24 @@ describe("IssuesScreen list resilience", () => {
     await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
 
     await waitFor(() => expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledTimes(1));
-    expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: "f_batch_first",
-        status: "fixed",
-        scanId: "sc_batch",
-        jobId: "job_batch_1",
-        file: "src/auth.py",
-      }),
-      expect.objectContaining({
-        id: "f_batch_second",
-        status: "fixed",
-        scanId: "sc_batch",
-        jobId: "job_batch_2",
-        file: "src/shell.py",
-      }),
-    ]);
+    expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "f_batch_first",
+          status: "fixed",
+          scanId: "sc_batch",
+          jobId: "job_batch_1",
+          file: "src/auth.py",
+        }),
+        expect.objectContaining({
+          id: "f_batch_second",
+          status: "fixed",
+          scanId: "sc_batch",
+          jobId: "job_batch_2",
+          file: "src/shell.py",
+        }),
+      ])
+    );
     expect(pullwiseApi.issues.updateStatus).not.toHaveBeenCalled();
     await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
   });

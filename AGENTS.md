@@ -189,4 +189,7 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Automatic session redirects must replace both the rendered screen and `window.history` path (`/login` or `/`) so reload/back navigation cannot revive the stale route.
 - `useScans` pagination must de-duplicate stable scan ids and terminate with recoverable guidance when an appended page adds no ids or returns a non-advancing cursor, matching the shared paged-list contract.
 - Billing subscription mutation completions must not navigate or update state after `BillingScreen` unmounts.
+- Docs initial loads and Retry loads must share an abortable request lifecycle. A retry must replace and abort the previous controller, and screen cleanup must abort whichever request is current.
+- Active scan status polling must abort its in-flight request when the page becomes hidden, remain paused while hidden, and resume on the next visible transition.
+- Pages API proxy tests must assert both the stripped upstream path (`/api/...` to `/...`) and byte-for-byte request-body forwarding; header-only assertions do not protect the proxy contract.
 - When joining a root-relative API base to a server-provided debug artifact URL, preserve URLs that already contain that base path; `/api` plus `/api/v1/...` must remain `/api/v1/...`.

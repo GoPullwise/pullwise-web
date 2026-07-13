@@ -709,6 +709,32 @@ describe("ReposScreen scan selection", () => {
     );
   });
 
+  it("localizes account and repository quota copy in Chinese", async () => {
+    setLang("zh");
+    useRepositories.mockReturnValue({
+      items: [
+        {
+          ...repoAlpha,
+          repoId: "repo_123",
+          quota: { scope: "repository", used: 1, limit: 3, remaining: 2 },
+        },
+      ],
+      installations: [],
+      installationAccounts: [],
+      userQuota: { scope: "user", used: 9, limit: 10, remaining: 1 },
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
+    expect(screen.getByText(/账户配额/)).toHaveTextContent("账户配额: 账户扫描剩余 1 / 10");
+    expect(screen.getByText("仓库扫描剩余 2 / 3")).toBeInTheDocument();
+  });
+
   it("explains repository scan eligibility before starting a scan", async () => {
     useRepositories.mockReturnValue({
       items: [{ ...repoAlpha, fork: true }],

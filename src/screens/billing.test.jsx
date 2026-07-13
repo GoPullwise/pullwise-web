@@ -22,6 +22,14 @@ function render(ui, options) {
   return rtlRender(<NotificationProvider>{ui}</NotificationProvider>, options);
 }
 
+function deferred() {
+  let resolve;
+  const promise = new Promise((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 describe("BillingScreen", () => {
   const billingCatalog = {
     enabled: true,
@@ -1256,6 +1264,34 @@ describe("BillingScreen", () => {
     expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledTimes(1);
   });
 
+  it("does not refresh billing after a pending cancellation completes post-unmount", async () => {
+    const cancellation = deferred();
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "active",
+        plan: "pro",
+        interval: "month",
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.cancelSubscription.mockReturnValue(cancellation.promise);
+    const user = userEvent.setup();
+    const { unmount } = render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /cancel renewal/i }));
+    await waitFor(() => expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledTimes(1));
+    unmount();
+
+    await act(async () => {
+      cancellation.resolve({ status: "canceling", cancelAtPeriodEnd: true });
+      await cancellation.promise;
+      await Promise.resolve();
+    });
+
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(1);
+  });
+
   it("offers resume renewal while cancellation is scheduled", async () => {
     pullwiseApi.billing.getPlan
       .mockResolvedValueOnce({
@@ -1329,6 +1365,35 @@ describe("BillingScreen", () => {
     });
 
     expect(pullwiseApi.billing.resumeSubscription).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh billing after a pending resume completes post-unmount", async () => {
+    const resume = deferred();
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: {
+        status: "canceling",
+        plan: "pro",
+        interval: "month",
+        cancelAtPeriodEnd: true,
+        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+      },
+    });
+    pullwiseApi.billing.resumeSubscription.mockReturnValue(resume.promise);
+    const user = userEvent.setup();
+    const { unmount } = render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: /resume renewal/i }));
+    await waitFor(() => expect(pullwiseApi.billing.resumeSubscription).toHaveBeenCalledTimes(1));
+    unmount();
+
+    await act(async () => {
+      resume.resolve({ status: "active", cancelAtPeriodEnd: false });
+      await resume.promise;
+      await Promise.resolve();
+    });
+
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(1);
   });
 
   it("lets subscribers upgrade while cancellation is scheduled", async () => {

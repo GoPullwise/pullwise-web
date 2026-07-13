@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { safeGitHubAuthorizeUrl } from "./trusted-redirects.js";
+import { safeGitHubAuthorizeUrl, safeGitHubInstallationUrl } from "./trusted-redirects.js";
 
 describe("trusted GitHub authorize redirects", () => {
   beforeEach(() => {
@@ -16,6 +16,12 @@ describe("trusted GitHub authorize redirects", () => {
     const url = `${window.location.origin}/api/auth/github/authorize?redirectTo=%2Fdashboard`;
 
     expect(safeGitHubAuthorizeUrl(url, "GitHub authorize URL")).toBe(url);
+  });
+
+  it("accepts same-origin GitHub installation endpoints", () => {
+    const url = `${window.location.origin}/api/integrations/github/install/start?state=abc`;
+
+    expect(safeGitHubInstallationUrl(url, "GitHub installation URL")).toBe(url);
   });
 
   it("rejects non-authorize GitHub paths", () => {

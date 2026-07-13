@@ -11,7 +11,7 @@ Pullwise Web is a Vite React app for the Pullwise backend in
 - Deterministic fix preview and GitHub pull request creation for auto-fixable issues
 - Account-level GitHub integration settings
 - Creem account billing through backend-created checkout, supported upgrades, and scheduled cancellation
-- Batch scan creation, bulk status polling, retry/cancel flows, and audit bundle downloads
+- Batch scan creation, bulk status polling, cancellation flows, and audit bundle downloads
 - API-key documentation, legal, privacy, security, and live status/readiness pages
 
 Stage 2 remediation is intentionally narrow in this build. The browser can ask
@@ -77,8 +77,10 @@ The Python API now requires real GitHub OAuth/App configuration for production
 login flows. Explicit local auth switches live in the sibling `pullwise-server`
 repository; they are not enabled by the frontend.
 
-Billing and free scan limits are resource-scoped. The frontend displays account
-billing status plus repository quota from `/repositories`.
+Billing and scan limits are resource-scoped. Account quota follows the user's
+billing/free account cycle, while repository quota resets at UTC calendar-month
+boundaries. The frontend displays account billing status plus repository quota
+from `/repositories`.
 
 ## Useful Commands
 

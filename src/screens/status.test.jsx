@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { setLang } from "../i18n.jsx";
 import { StatusScreen } from "./legal.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -25,6 +26,7 @@ function deferred() {
 describe("StatusScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setLang("en");
     pullwiseApi.system.status.mockResolvedValue({
       scanSystemStatus: "ok",
       queuedJobs: 2,
@@ -95,6 +97,25 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/Repo checkout 2,000 files \/ 50 MB/i)).toBeInTheDocument();
     expect(screen.getByText(/Public REST API.*rate limiting enabled/i)).toBeInTheDocument();
     expect(screen.queryByText(/\.pullwise\/pullwise\.sqlite3/i)).not.toBeInTheDocument();
+  });
+
+  it("localizes public REST API rate-limit readiness copy in Chinese", async () => {
+    setLang("zh");
+    pullwiseApi.system.health.mockResolvedValue({
+      ok: true,
+      service: "pullwise-server",
+      mode: "production",
+      database: { type: "sqlite" },
+      limits: {
+        maxQueuedScansGlobal: 1000,
+        repository: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
+        rateLimitEnabled: true,
+      },
+    });
+
+    render(<StatusScreen go={vi.fn()} />);
+
+    expect(await screen.findByText(/公共 REST API 限流 已启用/)).toBeInTheDocument();
   });
 
   it("does not expose the public review provider detail", async () => {
