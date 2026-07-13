@@ -245,4 +245,43 @@ describe("StatusScreen", () => {
     expect(screen.getByText("API unreachable")).toBeInTheDocument();
     expect(screen.queryByText("API reachable")).not.toBeInTheDocument();
   });
+
+  it("waits for visibility and aborts health requests when hidden or unmounted", async () => {
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    const healthSignals = [];
+    pullwiseApi.system.health.mockImplementation(({ signal } = {}) => {
+      healthSignals.push(signal);
+      return new Promise((_resolve, reject) => {
+        signal.addEventListener(
+          "abort",
+          () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+          { once: true }
+        );
+      });
+    });
+    const { unmount } = render(<StatusScreen go={vi.fn()} />);
+
+    try {
+      expect(pullwiseApi.system.health).not.toHaveBeenCalled();
+
+      visibility.mockReturnValue("visible");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1));
+      expect(healthSignals[0].aborted).toBe(false);
+
+      visibility.mockReturnValue("hidden");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      expect(healthSignals[0].aborted).toBe(true);
+
+      visibility.mockReturnValue("visible");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(2));
+      expect(healthSignals[1].aborted).toBe(false);
+
+      unmount();
+      expect(healthSignals[1].aborted).toBe(true);
+    } finally {
+      visibility.mockRestore();
+    }
+  });
 });

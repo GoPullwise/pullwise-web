@@ -18,6 +18,7 @@ vi.mock("../api/pullwise.js", () => ({
     issues: {
       get: vi.fn(),
       updateStatus: vi.fn(),
+      updateStatuses: undefined,
       previewFix: vi.fn(),
       createPullRequest: vi.fn(),
     },
@@ -460,6 +461,74 @@ describe("IssuesScreen list resilience", () => {
 
     expect(await screen.findByRole("button", { name: /open issue f_first/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open issue f_second/i })).toBeInTheDocument();
+  });
+
+  it("uses the batch endpoint when marking visible issues as fixed", async () => {
+    const user = userEvent.setup();
+    const firstIssue = {
+      id: "f_batch_first",
+      scanId: "sc_batch",
+      jobId: "job_batch_1",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Validate redirect targets",
+      file: "src/auth.py",
+      line: 42,
+      status: "open",
+      createdAt: 100,
+    };
+    const secondIssue = {
+      ...firstIssue,
+      id: "f_batch_second",
+      jobId: "job_batch_2",
+      title: "Escape shell arguments",
+      file: "src/shell.py",
+      line: 12,
+      createdAt: 101,
+    };
+    const reload = vi.fn();
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatuses = vi.fn().mockResolvedValue({
+      items: [
+        { ...firstIssue, status: "fixed" },
+        { ...secondIssue, status: "fixed" },
+      ],
+    });
+    useIssues.mockReturnValue({
+      items: [firstIssue, secondIssue],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload,
+      loadMore: vi.fn(),
+      meta: {},
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^open$/i }));
+    await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
+
+    await waitFor(() => expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledTimes(1));
+    expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "f_batch_first",
+        status: "fixed",
+        scanId: "sc_batch",
+        jobId: "job_batch_1",
+        file: "src/auth.py",
+      }),
+      expect.objectContaining({
+        id: "f_batch_second",
+        status: "fixed",
+        scanId: "sc_batch",
+        jobId: "job_batch_2",
+        file: "src/shell.py",
+      }),
+    ]);
+    expect(pullwiseApi.issues.updateStatus).not.toHaveBeenCalled();
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
   });
 
   it("keeps duplicate issue ids from sharing pending or local status state", async () => {

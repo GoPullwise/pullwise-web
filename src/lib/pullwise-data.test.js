@@ -315,6 +315,51 @@ describe("useScans", () => {
     unmount();
   });
 
+  it("pauses active scan polling while hidden, aborts the request, and resumes when visible", async () => {
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    let firstStatusSignal;
+    pullwiseApi.scans.status = vi
+      .fn()
+      .mockImplementationOnce((_ids, { signal } = {}) => {
+        firstStatusSignal = signal;
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener(
+            "abort",
+            () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+            { once: true }
+          );
+        });
+      })
+      .mockResolvedValueOnce({ items: [{ id: "sc_visibility", status: "done" }] });
+    pullwiseApi.scans.list.mockResolvedValueOnce({
+      items: [{ id: "sc_visibility", status: "running" }],
+    });
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5 }));
+
+    try {
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(1));
+      expect(firstStatusSignal.aborted).toBe(false);
+
+      visibility.mockReturnValue("hidden");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+
+      expect(firstStatusSignal.aborted).toBe(true);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+      expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(1);
+
+      visibility.mockReturnValue("visible");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(result.current.items[0]?.status).toBe("done"));
+    } finally {
+      unmount();
+      visibility.mockRestore();
+    }
+  });
+
   it("aborts in-flight scan list requests when clearing the data cache", async () => {
     const refresh = deferred();
     let signal;

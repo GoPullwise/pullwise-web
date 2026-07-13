@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -708,13 +708,18 @@ export function DocsScreen({ go, auth }) {
   const [serverConfigError, setServerConfigError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requestControllerRef = useRef(null);
   const nav = [
     ["plans", T("Subscription plans", "Subscription plans")],
     ["server-config", T("Server config", "Server config")],
     ["contract", T("API contract", "API contract")],
   ];
 
-  const loadDocs = useCallback(async (signal) => {
+  const loadDocs = useCallback(async () => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+    const { signal } = controller;
     setLoading(true);
     setError("");
     setServerConfigError("");
@@ -765,14 +770,19 @@ export function DocsScreen({ go, auth }) {
         );
       }
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null;
+      }
       if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
-    loadDocs(controller.signal);
-    return () => controller.abort();
+    void loadDocs();
+    return () => {
+      requestControllerRef.current?.abort();
+      requestControllerRef.current = null;
+    };
   }, [loadDocs]);
 
   return (
@@ -845,7 +855,7 @@ export function DocsScreen({ go, auth }) {
             <div className="docs-state error" role="alert">
               <I.X size={14} />
               <span>{error}</span>
-              <button className="btn sm" type="button" onClick={() => loadDocs()}>
+              <button className="btn sm" type="button" onClick={() => void loadDocs()}>
                 <I.Refresh size={13} /> {T("Retry", "Retry")}
               </button>
             </div>

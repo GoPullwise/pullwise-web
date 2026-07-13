@@ -1623,7 +1623,15 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
       typeof pullwiseApi.scans.status === "function"
         ? pollIntervalMs
         : Math.max(pollIntervalMs, 50);
-    const handle = setTimeout(() => {
+    let handle = null;
+    const handleVisibility = () => {
+      if (!pageIsHidden()) return;
+      alive = false;
+      controller?.abort();
+      if (handle !== null) clearTimeout(handle);
+      setPollRetryTick((tick) => tick + 1);
+    };
+    handle = setTimeout(() => {
       if (typeof pullwiseApi.scans.status !== "function") {
         load({ quiet: true });
         return;
@@ -1678,10 +1686,16 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           setPollRetryTick((tick) => tick + 1);
         });
     }, pollDelayMs);
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibility);
+    }
     return () => {
       alive = false;
       controller?.abort();
       clearTimeout(handle);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleVisibility);
+      }
     };
   }, [hasActiveScans, visibleState.items, cacheKey, status, pollIntervalMs, pollRetryTick, load]);
 

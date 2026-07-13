@@ -667,6 +667,28 @@ describe("API screens", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Docs API failed");
   });
 
+  it("aborts a pending Docs retry when the screen unmounts", async () => {
+    let retrySignal;
+    pullwiseApi.docs.getSubscriptionPlanConfigs
+      .mockRejectedValueOnce(new Error("Docs API failed"))
+      .mockImplementationOnce(({ signal } = {}) => {
+        retrySignal = signal;
+        return new Promise(() => {});
+      });
+    const user = userEvent.setup();
+    const { unmount } = render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    await user.click(await screen.findByRole("button", { name: /retry/i }));
+    await waitFor(() => {
+      expect(pullwiseApi.docs.getSubscriptionPlanConfigs).toHaveBeenCalledTimes(2);
+    });
+
+    unmount();
+
+    expect(retrySignal).toBeInstanceOf(AbortSignal);
+    expect(retrySignal.aborted).toBe(true);
+  });
+
   it("exposes API docs navigation destinations as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
@@ -826,6 +848,56 @@ describe("API screens", () => {
       key: "pwk_live_serialized",
     });
     expect(await screen.findByText("pwk_live_serialized")).toBeInTheDocument();
+  });
+
+  it("coalesces same-frame API key revocations", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_revoke", name: "Deploy key", prefix: "pwk_deploy" }],
+    });
+    pullwiseApi.apiKeys.revoke.mockReturnValue(new Promise(() => {}));
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    const revoke = await screen.findByRole("button", { name: /revoke/i });
+    fireEvent.click(revoke);
+    fireEvent.click(revoke);
+
+    expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_revoke");
+  });
+
+  it("does not revoke a key while creation is already in flight", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_existing", name: "Existing key", prefix: "pwk_existing" }],
+    });
+    pullwiseApi.apiKeys.create.mockReturnValue(new Promise(() => {}));
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    const create = await screen.findByRole("button", { name: /create key/i });
+    const revoke = screen.getByRole("button", { name: /revoke/i });
+    fireEvent.submit(create.closest("form"));
+    fireEvent.click(revoke);
+
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.revoke).not.toHaveBeenCalled();
+  });
+
+  it("does not create a key while revocation is already in flight", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_existing", name: "Existing key", prefix: "pwk_existing" }],
+    });
+    pullwiseApi.apiKeys.revoke.mockReturnValue(new Promise(() => {}));
+
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    const create = await screen.findByRole("button", { name: /create key/i });
+    const revoke = screen.getByRole("button", { name: /revoke/i });
+    fireEvent.click(revoke);
+    fireEvent.submit(create.closest("form"));
+
+    expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
   });
 
   it("retains malformed created-key metadata for revocation when the one-time token is missing", async () => {

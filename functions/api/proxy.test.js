@@ -10,9 +10,13 @@ describe("api proxy", () => {
   });
 
   it("forwards the public Pages API base to the backend", async () => {
+    let forwardedUrl;
+    let forwardedBody;
     let forwardedHeaders;
     let forwardedInit;
-    globalThis.fetch = vi.fn(async (_url, init) => {
+    globalThis.fetch = vi.fn(async (url, init) => {
+      forwardedUrl = String(url);
+      forwardedBody = await new Response(init.body).text();
       forwardedHeaders = init.headers;
       forwardedInit = init;
       return new Response(JSON.stringify({ ok: true }), {
@@ -29,6 +33,8 @@ describe("api proxy", () => {
       }),
     });
 
+    expect(forwardedUrl).toBe("https://api.internal/auth/github/authorize");
+    expect(JSON.parse(forwardedBody)).toEqual({ ok: true });
     expect(forwardedHeaders.get("X-Forwarded-Proto")).toBe("https");
     expect(forwardedHeaders.get("X-Forwarded-Host")).toBe("pull-wise.com");
     expect(forwardedHeaders.get("X-Forwarded-Prefix")).toBe("/api");
