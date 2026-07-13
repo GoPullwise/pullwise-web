@@ -1187,7 +1187,9 @@ export function ReposScreen({
       cancelled = true;
     };
   }, []);
-  const repos = availableRepos;
+  const repos = availableRepos.filter(
+    (repo) => !activeOwner || repoOwner(repo) === activeOwner
+  );
   const repositoryTotal = Number.isFinite(Number(repositoriesMeta.total))
     ? Number(repositoriesMeta.total)
     : availableRepos.length;
