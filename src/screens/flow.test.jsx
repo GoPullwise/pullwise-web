@@ -240,6 +240,29 @@ describe("ReposScreen scan selection", () => {
     expect(screen.queryByText(/loading repositories/i)).not.toBeInTheDocument();
   });
 
+  it("keeps fuzzy repository matches returned by the server", async () => {
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [],
+      installationAccounts: ["octocat"],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      needsAuthorization: false,
+      meta: { total: 1 },
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+
+    await user.type(screen.getByPlaceholderText(/search repositories/i), "identity provider");
+
+    expect(useRepositories).toHaveBeenLastCalledWith({ owner: "", q: "identity provider" });
+    expect(screen.getByText("octocat/alpha")).toBeInTheDocument();
+  });
+
   it("lets long repository owner tab sets slide horizontally", async () => {
     const user = userEvent.setup();
     const owners = ["GoAlpha", "GoBeta", "GoGamma", "GoDelta", "GoEpsilon", "GoZeta"];
@@ -1505,6 +1528,41 @@ describe("ScanningScreen queue state", () => {
         delete navigator.clipboard;
       }
     }
+  });
+
+  it("serializes same-frame agent prompt key creation before React rerenders", async () => {
+    const keyRequest = deferredPromise();
+    pullwiseApi.apiKeys.createAuditBundleKey.mockReturnValue(keyRequest.promise);
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_done",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "abc1234",
+        status: "done",
+        progress: 100,
+        issues: { high: 1 },
+        repoId: "repo_123",
+        agentFixPrompt: "Fix the verified findings.",
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <ScanningScreen
+        go={vi.fn()}
+        activeRepo={{ scanId: "sc_done", fullName: "octocat/private-repo" }}
+      />
+    );
+
+    const action = screen.getByRole("button", { name: /use agent to fix/i });
+    act(() => {
+      action.click();
+      action.click();
+    });
+
+    expect(pullwiseApi.apiKeys.createAuditBundleKey).toHaveBeenCalledTimes(1);
   });
 
   it("canonicalizes a root-relative public API base without duplicating the API prefix", async () => {

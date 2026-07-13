@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { connectGitHubRepositories, manageGitHubInstallation, startGitHubLogin } from "./auth.js";
-import { markGitHubRepositoryAccessRefreshNeeded } from "./github-repository-access-refresh.js";
+import {
+  clearGitHubRepositoryAccessRefreshNeeded,
+  markGitHubRepositoryAccessRefreshNeeded,
+} from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 
 vi.mock("../api/pullwise.js", () => ({
@@ -306,5 +309,32 @@ describe("auth redirects", () => {
     });
 
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
+  it("keeps repository refresh armed when post-popup verification fails", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      mode: "github-app-install",
+      url: "https://github.com/apps/pullwise/installations/new",
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    pullwiseApi.repositories.sync.mockRejectedValueOnce(new Error("sync temporarily unavailable"));
+
+    await expect(connectGitHubRepositories()).rejects.toThrow("sync temporarily unavailable");
+
+    expect(markGitHubRepositoryAccessRefreshNeeded).toHaveBeenCalled();
+    expect(clearGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+  });
+
+  it("arms repository refresh when a completed manage popup cannot sync", async () => {
+    pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+      url: "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    pullwiseApi.repositories.sync.mockRejectedValueOnce(new Error("sync temporarily unavailable"));
+
+    await expect(manageGitHubInstallation("999")).rejects.toThrow("sync temporarily unavailable");
+
+    expect(markGitHubRepositoryAccessRefreshNeeded).toHaveBeenCalledTimes(1);
+    expect(clearGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
   });
 });

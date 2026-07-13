@@ -40,4 +40,20 @@ describe("DistributionCard", () => {
     expect(screen.queryByRole("button", { name: /high/i })).not.toBeInTheDocument();
     expect(screen.getByText("High").closest("li")).toBeInTheDocument();
   });
+
+  it("renders one donut arc for every non-empty bucket", () => {
+    const { container } = render(
+      <DistributionCard
+        title="Severity"
+        counts={{ high: 2, low: 1 }}
+        buckets={[
+          { key: "high", label: "High", color: "red" },
+          { key: "low", label: "Low", color: "blue" },
+        ]}
+        layout="donut"
+      />
+    );
+
+    expect(container.querySelectorAll(".disto-donut svg circle")).toHaveLength(3);
+  });
 });

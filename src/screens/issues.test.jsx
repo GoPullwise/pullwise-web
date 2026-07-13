@@ -121,6 +121,36 @@ describe("IssuesScreen list resilience", () => {
     expect(screen.queryByText(/no findings are available/i)).not.toBeInTheDocument();
   });
 
+  it("keeps fuzzy issue matches returned by the server", async () => {
+    const user = userEvent.setup();
+    useIssues.mockReturnValue({
+      items: [
+        {
+          id: "f_redirect",
+          repo: "acme/api",
+          severity: "high",
+          category: "Security",
+          title: "Validate redirect targets",
+          file: "src/auth.py",
+          status: "open",
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+
+    await user.type(screen.getByPlaceholderText(/search by title, repo, or file/i), "identity provider");
+
+    expect(useIssues).toHaveBeenCalledWith(expect.objectContaining({ q: "identity provider" }));
+    expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
+  });
+
   it("does not leak NaN when issue evidence metadata is missing", () => {
     useIssues.mockReturnValue({
       items: [

@@ -153,12 +153,17 @@ export async function connectGitHubRepositories({
   }
   try {
     await completion;
-    await verifyConnectedRepositories();
-    clearGitHubRepositoryAccessRefreshNeeded();
   } catch (error) {
     clearGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
   }
+  try {
+    await verifyConnectedRepositories();
+  } catch (error) {
+    markGitHubRepositoryAccessRefreshNeeded();
+    throw normalizeGitHubPopupError(error);
+  }
+  clearGitHubRepositoryAccessRefreshNeeded();
 }
 
 export async function manageGitHubInstallation(
@@ -191,12 +196,16 @@ export async function manageGitHubInstallation(
   }
   try {
     await completion;
-    await pullwiseApi.repositories.sync(repositorySyncPayload);
-    clearGitHubRepositoryAccessRefreshNeeded();
   } catch (error) {
-    clearGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
   }
+  try {
+    await pullwiseApi.repositories.sync(repositorySyncPayload);
+  } catch (error) {
+    markGitHubRepositoryAccessRefreshNeeded();
+    throw normalizeGitHubPopupError(error);
+  }
+  clearGitHubRepositoryAccessRefreshNeeded();
 }
 
 export async function signOut() {

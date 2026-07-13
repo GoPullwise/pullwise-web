@@ -1187,15 +1187,7 @@ export function ReposScreen({
       cancelled = true;
     };
   }, []);
-  const repos = availableRepos.filter((repo) => {
-    const matchesOrg = !activeOwner || repoOwner(repo) === activeOwner;
-    const matchesQuery =
-      !query ||
-      repo.name.toLowerCase().includes(query) ||
-      repo.fullName.toLowerCase().includes(query) ||
-      repo.desc.toLowerCase().includes(query);
-    return matchesOrg && matchesQuery;
-  });
+  const repos = availableRepos;
   const repositoryTotal = Number.isFinite(Number(repositoriesMeta.total))
     ? Number(repositoriesMeta.total)
     : availableRepos.length;
@@ -2675,6 +2667,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   const [bundleLoading, setBundleLoading] = useState(false);
   const [agentPromptLoading, setAgentPromptLoading] = useState(false);
   const [agentPromptCopied, setAgentPromptCopied] = useState(false);
+  const agentPromptRequestRef = useRef(false);
   const agentPromptResetRef = useRef(null);
   const resolvedScanIdRef = useRef("");
   const selectedRepos = useMemo(
@@ -2836,7 +2829,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   };
 
   const handleCopyAgentFixPrompt = async () => {
-    if (!agentFixPrompt || agentPromptLoading || !scan?.id) return;
+    if (!agentFixPrompt || agentPromptRequestRef.current || !scan?.id) return;
+    agentPromptRequestRef.current = true;
     setAgentPromptLoading(true);
     try {
       const keyPayload = await pullwiseApi.apiKeys.createAuditBundleKey(
@@ -2874,6 +2868,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
         { title: T("Key creation failed", "Key creation failed") }
       );
     } finally {
+      agentPromptRequestRef.current = false;
       setAgentPromptLoading(false);
     }
   };

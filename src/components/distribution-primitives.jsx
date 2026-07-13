@@ -195,6 +195,7 @@ export function DistributionCard({
       label: bucket.label || bucket.key,
       color: bucket.color,
       weight: safeCount(counts[bucket.key]),
+      value: safeCount(counts[bucket.key]),
     }))
     .filter((seg) => seg.weight > 0);
   const empty = total === 0;

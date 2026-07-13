@@ -80,14 +80,10 @@ function sortIssues(items, key) {
   return sorted;
 }
 
-function issueMatchesListFilters(issue, { status, severity, q }) {
+function issueMatchesListFilters(issue, { status, severity }) {
   if (status && status !== "all" && issue.status !== status) return false;
   if (severity && severity !== "all" && issue.severity !== severity) return false;
-  if (!q) return true;
-  const query = q.toLowerCase();
-  return [issue.title, issue.id, issue.file, issue.category, issue.repo]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query));
+  return true;
 }
 
 const ISSUE_IDENTITY_FIELDS = [
@@ -426,8 +422,10 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   const serverIssueKeys = new Set(all.map(issueRowKey));
   const issuesWithLocalStatus = [
     ...all.map((issue) => ({ ...issue, ...(localIssueUpdates[issueRowKey(issue)] || {}) })),
-    ...localIssues.filter((issue) => !serverIssueKeys.has(issueRowKey(issue))),
-  ].filter((issue) => issueMatchesListFilters(issue, { status, severity: sev, q: query }));
+    ...localIssues.filter(
+      (issue) => !query && !serverIssueKeys.has(issueRowKey(issue))
+    ),
+  ].filter((issue) => issueMatchesListFilters(issue, { status, severity: sev }));
   const filtered = sortIssues(issuesWithLocalStatus, sortBy);
   const totalCount = Number.isFinite(Number(meta.total)) ? Number(meta.total) : filtered.length;
   useErrorNotification(error, {
