@@ -2433,7 +2433,7 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
-  it("shows cancelled scan progress nodes as cancelled instead of running", () => {
+  it("preserves worker-reported node status when the scan is cancelled", () => {
     useScanRun.mockReturnValue({
       scan: {
         id: "sc_cancelled",
@@ -2464,10 +2464,11 @@ describe("ScanningScreen queue state", () => {
     expect(screen.getByText("Scan cancelled")).toBeInTheDocument();
     expect(screen.queryByText("Finding summary")).not.toBeInTheDocument();
     const publishNode = screen.getByText("Publish").closest(".scanning-phase");
-    expect(publishNode).toHaveClass("cancelled");
-    expect(within(publishNode).getByText("Cancelled")).toBeInTheDocument();
-    expect(within(publishNode).queryByText("Running")).not.toBeInTheDocument();
-    expect(publishNode).not.toHaveAttribute("data-flow-current", "true");
+    expect(publishNode).toHaveClass("on");
+    expect(within(publishNode).getByText("Running")).toBeInTheDocument();
+    expect(within(publishNode).queryByText("Cancelled")).not.toBeInTheDocument();
+    expect(publishNode).toHaveAttribute("data-flow-current", "true");
+    expect(publishNode).toHaveAttribute("data-status", "running");
   });
 
   it("shows partial completed progress nodes without downgrading them to queued", () => {

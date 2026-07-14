@@ -759,7 +759,10 @@ describe("IssueDetailScreen direct loading", () => {
     render(<IssueDetailScreen go={vi.fn()} issue={null} issueId="f_123" setIssue={setIssue} />);
 
     expect((await screen.findAllByText("Validate redirect targets")).length).toBeGreaterThan(0);
-    expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
+    expect(pullwiseApi.issues.get).toHaveBeenCalledWith(
+      "f_123",
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
     expect(setIssue).toHaveBeenCalledWith(expect.objectContaining({ id: "f_123" }));
     expect(screen.queryByRole("group", { name: /issue feedback/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
@@ -811,7 +814,10 @@ describe("IssueDetailScreen direct loading", () => {
 
     expect(screen.getByRole("status", { name: /loading issue details/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /summary-only title/i })).not.toBeInTheDocument();
-    expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
+    expect(pullwiseApi.issues.get).toHaveBeenCalledWith(
+      "f_123",
+      expect.objectContaining({ signal: expect.any(Object) })
+    );
 
     await act(async () => {
       detail.resolve({
@@ -833,6 +839,24 @@ describe("IssueDetailScreen direct loading", () => {
     expect(setIssue).toHaveBeenCalledWith(
       expect.objectContaining({ id: "f_123", title: "Full issue title" })
     );
+  });
+
+  it("aborts the detail request when the route unmounts", async () => {
+    let signal;
+    pullwiseApi.issues.get.mockReset();
+    pullwiseApi.issues.get.mockImplementationOnce((_issueId, options = {}) => {
+      signal = options.signal;
+      return new Promise(() => {});
+    });
+
+    const view = render(
+      <IssueDetailScreen go={vi.fn()} issue={null} issueId="f_abort" setIssue={vi.fn()} />
+    );
+    await waitFor(() => expect(signal).toBeTruthy());
+
+    view.unmount();
+
+    expect(signal.aborted).toBe(true);
   });
 
   it("shows generic issue details without a generated review report", () => {
@@ -2289,6 +2313,42 @@ describe("IssueDetailScreen review detail", () => {
         expect.objectContaining({ id: "f_123", status: "fixed" })
       )
     );
+  });
+
+  it("ignores a stale status response after leaving and revisiting an issue", async () => {
+    const user = userEvent.setup();
+    const setIssue = vi.fn();
+    const update = deferredPromise();
+    const issueA = {
+      id: "f_race_a",
+      repo: "acme/api",
+      severity: "high",
+      category: "Security",
+      title: "Issue A",
+      status: "open",
+    };
+    const issueB = {
+      ...issueA,
+      id: "f_race_b",
+      title: "Issue B",
+    };
+    pullwiseApi.issues.updateStatus.mockReset();
+    pullwiseApi.issues.updateStatus.mockReturnValueOnce(update.promise);
+
+    const view = render(
+      <IssueDetailScreen go={vi.fn()} issue={issueA} setIssue={setIssue} />
+    );
+    await user.click(screen.getByRole("button", { name: /mark fixed/i }));
+
+    view.rerender(<IssueDetailScreen go={vi.fn()} issue={issueB} setIssue={setIssue} />);
+    await waitFor(() => expect(screen.getAllByText("Issue B").length).toBeGreaterThan(0));
+    view.rerender(<IssueDetailScreen go={vi.fn()} issue={issueA} setIssue={setIssue} />);
+    await waitFor(() => expect(screen.getAllByText("Issue A").length).toBeGreaterThan(0));
+
+    await act(async () => update.resolve({ ...issueA, status: "fixed" }));
+
+    expect(setIssue).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /mark fixed/i })).toBeInTheDocument();
   });
 
   it("sends issue identity fields when updating status from detail actions", async () => {

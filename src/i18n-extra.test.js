@@ -12,7 +12,7 @@ const COPIED_PROSE = [
 const SHORTENED_ENGLISH_PLACEHOLDER =
   "Pullwise scans repository snapshots with isolated Codex full-repo workers, validator disproof, and actionable reports.";
 const METHODOLOGY_PROSE =
-  "Pullwise scans the current repository snapshot with isolated Codex full-repo workers, validates candidate findings through a disproof pass, and reports confirmed or plausible actionable findings.";
+  "Pullwise scans the current repository snapshot with isolated Codex full-repository review workers, routes risk tiers, runs sequential reviewer and validator turns, and submits stable reports plus versioned artifacts.";
 const ENGLISH_PLACEHOLDER_OVERRIDES = {
   "Validation proof": "Validation evidence",
   "Validating findings and locations": "Reviewing risks and validating findings",
@@ -28,7 +28,9 @@ describe("production locale catalog", () => {
         expect(T(english), `${locale}: ${english}`).not.toBe(english);
         expect(T(english).trim()).not.toBe("");
       }
-      expect(T(METHODOLOGY_PROSE)).not.toBe(SHORTENED_ENGLISH_PLACEHOLDER);
+      expect(T(METHODOLOGY_PROSE), `${locale}: landing methodology`).not.toBe(
+        METHODOLOGY_PROSE
+      );
       for (const [english, placeholder] of Object.entries(ENGLISH_PLACEHOLDER_OVERRIDES)) {
         expect(T(english), `${locale}: ${english}`).not.toBe(placeholder);
       }

@@ -93,6 +93,13 @@ describe("issue detail routes", () => {
     expect(screenFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue");
     expect(issueIdFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue/with spaces#1");
   });
+
+  it("rejects empty, reserved, and malformed issue detail identities", () => {
+    expect(pathFromScreen("issue")).toBe("/404");
+    expect(screenFromPath("/issues/detail")).toBeNull();
+    expect(screenFromPath("/issues/%E0%A4%A")).toBeNull();
+    expect(issueIdFromPath("/issues/%E0%A4%A")).toBe("");
+  });
 });
 
 describe("scan detail routes", () => {
@@ -103,5 +110,10 @@ describe("scan detail routes", () => {
     expect(pathFromScreen("scanning")).toBe("/scanning");
     expect(screenFromPath("/scanning/scan%2Fwith%20spaces%231")).toBe("scanning");
     expect(scanIdFromPath("/scanning/scan%2Fwith%20spaces%231")).toBe("scan/with spaces#1");
+  });
+
+  it("rejects malformed scan detail identities", () => {
+    expect(screenFromPath("/scanning/%E0%A4%A")).toBeNull();
+    expect(scanIdFromPath("/scanning/%E0%A4%A")).toBe("");
   });
 });

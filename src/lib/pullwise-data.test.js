@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import {
+  applyCachedIssueUpdate,
   clearPullwiseDataCache,
   isTerminalScan,
   normalizeIssue,
@@ -274,6 +275,27 @@ describe("useScans", () => {
       () => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(3),
       { timeout: 250 }
     );
+  });
+
+  it("starts a fresh request when an aborted shared request has not settled", async () => {
+    let firstSignal;
+    pullwiseApi.repositories.list
+      .mockImplementationOnce((_params, { signal } = {}) => {
+        firstSignal = signal;
+        return new Promise(() => {});
+      })
+      .mockResolvedValueOnce({ items: [{ id: "repo_fresh", fullName: "acme/fresh" }] });
+
+    const first = renderHook(() => useRepositories());
+    await waitFor(() => expect(firstSignal).toBeTruthy());
+    first.unmount();
+    expect(firstSignal.aborted).toBe(true);
+
+    const second = renderHook(() => useRepositories());
+    await waitFor(() => expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(second.result.current.loading).toBe(false));
+    expect(second.result.current.items.map((repo) => repo.id)).toEqual(["repo_fresh"]);
+    second.unmount();
   });
 
   it("applies live ETA changes from bulk active-scan polling", async () => {
@@ -842,6 +864,101 @@ describe("useScans", () => {
       );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+
+  it("pauses an individual scan run while hidden and resumes it when visible", async () => {
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    let firstStatusSignal;
+    pullwiseApi.scans.status = vi
+      .fn()
+      .mockImplementationOnce((_ids, { signal } = {}) => {
+        firstStatusSignal = signal;
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener(
+            "abort",
+            () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+            { once: true }
+          );
+        });
+      })
+      .mockResolvedValueOnce({ items: [{ id: "sc_run_visibility", status: "done" }] });
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_run_visibility",
+      repo: "owner/repo",
+      branch: "main",
+      status: "running",
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useScanRun({ repo: "owner/repo", pollIntervalMs: 5 })
+    );
+
+    try {
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(1));
+      visibility.mockReturnValue("hidden");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      expect(firstStatusSignal.aborted).toBe(true);
+
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+      expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(1);
+
+      visibility.mockReturnValue("visible");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(result.current.scan?.status).toBe("done"));
+    } finally {
+      unmount();
+      visibility.mockRestore();
+    }
+  });
+
+  it("pauses a batch scan run while hidden and resumes it when visible", async () => {
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    let firstStatusSignal;
+    pullwiseApi.scans.status = vi
+      .fn()
+      .mockImplementationOnce((_ids, { signal } = {}) => {
+        firstStatusSignal = signal;
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener(
+            "abort",
+            () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+            { once: true }
+          );
+        });
+      })
+      .mockResolvedValueOnce({ items: [{ id: "sc_batch_visibility", status: "done" }] });
+    pullwiseApi.scans.create.mockResolvedValueOnce({
+      id: "sc_batch_visibility",
+      repo: "owner/repo",
+      branch: "main",
+      status: "running",
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useScanBatchRun({
+        repositories: [{ repo: "owner/repo", branch: "main", commit: "pending" }],
+        pollIntervalMs: 5,
+      })
+    );
+
+    try {
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(1));
+      visibility.mockReturnValue("hidden");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      expect(firstStatusSignal.aborted).toBe(true);
+
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+      expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(1);
+
+      visibility.mockReturnValue("visible");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(result.current.scans[0]?.status).toBe("done"));
+    } finally {
+      unmount();
+      visibility.mockRestore();
+    }
   });
 
   it("retains an existing scan detail ETA when its refresh omits the estimate", async () => {
@@ -1855,6 +1972,58 @@ describe("normalizeIssue", () => {
       medium: 2,
       low: 3,
     });
+  });
+
+  it("does not parse filter syntax out of a cached search value", async () => {
+    const issue = {
+      id: "iss_cache_key",
+      scanId: "sc_real",
+      status: "open",
+      severity: "high",
+    };
+    const refresh = deferred();
+    const q = "needle|scanId:sc_other";
+    pullwiseApi.issues.list
+      .mockResolvedValueOnce({ items: [issue], total: 1 })
+      .mockReturnValueOnce(refresh.promise);
+
+    const first = renderHook(() => useIssues({ limit: 1, q, refreshOnChange: false }));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    first.unmount();
+
+    const second = renderHook(() => useIssues({ limit: 1, q, refreshOnChange: false }));
+    expect(second.result.current.loading).toBe(false);
+    expect(second.result.current.items.map((item) => item.id)).toEqual(["iss_cache_key"]);
+
+    await act(async () => refresh.resolve({ items: [issue], total: 1 }));
+    second.unmount();
+  });
+
+  it("does not apply a cached update to a different issue with the same display id", () => {
+    const first = {
+      id: "dup_issue",
+      scanId: "sc_1",
+      jobId: "job_1",
+      repo: "acme/api",
+      file: "src/first.py",
+      line: 10,
+      title: "First issue",
+      createdAt: 100,
+      status: "open",
+    };
+    const second = {
+      ...first,
+      scanId: "sc_2",
+      jobId: "job_2",
+      file: "src/second.py",
+      line: 20,
+      title: "Second issue",
+      createdAt: 101,
+    };
+
+    rememberIssueUpdate(first, { ...first, status: "fixed" });
+
+    expect(applyCachedIssueUpdate(second).status).toBe("open");
   });
 
   it("normalizes only safe current-run ETA values for active scans", () => {
