@@ -42,11 +42,6 @@
   line-height: 1.4;
 }
 
-.scan-timing-unavailable {
-  border-left-color: var(--text-4);
-  background: var(--bg-soft);
-}
-
 .scan-timing-actual {
   border-left-color: var(--ok);
 }

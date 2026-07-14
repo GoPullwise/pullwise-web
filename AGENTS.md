@@ -107,9 +107,15 @@ Keep route and polling changes aligned with the current scale model.
   top-level field, and use nested review-run progress only as a compatibility
   fallback; do not calculate an ETA in Web.
 - Queued scans show queue state without an execution ETA. Running scans render
-  `estimating`, `unavailable`, or an outward-rounded whole-minute lower/upper
-  range. Do not show false second-level precision, a phase ETA, or a countdown
-  that the worker did not provide.
+  an ETA only after the worker supplies a valid `available` estimate; keep
+  `estimating`, `unavailable`, missing, and invalid estimates hidden. Render the
+  valid estimate as an outward-rounded whole-minute lower/upper range. Do not
+  show false second-level precision, a phase ETA, or a countdown that the worker
+  did not provide.
+- Once a running scan has a valid ETA, retain the latest valid range across
+  same-status list refreshes and status polls that omit, invalidate, downgrade,
+  or arrive older than that estimate. Replace it only with an equally new or
+  newer valid estimate, and clear it as soon as the scan leaves `running`.
 - Terminal scans show actual elapsed duration from server timestamps and never
   retain the running forecast. Keep ETA status changes screen-reader friendly
   with polite live status, and keep the display safe for long content and narrow

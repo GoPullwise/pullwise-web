@@ -45,6 +45,25 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
+function availableScanEstimate(updatedAt = "2026-07-01T10:41:00Z") {
+  return {
+    state: "available",
+    basis: "current_run_work_graph",
+    remainingSeconds: 900,
+    lowerSeconds: 780,
+    upperSeconds: 1080,
+    confidence: "medium",
+    updatedAt,
+    parallel: {
+      configuredConcurrency: 3,
+      effectiveConcurrency: 3,
+      activeUnits: 2,
+      pendingUnits: 6,
+      retryingUnits: 0,
+    },
+  };
+}
+
 beforeEach(() => {
   clearPullwiseDataCache();
 });
@@ -309,6 +328,103 @@ describe("useScans", () => {
       timeout: 250,
     });
     expect(result.current.items[0].estimate.remainingSeconds).toBe(900);
+    unmount();
+  });
+
+  it("retains the last usable ETA across empty running status updates until status changes", async () => {
+    const terminalUpdate = deferred();
+    const estimate = availableScanEstimate();
+    pullwiseApi.scans.list.mockResolvedValueOnce({
+      items: [{ id: "sc_eta_sticky_poll", status: "running", estimate }],
+    });
+    pullwiseApi.scans.status = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_eta_sticky_poll", status: "running", estimate: null }],
+      })
+      .mockReturnValueOnce(terminalUpdate.promise);
+
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5 }));
+
+    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(2), {
+      timeout: 250,
+    });
+    expect(result.current.items[0]?.estimate).toEqual(estimate);
+
+    await act(async () => {
+      terminalUpdate.resolve({
+        items: [
+          {
+            id: "sc_eta_sticky_poll",
+            status: "done",
+            estimate: null,
+            durationMs: 720_000,
+          },
+        ],
+      });
+    });
+
+    await waitFor(() => expect(result.current.items[0]?.status).toBe("done"));
+    expect(result.current.items[0]?.estimate).toBeNull();
+    unmount();
+  });
+
+  it("retains the last usable ETA across quiet list refreshes until status changes", async () => {
+    const estimate = availableScanEstimate();
+    pullwiseApi.scans.list
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_eta_sticky_list", status: "running", estimate }],
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_eta_sticky_list", status: "running", estimate: null }],
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: "sc_eta_sticky_list",
+            status: "failed",
+            estimate: null,
+            durationMs: 600_000,
+          },
+        ],
+      });
+
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 30_000 }));
+
+    await waitFor(() => expect(result.current.items[0]?.estimate).toEqual(estimate));
+    await act(async () => result.current.reload({ quiet: true }));
+    expect(result.current.items[0]?.estimate).toEqual(estimate);
+
+    await act(async () => result.current.reload({ quiet: true }));
+    expect(result.current.items[0]).toMatchObject({ status: "failed", estimate: null });
+    unmount();
+  });
+
+  it("does not regress a running ETA when an older poll response arrives late", async () => {
+    const terminalUpdate = deferred();
+    const latestEstimate = availableScanEstimate("2026-07-01T10:42:00Z");
+    const staleEstimate = {
+      ...availableScanEstimate("2026-07-01T10:41:00Z"),
+      remainingSeconds: 1_200,
+      lowerSeconds: 1_080,
+      upperSeconds: 1_320,
+    };
+    pullwiseApi.scans.list.mockResolvedValueOnce({
+      items: [{ id: "sc_eta_stale_poll", status: "running", estimate: latestEstimate }],
+    });
+    pullwiseApi.scans.status = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: [{ id: "sc_eta_stale_poll", status: "running", estimate: staleEstimate }],
+      })
+      .mockReturnValueOnce(terminalUpdate.promise);
+
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5 }));
+
+    await waitFor(() => expect(pullwiseApi.scans.status).toHaveBeenCalledTimes(2), {
+      timeout: 250,
+    });
+    expect(result.current.items[0]?.estimate).toEqual(latestEstimate);
     unmount();
   });
 
@@ -726,6 +842,35 @@ describe("useScans", () => {
       );
     });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+
+  it("retains an existing scan detail ETA when its refresh omits the estimate", async () => {
+    const estimate = availableScanEstimate();
+    pullwiseApi.scans.get.mockResolvedValueOnce({
+      id: "sc_detail_eta",
+      repo: "owner/repo",
+      branch: "main",
+      status: "running",
+      estimate: null,
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useScanRun({
+        scanId: "sc_detail_eta",
+        initialScan: {
+          id: "sc_detail_eta",
+          repo: "owner/repo",
+          branch: "main",
+          status: "running",
+          estimate,
+        },
+        pollIntervalMs: 30_000,
+      })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.scan?.estimate).toEqual(estimate);
+    unmount();
   });
 
   it("keeps successful batch cancel results when another cancel request fails", async () => {

@@ -747,11 +747,41 @@ function scanItemsFromPayload(payload) {
     : [];
 }
 
+function availableRunningScanEstimate(scan) {
+  return scan?.status === "running" && scan?.estimate?.state === "available"
+    ? scan.estimate
+    : null;
+}
+
+function retainLatestRunningEstimate(previous, next) {
+  if (!previous || !next || String(previous.id) !== String(next.id)) return next;
+  const previousEstimate = availableRunningScanEstimate(previous);
+  if (!previousEstimate || next.status !== "running") return next;
+  const nextEstimate = availableRunningScanEstimate(next);
+  if (
+    nextEstimate &&
+    Date.parse(nextEstimate.updatedAt) >= Date.parse(previousEstimate.updatedAt)
+  ) {
+    return next;
+  }
+  return { ...next, estimate: previousEstimate };
+}
+
+function retainLatestRunningEstimates(previousScans, nextScans) {
+  const previousById = new Map(
+    previousScans.filter((scan) => scan?.id).map((scan) => [String(scan.id), scan])
+  );
+  return nextScans.map((scan) =>
+    retainLatestRunningEstimate(previousById.get(String(scan?.id)), scan)
+  );
+}
+
 function normalizedScanUpdate(value, previous = null) {
   if (!objectRecord(value)) return null;
   const id = textValue(value.id, value.scanId, value.scan_id, previous?.id);
   if (!id) return null;
-  return normalizeScan({ ...(previous || {}), ...value, id });
+  const next = normalizeScan({ ...(previous || {}), ...value, id });
+  return retainLatestRunningEstimate(previous, next);
 }
 
 function scanUpdatesById(payload, previousScans = []) {
@@ -1640,12 +1670,13 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           controller?.signal
         );
         if (requestId !== requestIdRef.current) return;
-        const nextItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
+        const loadedItems = itemsFrom(payload, "items", "scans").map(normalizeScan);
         setState((current) => {
           const baseState =
             current.cacheKey === cacheKey
               ? current
               : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
+          const nextItems = retainLatestRunningEstimates(baseState.items, loadedItems);
           const nextMeta = pageMeta(payload, limit);
           const merged = append
             ? appendUniqueListItems(baseState.items, nextItems)
@@ -1811,11 +1842,13 @@ export function useScans({ pollIntervalMs = 1500, limit = 50, status = "", repo 
           current.cacheKey === cacheKey
             ? current
             : scanListStateForCacheKey(cacheKey, limit, initialCachedState);
-        const shouldInclude = !status || status === "all" || normalized.status === status;
+        const previous = baseState.items.find((item) => item.id === normalized.id);
+        const nextScan = retainLatestRunningEstimate(previous, normalized);
+        const shouldInclude = !status || status === "all" || nextScan.status === status;
         const remainingItems = baseState.items.filter(
-          (item) => item.id !== normalized.id && item.id !== replacedScanId
+          (item) => item.id !== nextScan.id && item.id !== replacedScanId
         );
-        const nextItems = shouldInclude ? [normalized, ...remainingItems] : remainingItems;
+        const nextItems = shouldInclude ? [nextScan, ...remainingItems] : remainingItems;
         const nextState = {
           ...baseState,
           cacheKey,
@@ -1944,7 +1977,8 @@ export function useScanRun({
       .get(scanId, { signal: controller?.signal })
       .then((payload) => {
         if (alive) {
-          setScan(normalizeScan(payload));
+          const normalized = normalizeScan(payload);
+          setScan((current) => retainLatestRunningEstimate(current, normalized));
           clearRunError();
         }
       })

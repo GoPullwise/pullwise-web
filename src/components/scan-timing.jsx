@@ -73,23 +73,6 @@ export function scanTimingPresentation(scan) {
     };
   }
   if (status !== "running" || !scan?.estimate) return null;
-  if (scan.estimate.state === "estimating") {
-    return {
-      kind: "estimating",
-      label: "ETA",
-      text: T("Building time estimate", "\u6b63\u5728\u5efa\u7acb\u65f6\u95f4\u4f30\u7b97"),
-    };
-  }
-  if (scan.estimate.state === "unavailable") {
-    return {
-      kind: "unavailable",
-      label: "ETA",
-      text: T(
-        "Time estimate unavailable",
-        "\u6682\u65f6\u65e0\u6cd5\u4f30\u7b97\u5269\u4f59\u65f6\u95f4"
-      ),
-    };
-  }
   if (
     scan.estimate.state !== "available" ||
     !Number.isFinite(scan.estimate.lowerSeconds) ||

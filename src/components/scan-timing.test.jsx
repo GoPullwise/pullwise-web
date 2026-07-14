@@ -26,19 +26,18 @@ function estimate(state, extra = {}) {
 describe("ScanTiming", () => {
   beforeEach(() => setLang("en"));
 
-  it("keeps queued scans ETA-free and explains estimator startup states", () => {
+  it("keeps ETA hidden until a usable running estimate exists", () => {
     expect(
       scanTimingPresentation({ status: "queued", estimate: estimate("available") })
     ).toBeNull();
     expect(scanTimingPresentation({ status: "running" })).toBeNull();
 
-    const { rerender } = render(
-      <ScanTiming scan={{ status: "running", estimate: estimate("estimating") }} />
-    );
-    expect(screen.getByRole("status")).toHaveTextContent("Building time estimate");
-
-    rerender(<ScanTiming scan={{ status: "running", estimate: estimate("unavailable") }} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Time estimate unavailable");
+    expect(
+      scanTimingPresentation({ status: "running", estimate: estimate("estimating") })
+    ).toBeNull();
+    expect(
+      scanTimingPresentation({ status: "running", estimate: estimate("unavailable") })
+    ).toBeNull();
   });
 
   it("renders a rounded minute range without fake second-level precision", () => {
