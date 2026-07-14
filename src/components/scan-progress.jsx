@@ -28,6 +28,17 @@ export function scanProgressPresentation(scan, { label = "" } = {}) {
       ariaValueText: T("Scan complete", "扫描完成"),
     };
   }
+  if (status === "partial_completed") {
+    return {
+      progress: percent,
+      label: label || T("Scan partially completed", "扫描部分完成"),
+      valueLabel: T(`Partially completed at ${percent}%`, `部分完成于 ${percent}%`),
+      ariaValueText: T(
+        `Scan partially completed at ${percent}%`,
+        `扫描在 ${percent}% 时部分完成`
+      ),
+    };
+  }
   if (status === "failed") {
     return {
       progress: percent,

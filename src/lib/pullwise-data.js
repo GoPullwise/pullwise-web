@@ -3,7 +3,7 @@ import { pullwiseApi } from "../api/pullwise.js";
 
 const successfulListCache = new Map();
 const issueUpdateCache = new Map();
-const issueUpdateByIdCache = new Map();
+const issueUpdateKeysById = new Map();
 const inFlightDataRequests = new Map();
 const ISSUE_UPDATE_KEY_FIELDS = [
   "id",
@@ -29,13 +29,34 @@ function onVisible(callback) {
   return () => document.removeEventListener("visibilitychange", handleVisibility);
 }
 
+function onHidden(callback) {
+  if (typeof document === "undefined") return undefined;
+  const handleVisibility = () => {
+    if (document.visibilityState === "hidden") callback();
+  };
+  document.addEventListener("visibilitychange", handleVisibility);
+  return () => document.removeEventListener("visibilitychange", handleVisibility);
+}
+
+function encodeCacheKeyPart(value) {
+  return encodeURIComponent(String(value));
+}
+
+function decodeCacheKeyPart(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return "";
+  }
+}
+
 function stableCacheKey(name, params = {}) {
   return [
-    name,
+    encodeCacheKeyPart(name),
     ...Object.entries(params)
       .filter(([, value]) => value !== "" && value !== undefined && value !== null)
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, value]) => `${key}:${String(value)}`),
+      .map(([key, value]) => `${encodeCacheKeyPart(key)}:${encodeCacheKeyPart(value)}`),
   ].join("|");
 }
 
@@ -78,6 +99,10 @@ function isAbortError(error) {
 function dedupedDataRequest(key, fetcher, ownerSignal) {
   if (ownerSignal?.aborted) return Promise.reject(createAbortError());
   let entry = inFlightDataRequests.get(key);
+  if (entry && (entry.done || entry.controller?.signal?.aborted)) {
+    if (inFlightDataRequests.get(key) === entry) inFlightDataRequests.delete(key);
+    entry = null;
+  }
   if (!entry) {
     const controller = makeAbortController();
     entry = {
@@ -165,7 +190,7 @@ function rememberListState(key, state) {
 export function clearPullwiseDataCache() {
   successfulListCache.clear();
   issueUpdateCache.clear();
-  issueUpdateByIdCache.clear();
+  issueUpdateKeysById.clear();
   for (const entry of inFlightDataRequests.values()) {
     entry.controller?.abort?.();
   }
@@ -177,16 +202,35 @@ export function issueUpdateKey(issue) {
 }
 
 function applyCachedIssueUpdates(items) {
-  if (!Array.isArray(items) || (issueUpdateCache.size === 0 && issueUpdateByIdCache.size === 0)) {
+  if (!Array.isArray(items) || issueUpdateCache.size === 0) {
     return items;
   }
   return items.map(applyCachedIssueUpdate);
 }
 
+function compatibleIssueUpdate(issue, updated) {
+  return ISSUE_UPDATE_KEY_FIELDS.slice(1).every((field) => {
+    const left = issue?.[field];
+    const right = updated?.[field];
+    if (left === "" || left === null || left === undefined) return true;
+    if (right === "" || right === null || right === undefined) return true;
+    return String(left) === String(right);
+  });
+}
+
+function cachedIssueUpdateFor(normalized) {
+  const exact = issueUpdateCache.get(issueUpdateKey(normalized));
+  if (exact) return exact;
+  const keys = issueUpdateKeysById.get(normalized.id);
+  if (!keys || keys.size !== 1) return null;
+  const [onlyKey] = keys;
+  const candidate = issueUpdateCache.get(onlyKey);
+  return candidate && compatibleIssueUpdate(normalized, candidate) ? candidate : null;
+}
+
 export function applyCachedIssueUpdate(issue) {
   const normalized = normalizeIssue(issue);
-  const updated =
-    issueUpdateCache.get(issueUpdateKey(normalized)) || issueUpdateByIdCache.get(normalized.id);
+  const updated = cachedIssueUpdateFor(normalized);
   return updated ? { ...normalized, ...updated } : normalized;
 }
 
@@ -197,7 +241,9 @@ function issueFiltersFromCacheKey(cacheKey) {
     .slice(1)) {
     const separatorIndex = part.indexOf(":");
     if (separatorIndex <= 0) continue;
-    filters[part.slice(0, separatorIndex)] = part.slice(separatorIndex + 1);
+    const key = decodeCacheKeyPart(part.slice(0, separatorIndex));
+    if (!key) continue;
+    filters[key] = decodeCacheKeyPart(part.slice(separatorIndex + 1));
   }
   return filters;
 }
@@ -213,7 +259,11 @@ export function rememberIssueUpdate(issue, updatedIssue) {
   const key = issueUpdateKey(issue);
   const normalized = normalizeIssue({ ...issue, ...updatedIssue });
   issueUpdateCache.set(key, normalized);
-  if (normalized.id) issueUpdateByIdCache.set(normalized.id, normalized);
+  if (normalized.id) {
+    const keys = issueUpdateKeysById.get(normalized.id) || new Set();
+    keys.add(key);
+    issueUpdateKeysById.set(normalized.id, keys);
+  }
   for (const [cacheKey, state] of successfulListCache.entries()) {
     if (!cacheKey.startsWith("issues|") && cacheKey !== "issues") continue;
     const filters = issueFiltersFromCacheKey(cacheKey);
@@ -2030,8 +2080,14 @@ export function useScanRun({
         }
       }
     }, pollIntervalMs);
+    const stopWatchingVisibility = onHidden(() => {
+      controller?.abort();
+      clearTimeout(handle);
+      setPollRetryTick((tick) => tick + 1);
+    });
     return () => {
       alive = false;
+      stopWatchingVisibility?.();
       controller?.abort();
       clearTimeout(handle);
     };
@@ -2253,9 +2309,15 @@ export function useScanBatchRun({ repositories = [], pollIntervalMs = 1500 } = {
         }
       }
     }, pollIntervalMs);
+    const stopWatchingVisibility = onHidden(() => {
+      controller?.abort();
+      clearTimeout(handle);
+      setPollRetryTick((tick) => tick + 1);
+    });
 
     return () => {
       alive = false;
+      stopWatchingVisibility?.();
       controller?.abort();
       clearTimeout(handle);
     };

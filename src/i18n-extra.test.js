@@ -9,8 +9,6 @@ const COPIED_PROSE = [
   "Capturing manifests, tools, and repository context",
 ];
 
-const SHORTENED_ENGLISH_PLACEHOLDER =
-  "Pullwise scans repository snapshots with isolated Codex full-repo workers, validator disproof, and actionable reports.";
 const METHODOLOGY_PROSE =
   "Pullwise scans the current repository snapshot with isolated Codex full-repository review workers, routes risk tiers, runs sequential reviewer and validator turns, and submits stable reports plus versioned artifacts.";
 const ENGLISH_PLACEHOLDER_OVERRIDES = {

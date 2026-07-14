@@ -1175,6 +1175,13 @@ export const EXTRA_PHRASE_TRANSLATIONS = {
   },
   "Find broadly.": { zh: "广泛发现。", ja: "広く発見。", ko: "넓게 찾기.", fr: "Chercher largement.", es: "Detecta ampliamente." },
   "Prove locally.": { zh: "本地证明。", ja: "ローカルで証明。", ko: "로컬에서 증명.", fr: "Prouver localement.", es: "Prueba localmente." },
+  "Pullwise scans the current repository snapshot with isolated Codex full-repository review workers, routes risk tiers, runs sequential reviewer and validator turns, and submits stable reports plus versioned artifacts.": {
+    zh: "Pullwise 使用隔离的 Codex 全仓审查 worker 扫描当前仓库快照，进行风险分层，串行运行 reviewer 和 validator，并提交稳定报告与版本化产物。",
+    ja: "Pullwise は隔離された Codex のリポジトリ全体レビュー worker で現在のスナップショットを走査し、リスクを分類して reviewer と validator を順番に実行し、安定したレポートとバージョン管理された成果物を提出します。",
+    ko: "Pullwise는 격리된 Codex 전체 저장소 리뷰 워커로 현재 저장소 스냅샷을 검사하고 위험 등급을 분류한 뒤 reviewer와 validator를 순차 실행하여 안정적인 보고서와 버전이 지정된 산출물을 제출합니다.",
+    fr: "Pullwise analyse l’instantané actuel du dépôt avec des workers de revue Codex isolés couvrant tout le dépôt, classe les niveaux de risque, exécute successivement le reviewer et le validator, puis soumet des rapports stables et des artefacts versionnés.",
+    es: "Pullwise analiza la instantánea actual del repositorio con workers de revisión Codex aislados que cubren todo el repositorio, clasifica los niveles de riesgo, ejecuta secuencialmente el reviewer y el validator, y entrega informes estables y artefactos versionados.",
+  },
   "Pullwise scans the current repository snapshot with isolated Codex full-repo workers, validates candidate findings through a disproof pass, and reports confirmed or plausible actionable findings.": {
     zh: "Pullwise 使用隔离的 Codex 全仓库工作器扫描当前仓库快照，通过反证流程验证候选发现，并报告已确认或合理且可执行的发现。",
     ja: "Pullwise は隔離された Codex のリポジトリ全体ワーカーで現在のリポジトリスナップショットをスキャンし、反証プロセスで候補を検証して、確認済みまたは妥当で実行可能な検出結果を報告します。",

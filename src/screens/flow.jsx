@@ -2165,14 +2165,7 @@ function terminalProgressStepStatus(status) {
 
 function scanPhasesForScan(scan, currentPhase, status) {
   if (Array.isArray(scan?.progressSteps) && scan.progressSteps.length) {
-    const terminalStatus = terminalProgressStepStatus(status);
-    if (!terminalStatus) return scan.progressSteps;
-    return scan.progressSteps.map((step) => {
-      const stepStatus = String(step?.status || "").toLowerCase();
-      const isCurrentStep = currentPhase && String(step?.id || "") === currentPhase;
-      if (stepStatus !== "running" && !isCurrentStep) return step;
-      return { ...step, status: terminalStatus };
-    });
+    return scan.progressSteps;
   }
   return fallbackCurrentScanStep(scan, currentPhase, status);
 }
@@ -2436,7 +2429,8 @@ function ScanProgressFlow({
             const isDone =
               ["completed", "skipped"].includes(stepStatus) ||
               (phaseIdx > i && stepStatus !== "failed");
-            const isOn = !terminal && (stepStatus === "running" || (phaseIdx === i && !isDone));
+            const isOn =
+              stepStatus === "running" || (!terminal && phaseIdx === i && !isDone);
             const stepError = scanStepErrorMessage(p, currentPhase, errorMessage);
             const isFailed = stepStatus === "failed";
             const stepPercent = scanFlowStepPercent(p, isDone);

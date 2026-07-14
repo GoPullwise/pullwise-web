@@ -247,6 +247,27 @@ describe("useRepositories", () => {
     );
     unmount();
   });
+
+  it("starts a fresh request when an aborted shared request has not settled", async () => {
+    let firstSignal;
+    pullwiseApi.repositories.list
+      .mockImplementationOnce((_params, { signal } = {}) => {
+        firstSignal = signal;
+        return new Promise(() => {});
+      })
+      .mockResolvedValueOnce({ items: [{ id: "repo_fresh", fullName: "acme/fresh" }] });
+
+    const first = renderHook(() => useRepositories());
+    await waitFor(() => expect(firstSignal).toBeTruthy());
+    first.unmount();
+    expect(firstSignal.aborted).toBe(true);
+
+    const second = renderHook(() => useRepositories());
+    await waitFor(() => expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(second.result.current.loading).toBe(false));
+    expect(second.result.current.items.map((repo) => repo.id)).toEqual(["repo_fresh"]);
+    second.unmount();
+  });
 });
 
 describe("useScans", () => {
@@ -275,27 +296,6 @@ describe("useScans", () => {
       () => expect(pullwiseApi.scans.list.mock.calls.length).toBeGreaterThanOrEqual(3),
       { timeout: 250 }
     );
-  });
-
-  it("starts a fresh request when an aborted shared request has not settled", async () => {
-    let firstSignal;
-    pullwiseApi.repositories.list
-      .mockImplementationOnce((_params, { signal } = {}) => {
-        firstSignal = signal;
-        return new Promise(() => {});
-      })
-      .mockResolvedValueOnce({ items: [{ id: "repo_fresh", fullName: "acme/fresh" }] });
-
-    const first = renderHook(() => useRepositories());
-    await waitFor(() => expect(firstSignal).toBeTruthy());
-    first.unmount();
-    expect(firstSignal.aborted).toBe(true);
-
-    const second = renderHook(() => useRepositories());
-    await waitFor(() => expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(second.result.current.loading).toBe(false));
-    expect(second.result.current.items.map((repo) => repo.id)).toEqual(["repo_fresh"]);
-    second.unmount();
   });
 
   it("applies live ETA changes from bulk active-scan polling", async () => {
@@ -653,11 +653,13 @@ describe("useScans", () => {
   });
 
   it("shows cached scans for the selected filter immediately when switching back to all", async () => {
-    const allRefresh = deferred();
+    const abandonedAllRefresh = deferred();
+    const resumedAllRefresh = deferred();
     pullwiseApi.scans.list
       .mockResolvedValueOnce({ items: [{ id: "sc_all_old", status: "queued" }] })
-      .mockReturnValueOnce(allRefresh.promise)
-      .mockResolvedValueOnce({ items: [{ id: "sc_done", status: "done" }] });
+      .mockReturnValueOnce(abandonedAllRefresh.promise)
+      .mockResolvedValueOnce({ items: [{ id: "sc_done", status: "done" }] })
+      .mockReturnValueOnce(resumedAllRefresh.promise);
 
     const first = renderHook(() => useScans({ pollIntervalMs: 10000, limit: 1, status: "all" }));
     await waitFor(() => expect(first.result.current.loading).toBe(false));
@@ -679,7 +681,7 @@ describe("useScans", () => {
     expect(result.current.items.map((scan) => scan.id)).toEqual(["sc_all_old"]);
 
     await act(async () => {
-      allRefresh.resolve({ items: [{ id: "sc_all_new", status: "running" }] });
+      resumedAllRefresh.resolve({ items: [{ id: "sc_all_new", status: "running" }] });
     });
 
     await waitFor(() =>

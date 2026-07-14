@@ -943,6 +943,14 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     key: `issue-load:${routeIssueId}:${loadError}`,
   });
   const activeIssue = routeIssueId ? loadedIssue : initialIssue;
+  const issueContextKey = `${routeIssueId}\u001f${issueUpdateKey(activeIssue)}`;
+  const issueContextRef = useRef({ key: issueContextKey, version: 0 });
+  if (issueContextRef.current.key !== issueContextKey) {
+    issueContextRef.current = {
+      key: issueContextKey,
+      version: issueContextRef.current.version + 1,
+    };
+  }
   const [currentStatus, setCurrentStatus] = useState(activeIssue?.status || "open");
   const [actionError, setActionError] = useState("");
   useErrorNotification(actionError, {
@@ -951,7 +959,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   });
   const [statusLoading, setStatusLoading] = useState("");
   const [pageCopied, setPageCopied] = useState(false);
-  const statusRequestRef = useRef(false);
+  const statusRequestRef = useRef(null);
   const pageCopyResetRef = useRef(null);
 
   useEffect(() => {
@@ -974,8 +982,9 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         : null;
     setLoadedIssue(seedIssue);
     setLoadingIssue(true);
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
     pullwiseApi.issues
-      .get(routeIssueId)
+      .get(routeIssueId, { signal: controller?.signal })
       .then((payload) => {
         if (cancelled) return;
         const nextIssue = applyCachedIssueUpdate(payload);
@@ -983,6 +992,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         if (typeof setIssue === "function") setIssue(nextIssue);
       })
       .catch((error) => {
+        if (error?.name === "AbortError" || error?.code === "ERR_CANCELED") return;
         if (cancelled) return;
         setLoadError(error?.message || T("Unable to load issue.", "\u65e0\u6cd5\u52a0\u8f7d\u95ee\u9898\u3002"));
       })
@@ -991,6 +1001,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       });
     return () => {
       cancelled = true;
+      controller?.abort();
     };
   }, [routeIssueId, setIssue]);
 
@@ -999,13 +1010,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
     setActionError("");
     setStatusLoading("");
     setPageCopied(false);
-    statusRequestRef.current = false;
+    statusRequestRef.current = null;
     if (pageCopyResetRef.current) {
       clearTimeout(pageCopyResetRef.current);
       pageCopyResetRef.current = null;
     }
     return () => {
-      statusRequestRef.current = false;
+      statusRequestRef.current = null;
       if (pageCopyResetRef.current) {
         clearTimeout(pageCopyResetRef.current);
         pageCopyResetRef.current = null;
@@ -1060,8 +1071,20 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
   const issue = activeIssue;
 
   const updateStatus = async (nextStatus) => {
-    if (statusRequestRef.current) return;
-    statusRequestRef.current = true;
+    const requestContext = issueContextRef.current;
+    if (statusRequestRef.current?.contextVersion === requestContext.version) return;
+    const requestToken = {
+      contextKey: requestContext.key,
+      contextVersion: requestContext.version,
+    };
+    const responseIsCurrent = () => {
+      const current = issueContextRef.current;
+      return (
+        current.key === requestToken.contextKey &&
+        current.version === requestToken.contextVersion
+      );
+    };
+    statusRequestRef.current = requestToken;
     setActionError("");
     setStatusLoading(nextStatus);
     try {
@@ -1071,18 +1094,21 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       });
       const mergedIssue = { ...issue, ...updated, status: updated?.status || nextStatus };
       rememberIssueUpdate(issue, mergedIssue);
-      setCurrentStatus(mergedIssue.status);
-      if (typeof setIssue === "function") setIssue(mergedIssue);
       notifyIssuesChanged({
         issueId: issue.id,
         issueKey: issueRowKey(issue),
         status: mergedIssue.status,
       });
+      if (!responseIsCurrent()) return;
+      setCurrentStatus(mergedIssue.status);
+      if (typeof setIssue === "function") setIssue(mergedIssue);
     } catch (error) {
-      setActionError(error?.message || T("Unable to update issue status.", "\u65e0\u6cd5\u66f4\u65b0\u95ee\u9898\u72b6\u6001\u3002"));
+      if (responseIsCurrent()) {
+        setActionError(error?.message || T("Unable to update issue status.", "\u65e0\u6cd5\u66f4\u65b0\u95ee\u9898\u72b6\u6001\u3002"));
+      }
     } finally {
-      statusRequestRef.current = false;
-      setStatusLoading("");
+      if (statusRequestRef.current === requestToken) statusRequestRef.current = null;
+      if (responseIsCurrent()) setStatusLoading("");
     }
   };
   const severity = issue.severity || "info";
