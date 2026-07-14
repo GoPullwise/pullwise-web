@@ -1742,6 +1742,14 @@ describe("normalizeIssue", () => {
     ).toEqual(estimate);
     expect(
       normalizeScan({
+        id: "sc_eta_nested_fallback",
+        status: "running",
+        estimate: { ...estimate, lowerSeconds: 1000 },
+        reviewRun: { progress: { estimate } },
+      }).estimate
+    ).toEqual(estimate);
+    expect(
+      normalizeScan({
         id: "sc_eta_bad",
         status: "running",
         estimate: { ...estimate, lowerSeconds: 1000 },

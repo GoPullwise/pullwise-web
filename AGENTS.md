@@ -100,6 +100,21 @@ Keep route and polling changes aligned with the current scale model.
   when the English key already exists in `PHRASE_TRANSLATIONS`.
 - Review output-language saves use a synchronous ref-backed in-flight lock. Disabled select state alone is not the mutation guard, because programmatic or same-render-frame change events must not start overlapping saves.
 
+## Whole-Scan ETA Display
+
+- `scan.estimate` is the worker-authored estimate for the whole running scan,
+  never the current phase. Normalize it defensively, prefer the sanitized
+  top-level field, and use nested review-run progress only as a compatibility
+  fallback; do not calculate an ETA in Web.
+- Queued scans show queue state without an execution ETA. Running scans render
+  `estimating`, `unavailable`, or an outward-rounded whole-minute lower/upper
+  range. Do not show false second-level precision, a phase ETA, or a countdown
+  that the worker did not provide.
+- Terminal scans show actual elapsed duration from server timestamps and never
+  retain the running forecast. Keep ETA status changes screen-reader friendly
+  with polite live status, and keep the display safe for long content and narrow
+  mobile layouts.
+
 ## Review Worker Result Display
 
 Web displays only data supplied by the server for the `review-worker-protocol/v1`

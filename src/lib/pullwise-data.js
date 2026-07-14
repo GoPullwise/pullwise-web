@@ -1288,7 +1288,8 @@ export function normalizeScan(scan = {}) {
   const status = inferredScanStatus(scan, reviewRun, rawStatus);
   const estimate =
     status === "running"
-      ? normalizeScanEstimate(scan.estimate ?? reviewRun?.progress?.estimate)
+      ? normalizeScanEstimate(scan.estimate) ||
+        normalizeScanEstimate(reviewRun?.progress?.estimate)
       : null;
   const durationMs = normalizeDurationMs(
     scan.durationMs ?? scan.duration_ms ?? reviewRun?.durationMs ?? reviewRun?.duration_ms

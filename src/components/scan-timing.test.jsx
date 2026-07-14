@@ -30,6 +30,7 @@ describe("ScanTiming", () => {
     expect(
       scanTimingPresentation({ status: "queued", estimate: estimate("available") })
     ).toBeNull();
+    expect(scanTimingPresentation({ status: "running" })).toBeNull();
 
     const { rerender } = render(
       <ScanTiming scan={{ status: "running", estimate: estimate("estimating") }} />
