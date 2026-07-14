@@ -1468,6 +1468,9 @@ function ScanRow({
             <span className="scan-badge scan-badge-muted">{scan.commit}</span>
           )}
           <span className={`scan-badge scan-badge-status scan-badge-${status}`}>{status}</span>
+          {showProgress && (
+            <ScanTiming scan={scan} variant="badge" className="scan-row-eta-badge" />
+          )}
           {aiUsageBadges.map((badge) => (
             <span key={badge} className="scan-badge scan-badge-muted">
               {badge}
@@ -1513,7 +1516,6 @@ function ScanRow({
           </div>
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
-        <ScanTiming scan={scan} compact className="scan-row-timing" />
         {showProgress && (
           <ScanProgressBar
             compact

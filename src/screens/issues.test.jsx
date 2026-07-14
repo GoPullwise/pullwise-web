@@ -888,7 +888,9 @@ describe("HistoryScreen queue state", () => {
     const titleLine = row?.querySelector(".scan-main");
     const etaValue = within(titleLine).getByText(/min remaining$/i);
     const etaBadge = etaValue.closest(".scan-badge");
-    const runningBadge = within(titleLine).getByText(/^running$/i).closest(".scan-badge");
+    const runningBadge = within(titleLine)
+      .getByText(/^running$/i)
+      .closest(".scan-badge");
 
     expect(etaBadge).toHaveClass("scan-timing-badge");
     expect(etaBadge?.closest(".scan-main")).toBe(titleLine);

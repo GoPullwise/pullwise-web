@@ -87,21 +87,23 @@ export function scanTimingPresentation(scan) {
   };
 }
 
-export function ScanTiming({ scan, compact = false, className = "" }) {
+export function ScanTiming({ scan, compact = false, variant = "block", className = "" }) {
   const presentation = scanTimingPresentation(scan);
   if (!presentation) return null;
+  const isBadge = variant === "badge";
+  const Element = isBadge ? "span" : "div";
   const classes = [
-    "scan-timing",
+    isBadge ? "scan-badge scan-timing-badge" : "scan-timing",
     "scan-timing-" + presentation.kind,
-    compact ? "scan-timing-compact" : "",
+    !isBadge && compact ? "scan-timing-compact" : "",
     className,
   ]
     .filter(Boolean)
     .join(" ");
   return (
-    <div className={classes} role="status" aria-live="polite" aria-atomic="true">
+    <Element className={classes} role="status" aria-live="polite" aria-atomic="true">
       <span className="scan-timing-label">{presentation.label}</span>
       <strong className="scan-timing-value">{presentation.text}</strong>
-    </div>
+    </Element>
   );
 }

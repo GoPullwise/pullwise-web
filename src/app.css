@@ -52,8 +52,15 @@
   background: transparent;
 }
 
-.scan-row-timing {
-  margin-top: 6px;
+.scan-timing-badge {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.scan-timing-badge .scan-timing-value {
+  overflow: hidden;
+  font-size: 11.5px;
+  text-overflow: ellipsis;
 }
 
 .active-scan-timing {

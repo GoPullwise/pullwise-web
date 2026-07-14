@@ -116,10 +116,12 @@ Keep route and polling changes aligned with the current scale model.
   same-status list refreshes and status polls that omit, invalidate, downgrade,
   or arrive older than that estimate. Replace it only with an equally new or
   newer valid estimate, and clear it as soon as the scan leaves `running`.
-- Terminal scans show actual elapsed duration from server timestamps and never
-  retain the running forecast. Keep ETA status changes screen-reader friendly
-  with polite live status, and keep the display safe for long content and narrow
-  mobile layouts.
+- Scan detail shows actual elapsed duration for terminal scans and never retains
+  the running forecast. Scan history rows show a valid running ETA as a
+  standalone badge immediately after the status badge in the title tag row;
+  once a scan leaves `running`, hide timing from that history row entirely.
+  Keep ETA status changes screen-reader friendly with polite live status, and
+  keep the display safe for long content and narrow mobile layouts.
 
 ## Review Worker Result Display
 
