@@ -470,6 +470,69 @@ describe("App", () => {
     });
   });
 
+  it("keeps bulk-fixed issue state after navigating through Overview despite a stale list refresh", async () => {
+    window.history.replaceState({}, "", "/issues");
+    pullwiseApi.auth.getSession.mockResolvedValueOnce({
+      authenticated: true,
+      user: { name: "Dev", email: "dev@example.com" },
+    });
+    const issues = [
+      {
+        id: "f_bulk_first",
+        scanId: "sc_bulk",
+        jobId: "job_bulk_1",
+        repo: "GoPullwise/pullwise-web",
+        severity: "high",
+        category: "Security",
+        title: "Validate bulk redirect targets",
+        file: "src/auth.js",
+        line: 10,
+        status: "open",
+        createdAt: 100,
+      },
+      {
+        id: "f_bulk_second",
+        scanId: "sc_bulk",
+        jobId: "job_bulk_2",
+        repo: "GoPullwise/pullwise-web",
+        severity: "medium",
+        category: "Reliability",
+        title: "Escape bulk shell arguments",
+        file: "src/shell.js",
+        line: 20,
+        status: "open",
+        createdAt: 101,
+      },
+    ];
+    pullwiseApi.issues.list.mockResolvedValue({ items: issues, total: issues.length });
+    pullwiseApi.issues.updateStatus.mockImplementation((issueId, payload) =>
+      Promise.resolve({
+        ...issues.find((issue) => issue.id === issueId),
+        status: payload.status,
+      })
+    );
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /mark all fixed/i }));
+    await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(2));
+
+    await user.click(screen.getByRole("link", { name: /^overview$/i }));
+    await waitFor(() =>
+      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument()
+    );
+    await user.click(await screen.findByRole("link", { name: /^issues\b/i }));
+
+    await waitFor(() => {
+      const firstRow = screen.getByText("Validate bulk redirect targets").closest(".issues-trow");
+      const secondRow = screen.getByText("Escape bulk shell arguments").closest(".issues-trow");
+      expect(within(firstRow).getByText(/^fixed$/i)).toBeInTheDocument();
+      expect(within(secondRow).getByText(/^fixed$/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("button", { name: /^mark fixed$/i })).not.toBeInTheDocument();
+  });
+
   it("does not show signed-out landing actions while the session check is pending", () => {
     pullwiseApi.auth.getSession.mockReturnValueOnce(new Promise(() => {}));
 

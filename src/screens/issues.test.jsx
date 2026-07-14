@@ -16,6 +16,7 @@ vi.mock("../api/pullwise.js", () => ({
       auditBundleArchive: vi.fn(),
     },
     issues: {
+      list: vi.fn(),
       get: vi.fn(),
       updateStatus: vi.fn(),
       updateStatuses: undefined,
@@ -530,6 +531,54 @@ describe("IssuesScreen list resilience", () => {
       ])
     );
     expect(pullwiseApi.issues.updateStatus).not.toHaveBeenCalled();
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+  });
+
+  it("marks matching issues across pages and splits server batches at 100 updates", async () => {
+    const user = userEvent.setup();
+    const issues = Array.from({ length: 101 }, (_, index) => ({
+      id: "f_page_" + String(index + 1).padStart(3, "0"),
+      status: "open",
+      severity: "high",
+    }));
+    const reload = vi.fn();
+    pullwiseApi.issues.list.mockReset();
+    pullwiseApi.issues.list.mockImplementation(({ limit = 50, offset = 0 } = {}) => {
+      const items = issues.slice(offset, offset + limit);
+      const nextOffset = offset + items.length;
+      return Promise.resolve({
+        items,
+        total: issues.length,
+        limit,
+        offset,
+        hasMore: nextOffset < issues.length,
+        nextOffset: nextOffset < issues.length ? nextOffset : null,
+      });
+    });
+    pullwiseApi.issues.updateStatuses = vi.fn((updates) =>
+      Promise.resolve({ items: updates.map((issue) => ({ ...issue, status: "fixed" })) })
+    );
+    useIssues.mockReturnValue({
+      items: issues.slice(0, 50),
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload,
+      loadMore: vi.fn(),
+      meta: { total: 101, limit: 50, offset: 0, hasMore: true, nextOffset: 50 },
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
+
+    await waitFor(() => expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledTimes(2));
+    const submitted = pullwiseApi.issues.updateStatuses.mock.calls.flatMap(([updates]) => updates);
+    expect(submitted.map((issue) => issue.id)).toEqual(issues.map((issue) => issue.id));
+    expect(pullwiseApi.issues.updateStatuses.mock.calls.map(([updates]) => updates.length)).toEqual([
+      100,
+      1,
+    ]);
+    expect(pullwiseApi.issues.list).toHaveBeenCalled();
     await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
   });
 

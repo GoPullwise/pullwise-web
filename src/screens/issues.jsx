@@ -97,6 +97,9 @@ const ISSUE_IDENTITY_FIELDS = [
   "createdAt",
 ];
 const ISSUE_STATUS_IDENTITY_FIELDS = ISSUE_IDENTITY_FIELDS.filter((field) => field !== "id");
+const ISSUE_BULK_PAGE_LIMIT = 100;
+const ISSUE_STATUS_BATCH_LIMIT = 100;
+const ISSUE_STATUS_FALLBACK_CHUNK_SIZE = 10;
 
 function issueRowKey(issue) {
   return issueUpdateKey(issue);
@@ -108,6 +111,134 @@ function issueStatusIdentity(issue) {
       ([, value]) => value !== undefined && value !== null && value !== ""
     )
   );
+}
+
+function nonNegativeInteger(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? Math.trunc(number) : null;
+}
+
+function issueItemsFromPage(payload) {
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.issues)) return payload.issues;
+  return [];
+}
+
+function chunksOf(items, size) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+async function collectMatchingIssuesAcrossPages(initialItems, initialMeta, params) {
+  const issuesByKey = new Map();
+  const addIssues = (items) => {
+    let added = 0;
+    items.forEach((item) => {
+      const issue = applyCachedIssueUpdate(item);
+      const key = issueRowKey(issue);
+      if (!issuesByKey.has(key)) added += 1;
+      issuesByKey.set(key, issue);
+    });
+    return added;
+  };
+  addIssues(initialItems);
+
+  const initialTotal = nonNegativeInteger(initialMeta?.total);
+  let hasMore = Boolean(initialMeta?.hasMore ?? initialMeta?.has_more);
+  let nextOffset = nonNegativeInteger(initialMeta?.nextOffset ?? initialMeta?.next_offset);
+  if (nextOffset === null) {
+    const offset = nonNegativeInteger(initialMeta?.offset);
+    const limit = nonNegativeInteger(initialMeta?.limit);
+    nextOffset = offset !== null && limit !== null ? offset + limit : initialItems.length;
+  }
+  if (!hasMore && initialTotal !== null && nextOffset < initialTotal) hasMore = true;
+
+  const requestedOffsets = new Set();
+  while (hasMore) {
+    if (requestedOffsets.has(nextOffset)) {
+      throw new Error("Issue pagination did not advance. Refresh to retry.");
+    }
+    requestedOffsets.add(nextOffset);
+    const payload = await pullwiseApi.issues.list({
+      ...params,
+      limit: ISSUE_BULK_PAGE_LIMIT,
+      offset: nextOffset,
+    });
+    const pageItems = issueItemsFromPage(payload);
+    const addedCount = addIssues(pageItems);
+    const pageOffset = nonNegativeInteger(payload?.offset) ?? nextOffset;
+    const pageLimit = nonNegativeInteger(payload?.limit) || ISSUE_BULK_PAGE_LIMIT;
+    const explicitNextOffset = nonNegativeInteger(payload?.nextOffset ?? payload?.next_offset);
+    const candidateNextOffset = explicitNextOffset ?? pageOffset + pageItems.length;
+    const total = nonNegativeInteger(payload?.total ?? payload?.count) ?? initialTotal;
+    const explicitHasMore = payload?.hasMore ?? payload?.has_more;
+    const pageHasMore =
+      typeof explicitHasMore === "boolean"
+        ? explicitHasMore
+        : total !== null
+          ? candidateNextOffset < total
+          : pageItems.length >= pageLimit;
+    if (
+      pageHasMore &&
+      (pageItems.length === 0 || addedCount === 0 || candidateNextOffset <= nextOffset)
+    ) {
+      throw new Error("Issue pagination did not advance. Refresh to retry.");
+    }
+    hasMore = pageHasMore;
+    nextOffset = candidateNextOffset;
+  }
+  return Array.from(issuesByKey.values());
+}
+
+async function updateIssueStatusesInBatches(targets, nextStatus) {
+  if (typeof pullwiseApi.issues.updateStatuses === "function") {
+    const results = [];
+    for (const batch of chunksOf(targets, ISSUE_STATUS_BATCH_LIMIT)) {
+      try {
+        const payload = await pullwiseApi.issues.updateStatuses(
+          batch.map((issue) => ({
+            id: issue.id,
+            status: nextStatus,
+            ...issueStatusIdentity(issue),
+          }))
+        );
+        const returned = issueItemsFromPage(payload);
+        batch.forEach((target) => {
+          const targetKey = issueRowKey(target);
+          const updated =
+            returned.find((issue) => issueRowKey(issue) === targetKey) ||
+            returned.find((issue) => String(issue?.id || "") === String(target.id || ""));
+          results.push(
+            updated
+              ? { status: "fulfilled", value: updated }
+              : { status: "rejected", reason: new Error("Issue was not updated.") }
+          );
+        });
+      } catch (error) {
+        batch.forEach(() => results.push({ status: "rejected", reason: error }));
+      }
+    }
+    return results;
+  }
+
+  const results = [];
+  for (const batch of chunksOf(targets, ISSUE_STATUS_FALLBACK_CHUNK_SIZE)) {
+    results.push(
+      ...(await Promise.allSettled(
+        batch.map((issue) =>
+          pullwiseApi.issues.updateStatus(issue.id, {
+            status: nextStatus,
+            ...issueStatusIdentity(issue),
+          })
+        )
+      ))
+    );
+  }
+  return results;
 }
 
 function issueTotal(scan) {
@@ -396,9 +527,11 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   const [sortBy, setSortBy] = useState("severity");
   const [statusUpdating, setStatusUpdating] = useState({});
   const [bulkStatusLoading, setBulkStatusLoading] = useState("");
+  const [completedBulkScope, setCompletedBulkScope] = useState("");
   const [statusActionError, setStatusActionError] = useState("");
   const [localIssueUpdates, setLocalIssueUpdates] = useState({});
   const statusUpdatingRef = useRef(new Set());
+  const bulkStatusUpdatingRef = useRef(false);
   const query = q.trim();
   const scanId = scanFilter?.id || "";
   const {
@@ -437,6 +570,13 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
     key: `issue-action:${statusActionError}`,
   });
   const bulkFixableIssues = filtered.filter((issue) => issue.status !== "fixed");
+  const bulkScopeKey = JSON.stringify([status, sev, query, scanId, totalCount]);
+  const mayHaveUnloadedFixableIssues =
+    status !== "fixed" &&
+    (Boolean(meta.hasMore ?? meta.has_more) || totalCount > all.length);
+  const canMarkAllFixed =
+    bulkFixableIssues.length > 0 ||
+    (mayHaveUnloadedFixableIssues && completedBulkScope !== bulkScopeKey);
 
   const updateStatus = async (issue, nextStatus) => {
     const rowKey = issueRowKey(issue);
@@ -468,54 +608,41 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
     }
   };
   const markAllFixed = async () => {
-    if (bulkStatusLoading) return;
-    const targets = filtered.filter((issue) => {
-      const rowKey = issueRowKey(issue);
-      return issue.status !== "fixed" && !statusUpdatingRef.current.has(rowKey);
-    });
-    if (!targets.length) return;
-    const rowKeys = targets.map(issueRowKey);
-    rowKeys.forEach((rowKey) => statusUpdatingRef.current.add(rowKey));
+    if (bulkStatusUpdatingRef.current) return;
+    bulkStatusUpdatingRef.current = true;
     setBulkStatusLoading("fixed");
     setStatusActionError("");
-    setStatusUpdating((current) =>
-      rowKeys.reduce((next, rowKey) => ({ ...next, [rowKey]: true }), current)
-    );
+    let targets = [];
+    let rowKeys = [];
     try {
-      const results =
-        typeof pullwiseApi.issues.updateStatuses === "function"
-          ? await pullwiseApi.issues
-              .updateStatuses(
-                targets.map((issue) => ({
-                  id: issue.id,
-                  status: "fixed",
-                  ...issueStatusIdentity(issue),
-                }))
-              )
-              .then((payload) => {
-                const updatedById = new Map(
-                  (payload?.items || payload?.issues || []).map((issue) => [
-                    String(issue?.id || ""),
-                    issue,
-                  ])
-                );
-                return targets.map((issue) => {
-                  const updated = updatedById.get(String(issue.id || ""));
-                  return updated
-                    ? { status: "fulfilled", value: updated }
-                    : { status: "rejected", reason: new Error("Issue was not updated.") };
-                });
-              })
-          : await Promise.allSettled(
-              targets.map((issue) =>
-                pullwiseApi.issues.updateStatus(issue.id, {
-                  status: "fixed",
-                  ...issueStatusIdentity(issue),
-                })
-              )
-            );
+      const matchingIssues = await collectMatchingIssuesAcrossPages(filtered, meta, {
+        status,
+        severity: sev,
+        q: query,
+        scanId,
+        sort: sortBy,
+      });
+      targets = matchingIssues.filter((issue) => {
+        const rowKey = issueRowKey(issue);
+        return (
+          issueMatchesListFilters(issue, { status, severity: sev }) &&
+          issue.status !== "fixed" &&
+          !statusUpdatingRef.current.has(rowKey)
+        );
+      });
+      if (!targets.length) {
+        setCompletedBulkScope(bulkScopeKey);
+        return;
+      }
+      rowKeys = targets.map(issueRowKey);
+      rowKeys.forEach((rowKey) => statusUpdatingRef.current.add(rowKey));
+      setStatusUpdating((current) =>
+        rowKeys.reduce((next, rowKey) => ({ ...next, [rowKey]: true }), current)
+      );
+      const results = await updateIssueStatusesInBatches(targets, "fixed");
+      const visibleRowKeys = new Set(filtered.map(issueRowKey));
       const localUpdates = {};
-      const notifications = [];
+      let successCount = 0;
       let failureCount = 0;
       results.forEach((result, index) => {
         if (result.status !== "fulfilled") {
@@ -526,13 +653,15 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         const rowKey = rowKeys[index];
         const updatedIssue = { ...issue, ...result.value, status: result.value?.status || "fixed" };
         rememberIssueUpdate(issue, updatedIssue);
-        localUpdates[rowKey] = updatedIssue;
-        notifications.push({ issueId: issue.id, issueKey: rowKey, status: updatedIssue.status });
+        if (visibleRowKeys.has(rowKey)) localUpdates[rowKey] = updatedIssue;
+        successCount += 1;
       });
       if (Object.keys(localUpdates).length) {
         setLocalIssueUpdates((current) => ({ ...current, ...localUpdates }));
+      }
+      if (successCount) {
         await reload();
-        notifications.forEach(notifyIssuesChanged);
+        notifyIssuesChanged({ count: successCount, status: "fixed" });
       }
       if (failureCount) {
         const message = T(
@@ -540,6 +669,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
           `${failureCount} 个问题状态更新失败。`
         );
         setStatusActionError(message);
+      } else {
+        setCompletedBulkScope(bulkScopeKey);
       }
     } catch (error) {
       setStatusActionError(
@@ -554,6 +685,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
         });
         return next;
       });
+      bulkStatusUpdatingRef.current = false;
       setBulkStatusLoading("");
     }
   };
