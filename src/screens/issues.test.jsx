@@ -863,7 +863,7 @@ describe("HistoryScreen queue state", () => {
           id: "sc_history_eta",
           repo: "octocat/private-repo",
           branch: "main",
-          commit: "abc123",
+          commit: "pending",
           status: "running",
           progress: 50,
           createdAt: new Date().toISOString(),
@@ -884,9 +884,50 @@ describe("HistoryScreen queue state", () => {
     });
 
     render(<HistoryScreen go={vi.fn()} />);
+    const row = screen.getByText("octocat/private-repo").closest(".scan-row");
+    const titleLine = row?.querySelector(".scan-main");
+    const etaValue = within(titleLine).getByText(/min remaining$/i);
+    const etaBadge = etaValue.closest(".scan-badge");
+    const runningBadge = within(titleLine).getByText(/^running$/i).closest(".scan-badge");
+
+    expect(etaBadge).toHaveClass("scan-timing-badge");
+    expect(etaBadge?.closest(".scan-main")).toBe(titleLine);
+    expect(runningBadge?.nextElementSibling).toBe(etaBadge);
 
     expect(screen.getByText("13–18 min remaining")).toBeInTheDocument();
   });
+
+  it.each(["done", "failed", "cancelled", "partial_completed", "lost"])(
+    "hides terminal duration from %s history rows",
+    (status) => {
+      useScans.mockReturnValue({
+        items: [
+          {
+            id: `sc_${status}`,
+            repo: `octocat/${status}`,
+            branch: "main",
+            commit: "abc123",
+            status,
+            durationMs: 720_000,
+            createdAt: new Date().toISOString(),
+            by: "you",
+          },
+        ],
+        loading: false,
+        loadingMore: false,
+        error: "",
+        loadMore: vi.fn(),
+        meta: { total: 1 },
+      });
+
+      render(<HistoryScreen go={vi.fn()} />);
+
+      const row = screen.getByText(`octocat/${status}`).closest(".scan-row");
+      expect(row).not.toBeNull();
+      expect(within(row).queryByText(/^duration$/i)).not.toBeInTheDocument();
+      expect(within(row).queryByText(/completed in|ran for/i)).not.toBeInTheDocument();
+    }
+  );
 
   it("keeps the scan history page title on one truncated line", () => {
     useScans.mockReturnValue({
