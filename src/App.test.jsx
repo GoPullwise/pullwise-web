@@ -400,7 +400,10 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_123");
+      expect(pullwiseApi.issues.get).toHaveBeenCalledWith(
+        "f_123",
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
     expect(
       await screen.findByRole("heading", { level: 1, name: "Validate redirect targets" })
@@ -1624,7 +1627,12 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
     });
     expect(window.location.pathname).toBe("/issues/f_redirect");
-    await waitFor(() => expect(pullwiseApi.issues.get).toHaveBeenCalledWith("f_redirect"));
+    await waitFor(() =>
+      expect(pullwiseApi.issues.get).toHaveBeenCalledWith(
+        "f_redirect",
+        expect.objectContaining({ signal: expect.any(Object) })
+      )
+    );
     expect(
       await screen.findByRole("heading", { level: 1, name: /unsafe redirect target/i })
     ).toBeInTheDocument();
