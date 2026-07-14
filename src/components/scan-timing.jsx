@@ -20,6 +20,7 @@ function scanDurationMs(scan) {
     scan?.reviewRun?.durationMs,
     scan?.reviewRun?.duration_ms,
   ]) {
+    if (value === null || value === undefined || value === "") continue;
     const duration = Number(value);
     if (Number.isFinite(duration) && duration >= 0) return duration;
   }

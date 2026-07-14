@@ -507,7 +507,16 @@ export function normalizeScanEstimate(value) {
     updatedAt,
     parallel,
   };
-  if (state !== "available") return normalized;
+  if (state !== "available") {
+    if (
+      ["lowerSeconds", "remainingSeconds", "upperSeconds", "confidence"].some((key) =>
+        Object.prototype.hasOwnProperty.call(value, key)
+      )
+    ) {
+      return null;
+    }
+    return normalized;
+  }
   const lowerSeconds = normalizeEstimateInteger(value.lowerSeconds, {
     maximum: MAX_SCAN_ESTIMATE_SECONDS,
   });

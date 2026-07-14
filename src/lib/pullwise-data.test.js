@@ -1747,6 +1747,13 @@ describe("normalizeIssue", () => {
         estimate: { ...estimate, lowerSeconds: 1000 },
       }).estimate
     ).toBeNull();
+    expect(
+      normalizeScan({
+        id: "sc_eta_inconsistent",
+        status: "running",
+        estimate: { ...estimate, state: "estimating" },
+      }).estimate
+    ).toBeNull();
     expect(normalizeScan({ id: "sc_eta_queue", status: "queued", estimate }).estimate).toBeNull();
     expect(
       normalizeScan({

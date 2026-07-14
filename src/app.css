@@ -57,6 +57,18 @@
   background: transparent;
 }
 
+.scan-row-timing {
+  margin-top: 6px;
+}
+
+.active-scan-timing {
+  margin-top: 12px;
+}
+
+.scan-detail-timing {
+  margin-bottom: 14px;
+}
+
 @media (max-width: 560px) {
   .scan-timing {
     align-items: flex-start;
