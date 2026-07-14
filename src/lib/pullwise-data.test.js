@@ -105,8 +105,8 @@ describe("useRepositories", () => {
 
     const next = renderHook(() => useRepositories());
 
-    await waitFor(() => expect(next.result.current.loading).toBe(false));
-    expect(next.result.current.needsAuthorization).toBe(true);
+    await waitFor(() => expect(next.result.current.needsAuthorization).toBe(true));
+    expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2);
     next.unmount();
   });
 
