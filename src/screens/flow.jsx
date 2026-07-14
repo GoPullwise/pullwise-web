@@ -3,6 +3,7 @@ import { GitHubInstallationsList } from "../components/github-installations.jsx"
 import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
+import { ScanTiming } from "../components/scan-timing.jsx";
 import { useErrorNotification, useNotify } from "../components/notifications.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { I } from "../icons.jsx";
@@ -3110,6 +3111,8 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
                       </div>
                     </div>
                   )}
+
+                  {!batchMode && <ScanTiming scan={scan} className="scan-detail-timing" />}
 
                   <ScanProgressFlow
                     steps={scanPhases}

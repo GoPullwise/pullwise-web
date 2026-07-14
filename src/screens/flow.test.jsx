@@ -1125,6 +1125,39 @@ describe("ScanningScreen queue state", () => {
     );
   });
 
+  it("shows the whole-scan ETA in the execution panel", () => {
+    useScanRun.mockReturnValue({
+      scan: {
+        id: "sc_running_eta",
+        repo: "octocat/private-repo",
+        branch: "main",
+        commit: "pending",
+        status: "running",
+        phase: "reviewer_fanout",
+        progress: 60,
+        estimate: {
+          state: "available",
+          lowerSeconds: 780,
+          remainingSeconds: 900,
+          upperSeconds: 1080,
+        },
+      },
+      error: "",
+      cancel: vi.fn(),
+    });
+
+    render(
+      <NotificationProvider>
+        <ScanningScreen
+          go={vi.fn()}
+          activeRepo={{ fullName: "octocat/private-repo", defaultBranch: "main" }}
+        />
+      </NotificationProvider>
+    );
+
+    expect(screen.getByText("13–18 min remaining")).toBeInTheDocument();
+  });
+
   it("shows a scan detail skeleton while history scan details are loading", () => {
     useScanRun.mockReturnValue({
       scan: {

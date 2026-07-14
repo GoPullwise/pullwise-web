@@ -462,6 +462,85 @@ function normalizeScanProgressForStatus(status, value) {
   return progress;
 }
 
+const MAX_SCAN_ESTIMATE_SECONDS = 31 * 24 * 60 * 60;
+const MAX_SCAN_ESTIMATE_PARALLEL_UNITS = 1_000_000;
+
+function normalizeEstimateInteger(value, { minimum = 0, maximum } = {}) {
+  if (typeof value !== "number" || !Number.isFinite(value) || !Number.isInteger(value)) {
+    return null;
+  }
+  if (value < minimum || value > maximum) return null;
+  return value;
+}
+
+export function normalizeScanEstimate(value) {
+  if (!objectRecord(value)) return null;
+  const state = textValue(value.state);
+  if (!new Set(["estimating", "available", "unavailable"]).has(state)) return null;
+  if (textValue(value.basis) !== "current_run_work_graph") return null;
+  const updatedAt = textValue(value.updatedAt);
+  if (!updatedAt || !Number.isFinite(Date.parse(updatedAt))) return null;
+  if (!objectRecord(value.parallel)) return null;
+  const parallel = {
+    configuredConcurrency: normalizeEstimateInteger(value.parallel.configuredConcurrency, {
+      minimum: 1,
+      maximum: MAX_SCAN_ESTIMATE_PARALLEL_UNITS,
+    }),
+    effectiveConcurrency: normalizeEstimateInteger(value.parallel.effectiveConcurrency, {
+      maximum: MAX_SCAN_ESTIMATE_PARALLEL_UNITS,
+    }),
+    activeUnits: normalizeEstimateInteger(value.parallel.activeUnits, {
+      maximum: MAX_SCAN_ESTIMATE_PARALLEL_UNITS,
+    }),
+    pendingUnits: normalizeEstimateInteger(value.parallel.pendingUnits, {
+      maximum: MAX_SCAN_ESTIMATE_PARALLEL_UNITS,
+    }),
+    retryingUnits: normalizeEstimateInteger(value.parallel.retryingUnits, {
+      maximum: MAX_SCAN_ESTIMATE_PARALLEL_UNITS,
+    }),
+  };
+  if (Object.values(parallel).some((item) => item === null)) return null;
+  if (parallel.effectiveConcurrency > parallel.configuredConcurrency) return null;
+  const normalized = {
+    state,
+    basis: "current_run_work_graph",
+    updatedAt,
+    parallel,
+  };
+  if (state !== "available") return normalized;
+  const lowerSeconds = normalizeEstimateInteger(value.lowerSeconds, {
+    maximum: MAX_SCAN_ESTIMATE_SECONDS,
+  });
+  const remainingSeconds = normalizeEstimateInteger(value.remainingSeconds, {
+    maximum: MAX_SCAN_ESTIMATE_SECONDS,
+  });
+  const upperSeconds = normalizeEstimateInteger(value.upperSeconds, {
+    maximum: MAX_SCAN_ESTIMATE_SECONDS,
+  });
+  const confidence = textValue(value.confidence);
+  if (
+    [lowerSeconds, remainingSeconds, upperSeconds].some((item) => item === null) ||
+    !["low", "medium", "high"].includes(confidence) ||
+    lowerSeconds > remainingSeconds ||
+    remainingSeconds > upperSeconds
+  ) {
+    return null;
+  }
+  return {
+    ...normalized,
+    remainingSeconds,
+    lowerSeconds,
+    upperSeconds,
+    confidence,
+  };
+}
+
+function normalizeDurationMs(value) {
+  const duration = Number(value);
+  if (!Number.isFinite(duration) || duration < 0) return null;
+  return Math.trunc(duration);
+}
+
 function normalizeBoolean(value) {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
@@ -1198,6 +1277,13 @@ export function normalizeScan(scan = {}) {
     normalizeArtifactUrl(textValue(scan.debugBundleUrl, scan.debug_bundle_url)) ||
     reviewRunDebugBundleUrl(reviewRun);
   const status = inferredScanStatus(scan, reviewRun, rawStatus);
+  const estimate =
+    status === "running"
+      ? normalizeScanEstimate(scan.estimate ?? reviewRun?.progress?.estimate)
+      : null;
+  const durationMs = normalizeDurationMs(
+    scan.durationMs ?? scan.duration_ms ?? reviewRun?.durationMs ?? reviewRun?.duration_ms
+  );
   return {
     id: textValue(scan.id),
     requestId: textValue(
@@ -1219,6 +1305,8 @@ export function normalizeScan(scan = {}) {
     time: textValue(scan.time) || formatTime(scan.createdAt),
     by: textValue(scan.by) || "you",
     progress: normalizeScanProgressForStatus(status, scan.progress),
+    estimate,
+    durationMs,
     progressMessage: textValue(scan.progressMessage, scan.progress_message),
     logsSummary: textValue(scan.logsSummary, scan.logs_summary),
     progressLogs: normalizeScanProgressLogs(scan.progressLogs ?? scan.progress_logs),

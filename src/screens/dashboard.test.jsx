@@ -165,6 +165,12 @@ describe("DashboardScreen issue list", () => {
           progress: 80,
           progressMessage: "Repo map: mapping shards 12/80",
           logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
+          estimate: {
+            state: "available",
+            lowerSeconds: 780,
+            remainingSeconds: 900,
+            upperSeconds: 1080,
+          },
           time: "now",
         },
       ],
@@ -181,6 +187,7 @@ describe("DashboardScreen issue list", () => {
       within(activeScan).getByText("run=codex_run phase=repo_map progress=12/80 task=bundle-0012")
     ).toBeInTheDocument();
     expect(within(activeScan).getByText("80%")).toBeInTheDocument();
+    expect(within(activeScan).getByText("13–18 min remaining")).toBeInTheDocument();
     expect(within(activeScan).getByRole("link", { name: /scan details/i })).toHaveAttribute(
       "href",
       "/scanning/sc_running"

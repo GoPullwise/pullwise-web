@@ -16,6 +16,7 @@ import {
 } from "../components/distribution-primitives.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
+import { ScanTiming } from "../components/scan-timing.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 function Sparkline({ data, color, height = 28 }) {
@@ -633,6 +634,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     valueLabel={activeScanProgress.valueLabel}
                     ariaValueText={activeScanProgress.ariaValueText}
                   />
+                  <ScanTiming scan={activeScan} className="active-scan-timing" />
                 </section>
               )}
 

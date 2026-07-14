@@ -856,6 +856,38 @@ describe("IssueDetailScreen direct loading", () => {
 });
 
 describe("HistoryScreen queue state", () => {
+  it("shows whole-scan ETA on a running history row", () => {
+    useScans.mockReturnValue({
+      items: [
+        {
+          id: "sc_history_eta",
+          repo: "octocat/private-repo",
+          branch: "main",
+          commit: "abc123",
+          status: "running",
+          progress: 50,
+          createdAt: new Date().toISOString(),
+          by: "you",
+          estimate: {
+            state: "available",
+            lowerSeconds: 780,
+            remainingSeconds: 900,
+            upperSeconds: 1080,
+          },
+        },
+      ],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      loadMore: vi.fn(),
+      meta: { total: 1 },
+    });
+
+    render(<HistoryScreen go={vi.fn()} />);
+
+    expect(screen.getByText("13–18 min remaining")).toBeInTheDocument();
+  });
+
   it("keeps the scan history page title on one truncated line", () => {
     useScans.mockReturnValue({
       items: [],

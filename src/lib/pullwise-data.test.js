@@ -257,6 +257,61 @@ describe("useScans", () => {
     );
   });
 
+  it("applies live ETA changes from bulk active-scan polling", async () => {
+    pullwiseApi.scans.list.mockResolvedValueOnce({
+      items: [
+        {
+          id: "sc_eta_poll",
+          status: "running",
+          estimate: {
+            state: "estimating",
+            basis: "current_run_work_graph",
+            updatedAt: "2026-07-01T10:40:00Z",
+            parallel: {
+              configuredConcurrency: 3,
+              effectiveConcurrency: 3,
+              activeUnits: 0,
+              pendingUnits: 0,
+              retryingUnits: 0,
+            },
+          },
+        },
+      ],
+    });
+    pullwiseApi.scans.status = vi.fn().mockResolvedValue({
+      items: [
+        {
+          id: "sc_eta_poll",
+          status: "running",
+          estimate: {
+            state: "available",
+            basis: "current_run_work_graph",
+            remainingSeconds: 900,
+            lowerSeconds: 780,
+            upperSeconds: 1080,
+            confidence: "medium",
+            updatedAt: "2026-07-01T10:41:00Z",
+            parallel: {
+              configuredConcurrency: 3,
+              effectiveConcurrency: 3,
+              activeUnits: 2,
+              pendingUnits: 6,
+              retryingUnits: 0,
+            },
+          },
+        },
+      ],
+    });
+
+    const { result, unmount } = renderHook(() => useScans({ pollIntervalMs: 5 }));
+
+    await waitFor(() => expect(result.current.items[0]?.estimate?.state).toBe("available"), {
+      timeout: 250,
+    });
+    expect(result.current.items[0].estimate.remainingSeconds).toBe(900);
+    unmount();
+  });
+
   it("keeps polling active scans after a transient list error", async () => {
     pullwiseApi.scans.list
       .mockResolvedValueOnce({ items: [{ id: "sc_1", status: "running" }] })
@@ -1655,6 +1710,52 @@ describe("normalizeIssue", () => {
       medium: 2,
       low: 3,
     });
+  });
+
+  it("normalizes only safe current-run ETA values for active scans", () => {
+    const estimate = {
+      state: "available",
+      basis: "current_run_work_graph",
+      remainingSeconds: 900,
+      lowerSeconds: 780,
+      upperSeconds: 1080,
+      confidence: "medium",
+      updatedAt: "2026-07-01T10:42:00Z",
+      parallel: {
+        configuredConcurrency: 8,
+        effectiveConcurrency: 3,
+        activeUnits: 2,
+        pendingUnits: 6,
+        retryingUnits: 1,
+      },
+    };
+
+    expect(normalizeScan({ id: "sc_eta", status: "running", estimate }).estimate).toEqual(
+      estimate
+    );
+    expect(
+      normalizeScan({
+        id: "sc_eta_nested",
+        status: "running",
+        reviewRun: { progress: { estimate } },
+      }).estimate
+    ).toEqual(estimate);
+    expect(
+      normalizeScan({
+        id: "sc_eta_bad",
+        status: "running",
+        estimate: { ...estimate, lowerSeconds: 1000 },
+      }).estimate
+    ).toBeNull();
+    expect(normalizeScan({ id: "sc_eta_queue", status: "queued", estimate }).estimate).toBeNull();
+    expect(
+      normalizeScan({
+        id: "sc_eta_done",
+        status: "done",
+        estimate,
+        reviewRun: { durationMs: 720_000 },
+      })
+    ).toMatchObject({ estimate: null, durationMs: 720_000 });
   });
 
   it("normalizes canonical scan AI usage without token counts", () => {

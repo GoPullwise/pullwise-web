@@ -4,6 +4,7 @@ import { GitHubInstallationsList } from "../components/github-installations.jsx"
 import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { ScanProgressBar, scanProgressPresentation } from "../components/scan-progress.jsx";
+import { ScanTiming } from "../components/scan-timing.jsx";
 import { useErrorNotification, useNotify } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -1512,6 +1513,7 @@ function ScanRow({
           </div>
         )}
         {summary && <div className="scan-summary muted">{summary}</div>}
+        <ScanTiming scan={scan} compact className="scan-row-timing" />
         {showProgress && (
           <ScanProgressBar
             compact
