@@ -224,5 +224,15 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Billing subscription mutation completions must not navigate or update state after `BillingScreen` unmounts.
 - Docs initial loads and Retry loads must share an abortable request lifecycle. A retry must replace and abort the previous controller, and screen cleanup must abort whichever request is current.
 - Active scan status polling must abort its in-flight request when the page becomes hidden, remain paused while hidden, and resume on the next visible transition.
+- Issue-detail GETs must use the same abort discipline on issue-id changes and
+  unmount. Tests and API mocks must retain the request-options argument so the
+  `AbortSignal` contract cannot silently disappear.
+- Composite cache identities must encode component boundaries; concatenating
+  repository, scan, and issue ids with an ambiguous delimiter can cross-load
+  records. Issue mutation must update an exact/unique compatible entry only,
+  never every cache row sharing a raw finding id.
+- Render worker-reported progress step ids/statuses verbatim. Do not rewrite a
+  running worker step to completed from the scan wrapper status, and preserve
+  `partial_completed` as a distinct terminal presentation.
 - Pages API proxy tests must assert both the stripped upstream path (`/api/...` to `/...`) and byte-for-byte request-body forwarding; header-only assertions do not protect the proxy contract.
 - When joining a root-relative API base to a server-provided debug artifact URL, preserve URLs that already contain that base path; `/api` plus `/api/v1/...` must remain `/api/v1/...`.
