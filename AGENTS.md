@@ -122,6 +122,11 @@ Keep route and polling changes aligned with the current scale model.
   once a scan leaves `running`, hide timing from that history row entirely.
   Keep ETA status changes screen-reader friendly with polite live status, and
   keep the display safe for long content and narrow mobile layouts.
+- Terminal duration must prefer a complete `reviewRun.startedAt` /
+  `reviewRun.completedAt` pair, then a complete top-level scan timestamp pair.
+  Use `reviewRun.durationMs` and finally top-level `durationMs` only as
+  fallbacks; do not mix timestamp sources or let a stale scan mirror override
+  the canonical review-run duration.
 
 ## Review Worker Result Display
 

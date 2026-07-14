@@ -83,12 +83,22 @@ describe("ScanTiming", () => {
           durationMs: 2700,
           startedAt: "2026-07-01T10:00:00Z",
           completedAt: "2026-07-01T10:45:00Z",
-          reviewRun: { durationMs: 2_700_000 },
+          reviewRun: { durationMs: 2700 },
         }}
       />
     );
 
     expect(screen.getByRole("status")).toHaveTextContent("Completed in 45 min");
+  });
+
+  it("prefers the review-run duration to a stale scan mirror when timestamps are absent", () => {
+    expect(
+      scanTimingPresentation({
+        status: "done",
+        durationMs: 2700,
+        reviewRun: { durationMs: 2_700_000 },
+      })
+    ).toMatchObject({ text: "Completed in 45 min" });
   });
 
   it("keeps the timing block square-edged and safe on narrow layouts", () => {
