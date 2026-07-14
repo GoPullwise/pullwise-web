@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -578,8 +578,95 @@ describe("IssuesScreen list resilience", () => {
       100,
       1,
     ]);
-    expect(pullwiseApi.issues.list).toHaveBeenCalled();
+    expect(pullwiseApi.issues.list).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "all",
+        severity: "all",
+        q: "",
+        scanId: "",
+        sort: "severity",
+        limit: 100,
+        offset: 50,
+      })
+    );
     await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: /mark all fixed/i })).toBeDisabled();
+  });
+
+  it("locks a cross-page bulk action before awaiting the next page", async () => {
+    const nextPage = deferredPromise();
+    const firstIssue = { id: "f_lock_1", status: "open", severity: "high" };
+    const secondIssue = { id: "f_lock_2", status: "open", severity: "medium" };
+    pullwiseApi.issues.list.mockReset();
+    pullwiseApi.issues.list.mockReturnValue(nextPage.promise);
+    pullwiseApi.issues.updateStatuses = vi.fn((updates) =>
+      Promise.resolve({ items: updates.map((issue) => ({ ...issue, status: "fixed" })) })
+    );
+    useIssues.mockReturnValue({
+      items: [firstIssue],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 2, limit: 1, offset: 0, hasMore: true, nextOffset: 1 },
+    });
+
+    render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
+    const markAll = screen.getByRole("button", { name: /mark all fixed/i });
+    act(() => {
+      fireEvent.click(markAll);
+      fireEvent.click(markAll);
+    });
+
+    expect(pullwiseApi.issues.list).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      nextPage.resolve({
+        items: [secondIssue],
+        total: 2,
+        limit: 100,
+        offset: 1,
+        hasMore: false,
+        nextOffset: null,
+      });
+    });
+
+    await waitFor(() => expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledTimes(1));
+    expect(pullwiseApi.issues.updateStatuses.mock.calls[0][0]).toHaveLength(2);
+  });
+
+  it("stops without updating when issue pagination repeats a page", async () => {
+    const issue = { id: "f_repeat", status: "open", severity: "high" };
+    pullwiseApi.issues.list.mockReset();
+    pullwiseApi.issues.list.mockResolvedValue({
+      items: [issue],
+      total: 2,
+      limit: 1,
+      offset: 1,
+      hasMore: true,
+      nextOffset: 1,
+    });
+    pullwiseApi.issues.updateStatuses = vi.fn();
+    useIssues.mockReturnValue({
+      items: [issue],
+      loading: false,
+      loadingMore: false,
+      error: "",
+      reload: vi.fn(),
+      loadMore: vi.fn(),
+      meta: { total: 2, limit: 1, offset: 0, hasMore: true, nextOffset: 1 },
+    });
+
+    render(
+      <NotificationProvider>
+        <IssuesScreen go={vi.fn()} setIssue={vi.fn()} />
+      </NotificationProvider>
+    );
+    await userEvent.setup().click(screen.getByRole("button", { name: /mark all fixed/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/pagination did not advance/i);
+    expect(pullwiseApi.issues.updateStatuses).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /mark all fixed/i })).not.toBeDisabled();
   });
 
   it("keeps duplicate issue ids from sharing pending or local status state", async () => {

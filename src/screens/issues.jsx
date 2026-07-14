@@ -135,17 +135,17 @@ function chunksOf(items, size) {
 
 async function collectMatchingIssuesAcrossPages(initialItems, initialMeta, params) {
   const issuesByKey = new Map();
-  const addIssues = (items) => {
+  const addIssues = (items, { applyCache = true } = {}) => {
     let added = 0;
     items.forEach((item) => {
-      const issue = applyCachedIssueUpdate(item);
+      const issue = applyCache ? applyCachedIssueUpdate(item) : item;
       const key = issueRowKey(issue);
       if (!issuesByKey.has(key)) added += 1;
       issuesByKey.set(key, issue);
     });
     return added;
   };
-  addIssues(initialItems);
+  addIssues(initialItems, { applyCache: false });
 
   const initialTotal = nonNegativeInteger(initialMeta?.total);
   let hasMore = Boolean(initialMeta?.hasMore ?? initialMeta?.has_more);
@@ -727,7 +727,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             <div className="actions">
               <button
                 className="btn primary"
-                disabled={loading || Boolean(bulkStatusLoading) || bulkFixableIssues.length === 0}
+                disabled={loading || Boolean(bulkStatusLoading) || !canMarkAllFixed}
                 onClick={markAllFixed}
               >
                 <I.Check size={14} />{" "}
@@ -838,7 +838,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             {!loading &&
               filtered.map((issue) => {
                 const rowKey = issueRowKey(issue);
-                const updatingStatus = Boolean(statusUpdating[rowKey]);
+                const updatingStatus =
+                  Boolean(statusUpdating[rowKey]) || Boolean(bulkStatusLoading);
                 return (
                   <div key={rowKey} className="issues-trow">
                     <div></div>
