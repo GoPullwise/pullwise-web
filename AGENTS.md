@@ -87,6 +87,11 @@ Keep route and polling changes aligned with the current scale model.
   partial/empty list as if the batch were loaded.
 - Batch issue status updates should use the batch endpoint for bulk "mark fixed"
   flows. Keep single-issue update only as a narrow fallback.
+- "Mark all fixed" is filter-wide, not loaded-page-only. Read every remaining
+  matching issue page before changing any statuses, then send explicit status
+  updates in batches of at most 100 because the server processes only the first
+  100 updates in one request. Do not mutate a status-filtered page before
+  collecting later offsets, because the result set can shift and skip issues.
 
 ## Localization
 

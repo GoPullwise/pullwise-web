@@ -614,6 +614,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
     setStatusActionError("");
     let targets = [];
     let rowKeys = [];
+    const visibleRowKeys = new Set(filtered.map(issueRowKey));
     try {
       const matchingIssues = await collectMatchingIssuesAcrossPages(filtered, meta, {
         status,
@@ -636,11 +637,14 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       }
       rowKeys = targets.map(issueRowKey);
       rowKeys.forEach((rowKey) => statusUpdatingRef.current.add(rowKey));
-      setStatusUpdating((current) =>
-        rowKeys.reduce((next, rowKey) => ({ ...next, [rowKey]: true }), current)
-      );
+      setStatusUpdating((current) => {
+        const next = { ...current };
+        rowKeys.forEach((rowKey) => {
+          if (visibleRowKeys.has(rowKey)) next[rowKey] = true;
+        });
+        return next;
+      });
       const results = await updateIssueStatusesInBatches(targets, "fixed");
-      const visibleRowKeys = new Set(filtered.map(issueRowKey));
       const localUpdates = {};
       let successCount = 0;
       let failureCount = 0;
