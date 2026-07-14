@@ -15,20 +15,30 @@ function timestampMilliseconds(value) {
 }
 
 function scanDurationMs(scan) {
+  for (const [startedValue, completedValue] of [
+    [
+      scan?.reviewRun?.startedAt ?? scan?.reviewRun?.started_at,
+      scan?.reviewRun?.completedAt ?? scan?.reviewRun?.completed_at,
+    ],
+    [scan?.startedAt ?? scan?.started_at, scan?.completedAt ?? scan?.completed_at],
+  ]) {
+    const startedAt = timestampMilliseconds(startedValue);
+    const completedAt = timestampMilliseconds(completedValue);
+    if (startedAt !== null && completedAt !== null && completedAt >= startedAt) {
+      return completedAt - startedAt;
+    }
+  }
   for (const value of [
-    scan?.durationMs,
     scan?.reviewRun?.durationMs,
     scan?.reviewRun?.duration_ms,
+    scan?.durationMs,
+    scan?.duration_ms,
   ]) {
     if (value === null || value === undefined || value === "") continue;
     const duration = Number(value);
     if (Number.isFinite(duration) && duration >= 0) return duration;
   }
-  const startedAt = timestampMilliseconds(scan?.startedAt ?? scan?.reviewRun?.startedAt);
-  const completedAt = timestampMilliseconds(scan?.completedAt ?? scan?.reviewRun?.completedAt);
-  return startedAt !== null && completedAt !== null && completedAt >= startedAt
-    ? completedAt - startedAt
-    : null;
+  return null;
 }
 
 function durationText(durationMs) {

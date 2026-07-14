@@ -75,6 +75,22 @@ describe("ScanTiming", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Ran for 12 min");
   });
 
+  it("uses the terminal timestamps when a reported duration has the wrong unit", () => {
+    render(
+      <ScanTiming
+        scan={{
+          status: "done",
+          durationMs: 2700,
+          startedAt: "2026-07-01T10:00:00Z",
+          completedAt: "2026-07-01T10:45:00Z",
+          reviewRun: { durationMs: 2_700_000 },
+        }}
+      />
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Completed in 45 min");
+  });
+
   it("keeps the timing block square-edged and safe on narrow layouts", () => {
     const css = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
     const block = css.match(/\.scan-timing\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
