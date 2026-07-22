@@ -34,6 +34,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@pullwise/agent-task-contract": "file:vendor/generated/agent-task-contract-npm",
     "@eslint/js": "^9.17.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",

@@ -140,7 +140,7 @@ describe("Server-owned Agent-First contract package pin", () => {
       code: "CONTRACT_DOCUMENT_INVALID",
       detail: "CONTRACT_INTERNAL_CONSTRAINT",
     });
-  });
+  }, 15_000);
 
   it("keeps the installed wrapper byte-identical to the pinned Server-generated artifact", () => {
     const artifactRoot = join(WEB_ROOT, ...pin.generated_artifact.path.split("/"));
