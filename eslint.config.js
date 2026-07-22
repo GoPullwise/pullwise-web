@@ -14,6 +14,7 @@ export default [
       "dist-ssr/**",
       "node_modules/**",
       "out/**",
+      "vendor/generated/agent-task-contract-npm/**",
     ],
   },
   {

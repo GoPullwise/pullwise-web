@@ -200,6 +200,7 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Keep `package.json` and `package-lock.json` locked to the exact local generated artifact. Do not use a version range, registry tag, workspace/link override, sibling-repository path, legacy fallback, or runtime schema substitution.
 - `contract-package-pin.json` must pin the package identity/version, logical content/root digests, and exact wrapper/package-manifest bytes. Regenerate it only after the Server generator publishes one final atomic bundle.
 - Treat `schemaIds()` as the public document projection. The seven TaskResult outcome variants are internal composition constraints and must not be exposed as standalone document validators.
+- Exclude only `vendor/generated/agent-task-contract-npm/**` from Web ESLint because those bytes are immutable Server-generated output; keep `eslint.config.test.js` protecting both that generated-artifact exclusion and continued linting of Web-owned source.
 
 ## Web Visual And Frontend Resilience
 

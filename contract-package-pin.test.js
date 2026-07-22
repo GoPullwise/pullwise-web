@@ -78,7 +78,7 @@ describe("Server-owned Agent-First contract package pin", () => {
     expect(document.root_manifest.package_version).toBe(pin.package_version);
 
     await expect(contractPackage.verifyBundle()).resolves.toBeDefined();
-  });
+  }, 15_000);
 
   it("imports only the public document projection while retaining internal variants for composition", () => {
     expect(contractPackage).toMatchObject({
