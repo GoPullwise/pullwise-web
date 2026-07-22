@@ -66,8 +66,7 @@ describe("Server-owned Agent-First contract package pin", () => {
   it("independently recomputes the canonical content and layered root digests", async () => {
     const embeddedBytes = Buffer.from(contractPackage.bundleBytes());
     const document = JSON.parse(embeddedBytes.toString("utf8"));
-    const { root_sha256: declaredRootSha256, ...rootWithoutDigest } =
-      document.root_manifest;
+    const { root_sha256: declaredRootSha256, ...rootWithoutDigest } = document.root_manifest;
 
     expect(embeddedBytes.equals(canonicalBytes(document))).toBe(true);
     expect(sha256(embeddedBytes)).toBe(pin.content_sha256);
@@ -79,6 +78,68 @@ describe("Server-owned Agent-First contract package pin", () => {
     expect(document.root_manifest.package_version).toBe(pin.package_version);
 
     await expect(contractPackage.verifyBundle()).resolves.toBeDefined();
+  });
+
+  it("imports only the public document projection while retaining internal variants for composition", () => {
+    expect(contractPackage).toMatchObject({
+      allSchemaIds: expect.any(Function),
+      fixture: expect.any(Function),
+      schema: expect.any(Function),
+      schemaIds: expect.any(Function),
+      validateDocument: expect.any(Function),
+    });
+
+    const rootRegistry = contractPackage.rootManifest().schema_registry;
+    const expectedAllSchemaIds = rootRegistry.map((entry) => entry.schema_id);
+    const expectedPublicSchemaIds = rootRegistry
+      .filter((entry) => entry.role === "public_document")
+      .map((entry) => entry.schema_id);
+    const internalVariantIds = [
+      "task-result-blocked-variant/v1",
+      "task-result-cancelled-variant/v1",
+      "task-result-completed-variant/v1",
+      "task-result-completed-with-waivers-variant/v1",
+      "task-result-failed-variant/v1",
+      "task-result-no-change-needed-variant/v1",
+      "task-result-partial-variant/v1",
+    ];
+
+    expect(contractPackage.allSchemaIds()).toEqual(expectedAllSchemaIds);
+    expect(contractPackage.schemaIds()).toEqual(expectedPublicSchemaIds);
+    expect(expectedPublicSchemaIds).toEqual(
+      expect.arrayContaining([
+        "task-result/v1",
+        "task-result-core/v1",
+        "worker-debug-file-manifest/v1",
+        "worker-debug-redaction-report/v1",
+        "worker-debug-fragment/v1",
+        "worker-debug-fragment-descriptor/v1",
+        "task-result-transport-envelope/v1",
+        "task-result-transport-ack/v1",
+      ])
+    );
+    expect(expectedAllSchemaIds).toEqual(expect.arrayContaining(internalVariantIds));
+    expect(expectedPublicSchemaIds).not.toEqual(expect.arrayContaining(internalVariantIds));
+    expect(expectedAllSchemaIds.some((schemaId) => schemaId.includes("legacy"))).toBe(false);
+
+    const coreFixture = contractPackage.fixture("task_result_core_golden_completed");
+    expect(contractPackage.validateDocument(coreFixture.schema_id, coreFixture.document)).toEqual(
+      coreFixture.document
+    );
+
+    const internalDocument = contractPackage.fixture(
+      "task_result_success_variant_golden_completed"
+    ).document;
+    let internalConstraintError;
+    try {
+      contractPackage.validateDocument("task-result-completed-variant/v1", internalDocument);
+    } catch (error) {
+      internalConstraintError = error;
+    }
+    expect(internalConstraintError).toMatchObject({
+      code: "CONTRACT_DOCUMENT_INVALID",
+      detail: "CONTRACT_INTERNAL_CONSTRAINT",
+    });
   });
 
   it("keeps the installed wrapper byte-identical to the pinned Server-generated artifact", () => {
@@ -108,9 +169,7 @@ describe("Server-owned Agent-First contract package pin", () => {
   it("locks only the checked-in generated artifact, never a range, tag, workspace, or sibling repo", () => {
     const manifestSpec = packageManifest.devDependencies?.[pin.package_identity];
     const lockRootSpec = packageLock.packages?.[""]?.devDependencies?.[pin.package_identity];
-    const installedEntry = packageLock.packages?.[
-      "node_modules/@pullwise/agent-task-contract"
-    ];
+    const installedEntry = packageLock.packages?.["node_modules/@pullwise/agent-task-contract"];
     const artifactEntry = packageLock.packages?.[EXPECTED_ARTIFACT_PATH];
 
     expect(manifestSpec).toBe(EXPECTED_DEPENDENCY_SPEC);

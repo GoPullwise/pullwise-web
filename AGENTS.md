@@ -194,6 +194,13 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Scan detail header actions should expose a Debug bundle download link whenever the scan payload or reviewRun debug_bundle artifact contains a real debugBundleUrl/storage URL.
 - Tests should protect this contract: missing debugBundleUrl must not produce an audit-bundle URL, and server/worker tests must verify failed runs still expose a real debug_bundle artifact or explicit absence.
 
+## Agent-First Contract Package
+
+- Consume Agent-First schemas only from the Server-generated `@pullwise/agent-task-contract` wrapper checked in at `vendor/generated/agent-task-contract-npm`; never copy schemas or reconstruct a partial bundle in Web code.
+- Keep `package.json` and `package-lock.json` locked to the exact local generated artifact. Do not use a version range, registry tag, workspace/link override, sibling-repository path, legacy fallback, or runtime schema substitution.
+- `contract-package-pin.json` must pin the package identity/version, logical content/root digests, and exact wrapper/package-manifest bytes. Regenerate it only after the Server generator publishes one final atomic bundle.
+- Treat `schemaIds()` as the public document projection. The seven TaskResult outcome variants are internal composition constraints and must not be exposed as standalone document validators.
+
 ## Web Visual And Frontend Resilience
 
 - Keep the public UI editorial and hard-edged: zero decorative radius/shadow, a restrained monochrome palette, and one indigo accent. Landing, Pricing, Docs/API, Privacy/Terms, Status, the public header/footer, and major preview sections must share the same 1240px horizontal frame with 40px desktop gutters. At 420px and below, keep the shared public frame on 16px gutters; do not cap the Privacy/Terms main column inside that frame.
