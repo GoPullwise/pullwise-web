@@ -30,7 +30,9 @@ export function applyCurrentSeoMetadata() {
     origin: currentOrigin(),
   });
 
-  document.head.querySelectorAll('title, [data-seo-managed="true"]').forEach((node) => node.remove());
+  document.head
+    .querySelectorAll('title, [data-seo-managed="true"]')
+    .forEach((node) => node.remove());
   document.head.insertAdjacentHTML("beforeend", renderSeoHead(metadata));
   document.documentElement.lang = HTML_LANGS[lang] || "en";
   return metadata;

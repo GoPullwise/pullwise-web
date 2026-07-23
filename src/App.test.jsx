@@ -1,4 +1,11 @@
-import { act, fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -852,7 +859,8 @@ describe("App", () => {
     expect(languageOptions[0].querySelector(".lang-menu-code")?.textContent).toBe("EN");
     expect(languageOptions[4].querySelector(".lang-menu-code")?.textContent).toBe("FR");
     expect(languageOptions[5].querySelector(".lang-menu-code")?.textContent).toBe("ES");
-    const selectedShortLabel = languageOptions[2].querySelector(".lang-menu-code")?.textContent || "";
+    const selectedShortLabel =
+      languageOptions[2].querySelector(".lang-menu-code")?.textContent || "";
 
     await user.click(languageOptions[2]);
 
@@ -1636,7 +1644,9 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: /unsafe redirect target/i })
     ).toBeInTheDocument();
-    expect(await screen.findAllByText("Redirects accept attacker-controlled URLs.")).not.toHaveLength(0);
+    expect(
+      await screen.findAllByText("Redirects accept attacker-controlled URLs.")
+    ).not.toHaveLength(0);
   });
 
   it("opens scan history issues with a scanId filter", async () => {

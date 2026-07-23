@@ -199,8 +199,7 @@ export function seoMetadataForScreen(screen, options = {}) {
   if (!definition) {
     return {
       title: "Pullwise — AI Repository Review",
-      description:
-        "Pullwise reviews GitHub repositories for security, correctness, and test gaps.",
+      description: "Pullwise reviews GitHub repositories for security, correctness, and test gaps.",
       robots: "noindex,nofollow",
       canonical: "",
       image: "",

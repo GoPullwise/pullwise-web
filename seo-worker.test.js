@@ -17,9 +17,7 @@ describe("SEO Worker shell", () => {
     );
 
     expect(response.status).toBe(308);
-    expect(response.headers.get("Location")).toBe(
-      "https://pull-wise.com/pricing?ref=launch"
-    );
+    expect(response.headers.get("Location")).toBe("https://pull-wise.com/pricing?ref=launch");
     expect(assets.fetch).not.toHaveBeenCalled();
   });
 
@@ -34,16 +32,13 @@ describe("SEO Worker shell", () => {
       ),
     };
 
-    const response = await worker.fetch(
-      new Request("https://pull-wise.com/pricing"),
-      { ASSETS: assets }
-    );
+    const response = await worker.fetch(new Request("https://pull-wise.com/pricing"), {
+      ASSETS: assets,
+    });
     const html = await response.text();
 
     expect(html).toContain("Pullwise Pricing — AI Repository Review Plans");
-    expect(html).toContain(
-      '<link rel="canonical" href="https://pull-wise.com/pricing"'
-    );
+    expect(html).toContain('<link rel="canonical" href="https://pull-wise.com/pricing"');
     expect(html).toContain('<meta name="robots" content="index,follow"');
   });
 
@@ -58,13 +53,10 @@ describe("SEO Worker shell", () => {
       ),
     };
 
-    const response = await worker.fetch(
-      new Request("https://pull-wise.com/dashboard/overview"),
-      { ASSETS: assets }
-    );
+    const response = await worker.fetch(new Request("https://pull-wise.com/dashboard/overview"), {
+      ASSETS: assets,
+    });
 
-    expect(await response.text()).toContain(
-      '<meta name="robots" content="noindex,nofollow"'
-    );
+    expect(await response.text()).toContain('<meta name="robots" content="noindex,nofollow"');
   });
 });

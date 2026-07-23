@@ -35,10 +35,7 @@ async function injectSeoMetadata(response, metadata) {
       /<(?:title|script)\b[^>]*data-seo-managed=["']true["'][^>]*>[\s\S]*?<\/(?:title|script)>\s*/gi,
       ""
     )
-    .replace(
-      /<(?:meta|link)\b[^>]*data-seo-managed=["']true["'][^>]*\/?>\s*/gi,
-      ""
-    );
+    .replace(/<(?:meta|link)\b[^>]*data-seo-managed=["']true["'][^>]*\/?>\s*/gi, "");
   const head = renderSeoHead(metadata);
   const body = withoutManagedTags.includes("</head>")
     ? withoutManagedTags.replace("</head>", `    ${head}\n  </head>`)

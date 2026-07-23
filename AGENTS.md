@@ -208,6 +208,14 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Treat `schemaIds()` as the public document projection. The seven TaskResult outcome variants are internal composition constraints and must not be exposed as standalone document validators.
 - Exclude only `vendor/generated/agent-task-contract-npm/**` from Web ESLint because those bytes are immutable Server-generated output; keep `eslint.config.test.js` protecting both that generated-artifact exclusion and continued linting of Web-owned source.
 
+## Public Search Metadata
+
+- Keep indexable public routes, canonical paths, titles, descriptions, social metadata, and schema definitions centralized in `src/lib/seo.js`; keep `public/sitemap.xml` synchronized with `PUBLIC_INDEXABLE_PATHS`.
+- The Cloudflare deployment entry is `worker-entry.js`. It wraps the API/static worker, redirects `www.pull-wise.com` to the apex host, and injects route-specific metadata into the HTML shell before JavaScript runs.
+- Public product, pricing, developer docs/API, legal, and status pages are indexable. Login, unknown, and authenticated app routes must emit `noindex,nofollow` without a canonical or JSON-LD payload.
+- Keep `public/robots.txt` open to `OAI-SearchBot` while treating `GPTBot` training access as a separate policy. Do not add `llms.txt` or AI-only markup as a substitute for crawlable pages and ordinary structured data.
+- Generate the 1200x630 social preview deterministically with `scripts/generate-social-card.ps1` whenever the share-card source or product positioning changes; metadata must never reference a missing image.
+
 ## Web Visual And Frontend Resilience
 
 - Keep the public UI editorial and hard-edged: zero decorative radius/shadow, a restrained monochrome palette, and one indigo accent. Landing, Pricing, Docs/API, Privacy/Terms, Status, the public header/footer, and major preview sections must share the same 1240px horizontal frame with 40px desktop gutters. At 420px and below, keep the shared public frame on 16px gutters; do not cap the Privacy/Terms main column inside that frame.

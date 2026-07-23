@@ -90,14 +90,14 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-hero" aria-labelledby="lp-title">
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
-          <span>{T("AI code review for GitHub repositories", "面向 GitHub 仓库的 AI 代码审查")}</span>
+          <span>
+            {T("AI code review for GitHub repositories", "面向 GitHub 仓库的 AI 代码审查")}
+          </span>
         </div>
         <h1 id="lp-title" className="lp-title">
           {T("Find repository-wide risks.", "发现全仓风险。")}
           <br />
-          <span className="lp-title-em">
-            {T("Ship fixes with evidence.", "用证据推动修复。")}
-          </span>
+          <span className="lp-title-em">{T("Ship fixes with evidence.", "用证据推动修复。")}</span>
         </h1>
         <p className="lp-sub">
           {T(
@@ -131,8 +131,7 @@ export function LandingScreen({ go, accent, auth }) {
             <I.Check size={12} /> {T("Full-repository context", "全仓库上下文")}
           </span>
           <span>
-            <I.Check size={12} />{" "}
-            {T("Security, correctness, and tests", "安全、正确性与测试")}
+            <I.Check size={12} /> {T("Security, correctness, and tests", "安全、正确性与测试")}
           </span>
           <span>
             <I.Check size={12} /> {T("Validator-checked findings", "经 Validator 检查的发现")}
@@ -215,7 +214,9 @@ export function LandingScreen({ go, accent, auth }) {
         <div className="lp-section-head">
           <div className="lp-section-index">PROCESS / 02</div>
           <div>
-            <h2 id="lp-capabilities-title">{T("How Pullwise reviews a repository.", "Pullwise 如何审查一个仓库。")}</h2>
+            <h2 id="lp-capabilities-title">
+              {T("How Pullwise reviews a repository.", "Pullwise 如何审查一个仓库。")}
+            </h2>
             <p>
               {T(
                 "From repository mapping to validated findings, every stage is designed to reduce noise and make the result usable by developers.",
@@ -356,7 +357,14 @@ export function LoginScreen({ go } = {}) {
       </a>
       <div className="auth-card">
         <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
-          <img className="brand-mark" src="/favicon.ico" alt="" aria-hidden="true" width="24" height="24" />
+          <img
+            className="brand-mark"
+            src="/favicon.ico"
+            alt=""
+            aria-hidden="true"
+            width="24"
+            height="24"
+          />
           <span style={{ fontSize: 16 }}>Pullwise</span>
         </div>
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
@@ -387,7 +395,6 @@ export function LoginScreen({ go } = {}) {
           )}
         </button>
 
-
         <div className="auth-next">
           <div className="auth-next-i">
             <span>1</span>
@@ -396,10 +403,7 @@ export function LoginScreen({ go } = {}) {
           <div className="auth-next-i">
             <span>2</span>
             <p>
-              {T(
-                "Connect repositories only when you start a scan.",
-                "仅在开始扫描时连接仓库。"
-              )}
+              {T("Connect repositories only when you start a scan.", "仅在开始扫描时连接仓库。")}
             </p>
           </div>
         </div>
@@ -433,10 +437,7 @@ export function OAuthScreen({ go, auth }) {
     } catch (authError) {
       if (authError?.code === "popup_closed") {
         setError(
-          T(
-            "GitHub installation was cancelled. Please try again.",
-            "GitHub 安装已取消。请重试。"
-          )
+          T("GitHub installation was cancelled. Please try again.", "GitHub 安装已取消。请重试。")
         );
       } else {
         setError(getRepositoryAuthErrorMessage(authError));
@@ -458,7 +459,13 @@ export function OAuthScreen({ go, auth }) {
               <span />
               <span />
             </div>
-            <img className="oauth-logo app" src="/favicon.ico" alt="Pullwise" width="48" height="48" />
+            <img
+              className="oauth-logo app"
+              src="/favicon.ico"
+              alt="Pullwise"
+              width="48"
+              height="48"
+            />
           </div>
           <h2>{T("Connect GitHub repository access", "连接 GitHub 仓库访问")}</h2>
           <p className="oauth-org">
@@ -511,7 +518,6 @@ export function OAuthScreen({ go, auth }) {
           </div>
         </div>
 
-
         <div className="oauth-actions">
           {authing ? (
             <button className="btn lg" type="button" disabled>
@@ -536,8 +542,7 @@ export function OAuthScreen({ go, auth }) {
               </>
             ) : (
               <>
-                {T("Connect GitHub repositories", "连接 GitHub 仓库")}{" "}
-                <I.ArrowR size={14} />
+                {T("Connect GitHub repositories", "连接 GitHub 仓库")} <I.ArrowR size={14} />
               </>
             )}
           </button>

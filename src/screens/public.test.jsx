@@ -57,14 +57,14 @@ describe("public navigation links", () => {
   it("summarizes implemented product capabilities on the landing page", () => {
     render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
 
-    const pipeline = screen.getByRole("region", { name: /from snapshot to evidence/i });
+    const pipeline = screen.getByRole("region", { name: /how pullwise reviews a repository/i });
     expect(within(pipeline).getAllByRole("article")).toHaveLength(6);
-    expect(screen.getByText("Repository context planning")).toBeInTheDocument();
-    expect(screen.getByText("Sequential reviewer turns")).toBeInTheDocument();
-    expect(screen.getByText("Isolated Codex workers")).toBeInTheDocument();
-    expect(screen.getByText("Validator disproof gate")).toBeInTheDocument();
-    expect(screen.getAllByText("Actionable reports").length).toBeGreaterThan(0);
-    expect(screen.getByText("Automation-ready API")).toBeInTheDocument();
+    expect(screen.getByText("Map the whole repository")).toBeInTheDocument();
+    expect(screen.getByText("Review high-risk code paths")).toBeInTheDocument();
+    expect(screen.getByText("Run in isolated workers")).toBeInTheDocument();
+    expect(screen.getByText("Verify before reporting")).toBeInTheDocument();
+    expect(screen.getByText("Deliver fix-ready evidence")).toBeInTheDocument();
+    expect(screen.getByText("Automate through the API")).toBeInTheDocument();
     expect(
       screen.getByText(/confirmed and plausible findings include file locations/i)
     ).toBeInTheDocument();
