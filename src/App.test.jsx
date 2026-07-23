@@ -178,13 +178,13 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(document.title).toBe("Pullwise - AI Review");
+      expect(document.title).toBe("Pullwise — AI Code Review for GitHub Repositories");
     });
 
     setLang("zh");
 
     await waitFor(() => {
-      expect(document.title).toBe("Pullwise - AI审查");
+      expect(document.title).toBe("Pullwise — 面向 GitHub 仓库的 AI 代码审查");
     });
   });
 

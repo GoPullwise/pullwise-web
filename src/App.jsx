@@ -12,6 +12,7 @@ import {
   screenFromPath,
 } from "./lib/navigation.js";
 import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
+import { applyCurrentSeoMetadata } from "./lib/seo-client.js";
 import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
@@ -407,8 +408,8 @@ export function App({ prototypeNav = false }) {
   }, [prototypeNav, navOpen]);
 
   useEffect(() => {
-    document.title = T("Pullwise - AI Review", "Pullwise - AI审查");
-  }, [lang]);
+    applyCurrentSeoMetadata();
+  }, [lang, screen]);
 
   useEffect(() => {
     if (!languageMenuOpen) return;

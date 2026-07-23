@@ -249,16 +249,16 @@ export function renderSeoHead(metadata) {
   const managed = 'data-seo-managed="true"';
   const lines = [
     `<title ${managed}>${escapeAttribute(metadata.title)}</title>`,
-    `<meta ${managed} name="description" content="${escapeAttribute(metadata.description)}" />`,
-    `<meta ${managed} name="robots" content="${escapeAttribute(metadata.robots)}" />`,
+    `<meta name="description" content="${escapeAttribute(metadata.description)}" ${managed} />`,
+    `<meta name="robots" content="${escapeAttribute(metadata.robots)}" ${managed} />`,
   ];
 
   if (metadata.canonical) {
     lines.push(
-      `<link ${managed} rel="canonical" href="${escapeAttribute(metadata.canonical)}" />`,
+      `<link rel="canonical" href="${escapeAttribute(metadata.canonical)}" ${managed} />`,
       `<meta ${managed} property="og:type" content="website" />`,
       `<meta ${managed} property="og:site_name" content="${SITE_NAME}" />`,
-      `<meta ${managed} property="og:title" content="${escapeAttribute(metadata.title)}" />`,
+      `<meta property="og:title" content="${escapeAttribute(metadata.title)}" ${managed} />`,
       `<meta ${managed} property="og:description" content="${escapeAttribute(metadata.description)}" />`,
       `<meta ${managed} property="og:url" content="${escapeAttribute(metadata.canonical)}" />`,
       `<meta ${managed} property="og:locale" content="${escapeAttribute(metadata.locale)}" />`,
@@ -266,7 +266,7 @@ export function renderSeoHead(metadata) {
       `<meta ${managed} property="og:image:width" content="1200" />`,
       `<meta ${managed} property="og:image:height" content="630" />`,
       `<meta ${managed} property="og:image:alt" content="Pullwise AI repository review" />`,
-      `<meta ${managed} name="twitter:card" content="summary_large_image" />`,
+      `<meta name="twitter:card" content="summary_large_image" ${managed} />`,
       `<meta ${managed} name="twitter:title" content="${escapeAttribute(metadata.title)}" />`,
       `<meta ${managed} name="twitter:description" content="${escapeAttribute(metadata.description)}" />`,
       `<meta ${managed} name="twitter:image" content="${escapeAttribute(metadata.image)}" />`
@@ -275,7 +275,7 @@ export function renderSeoHead(metadata) {
 
   if (metadata.schema) {
     lines.push(
-      `<script ${managed} type="application/ld+json">${safeJson(metadata.schema)}</script>`
+      `<script type="application/ld+json" ${managed}>${safeJson(metadata.schema)}</script>`
     );
   }
 
