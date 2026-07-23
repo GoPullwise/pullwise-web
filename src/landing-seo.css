@@ -1,0 +1,57 @@
+.lp-title {
+  max-width: 720px;
+  font-size: clamp(50px, 5.4vw, 72px);
+  line-height: 1.01;
+}
+
+.lp-sub {
+  max-width: 520px;
+}
+
+.lp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lp-preview-issue .dot {
+  transform-origin: center;
+}
+
+@keyframes lpReviewPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.78);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-preview-issue .dot {
+    animation: lpReviewPulse 1.8s ease-in-out infinite;
+  }
+}
+
+@media (max-width: 1000px) {
+  .lp-title {
+    font-size: clamp(46px, 6vw, 62px);
+  }
+}
+
+@media (max-width: 760px) {
+  .lp-title {
+    max-width: 620px;
+    font-size: clamp(42px, 10vw, 54px);
+  }
+}
+
+@media (max-width: 420px) {
+  .lp-title {
+    font-size: 38px;
+  }
+}

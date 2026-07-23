@@ -90,19 +90,19 @@ export function LandingScreen({ go, accent, auth }) {
       <section className="lp-hero" aria-labelledby="lp-title">
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
-          <span>{T("Full-repository review system", "全仓库审查系统")}</span>
+          <span>{T("AI code review for GitHub repositories", "面向 GitHub 仓库的 AI 代码审查")}</span>
         </div>
         <h1 id="lp-title" className="lp-title">
-          {T("Review broadly.", "广泛审查。")}
+          {T("Find repository-wide risks.", "发现全仓风险。")}
           <br />
           <span className="lp-title-em">
-            {T("Prove locally.", "本地证明。")}
+            {T("Ship fixes with evidence.", "用证据推动修复。")}
           </span>
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise scans the current repository snapshot with isolated Codex full-repository review workers, routes risk tiers, runs sequential reviewer and validator turns, and submits stable reports plus versioned artifacts.",
-            "Pullwise 使用隔离的 Codex 全仓审查 worker 扫描当前仓库快照，进行风险分层，串行运行 reviewer 和 validator turns，并提交稳定报告与版本化 artifacts。"
+            "Pullwise is an AI code review platform for engineering teams. Connect a GitHub repository to scan the full codebase for security, correctness, and test gaps—then get validated findings with exact file locations and next steps.",
+            "Pullwise 是面向工程团队的 AI 代码审查平台。连接 GitHub 仓库，扫描完整代码库中的安全、正确性和测试缺口，并获得经过验证、包含准确文件位置与下一步建议的发现。"
           )}
         </p>
         <div className="lp-cta">
@@ -115,6 +115,11 @@ export function LandingScreen({ go, accent, auth }) {
               {primaryActionIcon} {primaryActionLabel}
             </a>
           )}
+          {!checkingSession && !signedIn && (
+            <a className="btn lg" {...screenLinkProps(go, "pricing")}>
+              {T("See pricing", "查看价格")}
+            </a>
+          )}
           {signedIn && (
             <button className="btn lg" onClick={signOut}>
               <I.ArrowL /> {T("Sign out", "退出登录")}
@@ -123,17 +128,17 @@ export function LandingScreen({ go, accent, auth }) {
         </div>
         <div className="lp-meta">
           <span>
-            <I.Check size={12} /> {T("GitHub OAuth", "GitHub OAuth")}
+            <I.Check size={12} /> {T("Full-repository context", "全仓库上下文")}
           </span>
           <span>
             <I.Check size={12} />{" "}
-            {T("Repository context evidence", "仓库上下文证据")}
+            {T("Security, correctness, and tests", "安全、正确性与测试")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Codex worker isolation", "Codex worker 隔离")}
+            <I.Check size={12} /> {T("Validator-checked findings", "经 Validator 检查的发现")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Actionable reports", "可行动报告")}
+            <I.Check size={12} /> {T("CI-ready REST API", "可接入 CI 的 REST API")}
           </span>
         </div>
       </section>
@@ -208,13 +213,13 @@ export function LandingScreen({ go, accent, auth }) {
 
       <section className="lp-capabilities" aria-labelledby="lp-capabilities-title">
         <div className="lp-section-head">
-          <div className="lp-section-index">SYSTEM / 02</div>
+          <div className="lp-section-index">PROCESS / 02</div>
           <div>
-            <h2 id="lp-capabilities-title">{T("From snapshot to evidence.", "从快照到证据。")}</h2>
+            <h2 id="lp-capabilities-title">{T("How Pullwise reviews a repository.", "Pullwise 如何审查一个仓库。")}</h2>
             <p>
               {T(
-                "Six operating layers keep every review inspectable, bounded, and ready for action.",
-                "六个运行层让每次审查都可检查、有边界，并可直接进入行动。"
+                "From repository mapping to validated findings, every stage is designed to reduce noise and make the result usable by developers.",
+                "从仓库映射到发现验证，每个阶段都在减少噪声，让开发者能够直接使用审查结果。"
               )}
             </p>
           </div>
@@ -223,50 +228,50 @@ export function LandingScreen({ go, accent, auth }) {
           {[
             {
               i: <I.Layers />,
-              h: T("Repository context planning", "仓库上下文规划"),
+              h: T("Map the whole repository", "映射完整仓库"),
               p: T(
-                "Start from the current HEAD tree and symbols, map trust boundaries and entrypoints, then pack risk-ranked review bundles.",
-                "从当前 HEAD 树和符号开始，映射信任边界与入口，再打包按风险排序的审查 bundles。"
+                "Read the current code tree, symbols, entry points, and trust boundaries before deciding where review effort matters most.",
+                "先读取当前代码树、符号、入口与信任边界，再决定审查精力最应该投入的位置。"
               ),
             },
             {
               i: <I.Bug />,
-              h: T("Sequential reviewer turns", "串行 reviewer turns"),
+              h: T("Review high-risk code paths", "审查高风险代码路径"),
               p: T(
-                "Run security, correctness, test-gap, and correctness-lite reviewers as focused Codex turns over planned bundles.",
-                "基于规划后的 bundles，以聚焦的 Codex turns 串行运行安全、正确性、测试缺口和轻量正确性审查。"
+                "Focus security, correctness, and test-gap reviewers on planned code areas instead of treating every file as equal.",
+                "让安全、正确性和测试缺口审查聚焦于规划后的代码区域，而不是平等对待每个文件。"
               ),
             },
             {
               i: <I.Terminal />,
-              h: T("Isolated Codex workers", "隔离 Codex Worker"),
+              h: T("Run in isolated workers", "在隔离 Worker 中运行"),
               p: T(
-                "Give each worker its own Codex state, workspace, artifacts, and logs while keeping review turns inside a local-first boundary.",
-                "每个 worker 独享 Codex 状态、workspace、artifacts 与日志，并让审查 turns 保持在本地优先边界内。"
+                "Keep each review workspace, Codex state, artifacts, and logs isolated so one run cannot leak into another.",
+                "隔离每次审查的工作区、Codex 状态、产物与日志，避免不同运行之间相互污染。"
               ),
             },
             {
               i: <I.Shield />,
-              h: T("Validator disproof gate", "Validator 反证门禁"),
+              h: T("Verify before reporting", "报告前先验证"),
               p: T(
-                "Normalize candidates, verify locations, cluster duplicate claims, and keep disproven findings out of the main report.",
-                "归一化候选、验证位置、聚类重复主张，并将已反证的问题排除在主报告之外。"
+                "Check file locations, merge duplicate claims, and challenge candidate findings before they reach the main report.",
+                "检查文件位置、合并重复结论并质疑候选发现，然后才允许它们进入主报告。"
               ),
             },
             {
               i: <I.FileCode />,
-              h: T("Actionable reports", "可行动报告"),
+              h: T("Deliver fix-ready evidence", "交付可直接修复的证据"),
               p: T(
-                "Deliver evidence, impact, recommendations, and next-agent tasks, then move confirmed findings into triage and fix workflows.",
-                "交付证据、影响、建议与下一步 agent 任务，再将已确认问题送入分流和修复流程。"
+                "Return severity, exact file locations, evidence, impact, and next steps that developers or coding agents can act on.",
+                "返回严重程度、准确文件位置、证据、影响与下一步，让开发者或编码 Agent 可以直接行动。"
               ),
             },
             {
               i: <I.Code />,
-              h: T("Automation-ready API", "面向自动化的 API"),
+              h: T("Automate through the API", "通过 API 自动化"),
               p: T(
-                "Connect GitHub identity, repository authorization, scans, history, quotas, and account API keys to CI and internal tools.",
-                "把 GitHub 身份、仓库授权、扫描、历史、配额和账户 API keys 接入 CI 与内部工具。"
+                "Start scans, read results, and check account or repository quota from CI, scripts, and internal engineering tools.",
+                "从 CI、脚本和内部工程工具启动扫描、读取结果，并检查账户或仓库配额。"
               ),
             },
           ].map((feature, index) => (
@@ -292,7 +297,7 @@ export function LandingScreen({ go, accent, auth }) {
               ? T("Restoring your account.", "正在恢复你的账户。")
               : signedIn
                 ? T("Continue from your account.", "从你的账户继续。")
-                : T("Start with GitHub sign-in.", "使用 GitHub 登录开始。")}
+                : T("Review your next repository.", "审查你的下一个仓库。")}
           </h2>
         </div>
         {checkingSession ? (

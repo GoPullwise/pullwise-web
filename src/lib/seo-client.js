@@ -1,4 +1,5 @@
 import { renderSeoHead, seoMetadataForPath } from "./seo.js";
+import "../landing-seo.css";
 
 const HTML_LANGS = {
   en: "en",

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Pullwise AI code review</title>
+  <desc id="desc">A dark editorial graphic showing the Pullwise name, repository review promise, and a validated finding trace.</desc>
+  <rect width="1200" height="630" fill="#0b0d12" />
+  <path d="M0 96H1200M0 534H1200M88 0V630M1112 0V630" fill="none" stroke="#2b303b" />
+  <rect x="88" y="96" width="1024" height="438" fill="none" stroke="#454c5c" />
+
+  <g transform="translate(128 132)">
+    <rect width="34" height="34" fill="#6366f1" />
+    <path d="M9 17h16M17 9v16" stroke="#fff" stroke-width="2" />
+    <text x="52" y="25" fill="#f7f8fb" font-family="Geist, Arial, sans-serif" font-size="26" font-weight="700">Pullwise</text>
+  </g>
+
+  <text x="128" y="245" fill="#f7f8fb" font-family="Geist, Arial, sans-serif" font-size="60" font-weight="700" letter-spacing="-2">
+    Find repository-wide risks.
+  </text>
+  <text x="128" y="318" fill="#aeb5c4" font-family="Geist, Arial, sans-serif" font-size="60" font-weight="700" letter-spacing="-2">
+    Ship fixes with evidence.
+  </text>
+  <text x="128" y="374" fill="#8a93a6" font-family="Geist, Arial, sans-serif" font-size="20">
+    AI code review for GitHub repositories
+  </text>
+
+  <g transform="translate(128 424)">
+    <rect width="944" height="70" fill="#11141b" stroke="#303644" />
+    <circle cx="30" cy="35" r="6" fill="#6366f1" />
+    <text x="52" y="30" fill="#f7f8fb" font-family="Geist Mono, Consolas, monospace" font-size="15" font-weight="600">
+      VALIDATED FINDING
+    </text>
+    <text x="52" y="51" fill="#8a93a6" font-family="Geist Mono, Consolas, monospace" font-size="13">
+      exact file location  /  evidence  /  impact  /  next step
+    </text>
+    <path d="M760 35h132" stroke="#454c5c" />
+    <path d="m886 29 8 6-8 6" fill="none" stroke="#6366f1" stroke-width="2" />
+  </g>
+
+  <text x="128" y="579" fill="#636b7b" font-family="Geist Mono, Consolas, monospace" font-size="13" letter-spacing="1.5">
+    PULL-WISE.COM  /  FULL-REPOSITORY REVIEW
+  </text>
+</svg>
