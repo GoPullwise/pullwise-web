@@ -94,18 +94,39 @@ describe("Server-owned Agent-First contract package pin", () => {
     const expectedPublicSchemaIds = rootRegistry
       .filter((entry) => entry.role === "public_document")
       .map((entry) => entry.schema_id);
-    const internalVariantIds = [
-      "task-result-blocked-variant/v1",
-      "task-result-cancelled-variant/v1",
+    const expectedD22PublicSchemaFamilyPairs = [
+      ["benchmark-bundle/v1", "benchmark-bundle"],
+      ["release-gate-policy/v1", "release-gate-policy"],
+      ["release-gate-report/v1", "release-gate-report"],
+      ["release-gate-attestation/v1", "release-gate-attestation"],
+    ];
+    const expectedD22SchemaIds = new Set(
+      expectedD22PublicSchemaFamilyPairs.map(([schemaId]) => schemaId)
+    );
+    const actualD22PublicSchemaFamilyPairs = rootRegistry
+      .filter(
+        (entry) =>
+          entry.role === "public_document" && expectedD22SchemaIds.has(entry.schema_id)
+      )
+      .map((entry) => [entry.schema_id, entry.family_id]);
+    const expectedInternalVariantIds = [
       "task-result-completed-variant/v1",
       "task-result-completed-with-waivers-variant/v1",
-      "task-result-failed-variant/v1",
       "task-result-no-change-needed-variant/v1",
       "task-result-partial-variant/v1",
+      "task-result-blocked-variant/v1",
+      "task-result-cancelled-variant/v1",
+      "task-result-cancelled-with-effects-variant/v1",
+      "task-result-failed-variant/v1",
+      "task-result-terminated-with-unknown-effects-variant/v1",
     ];
+    const actualInternalVariantIds = rootRegistry
+      .filter((entry) => entry.role === "internal_constraint")
+      .map((entry) => entry.schema_id);
 
     expect(contractPackage.allSchemaIds()).toEqual(expectedAllSchemaIds);
     expect(contractPackage.schemaIds()).toEqual(expectedPublicSchemaIds);
+    expect(actualD22PublicSchemaFamilyPairs).toEqual(expectedD22PublicSchemaFamilyPairs);
     expect(expectedPublicSchemaIds).toEqual(
       expect.arrayContaining([
         "task-result/v1",
@@ -118,8 +139,11 @@ describe("Server-owned Agent-First contract package pin", () => {
         "task-result-transport-ack/v1",
       ])
     );
-    expect(expectedAllSchemaIds).toEqual(expect.arrayContaining(internalVariantIds));
-    expect(expectedPublicSchemaIds).not.toEqual(expect.arrayContaining(internalVariantIds));
+    expect(actualInternalVariantIds).toEqual(expectedInternalVariantIds);
+    expect(expectedAllSchemaIds).toEqual(expect.arrayContaining(expectedInternalVariantIds));
+    expect(expectedPublicSchemaIds).not.toEqual(
+      expect.arrayContaining(expectedInternalVariantIds)
+    );
     expect(expectedAllSchemaIds.some((schemaId) => schemaId.includes("legacy"))).toBe(false);
 
     const coreFixture = contractPackage.fixture("task_result_core_golden_completed");

@@ -205,7 +205,22 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   command has run exactly once. This phase must not add production
   current-task/operator routes, auth integration, D24 activation, deployment,
   canary UI, or any fallback to the prior package bytes.
-- Treat `schemaIds()` as the public document projection. The seven TaskResult outcome variants are internal composition constraints and must not be exposed as standalone document validators.
+- Treat `schemaIds()` as the public document projection. The exact nine
+  `internal_constraint` TaskResult outcome variants are
+  `task-result-completed-variant/v1`,
+  `task-result-completed-with-waivers-variant/v1`,
+  `task-result-no-change-needed-variant/v1`, `task-result-partial-variant/v1`,
+  `task-result-blocked-variant/v1`, `task-result-cancelled-variant/v1`,
+  `task-result-cancelled-with-effects-variant/v1`,
+  `task-result-failed-variant/v1`, and
+  `task-result-terminated-with-unknown-effects-variant/v1`; do not expose them
+  as standalone document validators.
+- D22 adds these public document schema/family pairs to the generated candidate:
+  `benchmark-bundle/v1` / `benchmark-bundle`, `release-gate-policy/v1` /
+  `release-gate-policy`, `release-gate-report/v1` / `release-gate-report`, and
+  `release-gate-attestation/v1` / `release-gate-attestation`. Their presence
+  records the current public projection; it does not mark the Agent-First
+  program complete or activated.
 - Exclude only `vendor/generated/agent-task-contract-npm/**` from Web ESLint because those bytes are immutable Server-generated output; keep `eslint.config.test.js` protecting both that generated-artifact exclusion and continued linting of Web-owned source.
 
 ## Public Search Metadata
