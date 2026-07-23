@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /oauth
+Disallow: /repos
+Disallow: /scanning
+Disallow: /dashboard
+Disallow: /issues
+Disallow: /history
+Disallow: /api-keys
+Disallow: /settings
+Disallow: /billing
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://pull-wise.com/sitemap.xml
