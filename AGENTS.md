@@ -199,6 +199,12 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Consume Agent-First schemas only from the Server-generated `@pullwise/agent-task-contract` wrapper checked in at `vendor/generated/agent-task-contract-npm`; never copy schemas or reconstruct a partial bundle in Web code.
 - Keep `package.json` and `package-lock.json` locked to the exact local generated artifact. Do not use a version range, registry tag, workspace/link override, sibling-repository path, legacy fallback, or runtime schema substitution.
 - `contract-package-pin.json` must pin the package identity/version, logical content/root digests, and exact wrapper/package-manifest bytes. Regenerate it only after the Server generator publishes one final atomic bundle.
+- D34 (`2be5b5752b65714204fa6f41a0a126eb30e82bafcdeb38b5ece426938561158c`)
+  limits the current work to an unactivated candidate. Accept the updated pin
+  only after all Server pre-generation gates are green and the Server Generate
+  command has run exactly once. This phase must not add production
+  current-task/operator routes, auth integration, D24 activation, deployment,
+  canary UI, or any fallback to the prior package bytes.
 - Treat `schemaIds()` as the public document projection. The seven TaskResult outcome variants are internal composition constraints and must not be exposed as standalone document validators.
 - Exclude only `vendor/generated/agent-task-contract-npm/**` from Web ESLint because those bytes are immutable Server-generated output; keep `eslint.config.test.js` protecting both that generated-artifact exclusion and continued linting of Web-owned source.
 
