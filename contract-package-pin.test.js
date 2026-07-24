@@ -87,6 +87,8 @@ describe("Server-owned Agent-First contract package pin", () => {
       schema: expect.any(Function),
       schemaIds: expect.any(Function),
       validateDocument: expect.any(Function),
+      evaluateReleaseGate: expect.any(Function),
+      evaluate_release_gate: expect.any(Function),
     });
 
     const rootRegistry = contractPackage.rootManifest().schema_registry;

@@ -221,6 +221,10 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   `release-gate-attestation/v1` / `release-gate-attestation`. Their presence
   records the current public projection; it does not mark the Agent-First
   program complete or activated.
+- The tri-state evaluator is consumed only through the exact-pinned generated
+  `evaluateReleaseGate` / `evaluate_release_gate` exports. Web must not add
+  evaluator storage, trust/signing UI, baseline/canary state, production
+  activation, deployment, or external-canary claims in this candidate.
 - Exclude only `vendor/generated/agent-task-contract-npm/**` from Web ESLint because those bytes are immutable Server-generated output; keep `eslint.config.test.js` protecting both that generated-artifact exclusion and continued linting of Web-owned source.
 
 ## Public Search Metadata
