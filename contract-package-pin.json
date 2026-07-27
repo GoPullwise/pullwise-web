@@ -7,7 +7,7 @@
     "path": "vendor/generated/agent-task-contract-npm",
     "producer": "pullwise-server",
     "generator": "pullwise_server.agent_first_contract_bundle",
-    "wrapper_sha256": "de6d57a4d6586bfb8f34d366460fc4c9d69a6d1fa121d836223c1b6aaf9fe1c5",
+    "wrapper_sha256": "43664c0ea158e954539fd9effe815f25bd6a7966d995ba9daee2b9bfe2a9ea53",
     "package_manifest_sha256": "5600ccef344efd1a0f0e27bf9cf22a6094853678acadbda5455d4dc7fda6746c"
   }
 }
