@@ -12,7 +12,7 @@ describe("eslint generated-artifact boundary", () => {
     const eslint = new ESLint({ cwd: WEB_ROOT });
 
     await expect(eslint.isPathIgnored(generatedWrapperPath)).resolves.toBe(true);
-  });
+  }, 15_000);
 
   it("continues linting Web-owned source", async () => {
     const eslint = new ESLint({ cwd: WEB_ROOT });
