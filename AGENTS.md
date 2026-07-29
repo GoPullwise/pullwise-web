@@ -200,11 +200,17 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Keep `package.json` and `package-lock.json` locked to the exact local generated artifact. Do not use a version range, registry tag, workspace/link override, sibling-repository path, legacy fallback, or runtime schema substitution.
 - `contract-package-pin.json` must pin the package identity/version, logical content/root digests, and exact wrapper/package-manifest bytes. Regenerate it only after the Server generator publishes one final atomic bundle.
 - D34 (`2be5b5752b65714204fa6f41a0a126eb30e82bafcdeb38b5ece426938561158c`)
-  limits the current work to an unactivated candidate. Accept the updated pin
-  only after all Server pre-generation gates are green and the Server Generate
-  command has run exactly once. This phase must not add production
-  current-task/operator routes, auth integration, D24 activation, deployment,
-  canary UI, or any fallback to the prior package bytes.
+  limited the original work to one unactivated candidate. Its exactly-once
+  Generate allowance was consumed, and D35 withdraws that old tuple; never
+  restore or fall back to those prior package bytes.
+- D35 (`8cde7af149db8e6051f0342bd9490c4be31fce7b1868270ce7206350ee252a9e`)
+  authorized exactly one replacement after all Server pre-generation gates were
+  green. That allowance is consumed by package `0.1.0`, content
+  `11ced3caa5333f5d841a5f5d0ca33e9a91522f9809cd23943f56d1f371409564`,
+  and root `e6dc056cb1b61c2a47c28d3e02117352bae35c7fecb07d10bad6afd65b9e194e`.
+  Any further Generate requires another append-only superseding decision. This
+  phase must not add production current-task/operator routes, auth integration,
+  D24 activation, deployment, canary UI, or any fallback package bytes.
 - Treat `schemaIds()` as the public document projection. The exact nine
   `internal_constraint` TaskResult outcome variants are
   `task-result-completed-variant/v1`,
