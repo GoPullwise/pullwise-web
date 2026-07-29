@@ -1,13 +1,13 @@
 {
   "package_identity": "@pullwise/agent-task-contract",
   "package_version": "0.1.0",
-  "content_sha256": "a60f5d3fe7f1600b9e90a4577832591c92501ce58c4e8aaec1c6e56742694535",
-  "root_sha256": "f3317b4a4c051d75d7be9d4fd643acb33a8b5ca0bc7e134ffae509719565bfe3",
+  "content_sha256": "e6b062b22c7779adc0777d337c2655a84130ce547b4429878120a506de9e3942",
+  "root_sha256": "6646fa7beca27fc67066b3230f176a38ce67c7c089119c0174358549b3cc0fbb",
   "generated_artifact": {
     "path": "vendor/generated/agent-task-contract-npm",
     "producer": "pullwise-server",
     "generator": "pullwise_server.agent_first_contract_bundle",
-    "wrapper_sha256": "43664c0ea158e954539fd9effe815f25bd6a7966d995ba9daee2b9bfe2a9ea53",
-    "package_manifest_sha256": "5600ccef344efd1a0f0e27bf9cf22a6094853678acadbda5455d4dc7fda6746c"
+    "wrapper_sha256": "f2083aa05d78c46079a04e8ddbd37a3cf95eca2d6746a33c28cd2727bacb0d14",
+    "package_manifest_sha256": "2a311f6a75a606f7f10f229f60986d6c908c44579e7abd96e1da1f9cc6efa668"
   }
 }
