@@ -208,9 +208,15 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   green. That allowance is consumed by package `0.1.0`, content
   `11ced3caa5333f5d841a5f5d0ca33e9a91522f9809cd23943f56d1f371409564`,
   and root `e6dc056cb1b61c2a47c28d3e02117352bae35c7fecb07d10bad6afd65b9e194e`.
-  Any further Generate requires another append-only superseding decision. This
-  phase must not add production current-task/operator routes, auth integration,
-  D24 activation, deployment, canary UI, or any fallback package bytes.
+  Any further Generate requires another append-only superseding decision.
+- D36 (`cb40a540cff9af1d350bf1a413aa3aeaee0ca1ddce65afabec7443f294944a1b`)
+  authorizes only local repository and CI implementation/verification of S3-S7.
+  It does not authorize D24 implementation or enablement, deployment,
+  production traffic, canary UI, legacy deletion, fallback package bytes, or
+  S8 release/cutover/rollback.
+- D37 is the active pending S4 contract-gap question. Until the user explicitly
+  resolves it, do not edit contract source, Generate, invent unversioned
+  bootstrap/checkpoint wire shapes, or implement dependent S4-S7 Web surfaces.
 - Treat `schemaIds()` as the public document projection. The exact nine
   `internal_constraint` TaskResult outcome variants are
   `task-result-completed-variant/v1`,
