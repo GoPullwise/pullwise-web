@@ -214,9 +214,22 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   It does not authorize D24 implementation or enablement, deployment,
   production traffic, canary UI, legacy deletion, fallback package bytes, or
   S8 release/cutover/rollback.
-- D37 is the active pending S4 contract-gap question. Until the user explicitly
-  resolves it, do not edit contract source, Generate, invent unversioned
-  bootstrap/checkpoint wire shapes, or implement dependent S4-S7 Web surfaces.
+- D37 (`ae16d63b19bcd6ec81c65daf1668a3bf8878210aed137a59761ca9b36f96aa70`)
+  is resolved to `bounded_s4_contract_closure_one_generate_no_activation`.
+  Every required pre-generation gate passed, and its single Generate allowance
+  is consumed by package `0.1.0`, content
+  `9dfa928d1a2d139036701b7d69354e6e4ceb16b9fa5d913fc77cd6fd823454fb`,
+  root `4a37e789495b8b22d102ef1e87110b8e28abf555fa30bcd5baa1a2568d4b22ef`,
+  Server producer commit `a223f1ffdee345da366ab7c3bf8ca230ad7f39cb`,
+  wrapper SHA-256
+  `5ce5340f90f7ea369bbe1395b63379f34576316d08c19d47f309e0c325f9354f`,
+  and package-manifest SHA-256
+  `31f468dc2001915b8640c2a78a7c3d95c544e8f82e84c193fe5798614488bf80`.
+  Do not Generate again without another append-only superseding decision.
+  These exact pins close the S4 wire prerequisite for local S4-S7 TDD only;
+  D24 implementation or enablement, production activation, deployment,
+  production traffic, canary UI, legacy deletion, fallback/dual paths, and S8
+  release/cutover/rollback remain forbidden.
 - Treat `schemaIds()` as the public document projection. The exact nine
   `internal_constraint` TaskResult outcome variants are
   `task-result-completed-variant/v1`,
