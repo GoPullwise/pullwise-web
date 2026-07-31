@@ -1,0 +1,3188 @@
+{
+  "styles/base.css": {
+    "dead": [],
+    "partial": [
+      {
+        "selStart": 13652,
+        "selEnd": 13711,
+        "line": 674,
+        "drop": [
+          "no animation */\r\n.shimmer-bg"
+        ],
+        "keep": [
+          "/* Kept for skeleton loading"
+        ]
+      },
+      {
+        "selStart": 16900,
+        "selEnd": 20411,
+        "line": 1060,
+        "drop": [
+          "/* Auth / OAuth */\r\n.auth-or",
+          ".dash-cat-row",
+          ".dash-cat-bar",
+          ".kan-col-h",
+          ".kan-empty",
+          ".kan-card-foot",
+          ".conf-bar",
+          "/* Issue detail */\r\n.tabs",
+          ".impact-h",
+          ".impact-i",
+          ".step-n",
+          ".diff-tag",
+          ".diff-col-h",
+          ".applied-i",
+          ".discuss-av",
+          ".tl-dot",
+          ".pr-progress",
+          ".pr-step",
+          ".pr-check",
+          "/* History */\r\n.hist-status",
+          ".hist-dot",
+          ".hist-stack",
+          ".hist-meta",
+          ".pricing-table-g",
+          ".pricing-faq-i summary",
+          ".docs-toc-h",
+          "/* Popovers */\r\n.pop",
+          ".pop-h",
+          ".pop-foot",
+          ".pop-section",
+          ".pop-i-ic",
+          ".status-bar",
+          ".status-bar-i",
+          ".status-legend",
+          ".status-inc-sev",
+          ".status-inc-tl-h",
+          ".notif-group-h",
+          ".notif-meta",
+          ".notif-actions",
+          ".notif-unread-dot",
+          "/* Atoms */\r\n.chip",
+          ".notif-h",
+          ".notif-row",
+          ".notif-sub",
+          ".legal-list-h",
+          ".status-section-h",
+          ".bill-card-h",
+          ".kbd-hint",
+          ".text-3",
+          ".text-4",
+          ".code-head",
+          ".code-line .ln",
+          ".kan-card-t",
+          ".hist-row b"
+        ],
+        "keep": [
+          "/* Non-selectable UI chrome (atoms + screen chrome).\r\n * The single canonical list — keep this in sync if a new chrome-only\r\n * class is added. Anything not in this list is treated as content the\r\n * user is allowed to select / copy.\r\n */\r\n/* Landing */\r\n.lp-top",
+          ".lp-nav",
+          ".lp-hero-tag",
+          ".lp-meta",
+          ".lp-preview-bar",
+          ".lp-preview-side",
+          ".lp-preview-issue-f",
+          ".lp-feat-i",
+          ".lp-foot",
+          ".auth-legal",
+          ".oauth-head",
+          ".oauth-perm-h",
+          ".oauth-perm-i",
+          ".oauth-actions",
+          ".oauth-foot",
+          "/* Repos */\r\n.repos-toolbar",
+          ".repos-orgs",
+          ".repos-foot",
+          ".repo-check-box",
+          ".repo-meta",
+          ".lang-dot",
+          ".gh-installs-h",
+          ".gh-install-icon",
+          ".gh-install-meta",
+          ".gh-install-status",
+          "/* Scanning */\r\n.scanning-h",
+          ".scanning-icon",
+          ".scanning-bar-meta",
+          ".scanning-phases",
+          ".scanning-phase-bullet",
+          ".scanning-counts-h",
+          ".scanning-counts-grid span",
+          "/* Dashboard */\r\n.kpi-h",
+          ".kpi-l",
+          ".kpi-d",
+          ".kpi-foot",
+          ".dash-summary-head",
+          ".dash-donut-dot",
+          ".seg",
+          ".seg-i",
+          ".dash-issues-h",
+          "/* Issues list / kanban */\r\n.issue-sev",
+          ".issue-id",
+          ".issue-effort",
+          ".issue-meta",
+          ".issue-card-foot",
+          "/* Issues table */\r\n.filters",
+          ".filter-l",
+          ".filter-pills",
+          ".pill-btn",
+          ".issues-thead",
+          ".issues-check",
+          ".tab",
+          ".section-h",
+          "/* Modal / PR form */\r\n.modal-h",
+          ".modal-foot",
+          "/* Settings */\r\n.set-side",
+          ".set-side-i",
+          ".set-av",
+          ".switch",
+          ".int-row",
+          ".usage-bar",
+          "/* Pricing */\r\n.pricing-toggle",
+          ".pricing-save",
+          ".pricing-badge",
+          ".pricing-billed",
+          ".pricing-feats svg",
+          "/* Docs */\r\n.docs-side",
+          ".docs-toc",
+          ".docs-crumbs",
+          ".docs-side-h",
+          ".docs-side-i",
+          ".docs-foot",
+          "/* Search modal */\r\n.search-h",
+          ".search-gh",
+          ".search-foot",
+          ".search-empty",
+          "/* Legal / Status / Notifications / 404 */\r\n.legal-side",
+          ".legal-side-h",
+          ".legal-side-i",
+          ".legal-side-foot",
+          ".legal-side-l",
+          ".legal-crumbs",
+          ".legal-foot-actions",
+          ".status-overall",
+          ".status-dot",
+          ".status-row-region",
+          ".status-row-pct",
+          ".notfound-code",
+          ".notfound-suggest-h",
+          ".notfound-suggest-ic",
+          ".notfound-suggest-d",
+          ".kbd",
+          ".tag",
+          ".pill",
+          ".sev",
+          ".dot",
+          ".badge",
+          ".topbar",
+          ".crumbs",
+          ".crumb-label",
+          ".crumb-button",
+          ".crumbs .sep",
+          ".crumbs .now",
+          ".brand",
+          ".brand-mark",
+          ".side",
+          ".side-h",
+          ".side-i",
+          ".side-i .badge",
+          ".page-h",
+          ".page-h h1",
+          ".page-h .sub",
+          ".page-h .actions",
+          ".pricing-card-h",
+          ".pricing-num",
+          ".pricing-tag",
+          ".docs-endpoint-card-h",
+          ".docs-code-h",
+          ".docs-foot-actions",
+          ".status-card-h",
+          ".notfound-sub",
+          ".notfound-suggest-i",
+          ".lang-picker",
+          ".lang-toggle",
+          ".lang-menu",
+          ".lang-menu-i",
+          ".lang-menu-code",
+          ".theme-toggle",
+          ".proto-nav",
+          ".proto-nav-i",
+          ".proto-nav-l",
+          ".proto-nav-n",
+          ".proto-nav-hint",
+          ".proto-nav-toggle",
+          ".quota-choice-count",
+          ".billing-summary",
+          ".billing-summary-main",
+          ".billing-summary-meter",
+          ".billing-actions",
+          ".bill-card",
+          ".muted",
+          ".sub",
+          ".kpi-v",
+          ".hist-row > .btn",
+          ".scanning-title",
+          ".scanning-sub",
+          ".scanning-phase-t",
+          ".scanning-phase-d",
+          ".search-i .tag",
+          ".issue-t"
+        ]
+      },
+      {
+        "selStart": 21428,
+        "selEnd": 21472,
+        "line": 1124,
+        "drop": [
+          ".side-workspace",
+          ".side-repos"
+        ],
+        "keep": [
+          ".side-h"
+        ]
+      }
+    ],
+    "deadClasses": [
+      "applied-i",
+      "auth-or",
+      "bill-card-h",
+      "chip",
+      "code-head",
+      "code-line",
+      "conf-bar",
+      "dash-cat-bar",
+      "dash-cat-row",
+      "diff-col-h",
+      "diff-tag",
+      "discuss-av",
+      "docs-toc-h",
+      "hist-dot",
+      "hist-meta",
+      "hist-row",
+      "hist-stack",
+      "hist-status",
+      "impact-h",
+      "impact-i",
+      "kan-card-foot",
+      "kan-card-t",
+      "kan-col-h",
+      "kan-empty",
+      "kbd-hint",
+      "legal-list-h",
+      "ln",
+      "notif-actions",
+      "notif-group-h",
+      "notif-h",
+      "notif-meta",
+      "notif-row",
+      "notif-sub",
+      "notif-unread-dot",
+      "pop",
+      "pop-foot",
+      "pop-h",
+      "pop-i-ic",
+      "pop-section",
+      "pr-check",
+      "pr-progress",
+      "pr-step",
+      "pricing-faq-i",
+      "pricing-table-g",
+      "shimmer-bg",
+      "side-repos",
+      "side-workspace",
+      "status-bar",
+      "status-bar-i",
+      "status-inc-sev",
+      "status-inc-tl-h",
+      "status-legend",
+      "status-section-h",
+      "step-n",
+      "tabs",
+      "text-3",
+      "text-4",
+      "tl-dot"
+    ]
+  },
+  "styles/screens.css": {
+    "dead": [
+      {
+        "start": 5908,
+        "end": 5975,
+        "line": 300,
+        "endLine": 304,
+        "selector": ".auth-back"
+      },
+      {
+        "start": 6675,
+        "end": 6808,
+        "line": 342,
+        "endLine": 349,
+        "selector": ".auth-or"
+      },
+      {
+        "start": 6810,
+        "end": 6923,
+        "line": 350,
+        "endLine": 356,
+        "selector": ".auth-or::before, .auth-or::after"
+      },
+      {
+        "start": 6925,
+        "end": 6999,
+        "line": 357,
+        "endLine": 361,
+        "selector": ".auth-form"
+      },
+      {
+        "start": 7942,
+        "end": 8292,
+        "line": 412,
+        "endLine": 423,
+        "selector": ".auth-error"
+      },
+      {
+        "start": 8294,
+        "end": 8353,
+        "line": 424,
+        "endLine": 427,
+        "selector": ".auth-error svg"
+      },
+      {
+        "start": 8850,
+        "end": 8889,
+        "line": 451,
+        "endLine": 453,
+        "selector": ".auth-dev-link"
+      },
+      {
+        "start": 11722,
+        "end": 11804,
+        "line": 598,
+        "endLine": 602,
+        "selector": ".oauth-perm-t"
+      },
+      {
+        "start": 11806,
+        "end": 11890,
+        "line": 603,
+        "endLine": 607,
+        "selector": ".oauth-perm-p"
+      },
+      {
+        "start": 11973,
+        "end": 12072,
+        "line": 612,
+        "endLine": 617,
+        "selector": ".oauth-org-row"
+      },
+      {
+        "start": 12074,
+        "end": 12151,
+        "line": 618,
+        "endLine": 621,
+        "selector": ".oauth-org-row input"
+      },
+      {
+        "start": 12153,
+        "end": 12211,
+        "line": 622,
+        "endLine": 625,
+        "selector": ".oauth-org-t"
+      },
+      {
+        "start": 12297,
+        "end": 12671,
+        "line": 631,
+        "endLine": 643,
+        "selector": ".oauth-error"
+      },
+      {
+        "start": 12673,
+        "end": 12733,
+        "line": 644,
+        "endLine": 647,
+        "selector": ".oauth-error svg"
+      },
+      {
+        "start": 46845,
+        "end": 47008,
+        "line": 2134,
+        "endLine": 2141,
+        "selector": ".audit-head"
+      },
+      {
+        "start": 47012,
+        "end": 47243,
+        "line": 2143,
+        "endLine": 2152,
+        "selector": ".audit-head-icon"
+      },
+      {
+        "start": 47247,
+        "end": 47376,
+        "line": 2154,
+        "endLine": 2160,
+        "selector": ".audit-head-t"
+      },
+      {
+        "start": 47380,
+        "end": 47574,
+        "line": 2162,
+        "endLine": 2170,
+        "selector": ".audit-head-sub"
+      },
+      {
+        "start": 47578,
+        "end": 47673,
+        "line": 2172,
+        "endLine": 2176,
+        "selector": ".audit-stat-strip"
+      },
+      {
+        "start": 47677,
+        "end": 47835,
+        "line": 2178,
+        "endLine": 2185,
+        "selector": ".audit-stat"
+      },
+      {
+        "start": 47839,
+        "end": 48003,
+        "line": 2187,
+        "endLine": 2194,
+        "selector": ".audit-stat b"
+      },
+      {
+        "start": 48007,
+        "end": 48073,
+        "line": 2196,
+        "endLine": 2199,
+        "selector": ".audit-stat span"
+      },
+      {
+        "start": 48077,
+        "end": 48144,
+        "line": 2201,
+        "endLine": 2204,
+        "selector": ".audit-stat-empty b"
+      },
+      {
+        "start": 48148,
+        "end": 48191,
+        "line": 2206,
+        "endLine": 2208,
+        "selector": ".audit-meta-fallback"
+      },
+      {
+        "start": 48195,
+        "end": 48655,
+        "line": 2210,
+        "endLine": 2229,
+        "selector": ".audit-evidence-link"
+      },
+      {
+        "start": 48659,
+        "end": 48744,
+        "line": 2231,
+        "endLine": 2234,
+        "selector": ".audit-evidence-link.is-interactive"
+      },
+      {
+        "start": 48748,
+        "end": 48891,
+        "line": 2236,
+        "endLine": 2239,
+        "selector": ".audit-evidence-link.is-interactive:hover"
+      },
+      {
+        "start": 48895,
+        "end": 48967,
+        "line": 2241,
+        "endLine": 2244,
+        "selector": ".audit-evidence-link:disabled"
+      },
+      {
+        "start": 48971,
+        "end": 49069,
+        "line": 2246,
+        "endLine": 2250,
+        "selector": ".audit-evidence-link > span"
+      },
+      {
+        "start": 49073,
+        "end": 49124,
+        "line": 2252,
+        "endLine": 2255,
+        "selector": ".audit-section"
+      },
+      {
+        "start": 49128,
+        "end": 49317,
+        "line": 2257,
+        "endLine": 2266,
+        "selector": ".audit-section-h"
+      },
+      {
+        "start": 49321,
+        "end": 49645,
+        "line": 2268,
+        "endLine": 2280,
+        "selector": ".audit-section-h .audit-section-count"
+      },
+      {
+        "start": 49649,
+        "end": 49701,
+        "line": 2282,
+        "endLine": 2285,
+        "selector": ".audit-card-list"
+      },
+      {
+        "start": 50049,
+        "end": 50230,
+        "line": 2304,
+        "endLine": 2312,
+        "selector": ".audit-card-title"
+      },
+      {
+        "start": 50234,
+        "end": 50399,
+        "line": 2314,
+        "endLine": 2322,
+        "selector": ".audit-card-meta"
+      },
+      {
+        "start": 50403,
+        "end": 50521,
+        "line": 2324,
+        "endLine": 2329,
+        "selector": ".audit-card-meta span"
+      },
+      {
+        "start": 51921,
+        "end": 52092,
+        "line": 2398,
+        "endLine": 2406,
+        "selector": ".audit-card-more"
+      },
+      {
+        "start": 57875,
+        "end": 58016,
+        "line": 2740,
+        "endLine": 2746,
+        "selector": ".kan-col"
+      },
+      {
+        "start": 58018,
+        "end": 58244,
+        "line": 2747,
+        "endLine": 2756,
+        "selector": ".kan-col-h"
+      },
+      {
+        "start": 58246,
+        "end": 58322,
+        "line": 2757,
+        "endLine": 2761,
+        "selector": ".kan-col-body"
+      },
+      {
+        "start": 58324,
+        "end": 58449,
+        "line": 2762,
+        "endLine": 2767,
+        "selector": ".kan-card"
+      },
+      {
+        "start": 58451,
+        "end": 58510,
+        "line": 2768,
+        "endLine": 2770,
+        "selector": ".kan-card:hover"
+      },
+      {
+        "start": 58512,
+        "end": 58638,
+        "line": 2771,
+        "endLine": 2777,
+        "selector": ".kan-card-t"
+      },
+      {
+        "start": 58640,
+        "end": 58736,
+        "line": 2778,
+        "endLine": 2782,
+        "selector": ".kan-card-foot"
+      },
+      {
+        "start": 58738,
+        "end": 58843,
+        "line": 2783,
+        "endLine": 2788,
+        "selector": ".kan-empty"
+      },
+      {
+        "start": 61679,
+        "end": 61821,
+        "line": 2937,
+        "endLine": 2944,
+        "selector": ".conf-bar"
+      },
+      {
+        "start": 61823,
+        "end": 61911,
+        "line": 2945,
+        "endLine": 2949,
+        "selector": ".conf-bar > div"
+      },
+      {
+        "start": 62505,
+        "end": 62665,
+        "line": 2978,
+        "endLine": 2985,
+        "selector": ".impact-band"
+      },
+      {
+        "start": 62667,
+        "end": 62781,
+        "line": 2986,
+        "endLine": 2992,
+        "selector": ".impact-i"
+      },
+      {
+        "start": 62783,
+        "end": 62943,
+        "line": 2993,
+        "endLine": 3000,
+        "selector": ".impact-h"
+      },
+      {
+        "start": 62945,
+        "end": 63025,
+        "line": 3001,
+        "endLine": 3005,
+        "selector": ".impact-p"
+      },
+      {
+        "start": 63029,
+        "end": 63138,
+        "line": 3007,
+        "endLine": 3012,
+        "selector": ".tabs"
+      },
+      {
+        "start": 64810,
+        "end": 64893,
+        "line": 3112,
+        "endLine": 3116,
+        "selector": ".evidence-checklist, .evidence-badges, .evidence-checklist-list"
+      },
+      {
+        "start": 65161,
+        "end": 65203,
+        "line": 3133,
+        "endLine": 3135,
+        "selector": ".evidence-checklist-list"
+      },
+      {
+        "start": 65205,
+        "end": 65258,
+        "line": 3136,
+        "endLine": 3139,
+        "selector": ".evidence-check"
+      },
+      {
+        "start": 65260,
+        "end": 65329,
+        "line": 3140,
+        "endLine": 3143,
+        "selector": ".evidence-check-icon"
+      },
+      {
+        "start": 65381,
+        "end": 65432,
+        "line": 3147,
+        "endLine": 3149,
+        "selector": ".evidence-check-label"
+      },
+      {
+        "start": 65434,
+        "end": 65468,
+        "line": 3150,
+        "endLine": 3152,
+        "selector": ".evidence-chain"
+      },
+      {
+        "start": 65470,
+        "end": 65595,
+        "line": 3153,
+        "endLine": 3159,
+        "selector": ".evidence-item"
+      },
+      {
+        "start": 65597,
+        "end": 65648,
+        "line": 3160,
+        "endLine": 3163,
+        "selector": ".evidence-item-h, .evidence-meta"
+      },
+      {
+        "start": 65650,
+        "end": 65712,
+        "line": 3164,
+        "endLine": 3167,
+        "selector": ".evidence-item-title"
+      },
+      {
+        "start": 65714,
+        "end": 65770,
+        "line": 3168,
+        "endLine": 3171,
+        "selector": ".evidence-meta"
+      },
+      {
+        "start": 65830,
+        "end": 65862,
+        "line": 3175,
+        "endLine": 3177,
+        "selector": ".repro-center"
+      },
+      {
+        "start": 65864,
+        "end": 65897,
+        "line": 3178,
+        "endLine": 3180,
+        "selector": ".repro-command"
+      },
+      {
+        "start": 65899,
+        "end": 65930,
+        "line": 3181,
+        "endLine": 3183,
+        "selector": ".repro-fields"
+      },
+      {
+        "start": 65992,
+        "end": 66034,
+        "line": 3188,
+        "endLine": 3190,
+        "selector": ".repro-field-text"
+      },
+      {
+        "start": 66087,
+        "end": 66127,
+        "line": 3195,
+        "endLine": 3197,
+        "selector": ".evidence-list"
+      },
+      {
+        "start": 66129,
+        "end": 66171,
+        "line": 3198,
+        "endLine": 3200,
+        "selector": ".evidence-raw-output"
+      },
+      {
+        "start": 66173,
+        "end": 66294,
+        "line": 3201,
+        "endLine": 3206,
+        "selector": ".evidence-raw-output summary"
+      },
+      {
+        "start": 66296,
+        "end": 66336,
+        "line": 3207,
+        "endLine": 3209,
+        "selector": ".code-evidence"
+      },
+      {
+        "start": 66557,
+        "end": 66631,
+        "line": 3218,
+        "endLine": 3222,
+        "selector": ".evidence-trace-wrap"
+      },
+      {
+        "start": 66633,
+        "end": 66834,
+        "line": 3223,
+        "endLine": 3230,
+        "selector": ".trace-progress"
+      },
+      {
+        "start": 66836,
+        "end": 66970,
+        "line": 3231,
+        "endLine": 3237,
+        "selector": ".trace-progress-h"
+      },
+      {
+        "start": 66972,
+        "end": 67044,
+        "line": 3238,
+        "endLine": 3241,
+        "selector": ".trace-progress-title"
+      },
+      {
+        "start": 67046,
+        "end": 67167,
+        "line": 3242,
+        "endLine": 3246,
+        "selector": ".trace-progress-count"
+      },
+      {
+        "start": 67169,
+        "end": 67343,
+        "line": 3247,
+        "endLine": 3254,
+        "selector": ".trace-progress-bar"
+      },
+      {
+        "start": 67345,
+        "end": 67546,
+        "line": 3255,
+        "endLine": 3261,
+        "selector": ".trace-progress-fill"
+      },
+      {
+        "start": 68177,
+        "end": 68490,
+        "line": 3293,
+        "endLine": 3305,
+        "selector": ".trace-node-bullet"
+      },
+      {
+        "start": 68492,
+        "end": 68679,
+        "line": 3306,
+        "endLine": 3311,
+        "selector": ".trace-step-present .trace-node-bullet"
+      },
+      {
+        "start": 68681,
+        "end": 68884,
+        "line": 3312,
+        "endLine": 3317,
+        "selector": ".trace-step-missing .trace-node-bullet"
+      },
+      {
+        "start": 68886,
+        "end": 69108,
+        "line": 3318,
+        "endLine": 3329,
+        "selector": ".trace-node-l"
+      },
+      {
+        "start": 69110,
+        "end": 69168,
+        "line": 3330,
+        "endLine": 3333,
+        "selector": ".trace-node-glyph"
+      },
+      {
+        "start": 69170,
+        "end": 69403,
+        "line": 3334,
+        "endLine": 3344,
+        "selector": ".trace-node-s"
+      },
+      {
+        "start": 69405,
+        "end": 69475,
+        "line": 3345,
+        "endLine": 3347,
+        "selector": ".trace-step-present .trace-node-s"
+      },
+      {
+        "start": 69477,
+        "end": 69547,
+        "line": 3348,
+        "endLine": 3350,
+        "selector": ".trace-step-missing .trace-node-s"
+      },
+      {
+        "start": 69952,
+        "end": 70158,
+        "line": 3370,
+        "endLine": 3380,
+        "selector": ".trace-connector"
+      },
+      {
+        "start": 70160,
+        "end": 70226,
+        "line": 3381,
+        "endLine": 3383,
+        "selector": ".trace-connector-present"
+      },
+      {
+        "start": 70228,
+        "end": 70347,
+        "line": 3384,
+        "endLine": 3388,
+        "selector": ".trace-connector-missing"
+      },
+      {
+        "start": 70349,
+        "end": 70674,
+        "line": 3389,
+        "endLine": 3401,
+        "selector": ".trace-node-detail"
+      },
+      {
+        "start": 70676,
+        "end": 70853,
+        "line": 3402,
+        "endLine": 3409,
+        "selector": ".trace-node-detail-h"
+      },
+      {
+        "start": 70855,
+        "end": 70945,
+        "line": 3410,
+        "endLine": 3415,
+        "selector": ".trace-node-items"
+      },
+      {
+        "start": 70947,
+        "end": 71061,
+        "line": 3416,
+        "endLine": 3421,
+        "selector": ".trace-node-items li"
+      },
+      {
+        "start": 71466,
+        "end": 71704,
+        "line": 3448,
+        "endLine": 3458,
+        "selector": ".step-n"
+      },
+      {
+        "start": 71708,
+        "end": 71814,
+        "line": 3460,
+        "endLine": 3465,
+        "selector": ".diff-grid"
+      },
+      {
+        "start": 71816,
+        "end": 71955,
+        "line": 3466,
+        "endLine": 3473,
+        "selector": ".diff-col-h"
+      },
+      {
+        "start": 71957,
+        "end": 72108,
+        "line": 3474,
+        "endLine": 3480,
+        "selector": ".diff-tag"
+      },
+      {
+        "start": 72211,
+        "end": 72311,
+        "line": 3485,
+        "endLine": 3488,
+        "selector": ".diff-tag.good"
+      },
+      {
+        "start": 72705,
+        "end": 72965,
+        "line": 3510,
+        "endLine": 3521,
+        "selector": ".diff-block"
+      },
+      {
+        "start": 72969,
+        "end": 73037,
+        "line": 3523,
+        "endLine": 3527,
+        "selector": ".refs"
+      },
+      {
+        "start": 73039,
+        "end": 73194,
+        "line": 3528,
+        "endLine": 3535,
+        "selector": ".ref-item"
+      },
+      {
+        "start": 73196,
+        "end": 73247,
+        "line": 3536,
+        "endLine": 3538,
+        "selector": ".ref-item:hover"
+      },
+      {
+        "start": 73249,
+        "end": 73301,
+        "line": 3539,
+        "endLine": 3542,
+        "selector": ".ref-t"
+      },
+      {
+        "start": 73303,
+        "end": 73393,
+        "line": 3543,
+        "endLine": 3547,
+        "selector": ".ref-u"
+      },
+      {
+        "start": 73397,
+        "end": 73677,
+        "line": 3549,
+        "endLine": 3557,
+        "selector": ".applied-card"
+      },
+      {
+        "start": 73679,
+        "end": 73825,
+        "line": 3558,
+        "endLine": 3565,
+        "selector": ".applied-i"
+      },
+      {
+        "start": 73827,
+        "end": 73908,
+        "line": 3566,
+        "endLine": 3570,
+        "selector": ".applied-h"
+      },
+      {
+        "start": 73910,
+        "end": 73972,
+        "line": 3571,
+        "endLine": 3574,
+        "selector": ".applied-p"
+      },
+      {
+        "start": 73976,
+        "end": 74048,
+        "line": 3576,
+        "endLine": 3580,
+        "selector": ".discuss"
+      },
+      {
+        "start": 74050,
+        "end": 74135,
+        "line": 3581,
+        "endLine": 3585,
+        "selector": ".discuss-msg"
+      },
+      {
+        "start": 74137,
+        "end": 74307,
+        "line": 3586,
+        "endLine": 3595,
+        "selector": ".discuss-av"
+      },
+      {
+        "start": 74309,
+        "end": 74416,
+        "line": 3596,
+        "endLine": 3601,
+        "selector": ".discuss-msg p"
+      },
+      {
+        "start": 74418,
+        "end": 74639,
+        "line": 3602,
+        "endLine": 3612,
+        "selector": ".discuss-input"
+      },
+      {
+        "start": 74641,
+        "end": 74698,
+        "line": 3613,
+        "endLine": 3615,
+        "selector": ".discuss-input:focus"
+      },
+      {
+        "start": 74702,
+        "end": 74818,
+        "line": 3617,
+        "endLine": 3623,
+        "selector": ".timeline"
+      },
+      {
+        "start": 74820,
+        "end": 74956,
+        "line": 3624,
+        "endLine": 3630,
+        "selector": ".timeline li"
+      },
+      {
+        "start": 74958,
+        "end": 75113,
+        "line": 3631,
+        "endLine": 3639,
+        "selector": ".timeline li::before"
+      },
+      {
+        "start": 75115,
+        "end": 75169,
+        "line": 3640,
+        "endLine": 3642,
+        "selector": ".timeline li:last-child::before"
+      },
+      {
+        "start": 75171,
+        "end": 75387,
+        "line": 3643,
+        "endLine": 3652,
+        "selector": ".tl-dot"
+      },
+      {
+        "start": 75389,
+        "end": 75427,
+        "line": 3653,
+        "endLine": 3655,
+        "selector": ".timeline b"
+      },
+      {
+        "start": 76244,
+        "end": 76316,
+        "line": 3699,
+        "endLine": 3703,
+        "selector": ".pr-form"
+      },
+      {
+        "start": 76318,
+        "end": 76631,
+        "line": 3704,
+        "endLine": 3717,
+        "selector": ".pr-desc"
+      },
+      {
+        "start": 76633,
+        "end": 76684,
+        "line": 3718,
+        "endLine": 3720,
+        "selector": ".pr-desc:focus"
+      },
+      {
+        "start": 76686,
+        "end": 76802,
+        "line": 3721,
+        "endLine": 3727,
+        "selector": ".pr-check"
+      },
+      {
+        "start": 76804,
+        "end": 76856,
+        "line": 3728,
+        "endLine": 3730,
+        "selector": ".pr-check input"
+      },
+      {
+        "start": 76858,
+        "end": 77016,
+        "line": 3731,
+        "endLine": 3738,
+        "selector": ".pr-progress"
+      },
+      {
+        "start": 77018,
+        "end": 77134,
+        "line": 3739,
+        "endLine": 3745,
+        "selector": ".pr-step"
+      },
+      {
+        "start": 77177,
+        "end": 77386,
+        "line": 3749,
+        "endLine": 3757,
+        "selector": ".pr-step > span:first-child"
+      },
+      {
+        "start": 77553,
+        "end": 77761,
+        "line": 3768,
+        "endLine": 3775,
+        "selector": ".hist-row"
+      },
+      {
+        "start": 77765,
+        "end": 77864,
+        "line": 3777,
+        "endLine": 3782,
+        "selector": ".hist-actions"
+      },
+      {
+        "start": 78403,
+        "end": 78454,
+        "line": 3796,
+        "endLine": 3798,
+        "selector": ".hist-row:hover"
+      },
+      {
+        "start": 78456,
+        "end": 78515,
+        "line": 3799,
+        "endLine": 3802,
+        "selector": ".hist-status"
+      },
+      {
+        "start": 78517,
+        "end": 78583,
+        "line": 3803,
+        "endLine": 3807,
+        "selector": ".hist-dot"
+      },
+      {
+        "start": 78585,
+        "end": 78690,
+        "line": 3808,
+        "endLine": 3814,
+        "selector": ".hist-stack"
+      },
+      {
+        "start": 78692,
+        "end": 78734,
+        "line": 3815,
+        "endLine": 3817,
+        "selector": ".hist-stack > span"
+      },
+      {
+        "start": 78736,
+        "end": 78786,
+        "line": 3818,
+        "endLine": 3820,
+        "selector": ".hist-row > div:nth-child(2)"
+      },
+      {
+        "start": 78788,
+        "end": 78876,
+        "line": 3821,
+        "endLine": 3824,
+        "selector": ".hist-row > div:nth-child(2) > div:first-child"
+      },
+      {
+        "start": 78878,
+        "end": 78984,
+        "line": 3825,
+        "endLine": 3830,
+        "selector": ".hist-row b"
+      },
+      {
+        "start": 78986,
+        "end": 79045,
+        "line": 3831,
+        "endLine": 3834,
+        "selector": ".hist-meta"
+      },
+      {
+        "start": 79047,
+        "end": 79146,
+        "line": 3835,
+        "endLine": 3839,
+        "selector": ".hist-meta > div:last-child"
+      },
+      {
+        "start": 100473,
+        "end": 100556,
+        "line": 4865,
+        "endLine": 4869,
+        "selector": ".pricing-cur"
+      },
+      {
+        "start": 100677,
+        "end": 100765,
+        "line": 4876,
+        "endLine": 4880,
+        "selector": ".pricing-custom"
+      },
+      {
+        "start": 102109,
+        "end": 102234,
+        "line": 4946,
+        "endLine": 4951,
+        "selector": ".pricing-compare"
+      },
+      {
+        "start": 102236,
+        "end": 102306,
+        "line": 4952,
+        "endLine": 4955,
+        "selector": ".pricing-compare-h"
+      },
+      {
+        "start": 102308,
+        "end": 102477,
+        "line": 4956,
+        "endLine": 4962,
+        "selector": ".pricing-compare-h h2"
+      },
+      {
+        "start": 102479,
+        "end": 102549,
+        "line": 4963,
+        "endLine": 4966,
+        "selector": ".pricing-compare-h p"
+      },
+      {
+        "start": 102553,
+        "end": 102686,
+        "line": 4968,
+        "endLine": 4973,
+        "selector": ".pricing-table-wrap"
+      },
+      {
+        "start": 102688,
+        "end": 102773,
+        "line": 4974,
+        "endLine": 4978,
+        "selector": ".pricing-table"
+      },
+      {
+        "start": 102775,
+        "end": 102956,
+        "line": 4979,
+        "endLine": 4986,
+        "selector": ".pricing-table th"
+      },
+      {
+        "start": 102958,
+        "end": 103007,
+        "line": 4987,
+        "endLine": 4989,
+        "selector": ".pricing-table th:first-child"
+      },
+      {
+        "start": 103009,
+        "end": 103122,
+        "line": 4990,
+        "endLine": 4994,
+        "selector": ".pricing-table td"
+      },
+      {
+        "start": 103124,
+        "end": 103184,
+        "line": 4995,
+        "endLine": 4997,
+        "selector": ".pricing-table tr:last-child td"
+      },
+      {
+        "start": 103186,
+        "end": 103421,
+        "line": 4998,
+        "endLine": 5007,
+        "selector": ".pricing-table-g td"
+      },
+      {
+        "start": 103423,
+        "end": 103488,
+        "line": 5008,
+        "endLine": 5011,
+        "selector": ".pricing-table-f"
+      },
+      {
+        "start": 103490,
+        "end": 103531,
+        "line": 5012,
+        "endLine": 5014,
+        "selector": ".pricing-na"
+      },
+      {
+        "start": 103533,
+        "end": 103595,
+        "line": 5015,
+        "endLine": 5018,
+        "selector": ".pricing-ok"
+      },
+      {
+        "start": 103910,
+        "end": 103991,
+        "line": 5034,
+        "endLine": 5038,
+        "selector": ".pricing-faq-list"
+      },
+      {
+        "start": 103993,
+        "end": 104121,
+        "line": 5039,
+        "endLine": 5044,
+        "selector": ".pricing-faq-i"
+      },
+      {
+        "start": 104123,
+        "end": 104348,
+        "line": 5045,
+        "endLine": 5055,
+        "selector": ".pricing-faq-i summary"
+      },
+      {
+        "start": 104350,
+        "end": 104419,
+        "line": 5056,
+        "endLine": 5058,
+        "selector": ".pricing-faq-i summary::-webkit-details-marker"
+      },
+      {
+        "start": 104421,
+        "end": 104532,
+        "line": 5059,
+        "endLine": 5063,
+        "selector": ".pricing-faq-i summary svg"
+      },
+      {
+        "start": 104534,
+        "end": 104600,
+        "line": 5064,
+        "endLine": 5066,
+        "selector": ".pricing-faq-i[open] summary svg"
+      },
+      {
+        "start": 104602,
+        "end": 104716,
+        "line": 5067,
+        "endLine": 5072,
+        "selector": ".pricing-faq-i p"
+      },
+      {
+        "start": 105384,
+        "end": 105581,
+        "line": 5107,
+        "endLine": 5116,
+        "selector": ".docs-search"
+      },
+      {
+        "start": 105583,
+        "end": 105754,
+        "line": 5117,
+        "endLine": 5125,
+        "selector": ".docs-search input"
+      },
+      {
+        "start": 105756,
+        "end": 105802,
+        "line": 5126,
+        "endLine": 5128,
+        "selector": ".docs-search svg"
+      },
+      {
+        "start": 108544,
+        "end": 108712,
+        "line": 5268,
+        "endLine": 5276,
+        "selector": ".docs-list"
+      },
+      {
+        "start": 108714,
+        "end": 108778,
+        "line": 5277,
+        "endLine": 5280,
+        "selector": ".docs-list li b"
+      },
+      {
+        "start": 115909,
+        "end": 116022,
+        "line": 5620,
+        "endLine": 5625,
+        "selector": ".docs-cards"
+      },
+      {
+        "start": 116055,
+        "end": 116106,
+        "line": 5627,
+        "endLine": 5629,
+        "selector": ".docs-cards"
+      },
+      {
+        "start": 116111,
+        "end": 116371,
+        "line": 5631,
+        "endLine": 5641,
+        "selector": ".docs-card"
+      },
+      {
+        "start": 116373,
+        "end": 116426,
+        "line": 5642,
+        "endLine": 5644,
+        "selector": ".docs-card:hover"
+      },
+      {
+        "start": 116428,
+        "end": 116486,
+        "line": 5645,
+        "endLine": 5648,
+        "selector": ".docs-card svg"
+      },
+      {
+        "start": 116488,
+        "end": 116592,
+        "line": 5649,
+        "endLine": 5654,
+        "selector": ".docs-card b"
+      },
+      {
+        "start": 116594,
+        "end": 116693,
+        "line": 5655,
+        "endLine": 5660,
+        "selector": ".docs-card p"
+      },
+      {
+        "start": 117001,
+        "end": 117189,
+        "line": 5679,
+        "endLine": 5686,
+        "selector": "/* ── Popovers (Sort / Filter / Bell dropdowns) ──────────────────────── */ .pop-back"
+      },
+      {
+        "start": 117191,
+        "end": 117429,
+        "line": 5687,
+        "endLine": 5698,
+        "selector": ".pop"
+      },
+      {
+        "start": 117431,
+        "end": 117466,
+        "line": 5699,
+        "endLine": 5701,
+        "selector": ".pop-wide"
+      },
+      {
+        "start": 117468,
+        "end": 117503,
+        "line": 5702,
+        "endLine": 5704,
+        "selector": ".pop-bell"
+      },
+      {
+        "start": 117505,
+        "end": 117782,
+        "line": 5705,
+        "endLine": 5716,
+        "selector": ".pop-h"
+      },
+      {
+        "start": 117877,
+        "end": 117934,
+        "line": 5722,
+        "endLine": 5725,
+        "selector": ".pop-body"
+      },
+      {
+        "start": 117936,
+        "end": 118100,
+        "line": 5726,
+        "endLine": 5733,
+        "selector": ".pop-foot"
+      },
+      {
+        "start": 118102,
+        "end": 118185,
+        "line": 5734,
+        "endLine": 5737,
+        "selector": ".pop-section"
+      },
+      {
+        "start": 118187,
+        "end": 118238,
+        "line": 5738,
+        "endLine": 5740,
+        "selector": ".pop-section:last-of-type"
+      },
+      {
+        "start": 118240,
+        "end": 118470,
+        "line": 5741,
+        "endLine": 5753,
+        "selector": ".pop-i"
+      },
+      {
+        "start": 118472,
+        "end": 118520,
+        "line": 5754,
+        "endLine": 5756,
+        "selector": ".pop-i:hover"
+      },
+      {
+        "start": 118605,
+        "end": 118665,
+        "line": 5760,
+        "endLine": 5762,
+        "selector": ".pop-i + .pop-i"
+      },
+      {
+        "start": 118667,
+        "end": 118750,
+        "line": 5763,
+        "endLine": 5767,
+        "selector": ".pop-i-ic"
+      },
+      {
+        "start": 118752,
+        "end": 118829,
+        "line": 5768,
+        "endLine": 5772,
+        "selector": ".pop-i-t"
+      },
+      {
+        "start": 118831,
+        "end": 118911,
+        "line": 5773,
+        "endLine": 5777,
+        "selector": ".pop-i-s"
+      },
+      {
+        "start": 118913,
+        "end": 119001,
+        "line": 5778,
+        "endLine": 5783,
+        "selector": ".pop-row"
+      },
+      {
+        "start": 119003,
+        "end": 119109,
+        "line": 5784,
+        "endLine": 5788,
+        "selector": ".pop-row + .pop-row"
+      },
+      {
+        "start": 119111,
+        "end": 119241,
+        "line": 5789,
+        "endLine": 5795,
+        "selector": ".pop-slider"
+      },
+      {
+        "start": 119243,
+        "end": 119358,
+        "line": 5796,
+        "endLine": 5800,
+        "selector": ".pop-slider::-webkit-slider-runnable-track"
+      },
+      {
+        "start": 119360,
+        "end": 119614,
+        "line": 5801,
+        "endLine": 5810,
+        "selector": ".pop-slider::-webkit-slider-thumb"
+      },
+      {
+        "start": 119616,
+        "end": 119718,
+        "line": 5811,
+        "endLine": 5815,
+        "selector": ".pop-slider::-moz-range-track"
+      },
+      {
+        "start": 119720,
+        "end": 119875,
+        "line": 5816,
+        "endLine": 5822,
+        "selector": ".pop-slider::-moz-range-thumb"
+      },
+      {
+        "start": 123338,
+        "end": 123399,
+        "line": 5998,
+        "endLine": 6000,
+        "selector": ".diff-grid"
+      },
+      {
+        "start": 126092,
+        "end": 126157,
+        "line": 6172,
+        "endLine": 6174,
+        "selector": ".legal-table-r"
+      },
+      {
+        "start": 126353,
+        "end": 126427,
+        "line": 6187,
+        "endLine": 6189,
+        "selector": ".dash-cat-row"
+      },
+      {
+        "start": 127370,
+        "end": 127480,
+        "line": 6245,
+        "endLine": 6249,
+        "selector": ".hist-row"
+      },
+      {
+        "start": 127486,
+        "end": 127591,
+        "line": 6251,
+        "endLine": 6256,
+        "selector": ".hist-meta, .hist-actions"
+      },
+      {
+        "start": 127597,
+        "end": 127651,
+        "line": 6258,
+        "endLine": 6260,
+        "selector": ".hist-actions"
+      },
+      {
+        "start": 128189,
+        "end": 128225,
+        "line": 6297,
+        "endLine": 6299,
+        "selector": ".legal-table-r"
+      },
+      {
+        "start": 132084,
+        "end": 132210,
+        "line": 6509,
+        "endLine": 6514,
+        "selector": ".legal-table"
+      },
+      {
+        "start": 132212,
+        "end": 132386,
+        "line": 6515,
+        "endLine": 6522,
+        "selector": ".legal-table-r"
+      },
+      {
+        "start": 132388,
+        "end": 132439,
+        "line": 6523,
+        "endLine": 6525,
+        "selector": ".legal-table-r:last-child"
+      },
+      {
+        "start": 132441,
+        "end": 132526,
+        "line": 6526,
+        "endLine": 6530,
+        "selector": ".legal-table-r b"
+      },
+      {
+        "start": 132528,
+        "end": 132599,
+        "line": 6531,
+        "endLine": 6534,
+        "selector": ".legal-table-r span"
+      },
+      {
+        "start": 132601,
+        "end": 132865,
+        "line": 6535,
+        "endLine": 6543,
+        "selector": ".legal-callout"
+      },
+      {
+        "start": 132867,
+        "end": 132954,
+        "line": 6544,
+        "endLine": 6548,
+        "selector": ".legal-callout svg"
+      },
+      {
+        "start": 132956,
+        "end": 133064,
+        "line": 6549,
+        "endLine": 6554,
+        "selector": ".legal-callout b"
+      },
+      {
+        "start": 133066,
+        "end": 133168,
+        "line": 6555,
+        "endLine": 6560,
+        "selector": ".legal-callout p"
+      },
+      {
+        "start": 134696,
+        "end": 134772,
+        "line": 6620,
+        "endLine": 6624,
+        "selector": ".status-cta"
+      },
+      {
+        "start": 136219,
+        "end": 136310,
+        "line": 6695,
+        "endLine": 6700,
+        "selector": ".status-bar"
+      },
+      {
+        "start": 136312,
+        "end": 136443,
+        "line": 6701,
+        "endLine": 6707,
+        "selector": ".status-bar-i"
+      },
+      {
+        "start": 136573,
+        "end": 136625,
+        "line": 6714,
+        "endLine": 6716,
+        "selector": ".status-bar-i:hover"
+      },
+      {
+        "start": 136866,
+        "end": 137027,
+        "line": 6730,
+        "endLine": 6737,
+        "selector": ".status-legend"
+      },
+      {
+        "start": 137029,
+        "end": 137115,
+        "line": 6738,
+        "endLine": 6742,
+        "selector": ".status-legend span"
+      },
+      {
+        "start": 137418,
+        "end": 137500,
+        "line": 6758,
+        "endLine": 6761,
+        "selector": ".status-inc"
+      },
+      {
+        "start": 137502,
+        "end": 137550,
+        "line": 6762,
+        "endLine": 6764,
+        "selector": ".status-inc:last-child"
+      },
+      {
+        "start": 137552,
+        "end": 137670,
+        "line": 6765,
+        "endLine": 6771,
+        "selector": ".status-inc-h"
+      },
+      {
+        "start": 137672,
+        "end": 137772,
+        "line": 6772,
+        "endLine": 6777,
+        "selector": ".status-inc-h h3"
+      },
+      {
+        "start": 137774,
+        "end": 138037,
+        "line": 6778,
+        "endLine": 6787,
+        "selector": ".status-inc-sev"
+      },
+      {
+        "start": 138039,
+        "end": 138170,
+        "line": 6788,
+        "endLine": 6791,
+        "selector": ".status-inc-sev.major"
+      },
+      {
+        "start": 138172,
+        "end": 138291,
+        "line": 6792,
+        "endLine": 6797,
+        "selector": ".status-inc-tl"
+      },
+      {
+        "start": 138293,
+        "end": 138339,
+        "line": 6798,
+        "endLine": 6800,
+        "selector": ".status-inc-tl li"
+      },
+      {
+        "start": 138341,
+        "end": 138395,
+        "line": 6801,
+        "endLine": 6803,
+        "selector": ".status-inc-tl li:last-child"
+      },
+      {
+        "start": 138397,
+        "end": 138499,
+        "line": 6804,
+        "endLine": 6809,
+        "selector": ".status-inc-tl-h"
+      },
+      {
+        "start": 138501,
+        "end": 138546,
+        "line": 6810,
+        "endLine": 6812,
+        "selector": ".status-inc-tl-h b"
+      },
+      {
+        "start": 138634,
+        "end": 138736,
+        "line": 6817,
+        "endLine": 6822,
+        "selector": ".status-inc-tl p"
+      },
+      {
+        "start": 138738,
+        "end": 138847,
+        "line": 6823,
+        "endLine": 6828,
+        "selector": ".status-empty"
+      },
+      {
+        "start": 138851,
+        "end": 139015,
+        "line": 6830,
+        "endLine": 6836,
+        "selector": "/* ── Notifications inbox ───────────────────────────────────── */ .notif-list"
+      },
+      {
+        "start": 139017,
+        "end": 139092,
+        "line": 6837,
+        "endLine": 6841,
+        "selector": ".notif-group"
+      },
+      {
+        "start": 139094,
+        "end": 139317,
+        "line": 6842,
+        "endLine": 6851,
+        "selector": ".notif-group-h"
+      },
+      {
+        "start": 139367,
+        "end": 139668,
+        "line": 6855,
+        "endLine": 6867,
+        "selector": ".notif-row"
+      },
+      {
+        "start": 139797,
+        "end": 139857,
+        "line": 6875,
+        "endLine": 6877,
+        "selector": ".notif-row:hover"
+      },
+      {
+        "start": 139859,
+        "end": 140000,
+        "line": 6878,
+        "endLine": 6885,
+        "selector": ".notif-ic"
+      },
+      {
+        "start": 140002,
+        "end": 140055,
+        "line": 6886,
+        "endLine": 6889,
+        "selector": ".notif-body"
+      },
+      {
+        "start": 140057,
+        "end": 140168,
+        "line": 6890,
+        "endLine": 6896,
+        "selector": ".notif-h"
+      },
+      {
+        "start": 140170,
+        "end": 140251,
+        "line": 6897,
+        "endLine": 6901,
+        "selector": ".notif-h b"
+      },
+      {
+        "start": 140253,
+        "end": 140407,
+        "line": 6902,
+        "endLine": 6909,
+        "selector": ".notif-s"
+      },
+      {
+        "start": 140409,
+        "end": 140533,
+        "line": 6910,
+        "endLine": 6915,
+        "selector": ".notif-meta"
+      },
+      {
+        "start": 140535,
+        "end": 140635,
+        "line": 6916,
+        "endLine": 6921,
+        "selector": ".notif-actions"
+      },
+      {
+        "start": 140637,
+        "end": 140688,
+        "line": 6922,
+        "endLine": 6924,
+        "selector": ".notif-row:hover .notif-actions"
+      },
+      {
+        "start": 140690,
+        "end": 140794,
+        "line": 6925,
+        "endLine": 6930,
+        "selector": ".notif-unread-dot"
+      },
+      {
+        "start": 140796,
+        "end": 140859,
+        "line": 6931,
+        "endLine": 6934,
+        "selector": ".notif-empty"
+      },
+      {
+        "start": 140861,
+        "end": 140982,
+        "line": 6935,
+        "endLine": 6940,
+        "selector": ".notif-empty h3"
+      },
+      {
+        "start": 140984,
+        "end": 141102,
+        "line": 6941,
+        "endLine": 6947,
+        "selector": ".notif-empty p"
+      },
+      {
+        "start": 146119,
+        "end": 146153,
+        "line": 7209,
+        "endLine": 7211,
+        "selector": ".conf-bar"
+      },
+      {
+        "start": 146237,
+        "end": 146269,
+        "line": 7219,
+        "endLine": 7221,
+        "selector": ".hist-meta"
+      },
+      {
+        "start": 146572,
+        "end": 146644,
+        "line": 7248,
+        "endLine": 7251,
+        "selector": ".pop-wide, .pop-bell"
+      },
+      {
+        "start": 146648,
+        "end": 146688,
+        "line": 7253,
+        "endLine": 7255,
+        "selector": ".pricing-table"
+      },
+      {
+        "start": 146900,
+        "end": 146974,
+        "line": 7268,
+        "endLine": 7270,
+        "selector": ".dash-cat-row"
+      },
+      {
+        "start": 147374,
+        "end": 147418,
+        "line": 7295,
+        "endLine": 7297,
+        "selector": ".pricing-table"
+      }
+    ],
+    "partial": [
+      {
+        "selStart": 5619,
+        "selEnd": 5711,
+        "line": 290,
+        "drop": [
+          "/* ── Auth ─────────────────────────────────────────────────── */\r\n.auth-shell"
+        ],
+        "keep": [
+          ".auth-wrap"
+        ]
+      },
+      {
+        "selStart": 9559,
+        "selEnd": 9653,
+        "line": 490,
+        "drop": [
+          "/* ── OAuth ────────────────────────────────────────────────── */\r\n.oauth-shell"
+        ],
+        "keep": [
+          ".oauth-wrap"
+        ]
+      },
+      {
+        "selStart": 64409,
+        "selEnd": 64563,
+        "line": 3095,
+        "drop": [
+          ".evidence-checklist",
+          ".evidence-checklist-list",
+          ".evidence-chain",
+          ".repro-center",
+          ".repro-fields"
+        ],
+        "keep": [
+          ".issue-detail-main-col",
+          ".audit-scope",
+          ".issue-actions"
+        ]
+      },
+      {
+        "selStart": 64647,
+        "selEnd": 64721,
+        "line": 3105,
+        "drop": [
+          ".evidence-summary",
+          ".repro-note",
+          ".repro-field-text"
+        ],
+        "keep": [
+          ".issue-section-note"
+        ]
+      },
+      {
+        "selStart": 64895,
+        "selEnd": 65000,
+        "line": 3122,
+        "drop": [
+          ".evidence-badges",
+          ".evidence-check",
+          ".evidence-item-h",
+          ".evidence-meta",
+          ".repro-tags"
+        ],
+        "keep": [
+          ".issue-action-row"
+        ]
+      },
+      {
+        "selStart": 65048,
+        "selEnd": 65135,
+        "line": 3130,
+        "drop": [
+          ".evidence-badges",
+          ".evidence-item-h",
+          ".evidence-meta",
+          ".repro-tags"
+        ],
+        "keep": [
+          ".issue-action-row"
+        ]
+      },
+      {
+        "selStart": 65932,
+        "selEnd": 65966,
+        "line": 3185,
+        "drop": [
+          ".repro-field-title"
+        ],
+        "keep": [
+          ".audit-scope"
+        ]
+      },
+      {
+        "selStart": 66036,
+        "selEnd": 66068,
+        "line": 3192,
+        "drop": [
+          ".repro-tags"
+        ],
+        "keep": [
+          ".issue-action-row"
+        ]
+      },
+      {
+        "selStart": 123403,
+        "selEnd": 123519,
+        "line": 6004,
+        "drop": [
+          ".impact-stat-grid",
+          ".impact-relations",
+          ".impact-coverage-grid"
+        ],
+        "keep": [
+          ".impact-target-card.compact .impact-relations"
+        ]
+      },
+      {
+        "selStart": 125915,
+        "selEnd": 126005,
+        "line": 6166,
+        "drop": [
+          ".docs-cards"
+        ],
+        "keep": [
+          ".kpi-row",
+          ".issue-grid",
+          ".issue-kanban",
+          ".set-shell",
+          ".status-row"
+        ]
+      },
+      {
+        "selStart": 126163,
+        "selEnd": 126269,
+        "line": 6181,
+        "drop": [
+          ".status-legend"
+        ],
+        "keep": [
+          ".dash-issues-h",
+          ".section-h",
+          ".set-pref",
+          ".status-card-h",
+          ".legal-foot-actions"
+        ]
+      },
+      {
+        "selStart": 129159,
+        "selEnd": 129191,
+        "line": 6361,
+        "drop": [
+          ".status-cta"
+        ],
+        "keep": [
+          ".status-overall"
+        ]
+      },
+      {
+        "selStart": 131871,
+        "selEnd": 131902,
+        "line": 6498,
+        "drop": [
+          ".legal-list-flat"
+        ],
+        "keep": [
+          ".legal-list"
+        ]
+      },
+      {
+        "selStart": 132018,
+        "selEnd": 132055,
+        "line": 6506,
+        "drop": [
+          ".legal-list-flat li"
+        ],
+        "keep": [
+          ".legal-list li"
+        ]
+      },
+      {
+        "selStart": 144753,
+        "selEnd": 145022,
+        "line": 7136,
+        "drop": [
+          ".dash-cat-row",
+          ".hist-row",
+          ".legal-table-r"
+        ],
+        "keep": [
+          ".lp-preview-issue",
+          ".dash-donut-row",
+          ".repo-row",
+          ".gh-install-row",
+          ".issues-thead",
+          ".issues-trow",
+          ".int-row",
+          ".docs-table-r",
+          ".docs-config-grid",
+          ".docs-config-group",
+          ".docs-config-row",
+          ".docs-page-head",
+          ".notfound-suggest-i"
+        ]
+      },
+      {
+        "selStart": 145047,
+        "selEnd": 145323,
+        "line": 7153,
+        "drop": [
+          ".dash-cat-row > *",
+          ".hist-row > *",
+          ".legal-table-r > *"
+        ],
+        "keep": [
+          ".lp-preview-url",
+          ".lp-preview-issue > *",
+          ".dash-donut-row > *",
+          ".repo-row > *",
+          ".gh-install-row > *",
+          ".issues-trow > *",
+          ".int-row > *",
+          ".search-i > *",
+          ".docs-table-r > *",
+          ".docs-config-row > *",
+          ".notfound-suggest-i > *"
+        ]
+      },
+      {
+        "selStart": 145604,
+        "selEnd": 145782,
+        "line": 7184,
+        "drop": [
+          ".kan-card-foot",
+          ".applied-card"
+        ],
+        "keep": [
+          ".issue-card-h",
+          ".issue-card-foot",
+          ".fix-preview-h",
+          ".bill-card",
+          ".billing-summary",
+          ".docs-code-h",
+          ".docs-page-head",
+          ".docs-foot",
+          ".notfound-foot"
+        ]
+      },
+      {
+        "selStart": 146157,
+        "selEnd": 146208,
+        "line": 7215,
+        "drop": [
+          ".diff-block",
+          ".pricing-table-wrap"
+        ],
+        "keep": [
+          ".docs-code pre"
+        ]
+      },
+      {
+        "selStart": 146516,
+        "selEnd": 146530,
+        "line": 7244,
+        "drop": [
+          ".pop"
+        ],
+        "keep": [
+          ".modal"
+        ]
+      },
+      {
+        "selStart": 146723,
+        "selEnd": 146767,
+        "line": 7260,
+        "drop": [
+          ".hist-row"
+        ],
+        "keep": [
+          ".repo-row",
+          ".gh-install-row"
+        ]
+      },
+      {
+        "selStart": 146980,
+        "selEnd": 147013,
+        "line": 7273,
+        "drop": [
+          ".legal-table-r"
+        ],
+        "keep": [
+          ".docs-table-r"
+        ]
+      },
+      {
+        "selStart": 147424,
+        "selEnd": 147477,
+        "line": 7301,
+        "drop": [
+          ".legal-table",
+          ".pricing-table-wrap"
+        ],
+        "keep": [
+          ".docs-table"
+        ]
+      }
+    ],
+    "deadClasses": [
+      "applied-card",
+      "applied-h",
+      "applied-i",
+      "applied-p",
+      "audit-card-list",
+      "audit-card-meta",
+      "audit-card-more",
+      "audit-card-title",
+      "audit-evidence-link",
+      "audit-head",
+      "audit-head-icon",
+      "audit-head-sub",
+      "audit-head-t",
+      "audit-meta-fallback",
+      "audit-section",
+      "audit-section-count",
+      "audit-section-h",
+      "audit-stat",
+      "audit-stat-empty",
+      "audit-stat-strip",
+      "auth-back",
+      "auth-dev-link",
+      "auth-error",
+      "auth-form",
+      "auth-or",
+      "auth-shell",
+      "code-evidence",
+      "conf-bar",
+      "dash-cat-row",
+      "diff-block",
+      "diff-col-h",
+      "diff-grid",
+      "diff-tag",
+      "discuss",
+      "discuss-av",
+      "discuss-input",
+      "discuss-msg",
+      "docs-card",
+      "docs-cards",
+      "docs-list",
+      "docs-search",
+      "evidence-badges",
+      "evidence-chain",
+      "evidence-check",
+      "evidence-check-icon",
+      "evidence-check-label",
+      "evidence-checklist",
+      "evidence-checklist-list",
+      "evidence-item",
+      "evidence-item-h",
+      "evidence-item-title",
+      "evidence-list",
+      "evidence-meta",
+      "evidence-raw-output",
+      "evidence-summary",
+      "evidence-trace-wrap",
+      "good",
+      "hist-actions",
+      "hist-dot",
+      "hist-meta",
+      "hist-row",
+      "hist-stack",
+      "hist-status",
+      "impact-band",
+      "impact-coverage-grid",
+      "impact-h",
+      "impact-i",
+      "impact-p",
+      "impact-relations",
+      "impact-stat-grid",
+      "is-interactive",
+      "kan-card",
+      "kan-card-foot",
+      "kan-card-t",
+      "kan-col",
+      "kan-col-body",
+      "kan-col-h",
+      "kan-empty",
+      "legal-callout",
+      "legal-list-flat",
+      "legal-table",
+      "legal-table-r",
+      "major",
+      "notif-actions",
+      "notif-body",
+      "notif-empty",
+      "notif-group",
+      "notif-group-h",
+      "notif-h",
+      "notif-ic",
+      "notif-list",
+      "notif-meta",
+      "notif-row",
+      "notif-s",
+      "notif-unread-dot",
+      "oauth-error",
+      "oauth-org-row",
+      "oauth-org-t",
+      "oauth-perm-p",
+      "oauth-perm-t",
+      "oauth-shell",
+      "pop",
+      "pop-back",
+      "pop-bell",
+      "pop-body",
+      "pop-foot",
+      "pop-h",
+      "pop-i",
+      "pop-i-ic",
+      "pop-i-s",
+      "pop-i-t",
+      "pop-row",
+      "pop-section",
+      "pop-slider",
+      "pop-wide",
+      "pr-check",
+      "pr-desc",
+      "pr-form",
+      "pr-progress",
+      "pr-step",
+      "pricing-compare",
+      "pricing-compare-h",
+      "pricing-cur",
+      "pricing-custom",
+      "pricing-faq-i",
+      "pricing-faq-list",
+      "pricing-na",
+      "pricing-ok",
+      "pricing-table",
+      "pricing-table-f",
+      "pricing-table-g",
+      "pricing-table-wrap",
+      "ref-item",
+      "ref-t",
+      "ref-u",
+      "refs",
+      "repro-center",
+      "repro-command",
+      "repro-field-text",
+      "repro-field-title",
+      "repro-fields",
+      "repro-note",
+      "repro-tags",
+      "status-bar",
+      "status-bar-i",
+      "status-cta",
+      "status-empty",
+      "status-inc",
+      "status-inc-h",
+      "status-inc-sev",
+      "status-inc-tl",
+      "status-inc-tl-h",
+      "status-legend",
+      "step-n",
+      "tabs",
+      "timeline",
+      "tl-dot",
+      "trace-connector",
+      "trace-connector-missing",
+      "trace-connector-present",
+      "trace-node-bullet",
+      "trace-node-detail",
+      "trace-node-detail-h",
+      "trace-node-glyph",
+      "trace-node-items",
+      "trace-node-l",
+      "trace-node-s",
+      "trace-progress",
+      "trace-progress-bar",
+      "trace-progress-count",
+      "trace-progress-fill",
+      "trace-progress-h",
+      "trace-progress-title",
+      "trace-step-missing",
+      "trace-step-present"
+    ]
+  },
+  "src/app.css": {
+    "dead": [
+      {
+        "start": 1421,
+        "end": 1464,
+        "line": 86,
+        "endLine": 88,
+        "selector": ".status-idle"
+      },
+      {
+        "start": 1468,
+        "end": 1532,
+        "line": 90,
+        "endLine": 93,
+        "selector": ".status-busy, .status-online"
+      },
+      {
+        "start": 1536,
+        "end": 1585,
+        "line": 95,
+        "endLine": 97,
+        "selector": ".status-degraded"
+      },
+      {
+        "start": 1589,
+        "end": 1676,
+        "line": 99,
+        "endLine": 103,
+        "selector": ".status-offline, .status-disabled, .status-unknown"
+      },
+      {
+        "start": 14386,
+        "end": 14446,
+        "line": 791,
+        "endLine": 793,
+        "selector": ".dash-cat-row > span:nth-child(2)"
+      },
+      {
+        "start": 22466,
+        "end": 22500,
+        "line": 1210,
+        "endLine": 1212,
+        "selector": ".conf-bar"
+      },
+      {
+        "start": 23251,
+        "end": 23293,
+        "line": 1256,
+        "endLine": 1258,
+        "selector": ".code-line"
+      },
+      {
+        "start": 28297,
+        "end": 28383,
+        "line": 1550,
+        "endLine": 1552,
+        "selector": ".hist-row"
+      },
+      {
+        "start": 28387,
+        "end": 28527,
+        "line": 1554,
+        "endLine": 1559,
+        "selector": ".hist-row > div:nth-child(2) > div:first-child"
+      },
+      {
+        "start": 28531,
+        "end": 28676,
+        "line": 1561,
+        "endLine": 1568,
+        "selector": ".hist-row b"
+      },
+      {
+        "start": 29919,
+        "end": 29964,
+        "line": 1652,
+        "endLine": 1654,
+        "selector": ".pricing-table-wrap"
+      },
+      {
+        "start": 29968,
+        "end": 30008,
+        "line": 1656,
+        "endLine": 1658,
+        "selector": ".pricing-table"
+      },
+      {
+        "start": 30267,
+        "end": 30359,
+        "line": 1673,
+        "endLine": 1677,
+        "selector": ".docs-endpoint"
+      },
+      {
+        "start": 30672,
+        "end": 30715,
+        "line": 1700,
+        "endLine": 1702,
+        "selector": ".pop"
+      },
+      {
+        "start": 31257,
+        "end": 31327,
+        "line": 1735,
+        "endLine": 1737,
+        "selector": ".hist-row"
+      },
+      {
+        "start": 34025,
+        "end": 34069,
+        "line": 1883,
+        "endLine": 1885,
+        "selector": ".pricing-table"
+      },
+      {
+        "start": 34403,
+        "end": 34472,
+        "line": 1905,
+        "endLine": 1907,
+        "selector": ".dash-cat-row"
+      },
+      {
+        "start": 34478,
+        "end": 34522,
+        "line": 1909,
+        "endLine": 1911,
+        "selector": ".dash-cat-row > b"
+      },
+      {
+        "start": 36521,
+        "end": 36581,
+        "line": 2029,
+        "endLine": 2032,
+        "selector": ".server-machine-monitor"
+      },
+      {
+        "start": 36585,
+        "end": 36666,
+        "line": 2034,
+        "endLine": 2038,
+        "selector": ".server-machine-facts, .server-machine-grid"
+      },
+      {
+        "start": 36670,
+        "end": 36749,
+        "line": 2040,
+        "endLine": 2042,
+        "selector": ".server-machine-facts"
+      },
+      {
+        "start": 36753,
+        "end": 36831,
+        "line": 2044,
+        "endLine": 2046,
+        "selector": ".server-machine-grid"
+      },
+      {
+        "start": 36835,
+        "end": 36999,
+        "line": 2048,
+        "endLine": 2054,
+        "selector": ".server-machine-facts > div, .server-machine-metric"
+      },
+      {
+        "start": 37003,
+        "end": 37089,
+        "line": 2056,
+        "endLine": 2060,
+        "selector": ".server-machine-facts > div"
+      },
+      {
+        "start": 37093,
+        "end": 37262,
+        "line": 2062,
+        "endLine": 2068,
+        "selector": ".server-machine-facts span, .server-machine-metric-h, .server-machine-metric-detail, .server-machine-range, .server-machine-chart-empty"
+      },
+      {
+        "start": 37266,
+        "end": 37438,
+        "line": 2070,
+        "endLine": 2077,
+        "selector": ".server-machine-facts b, .server-machine-metric-value"
+      },
+      {
+        "start": 37442,
+        "end": 37567,
+        "line": 2079,
+        "endLine": 2084,
+        "selector": ".server-machine-metric"
+      },
+      {
+        "start": 37571,
+        "end": 37716,
+        "line": 2086,
+        "endLine": 2093,
+        "selector": ".server-machine-metric-h, .server-machine-range"
+      },
+      {
+        "start": 37720,
+        "end": 37920,
+        "line": 2095,
+        "endLine": 2102,
+        "selector": ".server-machine-metric-h > span:last-child, .server-machine-metric-detail, .server-machine-range > span"
+      },
+      {
+        "start": 37924,
+        "end": 38136,
+        "line": 2104,
+        "endLine": 2113,
+        "selector": ".server-machine-metric-icon"
+      },
+      {
+        "start": 38140,
+        "end": 38275,
+        "line": 2115,
+        "endLine": 2120,
+        "selector": ".server-machine-metric-value"
+      },
+      {
+        "start": 38279,
+        "end": 38333,
+        "line": 2122,
+        "endLine": 2124,
+        "selector": ".server-machine-metric-detail"
+      },
+      {
+        "start": 38337,
+        "end": 38471,
+        "line": 2126,
+        "endLine": 2132,
+        "selector": ".server-machine-chart, .server-machine-sparkline, .server-machine-chart-empty"
+      },
+      {
+        "start": 38475,
+        "end": 38524,
+        "line": 2134,
+        "endLine": 2136,
+        "selector": ".server-machine-sparkline"
+      },
+      {
+        "start": 38528,
+        "end": 38682,
+        "line": 2138,
+        "endLine": 2144,
+        "selector": ".server-machine-chart-empty"
+      },
+      {
+        "start": 38686,
+        "end": 38786,
+        "line": 2146,
+        "endLine": 2149,
+        "selector": ".server-machine-range"
+      },
+      {
+        "start": 38790,
+        "end": 38851,
+        "line": 2151,
+        "endLine": 2154,
+        "selector": ".server-machine-skeleton"
+      },
+      {
+        "start": 38886,
+        "end": 38969,
+        "line": 2157,
+        "endLine": 2159,
+        "selector": ".server-machine-facts"
+      },
+      {
+        "start": 38975,
+        "end": 39046,
+        "line": 2161,
+        "endLine": 2163,
+        "selector": ".server-machine-grid"
+      },
+      {
+        "start": 39084,
+        "end": 39156,
+        "line": 2167,
+        "endLine": 2169,
+        "selector": ".server-machine-facts"
+      }
+    ],
+    "partial": [
+      {
+        "selStart": 11232,
+        "selEnd": 11464,
+        "line": 615,
+        "drop": [
+          ".pop-i-t",
+          ".pop-i-s",
+          ".ref-t",
+          ".ref-u"
+        ],
+        "keep": [
+          ".crumb-label",
+          ".crumb-button",
+          ".side-i > span",
+          ".repo-name > span:first-child",
+          ".gh-install-account",
+          ".search-i-tt",
+          ".search-i-s",
+          ".fix-preview-h b",
+          ".notfound-suggest-t",
+          ".notfound-suggest-d"
+        ]
+      },
+      {
+        "selStart": 12052,
+        "selEnd": 12141,
+        "line": 655,
+        "drop": [
+          ".chip > svg"
+        ],
+        "keep": [
+          ".btn > svg",
+          ".btn .spin",
+          ".tag > svg",
+          ".pill > svg",
+          ".sev .dot",
+          ".lang-dot"
+        ]
+      },
+      {
+        "selStart": 12282,
+        "selEnd": 12398,
+        "line": 675,
+        "drop": [
+          ".status-section-h p"
+        ],
+        "keep": [
+          ".page-h h1",
+          ".page-h .sub",
+          ".lp-sub",
+          ".pricing-tag",
+          ".docs-lede",
+          ".legal-lede",
+          ".notfound-sub"
+        ]
+      },
+      {
+        "selStart": 14002,
+        "selEnd": 14173,
+        "line": 779,
+        "drop": [
+          ".dash-cat-row > span:first-child",
+          ".dash-cat-row > span:nth-child(2)"
+        ],
+        "keep": [
+          ".dash-summary-head > :first-child",
+          ".section-h > :first-child",
+          ".dash-donut-row > span:nth-child(2)"
+        ]
+      },
+      {
+        "selStart": 14198,
+        "selEnd": 14305,
+        "line": 785,
+        "drop": [
+          ".dash-cat-row > span:first-child",
+          ".dash-cat-row > span:nth-child(2)"
+        ],
+        "keep": [
+          ".dash-donut-row > span:nth-child(2)"
+        ]
+      },
+      {
+        "selStart": 14546,
+        "selEnd": 14627,
+        "line": 803,
+        "drop": [
+          ".hist-row > *"
+        ],
+        "keep": [
+          ".issue-row > *",
+          ".issues-trow > *",
+          ".repo-row > *",
+          ".int-row > *"
+        ]
+      },
+      {
+        "selStart": 14959,
+        "selEnd": 15212,
+        "line": 840,
+        "drop": [
+          ".kan-card-t",
+          ".legal-list-flat li",
+          ".docs-card p"
+        ],
+        "keep": [
+          ".issue-t",
+          ".issue-card-t",
+          ".scanning-title",
+          ".scanning-phase-t",
+          ".scanning-phase-d",
+          ".section p",
+          ".legal-list li",
+          ".docs-plan-kv code",
+          ".docs-config-copy p",
+          ".docs-config-path",
+          ".docs-config-value code"
+        ]
+      },
+      {
+        "selStart": 15323,
+        "selEnd": 15382,
+        "line": 851,
+        "drop": [
+          ".hist-status"
+        ],
+        "keep": [
+          ".repo-check",
+          ".repo-icon",
+          ".gh-install-icon"
+        ]
+      },
+      {
+        "selStart": 15634,
+        "selEnd": 15737,
+        "line": 874,
+        "drop": [
+          ".auth-error",
+          ".oauth-error"
+        ],
+        "keep": [
+          ".repo-desc",
+          ".gh-install-status",
+          ".scanning-queue-message",
+          ".auth-success"
+        ]
+      },
+      {
+        "selStart": 21940,
+        "selEnd": 22002,
+        "line": 1184,
+        "drop": [
+          ".hist-meta"
+        ],
+        "keep": [
+          ".issues-file",
+          ".issue-id",
+          ".kpi-v",
+          ".pricing-num"
+        ]
+      },
+      {
+        "selStart": 22504,
+        "selEnd": 22762,
+        "line": 1227,
+        "drop": [
+          ".evidence-item",
+          ".evidence-meta",
+          ".repro-center",
+          ".repro-command",
+          ".diff-block",
+          ".code-body"
+        ],
+        "keep": [
+          ".issue-detail-h h1",
+          ".issue-detail-h .sub",
+          ".issue-detail-grid .section",
+          ".issue-detail-main-col",
+          ".evidence-command",
+          ".audit-scope",
+          ".fix-preview",
+          ".docs-code pre"
+        ]
+      },
+      {
+        "selStart": 23297,
+        "selEnd": 23326,
+        "line": 1261,
+        "drop": [
+          ".diff-block"
+        ],
+        "keep": [
+          ".docs-code pre"
+        ]
+      },
+      {
+        "selStart": 30080,
+        "selEnd": 30111,
+        "line": 1665,
+        "drop": [
+          ".legal-table-r"
+        ],
+        "keep": [
+          ".docs-table-r"
+        ]
+      },
+      {
+        "selStart": 30363,
+        "selEnd": 30495,
+        "line": 1685,
+        "drop": [
+          ".legal-table-r b",
+          ".legal-table-r span",
+          ".docs-card b",
+          ".legal-callout p"
+        ],
+        "keep": [
+          ".docs-table-r b",
+          ".docs-table-r span",
+          ".docs-code-h span"
+        ]
+      },
+      {
+        "selStart": 30719,
+        "selEnd": 30778,
+        "line": 1706,
+        "drop": [
+          ".pop-i > div"
+        ],
+        "keep": [
+          ".search-i > div",
+          ".notfound-suggest-i > div"
+        ]
+      },
+      {
+        "selStart": 31333,
+        "selEnd": 31365,
+        "line": 1740,
+        "drop": [
+          ".hist-meta"
+        ],
+        "keep": [
+          ".hist-row > .btn"
+        ]
+      },
+      {
+        "selStart": 32173,
+        "selEnd": 32249,
+        "line": 1794,
+        "drop": [
+          ".hist-row",
+          ".legal-table-r"
+        ],
+        "keep": [
+          ".repo-row",
+          ".gh-install-row",
+          ".int-row"
+        ]
+      },
+      {
+        "selStart": 32380,
+        "selEnd": 32515,
+        "line": 1808,
+        "drop": [
+          ".hist-meta"
+        ],
+        "keep": [
+          ".repo-meta",
+          ".gh-install-row > .btn",
+          ".hist-row > .btn",
+          ".int-row > .pill",
+          ".int-row > .btn",
+          ".int-row > .tag"
+        ]
+      }
+    ],
+    "deadClasses": [
+      "auth-error",
+      "chip",
+      "code-body",
+      "code-line",
+      "conf-bar",
+      "dash-cat-row",
+      "diff-block",
+      "docs-card",
+      "docs-endpoint",
+      "evidence-item",
+      "evidence-meta",
+      "hist-meta",
+      "hist-row",
+      "hist-status",
+      "kan-card-t",
+      "legal-callout",
+      "legal-list-flat",
+      "legal-table-r",
+      "oauth-error",
+      "pop",
+      "pop-i",
+      "pop-i-s",
+      "pop-i-t",
+      "pricing-table",
+      "pricing-table-wrap",
+      "ref-t",
+      "ref-u",
+      "repro-center",
+      "repro-command",
+      "server-machine-chart",
+      "server-machine-chart-empty",
+      "server-machine-facts",
+      "server-machine-grid",
+      "server-machine-metric",
+      "server-machine-metric-detail",
+      "server-machine-metric-h",
+      "server-machine-metric-icon",
+      "server-machine-metric-value",
+      "server-machine-monitor",
+      "server-machine-range",
+      "server-machine-skeleton",
+      "server-machine-sparkline",
+      "status-busy",
+      "status-degraded",
+      "status-disabled",
+      "status-idle",
+      "status-offline",
+      "status-online",
+      "status-section-h",
+      "status-unknown"
+    ]
+  },
+  "src/landing-seo.css": {
+    "dead": [],
+    "partial": [],
+    "deadClasses": []
+  }
+}
