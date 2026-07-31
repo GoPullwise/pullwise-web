@@ -275,7 +275,6 @@ select {
   padding: 0 5px;
   font: 500 10.5px/1 var(--font-mono);
   border: 1px solid var(--border-strong);
-  border-bottom-width: 1px;
   color: var(--text-2);
   background: var(--bg-elev);
 }
@@ -1329,7 +1328,7 @@ body {
   padding: 2px 4px;
   margin: -2px -4px;
   border-radius: 6px;
-  transition: background 0.12s ease;
+  transition: background 120ms var(--ease-out);
 }
 .disto-legend-click:hover {
   background: var(--bg-2, rgba(0, 0, 0, 0.04));
@@ -1741,7 +1740,7 @@ body {
   flex-wrap: wrap;
   gap: 5px;
   align-items: center;
-  transition: opacity 140ms ease;
+  transition: opacity 140ms var(--ease-out);
 }
 .scan-severity-dots {
   display: flex;
@@ -1754,7 +1753,7 @@ body {
   right: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 140ms ease;
+  transition: opacity 140ms var(--ease-out);
 }
 .scan-row:hover .scan-severity-capsules,
 .scan-row:focus-within .scan-severity-capsules {
@@ -1778,8 +1777,8 @@ body {
   font-variant-numeric: tabular-nums;
   border: 1px solid transparent;
   transition:
-    filter 120ms ease,
-    transform 120ms ease;
+    filter 120ms var(--ease-out),
+    transform 120ms var(--ease-out);
 }
 .scan-severity-capsule:hover {
   filter: brightness(0.97);

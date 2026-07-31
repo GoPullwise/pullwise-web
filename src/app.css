@@ -90,7 +90,6 @@
 .lang-toggle {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
@@ -108,7 +107,7 @@
 
 .lang-toggle:hover,
 .lang-toggle.active {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
   background: var(--bg-soft);
   box-shadow: var(--shadow-3);
 }
@@ -163,7 +162,6 @@
   z-index: var(--z-float);
   width: 42px;
   height: 42px;
-  border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
@@ -178,7 +176,7 @@
 }
 
 .theme-toggle:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
   background: var(--bg-soft);
   box-shadow: var(--shadow-3);
 }
@@ -194,7 +192,6 @@
   z-index: var(--z-float);
   width: 42px;
   height: 42px;
-  border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
@@ -219,7 +216,7 @@
 }
 
 .back-to-top:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
   background: var(--bg-soft);
   box-shadow: var(--shadow-3);
 }
@@ -255,7 +252,6 @@
   align-items: start;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 12px;
   background: color-mix(in srgb, var(--bg-elev) 94%, white 6%);
   color: var(--text);
   box-shadow: var(--shadow-3);
@@ -267,7 +263,6 @@
   height: 28px;
   display: grid;
   place-items: center;
-  border-radius: 7px;
   background: color-mix(in srgb, var(--danger, #dc2626) 12%, transparent);
   color: var(--danger, #dc2626);
 }
@@ -319,7 +314,6 @@
   place-items: center;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 7px;
   background: transparent;
   color: var(--text-3);
   cursor: pointer;
@@ -486,16 +480,13 @@ body.has-proto-nav {
   .card,
   .kpi,
   .dash-summary,
-  .dash-cats,
   .dash-summary-head,
   .dash-donut-row,
-  .dash-cat-row,
   .issue-list,
   .issue-row,
   .issue-main,
   .issue-meta,
   .issue-card,
-  .kan-card,
   .filters,
   .filters-row,
   .issues-table,
@@ -529,8 +520,6 @@ body.has-proto-nav {
   .scanning-flow-step,
   .scanning-phase,
   .scanning-side,
-  .hist-row,
-  .hist-row > div,
   .set-shell,
   .set-body,
   .set-row,
@@ -543,7 +532,6 @@ body.has-proto-nav {
   .billing-actions,
   .pricing-card,
   .pricing-card-h,
-  .pricing-table-wrap,
   .docs-shell,
   .docs-main,
   .docs-state,
@@ -568,10 +556,7 @@ body.has-proto-nav {
   .docs-foot,
   .legal-shell,
   .legal-main,
-  .legal-table,
-  .legal-table-r,
   .status-card,
-  .notif-row,
   .notfound-card
 ) {
   min-width: 0;
@@ -607,11 +592,7 @@ body.has-proto-nav {
 .gh-install-account,
 .search-i-tt,
 .search-i-s,
-.pop-i-t,
-.pop-i-s,
 .fix-preview-h b,
-.ref-t,
-.ref-u,
 .notfound-suggest-t,
 .notfound-suggest-d {
   overflow: hidden;
@@ -739,7 +720,6 @@ body.has-proto-nav {
   margin-bottom: 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 30px;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 36px;

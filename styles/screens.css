@@ -2739,13 +2739,6 @@
   gap: 8px;
 }
 
-:root {
-  --trace-present: #16a34a;
-  --trace-present-soft: rgba(22, 163, 74, 0.18);
-  --trace-missing: #dc2626;
-  --trace-missing-soft: rgba(220, 38, 38, 0.18);
-  --trace-neutral: rgba(120, 120, 130, 0.35);
-}
 .trace-timeline {
   position: relative;
   display: grid;
@@ -4776,12 +4769,6 @@
   .scanning-audit-inline {
     margin-left: 0;
   }
-    .impact-stat-grid,
-  .impact-relations,
-  .impact-coverage-grid,
-  .impact-target-card.compact .impact-relations {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 760px) {
@@ -4811,9 +4798,6 @@
 
   .lp-preview {
     padding: 18px 16px 40px;
-  }
-
-  .lp-preview-card {
   }
 
   .lp-preview-body {
@@ -4851,11 +4835,6 @@
     flex-direction: column;
     gap: 10px;
     padding: 24px 20px;
-  }
-
-  .auth-card,
-  .oauth-card,
-  .notfound-card {
   }
 
   .oauth-actions,
@@ -5680,9 +5659,7 @@
 }
 
 
-.diff-block,
-.docs-code pre,
-.pricing-table-wrap {
+.docs-code pre {
   overflow-x: auto;
 }
 
@@ -5707,7 +5684,6 @@
   flex: 0 1 auto;
 }
 
-.pop,
 .modal {
   max-width: calc(100vw - 24px);
 }
@@ -5716,8 +5692,7 @@
 
 @media (max-width: 760px) {
   .repo-row,
-  .gh-install-row,
-  .hist-row {
+  .gh-install-row {
     grid-template-columns: 24px minmax(0, 1fr);
   }
 
@@ -5726,8 +5701,7 @@
   }
 
   
-  .docs-table-r,
-  .legal-table-r {
+  .docs-table-r {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -5750,9 +5724,7 @@
   }
 
   
-  .docs-table,
-  .legal-table,
-  .pricing-table-wrap {
+  .docs-table {
     overflow-x: auto;
   }
 
