@@ -725,7 +725,7 @@
   background: var(--bg-soft);
 }
 .repo-row.on {
-  background: color-mix(in oklch, var(--accent) 4%, var(--bg-elev));
+  background: color-mix(in oklch, var(--accent) 6%, var(--bg-elev));
 }
 .repo-check-box {
   width: 16px;
@@ -1458,7 +1458,6 @@
   display: inline-block;
   width: 6px;
   height: 6px;
-  border-radius: 999px;
   background: currentColor;
 }
 .scanning-flow-edge {
@@ -1796,7 +1795,6 @@
   content: "";
   width: 4px;
   height: 4px;
-  border-radius: 999px;
   background: var(--text-3);
   flex: 0 0 auto;
   opacity: 0.55;
@@ -3352,7 +3350,7 @@
 }
 
 .api-scope-row.selected {
-  background: color-mix(in oklch, var(--accent) 5%, var(--bg));
+  background: color-mix(in oklch, var(--accent) 6%, var(--bg));
 }
 
 .api-scope-row input {

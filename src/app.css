@@ -8,7 +8,6 @@
 .status-dot {
   width: 9px;
   height: 9px;
-  border-radius: 50%;
   background: var(--text-4);
   flex: 0 0 auto;
   box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 12%, transparent);
@@ -2308,7 +2307,6 @@ body.has-proto-nav {
   width: 11px;
   height: 11px;
   margin-top: 3px;
-  border-radius: 50%;
   border: 2px solid var(--accent);
   background: var(--surface);
   z-index: var(--z-raised);
@@ -2395,7 +2393,6 @@ body.has-proto-nav {
 .issue-check-dot {
   width: 16px;
   height: 16px;
-  border-radius: 50%;
   border: 1px solid var(--border-strong);
   color: white;
   display: inline-flex;
