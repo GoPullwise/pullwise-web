@@ -4171,8 +4171,13 @@
 }
 .docs-main a {
   color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  padding: 0 2px;
+  margin: 0 -2px;
+  transition: background-color 120ms ease;
+}
+.docs-main a:hover {
+  background: color-mix(in oklch, var(--accent) 12%, transparent);
 }
 
 .docs-callout {
