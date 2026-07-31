@@ -2042,8 +2042,12 @@ describe("HistoryScreen queue state", () => {
 });
 
 describe("IssueDetailScreen review detail", () => {
-  it("renders the Copy Page action in Chinese", () => {
-    act(() => setLang("zh"));
+  it("renders the Copy Page action in Chinese", async () => {
+    // setLang resolves once the locale catalog is fetched; await it so the
+    // render below sees translated copy rather than the English fallback.
+    await act(async () => {
+      await setLang("zh");
+    });
     try {
       render(
         <IssueDetailScreen
@@ -2062,7 +2066,9 @@ describe("IssueDetailScreen review detail", () => {
       expect(screen.getByRole("button", { name: "复制页面" })).toBeInTheDocument();
       expect(screen.queryByText("????")).not.toBeInTheDocument();
     } finally {
-      act(() => setLang("en"));
+      await act(async () => {
+        await setLang("en");
+      });
     }
   });
 

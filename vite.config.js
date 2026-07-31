@@ -49,10 +49,7 @@ export default defineConfig({
           if (normalized.includes("/react/") || normalized.includes("/react-dom/") || normalized.includes("/scheduler/")) {
             return "vendor-react";
           }
-          if (normalized.includes("/lucide-react/")) return "vendor-icons";
-          if (normalized.includes("/date-fns/")) return "vendor-date";
           if (normalized.includes("/axios/")) return "vendor-http";
-          if (normalized.includes("/react-router-dom/") || normalized.includes("/react-router/")) return "vendor-router";
           return "vendor";
         },
       },
