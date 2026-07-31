@@ -3063,7 +3063,7 @@
   background: var(--bg-soft);
   border: 1px solid var(--border-strong);
   position: relative;
-  transition: background 120ms;
+  transition: background 120ms var(--ease-out);
   flex: 0 0 auto;
 }
 .switch span {
@@ -3073,8 +3073,7 @@
   width: 14px;
   height: 14px;
   background: var(--bg-elev);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-  transition: transform 120ms;
+  transition: transform 120ms var(--ease-out);
   border: 1px solid var(--border-strong);
 }
 .switch.on {
