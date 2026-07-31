@@ -64,9 +64,12 @@ Keep route and polling changes aligned with the current scale model.
 - Heavy screens such as issues, billing, docs, legal, API docs, settings, and
   dashboard are lazy-loaded. Do not reintroduce broad static screen imports in
   `App.jsx` unless the route is part of the first interaction path.
-- Data hooks should preserve stale-while-revalidate behavior: show cached
-  successful list state immediately, then refresh quietly when appropriate.
-- New API client GET helpers should accept an optional `AbortSignal`. Hook
+- Cache clear state belongs in `src/lib/pullwise-data-cache.js`. `App.jsx`,
+  `src/lib/auth.js`, and `src/test/setup.js` must import
+  `clearPullwiseDataCache` directly from that lightweight module; do not route
+  it back through `src/lib/pullwise-data.js` or restore a global test hook,
+  because that pulls the heavy data module back into the initial load graph.
+- New API client GET helpers should accept an optional AbortSignal. Hook
   effects should abort stale requests on route/filter/page changes.
 - Use request de-duplication for concurrent identical list/status requests. Do
   not start duplicate polling requests for the same cache key.

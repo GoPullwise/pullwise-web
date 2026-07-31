@@ -48,9 +48,9 @@ describe("pullwise-data-cache", () => {
       'clearPullwiseDataCache } from "../lib/pullwise-data-cache.js"'
     );
     expect(readSource("../test/setup.js")).not.toContain("__clearPullwiseDataCache");
-    expect(readSource("./pullwise-data.js")).not.toContain("export function clearPullwiseDataCache");
     expect(readSource("./pullwise-data.js")).not.toContain(
-      "globalThis.__clearPullwiseDataCache"
+      "export function clearPullwiseDataCache"
     );
+    expect(readSource("./pullwise-data.js")).not.toContain("globalThis.__clearPullwiseDataCache");
   });
 });
