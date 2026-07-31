@@ -38,11 +38,8 @@ input[type="checkbox"] {
   --sev-low: #2563eb;
   --sev-info: #6b7280;
 
-  --r-1: 0px;
   --r-2: 0px;
   --r-3: 0px;
-  --r-4: 0px;
-  --r-5: 0px;
 
   --shadow-1: none;
   --shadow-2: none;
@@ -70,7 +67,6 @@ input[type="checkbox"] {
   --ok: #16a34a;
   --warn: #b45309;
   --danger: #dc2626;
-  --scan-verified: var(--ok);
 
   /* Per-element accents: components override these inline (repo language dot,
    * risk hotspot bar). The declarations here are the neutral default. */
@@ -957,52 +953,41 @@ a.crumb-button:hover {
 /* Dashboard */
 .kpi-h, .kpi-l, .kpi-d, .kpi-foot,
 .dash-summary-head, .dash-donut-dot,
-.dash-cat-row, .dash-cat-bar,
 .seg, .seg-i,
 .dash-issues-h,
-/* Issues list / kanban */
+/* Issues list */
 .issue-sev, .issue-id, .issue-effort, .issue-meta,
 .issue-card-foot,
-.kan-col-h, .kan-empty, .kan-card-foot,
 /* Issues table */
 .filters, .filter-l, .filter-pills, .pill-btn,
 .issues-thead, .issues-check, .conf-bar,
 /* Issue detail */
 .tabs, .tab,
-.impact-h, .impact-i,
 .section-h, .step-n,
 .diff-tag, .diff-col-h,
-.applied-i,
-.discuss-av,
-.tl-dot,
 /* Modal / PR form */
 .modal-h, .modal-foot,
 .pr-progress, .pr-step, .pr-check,
-/* History */
-.hist-status, .hist-dot, .hist-stack, .hist-meta,
 /* Settings */
 .set-side, .set-side-i, .set-av,
 .switch, .int-row,
 .usage-bar,
 /* Pricing */
 .pricing-toggle, .pricing-save, .pricing-badge,
-.pricing-billed, .pricing-table-g,
+.pricing-billed,
 .pricing-feats svg,
 .pricing-faq-i summary,
 /* Docs */
 .docs-side, .docs-toc, .docs-crumbs,
 .docs-side-h, .docs-toc-h, .docs-side-i, .docs-foot,
-/* Popovers */
-.pop, .pop-h, .pop-foot, .pop-section, .pop-i-ic,
 /* Search modal */
 .search-h, .search-gh, .search-foot, .search-empty,
-/* Legal / Status / Notifications / 404 */
+/* Legal / Status / 404 */
 .legal-side, .legal-side-h, .legal-side-i, .legal-side-foot, .legal-side-l,
 .legal-crumbs, .legal-foot-actions,
 .status-overall, .status-dot, .status-bar, .status-bar-i,
 .status-row-region, .status-row-pct, .status-legend,
 .status-inc-sev, .status-inc-tl-h,
-.notif-group-h, .notif-meta, .notif-actions, .notif-unread-dot,
 .notfound-code, .notfound-suggest-h, .notfound-suggest-ic, .notfound-suggest-d,
 /* Atoms */
 .chip,
@@ -1028,9 +1013,6 @@ a.crumb-button:hover {
 .page-h h1,
 .page-h .sub,
 .page-h .actions,
-.notif-h,
-.notif-row,
-.notif-sub,
 .pricing-card-h,
 .pricing-num,
 .pricing-tag,
@@ -1061,17 +1043,12 @@ a.crumb-button:hover {
 .billing-actions,
 .bill-card,
 .bill-card-h,
-.kbd-hint,
 .muted,
 .text-3,
 .text-4,
 .sub,
-.code-head,
 .code-line .ln,
 .kpi-v,
-.kan-card-t,
-.hist-row b,
-.hist-row > .btn,
 .scanning-title,
 .scanning-sub,
 .scanning-phase-t,
@@ -1747,15 +1724,6 @@ body {
   color: var(--danger, #b91c1c);
   background: color-mix(in oklch, var(--sev-critical, #dc2626) 16%, transparent);
 }
-.scan-severity-bar,
-.scan-severity-seg,
-.scan-severity-legend,
-.scan-severity-legend-i,
-.scan-severity-legend-dot,
-.scan-severity-legend-sep {
-  display: none !important;
-}
-
 /* === Scan row severity strip ===
    Replaces the previous full-width colored bar, which read as a
    progress meter. Default view is a row of small severity capsules

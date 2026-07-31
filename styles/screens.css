@@ -1130,9 +1130,6 @@
   transition: width 300ms var(--ease-out);
   position: relative;
 }
-.scanning-bar-fill::after {
-  display: none;
-}
 .scanning-bar-meta {
   display: flex;
   justify-content: space-between;
@@ -2442,13 +2439,6 @@
   border-top: 1px solid var(--border);
 }
 
-/* Kanban */
-.issue-kanban {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
 /* ── Issues table ─────────────────────────────────────────── */
 .seg {
   display: inline-flex;
@@ -2944,20 +2934,6 @@
 /* History */
 .hist-list {
   padding: 0;
-}
-
-
-.hist-actions .btn {
-  flex: 0 0 auto;
-}
-/* The :last-child rule was for the old grid layout, where each .hist-row
-   was a direct child of .hist-list with a bottom divider. The new timeline
-   uses .hist-timeline-content (also tagged .hist-row) as the last child
-   of .hist-timeline-row, which would incorrectly remove its bottom
-   border. Scoping the selector to direct children of .hist-list prevents
-   the new timeline card from losing its bottom border. */
-.hist-list > .hist-row:last-child {
-  border-bottom: 0;
 }
 
 /* Settings */
@@ -4570,9 +4546,6 @@
   }
 }
 
-@media (max-width: 720px) {
-  }
-
 .docs-foot {
   display: flex;
   justify-content: space-between;
@@ -4628,15 +4601,6 @@
 }
 .docs-foot-actions .btn.primary:hover .docs-foot-arrow {
   transform: translateX(2px);
-}
-
-.pop-h .auth-link {
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 11.5px;
-}
-.pop-i.on {
-  background: color-mix(in oklch, var(--accent) 8%, transparent);
 }
 
 /* ── Search modal (⌘K) ──────────────────────────────────────────────── */
@@ -5457,17 +5421,6 @@
 .status-inc-tl-h .muted {
   font-size: 11.5px;
   font-family: var(--font-mono);
-}
-
-.notif-group-h .muted {
-  font-size: 11px;
-}
-.notif-row.read {
-  background: var(--bg);
-}
-.notif-row.read .notif-h b {
-  color: var(--text-2);
-  font-weight: 500;
 }
 
 /* ── 404 / Not found ───────────────────────────────────────── */

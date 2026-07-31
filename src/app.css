@@ -1630,23 +1630,13 @@ body.has-proto-nav {
   grid-template-columns: 176px minmax(0, 1fr);
 }
 
-.docs-table-r,
-.legal-table-r {
-  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
-}
-
 .docs-table-r {
   grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
 }
 
-
 .docs-table-r b,
 .docs-table-r span,
-.legal-table-r b,
-.legal-table-r span,
-.docs-code-h span,
-.docs-card b,
-.legal-callout p {
+.docs-code-h span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -1975,32 +1965,6 @@ body.has-proto-nav {
   margin-left: 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 900px) {
-  
-  }
-
-@media (max-width: 520px) {
-  }
-
 .docs-plan-name,
 .docs-plan-key,
 .docs-plan-kv b,
@@ -2195,11 +2159,6 @@ body.has-proto-nav {
   .lp-hero {
     padding-left: 20px;
     padding-right: 20px;
-  }
-
-  .lp-title {
-    font-size: 30px;
-    max-width: 100%;
   }
 
   .lp-title-em {
@@ -3109,10 +3068,6 @@ body.has-proto-nav {
 
   .lp-top > div:last-child .btn:not(.primary) {
     display: none;
-  }
-
-  .lp-title {
-    font-size: 40px;
   }
 
   .lp-hero,
