@@ -20,8 +20,8 @@ describe("production locale catalog", () => {
   afterEach(() => setLang("en"));
 
   for (const locale of ["zh", "ja", "ko", "fr", "es"]) {
-    it(`${locale} does not return copied English methodology prose`, () => {
-      setLang(locale);
+    it(`${locale} does not return copied English methodology prose`, async () => {
+      await setLang(locale);
       for (const english of COPIED_PROSE) {
         expect(T(english), `${locale}: ${english}`).not.toBe(english);
         expect(T(english).trim()).not.toBe("");
@@ -34,8 +34,8 @@ describe("production locale catalog", () => {
       }
     });
 
-    it(`${locale} localizes dynamic worker state vocabulary`, () => {
-      setLang(locale);
+    it(`${locale} localizes dynamic worker state vocabulary`, async () => {
+      await setLang(locale);
       expect(T("2 queued / 1 running / 1 busy / 3 idle workers")).not.toBe(
         "2 queued / 1 running / 1 busy / 3 idle workers"
       );

@@ -4,7 +4,7 @@ import "../styles/base.css";
 import "../styles/screens.css";
 import "./app.css";
 import { App } from "./App.jsx";
-import { T } from "./i18n.jsx";
+import { preloadActiveLocale, T } from "./i18n.jsx";
 import { isInstallPopupReturn, notifyOpenerAndClose } from "./lib/install-popup.js";
 
 const root = createRoot(document.getElementById("root"));
@@ -13,6 +13,9 @@ if (isInstallPopupReturn()) {
   notifyOpenerAndClose();
   root.render(<InstallPopupReturn />);
 } else {
+  // Resolves immediately for English; for other locales this avoids a first
+  // paint of English copy before the catalog lands.
+  await preloadActiveLocale();
   root.render(
     <StrictMode>
       <App />
