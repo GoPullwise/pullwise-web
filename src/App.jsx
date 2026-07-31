@@ -11,7 +11,7 @@ import {
   scanIdFromPath,
   screenFromPath,
 } from "./lib/navigation.js";
-import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
+import { clearPullwiseDataCache } from "./lib/pullwise-data-cache.js";
 import { applyCurrentSeoMetadata } from "./lib/seo-client.js";
 import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";

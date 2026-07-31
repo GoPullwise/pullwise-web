@@ -294,6 +294,8 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Root-relative API bases and audit-bundle paths must resolve to an absolute browser URL without duplicating a shared `/api` prefix.
 - Repository-access refresh flags must fall back to memory when any individual `sessionStorage` operation throws.
 - Clickable distribution legend entries must use keyboard-operable controls with visible focus and pressed state, and notification chrome must provide real Chinese labels while Chinese is active.
+- The final hard-edge override for `.lang-toggle`, `.theme-toggle`, `.back-to-top`, `.notification-toast`, `.notification-icon`, and `.notification-close` must keep an explicit `border-radius: 0;` because the universal square-edge reset loses to those class rules.
+- Floating controls such as `.lang-picker` must stay on `--z-float` (60) below `.modal-back` on `--z-modal` (100); do not raise picker/menu chrome above modal backdrops.
 - Global search must pass the typed query to the server-backed issue and repository hooks; do not search only the first cached client page.
 - Public status copy for `rateLimitEnabled` must say public REST API rate limiting so browser users do not infer that ordinary browser traffic shares the API/API-key limit.
 - Keep Vitest suites non-empty; Vitest 4 treats an empty `describe(...)` block as a suite failure even when every collected assertion passes.

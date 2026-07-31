@@ -17,7 +17,7 @@ import {
   manageGitHubInstallation,
   startGitHubLogin,
 } from "./lib/auth.js";
-import { clearPullwiseDataCache } from "./lib/pullwise-data.js";
+import { clearPullwiseDataCache } from "./lib/pullwise-data-cache.js";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({

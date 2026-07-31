@@ -16,7 +16,7 @@ import {
   useScanBatchRun,
   useScanRun,
   useScans,
-} from "./pullwise-data.js";
+} from "./pullwise-data-cache.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {

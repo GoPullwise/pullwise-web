@@ -2,7 +2,7 @@
   position: fixed;
   right: 66px;
   bottom: 18px;
-  z-index: var(--z-modal);
+  z-index: var(--z-float);
 }
 
 .status-dot {
@@ -456,7 +456,7 @@
 body.has-proto-nav {
   padding-top: 42px;
 }
-/* ── Alignment pass: stable rows, truncation, and responsive wrapping ── */
+/* 閳光偓閳光偓 Alignment pass: stable rows, truncation, and responsive wrapping 閳光偓閳光偓 */
 :where(
   .topbar,
   .topbar > div,
@@ -2518,6 +2518,7 @@ body.has-proto-nav {
 .notification-toast,
 .notification-icon,
 .notification-close {
+  border-radius: 0;
   box-shadow: none;
 }
 

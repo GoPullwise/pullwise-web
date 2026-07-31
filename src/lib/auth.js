@@ -5,7 +5,7 @@ import {
 } from "./github-repository-access-refresh.js";
 import { openGitHubInstallPopup } from "./install-popup.js";
 import { pathFromScreen } from "./navigation.js";
-import { clearPullwiseDataCache } from "./pullwise-data.js";
+import { clearPullwiseDataCache } from "./pullwise-data-cache.js";
 import { safeGitHubAuthorizeUrl, safeGitHubInstallationUrl } from "./trusted-redirects.js";
 
 function getScreenRedirectUrl(screen) {

@@ -5,6 +5,23 @@ import { describe, expect, it, vi } from "vitest";
 import { NOTIFICATION_AUTO_DISMISS_MS, NotificationProvider, useNotify } from "./notifications.jsx";
 import { setLang } from "../i18n.jsx";
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractRuleBody(styles, selector) {
+  const match = styles.match(new RegExp(`${escapeRegex(selector)}\\s*\\{([\\s\\S]*?)\\n\\}`, "m"));
+  expect(match, `Expected CSS rule for ${selector}`).not.toBeNull();
+  return match[1];
+}
+
+function extractSelectorGroupBody(styles, selectors) {
+  const selectorPattern = selectors.map((selector) => escapeRegex(selector)).join("\\s*,\\s*");
+  const match = styles.match(new RegExp(`${selectorPattern}\\s*\\{([\\s\\S]*?)\\n\\}`, "m"));
+  expect(match, `Expected CSS selector group for ${selectors.join(", ")}`).not.toBeNull();
+  return match[1];
+}
+
 function NotificationHarness() {
   const notify = useNotify();
   return (
@@ -38,6 +55,7 @@ describe("NotificationProvider", () => {
       setLang("en");
     }
   });
+
   it("keeps notification toasts rounded without a left accent bar", () => {
     const styles = readFileSync("src/app.css", "utf8");
 
@@ -46,16 +64,41 @@ describe("NotificationProvider", () => {
     );
     expect(styles).not.toMatch(/\.notification-toast::before/);
   });
+
+  it("keeps the final floating control override explicitly hard-edged", () => {
+    const styles = readFileSync("src/app.css", "utf8");
+    const hardEdgeOverride = extractSelectorGroupBody(styles, [
+      ".lang-toggle",
+      ".theme-toggle",
+      ".back-to-top",
+      ".notification-toast",
+      ".notification-icon",
+      ".notification-close",
+    ]);
+
+    expect(hardEdgeOverride).toMatch(/border-radius:\s*0;/);
+    expect(hardEdgeOverride).toMatch(/box-shadow:\s*none;/);
+  });
+
   it("anchors notification toasts beside the bottom control cluster", () => {
     const styles = readFileSync("src/app.css", "utf8");
 
     expect(styles).toMatch(
       /\.notification-stack\s*\{[\s\S]*right:\s*166px;[\s\S]*bottom:\s*18px;[\s\S]*width:\s*min\(390px,\s*calc\(100vw - 184px\)\);/
     );
-    // --z-modal is 100; the token is what pins the level now.
-    expect(styles).toMatch(/\.lang-picker\s*\{[\s\S]*z-index:\s*var\(--z-modal\);/);
-    expect(readFileSync("styles/base.css", "utf8")).toMatch(/--z-modal:\s*100;/);
   });
+
+  it("keeps the language picker below modal backdrops", () => {
+    const pickerStyles = readFileSync("src/app.css", "utf8");
+    const modalStyles = readFileSync("styles/screens.css", "utf8");
+    const baseStyles = readFileSync("styles/base.css", "utf8");
+
+    expect(extractRuleBody(pickerStyles, ".lang-picker")).toMatch(/z-index:\s*var\(--z-float\);/);
+    expect(extractRuleBody(modalStyles, ".modal-back")).toMatch(/z-index:\s*var\(--z-modal\);/);
+    expect(baseStyles).toMatch(/--z-float:\s*60;/);
+    expect(baseStyles).toMatch(/--z-modal:\s*100;/);
+  });
+
   it("stacks multiple notifications and dismisses one manually", async () => {
     const user = userEvent.setup();
     render(
