@@ -295,7 +295,7 @@
   color: var(--text-3);
   text-decoration: none;
   margin-bottom: 16px;
-  transition: color 0.15s;
+  transition: color 150ms var(--ease-out);
 }
 .auth-back-home:hover {
   color: var(--text-1);
@@ -3169,7 +3169,7 @@
 }
 .billing-usage-caret {
   color: var(--text-3);
-  transition: transform 160ms ease;
+  transition: transform 160ms var(--ease-out);
 }
 .billing-usage-toggle.open .billing-usage-caret {
   transform: rotate(90deg);
@@ -4174,7 +4174,7 @@
   text-decoration: none;
   padding: 0 2px;
   margin: 0 -2px;
-  transition: background-color 120ms ease;
+  transition: background-color 120ms var(--ease-out);
 }
 .docs-main a:hover {
   background: color-mix(in oklch, var(--accent) 12%, transparent);
@@ -4915,9 +4915,7 @@
 
   .kpi-row,
   .issue-grid,
-  .issue-kanban,
   .set-shell,
-  .docs-cards,
   .status-row {
     flex-direction: column;
     align-items: flex-start;
@@ -5102,7 +5100,7 @@
 /* ── Footer dead links (now wired) ─────────────────────────── */
 .legal-foot-l {
   cursor: pointer;
-  transition: color 120ms ease;
+  transition: color 120ms var(--ease-out);
 }
 .legal-foot-l:hover {
   color: var(--text);
@@ -5483,8 +5481,8 @@
   cursor: pointer;
   font-family: inherit;
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    border-color 120ms var(--ease-out),
+    background 120ms var(--ease-out);
 }
 .notfound-suggest-i:hover {
   border-color: var(--border-strong);
@@ -5529,12 +5527,9 @@
   .gh-install-account,
   .issues-file,
   .fix-preview-h b,
-  .ref-u,
-  .hist-row b,
   .docs-crumbs .now,
   .docs-side-i,
   .docs-table-r b,
-  .legal-table-r b,
   .notfound-suggest-t
 ) {
   min-width: 0;
@@ -5552,17 +5547,15 @@
   .dash-donut-row,
   .issue-meta,
   .pricing-tag,
-  .docs-card p,
   .docs-config-copy p,
   .docs-config-path,
   .docs-config-value code,
-  .legal-callout p,
   .notfound-suggest-d
 ) {
   overflow-wrap: anywhere;
 }
 
-:where(.issue-t, .issue-card-t, .kan-card-t, .search-i-tt, .lp-preview-issue-t) {
+:where(.issue-t, .issue-card-t, .search-i-tt, .lp-preview-issue-t) {
   display: -webkit-box;
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -5572,19 +5565,16 @@
 
 .lp-preview-issue,
 .dash-donut-row,
-.dash-cat-row,
 .repo-row,
 .gh-install-row,
 .issues-thead,
 .issues-trow,
-.hist-row,
 .int-row,
 .docs-table-r,
 .docs-config-grid,
 .docs-config-group,
 .docs-config-row,
 .docs-page-head,
-.legal-table-r,
 .notfound-suggest-i {
   min-width: 0;
 }
@@ -5592,16 +5582,13 @@
 .lp-preview-url,
 .lp-preview-issue > *,
 .dash-donut-row > *,
-.dash-cat-row > *,
 .repo-row > *,
 .gh-install-row > *,
 .issues-trow > *,
-.hist-row > *,
 .int-row > *,
 .search-i > *,
 .docs-table-r > *,
 .docs-config-row > *,
-.legal-table-r > *,
 .notfound-suggest-i > * {
   min-width: 0;
 }
@@ -5625,9 +5612,7 @@
 
 .issue-card-h,
 .issue-card-foot,
-.kan-card-foot,
 .fix-preview-h,
-.applied-card,
 .bill-card,
 .billing-summary,
 .docs-code-h,

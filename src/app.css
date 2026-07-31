@@ -755,15 +755,11 @@ body.has-proto-nav {
 
 .dash-summary-head > :first-child,
 .section-h > :first-child,
-.dash-donut-row > span:nth-child(2),
-.dash-cat-row > span:first-child,
-.dash-cat-row > span:nth-child(2) {
+.dash-donut-row > span:nth-child(2) {
   min-width: 0;
 }
 
-.dash-donut-row > span:nth-child(2),
-.dash-cat-row > span:first-child,
-.dash-cat-row > span:nth-child(2) {
+.dash-donut-row > span:nth-child(2) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -776,7 +772,6 @@ body.has-proto-nav {
 
 .issue-row > *,
 .issues-trow > *,
-.hist-row > *,
 .repo-row > *,
 .int-row > * {
   min-width: 0;
@@ -804,7 +799,6 @@ body.has-proto-nav {
 
 .issue-t,
 .issue-card-t,
-.kan-card-t,
 .scanning-title,
 .scanning-phase-t,
 .scanning-phase-d,
@@ -814,8 +808,7 @@ body.has-proto-nav {
 .docs-plan-kv code,
 .docs-config-copy p,
 .docs-config-path,
-.docs-config-value code,
-.docs-card p {
+.docs-config-value code {
   overflow-wrap: anywhere;
 }
 
@@ -825,7 +818,6 @@ body.has-proto-nav {
 
 .repo-check,
 .repo-icon,
-.hist-status,
 .gh-install-icon {
   display: inline-grid;
   place-items: center;
@@ -838,7 +830,6 @@ body.has-proto-nav {
 
 .repo-name .tag,
 .gh-install-row > .btn,
-.hist-row > .btn,
 .int-row > .btn,
 .billing-actions .btn {
   flex: 0 0 auto;
@@ -1157,7 +1148,6 @@ body.has-proto-nav {
 
 .issues-file,
 .issue-id,
-.hist-meta,
 .kpi-v,
 .pricing-num {
   font-variant-numeric: tabular-nums;
@@ -1519,13 +1509,6 @@ body.has-proto-nav {
   opacity: 0.5;
 }
 
-
-
-
-.hist-row > .btn {
-  justify-self: end;
-}
-
 .set-row,
 .set-pref,
 .billing-summary,
@@ -1631,8 +1614,6 @@ body.has-proto-nav {
   flex-wrap: wrap;
 }
 
-
-.pop-i > div,
 .search-i > div,
 .notfound-suggest-i > div {
   min-width: 0;
@@ -1661,14 +1642,6 @@ body.has-proto-nav {
   .issues-thead,
   .issues-trow {
     min-width: 1020px;
-  }
-
-  
-  .hist-meta,
-  .hist-row > .btn {
-    grid-column: 2 / -1;
-    justify-self: start;
-    text-align: left;
   }
 
   .issue-detail-grid {
@@ -1717,9 +1690,7 @@ body.has-proto-nav {
 
   .repo-row,
   .gh-install-row,
-  .hist-row,
-  .int-row,
-  .legal-table-r {
+  .int-row {
     grid-template-columns: 24px minmax(0, 1fr);
   }
 
@@ -1729,8 +1700,6 @@ body.has-proto-nav {
 
   .repo-meta,
   .gh-install-row > .btn,
-  .hist-meta,
-  .hist-row > .btn,
   .int-row > .pill,
   .int-row > .btn,
   .int-row > .tag {
