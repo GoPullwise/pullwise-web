@@ -49,7 +49,6 @@ export default defineConfig({
           if (normalized.includes("/react/") || normalized.includes("/react-dom/") || normalized.includes("/scheduler/")) {
             return "vendor-react";
           }
-          if (normalized.includes("/axios/")) return "vendor-http";
           return "vendor";
         },
       },
