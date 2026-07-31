@@ -1,9 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { clearPullwiseDataCache } from "./pullwise-data-cache.js";
 import {
   applyCachedIssueUpdate,
-  clearPullwiseDataCache,
   isTerminalScan,
   normalizeIssue,
   normalizeRepo,
@@ -16,7 +16,7 @@ import {
   useScanBatchRun,
   useScanRun,
   useScans,
-} from "./pullwise-data-cache.js";
+} from "./pullwise-data.js";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {

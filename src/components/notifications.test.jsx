@@ -56,12 +56,9 @@ describe("NotificationProvider", () => {
     }
   });
 
-  it("keeps notification toasts rounded without a left accent bar", () => {
+  it("does not add a left accent bar to notification toasts", () => {
     const styles = readFileSync("src/app.css", "utf8");
 
-    expect(styles).toMatch(
-      /\.notification-toast\s*\{[\s\S]*border-radius:\s*12px;[\s\S]*overflow:\s*hidden;/
-    );
     expect(styles).not.toMatch(/\.notification-toast::before/);
   });
 

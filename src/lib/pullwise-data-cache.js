@@ -12,10 +12,3 @@ export function clearPullwiseDataCache() {
   }
   inFlightDataRequests.clear();
 }
-
-export const __pullwiseDataCacheState = {
-  successfulListCache,
-  issueUpdateCache,
-  issueUpdateKeysById,
-  inFlightDataRequests,
-};

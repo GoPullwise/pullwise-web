@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
-
-const successfulListCache = new Map();
-const issueUpdateCache = new Map();
-const issueUpdateKeysById = new Map();
-const inFlightDataRequests = new Map();
+import {
+  inFlightDataRequests,
+  issueUpdateCache,
+  issueUpdateKeysById,
+  successfulListCache,
+} from "./pullwise-data-cache.js";
 const ISSUE_UPDATE_KEY_FIELDS = [
   "id",
   "scanId",
@@ -187,16 +188,6 @@ function rememberListState(key, state) {
   );
 }
 
-export function clearPullwiseDataCache() {
-  successfulListCache.clear();
-  issueUpdateCache.clear();
-  issueUpdateKeysById.clear();
-  for (const entry of inFlightDataRequests.values()) {
-    entry.controller?.abort?.();
-  }
-  inFlightDataRequests.clear();
-}
-
 export function issueUpdateKey(issue) {
   return JSON.stringify(ISSUE_UPDATE_KEY_FIELDS.map((field) => String(issue?.[field] ?? "")));
 }
@@ -290,10 +281,6 @@ function useInitialCachedListState(cacheKey) {
     initialCachedState: initialCacheRef.current.state,
     shouldRefreshQuietly: initialCacheRef.current.hasState,
   };
-}
-
-if (import.meta.env?.MODE === "test") {
-  globalThis.__clearPullwiseDataCache = clearPullwiseDataCache;
 }
 
 function itemsFrom(payload, ...keys) {

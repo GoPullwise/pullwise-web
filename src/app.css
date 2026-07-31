@@ -456,7 +456,7 @@
 body.has-proto-nav {
   padding-top: 42px;
 }
-/* 閳光偓閳光偓 Alignment pass: stable rows, truncation, and responsive wrapping 閳光偓閳光偓 */
+/* ── Alignment pass: stable rows, truncation, and responsive wrapping ── */
 :where(
   .topbar,
   .topbar > div,
