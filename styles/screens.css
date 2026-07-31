@@ -2867,7 +2867,9 @@
 .modal-back {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(8, 12, 20, 0.52);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: var(--z-modal);
   display: grid;
   place-items: center;
@@ -2903,6 +2905,32 @@
   gap: 10px;
   justify-content: flex-end;
   background: var(--bg-soft);
+}
+@keyframes modalBackIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .modal-back {
+    animation: modalBackIn 160ms var(--ease-out) both;
+  }
+  .modal {
+    animation: modalIn 220ms var(--ease-out) both;
+  }
 }
 .pr-step.on {
   color: var(--text);
@@ -3020,6 +3048,10 @@
 .set-select:focus {
   outline: none;
   border-color: var(--accent);
+}
+.set-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 .set-select:disabled {
   opacity: 0.55;

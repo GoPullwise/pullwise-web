@@ -329,7 +329,23 @@
 .notification-close:focus-visible {
   background: var(--bg-soft);
   color: var(--text);
-  outline: 0;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .notification-toast {
+    animation: toastIn 240ms var(--ease-out) both;
+  }
 }
 
 @media (max-width: 520px) {
@@ -2581,7 +2597,7 @@ body.has-proto-nav {
   font-size: clamp(58px, 6.2vw, 84px);
   font-weight: 680;
   line-height: 0.98;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -3221,5 +3237,18 @@ body.has-proto-nav {
 
   .settings-inline-error .btn {
     width: 100%;
+  }
+}
+
+/* Reduced motion: state changes become instant; infinite pulses stop. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .pulse,
+  .scan-row-running .scan-status-dot,
+  .status-overall.operational .status-dot {
+    animation: none;
   }
 }
