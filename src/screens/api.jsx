@@ -763,6 +763,7 @@ Content-Type: application/json
               </a>
               <a className="btn primary" {...screenLinkProps(go, "apiKeys")}>
                 {T("API Keys", "API 密钥")}
+                <I.ArrowR size={14} className="docs-foot-arrow" />
               </a>
             </div>
           </div>

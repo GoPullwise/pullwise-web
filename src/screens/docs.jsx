@@ -986,6 +986,7 @@ export function DocsScreen({ go, auth }) {
               </a>
               <a className="btn primary" {...screenLinkProps(go, "pricing")}>
                 {T("Pricing", "Pricing")}
+                <I.ArrowR size={14} className="docs-foot-arrow" />
               </a>
             </div>
           </div>

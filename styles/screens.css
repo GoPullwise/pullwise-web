@@ -4559,6 +4559,46 @@
   gap: 8px;
 }
 
+.docs-foot-actions .btn {
+  height: 40px;
+  padding: 0 18px;
+  gap: 9px;
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-2);
+  transition:
+    background 140ms var(--ease-out),
+    border-color 140ms var(--ease-out),
+    color 140ms var(--ease-out);
+}
+.docs-foot-actions .btn:hover {
+  background: transparent;
+  border-color: var(--text);
+  color: var(--text);
+}
+.docs-foot-actions .btn:active {
+  background: transparent;
+}
+.docs-foot-actions .btn.primary {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+.docs-foot-actions .btn.primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.docs-foot-actions .btn .docs-foot-arrow {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  transition: transform 140ms var(--ease-out);
+}
+.docs-foot-actions .btn.primary:hover .docs-foot-arrow {
+  transform: translateX(2px);
+}
+
 .pop-h .auth-link {
   text-transform: none;
   letter-spacing: 0;
