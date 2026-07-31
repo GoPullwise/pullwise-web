@@ -230,6 +230,18 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   D24 implementation or enablement, production activation, deployment,
   production traffic, canary UI, legacy deletion, fallback/dual paths, and S8
   release/cutover/rollback remain forbidden.
+- D38 (`d1cbc20e4220c6d073d01a060cce1ae2f109459e0c110d4e403c41ecd0303368`)
+  is resolved to
+  `bounded_s5_terminal_control_and_selector_closure_one_generate_no_activation`.
+  It authorizes only the bounded S5 source closure and exactly one Generate
+  after every Server pre-generation gate is green. The current D38 Generate
+  count is `0`; until that one transaction completes, Web must retain the D37
+  exact pins above. Afterward Web may consume only the newly generated exact
+  wrapper/package-manifest bytes and synchronized logical digests. It must not
+  reconstruct the passed-Success-Gate bridge or selector, accept caller-chosen
+  outcomes, or add a second authority/store/runner, fallback, dual path,
+  compatibility/downgrade shim, activation, deployment, production traffic,
+  canary UI, legacy deletion, D24 implementation, or S8 cutover/rollback.
 - Treat `schemaIds()` as the public document projection. The exact nine
   `internal_constraint` TaskResult outcome variants are
   `task-result-completed-variant/v1`,
