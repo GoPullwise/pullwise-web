@@ -251,12 +251,32 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   outcomes, or add a second authority/store/runner, fallback, dual path,
   compatibility/downgrade shim, activation, deployment, production traffic,
   canary UI, legacy deletion, D24 implementation, or S8 cutover/rollback.
-- S7 currently stops at `SPEC_GAP`: the exact-pinned bootstrap has no
-  authenticated outer `transport_attempt_id`, while `worker-debug-fragment/v1`
-  requires it and the design forbids substituting the native Attempt ID. Web
-  must not invent or project that identity; no contract-source edit, Generate,
-  debug UI semantics, fallback URL, or activation is allowed until a new
-  append-only decision authorizes the bounded closure.
+- D39 (`85365d344a6bc0d36d5d11dbc088278722083bf51e98c9cd518dd3d57ac90f9c`)
+  is resolved to
+  `bounded_s7_transport_attempt_binding_one_generate_no_activation`. It
+  supersedes only the pre-D39 S7 `SPEC_GAP` and authorizes bounded local S7
+  closure: consume the exact package tuple below while the Worker authenticates
+  the outer `transport_attempt_id`, captures debug fragment/descriptor variants,
+  enforces replay/conflict/concurrency/redaction/bounded extraction behavior,
+  and adds migration 9 with schema-v9 fingerprint
+  `028cc25005ce33dd7b16017fe7e5324774205b0b603f2e2582e9930511065e6a`.
+  Exactly one Generate was consumed (count `1`) for
+  `@pullwise/agent-task-contract@0.1.0`: content
+  `35468e289dd08a2b9a91b5c7ffb589f844c4373cfedd8f3846cc40dd1e8f6105`, root
+  `ff6fce2d8a0d28adeb880b97ebfaa6037fa0503eb7c1accd68e840994add43b1`,
+  Python wrapper `bd099dd825c2b2340061b67500bc02f1bb4fee0a1ce7ff44138b36b8821a59fd`,
+  npm wrapper `4027cf1383772871efa293a1c55338e96e17d5c0387efd84d059585cdce6c0ef`,
+  and package manifest
+  `161c7d7bef846de963a491f2d9f07f9cbc1ced039a3c017467d6f02f14b1925e`;
+  Server producer commit is `06ed22299e324a8a39f9030c653aef34044c3d3e`.
+  Web remains an exact-pin consumer and local candidate-only surface: do not
+  Generate again, invent/project identity, add debug UI semantics or fallback
+  URLs, activate D24, deploy, send production traffic/canary, delete legacy
+  paths, add fallback/dual/compatibility/downgrade shims, create a second
+  authority/store/runner, or begin S8.
+- The preceding S7 `SPEC_GAP` text is historical pre-D39 guidance; native
+  Attempt ID substitution remains forbidden and D39's no-activation boundary
+  controls the current work.
 - Treat `schemaIds()` as the public document projection. The exact nine
   `internal_constraint` TaskResult outcome variants are
   `task-result-completed-variant/v1`,
