@@ -1348,7 +1348,7 @@ body {
   cursor: pointer;
   padding: 2px 4px;
   margin: -2px -4px;
-  border-radius: 6px;
+  border-radius: 0;
   transition: background 120ms var(--ease-out);
 }
 .disto-legend-click:hover {
@@ -1888,7 +1888,7 @@ body {
   min-width: 180px;
   background: var(--bg-elev, #fff);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   padding: 4px;
   z-index: var(--z-row-menu);
@@ -1902,7 +1902,7 @@ body {
   padding: 8px 10px;
   background: transparent;
   border: 0;
-  border-radius: 7px;
+  border-radius: 0;
   color: var(--text);
   font-size: var(--fs-sm);
   font-weight: 500;

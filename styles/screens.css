@@ -2029,7 +2029,7 @@
 .audit-card {
   padding: 12px 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg);
   display: grid;
   gap: 8px;
@@ -2052,7 +2052,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   background: color-mix(in oklch, currentColor 14%, transparent);
   color: var(--text-2);
 }
@@ -2759,7 +2759,7 @@
   padding: 10px 12px;
   background: var(--bg-elev, #fff);
   border: 1px solid var(--bg-2, rgba(0, 0, 0, 0.1));
-  border-radius: 8px;
+  border-radius: 0;
   color: inherit;
   text-align: left;
   position: relative;

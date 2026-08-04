@@ -4,6 +4,11 @@ import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
 import { useIssues, useRepositories, useScans } from "./lib/pullwise-data.js";
 
+// The search shortcut binds both metaKey and ctrlKey; the hint shows whichever
+// chord is native to the visitor's platform.
+const IS_MAC =
+  typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform || "");
+
 export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
   useLang();
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -70,7 +75,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
           <I.Search size={14} />{" "}
           <span style={{ color: "var(--text-3)" }}>{T("Search...", "搜索...")}</span>{" "}
           <span className="kbd" style={{ marginLeft: 6 }}>
-            ⌘K
+            {IS_MAC ? "⌘K" : "Ctrl K"}
           </span>
         </button>
         <a

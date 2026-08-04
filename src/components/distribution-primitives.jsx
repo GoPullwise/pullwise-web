@@ -45,7 +45,7 @@ export function countBy(items, keyFn, bucketKeys) {
 }
 
 // Horizontal stacked bar. `segments` is an array of { color, weight }.
-export function StackedBar({ segments, height = 6, radius = 999, className = "" }) {
+export function StackedBar({ segments, height = 6, radius = 0, className = "" }) {
   const total = segments.reduce((sum, seg) => sum + Math.max(0, seg.weight), 0);
   if (total <= 0) {
     return (

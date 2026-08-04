@@ -411,7 +411,7 @@
   border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.6);
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   font:
     11.5px/1 "Geist",
     ui-sans-serif,
@@ -452,7 +452,7 @@
   z-index: var(--z-nav-toggle);
   width: 30px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(10, 10, 10, 0.92);
   color: white;
@@ -879,7 +879,7 @@ body.has-proto-nav {
   gap: 5px;
   padding: 2px 6px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--surface-1);
 }
 
@@ -913,7 +913,7 @@ body.has-proto-nav {
 .repo-branch-picker .repo-branch-trigger:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
   outline-offset: 1px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .repo-branch-picker .repo-branch-value {
@@ -943,7 +943,7 @@ body.has-proto-nav {
   list-style: none;
   background: var(--bg-elev, var(--surface-1));
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: var(--shadow-3, 0 8px 24px rgba(0, 0, 0, 0.18));
   z-index: var(--z-float);
 }
@@ -960,7 +960,7 @@ body.has-proto-nav {
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  border-radius: 5px;
+  border-radius: 0;
   font-size: var(--fs-sm);
   color: var(--text-1);
   cursor: pointer;
@@ -1018,7 +1018,7 @@ body.has-proto-nav {
   gap: 14px;
   padding: 18px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-elev);
   color: var(--text);
   box-shadow: var(--shadow-3);
@@ -1065,7 +1065,7 @@ body.has-proto-nav {
   align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg-soft);
   color: var(--text);
   text-align: left;
@@ -2243,7 +2243,7 @@ body.has-proto-nav {
   padding: 12px;
   border: 1px solid var(--border);
   background: var(--bg);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .issue-evidence-head,
@@ -2324,7 +2324,7 @@ body.has-proto-nav {
   padding: 12px;
   border: 1px solid var(--border);
   background: var(--bg);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .issue-callout {
