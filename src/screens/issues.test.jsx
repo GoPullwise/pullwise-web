@@ -54,10 +54,6 @@ function baseStyles() {
   return readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
 }
 
-function screenStyles() {
-  return readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
-}
-
 function appStyles() {
   return readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
 }
@@ -2115,7 +2111,7 @@ describe("IssueDetailScreen review detail", () => {
       appCss.match(/\.issue-detail-h > div:first-child > div:first-child\s*\{(?<body>[^}]*)\}/s)
         ?.groups?.body || "";
     const auditTagBlock =
-      appCss.match(/\.evidence-command,\s*\.audit-tag\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+      appCss.match(/\.audit-tag\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
 
     expect(tagBlock).toMatch(/min-height:\s*20px;/);
     expect(tagBlock).not.toMatch(/^\s*height:\s*20px;/m);

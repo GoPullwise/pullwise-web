@@ -1105,18 +1105,6 @@ a.crumb-button:hover {
     padding: 10px 14px;
   }
 
-  .topbar > div {
-    min-width: 0;
-  }
-
-  .topbar > div:first-child {
-    flex: 1 1 auto;
-  }
-
-  .topbar > div:last-child {
-    flex: 0 0 auto;
-  }
-
   .topbar .brand span {
     display: none;
   }

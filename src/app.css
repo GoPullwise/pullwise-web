@@ -927,7 +927,7 @@ body.has-proto-nav {
 .repo-branch-picker .repo-branch-chev {
   flex: 0 0 auto;
   color: var(--text-3);
-  transition: transform 150ms var(--ease-out, ease);
+  transition: transform 150ms var(--ease-out);
 }
 
 .repo-branch-picker .repo-branch-trigger[aria-expanded="true"] .repo-branch-chev {
@@ -941,10 +941,10 @@ body.has-proto-nav {
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: var(--bg-elev, var(--bg-soft));
+  background: var(--bg-elev);
   border: 1px solid var(--border);
   border-radius: 0;
-  box-shadow: var(--shadow-3, 0 8px 24px rgba(0, 0, 0, 0.18));
+  box-shadow: var(--shadow-3);
   z-index: var(--z-float);
 }
 
@@ -969,12 +969,12 @@ body.has-proto-nav {
 
 .repo-branch-picker .repo-branch-option:hover,
 .repo-branch-picker .repo-branch-option:focus-visible {
-  background: var(--bg-soft, color-mix(in srgb, var(--accent) 6%, var(--bg-soft)));
+  background: var(--bg-soft);
   outline: 0;
 }
 
 .repo-branch-picker .repo-branch-option.selected {
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev, var(--bg-soft)));
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev));
   color: var(--text);
 }
 
@@ -1178,11 +1178,6 @@ body.has-proto-nav {
 .issue-detail-h .sub,
 .issue-detail-grid .section,
 .issue-detail-main-col,
-.evidence-item,
-.evidence-meta,
-.evidence-command,
-.repro-center,
-.repro-command,
 .audit-scope,
 .fix-preview,
 .docs-code pre {
@@ -1220,18 +1215,12 @@ body.has-proto-nav {
   overflow-x: auto;
 }
 
-.evidence-command,
 .audit-tag {
   overflow: visible;
   overflow-wrap: anywhere;
   text-overflow: clip;
   white-space: normal;
   word-break: break-word;
-}
-
-.evidence-command {
-  height: auto;
-  min-height: 20px;
 }
 
 .scan-human-report {
