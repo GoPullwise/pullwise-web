@@ -40,17 +40,17 @@ function Sparkline({ data, color, height = 28 }) {
       preserveAspectRatio="none"
       style={{ width: "100%", height, display: "block" }}
     >
-      <path d={`${d} L${w},${h} L0,${h} Z`} fill={color} fillOpacity={0.1} />
+      <path d={`${d} L${w},${h} L0,${h} Z`} style={{ fill: color, fillOpacity: 0.1 }} />
       <path
         d={d}
         fill="none"
-        stroke={color}
+        style={{ stroke: color }}
         strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <line x1="0" y1={h} x2={w} y2={h} stroke={color} strokeWidth={0.5} strokeOpacity={0.15} />
+      <line x1="0" y1={h} x2={w} y2={h} style={{ stroke: color, strokeOpacity: 0.15 }} strokeWidth={0.5} />
     </svg>
   );
 }
@@ -387,7 +387,7 @@ function DashboardSkeleton() {
   );
 }
 
-export function DashboardScreen({ go, setIssue, accent }) {
+export function DashboardScreen({ go, setIssue }) {
   useLang();
   const {
     items: issues,
@@ -543,7 +543,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                     &nbsp;
                   </div>
                   <div className="kpi-chart">
-                    <Sparkline data={issueTrend} color={accent} height={20} />
+                    <Sparkline data={issueTrend} color="var(--accent)" height={20} />
                   </div>
                 </div>
                 <div className="kpi card" role="article">
@@ -603,7 +603,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       : T("No scans yet", "暂无扫描记录")}
                   </div>
                   <div className="kpi-chart">
-                    <Sparkline data={scanTrend} color={accent} height={20} />
+                    <Sparkline data={scanTrend} color="var(--accent)" height={20} />
                   </div>
                 </div>
               </section>

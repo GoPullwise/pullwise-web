@@ -469,6 +469,8 @@ function repoOwner(repo) {
   return fullName.includes("/") ? fullName.split("/")[0] : "";
 }
 
+// GitHub linguist language colors — external identity colors, intentionally
+// not theme tokens: they mean "the same color GitHub shows", in both themes.
 const REPO_LANGUAGE_COLORS = {
   javascript: "#f1e05a",
   typescript: "#3178c6",

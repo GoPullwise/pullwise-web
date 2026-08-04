@@ -100,8 +100,7 @@
   box-shadow: var(--shadow-2);
   transition:
     transform 180ms var(--ease-spring),
-    background 150ms var(--ease-out),
-    box-shadow 150ms var(--ease-out);
+    background 150ms var(--ease-out);
 }
 
 .lang-toggle:hover,
@@ -170,8 +169,7 @@
   box-shadow: var(--shadow-2);
   transition:
     transform 180ms var(--ease-spring),
-    background 150ms var(--ease-out),
-    box-shadow 150ms var(--ease-out);
+    background 150ms var(--ease-out);
 }
 
 .theme-toggle:hover {
@@ -204,8 +202,7 @@
   transition:
     opacity 180ms var(--ease-out),
     transform 220ms var(--ease-spring),
-    background 150ms var(--ease-out),
-    box-shadow 150ms var(--ease-out);
+    background 150ms var(--ease-out);
 }
 
 .back-to-top.visible {

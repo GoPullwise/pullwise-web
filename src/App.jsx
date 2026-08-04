@@ -17,7 +17,6 @@ import { NotFoundScreen } from "./screens/error.jsx";
 import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
-const ACCENT = "#6366f1";
 const LAYOUT = "list";
 const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
 const SESSION_SIGNED_OUT_CONFIRM_DELAY_MS = 2000;
@@ -595,7 +594,6 @@ export function App({ prototypeNav = false }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    document.documentElement.style.setProperty("--accent", ACCENT);
     localStorageSet("pw-theme", theme);
   }, [theme]);
 
@@ -696,7 +694,7 @@ export function App({ prototypeNav = false }) {
   } else
     switch (screen) {
       case "landing":
-        body = <LandingScreen go={go} accent={ACCENT} auth={auth} />;
+        body = <LandingScreen go={go} auth={auth} />;
         break;
       case "login":
         body = <LoginScreen go={go} />;
@@ -726,7 +724,7 @@ export function App({ prototypeNav = false }) {
         );
         break;
       case "dashboard":
-        body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} accent={ACCENT} />;
+        body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} />;
         break;
       case "issues":
         body = (

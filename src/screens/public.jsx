@@ -64,7 +64,7 @@ function getRepositoryAuthErrorMessage(error) {
   return getAuthErrorMessage(error);
 }
 
-export function LandingScreen({ go, accent, auth }) {
+export function LandingScreen({ go, auth }) {
   useLang();
   const checkingSession = auth?.status === "checking";
   const signedIn = !checkingSession && Boolean(auth?.authenticated);
@@ -176,7 +176,7 @@ export function LandingScreen({ go, accent, auth }) {
                   <span>{T("Bundle", "Bundle")}</span>
                 </div>
                 <div className="lp-preview-stat">
-                  <b style={{ color: accent }}>
+                  <b style={{ color: "var(--accent)" }}>
                     <I.Bug size={18} />
                   </b>
                   <span>{T("Review", "审查")}</span>
@@ -279,7 +279,7 @@ export function LandingScreen({ go, accent, auth }) {
             <article key={feature.h} className="lp-feat">
               <div className="lp-feat-top">
                 <span className="lp-feat-n">{String(index + 1).padStart(2, "0")}</span>
-                <div className="lp-feat-i" style={{ color: accent }}>
+                <div className="lp-feat-i" style={{ color: "var(--accent)" }}>
                   {feature.i}
                 </div>
               </div>

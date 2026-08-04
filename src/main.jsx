@@ -5,12 +5,14 @@ import "../styles/screens.css";
 import "./app.css";
 import { App } from "./App.jsx";
 import { preloadActiveLocale, T } from "./i18n.jsx";
+import { localStorageGet } from "./lib/browser-storage.js";
 import { isInstallPopupReturn, notifyOpenerAndClose } from "./lib/install-popup.js";
 
 const root = createRoot(document.getElementById("root"));
 
 if (isInstallPopupReturn()) {
   notifyOpenerAndClose();
+  document.documentElement.setAttribute("data-theme", localStorageGet("pw-theme", "light"));
   root.render(<InstallPopupReturn />);
 } else {
   // Resolves immediately for English; for other locales this avoids a first
@@ -33,12 +35,12 @@ function InstallPopupReturn() {
         minHeight: "100vh",
         padding: "16px",
         textAlign: "center",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        color: "#1f2937",
+        fontFamily: "var(--font-sans)",
+        color: "var(--text)",
       }}
     >
       <div>
-        <p style={{ fontSize: 15, margin: 0 }}>
+        <p style={{ fontSize: "var(--fs-xl)", margin: 0 }}>
           {T("GitHub installation complete", {
             zh: "GitHub 安装完成",
             ja: "GitHub インストールが完了しました",
@@ -47,7 +49,7 @@ function InstallPopupReturn() {
             es: "Instalación de GitHub completada",
           })}
         </p>
-        <p style={{ fontSize: 13, marginTop: 8, color: "#6b7280" }}>
+        <p style={{ fontSize: "var(--fs-md)", marginTop: 8, color: "var(--text-3)" }}>
           {T("You can close this window.", {
             zh: "你可以关闭此窗口。",
             ja: "このウィンドウを閉じてかまいません。",

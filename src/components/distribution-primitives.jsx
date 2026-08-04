@@ -14,16 +14,16 @@ export const SEVERITY_BUCKETS = [
 ];
 
 export const VERIFICATION_BUCKETS = [
-  { key: "verified", color: "#16a34a" },
-  { key: "static_proof", color: "#2563eb" },
-  { key: "potential_risk", color: "#ea580c" },
-  { key: "unverified", color: "#6b7280" },
+  { key: "verified", color: "var(--ok)" },
+  { key: "static_proof", color: "var(--sev-low)" },
+  { key: "potential_risk", color: "var(--sev-high)" },
+  { key: "unverified", color: "var(--sev-info)" },
 ];
 
 export const CONFIDENCE_BUCKETS = [
-  { key: "high", color: "#16a34a" },
-  { key: "medium", color: "#ca8a04" },
-  { key: "low", color: "#9ca3af" },
+  { key: "high", color: "var(--ok)" },
+  { key: "medium", color: "var(--sev-medium)" },
+  { key: "low", color: "var(--text-4)" },
 ];
 
 function safeCount(value) {

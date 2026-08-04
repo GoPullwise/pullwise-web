@@ -38,6 +38,12 @@ input[type="checkbox"] {
   --sev-low: #2563eb;
   --sev-info: #6b7280;
 
+  /* Categorical hues for chart buckets beyond the severity ramp
+   * (issue "Style" category, per-repo band colors). */
+  --cat-violet: #7c3aed;
+  --cat-sky: #0ea5e9;
+  --cat-purple: #a855f7;
+
   --r-2: 0px;
   --r-3: 0px;
 
@@ -123,6 +129,10 @@ input[type="checkbox"] {
   --sev-medium: #facc15;
   --sev-low: #60a5fa;
   --sev-info: #9ca3af;
+
+  --cat-violet: #a78bfa;
+  --cat-sky: #38bdf8;
+  --cat-purple: #c084fc;
 
   --ok: #4ade80;
   --warn: #fbbf24;

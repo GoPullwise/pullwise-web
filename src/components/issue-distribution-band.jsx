@@ -18,15 +18,15 @@ const CATEGORY_BUCKETS = [
   { key: "Quality", color: "var(--sev-medium)" },
   { key: "Reliability", color: "var(--sev-low)" },
   { key: "Compliance", color: "var(--sev-info)" },
-  { key: "Style", color: "#7c3aed" },
+  { key: "Style", color: "var(--cat-violet)" },
 ];
 
 const REPO_BUCKETS = [
-  { key: "acme/api", color: "var(--accent, #6366f1)" },
-  { key: "acme/web", color: "#0ea5e9" },
-  { key: "acme/worker", color: "#16a34a" },
-  { key: "acme/cli", color: "#ea580c" },
-  { key: "acme/infra", color: "#a855f7" },
+  { key: "acme/api", color: "var(--accent)" },
+  { key: "acme/web", color: "var(--cat-sky)" },
+  { key: "acme/worker", color: "var(--ok)" },
+  { key: "acme/cli", color: "var(--sev-high)" },
+  { key: "acme/infra", color: "var(--cat-purple)" },
 ];
 
 function aggregateCategories(items) {
@@ -67,7 +67,7 @@ function pickTopCategories(counts, max = 5) {
   const top = sorted.slice(0, max);
   const buckets = top.map(([key]) => {
     const preset = CATEGORY_BUCKETS.find((b) => b.key === key);
-    return { key, color: preset ? preset.color : "var(--text-3, #6b7280)" };
+    return { key, color: preset ? preset.color : "var(--text-3)" };
   });
   return { buckets, counts: Object.fromEntries(top) };
 }
