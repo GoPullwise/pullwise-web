@@ -57,6 +57,25 @@ describe("Topbar navigation", () => {
     expect(screen.getByRole("searchbox", { name: /^search$/i })).toBeInTheDocument();
   });
 
+  it("keeps a result-heavy search dialog inside the remaining viewport", () => {
+    const styles = readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
+
+    expect(styles).toContain("--search-modal-top-offset: 12vh;");
+    expect(styles).toContain("margin-top: var(--search-modal-top-offset);");
+    expect(styles).toContain(
+      "max-height: calc(100vh - 40px - var(--search-modal-top-offset));",
+    );
+    expect(styles).toContain(
+      "max-height: calc(100dvh - 40px - var(--search-modal-top-offset));",
+    );
+    expect(styles).toMatch(
+      /\.search-body\s*\{[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/s,
+    );
+    expect(styles).toMatch(
+      /\.modal-search \.search-body\s*\{[^}]*max-height:\s*none;[^}]*flex:\s*1 1 auto;/s,
+    );
+  });
+
   it("sends the typed global search query to the server-backed hooks", async () => {
     const user = userEvent.setup();
 

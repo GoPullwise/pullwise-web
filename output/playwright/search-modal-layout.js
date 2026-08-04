@@ -19,8 +19,11 @@ async (page) => {
         border: 1px solid;
       }
       .modal-search {
+        --search-modal-top-offset: 12vh;
         align-self: start;
-        margin-top: 12vh;
+        margin-top: var(--search-modal-top-offset);
+        max-height: calc(100vh - 40px - var(--search-modal-top-offset));
+        max-height: calc(100dvh - 40px - var(--search-modal-top-offset));
       }
       .search-h,
       .search-foot {

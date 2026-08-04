@@ -4038,10 +4038,13 @@
 
 /* ── Search modal (⌘K) ──────────────────────────────────────────────── */
 .modal-search {
+  --search-modal-top-offset: 12vh;
   width: 560px;
   max-width: calc(100vw - 40px);
   align-self: start;
-  margin-top: 12vh;
+  margin-top: var(--search-modal-top-offset);
+  max-height: calc(100vh - 40px - var(--search-modal-top-offset));
+  max-height: calc(100dvh - 40px - var(--search-modal-top-offset));
 }
 .search-h {
   display: flex;
