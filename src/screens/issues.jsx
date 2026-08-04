@@ -1160,13 +1160,13 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 {issue.title}
               </h1>
               {issue.summary && (
-                <div style={{ color: "var(--text-2)", fontSize: 13.5, marginBottom: 4 }}>
+                <div style={{ color: "var(--text-2)", fontSize: "var(--fs-md)", marginBottom: 4 }}>
                   {issue.summary}
                 </div>
               )}
               <div
                 className="sub"
-                style={{ display: "flex", gap: 10, fontSize: 12.5, marginTop: 6, flexWrap: "wrap" }}
+                style={{ display: "flex", gap: 10, fontSize: "var(--fs-sm)", marginTop: 6, flexWrap: "wrap" }}
               >
                 <span>
                   <I.Folder size={12} /> {issue.repo || T("Repository unknown", "未知仓库")}

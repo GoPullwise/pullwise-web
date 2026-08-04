@@ -29,7 +29,7 @@
 .scan-timing-label {
   flex: 0 0 auto;
   color: var(--text-3);
-  font: 700 10px/1.2 var(--font-mono);
+  font: 700 var(--fs-micro)/1.2 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -37,7 +37,7 @@
 .scan-timing-value {
   min-width: 0;
   color: var(--text);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.4;
 }
 
@@ -58,7 +58,7 @@
 
 .scan-timing-badge .scan-timing-value {
   overflow: hidden;
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   text-overflow: ellipsis;
 }
 
@@ -95,7 +95,7 @@
   display: grid;
   place-items: center;
   cursor: pointer;
-  font: 600 12px/1 var(--font-mono);
+  font: 600 var(--fs-sm)/1 var(--font-mono);
   letter-spacing: 0.02em;
   box-shadow: var(--shadow-2);
   transition:
@@ -134,7 +134,7 @@
   background: transparent;
   color: var(--text-2);
   text-align: left;
-  font-size: 13px;
+  font-size: var(--fs-md);
 }
 
 .lang-menu-i:hover,
@@ -150,7 +150,7 @@
 .lang-menu-code {
   width: 24px;
   flex: 0 0 24px;
-  font: 700 11px/1 var(--font-mono);
+  font: 700 var(--fs-xs)/1 var(--font-mono);
   color: var(--text-3);
 }
 
@@ -289,14 +289,14 @@
 
 .notification-title {
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 650;
   line-height: 1.25;
 }
 
 .notification-message {
   color: var(--text-2);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
@@ -438,13 +438,13 @@
 
 .proto-nav-n {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: var(--fs-micro);
   opacity: 0.55;
 }
 
 .proto-nav-hint {
   color: rgba(255, 255, 255, 0.4);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   flex: 0 0 auto;
 }
 
@@ -459,7 +459,7 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(10, 10, 10, 0.92);
   color: white;
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 body.has-proto-nav {
@@ -954,7 +954,7 @@ body.has-proto-nav {
 .repo-branch-picker .repo-branch-empty {
   padding: 6px 8px;
   color: var(--text-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   list-style: none;
 }
 
@@ -964,7 +964,7 @@ body.has-proto-nav {
   gap: 6px;
   padding: 5px 8px;
   border-radius: 5px;
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   color: var(--text-1);
   cursor: pointer;
   user-select: none;
@@ -1036,7 +1036,7 @@ body.has-proto-nav {
 
 .quota-modal .modal-h h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--fs-3xl);
   line-height: 1.25;
 }
 
@@ -1049,7 +1049,7 @@ body.has-proto-nav {
 
 .quota-choice-count {
   color: var(--text-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -1280,7 +1280,7 @@ body.has-proto-nav {
   min-width: 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   font-weight: 650;
   letter-spacing: 0;
   line-height: 1.25;
@@ -1291,7 +1291,7 @@ body.has-proto-nav {
   display: block;
   margin-top: 3px;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 .review-run-summary-line {
@@ -1357,7 +1357,7 @@ body.has-proto-nav {
   gap: 6px;
   margin-top: 5px;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 .review-run-artifact-meta span:not(:last-child)::after {
@@ -1386,13 +1386,13 @@ body.has-proto-nav {
 }
 
 .scan-human-report-markdown h4 {
-  font-size: 18px;
+  font-size: var(--fs-3xl);
   line-height: 1.3;
 }
 
 .scan-human-report-markdown h5,
 .scan-human-report-markdown h6 {
-  font-size: 14px;
+  font-size: var(--fs-lg);
   line-height: 1.35;
 }
 
@@ -1404,7 +1404,7 @@ body.has-proto-nav {
   max-height: 360px;
   overflow: auto;
   white-space: pre-wrap;
-  font: 12.5px/1.55 var(--mono);
+  font: var(--fs-sm)/1.55 var(--mono);
 }
 
 .scan-human-report-markdown code {
@@ -1744,7 +1744,7 @@ body.has-proto-nav {
   .issues-trow > div:nth-child(5)::before,
   .issues-trow > div:nth-child(6)::before {
     color: var(--text-3);
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -2113,7 +2113,7 @@ body.has-proto-nav {
   }
 
   .lp-sub {
-    font-size: 16px;
+    font-size: var(--fs-2xl);
     width: min(100%, 320px);
   }
 
@@ -2202,7 +2202,7 @@ body.has-proto-nav {
 .issue-source-row b,
 .issue-check b {
   color: var(--text);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 650;
 }
 
@@ -2210,7 +2210,7 @@ body.has-proto-nav {
 .issue-callout p {
   margin: 0;
   color: var(--text-2);
-  font-size: 13px;
+  font-size: var(--fs-md);
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -2226,7 +2226,7 @@ body.has-proto-nav {
   gap: 8px;
   color: var(--text-2);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   overflow-wrap: anywhere;
 }
 
@@ -2262,14 +2262,14 @@ body.has-proto-nav {
 .issue-evidence-location {
   color: var(--text-3);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   overflow-wrap: anywhere;
 }
 
 .issue-evidence-card p {
   margin: 8px 0 0;
   color: var(--text-2);
-  font-size: 13px;
+  font-size: var(--fs-md);
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
@@ -2277,7 +2277,7 @@ body.has-proto-nav {
 .issue-evidence-meta {
   margin-top: 8px;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 .issue-trace {
@@ -2344,7 +2344,7 @@ body.has-proto-nav {
 .issue-source-list span,
 .issue-check span {
   color: var(--text-2);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
@@ -2460,7 +2460,7 @@ body.has-proto-nav {
 }
 
 .lp-top .brand {
-  font-size: 16px;
+  font-size: var(--fs-2xl);
 }
 
 .lp-hero {
@@ -2484,7 +2484,7 @@ body.has-proto-nav {
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-strong);
   color: var(--text-3);
-  font: 600 10.5px/1.2 var(--font-mono);
+  font: 600 var(--fs-xs)/1.2 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2516,7 +2516,7 @@ body.has-proto-nav {
   max-width: none;
   margin: 5px 0 28px;
   color: var(--text-2);
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   line-height: 1.65;
   text-wrap: pretty;
 }
@@ -2559,7 +2559,7 @@ body.has-proto-nav {
 
 .lp-preview-kicker,
 .lp-preview-url {
-  font: 600 10.5px/1.2 var(--font-mono);
+  font: 600 var(--fs-xs)/1.2 var(--font-mono);
   letter-spacing: 0.04em;
 }
 
@@ -2621,7 +2621,7 @@ body.has-proto-nav {
 .lp-section-index,
 .lp-feat-n {
   color: var(--text-3);
-  font: 600 10.5px/1.2 var(--font-mono);
+  font: 600 var(--fs-xs)/1.2 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2638,7 +2638,7 @@ body.has-proto-nav {
 .lp-section-head p {
   max-width: 560px;
   color: var(--text-2);
-  font-size: 15px;
+  font-size: var(--fs-xl);
   line-height: 1.6;
 }
 
@@ -2689,13 +2689,13 @@ body.has-proto-nav {
 .lp-feat h3 {
   max-width: 230px;
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: var(--fs-2xl);
 }
 
 .lp-feat p {
   max-width: 310px;
   color: var(--text-2);
-  font-size: 13px;
+  font-size: var(--fs-md);
   line-height: 1.6;
 }
 
@@ -2748,7 +2748,7 @@ body.has-proto-nav {
 
 .kpi-l {
   color: var(--text-3);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 650;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2920,7 +2920,7 @@ body.has-proto-nav {
     width: 100%;
     max-width: 560px;
     margin: 28px 0 26px;
-    font-size: 15.5px;
+    font-size: var(--fs-2xl);
   }
 
   .lp-cta {
@@ -3074,7 +3074,7 @@ body.has-proto-nav {
   width: auto;
   max-width: 620px;
   margin: 0 auto 32px;
-  font-size: 17px;
+  font-size: var(--fs-2xl);
   line-height: 1.6;
   text-align: center;
 }
@@ -3120,7 +3120,7 @@ body.has-proto-nav {
   border-left: 3px solid var(--sev-high);
   background: var(--bg-elev);
   color: var(--text-2);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -3132,7 +3132,7 @@ body.has-proto-nav {
   display: block;
   margin-bottom: 3px;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--fs-md);
 }
 
 .settings-inline-error .btn {

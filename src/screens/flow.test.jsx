@@ -1,4 +1,4 @@
-﻿import { readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -402,7 +402,7 @@ describe("ReposScreen scan selection", () => {
     expect(appStyles).toMatch(
       /\.repo-meta \.repo-branch-placeholder\s*{[^}]*visibility:\s*hidden;/
     );
-    expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-size:\s*16px;/s);
+    expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-size:\s*var\(--fs-2xl\);/s);
     expect(appStyles).toMatch(/\.review-run-metrics b\s*\{[^}]*font-weight:\s*650;/s);
   });
 

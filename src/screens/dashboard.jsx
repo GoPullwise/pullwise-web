@@ -655,7 +655,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                       </div>
                     ))}
                     {openIssues.length === 0 && !issuesLoading && (
-                      <div className="muted" style={{ padding: "8px 0", fontSize: 12.5 }}>
+                      <div className="muted" style={{ padding: "8px 0", fontSize: "var(--fs-sm)" }}>
                         {T("No open issues to display.", "暂无未解决问题。")}
                       </div>
                     )}
@@ -743,7 +743,7 @@ export function DashboardScreen({ go, setIssue, accent }) {
                   <h2 style={{ fontSize: 16, fontWeight: 600 }}>
                     {T("Needs attention", "需要关注")}
                   </h2>
-                  <div className="sub" style={{ fontSize: 12.5 }}>
+                  <div className="sub" style={{ fontSize: "var(--fs-sm)" }}>
                     {issuesLoading
                       ? T("Loading issues...", "正在加载问题...")
                       : openIssues.length > 0

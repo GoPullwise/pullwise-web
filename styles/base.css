@@ -49,6 +49,18 @@ input[type="checkbox"] {
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-display: "Geist", "Inter", ui-sans-serif, sans-serif;
 
+  /* Type scale. Every UI font-size resolves to one of these steps;
+   * display/hero sizes use clamp() and stay local to their rules. */
+  --fs-micro: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 14px;
+  --fs-xl: 15px;
+  --fs-2xl: 16px;
+  --fs-3xl: 18px;
+  --fs-4xl: 22px;
+
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -126,7 +138,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--fs-lg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -188,7 +200,7 @@ select {
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 500;
   letter-spacing: -0.01em;
   transition:
@@ -245,13 +257,13 @@ select {
 .btn.sm {
   height: 28px;
   padding: 0 10px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   border-radius: var(--r-2);
 }
 .btn.lg {
   height: 42px;
   padding: 0 20px;
-  font-size: 14px;
+  font-size: var(--fs-lg);
 }
 
 .btn .ic {
@@ -273,7 +285,7 @@ select {
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  font: 500 10.5px/1 var(--font-mono);
+  font: 500 var(--fs-xs)/1 var(--font-mono);
   border: 1px solid var(--border-strong);
   color: var(--text-2);
   background: var(--bg-elev);
@@ -298,7 +310,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -345,7 +357,7 @@ select {
 
 /* Code blocks */
 .code {
-  font: 12.5px/1.6 var(--font-mono);
+  font: var(--fs-sm)/1.6 var(--font-mono);
   background: var(--bg-soft);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -455,7 +467,7 @@ select {
 .topbar nav a {
   height: 30px;
   padding: 0 10px;
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--text-2);
   background: transparent;
   border: 0;
@@ -476,7 +488,7 @@ select {
   align-items: center;
   gap: 6px;
   color: var(--text-3);
-  font-size: 13px;
+  font-size: var(--fs-md);
   min-width: 0;
   overflow: hidden;
 }
@@ -548,7 +560,7 @@ a.crumb-button:hover {
   display: contents;
 }
 .side-h {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--text-3);
@@ -561,7 +573,7 @@ a.crumb-button:hover {
   gap: 10px;
   height: 32px;
   padding: 0 10px;
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--text-2);
   border: 0;
   background: transparent;
@@ -600,7 +612,7 @@ a.crumb-button:hover {
   padding: 0 5px;
   background: var(--bg-soft);
   color: var(--text-2);
-  font: 500 11px/18px var(--font-mono);
+  font: 500 var(--fs-xs)/18px var(--font-mono);
   text-align: center;
   border: 1px solid var(--border);
 }
@@ -626,13 +638,13 @@ a.crumb-button:hover {
   margin-bottom: 24px;
 }
 .page-h h1 {
-  font-size: 22px;
+  font-size: var(--fs-4xl);
   font-weight: 600;
   letter-spacing: 0;
 }
 .page-h .sub {
   color: var(--text-3);
-  font-size: 13px;
+  font-size: var(--fs-md);
   margin-top: 4px;
 }
 .page-h .actions {
@@ -900,7 +912,7 @@ a.crumb-button:hover {
   min-height: 20px;
   height: auto;
   padding: 3px 7px;
-  font: 500 10.5px/1 var(--font-mono);
+  font: 500 var(--fs-xs)/1 var(--font-mono);
   line-height: 1.25;
   letter-spacing: 0;
   background: var(--bg-soft);
@@ -919,7 +931,7 @@ a.crumb-button:hover {
   gap: 5px;
   height: 22px;
   padding: 0 9px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 500;
 }
 .pill .dot {
@@ -1240,18 +1252,18 @@ body {
 }
 .disto-card-h h4 {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 600;
   letter-spacing: 0;
   color: var(--text-1);
 }
 .disto-card-h .sub {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   margin-top: 2px;
 }
 .disto-card-total {
-  font-size: 18px;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-1);
@@ -1279,7 +1291,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px 12px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 .disto-legend-i {
@@ -1315,7 +1327,7 @@ body {
   text-transform: capitalize;
 }
 .disto-legend-pct {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
   min-width: 32px;
@@ -1362,13 +1374,13 @@ body {
   pointer-events: none;
 }
 .disto-donut-top {
-  font-size: 18px;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   color: var(--text-1);
   font-variant-numeric: tabular-nums;
 }
 .disto-donut-bot {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   margin-top: 2px;
   max-width: 80%;
@@ -1458,19 +1470,19 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--text-2);
   margin-bottom: 12px;
 }
 .scan-day-title strong {
   color: var(--text);
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 600;
   letter-spacing: 0;
 }
 .scan-day-count {
   color: var(--text-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
 }
 .scan-day-dot {
@@ -1509,20 +1521,20 @@ body {
 .scan-progress-label {
   min-width: 0;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 .scan-progress-value {
   color: var(--text-2);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .scan-progress-message {
   color: var(--text-2);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
@@ -1531,7 +1543,7 @@ body {
   border: 1px solid var(--border);
   background: var(--bg-soft);
   color: var(--text-3);
-  font: 11px/1.5 var(--font-mono);
+  font: var(--fs-xs)/1.5 var(--font-mono);
   overflow-wrap: anywhere;
 }
 .scan-progress-track {
@@ -1554,10 +1566,10 @@ body {
 }
 .scan-progress-compact .scan-progress-label,
 .scan-progress-compact .scan-progress-value {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
 }
 .scan-progress-compact .scan-progress-message {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 .scan-progress-compact .scan-progress-track {
@@ -1566,7 +1578,7 @@ body {
 .scan-time {
   padding-top: 18px;
   color: var(--text-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
   text-align: right;
   display: flex;
@@ -1574,7 +1586,7 @@ body {
   gap: 2px;
 }
 .scan-time-batch {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   opacity: 0.85;
 }
@@ -1653,7 +1665,7 @@ body {
   min-width: 0;
 }
 .scan-repo {
-  font-size: 14.5px;
+  font-size: var(--fs-lg);
   font-weight: 600;
   color: var(--text);
   margin-right: 2px;
@@ -1670,7 +1682,7 @@ body {
   padding: 0 8px;
   background: var(--bg-soft, rgba(0, 0, 0, 0.04));
   color: var(--text-2);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1678,7 +1690,7 @@ body {
   color: var(--text-3);
   font-weight: 500;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 .scan-badge-status {
   text-transform: capitalize;
@@ -1704,7 +1716,7 @@ body {
   align-items: center;
   height: 22px;
   padding: 0 8px;
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   margin-left: 2px;
   white-space: nowrap;
@@ -1768,7 +1780,7 @@ body {
   gap: 5px;
   height: 22px;
   padding: 0 9px;
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1;
   font-weight: 700;
   white-space: nowrap;
@@ -1843,7 +1855,7 @@ body {
 }
 
 .scan-summary {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 .scan-row-actions {
@@ -1882,7 +1894,7 @@ body {
   border: 0;
   border-radius: 7px;
   color: var(--text);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -1901,7 +1913,7 @@ body {
   }
   .scan-time {
     padding-top: 14px;
-    font-size: 11.5px;
+    font-size: var(--fs-sm);
   }
 }
 @media (max-width: 720px) {
@@ -1922,7 +1934,7 @@ body {
     padding-top: 0;
     flex-direction: row;
     gap: 8px;
-    font-size: 11.5px;
+    font-size: var(--fs-sm);
   }
   .scan-day-group {
     padding: 12px 12px 14px;
