@@ -12,6 +12,7 @@ import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "..
 import { downloadBlob } from "../lib/download.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
+import { useDebouncedValue } from "../lib/use-debounced-value.js";
 import {
   normalizeScan,
   applyCachedIssueUpdate,
@@ -533,7 +534,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   const [localIssueUpdates, setLocalIssueUpdates] = useState({});
   const statusUpdatingRef = useRef(new Set());
   const bulkStatusUpdatingRef = useRef(false);
-  const query = q.trim();
+  const query = useDebouncedValue(q.trim(), 300);
   const scanId = scanFilter?.id || "";
   const {
     items: all,

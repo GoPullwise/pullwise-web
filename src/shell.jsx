@@ -3,6 +3,7 @@ import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
 import { useIssues, useRepositories, useScans } from "./lib/pullwise-data.js";
+import { useDebouncedValue } from "./lib/use-debounced-value.js";
 
 // The search shortcut binds both metaKey and ctrlKey; the hint shows whichever
 // chord is native to the visitor's platform.
@@ -12,19 +13,24 @@ const IS_MAC =
 export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
   useLang();
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const searchTriggerRef = React.useRef(null);
+  const closeSearch = React.useCallback(() => {
+    setSearchOpen(false);
+    window.requestAnimationFrame?.(() => searchTriggerRef.current?.focus());
+  }, []);
 
   React.useEffect(() => {
     const onKey = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setSearchOpen(true);
-      } else if (event.key === "Escape") {
-        setSearchOpen(false);
+      } else if (event.key === "Escape" && searchOpen) {
+        closeSearch();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [closeSearch, searchOpen]);
 
   return (
     <header className="topbar">
@@ -71,7 +77,13 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
             <I.Refresh size={14} />
           </span>
         )}
-        <button type="button" className="btn ghost sm" aria-label={T("Search", "Search")} onClick={() => setSearchOpen(true)}>
+        <button
+          ref={searchTriggerRef}
+          type="button"
+          className="btn ghost sm"
+          aria-label={T("Search", "Search")}
+          onClick={() => setSearchOpen(true)}
+        >
           <I.Search size={14} />{" "}
           <span style={{ color: "var(--text-3)" }}>{T("Search...", "搜索...")}</span>{" "}
           <span className="kbd" style={{ marginLeft: 6 }}>
@@ -87,7 +99,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
         </a>
       </div>
 
-      {searchOpen && <SearchModal close={() => setSearchOpen(false)} go={go} setIssue={setIssue} />}
+      {searchOpen && <SearchModal close={closeSearch} go={go} setIssue={setIssue} />}
     </header>
   );
 }
@@ -98,9 +110,14 @@ function SearchModal({ close, go, setIssue }) {
   const dialogRef = React.useRef(null);
   const inputRef = React.useRef(null);
   const searchQuery = q.trim();
-  const { items: issues } = useIssues({ q: searchQuery, limit: 5, refreshOnChange: false });
-  const { items: repos } = useRepositories({ q: searchQuery, limit: 4 });
-  const query = searchQuery.toLowerCase();
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+  const { items: issues } = useIssues({
+    q: debouncedSearchQuery,
+    limit: 5,
+    refreshOnChange: false,
+  });
+  const { items: repos } = useRepositories({ q: debouncedSearchQuery, limit: 4 });
+  const query = debouncedSearchQuery.toLowerCase();
   const issueResults = issues.slice(0, 5);
   const repoResults = repos.slice(0, 4);
   const allPages = [
@@ -173,6 +190,9 @@ function SearchModal({ close, go, setIssue }) {
             onChange={(event) => setQ(event.target.value)}
           />
           <span className="kbd">ESC</span>
+        </div>
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {`${issueResults.length} issues, ${repoResults.length} repositories, ${pages.length} pages`}
         </div>
         <div className="search-body">
           {issueResults.length > 0 && (

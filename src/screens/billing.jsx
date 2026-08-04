@@ -7,6 +7,7 @@ import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { formatQuotaResetAt, quotaResetText } from "../lib/quota-display.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
+import { useModalFocus } from "../lib/modal-focus.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
@@ -553,6 +554,42 @@ function BillingSkeleton() {
   );
 }
 
+function BillingLoadError({ error, onRetry }) {
+  return (
+    <div className="card section billing-load-error" role="alert">
+      <div className="section-h">
+        <div>
+          <h2>{T("Billing is unavailable", "Billing is unavailable")}</h2>
+          <p className="muted">
+            {error || T("Unable to load billing data.", "Unable to load billing data.")}
+          </p>
+        </div>
+        <I.Alert size={16} />
+      </div>
+      <button type="button" className="btn" onClick={onRetry}>
+        <I.Refresh size={14} /> {T("Retry billing", "Retry billing")}
+      </button>
+    </div>
+  );
+}
+
+function PricingLoadError({ error, onRetry }) {
+  return (
+    <div className="pricing-load-error card section" role="alert">
+      <I.Alert size={18} />
+      <div>
+        <h2>{T("Pricing is unavailable", "Pricing is unavailable")}</h2>
+        <p className="muted">
+          {error || T("Unable to load pricing.", "Unable to load pricing.")}
+        </p>
+        <button type="button" className="btn primary" onClick={onRetry}>
+          <I.Refresh size={14} /> {T("Retry pricing", "Retry pricing")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function BillingScreen({
   go,
   setIssue = null,
@@ -571,6 +608,8 @@ export function BillingScreen({
   const [usageExpanded, setUsageExpanded] = useState(false);
   const billingMutationRef = useRef("");
   const mountedRef = useRef(true);
+  const changeDialogRef = useRef(null);
+  const changeCloseRef = useRef(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -588,26 +627,23 @@ export function BillingScreen({
     return payload;
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadBillingPlan = useCallback(async () => {
     setLoading(true);
-    pullwiseApi.billing
-      .getPlan()
-      .then((payload) => {
-        if (cancelled) return;
-        setPlan(payload);
-        setError("");
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message || "Unable to load billing.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+    setError("");
+    try {
+      const payload = await pullwiseApi.billing.getPlan();
+      if (!mountedRef.current) return;
+      setPlan(payload);
+    } catch (err) {
+      if (mountedRef.current) setError(err?.message || "Unable to load billing.");
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadBillingPlan();
+  }, [loadBillingPlan]);
 
   const freePlan = useMemo(() => planById(plan, "free") || fallbackFreePlan(), [plan]);
   const paidPlans = useMemo(() => paidPlansFromPayload(plan), [plan]);
@@ -762,6 +798,13 @@ export function BillingScreen({
     if (!pendingAction) setChangeDraft(null);
   };
 
+  useModalFocus({
+    open: Boolean(changeDetails),
+    dialogRef: changeDialogRef,
+    initialFocusRef: changeCloseRef,
+    onClose: closeChangeConfirmation,
+  });
+
   const confirmSubscriptionChange = () => {
     if (!changeDetails) return;
     changeSubscription({
@@ -893,6 +936,8 @@ export function BillingScreen({
 
             {loading ? (
               <BillingSkeleton />
+            ) : error && !plan ? (
+              <BillingLoadError error={error} onRetry={loadBillingPlan} />
             ) : (
               <div className="set-body">
                 <button
@@ -1122,6 +1167,7 @@ export function BillingScreen({
             role="dialog"
             aria-modal="true"
             aria-labelledby="billing-change-title"
+            ref={changeDialogRef}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="modal-h billing-change-h">
@@ -1137,6 +1183,7 @@ export function BillingScreen({
                 </p>
               </div>
               <button
+                ref={changeCloseRef}
                 className="btn ghost icon"
                 type="button"
                 aria-label={T(
@@ -1340,24 +1387,21 @@ export function PricingScreen({
     };
   }, [invalidateCheckoutRequest, resetCheckoutPending]);
 
-  useEffect(() => {
-    let cancelled = false;
-    pullwiseApi.billing
-      .getPlan()
-      .then((payload) => {
-        if (cancelled) return;
-        setPlan(payload);
-        const billingInterval = payload?.account?.interval || "";
-        if (billingInterval === "year") setInterval("year");
-        setError("");
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message || "Unable to load pricing.");
-      });
-    return () => {
-      cancelled = true;
-    };
+  const loadPricingPlan = useCallback(async () => {
+    setError("");
+    try {
+      const payload = await pullwiseApi.billing.getPlan();
+      setPlan(payload);
+      const billingInterval = payload?.account?.interval || "";
+      if (billingInterval === "year") setInterval("year");
+    } catch (err) {
+      setError(err?.message || "Unable to load pricing.");
+    }
   }, []);
+
+  useEffect(() => {
+    void loadPricingPlan();
+  }, [loadPricingPlan]);
 
   const pricingLoading = plan === null;
   const pricingPlans = useMemo(
@@ -1463,8 +1507,11 @@ export function PricingScreen({
       </section>
 
 
-      <section className="pricing-tiers">
-        <PlanCard
+      {error && !plan ? (
+        <PricingLoadError error={error} onRetry={loadPricingPlan} />
+      ) : (
+        <section className="pricing-tiers">
+          <PlanCard
           plan={freePlan}
           price={priceFor(freePlan, "month")}
           interval="month"
@@ -1476,15 +1523,15 @@ export function PricingScreen({
               {signedIn ? T("Open dashboard", "打开工作台") : T("Start free", "免费开始")}
             </a>
           }
-        />
+          />
 
-        {paidPlans.map((paidPlan) => {
+          {paidPlans.map((paidPlan) => {
           const selectedPrice = priceFor(paidPlan, interval);
           const activePlan = activePaid && account.plan === paidPlan.id;
           const canStartPlan = billingEnabled && Boolean(selectedPrice?.configured) && !activePaid;
           const hasMax = paidPlans.some((candidate) => candidate.id === "max");
-          return (
-            <PlanCard
+            return (
+              <PlanCard
               key={paidPlan.id}
               plan={paidPlan}
               price={selectedPrice}
@@ -1516,10 +1563,11 @@ export function PricingScreen({
                   )}
                 </div>
               }
-            />
-          );
-        })}
-      </section>
+              />
+            );
+          })}
+        </section>
+      )}
 
       {!pricingLoading && !billingEnabled && !error && (
         <div className="pricing-faq" style={{ paddingTop: 0 }}>

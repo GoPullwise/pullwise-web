@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
@@ -23,6 +31,7 @@ import {
   useScanRun,
 } from "../lib/pullwise-data.js";
 import { quotaResetText } from "../lib/quota-display.js";
+import { useDebouncedValue } from "../lib/use-debounced-value.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function HumanReviewReport({ report }) {
@@ -927,9 +936,19 @@ function scanAiUsageTags(aiUsage) {
 function BranchPicker({ repoLabel, value, options, loading, error, disabled, onChange }) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0, minWidth: 0 });
+  const pickerId = useId();
+  const selectedIndex = Math.max(0, options.indexOf(value));
+  const [activeIndex, setActiveIndex] = useState(selectedIndex);
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    setActiveIndex((current) => {
+      if (!options.length) return 0;
+      return Math.min(current, options.length - 1);
+    });
+  }, [options.length]);
 
   const updateMenuPosition = useCallback(() => {
     const trigger = triggerRef.current;
@@ -984,6 +1003,43 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
     setOpen(false);
   };
 
+  const openPicker = () => {
+    setActiveIndex(selectedIndex);
+    updateMenuPosition();
+    setOpen(true);
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (event.key === "Escape" && open) {
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (!options.length) return;
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!open) {
+        openPicker();
+        return;
+      }
+      const direction = event.key === "ArrowDown" ? 1 : -1;
+      setActiveIndex((current) => (current + direction + options.length) % options.length);
+      return;
+    }
+    if (event.key === "Home" || event.key === "End") {
+      if (!open) return;
+      event.preventDefault();
+      setActiveIndex(event.key === "Home" ? 0 : options.length - 1);
+      return;
+    }
+    if ((event.key === "Enter" || event.key === " ") && open) {
+      event.preventDefault();
+      const branch = options[activeIndex];
+      if (branch) handleSelect(branch);
+    }
+  };
+
   const pickerClass = "repo-branch-picker" + (error ? " repo-branch-error" : "");
   const branchTitle = error || `Branch: ${value}`;
   const branchValueLabel = loading ? T("Loading...", "加载中...") : value;
@@ -1003,13 +1059,21 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         className="repo-branch-trigger"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls={`${pickerId}-listbox`}
+        aria-activedescendant={
+          open && options[activeIndex] ? `${pickerId}-option-${activeIndex}` : undefined
+        }
         aria-label={`Branch for ${repoLabel}`}
         title={branchTitle}
         disabled={disabled}
         onClick={() => {
-          if (!open) updateMenuPosition();
-          setOpen((prev) => !prev);
+          if (open) {
+            setOpen(false);
+          } else {
+            openPicker();
+          }
         }}
+        onKeyDown={handleTriggerKeyDown}
       >
         <I.GitBranch size={12} />
         <span className="repo-branch-value">{branchValueLabel}</span>
@@ -1019,6 +1083,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         <ul
           ref={menuRef}
           role="listbox"
+          id={`${pickerId}-listbox`}
           className="repo-branch-menu"
           aria-label={`Branches for ${repoLabel}`}
           style={{
@@ -1044,9 +1109,16 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
               return (
                 <li
                   key={branch}
+                  id={`${pickerId}-option-${options.indexOf(branch)}`}
                   role="option"
                   aria-selected={isSelected}
-                  className={"repo-branch-option" + (isSelected ? " selected" : "")}
+                  tabIndex={activeIndex === options.indexOf(branch) ? 0 : -1}
+                  className={
+                    "repo-branch-option" +
+                    (isSelected ? " selected" : "") +
+                    (activeIndex === options.indexOf(branch) ? " active" : "")
+                  }
+                  onMouseEnter={() => setActiveIndex(options.indexOf(branch))}
                   onClick={() => handleSelect(branch)}
                 >
                   <I.GitBranch size={11} aria-hidden="true" />
@@ -1122,7 +1194,7 @@ export function ReposScreen({
   const githubActionInFlightRef = useRef(false);
   const [org, setOrg] = useState("All");
   const activeOwner = org?.startsWith("@") ? org.slice(1) : "";
-  const query = q.trim().toLowerCase();
+  const query = useDebouncedValue(q.trim().toLowerCase(), 300);
   const {
     items: availableRepos,
     installations,

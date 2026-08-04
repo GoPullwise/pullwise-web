@@ -141,8 +141,8 @@ describe("Topbar navigation", () => {
     await user.click(screen.getByRole("button", { name: /^search$/i }));
     await user.type(screen.getByRole("textbox", { name: /^search$/i }), "oauth-token-rotation");
 
-    expect(screen.getByText("Authentication boundary")).toBeInTheDocument();
-    expect(screen.getByText("acme/api")).toBeInTheDocument();
+    expect(await screen.findByText("Authentication boundary")).toBeInTheDocument();
+    expect(await screen.findByText("acme/api")).toBeInTheDocument();
   });
 
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {
