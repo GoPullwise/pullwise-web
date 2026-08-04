@@ -426,6 +426,7 @@ describe("IssuesScreen list resilience", () => {
     await user.click(screen.getByRole("button", { name: /^open$/i }));
 
     await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
 
     await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(2));
     expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledWith(
@@ -512,6 +513,7 @@ describe("IssuesScreen list resilience", () => {
 
     await user.click(screen.getByRole("button", { name: /^open$/i }));
     await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
 
     await waitFor(() => expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledTimes(1));
     expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledWith(
@@ -572,6 +574,7 @@ describe("IssuesScreen list resilience", () => {
 
     render(<IssuesScreen go={vi.fn()} setIssue={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: /mark all fixed/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
 
     await waitFor(() => expect(pullwiseApi.issues.updateStatuses).toHaveBeenCalledTimes(2));
     const submitted = pullwiseApi.issues.updateStatuses.mock.calls.flatMap(([updates]) => updates);
@@ -620,6 +623,7 @@ describe("IssuesScreen list resilience", () => {
       fireEvent.click(markAll);
       fireEvent.click(markAll);
     });
+    await userEvent.setup().click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
 
     expect(pullwiseApi.issues.list).toHaveBeenCalledTimes(1);
     await act(async () => {
@@ -665,6 +669,7 @@ describe("IssuesScreen list resilience", () => {
       </NotificationProvider>
     );
     await userEvent.setup().click(screen.getByRole("button", { name: /mark all fixed/i }));
+    await userEvent.setup().click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/pagination did not advance/i);
     expect(pullwiseApi.issues.updateStatuses).not.toHaveBeenCalled();

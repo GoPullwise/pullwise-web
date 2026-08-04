@@ -1229,6 +1229,7 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: /cancel renewal/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm cancellation/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledWith(
@@ -1259,6 +1260,7 @@ describe("BillingScreen", () => {
       cancel.click();
       cancel.click();
     });
+    await user.click(await screen.findByRole("button", { name: /confirm cancellation/i }));
 
     expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledTimes(1);
   });
@@ -1279,6 +1281,7 @@ describe("BillingScreen", () => {
     const { unmount } = render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: /cancel renewal/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm cancellation/i }));
     await waitFor(() => expect(pullwiseApi.billing.cancelSubscription).toHaveBeenCalledTimes(1));
     unmount();
 

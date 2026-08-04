@@ -792,6 +792,7 @@ describe("API screens", () => {
     expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: /revoke/i })[0]);
+    await user.click(await screen.findByRole("button", { name: /confirm revoke/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_2");
@@ -820,6 +821,7 @@ describe("API screens", () => {
     expect(await screen.findByText("pwk_live_new_secret")).toBeInTheDocument();
 
     await user.click(within(oldKey.closest(".issue-row")).getByRole("button", { name: /revoke/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm revoke/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_old");
@@ -861,6 +863,7 @@ describe("API screens", () => {
     const revoke = await screen.findByRole("button", { name: /revoke/i });
     fireEvent.click(revoke);
     fireEvent.click(revoke);
+    await userEvent.setup().click(await screen.findByRole("button", { name: /confirm revoke/i }));
 
     expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledTimes(1);
     expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_revoke");
@@ -894,6 +897,7 @@ describe("API screens", () => {
     const create = await screen.findByRole("button", { name: /create key/i });
     const revoke = screen.getByRole("button", { name: /revoke/i });
     fireEvent.click(revoke);
+    await userEvent.setup().click(await screen.findByRole("button", { name: /confirm revoke/i }));
     fireEvent.submit(create.closest("form"));
 
     expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledTimes(1);
