@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
@@ -605,6 +606,7 @@ export function BillingScreen({
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState("");
   const [changeDraft, setChangeDraft] = useState(null);
+  const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
   const [usageExpanded, setUsageExpanded] = useState(false);
   const billingMutationRef = useRef("");
   const mountedRef = useRef(true);
@@ -808,9 +810,9 @@ export function BillingScreen({
 
   useEffect(() => {
     if (billingBackgroundRef.current) {
-      billingBackgroundRef.current.inert = Boolean(changeDetails);
+      billingBackgroundRef.current.inert = Boolean(changeDetails || cancelConfirmationOpen);
     }
-  }, [changeDetails]);
+  }, [cancelConfirmationOpen, changeDetails]);
 
   const confirmSubscriptionChange = () => {
     if (!changeDetails) return;
@@ -847,8 +849,13 @@ export function BillingScreen({
       if (billingMutationRef.current === actionKey) billingMutationRef.current = "";
       if (mountedRef.current) {
         setPendingAction((current) => (current === actionKey ? "" : current));
+        setCancelConfirmationOpen(false);
       }
     }
+  };
+
+  const requestCancelSubscription = () => {
+    if (!billingMutationRef.current && !pendingAction) setCancelConfirmationOpen(true);
   };
 
   const resumeSubscription = async () => {
@@ -1115,7 +1122,8 @@ export function BillingScreen({
                         <button
                           className="btn"
                           disabled={Boolean(pendingAction)}
-                          onClick={cancelSubscription}
+                          onClick={requestCancelSubscription}
+                          aria-busy={pendingAction === "cancel"}
                         >
                           {pendingAction === "cancel" && (
                             <span className="spin">
@@ -1336,6 +1344,22 @@ export function BillingScreen({
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={cancelConfirmationOpen}
+        title={T("Cancel subscription renewal?", "Cancel subscription renewal?")}
+        description={T(
+          "Renewal will be canceled at the end of the current billing period. You can resume renewal later.",
+          "Renewal will be canceled at the end of the current billing period. You can resume renewal later."
+        )}
+        confirmLabel={T("Confirm cancellation", "Confirm cancellation")}
+        cancelLabel={T("Cancel", "Cancel")}
+        onCancel={() => setCancelConfirmationOpen(false)}
+        onConfirm={cancelSubscription}
+        busy={pendingAction === "cancel"}
+        danger
+        backgroundRef={billingBackgroundRef}
+        dialogId="cancel-subscription"
+      />
     </div>
   );
 }

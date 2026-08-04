@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { MarkdownReport } from "../components/markdown-report.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
@@ -541,11 +542,13 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   const [sortBy, setSortBy] = useState("severity");
   const [statusUpdating, setStatusUpdating] = useState({});
   const [bulkStatusLoading, setBulkStatusLoading] = useState("");
+  const [bulkConfirmationOpen, setBulkConfirmationOpen] = useState(false);
   const [completedBulkScope, setCompletedBulkScope] = useState("");
   const [statusActionError, setStatusActionError] = useState("");
   const [localIssueUpdates, setLocalIssueUpdates] = useState({});
   const statusUpdatingRef = useRef(new Set());
   const bulkStatusUpdatingRef = useRef(false);
+  const bulkBackgroundRef = useRef(null);
   const query = useDebouncedValue(q.trim(), 300);
   const scanId = scanFilter?.id || "";
   const {
@@ -623,6 +626,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
   };
   const markAllFixed = async () => {
     if (bulkStatusUpdatingRef.current) return;
+    setBulkConfirmationOpen(false);
     bulkStatusUpdatingRef.current = true;
     setBulkStatusLoading("fixed");
     setStatusActionError("");
@@ -707,6 +711,11 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       setBulkStatusLoading("");
     }
   };
+  const requestMarkAllFixed = () => {
+    if (!loading && !bulkStatusLoading && canMarkAllFixed && !bulkStatusUpdatingRef.current) {
+      setBulkConfirmationOpen(true);
+    }
+  };
   const openIssue = (issue) => {
     setIssue(issue);
     go("issue", issue.id ? { issueId: issue.id } : {});
@@ -719,6 +728,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
 
   return (
     <div className="app fade-in">
+      <div ref={bulkBackgroundRef} className="issues-background">
       <Topbar
         go={go}
         breadcrumbs={[{ label: T("Issues", "问题") }]}
@@ -746,7 +756,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <button
                 className="btn primary"
                 disabled={loading || Boolean(bulkStatusLoading) || !canMarkAllFixed}
-                onClick={markAllFixed}
+                onClick={requestMarkAllFixed}
               >
                 <I.Check size={14} />{" "}
                 {bulkStatusLoading
@@ -957,6 +967,23 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
           </div>
         </div>
       </div>
+      </div>
+      <ConfirmDialog
+        open={bulkConfirmationOpen}
+        title={T("Mark all matching issues fixed?", "Mark all matching issues fixed?")}
+        description={T(
+          "This updates every matching issue, including issues on additional result pages. Review the current filters before confirming.",
+          "This updates every matching issue, including issues on additional result pages. Review the current filters before confirming."
+        )}
+        confirmLabel={T("Confirm mark all fixed", "Confirm mark all fixed")}
+        cancelLabel={T("Cancel", "Cancel")}
+        onCancel={() => setBulkConfirmationOpen(false)}
+        onConfirm={markAllFixed}
+        busy={Boolean(bulkStatusLoading)}
+        danger
+        backgroundRef={bulkBackgroundRef}
+        dialogId="mark-all-fixed"
+      />
     </div>
   );
 }

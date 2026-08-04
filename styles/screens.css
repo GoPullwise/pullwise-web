@@ -2926,6 +2926,17 @@
   justify-content: flex-end;
   background: var(--bg-soft);
 }
+.confirm-dialog {
+  max-width: 480px;
+}
+.confirm-dialog-body p {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+.confirm-dialog-danger .modal-h h3 {
+  color: var(--danger);
+}
 @keyframes modalBackIn {
   from {
     opacity: 0;
