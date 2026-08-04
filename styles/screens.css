@@ -2893,7 +2893,7 @@
 }
 .modal {
   width: 100%;
-  max-width: 560px;
+  max-width: min(560px, calc(100vw - 24px));
   max-height: calc(100vh - 40px);
   max-height: calc(100dvh - 40px);
   display: flex;
@@ -5799,12 +5799,6 @@
 .search-i .tag {
   flex: 0 1 auto;
 }
-
-.modal {
-  max-width: calc(100vw - 24px);
-}
-
-
 
 @media (max-width: 760px) {
   .repo-row,

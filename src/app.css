@@ -259,18 +259,18 @@
   height: 28px;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--danger, #dc2626) 12%, transparent);
-  color: var(--danger, #dc2626);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
 }
 
 .notification-success .notification-icon {
-  background: color-mix(in srgb, var(--ok, #15803d) 12%, transparent);
-  color: var(--ok, #15803d);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  color: var(--ok);
 }
 
 .notification-warning .notification-icon {
-  background: color-mix(in srgb, var(--warn, #a16207) 12%, transparent);
-  color: var(--warn, #a16207);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  color: var(--warn);
 }
 
 .notification-info .notification-icon {
@@ -992,11 +992,11 @@ body.has-proto-nav {
 }
 
 .repo-branch-picker.repo-branch-error {
-  border-color: color-mix(in srgb, var(--danger, #dc2626) 38%, var(--border));
+  border-color: color-mix(in srgb, var(--danger) 38%, var(--border));
 }
 
 .quota-selection-alert {
-  border-color: color-mix(in srgb, var(--warn, #a16207) 34%, var(--border));
+  border-color: color-mix(in srgb, var(--warn) 34%, var(--border));
 }
 
 .quota-modal-back {
@@ -2415,16 +2415,6 @@ body.has-proto-nav {
 }
 
 /* === Web visual refinement: editorial hard-edge system === */
-:root {
-  --border: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.18);
-}
-
-[data-theme="dark"] {
-  --border: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.19);
-}
-
 .lang-toggle,
 .theme-toggle,
 .back-to-top,

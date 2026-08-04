@@ -482,6 +482,14 @@ describe("DashboardScreen issue list", () => {
     expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
   });
 
+  it("keeps the topbar loading glyph centered on its rotation axis", () => {
+    const baseCss = readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
+
+    expect(baseCss).toMatch(
+      /\.spin\s*\{[^}]*display:\s*inline-flex;[^}]*align-items:\s*center;[^}]*justify-content:\s*center;[^}]*transform-origin:\s*50%\s+50%;/s
+    );
+  });
+
   it("renders overview layout skeletons while dashboard data is loading", () => {
     useIssues.mockReturnValue({ items: [], loading: true, error: "" });
     useRepositories.mockReturnValue({

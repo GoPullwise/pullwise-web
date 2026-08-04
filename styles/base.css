@@ -21,8 +21,8 @@ input[type="checkbox"] {
   --bg-elev: #ffffff;
   --bg-soft: #f1f0ef;
   --bg-tint: rgba(0, 0, 0, 0.018);
-  --border: rgba(0, 0, 0, 0.07);
-  --border-strong: rgba(0, 0, 0, 0.12);
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.18);
   --text: #0d0d0d;
   --text-2: #4a4a4a;
   --text-3: #666666;
@@ -108,8 +108,8 @@ input[type="checkbox"] {
   --bg-soft: #141414;
   --bg-2: rgba(255, 255, 255, 0.04);
   --bg-tint: rgba(255, 255, 255, 0.02);
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.13);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.19);
   --text: #f5f5f5;
   --text-2: #9e9e9e;
   --text-3: #a3a3a3;
@@ -376,20 +376,20 @@ select {
   overflow: hidden;
 }
 .code-line.add {
-  background: color-mix(in oklch, var(--ok, #15803d) 10%, transparent);
+  background: color-mix(in oklch, var(--ok) 10%, transparent);
 }
 .code-line.del {
-  background: color-mix(in oklch, var(--danger, #dc2626) 10%, transparent);
+  background: color-mix(in oklch, var(--danger) 10%, transparent);
 }
 .code-line.add .marker,
 .code-line.del .marker {
   font-weight: 600;
 }
 .code-line.add .marker {
-  color: var(--ok, #15803d);
+  color: var(--ok);
 }
 .code-line.del .marker {
-  color: var(--danger, #dc2626);
+  color: var(--danger);
 }
 
 /* Scrollbars — thin, square, theme-tinted (class-level hides, e.g.
@@ -1325,7 +1325,7 @@ a.crumb-button:hover {
 .disto-bar {
   position: relative;
   width: 100%;
-  background: var(--bg-2, rgba(0, 0, 0, 0.04));
+  background: var(--bg-2);
   overflow: hidden;
 }
 .disto-bar-empty {
@@ -1395,21 +1395,21 @@ a.crumb-button:hover {
   transition: background 120ms var(--ease-out);
 }
 .disto-legend-click:hover {
-  background: var(--bg-2, rgba(0, 0, 0, 0.04));
+  background: var(--bg-2);
 }
 .disto-legend-click:focus-visible {
-  outline: 2px solid var(--accent, #4f46e5);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .disto-legend-click:disabled {
   cursor: default;
 }
 .disto-legend-active {
-  background: var(--accent-soft, rgba(99, 102, 241, 0.12));
-  color: var(--accent, #4f46e5);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .disto-legend-active > b {
-  color: var(--accent, #4f46e5);
+  color: var(--accent);
 }
 .disto-donut {
   position: relative;
@@ -1541,9 +1541,9 @@ a.crumb-button:hover {
 .scan-day-dot {
   width: 10px;
   height: 10px;
-  background: var(--ok, #15803d);
+  background: var(--ok);
   box-shadow:
-    0 0 0 2px var(--bg-elev, #fff),
+    0 0 0 2px var(--bg-elev),
     0 0 0 3px var(--border);
   flex-shrink: 0;
 }
@@ -1663,26 +1663,26 @@ a.crumb-button:hover {
   cursor: pointer;
 }
 .scan-row:focus-visible {
-  outline: 2px solid var(--accent, #4f46e5);
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 .scan-row:hover {
-  background: var(--bg-soft, rgba(0, 0, 0, 0.025));
+  background: var(--bg-soft);
 }
 .scan-status-dot {
   width: 10px;
   height: 10px;
-  background: var(--sev-info, #6b7280);
+  background: var(--sev-info);
   box-shadow:
-    0 0 0 2px var(--bg, #f8f7f6),
+    0 0 0 2px var(--bg),
     0 0 0 3px var(--border);
 }
 .scan-row-done .scan-status-dot {
-  background: var(--ok, #15803d);
+  background: var(--ok);
 }
 .scan-row-running .scan-status-dot,
 .scan-row-queued .scan-status-dot {
-  background: var(--accent, #4f46e5);
+  background: var(--accent);
 }
 .scan-row-running .scan-status-dot {
   animation: scan-row-pulse 1.6s ease-in-out infinite;
@@ -1693,7 +1693,7 @@ a.crumb-button:hover {
 .scan-row-failed .scan-status-dot,
 .scan-row-cancelled .scan-status-dot,
 .scan-row-lost .scan-status-dot {
-  background: var(--sev-critical, #dc2626);
+  background: var(--sev-critical);
 }
 @keyframes scan-row-pulse {
   0%,
@@ -1733,7 +1733,7 @@ a.crumb-button:hover {
   gap: 4px;
   height: 22px;
   padding: 0 8px;
-  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
+  background: var(--bg-soft);
   color: var(--text-2);
   font-size: var(--fs-sm);
   font-weight: 600;
@@ -1742,7 +1742,7 @@ a.crumb-button:hover {
 .scan-badge-muted {
   color: var(--text-3);
   font-weight: 500;
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-family: var(--font-mono);
   font-size: var(--fs-xs);
 }
 .scan-badge-status {
@@ -1750,19 +1750,19 @@ a.crumb-button:hover {
   font-weight: 600;
 }
 .scan-badge-done {
-  color: var(--ok, #15803d);
-  background: color-mix(in oklch, var(--ok, #15803d) 14%, transparent);
+  color: var(--ok);
+  background: color-mix(in oklch, var(--ok) 14%, transparent);
 }
 .scan-badge-failed,
 .scan-badge-cancelled,
 .scan-badge-lost {
-  color: var(--sev-critical, #dc2626);
-  background: color-mix(in oklch, var(--sev-critical, #dc2626) 12%, transparent);
+  color: var(--sev-critical);
+  background: color-mix(in oklch, var(--sev-critical) 12%, transparent);
 }
 .scan-badge-running,
 .scan-badge-queued {
-  color: var(--accent, #4f46e5);
-  background: color-mix(in oklch, var(--accent, #4f46e5) 12%, transparent);
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 12%, transparent);
 }
 .scan-issues-badge {
   display: inline-flex;
@@ -1776,15 +1776,15 @@ a.crumb-button:hover {
 }
 .scan-issues-badge-ok {
   color: var(--text-3);
-  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
+  background: var(--bg-soft);
 }
 .scan-issues-badge-warning {
-  color: var(--warn, #a16207);
-  background: color-mix(in oklch, var(--warn, #a16207) 16%, transparent);
+  color: var(--warn);
+  background: color-mix(in oklch, var(--warn) 16%, transparent);
 }
 .scan-issues-badge-danger {
-  color: var(--danger, #b91c1c);
-  background: color-mix(in oklch, var(--sev-critical, #dc2626) 16%, transparent);
+  color: var(--danger);
+  background: color-mix(in oklch, var(--sev-critical) 16%, transparent);
 }
 /* === Scan row severity strip ===
    Replaces the previous full-width colored bar, which read as a
@@ -1853,36 +1853,36 @@ a.crumb-button:hover {
   flex-shrink: 0;
 }
 .scan-severity-capsule.scan-severity-critical {
-  color: var(--sev-critical, #dc2626);
-  background: color-mix(in oklch, var(--sev-critical, #dc2626) 12%, transparent);
-  border-color: color-mix(in oklch, var(--sev-critical, #dc2626) 26%, transparent);
+  color: var(--sev-critical);
+  background: color-mix(in oklch, var(--sev-critical) 12%, transparent);
+  border-color: color-mix(in oklch, var(--sev-critical) 26%, transparent);
 }
 .scan-severity-capsule.scan-severity-critical .scan-severity-capsule-dot {
-  background: var(--sev-critical, #dc2626);
+  background: var(--sev-critical);
 }
 .scan-severity-capsule.scan-severity-high {
-  color: var(--sev-high, #ea580c);
-  background: color-mix(in oklch, var(--sev-high, #ea580c) 12%, transparent);
-  border-color: color-mix(in oklch, var(--sev-high, #ea580c) 26%, transparent);
+  color: var(--sev-high);
+  background: color-mix(in oklch, var(--sev-high) 12%, transparent);
+  border-color: color-mix(in oklch, var(--sev-high) 26%, transparent);
 }
 .scan-severity-capsule.scan-severity-high .scan-severity-capsule-dot {
-  background: var(--sev-high, #ea580c);
+  background: var(--sev-high);
 }
 .scan-severity-capsule.scan-severity-medium {
-  color: var(--sev-medium, #ca8a04);
-  background: color-mix(in oklch, var(--sev-medium, #ca8a04) 14%, transparent);
-  border-color: color-mix(in oklch, var(--sev-medium, #ca8a04) 28%, transparent);
+  color: var(--sev-medium);
+  background: color-mix(in oklch, var(--sev-medium) 14%, transparent);
+  border-color: color-mix(in oklch, var(--sev-medium) 28%, transparent);
 }
 .scan-severity-capsule.scan-severity-medium .scan-severity-capsule-dot {
-  background: var(--sev-medium, #ca8a04);
+  background: var(--sev-medium);
 }
 .scan-severity-capsule.scan-severity-low {
-  color: var(--text-3, #6b7280);
-  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
-  border-color: var(--bg-2, rgba(0, 0, 0, 0.08));
+  color: var(--text-3);
+  background: var(--bg-soft);
+  border-color: var(--bg-2);
 }
 .scan-severity-capsule.scan-severity-low .scan-severity-capsule-dot {
-  background: var(--text-3, #6b7280);
+  background: var(--text-3);
 }
 
 .scan-issue-dot {
@@ -1891,16 +1891,16 @@ a.crumb-button:hover {
   display: inline-block;
 }
 .scan-issue-dot.scan-severity-critical {
-  background: var(--sev-critical, #dc2626);
+  background: var(--sev-critical);
 }
 .scan-issue-dot.scan-severity-high {
-  background: var(--sev-high, #ea580c);
+  background: var(--sev-high);
 }
 .scan-issue-dot.scan-severity-medium {
-  background: var(--sev-medium, #ca8a04);
+  background: var(--sev-medium);
 }
 .scan-issue-dot.scan-severity-low {
-  background: var(--text-3, #6b7280);
+  background: var(--text-3);
 }
 .scan-row-progress {
   margin-top: 2px;
@@ -1929,7 +1929,7 @@ a.crumb-button:hover {
   top: calc(100% + 4px);
   right: 0;
   min-width: 180px;
-  background: var(--bg-elev, #fff);
+  background: var(--bg-elev);
   border: 1px solid var(--border);
   border-radius: 0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -1953,7 +1953,7 @@ a.crumb-button:hover {
   cursor: pointer;
 }
 .scan-row-menu-item:hover:not(:disabled) {
-  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
+  background: var(--bg-soft);
 }
 .scan-row-menu-item:disabled {
   color: var(--text-3);
