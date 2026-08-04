@@ -389,15 +389,25 @@ select {
   color: var(--danger, #dc2626);
 }
 
-/* Scrollbars — hidden globally */
+/* Scrollbars — thin, square, theme-tinted (class-level hides, e.g.
+ * .proto-nav-screens, still win over this global default) */
 * {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 *::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 0;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-4);
 }
 
 /* Focus */
