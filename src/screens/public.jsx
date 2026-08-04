@@ -75,7 +75,7 @@ export function LandingScreen({ go, auth }) {
       ? T("Open dashboard", "打开工作台")
       : T("Sign in with GitHub", "使用 GitHub 登录");
   const primaryActionIcon = checkingSession ? (
-    <span className="spin" style={{ display: "inline-block" }}>
+    <span className="spin">
       <I.Refresh />
     </span>
   ) : signedIn ? (
@@ -383,7 +383,7 @@ export function LoginScreen({ go } = {}) {
         >
           {pendingAction === "github" ? (
             <>
-              <span className="spin" style={{ display: "inline-block" }}>
+              <span className="spin">
                 <I.Refresh size={14} />
               </span>
               {T("Opening GitHub...", "正在打开 GitHub...")}
@@ -535,7 +535,7 @@ export function OAuthScreen({ go, auth }) {
           >
             {authing ? (
               <>
-                <span className="spin" style={{ display: "inline-block" }}>
+                <span className="spin">
                   <I.Refresh size={14} />
                 </span>
                 {T("Opening GitHub...", "正在打开 GitHub...")}

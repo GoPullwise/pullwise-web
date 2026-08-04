@@ -298,7 +298,7 @@
   transition: color 150ms var(--ease-out);
 }
 .auth-back-home:hover {
-  color: var(--text-1);
+  color: var(--text);
 }
 .auth-card {
   width: 100%;

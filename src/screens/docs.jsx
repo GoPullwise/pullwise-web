@@ -839,7 +839,7 @@ export function DocsScreen({ go, auth }) {
 
           {loading && (
             <div className="docs-state" role="status" aria-live="polite">
-              <span className="spin" style={{ display: "inline-block" }}>
+              <span className="spin">
                 <I.Refresh size={14} />
               </span>
               <span>

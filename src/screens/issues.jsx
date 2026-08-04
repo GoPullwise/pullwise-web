@@ -714,7 +714,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <div className="page-h">
             <div>
               <h1>{T("Issues", "问题")}</h1>
@@ -1038,7 +1038,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         />
         <div className="with-side">
           <Sidebar section="issues" go={go} />
-          <div className="main" style={{ maxWidth: "none" }}>
+          <div className="main wide">
             <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
               <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
             </a>
@@ -1134,7 +1134,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
           </a>
@@ -1955,7 +1955,7 @@ export function HistoryScreen({
       />
       <div className="with-side">
         <Sidebar section="history" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <div className="page-h">
             <div>
               <h1 className="page-title-truncate">{T("Scan history", "扫描历史")}</h1>

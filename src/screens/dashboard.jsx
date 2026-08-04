@@ -507,7 +507,7 @@ export function DashboardScreen({ go, setIssue }) {
       />
       <div className="with-side">
         <Sidebar section="dashboard" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <div className="page-h">
             <div>
               <h1>{T("Overview", "总览")}</h1>

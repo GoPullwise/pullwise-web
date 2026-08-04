@@ -856,7 +856,7 @@ export function BillingScreen({
       />
       <div className="with-side">
         <Sidebar section="billing" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <div className="page-h">
             <div>
               <h1>{T("Billing", "Billing")}</h1>
@@ -1023,7 +1023,7 @@ export function BillingScreen({
                           }
                         >
                           {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
-                            <span className="spin" style={{ display: "inline-block" }}>
+                            <span className="spin">
                               <I.Refresh size={14} />
                             </span>
                           )}
@@ -1038,7 +1038,7 @@ export function BillingScreen({
                           onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
                         >
                           {pendingAction === `change-${account.plan}-year` && (
-                            <span className="spin" style={{ display: "inline-block" }}>
+                            <span className="spin">
                               <I.Refresh size={14} />
                             </span>
                           )}
@@ -1052,7 +1052,7 @@ export function BillingScreen({
                           onClick={resumeSubscription}
                         >
                           {pendingAction === "resume" && (
-                            <span className="spin" style={{ display: "inline-block" }}>
+                            <span className="spin">
                               <I.Refresh size={14} />
                             </span>
                           )}
@@ -1065,7 +1065,7 @@ export function BillingScreen({
                           onClick={cancelSubscription}
                         >
                           {pendingAction === "cancel" && (
-                            <span className="spin" style={{ display: "inline-block" }}>
+                            <span className="spin">
                               <I.Refresh size={14} />
                             </span>
                           )}
@@ -1270,7 +1270,7 @@ export function BillingScreen({
                 onClick={confirmSubscriptionChange}
               >
                 {pendingAction === changeDetails.actionKey && (
-                  <span className="spin" style={{ display: "inline-block" }}>
+                  <span className="spin">
                     <I.Refresh size={14} />
                   </span>
                 )}
@@ -1504,7 +1504,7 @@ export function PricingScreen({
                       onClick={() => startCheckout(paidPlan)}
                     >
                       {pendingAction === `checkout-${paidPlan.id}` && (
-                        <span className="spin" style={{ display: "inline-block" }}>
+                        <span className="spin">
                           <I.Refresh size={14} />
                         </span>
                       )}

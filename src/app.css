@@ -880,7 +880,7 @@ body.has-proto-nav {
   padding: 2px 6px;
   border: 1px solid var(--border);
   border-radius: 0;
-  background: var(--surface-1);
+  background: var(--bg-soft);
 }
 
 .repo-meta .repo-branch-placeholder {
@@ -899,7 +899,7 @@ body.has-proto-nav {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--text-1);
+  color: var(--text);
   font: inherit;
   cursor: pointer;
   text-align: left;
@@ -941,7 +941,7 @@ body.has-proto-nav {
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: var(--bg-elev, var(--surface-1));
+  background: var(--bg-elev, var(--bg-soft));
   border: 1px solid var(--border);
   border-radius: 0;
   box-shadow: var(--shadow-3, 0 8px 24px rgba(0, 0, 0, 0.18));
@@ -962,20 +962,20 @@ body.has-proto-nav {
   padding: 5px 8px;
   border-radius: 0;
   font-size: var(--fs-sm);
-  color: var(--text-1);
+  color: var(--text);
   cursor: pointer;
   user-select: none;
 }
 
 .repo-branch-picker .repo-branch-option:hover,
 .repo-branch-picker .repo-branch-option:focus-visible {
-  background: var(--bg-soft, color-mix(in srgb, var(--accent) 6%, var(--surface-1)));
+  background: var(--bg-soft, color-mix(in srgb, var(--accent) 6%, var(--bg-soft)));
   outline: 0;
 }
 
 .repo-branch-picker .repo-branch-option.selected {
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev, var(--surface-1)));
-  color: var(--text-1);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev, var(--bg-soft)));
+  color: var(--text);
 }
 
 .repo-branch-picker .repo-branch-option-label {
@@ -1401,11 +1401,11 @@ body.has-proto-nav {
   max-height: 360px;
   overflow: auto;
   white-space: pre-wrap;
-  font: var(--fs-sm)/1.55 var(--mono);
+  font: var(--fs-sm)/1.55 var(--font-mono);
 }
 
 .scan-human-report-markdown code {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
 }
 .scanning-h {
   align-items: flex-start;
@@ -2305,7 +2305,7 @@ body.has-proto-nav {
   height: 11px;
   margin-top: 3px;
   border: 2px solid var(--accent);
-  background: var(--surface);
+  background: var(--bg-elev);
   z-index: var(--z-raised);
 }
 

@@ -964,7 +964,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       />
       <div className="with-side">
         <Sidebar section="apiKeys" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <div className="page-h">
             <div>
               <h1>{T("API Keys", "API 密钥")}</h1>
@@ -1052,7 +1052,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                       </label>
                       <button className="btn primary" type="submit" disabled={pending === "create"}>
                         {pending === "create" && (
-                          <span className="spin" style={{ display: "inline-block" }}>
+                          <span className="spin">
                             <I.Refresh size={14} />
                           </span>
                         )}

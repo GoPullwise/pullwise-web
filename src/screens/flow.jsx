@@ -1625,7 +1625,7 @@ export function ReposScreen({
       />
       <div className="with-side">
         <Sidebar section="repos" go={go} />
-        <div className="main" style={{ maxWidth: "none" }}>
+        <div className="main wide">
           <div className="page-h">
             <div>
               <h1>{T("Choose repositories to scan", "选择要扫描的仓库")}</h1>
@@ -1655,7 +1655,7 @@ export function ReposScreen({
                 onClick={startScan}
               >
                 {checkingQuota || resolvingBranches ? (
-                  <span className="spin" style={{ display: "inline-block" }}>
+                  <span className="spin">
                     <I.Refresh size={12} />
                   </span>
                 ) : (
@@ -1809,7 +1809,7 @@ export function ReposScreen({
                   >
                     <div className="repo-icon">
                       {connecting ? (
-                        <span className="spin" style={{ display: "inline-block" }}>
+                        <span className="spin">
                           <I.Refresh size={16} />
                         </span>
                       ) : (
@@ -1850,7 +1850,7 @@ export function ReposScreen({
                 {loading && (
                   <div className="repo-row repo-row-status">
                     <div className="repo-icon">
-                      <span className="spin" style={{ display: "inline-block" }}>
+                      <span className="spin">
                         <I.Refresh size={16} />
                       </span>
                     </div>
@@ -1999,7 +1999,7 @@ export function ReposScreen({
                   <div className="repo-row repo-row-status">
                     <div className="repo-icon">
                       {loadingMore ? (
-                        <span className="spin" style={{ display: "inline-block" }}>
+                        <span className="spin">
                           <I.Refresh size={16} />
                         </span>
                       ) : (
@@ -2917,7 +2917,7 @@ export function ScanningScreen({ go, activeRepo, setIssue = null, onScanResolved
   ) : status === "failed" || status === "cancelled" || status === "lost" ? (
     <I.X size={18} />
   ) : (
-    <span className="spin" style={{ display: "inline-block" }}>
+    <span className="spin">
       <I.Refresh size={18} />
     </span>
   );

@@ -50,7 +50,7 @@ export function PublicHeader({ go, current, auth }) {
       <div style={{ display: "flex", gap: 8 }}>
         {checkingSession ? (
           <button className="btn sm" type="button" disabled>
-            <span className="spin" style={{ display: "inline-block" }}>
+            <span className="spin">
               <I.Refresh size={14} />
             </span>
             {T("Checking session...", "正在检查会话...")}

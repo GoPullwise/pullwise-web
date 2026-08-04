@@ -152,7 +152,7 @@ export function GitHubInstallationsList({ installations, onManage, managingInsta
                 )}
               >
                 {managingInstallationId === installation.id ? (
-                  <span className="spin" style={{ display: "inline-block" }}>
+                  <span className="spin">
                     <I.Refresh size={13} />
                   </span>
                 ) : (
