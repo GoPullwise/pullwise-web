@@ -1,0 +1,107 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e4]:
+    - banner [ref=f2e5]:
+      - link "Go to Pullwise home" [ref=f2e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e8]: Pullwise
+      - navigation [ref=f2e9]:
+        - link "Product" [ref=f2e10] [cursor=pointer]:
+          - /url: /
+        - link "Pricing" [ref=f2e11] [cursor=pointer]:
+          - /url: /pricing
+        - link "Docs" [ref=f2e12] [cursor=pointer]:
+          - /url: /developers/docs
+        - link "API" [ref=f2e13] [cursor=pointer]:
+          - /url: /developers/api
+        - link "Status" [ref=f2e14] [cursor=pointer]:
+          - /url: /status
+      - generic [ref=f2e15]:
+        - button "Checking session..." [disabled]
+    - region [ref=f2e16]:
+      - generic [ref=f2e17]:
+        - generic [ref=f2e18]: PULLWISE / 01
+        - generic [ref=f2e19]: AI code review for GitHub repositories
+      - heading "Find repository-wide risks. Ship fixes with evidence." [level=1] [ref=f2e20]: Find repository-wide risks.Ship fixes with evidence.
+      - paragraph [ref=f2e21]: Pullwise is an AI code review platform for engineering teams. Connect a GitHub repository to scan the full codebase for security, correctness, and test gaps—then get validated findings with exact file locations and next steps.
+      - generic [ref=f2e22]:
+        - button "Checking session..." [disabled]
+      - generic [ref=f2e23]:
+        - generic [ref=f2e24]: Full-repository context
+        - generic [ref=f2e27]: Security, correctness, and tests
+        - generic [ref=f2e30]: Validator-checked findings
+        - generic [ref=f2e33]: CI-ready REST API
+    - generic [ref=f2e37]:
+      - generic [ref=f2e38]:
+        - generic [ref=f2e39]: REVIEW TRACE / LIVE
+        - generic [ref=f2e40]: pull-wise.com / dashboard
+      - generic [ref=f2e41]:
+        - generic [ref=f2e42]:
+          - generic [ref=f2e43]: Snapshot
+          - generic [ref=f2e44]: Risk routes
+          - generic [ref=f2e45]: Validate
+          - generic [ref=f2e46]: Report
+        - generic [ref=f2e47]:
+          - generic [ref=f2e48]:
+            - generic [ref=f2e49]: Snapshot
+            - generic [ref=f2e56]: Bundle
+            - generic [ref=f2e62]: Review
+            - generic [ref=f2e70]: Validate
+          - generic [ref=f2e75]:
+            - generic [ref=f2e76]: confirmed
+            - generic [ref=f2e78]: Confirmed and plausible findings include file locations, evidence, impact, and next-agent tasks.
+            - generic [ref=f2e79]: Stable envelope + versioned artifacts
+    - region [ref=f2e80]:
+      - generic [ref=f2e81]:
+        - generic [ref=f2e82]: PROCESS / 02
+        - generic [ref=f2e83]:
+          - heading "How Pullwise reviews a repository." [level=2] [ref=f2e84]
+          - paragraph [ref=f2e85]: From repository mapping to validated findings, every stage is designed to reduce noise and make the result usable by developers.
+      - generic [ref=f2e86]:
+        - article [ref=f2e87]:
+          - generic [ref=f2e88]: "01"
+          - heading "Map the whole repository" [level=3] [ref=f2e95]
+          - paragraph [ref=f2e96]: Read the current code tree, symbols, entry points, and trust boundaries before deciding where review effort matters most.
+        - article [ref=f2e97]:
+          - generic [ref=f2e98]: "02"
+          - heading "Review high-risk code paths" [level=3] [ref=f2e107]
+          - paragraph [ref=f2e108]: Focus security, correctness, and test-gap reviewers on planned code areas instead of treating every file as equal.
+        - article [ref=f2e109]:
+          - generic [ref=f2e110]: "03"
+          - heading "Run in isolated workers" [level=3] [ref=f2e115]
+          - paragraph [ref=f2e116]: Keep each review workspace, Codex state, artifacts, and logs isolated so one run cannot leak into another.
+        - article [ref=f2e117]:
+          - generic [ref=f2e118]: "04"
+          - heading "Verify before reporting" [level=3] [ref=f2e123]
+          - paragraph [ref=f2e124]: Check file locations, merge duplicate claims, and challenge candidate findings before they reach the main report.
+        - article [ref=f2e125]:
+          - generic [ref=f2e126]: "05"
+          - heading "Deliver fix-ready evidence" [level=3] [ref=f2e134]
+          - paragraph [ref=f2e135]: Return severity, exact file locations, evidence, impact, and next steps that developers or coding agents can act on.
+        - article [ref=f2e136]:
+          - generic [ref=f2e137]: "06"
+          - heading "Automate through the API" [level=3] [ref=f2e143]
+          - paragraph [ref=f2e144]: Start scans, read results, and check account or repository quota from CI, scripts, and internal engineering tools.
+    - region [ref=f2e145]:
+      - generic [ref=f2e146]:
+        - generic [ref=f2e147]: START / 03
+        - heading "Restoring your account." [level=2] [ref=f2e148]
+      - button "Checking session..." [disabled]
+    - contentinfo [ref=f2e149]:
+      - generic [ref=f2e150]: Copyright 2026 Pullwise
+      - generic [ref=f2e151]:
+        - link "Privacy" [ref=f2e152] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms" [ref=f2e153] [cursor=pointer]:
+          - /url: /terms
+        - link "Pricing" [ref=f2e154] [cursor=pointer]:
+          - /url: /pricing
+        - link "Docs" [ref=f2e155] [cursor=pointer]:
+          - /url: /developers/docs
+        - link "API" [ref=f2e156] [cursor=pointer]:
+          - /url: /developers/api
+        - link "Status" [ref=f2e157] [cursor=pointer]:
+          - /url: /status
+  - button "Back to top"
+  - button "Select language" [ref=f2e159] [cursor=pointer]: EN
+  - button "Toggle theme" [ref=f2e160] [cursor=pointer]
+  - generic "Notifications"

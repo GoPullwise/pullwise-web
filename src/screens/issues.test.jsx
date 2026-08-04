@@ -2088,21 +2088,19 @@ describe("IssueDetailScreen review detail", () => {
     expect(crumbBlock).toMatch(/align-items:\s*center;/);
   });
 
-  it("keeps evidence trace text readable in full-width rows", () => {
-    const css = screenStyles();
-    const timelineBlock = css.match(/\.trace-timeline\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
-    const stepBlock = css.match(/\.trace-step\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
-    const nodeBlock = css.match(/\.trace-node\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
-    const summaryBlock =
-      css.match(/\.trace-node-summary\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+  it("keeps live issue checklist styles after stale detail CSS cleanup", () => {
+    const css = appStyles();
+    const checklistBlock =
+      css.match(/\.issue-checklist\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const checkBlock = css.match(/\.issue-check\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
+    const dotBlock =
+      css.match(/\.issue-check-dot\s*\{(?<body>[^}]*)\}/s)?.groups?.body || "";
 
-    expect(timelineBlock).toMatch(/display:\s*grid;/);
-    expect(timelineBlock).not.toMatch(/overflow-x:\s*auto;/);
-    expect(stepBlock).toMatch(/min-width:\s*0;/);
-    expect(stepBlock).not.toMatch(/min-width:\s*150px;/);
-    expect(nodeBlock).toMatch(/grid-template-columns:\s*32px minmax\(0,\s*1fr\) auto;/);
-    expect(summaryBlock).toMatch(/overflow-wrap:\s*anywhere;/);
-    expect(summaryBlock).not.toMatch(/-webkit-line-clamp:/);
+    expect(checklistBlock).toMatch(/display:\s*grid;/);
+    expect(checkBlock).toMatch(/grid-template-columns:\s*18px minmax\(0,\s*1fr\);/);
+    expect(dotBlock).toMatch(/display:\s*inline-flex;/);
+    expect(css).not.toMatch(/\.issue-narrative-/);
+    expect(css).not.toMatch(/\.trace-timeline/);
   });
 
   it("lets issue detail tags wrap instead of truncating labels", () => {

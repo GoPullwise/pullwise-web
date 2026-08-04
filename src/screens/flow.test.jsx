@@ -1531,20 +1531,13 @@ describe("ScanningScreen queue state", () => {
     expect(document.querySelector(".review-run-summary-line")).not.toBeInTheDocument();
   });
 
-  it("keeps long audit evidence card text inside the card without clamping", () => {
+  it("removes stale audit card selectors after the review-run redesign", () => {
     const styles = readFileSync("styles/screens.css", "utf8");
 
-    expect(styles).toMatch(/\.audit-card\s*{[^}]*min-width:\s*0;/s);
-    expect(styles).toMatch(
-      /\.audit-card-row\s*{[^}]*grid-template-columns:\s*88px minmax\(0,\s*1fr\);/s
-    );
-    expect(styles).toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*min-width:\s*0;/s);
-    expect(styles).toMatch(
-      /\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*white-space:\s*normal;/s
-    );
-    expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*overflow:\s*visible;/s);
-    expect(styles).toMatch(/\.audit-card-row > \.evidence-command\s*{[^}]*white-space:\s*normal;/s);
-    expect(styles).not.toMatch(/\.audit-card-row > :where\(span,\s*code\)\s*{[^}]*line-clamp/s);
+    expect(styles).not.toMatch(/\.audit-card\b/);
+    expect(styles).not.toMatch(/\.scan-compact-/);
+    expect(styles).not.toMatch(/\.scan-trace-/);
+    expect(styles).not.toMatch(/\.scanning-bar-/);
   });
 
   it("copies the agent fix prompt from scan details without rendering it", async () => {
