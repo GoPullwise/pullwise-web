@@ -17,17 +17,6 @@ const ISSUE_UPDATE_KEY_FIELDS = [
   "createdAt",
 ];
 
-export function useDebouncedValue(value, delayMs = 300) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setDebouncedValue(value), delayMs);
-    return () => clearTimeout(timeout);
-  }, [delayMs, value]);
-
-  return debouncedValue;
-}
-
 function pageIsHidden() {
   return typeof document !== "undefined" && document.visibilityState === "hidden";
 }

@@ -420,7 +420,7 @@ describe("ReposScreen scan selection", () => {
 
     render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
 
-    const row = screen.getByRole("button", { name: /select repository octocat\/alpha/i });
+    const row = screen.getByText("octocat/alpha").closest(".repo-row");
     expect(row.querySelector(".repo-branch-placeholder")).toBeInTheDocument();
     expect(row.querySelector(".repo-branch-placeholder")).toHaveTextContent("main");
     expect(
@@ -433,6 +433,30 @@ describe("ReposScreen scan selection", () => {
     expect(
       await screen.findByRole("button", { name: /branch for octocat\/alpha/i })
     ).toBeInTheDocument();
+  });
+
+  it("lets keyboard users open and choose a branch from the branch listbox", async () => {
+    const user = userEvent.setup();
+    useRepositories.mockReturnValue({
+      items: [repoAlpha],
+      installations: [],
+      installationAccounts: [],
+      loading: false,
+      error: "",
+      needsAuthorization: false,
+      reload: vi.fn(),
+    });
+
+    render(<ReposScreen go={vi.fn()} setActiveRepo={vi.fn()} />);
+    await user.click(screen.getByText("octocat/alpha").closest(".repo-row"));
+
+    const trigger = await screen.findByRole("button", { name: /branch for octocat\/alpha/i });
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute("aria-activedescendant");
+
+    await user.keyboard("{ArrowDown}{Enter}");
+
+    expect(trigger).toHaveTextContent("develop");
   });
 
   it("assigns repository language colors with a fallback for unknown languages", () => {

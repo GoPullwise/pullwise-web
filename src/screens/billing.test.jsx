@@ -90,15 +90,14 @@ describe("BillingScreen", () => {
     expect(screen.queryByText(/billing is not configured/i)).not.toBeInTheDocument();
   });
 
-  it("keeps pricing skeletons after the initial pricing request times out", async () => {
+  it("shows an actionable pricing error instead of a fake free-plan fallback", async () => {
     pullwiseApi.billing.getPlan.mockRejectedValue(new Error("timeout of 12000ms exceeded"));
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/timeout/i);
-    expect(document.querySelectorAll(".pricing-card")).toHaveLength(3);
-    expect(document.querySelectorAll(".pricing-skeleton").length).toBeGreaterThanOrEqual(6);
-    expect(screen.getByRole("button", { name: /start max/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /retry pricing/i })).toBeInTheDocument();
+    expect(document.querySelectorAll(".pricing-card")).toHaveLength(0);
     expect(document.body).not.toHaveTextContent("Configured in provider");
   });
 

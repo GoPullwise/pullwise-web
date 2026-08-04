@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -69,6 +69,39 @@ describe("Topbar navigation", () => {
       expect(useIssues).toHaveBeenLastCalledWith({ q: "needle", limit: 5, refreshOnChange: false });
       expect(useRepositories).toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
     });
+  });
+
+  it("waits for a pause before sending each global search query", async () => {
+    vi.useFakeTimers();
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
+
+      await user.click(screen.getByRole("button", { name: /^search$/i }));
+      await user.type(screen.getByRole("textbox", { name: /^search$/i }), "needle");
+
+      expect(useIssues).not.toHaveBeenLastCalledWith({
+        q: "needle",
+        limit: 5,
+        refreshOnChange: false,
+      });
+      expect(useRepositories).not.toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
+
+      await act(async () => {
+        vi.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(useIssues).toHaveBeenLastCalledWith({
+          q: "needle",
+          limit: 5,
+          refreshOnChange: false,
+        });
+        expect(useRepositories).toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("keeps authoritative server matches whose display fields do not contain the literal query", async () => {
