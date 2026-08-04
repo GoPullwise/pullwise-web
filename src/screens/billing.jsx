@@ -610,6 +610,7 @@ export function BillingScreen({
   const mountedRef = useRef(true);
   const changeDialogRef = useRef(null);
   const changeCloseRef = useRef(null);
+  const billingBackgroundRef = useRef(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -805,6 +806,12 @@ export function BillingScreen({
     onClose: closeChangeConfirmation,
   });
 
+  useEffect(() => {
+    if (billingBackgroundRef.current) {
+      billingBackgroundRef.current.inert = Boolean(changeDetails);
+    }
+  }, [changeDetails]);
+
   const confirmSubscriptionChange = () => {
     if (!changeDetails) return;
     changeSubscription({
@@ -891,6 +898,7 @@ export function BillingScreen({
 
   return (
     <div className="app fade-in">
+      <div ref={billingBackgroundRef} className="billing-background">
       <Topbar
         go={go}
         breadcrumbs={[{ label: T("Billing", "Billing") }]}
@@ -1159,6 +1167,7 @@ export function BillingScreen({
             )}
           </div>
         </div>
+      </div>
       </div>
       {changeDetails && (
         <div className="modal-back billing-change-back" onClick={closeChangeConfirmation}>

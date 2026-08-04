@@ -264,13 +264,13 @@
 }
 
 .notification-success .notification-icon {
-  background: color-mix(in srgb, var(--ok, #16a34a) 12%, transparent);
-  color: var(--ok, #16a34a);
+  background: color-mix(in srgb, var(--ok, #15803d) 12%, transparent);
+  color: var(--ok, #15803d);
 }
 
 .notification-warning .notification-icon {
-  background: color-mix(in srgb, var(--warn, #b45309) 12%, transparent);
-  color: var(--warn, #b45309);
+  background: color-mix(in srgb, var(--warn, #a16207) 12%, transparent);
+  color: var(--warn, #a16207);
 }
 
 .notification-info .notification-icon {
@@ -996,7 +996,7 @@ body.has-proto-nav {
 }
 
 .quota-selection-alert {
-  border-color: color-mix(in srgb, var(--warn, #b45309) 34%, var(--border));
+  border-color: color-mix(in srgb, var(--warn, #a16207) 34%, var(--border));
 }
 
 .quota-modal-back {
@@ -3148,9 +3148,19 @@ body.has-proto-nav {
     scroll-behavior: auto;
   }
 
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .spin,
   .pulse,
   .scan-row-running .scan-status-dot,
   .status-overall.operational .status-dot {
-    animation: none;
+    animation: none !important;
   }
 }

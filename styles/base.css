@@ -76,8 +76,8 @@ input[type="checkbox"] {
 
   /* Semantic status colours. These were previously only reachable through
    * inline var() fallbacks, so a theme could not override them. */
-  --ok: #16a34a;
-  --warn: #b45309;
+  --ok: #15803d;
+  --warn: #a16207;
   --danger: #dc2626;
 
   /* Per-element accents: components override these inline (repo language dot,
@@ -376,7 +376,7 @@ select {
   overflow: hidden;
 }
 .code-line.add {
-  background: color-mix(in oklch, var(--ok, #16a34a) 10%, transparent);
+  background: color-mix(in oklch, var(--ok, #15803d) 10%, transparent);
 }
 .code-line.del {
   background: color-mix(in oklch, var(--danger, #dc2626) 10%, transparent);
@@ -386,7 +386,7 @@ select {
   font-weight: 600;
 }
 .code-line.add .marker {
-  color: var(--ok, #16a34a);
+  color: var(--ok, #15803d);
 }
 .code-line.del .marker {
   color: var(--danger, #dc2626);
@@ -1541,7 +1541,7 @@ a.crumb-button:hover {
 .scan-day-dot {
   width: 10px;
   height: 10px;
-  background: var(--ok, #16a34a);
+  background: var(--ok, #15803d);
   box-shadow:
     0 0 0 2px var(--bg-elev, #fff),
     0 0 0 3px var(--border);
@@ -1678,7 +1678,7 @@ a.crumb-button:hover {
     0 0 0 3px var(--border);
 }
 .scan-row-done .scan-status-dot {
-  background: var(--ok, #16a34a);
+  background: var(--ok, #15803d);
 }
 .scan-row-running .scan-status-dot,
 .scan-row-queued .scan-status-dot {
@@ -1751,7 +1751,7 @@ a.crumb-button:hover {
 }
 .scan-badge-done {
   color: var(--ok, #15803d);
-  background: color-mix(in oklch, var(--ok, #16a34a) 14%, transparent);
+  background: color-mix(in oklch, var(--ok, #15803d) 14%, transparent);
 }
 .scan-badge-failed,
 .scan-badge-cancelled,
@@ -1779,8 +1779,8 @@ a.crumb-button:hover {
   background: var(--bg-soft, rgba(0, 0, 0, 0.04));
 }
 .scan-issues-badge-warning {
-  color: var(--warn, #b45309);
-  background: color-mix(in oklch, var(--warn, #f59e0b) 16%, transparent);
+  color: var(--warn, #a16207);
+  background: color-mix(in oklch, var(--warn, #a16207) 16%, transparent);
 }
 .scan-issues-badge-danger {
   color: var(--danger, #b91c1c);

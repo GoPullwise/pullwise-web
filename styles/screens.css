@@ -378,9 +378,9 @@
   align-items: flex-start;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid color-mix(in oklch, #16a34a 22%, var(--border));
-  background: color-mix(in oklch, #16a34a 6%, var(--bg-elev));
-  color: #15803d;
+  border: 1px solid color-mix(in oklch, var(--ok) 22%, var(--border));
+  background: color-mix(in oklch, var(--ok) 6%, var(--bg-elev));
+  color: var(--ok);
   font-size: var(--fs-sm);
   line-height: 1.45;
 }
@@ -1770,7 +1770,7 @@
   white-space: pre-wrap;
 }
 .scan-verification-verified {
-  color: #16a34a;
+  color: var(--ok);
 }
 .scan-verification-static {
   color: var(--accent);
@@ -1904,15 +1904,15 @@
 }
 
 .scan-compact-status.tone-ok {
-  color: #15803d;
-  border-color: color-mix(in oklch, #16a34a 24%, var(--border));
-  background: color-mix(in oklch, #16a34a 8%, var(--bg));
+  color: var(--ok);
+  border-color: color-mix(in oklch, var(--ok) 24%, var(--border));
+  background: color-mix(in oklch, var(--ok) 8%, var(--bg));
 }
 
 .scan-compact-status.tone-warn {
-  color: #b45309;
-  border-color: color-mix(in oklch, #f59e0b 24%, var(--border));
-  background: color-mix(in oklch, #f59e0b 8%, var(--bg));
+  color: var(--warn);
+  border-color: color-mix(in oklch, var(--warn) 24%, var(--border));
+  background: color-mix(in oklch, var(--warn) 8%, var(--bg));
 }
 
 .scan-compact-status.tone-danger {
@@ -3245,9 +3245,9 @@
   border: 1px solid color-mix(in oklch, var(--accent) 24%, var(--border));
 }
 .quota-activity-refunded .quota-activity-icon {
-  color: #16a34a;
-  background: color-mix(in oklch, #16a34a 10%, var(--bg-elev));
-  border-color: color-mix(in oklch, #16a34a 32%, var(--border));
+  color: var(--ok);
+  background: color-mix(in oklch, var(--ok) 10%, var(--bg-elev));
+  border-color: color-mix(in oklch, var(--ok) 32%, var(--border));
 }
 .quota-activity-empty {
   grid-template-columns: minmax(0, 1fr);
@@ -5394,8 +5394,8 @@
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--text-3) 18%, transparent);
 }
 .status-overall.operational .status-dot {
-  background: #16a34a;
-  box-shadow: 0 0 0 3px color-mix(in oklch, #16a34a 24%, transparent);
+  background: var(--ok);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ok) 24%, transparent);
   animation: pulse 2s ease-in-out infinite;
 }
 .status-overall.degraded .status-dot {
@@ -5467,7 +5467,7 @@
   box-shadow: 0 0 0 3px color-mix(in oklch, currentColor 0%, transparent);
 }
 .status-row-t .status-dot.up {
-  background: #16a34a;
+  background: var(--ok);
 }
 .status-row-t .status-dot.degraded {
   background: var(--sev-medium);
@@ -5505,7 +5505,7 @@
   box-shadow: none;
 }
 .status-legend .status-dot.up {
-  background: #16a34a;
+  background: var(--ok);
 }
 .status-legend .status-dot.degraded {
   background: var(--sev-medium);

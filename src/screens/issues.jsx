@@ -868,7 +868,6 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                     <div></div>
                     <div
                       className="issues-title-c"
-                      role="cell"
                       role="button"
                       tabIndex={0}
                       aria-label={`Open issue ${issue.id}`}
@@ -2419,8 +2418,8 @@ export function SettingsScreen({ go, setIssue = null }) {
                     <span
                       className="pill sev-bg-low"
                       style={{
-                        background: "color-mix(in oklch, #16a34a 14%, transparent)",
-                        color: "#16a34a",
+                        background: "color-mix(in oklch, var(--ok) 14%, transparent)",
+                        color: "var(--ok)",
                       }}
                     >
                       <span className="dot"></span>{" "}
