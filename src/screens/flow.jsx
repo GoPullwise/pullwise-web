@@ -21,6 +21,7 @@ import { env } from "../config/env.js";
 import { useGitHubRepositoryAccessAutoRefresh } from "../lib/github-repository-access-refresh.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import { downloadBlob } from "../lib/download.js";
+import { useModalFocus } from "../lib/modal-focus.js";
 import {
   isTerminalScan,
   scanCanDownloadAuditBundle,
@@ -1201,6 +1202,9 @@ export function ReposScreen({
   const [quotaDialogNotice, setQuotaDialogNotice] = useState("");
   const [repoBranches, setRepoBranches] = useState({});
   const [selectedBranches, setSelectedBranches] = useState({});
+  const quotaDialogRef = useRef(null);
+  const quotaCloseRef = useRef(null);
+  const quotaBackgroundRef = useRef(null);
   const branchRequestsRef = useRef(new Map());
   const scanSubmissionInFlightRef = useRef(false);
   const githubActionInFlightRef = useRef(false);
@@ -1599,6 +1603,19 @@ export function ReposScreen({
     setQuotaDialogNotice("");
   };
 
+  useEffect(() => {
+    if (quotaBackgroundRef.current) {
+      quotaBackgroundRef.current.inert = Boolean(quotaPreflight);
+    }
+  }, [quotaPreflight]);
+
+  useModalFocus({
+    open: Boolean(quotaPreflight),
+    dialogRef: quotaDialogRef,
+    initialFocusRef: quotaCloseRef,
+    onClose: closeQuotaDialog,
+  });
+
   const toggleQuotaDialogRepo = (repo) => {
     const row = preflightRowForRepo(quotaDialogRows, repo);
     if (row?.available === false) {
@@ -1701,6 +1718,7 @@ export function ReposScreen({
 
   return (
     <div className="app fade-in">
+      <div ref={quotaBackgroundRef} className="quota-background">
       <Topbar
         go={go}
         breadcrumbs={[{ label: T("Repositories", "仓库") }]}
@@ -2124,6 +2142,7 @@ export function ReposScreen({
           </div>
         </div>
       </div>
+      </div>
       {quotaPreflight && (
         <div className="quota-modal-back">
           <div
@@ -2131,6 +2150,7 @@ export function ReposScreen({
             role="dialog"
             aria-modal="true"
             aria-labelledby="quota-dialog-title"
+            ref={quotaDialogRef}
           >
             <div className="modal-h">
               <div>
@@ -2139,7 +2159,13 @@ export function ReposScreen({
                 </h2>
                 <p>{quotaDialogNotice}</p>
               </div>
-              <button className="btn ghost icon" type="button" onClick={closeQuotaDialog}>
+              <button
+                ref={quotaCloseRef}
+                className="btn ghost icon"
+                type="button"
+                aria-label={T("Close quota dialog", "Close quota dialog")}
+                onClick={closeQuotaDialog}
+              >
                 <I.X size={14} />
               </button>
             </div>
@@ -2379,6 +2405,7 @@ function ScanProgressFlow({
   }, []);
 
   const handleWheel = useCallback((event) => {
+    if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
     const viewport = viewportRef.current;
     const rect = viewport?.getBoundingClientRect();
@@ -2399,6 +2426,33 @@ function ScanProgressFlow({
         scale: nextScale,
         x: Math.round((pointerX - contentX * nextScale) * 100) / 100,
         y: Math.round((pointerY - contentY * nextScale) * 100) / 100,
+      };
+    });
+  }, []);
+
+  const handleViewportKeyDown = useCallback((event) => {
+    if (event.target !== event.currentTarget && event.target?.closest?.("button,a,input,textarea,select")) {
+      return;
+    }
+    let deltaX = 0;
+    let deltaY = 0;
+    let nextScale = null;
+    if (event.key === "ArrowLeft") deltaX = 32;
+    if (event.key === "ArrowRight") deltaX = -32;
+    if (event.key === "ArrowUp") deltaY = 32;
+    if (event.key === "ArrowDown") deltaY = -32;
+    if (event.key === "+" || event.key === "=") nextScale = 0.1;
+    if (event.key === "-" || event.key === "_") nextScale = -0.1;
+    if (event.key === "0") nextScale = "reset";
+    if (!deltaX && !deltaY && nextScale === null) return;
+    event.preventDefault();
+    setView((current) => {
+      if (nextScale === "reset") return { scale: 1, x: 0, y: 0 };
+      return {
+        ...current,
+        x: current.x + deltaX,
+        y: current.y + deltaY,
+        scale: nextScale === null ? current.scale : clampFlowZoom(current.scale + nextScale),
       };
     });
   }, []);
@@ -2496,7 +2550,10 @@ function ScanProgressFlow({
         ref={viewportRef}
         className="scanning-flow-viewport"
         role="group"
+        tabIndex={0}
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - 0"
         aria-label={T("Pan worker progress flow", "Pan worker progress flow")}
+        onKeyDown={handleViewportKeyDown}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={finishDrag}

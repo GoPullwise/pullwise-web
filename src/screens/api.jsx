@@ -835,6 +835,21 @@ function ApiKeysSkeleton() {
   );
 }
 
+function ApiKeysLoadError({ error, onRetry }) {
+  return (
+    <div className="card section api-keys-load-error" role="alert">
+      <I.X size={15} aria-hidden="true" />
+      <div>
+        <b>{T("API keys are unavailable", "API keys are unavailable")}</b>
+        <span>{error || T("Unable to load API keys.", "Unable to load API keys.")}</span>
+      </div>
+      <button type="button" className="btn" onClick={onRetry}>
+        <I.Refresh size={13} /> {T("Retry", "Retry")}
+      </button>
+    </div>
+  );
+}
+
 export function ApiKeysScreen({ go, setIssue = null }) {
   useLang();
   const [keys, setKeys] = useState([]);
@@ -842,6 +857,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   const [selectedScopes, setSelectedScopes] = useState(API_KEY_SCOPE_VALUES);
   const [createdCredential, setCreatedCredential] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadedOnce, setLoadedOnce] = useState(false);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
   const mutationInFlightRef = useRef(false);
@@ -856,9 +872,9 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     try {
       const payload = await pullwiseApi.apiKeys.list();
       setKeys(itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey).filter(Boolean));
+      setLoadedOnce(true);
     } catch (err) {
       setError(err?.message || T("Unable to load API keys.", "无法加载 API key。"));
-      setKeys([]);
     } finally {
       setLoading(false);
     }
@@ -1020,8 +1036,18 @@ export function ApiKeysScreen({ go, setIssue = null }) {
 
             {loading ? (
               <ApiKeysSkeleton />
+            ) : error && !loadedOnce ? (
+              <ApiKeysLoadError error={error} onRetry={load} />
             ) : (
               <div className="set-body">
+                {error && (
+                  <div className="api-keys-inline-error" role="alert">
+                    <span>{error}</span>
+                    <button type="button" className="btn sm" onClick={load}>
+                      <I.Refresh size={12} /> {T("Retry", "Retry")}
+                    </button>
+                  </div>
+                )}
                 <form className="bill-card api-key-create" onSubmit={createKey}>
                   <div className="api-key-create-head">
                     <div className="api-key-create-icon">

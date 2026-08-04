@@ -2855,6 +2855,7 @@ describe("ScanningScreen queue state", () => {
         bubbles: true,
         cancelable: true,
         deltaY: -100,
+        ctrlKey: true,
         clientX: 150,
         clientY: 120,
       });

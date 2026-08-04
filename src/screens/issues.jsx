@@ -461,6 +461,18 @@ function IssuesTableSkeleton() {
     </div>
   );
 }
+
+function IssuesLoadError({ error, onRetry }) {
+  return (
+    <div className="issues-load-error" role="alert">
+      <I.X size={15} aria-hidden="true" />
+      <span>{error || T("Unable to load issues.", "Unable to load issues.")}</span>
+      <button type="button" className="btn sm" onClick={onRetry}>
+        <I.Refresh size={12} /> {T("Retry issues", "Retry issues")}
+      </button>
+    </div>
+  );
+}
 function IssueDetailSkeleton() {
   return (
     <div
@@ -836,7 +848,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div></div>
             </div>
             {loading && <IssuesTableSkeleton />}
-            {!loading && filtered.length === 0 && (
+            {!loading && error && <IssuesLoadError error={error} onRetry={reload} />}
+            {!loading && !error && filtered.length === 0 && (
               <div className="muted issues-table-empty">
                 {T("No findings are available yet.", "\u6682\u65e0\u95ee\u9898\u3002")}
               </div>

@@ -184,6 +184,7 @@ function SearchModal({ close, go, setIssue }) {
           <input
             ref={inputRef}
             autoFocus
+            type="search"
             aria-label={T("Search", "Search")}
             placeholder={T("Search issues, repos, pages...", "搜索问题、仓库、页面...")}
             value={q}
@@ -192,7 +193,9 @@ function SearchModal({ close, go, setIssue }) {
           <span className="kbd">ESC</span>
         </div>
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-          {`${issueResults.length} issues, ${repoResults.length} repositories, ${pages.length} pages`}
+          {debouncedSearchQuery
+            ? `${issueResults.length} issues, ${repoResults.length} repositories, ${pages.length} pages`
+            : ""}
         </div>
         <div className="search-body">
           {issueResults.length > 0 && (

@@ -2656,6 +2656,19 @@
   padding: 24px;
   text-align: center;
 }
+.issues-load-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  color: var(--danger);
+  border-bottom: 1px solid var(--border);
+}
+.issues-load-error span {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
 .issues-title-meta {
   display: flex;
   align-items: center;
@@ -3216,6 +3229,29 @@
 }
 .quota-activity-empty {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.api-keys-load-error,
+.api-keys-inline-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--danger);
+}
+.api-keys-load-error > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.api-keys-load-error > div span,
+.api-keys-inline-error > span {
+  overflow-wrap: anywhere;
+}
+.api-keys-inline-error {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid color-mix(in oklch, var(--danger) 35%, var(--border));
 }
 
 .api-key-create {
@@ -4753,6 +4789,12 @@
   }
 }
 
+@media (max-width: 320px) {
+  .kpi-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .scanning,
   .scanning.scanning-wide {
@@ -4805,7 +4847,18 @@
   }
 
   .lp-nav {
-    display: none;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+    display: flex;
+    min-width: 0;
+    overflow-x: auto;
+    gap: 4px;
+    padding-bottom: 2px;
+  }
+
+  .lp-nav .btn {
+    flex: 0 0 auto;
   }
 
   .lp-hero {
@@ -4939,7 +4992,6 @@
     justify-self: start;
   }
 
-  .kpi-row,
   .issue-grid,
   .set-shell,
   .status-row {
@@ -5160,6 +5212,25 @@
 }
 @media (max-width: 899px) {
   .legal-side {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 0 0 10px;
+    border-left: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .legal-side-h {
+    flex: 0 0 auto;
+    margin: 0 4px 0 0;
+  }
+  .legal-side-i {
+    flex: 0 0 auto;
+  }
+  .legal-side-foot {
     display: none;
   }
 }

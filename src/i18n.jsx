@@ -29,6 +29,14 @@ function normalizeLang(nextLang) {
 
 let lang = normalizeLang(localStorageGet("pw-lang", "en"));
 
+function syncDocumentLanguage() {
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = lang;
+  }
+}
+
+syncDocumentLanguage();
+
 // Static specifiers keep the locale chunks statically analysable for the bundler.
 const LOCALE_LOADERS = {
   zh: () => import("./locales/zh.js"),
@@ -99,6 +107,7 @@ export function preloadActiveLocale() {
 export function setLang(nextLang) {
   lang = normalizeLang(nextLang);
   localStorageSet("pw-lang", lang);
+  syncDocumentLanguage();
   notifyLangChange();
   return activateCatalog(lang);
 }
