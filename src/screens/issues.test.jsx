@@ -149,7 +149,9 @@ describe("IssuesScreen list resilience", () => {
 
     await user.type(screen.getByPlaceholderText(/search by title, repo, or file/i), "identity provider");
 
-    expect(useIssues).toHaveBeenCalledWith(expect.objectContaining({ q: "identity provider" }));
+    await waitFor(() =>
+      expect(useIssues).toHaveBeenCalledWith(expect.objectContaining({ q: "identity provider" }))
+    );
     expect(screen.getByText("Validate redirect targets")).toBeInTheDocument();
   });
 

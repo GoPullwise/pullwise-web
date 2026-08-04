@@ -939,6 +939,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
   const pickerId = useId();
   const selectedIndex = Math.max(0, options.indexOf(value));
   const [activeIndex, setActiveIndex] = useState(selectedIndex);
+  const activeIndexRef = useRef(selectedIndex);
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
@@ -946,7 +947,9 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
   useEffect(() => {
     setActiveIndex((current) => {
       if (!options.length) return 0;
-      return Math.min(current, options.length - 1);
+      const next = Math.min(current, options.length - 1);
+      activeIndexRef.current = next;
+      return next;
     });
   }, [options.length]);
 
@@ -967,6 +970,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
   useLayoutEffect(() => {
     if (!open) return undefined;
     updateMenuPosition();
+    triggerRef.current?.focus();
     const handlePointerDown = (event) => {
       const container = containerRef.current;
       const menu = menuRef.current;
@@ -1004,6 +1008,7 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
   };
 
   const openPicker = () => {
+    activeIndexRef.current = selectedIndex;
     setActiveIndex(selectedIndex);
     updateMenuPosition();
     setOpen(true);
@@ -1024,18 +1029,22 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
         return;
       }
       const direction = event.key === "ArrowDown" ? 1 : -1;
-      setActiveIndex((current) => (current + direction + options.length) % options.length);
+      const next = (activeIndexRef.current + direction + options.length) % options.length;
+      activeIndexRef.current = next;
+      setActiveIndex(next);
       return;
     }
     if (event.key === "Home" || event.key === "End") {
       if (!open) return;
       event.preventDefault();
-      setActiveIndex(event.key === "Home" ? 0 : options.length - 1);
+      const next = event.key === "Home" ? 0 : options.length - 1;
+      activeIndexRef.current = next;
+      setActiveIndex(next);
       return;
     }
     if ((event.key === "Enter" || event.key === " ") && open) {
       event.preventDefault();
-      const branch = options[activeIndex];
+      const branch = options[activeIndexRef.current];
       if (branch) handleSelect(branch);
     }
   };
@@ -1046,7 +1055,6 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
 
   return (
     <span
-      key={branchTitle}
       ref={containerRef}
       className={pickerClass}
       title={branchTitle}
@@ -1118,7 +1126,11 @@ function BranchPicker({ repoLabel, value, options, loading, error, disabled, onC
                     (isSelected ? " selected" : "") +
                     (activeIndex === options.indexOf(branch) ? " active" : "")
                   }
-                  onMouseEnter={() => setActiveIndex(options.indexOf(branch))}
+                  onMouseEnter={() => {
+                    const next = options.indexOf(branch);
+                    activeIndexRef.current = next;
+                    setActiveIndex(next);
+                  }}
                   onClick={() => handleSelect(branch)}
                 >
                   <I.GitBranch size={11} aria-hidden="true" />

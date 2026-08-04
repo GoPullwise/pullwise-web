@@ -88,10 +88,6 @@ describe("Topbar navigation", () => {
       });
       expect(useRepositories).not.toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
 
-      await act(async () => {
-        vi.advanceTimersByTime(300);
-      });
-
       expect(useIssues).toHaveBeenLastCalledWith({
         q: "",
         limit: 5,

@@ -259,7 +259,9 @@ describe("ReposScreen scan selection", () => {
 
     await user.type(screen.getByPlaceholderText(/search repositories/i), "identity provider");
 
-    expect(useRepositories).toHaveBeenLastCalledWith({ owner: "", q: "identity provider" });
+    await waitFor(() =>
+      expect(useRepositories).toHaveBeenLastCalledWith({ owner: "", q: "identity provider" })
+    );
     expect(screen.getByText("octocat/alpha")).toBeInTheDocument();
   });
 
@@ -454,7 +456,9 @@ describe("ReposScreen scan selection", () => {
     await user.click(trigger);
     expect(trigger).toHaveAttribute("aria-activedescendant");
 
-    await user.keyboard("{ArrowDown}{Enter}");
+    await user.keyboard("{ArrowDown}");
+    expect(trigger.getAttribute("aria-activedescendant")).toContain("option-1");
+    await user.keyboard("{Enter}");
 
     expect(trigger).toHaveTextContent("develop");
   });

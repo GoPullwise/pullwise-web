@@ -564,7 +564,7 @@ function BillingLoadError({ error, onRetry }) {
             {error || T("Unable to load billing data.", "Unable to load billing data.")}
           </p>
         </div>
-        <I.Alert size={16} />
+        <I.Lightbulb size={16} />
       </div>
       <button type="button" className="btn" onClick={onRetry}>
         <I.Refresh size={14} /> {T("Retry billing", "Retry billing")}
@@ -576,7 +576,7 @@ function BillingLoadError({ error, onRetry }) {
 function PricingLoadError({ error, onRetry }) {
   return (
     <div className="pricing-load-error card section" role="alert">
-      <I.Alert size={18} />
+      <I.Lightbulb size={18} />
       <div>
         <h2>{T("Pricing is unavailable", "Pricing is unavailable")}</h2>
         <p className="muted">
