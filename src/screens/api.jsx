@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
+import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
@@ -860,7 +861,9 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
+  const [revokeTarget, setRevokeTarget] = useState(null);
   const mutationInFlightRef = useRef(false);
+  const revokeBackgroundRef = useRef(null);
   useErrorNotification(error, {
     title: T("API key error", "API key error"),
     key: `api-keys:${error}`,
@@ -943,7 +946,13 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     } finally {
       mutationInFlightRef.current = false;
       setPending("");
+      setRevokeTarget(null);
     }
+  };
+
+  const requestRevokeKey = (key) => {
+    if (!key?.id || mutationInFlightRef.current || pending) return;
+    setRevokeTarget(key);
   };
 
   const copyToken = async () => {
@@ -972,6 +981,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
 
   return (
     <div className="app fade-in">
+      <div ref={revokeBackgroundRef} className="api-keys-background">
       <Topbar
         go={go}
         breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
@@ -1156,7 +1166,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                       <button
                         className="btn sm"
                         disabled={pending === key.id}
-                        onClick={() => revokeKey(key.id)}
+                        onClick={() => requestRevokeKey(key)}
                       >
                         <I.X size={13} /> {T("Revoke", "吊销")}
                       </button>
@@ -1173,6 +1183,23 @@ export function ApiKeysScreen({ go, setIssue = null }) {
           </div>
         </div>
       </div>
+      </div>
+      <ConfirmDialog
+        open={Boolean(revokeTarget)}
+        title={T("Revoke API key?", "Revoke API key?")}
+        description={T(
+          "This permanently invalidates the selected API key. Any client using it will stop working.",
+          "This permanently invalidates the selected API key. Any client using it will stop working."
+        )}
+        confirmLabel={T("Confirm revoke", "Confirm revoke")}
+        cancelLabel={T("Cancel", "Cancel")}
+        onCancel={() => setRevokeTarget(null)}
+        onConfirm={() => revokeKey(revokeTarget?.id)}
+        busy={Boolean(revokeTarget && pending === revokeTarget.id)}
+        danger
+        backgroundRef={revokeBackgroundRef}
+        dialogId="revoke-api-key"
+      />
     </div>
   );
 }
