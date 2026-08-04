@@ -604,7 +604,7 @@ describe("ReposScreen scan selection", () => {
     const alphaRow = screen.getByRole("checkbox", { name: /select repository octocat\/alpha/i });
     const betaRow = screen.getByRole("checkbox", { name: /select repository octocat\/beta/i });
     alphaRow.focus();
-    await user.keyboard("{Enter}");
+    await user.keyboard(" ");
     betaRow.focus();
     await user.keyboard(" ");
     await user.click(screen.getByRole("button", { name: /start scan/i }));

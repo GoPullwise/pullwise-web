@@ -2003,6 +2003,11 @@ export function ReposScreen({
                           checked={on}
                           aria-label={`Select repository ${repoLabel}`}
                           onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => {
+                            if (event.key !== " " && event.key !== "Enter") return;
+                            event.preventDefault();
+                            toggle(repo.id);
+                          }}
                           onChange={() => toggle(repo.id)}
                         />
                         <span className="repo-check-box">{on && <I.Check size={11} />}</span>

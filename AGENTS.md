@@ -309,6 +309,14 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## Web Visual And Frontend Resilience
 
+## Frontend Audit Remediation
+
+- Global search uses the server-backed issue/repository hooks with a 300ms debounce; keep native searchbox semantics and authoritative result rendering.
+- Search, quota, and billing-change dialogs must trap focus, close on Escape, restore opener focus, and inert the background while open.
+- Repository selection is controlled by native checkboxes; Space and Enter must update selection, while branch selection keeps listbox keyboard semantics.
+- Mobile Issues labels are real DOM content rather than CSS-generated text. Scan-flow panning must allow ordinary page scrolling and reserve wheel prevention for modifier-key zoom.
+- API-key, billing, pricing, and issue loading failures must remain visible with retry actions and must not silently replace unknown/error state with fake empty or fallback data.
+
 - Keep the public UI editorial and hard-edged: zero decorative radius/shadow, a restrained monochrome palette, and one indigo accent. Landing, Pricing, Docs/API, Privacy/Terms, Status, the public header/footer, and major preview sections must share the same 1240px horizontal frame with 40px desktop gutters. At 420px and below, keep the shared public frame on 16px gutters; do not cap the Privacy/Terms main column inside that frame.
 - UI font sizes resolve to the `--fs-*` type scale in `base.css` (`--fs-micro` 10px through `--fs-4xl` 22px); display/hero sizes keep local `clamp()` values. Do not introduce off-scale or fractional-px font sizes. Categorical chart hues use the `--cat-*` tokens (with dark-theme variants); the GitHub language colors in `flow.jsx` stay hardcoded by design because they are external identity colors, not theme colors.
 - The public Security page and `/security` route are intentionally removed; do not add Security back to the public header or footer navigation without new product direction.
