@@ -1242,6 +1242,7 @@ describe("BillingScreen", () => {
   });
 
   it("coalesces same-frame subscription cancellation requests", async () => {
+    const user = userEvent.setup();
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {

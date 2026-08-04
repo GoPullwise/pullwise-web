@@ -526,6 +526,7 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: /mark all fixed/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
     await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(2));
 
     await user.click(screen.getByRole("link", { name: /^overview$/i }));
