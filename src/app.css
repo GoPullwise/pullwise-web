@@ -1013,6 +1013,7 @@ body.has-proto-nav {
 .quota-modal {
   width: min(620px, 100%);
   max-height: min(720px, calc(100vh - 36px));
+  max-height: min(720px, calc(100dvh - 36px));
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1491,6 +1492,14 @@ body.has-proto-nav {
 }
 
 .scanning-sub > * {
+  min-width: 0;
+  flex-shrink: 1;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.scanning-sub > .scanning-sub-label,
+.scanning-sub > .scanning-sub-sep {
   flex-shrink: 0;
 }
 
@@ -1736,10 +1745,8 @@ body.has-proto-nav {
     align-items: center;
   }
 
-  .issues-trow > div:nth-child(3)::before,
-  .issues-trow > div:nth-child(4)::before,
-  .issues-trow > div:nth-child(5)::before,
-  .issues-trow > div:nth-child(6)::before {
+  .issues-mobile-label {
+    display: block;
     color: var(--text-3);
     font-size: var(--fs-xs);
     font-weight: 600;
@@ -1747,20 +1754,9 @@ body.has-proto-nav {
     text-transform: uppercase;
   }
 
-  .issues-trow > div:nth-child(3)::before {
-    content: "File";
-  }
-
-  .issues-trow > div:nth-child(4)::before {
-    content: "Category";
-  }
-
-  .issues-trow > div:nth-child(5)::before {
-    content: "Confidence";
-  }
-
-  .issues-trow > div:nth-child(6)::before {
-    content: "Status";
+  .issues-cell-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .issues-trow > div:nth-child(7) {

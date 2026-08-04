@@ -867,22 +867,34 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                       <div className="muted">{issue.repo}</div>
                     </div>
                     <div className="issues-file">
-                      {issue.file}
-                      {issue.line ? ":" + issue.line : ""}
+                      <span className="issues-mobile-label">{T("File", "文件")}</span>
+                      <span className="issues-cell-value">
+                        {issue.file}
+                        {issue.line ? ":" + issue.line : ""}
+                      </span>
                     </div>
                     <div>
-                      <span className="tag">{issue.category}</span>
+                      <span className="issues-mobile-label">{T("Category", "类别")}</span>
+                      <span className="issues-cell-value">
+                        <span className="tag">{issue.category}</span>
+                      </span>
                     </div>
                     <div>
-                      <div className="issues-evidence-cell">
-                        <span className="tag">{T("Confirmed", "Confirmed")}</span>
-                        {issue.verificationLevel && (
-                          <span className="issues-evidence-label">{issue.verificationLevel}</span>
-                        )}
-                      </div>
+                      <span className="issues-mobile-label">{T("Proof", "证据")}</span>
+                      <span className="issues-cell-value">
+                        <span className="issues-evidence-cell">
+                          <span className="tag">{T("Confirmed", "Confirmed")}</span>
+                          {issue.verificationLevel && (
+                            <span className="issues-evidence-label">{issue.verificationLevel}</span>
+                          )}
+                        </span>
+                      </span>
                     </div>
                     <div>
-                      <span className="tag">{issue.status}</span>
+                      <span className="issues-mobile-label">{T("Status", "状态")}</span>
+                      <span className="issues-cell-value">
+                        <span className="tag">{issue.status}</span>
+                      </span>
                     </div>
                     <div className="issues-row-actions">
                       {issue.status === "open" && (

@@ -321,6 +321,15 @@ select {
   width: 6px;
   height: 6px;
 }
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+}
 .sev-critical {
   color: var(--sev-critical);
 }
@@ -557,9 +566,10 @@ a.crumb-button:hover {
 }
 .side {
   position: sticky;
-  top: 0;
+  top: 54px;
   align-self: start;
-  max-height: 100vh;
+  max-height: calc(100vh - 54px);
+  max-height: calc(100dvh - 54px);
   overflow-y: auto;
   padding: 20px 12px;
   display: flex;
@@ -1191,11 +1201,20 @@ a.crumb-button:hover {
 /* === Display hardening utilities === */
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
 }
 
-body {
-  overflow-x: hidden;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 :where(.app, .with-side, .main, .card, .section, .modal, .modal-body) {
