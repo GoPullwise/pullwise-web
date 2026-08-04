@@ -601,8 +601,8 @@ describe("ReposScreen scan selection", () => {
 
     render(<ReposScreen go={go} setActiveRepo={setActiveRepo} />);
 
-    const alphaRow = screen.getByRole("button", { name: /select repository octocat\/alpha/i });
-    const betaRow = screen.getByRole("button", { name: /select repository octocat\/beta/i });
+    const alphaRow = screen.getByRole("checkbox", { name: /select repository octocat\/alpha/i });
+    const betaRow = screen.getByRole("checkbox", { name: /select repository octocat\/beta/i });
     alphaRow.focus();
     await user.keyboard("{Enter}");
     betaRow.focus();
@@ -846,11 +846,11 @@ describe("ReposScreen scan selection", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/1 scan left/i);
     expect(
-      screen.getByRole("button", { name: /select repository octocat\/alpha/i })
-    ).toHaveAttribute("aria-pressed", "true");
+      screen.getByRole("checkbox", { name: /select repository octocat\/alpha/i })
+    ).toBeChecked();
     expect(
-      screen.getByRole("button", { name: /select repository octocat\/beta/i })
-    ).toHaveAttribute("aria-pressed", "false");
+      screen.getByRole("checkbox", { name: /select repository octocat\/beta/i })
+    ).not.toBeChecked();
     expect(pullwiseApi.scans.preflight).not.toHaveBeenCalled();
   });
 

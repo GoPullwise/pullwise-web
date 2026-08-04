@@ -899,7 +899,7 @@ export function BillingScreen({
       />
       <div className="with-side">
         <Sidebar section="billing" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <div className="page-h">
             <div>
               <h1>{T("Billing", "Billing")}</h1>

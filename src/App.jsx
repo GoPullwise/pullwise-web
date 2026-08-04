@@ -308,6 +308,28 @@ export function App({ prototypeNav = false }) {
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const continuedRepositoryAuthorization = useRef(false);
   const languageMenuRef = useRef(null);
+  const screenRootRef = useRef(null);
+
+  useEffect(() => {
+    const focusScreen = () => {
+      const root = screenRootRef.current;
+      if (!root) return;
+      const heading = root.querySelector("h1, [role='heading']");
+      const target = heading || root;
+      target.focus({ preventScroll: true });
+    };
+    const frame =
+      typeof window.requestAnimationFrame === "function"
+        ? window.requestAnimationFrame(focusScreen)
+        : 0;
+    const timeout = window.setTimeout(focusScreen, 0);
+    return () => {
+      if (frame && typeof window.cancelAnimationFrame === "function") {
+        window.cancelAnimationFrame(frame);
+      }
+      window.clearTimeout(timeout);
+    };
+  }, [screen, routeIssueId, routeScanId]);
 
   const go = (nextScreen, params = {}) => {
     const path = pathFromScreen(nextScreen, params);
@@ -801,6 +823,8 @@ export function App({ prototypeNav = false }) {
       )}
 
       <div
+        ref={screenRootRef}
+        tabIndex={-1}
         data-screen-label={screen}
         key={
           PUBLIC_SCREENS.has(screen)

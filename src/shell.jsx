@@ -317,6 +317,7 @@ export function Sidebar({ section, go }) {
   ];
   return (
     <aside className="side">
+      <nav className="side-nav-landmark" aria-label={T("Navigation", "Navigation")}>
       <div className="side-group side-nav" aria-label={T("Navigation", "导航")}>
         <div className="side-h" style={{ marginTop: 6 }}>
           {T("Navigation", "导航")}
@@ -325,6 +326,7 @@ export function Sidebar({ section, go }) {
           <a
             key={item.k}
             className={"side-i" + (section === item.k ? " active" : "")}
+            aria-current={section === item.k ? "page" : undefined}
             {...screenLinkProps(go, item.k)}
           >
             <div className="ic">{item.icon}</div>
@@ -333,6 +335,7 @@ export function Sidebar({ section, go }) {
           </a>
         ))}
       </div>
+      </nav>
     </aside>
   );
 }

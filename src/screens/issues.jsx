@@ -464,7 +464,7 @@ function IssuesTableSkeleton() {
 
 function IssuesLoadError({ error, onRetry }) {
   return (
-    <div className="issues-load-error" role="alert">
+    <div className="issues-load-error" role="status" aria-live="polite">
       <I.X size={15} aria-hidden="true" />
       <span>{error || T("Unable to load issues.", "Unable to load issues.")}</span>
       <button type="button" className="btn sm" onClick={onRetry}>
@@ -727,7 +727,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
       />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <div className="page-h">
             <div>
               <h1>{T("Issues", "问题")}</h1>
@@ -776,6 +776,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
               <div className="repos-search" style={{ flex: 1 }}>
                 <I.Search size={14} />
                 <input
+                  type="search"
+                  aria-label={T("Search issues", "Search issues")}
                   placeholder={T("Search by title, repo, or file...", "按标题、仓库或文件搜索...")}
                   value={q}
                   onChange={(event) => setQ(event.target.value)}
@@ -786,6 +788,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                   <button
                     key={item}
                     className={"seg-i" + (status === item ? " active" : "")}
+                    aria-pressed={status === item}
                     onClick={() => setStatus(item)}
                   >
                     {item === "all" ? T("All", "全部") : item}
@@ -800,6 +803,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                   <button
                     key={item}
                     className={"pill-btn" + (sev === item ? " active" : "")}
+                    aria-pressed={sev === item}
                     onClick={() => setSev(item)}
                   >
                     {item === "all" ? (
@@ -837,8 +841,8 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
             )}
           </div>
 
-          <div className="issues-table card">
-            <div className="issues-thead">
+          <div className="issues-table card" role="table" aria-label={T("Issues", "Issues")}>
+            <div className="issues-thead" role="row">
               <div></div>
               <div>{T("Issue", "问题")}</div>
               <div>{T("File", "文件")}</div>
@@ -860,10 +864,11 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                 const updatingStatus =
                   Boolean(statusUpdating[rowKey]) || Boolean(bulkStatusLoading);
                 return (
-                  <div key={rowKey} className="issues-trow">
+                  <div key={rowKey} className="issues-trow" role="row">
                     <div></div>
                     <div
                       className="issues-title-c"
+                      role="cell"
                       role="button"
                       tabIndex={0}
                       aria-label={`Open issue ${issue.id}`}
@@ -880,7 +885,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                       <div className="issue-t">{issue.title}</div>
                       <div className="muted">{issue.repo}</div>
                     </div>
-                    <div className="issues-file">
+                    <div className="issues-file" role="cell">
                       <span className="issues-mobile-label">{T("File", "文件")}</span>
                       <span className="issues-cell-value">
                         {issue.file}
@@ -910,7 +915,7 @@ export function IssuesScreen({ go, setIssue, scanFilter = null, onClearScanFilte
                         <span className="tag">{issue.status}</span>
                       </span>
                     </div>
-                    <div className="issues-row-actions">
+                    <div className="issues-row-actions" role="cell">
                       {issue.status === "open" && (
                         <button
                           className="btn sm"
@@ -1064,7 +1069,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
         />
         <div className="with-side">
           <Sidebar section="issues" go={go} />
-          <div className="main wide">
+          <div className="main wide" role="main">
             <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
               <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
             </a>
@@ -1160,7 +1165,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
       />
       <div className="with-side">
         <Sidebar section="issues" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <a className="btn ghost sm issue-detail-back" {...screenLinkProps(go, "issues")}>
             <I.ArrowL size={13} /> {T("Back to list", "返回列表")}
           </a>
@@ -1490,22 +1495,13 @@ function ScanRow({
     if (blockingError) return;
     viewScan(scan);
   };
-  const handleRowKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleRowActivate();
-    }
-  };
   const stopRowClick = (event) => event.stopPropagation();
 
   return (
     <article
       className={`scan-row scan-row-${status}`}
-      role={blockingError ? undefined : "button"}
-      tabIndex={blockingError ? undefined : 0}
       aria-label={T(`View scan ${scan.repo || ""}`, `查看扫描 ${scan.repo || ""}`)}
       onClick={handleRowActivate}
-      onKeyDown={handleRowKeyDown}
     >
       <span className="scan-status-dot" aria-hidden="true" />
       <div className="scan-info">
@@ -1981,7 +1977,7 @@ export function HistoryScreen({
       />
       <div className="with-side">
         <Sidebar section="history" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <div className="page-h">
             <div>
               <h1 className="page-title-truncate">{T("Scan history", "扫描历史")}</h1>

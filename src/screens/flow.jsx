@@ -1476,12 +1476,6 @@ export function ReposScreen({
     loadRepoBranches(repo);
   };
 
-  const activateRepositorySelection = (event, repoId) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    toggle(repoId);
-  };
-
   const visibleRepoIds = useMemo(() => repos.map((repo) => repo.id), [repos]);
   const visibleSelectedCount = useMemo(
     () => visibleRepoIds.reduce((sum, id) => sum + (selected.includes(id) ? 1 : 0), 0),
@@ -1727,7 +1721,7 @@ export function ReposScreen({
       />
       <div className="with-side">
         <Sidebar section="repos" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <div className="page-h">
             <div>
               <h1>{T("Choose repositories to scan", "选择要扫描的仓库")}</h1>
@@ -2000,14 +1994,17 @@ export function ReposScreen({
                     <div
                       key={repo.id}
                       className={"repo-row" + (on ? " on" : "")}
-                      role="button"
-                      tabIndex={0}
-                      aria-pressed={on}
-                      aria-label={`Select repository ${repoLabel}`}
                       onClick={() => toggle(repo.id)}
-                      onKeyDown={(event) => activateRepositorySelection(event, repo.id)}
                     >
                       <div className="repo-check">
+                        <input
+                          className="repo-check-input"
+                          type="checkbox"
+                          checked={on}
+                          aria-label={`Select repository ${repoLabel}`}
+                          onClick={(event) => event.stopPropagation()}
+                          onChange={() => toggle(repo.id)}
+                        />
                         <span className="repo-check-box">{on && <I.Check size={11} />}</span>
                       </div>
                       <div className="repo-icon">

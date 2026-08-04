@@ -1202,6 +1202,20 @@ a.crumb-button:hover {
   }
 }
 
+@media (pointer: coarse) {
+  .btn.sm,
+  .btn.icon,
+  .side-i,
+  .repo-branch-trigger,
+  .seg-i {
+    min-height: 44px;
+  }
+
+  .btn.icon {
+    min-width: 44px;
+  }
+}
+
 /* === Display hardening utilities === */
 #root {
   min-height: 100vh;

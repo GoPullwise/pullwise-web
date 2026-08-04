@@ -980,7 +980,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       />
       <div className="with-side">
         <Sidebar section="apiKeys" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <div className="page-h">
             <div>
               <h1>{T("API Keys", "API 密钥")}</h1>
@@ -1041,7 +1041,7 @@ export function ApiKeysScreen({ go, setIssue = null }) {
             ) : (
               <div className="set-body">
                 {error && (
-                  <div className="api-keys-inline-error" role="alert">
+                  <div className="api-keys-inline-error" role="status" aria-live="polite">
                     <span>{error}</span>
                     <button type="button" className="btn sm" onClick={load}>
                       <I.Refresh size={12} /> {T("Retry", "Retry")}

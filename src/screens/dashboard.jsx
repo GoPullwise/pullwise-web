@@ -507,7 +507,7 @@ export function DashboardScreen({ go, setIssue }) {
       />
       <div className="with-side">
         <Sidebar section="dashboard" go={go} />
-        <div className="main wide">
+        <div className="main wide" role="main">
           <div className="page-h">
             <div>
               <h1>{T("Overview", "总览")}</h1>
