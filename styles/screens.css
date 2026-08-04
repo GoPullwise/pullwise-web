@@ -8,8 +8,8 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 20px 36px;
-  max-width: 1120px;
+  padding: 22px 40px;
+  max-width: 1240px;
   margin: 0 auto;
 }
 .lp-top > :first-child {
@@ -114,9 +114,9 @@
 }
 
 .lp-preview {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 24px 36px 64px;
+  padding: 18px 40px 72px;
 }
 .lp-preview-card {
   border: 1px solid var(--border);
@@ -251,9 +251,9 @@
 }
 
 .lp-cta-band {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 80px 36px;
+  padding: 72px 40px;
   text-align: center;
   border-top: 1px solid var(--border);
 }
@@ -265,9 +265,9 @@
 }
 
 .lp-foot {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 28px 36px;
+  padding: 28px 40px;
   display: flex;
   justify-content: space-between;
   border-top: 1px solid var(--border);
@@ -3804,9 +3804,9 @@
 
 /* ── Pricing ──────────────────────────────────────────────── */
 .pricing-hero {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 80px 36px 40px;
+  padding: 80px 40px 40px;
   text-align: center;
 }
 .pricing-hero .lp-hero-tag {
@@ -3849,9 +3849,9 @@
 }
 
 .pricing-tiers {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 24px 36px 60px;
+  padding: 24px 40px 60px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   grid-template-rows: auto auto 1fr auto;
@@ -4011,9 +4011,9 @@
 
 
 .pricing-faq {
-  max-width: 820px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 60px 36px;
+  padding: 60px 40px;
   border-top: 1px solid var(--border);
 }
 .pricing-faq h2 {
@@ -4027,12 +4027,12 @@
 
 /* ── Docs ─────────────────────────────────────────────────── */
 .docs-shell {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 176px minmax(0, 1fr);
   gap: 32px 24px;
-  padding: 32px 36px 60px;
+  padding: 32px 40px 60px;
   align-items: start;
 }
 @media (max-width: 820px) {
@@ -5106,9 +5106,9 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 40px 36px 64px;
+  padding: 40px 40px 64px;
 }
 @media (min-width: 900px) {
   .legal-shell {
@@ -5242,9 +5242,9 @@
 
 /* ── Status ────────────────────────────────────────────────── */
 .status-hero {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 56px 36px 24px;
+  padding: 56px 40px 24px;
   text-align: center;
 }
 .status-overall {
@@ -5288,9 +5288,9 @@
   margin: 0 0 18px;
 }
 .status-section {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 12px 36px 36px;
+  padding: 12px 40px 36px;
 }
 .status-card {
   padding: 8px;
