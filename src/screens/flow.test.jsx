@@ -458,7 +458,7 @@ describe("ReposScreen scan selection", () => {
 
     await user.keyboard("{ArrowDown}");
     expect(trigger.getAttribute("aria-activedescendant")).toContain("option-1");
-    await user.keyboard("{Enter}");
+    await user.keyboard(" ");
 
     expect(trigger).toHaveTextContent("develop");
   });

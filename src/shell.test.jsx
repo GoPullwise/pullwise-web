@@ -54,7 +54,7 @@ describe("Topbar navigation", () => {
 
     const dialog = screen.getByRole("dialog", { name: /^search$/i });
     expect(dialog).toHaveAttribute("aria-modal", "true");
-    expect(screen.getByRole("textbox", { name: /^search$/i })).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: /^search$/i })).toBeInTheDocument();
   });
 
   it("sends the typed global search query to the server-backed hooks", async () => {
@@ -63,7 +63,7 @@ describe("Topbar navigation", () => {
     render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
 
     await user.click(screen.getByRole("button", { name: /^search$/i }));
-    await user.type(screen.getByRole("textbox", { name: /^search$/i }), "needle");
+    await user.type(screen.getByRole("searchbox", { name: /^search$/i }), "needle");
 
     await waitFor(() => {
       expect(useIssues).toHaveBeenLastCalledWith({ q: "needle", limit: 5, refreshOnChange: false });
@@ -77,7 +77,7 @@ describe("Topbar navigation", () => {
       render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
 
       fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
-      fireEvent.change(screen.getByRole("textbox", { name: /^search$/i }), {
+      fireEvent.change(screen.getByRole("searchbox", { name: /^search$/i }), {
         target: { value: "needle" },
       });
 
@@ -135,7 +135,7 @@ describe("Topbar navigation", () => {
     render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} setIssue={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: /^search$/i }));
-    await user.type(screen.getByRole("textbox", { name: /^search$/i }), "oauth-token-rotation");
+    await user.type(screen.getByRole("searchbox", { name: /^search$/i }), "oauth-token-rotation");
 
     expect(await screen.findByText("Authentication boundary")).toBeInTheDocument();
     expect(await screen.findByText("acme/api")).toBeInTheDocument();
