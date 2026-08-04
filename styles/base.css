@@ -987,7 +987,7 @@ a.crumb-button:hover {
 .gh-installs-h, .gh-install-icon, .gh-install-meta, .gh-install-status,
 /* Scanning */
 .scanning-h, .scanning-icon,
-.scanning-bar-meta, .scanning-phases, .scanning-phase-bullet,
+.scanning-phases, .scanning-phase-bullet,
 .scanning-counts-h, .scanning-counts-grid span,
 /* Dashboard */
 .kpi-h, .kpi-l, .kpi-d, .kpi-foot,
@@ -1001,7 +1001,6 @@ a.crumb-button:hover {
 .filters, .filter-l, .filter-pills, .pill-btn,
 .issues-thead, .issues-check, .conf-bar,
 /* Issue detail */
-.tabs, .tab,
 .section-h, .step-n,
 .diff-tag, .diff-col-h,
 /* Modal / PR form */

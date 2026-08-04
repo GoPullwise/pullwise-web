@@ -2912,14 +2912,6 @@ body.has-proto-nav {
     padding: 16px 20px;
   }
 
-  .lp-top > :first-child {
-    justify-self: start;
-  }
-
-  .lp-top > :last-child {
-    justify-self: end;
-  }
-
   .lp-top > div:last-child {
     justify-content: flex-end;
     flex-wrap: nowrap;

@@ -96,6 +96,26 @@ describe("NotificationProvider", () => {
     expect(baseStyles).toMatch(/--z-modal:\s*100;/);
   });
 
+  it("keeps high-priority visual tokens and modal ownership canonical", () => {
+    const baseStyles = readFileSync("styles/base.css", "utf8");
+    const modalStyles = readFileSync("styles/screens.css", "utf8");
+    const appStyles = readFileSync("src/app.css", "utf8");
+    const pageStyles = modalStyles + "\n" + appStyles;
+    const modalWidthRules =
+      modalStyles.match(/\.modal\s*\{[^}]*max-width:[^;}]+;/gs) || [];
+
+    expect(baseStyles.match(/(?:^|\n):root\s*\{/g)).toHaveLength(1);
+    expect(appStyles).not.toMatch(/(?:^|\n):root\s*\{/);
+    expect(modalWidthRules).toHaveLength(1);
+    expect(modalWidthRules[0]).toMatch(
+      /max-width:\s*min\(560px,\s*calc\(100vw - 24px\)\);/
+    );
+    expect(pageStyles).not.toMatch(/var\(--[a-z0-9-]+\s*,/i);
+    expect(pageStyles).not.toMatch(
+      /#(?:16a34a|b91c1c|dc2626|15803d|4ade80|f59e0b|b45309)\b/i
+    );
+  });
+
   it("stacks multiple notifications and dismisses one manually", async () => {
     const user = userEvent.setup();
     render(

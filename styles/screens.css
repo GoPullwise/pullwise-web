@@ -4508,8 +4508,7 @@
   }
 
   .search-i-t,
-  .search-i-tt,
-  .search-i-s {
+  .search-i-tt {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -4534,10 +4533,6 @@
     align-items: stretch;
     gap: 8px;
     margin-left: 0;
-  }
-
-  .scanning-actions-sep {
-    display: none;
   }
 
   .scanning-actions .btn {
@@ -5148,8 +5143,7 @@
 }
 
 @media (max-width: 760px) {
-  .repo-row,
-  .gh-install-row {
+  .repo-row {
     grid-template-columns: 24px minmax(0, 1fr);
   }
 
@@ -5162,10 +5156,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .issues-table {
-    overflow: visible;
-  }
-
   .issues-thead,
   .issues-trow {
     min-width: 0;
@@ -5174,10 +5164,6 @@
 
   .issues-trow > div:nth-child(7) {
     justify-content: flex-start;
-  }
-
-  .issues-trow > div:nth-child(7) .btn {
-    flex: 1 1 120px;
   }
 
   
