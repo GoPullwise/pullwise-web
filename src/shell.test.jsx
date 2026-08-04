@@ -59,21 +59,28 @@ describe("Topbar navigation", () => {
 
   it("keeps a result-heavy search dialog inside the remaining viewport", () => {
     const styles = readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
+    const modalSearchStyles = styles.match(
+      /\.modal-search\s*\{(?<body>[^}]*)\}/s,
+    )?.groups?.body;
+    const searchBodyStyles = styles.match(
+      /\.search-body\s*\{(?<body>[^}]*)\}/s,
+    )?.groups?.body;
+    const modalSearchBodyStyles = styles.match(
+      /\.modal-search \.search-body\s*\{(?<body>[^}]*)\}/s,
+    )?.groups?.body;
 
-    expect(styles).toContain("--search-modal-top-offset: 12vh;");
-    expect(styles).toContain("margin-top: var(--search-modal-top-offset);");
-    expect(styles).toContain(
+    expect(modalSearchStyles).toContain("--search-modal-top-offset: 12vh;");
+    expect(modalSearchStyles).toContain("margin-top: var(--search-modal-top-offset);");
+    expect(modalSearchStyles).toContain(
       "max-height: calc(100vh - 40px - var(--search-modal-top-offset));",
     );
-    expect(styles).toContain(
+    expect(modalSearchStyles).toContain(
       "max-height: calc(100dvh - 40px - var(--search-modal-top-offset));",
     );
-    expect(styles).toMatch(
-      /\.search-body\s*\{[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/s,
-    );
-    expect(styles).toMatch(
-      /\.modal-search \.search-body\s*\{[^}]*max-height:\s*none;[^}]*flex:\s*1 1 auto;/s,
-    );
+    expect(searchBodyStyles).toContain("min-height: 0;");
+    expect(searchBodyStyles).toContain("overflow-y: auto;");
+    expect(modalSearchBodyStyles).toContain("max-height: none;");
+    expect(modalSearchBodyStyles).toContain("flex: 1 1 auto;");
   });
 
   it("sends the typed global search query to the server-backed hooks", async () => {

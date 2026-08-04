@@ -312,6 +312,7 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 ## Frontend Audit Remediation
 
 - Global search uses the server-backed issue/repository hooks with a 300ms debounce; keep native searchbox semantics and authoritative result rendering.
+- Global search keeps a 12vh top offset. Subtract that same offset from both vh and dvh max-height calculations, and keep .search-body as the flex scroll region so result-heavy dialogs retain a visible header and footer.
 - Search, quota, and billing-change dialogs must trap focus, close on Escape, restore opener focus, and inert the background while open.
 - Repository selection is controlled by native checkboxes; Space and Enter must update selection, while branch selection keeps listbox keyboard semantics.
 - Mobile Issues labels are real DOM content rather than CSS-generated text. Scan-flow panning must allow ordinary page scrolling and reserve wheel prevention for modifier-key zoom.
