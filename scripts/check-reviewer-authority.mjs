@@ -9,6 +9,8 @@ import { TextDecoder } from "node:util";
 const REPOSITORY = "web";
 const START_MARKER = "<!-- PULLWISE_REVIEWER_CURRENT_AUTHORITY_START -->";
 const END_MARKER = "<!-- PULLWISE_REVIEWER_CURRENT_AUTHORITY_END -->";
+const TARGET_START_MARKER = "<!-- PULLWISE_REVIEWER_TARGET_START -->";
+const TARGET_END_MARKER = "<!-- PULLWISE_REVIEWER_TARGET_END -->";
 const REQUIRED_URLS = [
   "https://app.notion.com/p/3b4e5c88f85f8128bd39dac3a7679c4a",
   "https://app.notion.com/p/3b4e5c88f85f818e933ecf3864c97469",
@@ -20,7 +22,18 @@ const REQUIRED_URLS = [
   "https://app.notion.com/p/3b8e5c88f85f814d8296c6c60541946d",
   "https://app.notion.com/p/3b4e5c88f85f8192a488f6db72fa116b",
 ];
-const CURRENT_ROUTING_SHA256 = "9928a40c0cd22d15e3d8c9278b2ef15bcc83de6a015f55a68452c76f8a82e5c4";
+const CURRENT_ROUTING_SHA256 = "24435fb38cf3b04c77243fb20df00fc3ceb928ebe560e4b8682c8e3c8f36deeb";
+const TARGET_BLOCK_SHA256 = "c61800c199d637568022d730f0758c7c523f44009a1aed66be20ea5034ef5eaa";
+
+function occurrences(text, needle) {
+  let count = 0;
+  let offset = 0;
+  while ((offset = text.indexOf(needle, offset)) >= 0) {
+    count += 1;
+    offset += needle.length;
+  }
+  return count;
+}
 
 function report(status, errors, sha256 = null) {
   return {
@@ -64,13 +77,36 @@ function validate() {
   if (end < 0) {
     errors.push("unterminated_current_authority_block");
   } else {
-    const block = normalized.slice(0, end + END_MARKER.length);
-    for (const url of REQUIRED_URLS) {
-      if (!block.includes(url)) errors.push("required_reference_missing");
-    }
-    const blockSha256 = crypto.createHash("sha256").update(block, "utf8").digest("hex");
-    if (blockSha256 !== CURRENT_ROUTING_SHA256) {
-      errors.push("contradictory_block");
+    const stop = end + END_MARKER.length;
+    if (normalized[stop] !== "\n") {
+      errors.push("current_authority_block_missing_trailing_lf");
+    } else {
+      const block = normalized.slice(0, stop + 1);
+      for (const url of REQUIRED_URLS) {
+        if (!block.includes(url)) errors.push("required_reference_missing");
+      }
+      const blockSha256 = crypto.createHash("sha256").update(block, "utf8").digest("hex");
+      if (blockSha256 !== CURRENT_ROUTING_SHA256) {
+        errors.push("contradictory_block");
+      }
+      if (
+        occurrences(normalized, TARGET_START_MARKER) !== 1 ||
+        occurrences(normalized, TARGET_END_MARKER) !== 1
+      ) {
+        errors.push("target_block_count_mismatch");
+      } else {
+        const targetStart = normalized.indexOf(TARGET_START_MARKER);
+        const targetEnd = normalized.indexOf(TARGET_END_MARKER, targetStart);
+        const targetStop = targetEnd + TARGET_END_MARKER.length;
+        if (targetStart !== stop + 1) errors.push("target_block_not_immediately_after_authority");
+        if (normalized[targetStop] !== "\n") {
+          errors.push("target_block_missing_trailing_lf");
+        } else {
+          const targetBlock = normalized.slice(targetStart, targetStop + 1);
+          const targetSha256 = crypto.createHash("sha256").update(targetBlock, "utf8").digest("hex");
+          if (targetSha256 !== TARGET_BLOCK_SHA256) errors.push("target_block_mismatch");
+        }
+      }
     }
   }
   return report(
