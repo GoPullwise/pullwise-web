@@ -7,6 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
@@ -177,6 +178,32 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
+  });
+
+  it("restarts initial session recovery after StrictMode aborts the first request", async () => {
+    let calls = 0;
+    pullwiseApi.auth.getSession.mockImplementation(({ signal } = {}) => {
+      calls += 1;
+      if (calls > 1) return Promise.resolve({ authenticated: false });
+      return new Promise((_resolve, reject) => {
+        signal.addEventListener(
+          "abort",
+          () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+          { once: true }
+        );
+      });
+    });
+
+    render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+
+    await waitFor(() => expect(calls).toBeGreaterThanOrEqual(3), { timeout: 4000 });
+    await waitFor(() => {
+      expect(screen.getAllByText("Sign in with GitHub").length).toBeGreaterThan(0);
+    });
   });
 
   it("localizes the browser tab title when the language changes", async () => {

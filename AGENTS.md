@@ -52,6 +52,17 @@ must not govern target implementation.
   assignments, or infer model availability in Web. Server output is
   authoritative.
 
+## Four-project local debug behavior
+
+- The production entry renders `App` inside React `StrictMode`. Initial session
+  cleanup must abort and synchronously release only its own in-flight session
+  guard so the remount can start a replacement request; stale request cleanup
+  must never clear a newer request's guard.
+- `safeGitHubAuthorizeUrl` may accept the exact `/auth/github/callback` or
+  `/api/auth/github/callback` path only when both the callback host and trusted
+  configured/current API origin are loopback. Never extend that local-mock
+  exception to non-loopback first-party origins or arbitrary paths.
+
 # Pullwise Web Agent Notes
 
 ## Worker Deployment Assumptions

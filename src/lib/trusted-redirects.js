@@ -4,6 +4,10 @@ const TRUSTED_GITHUB_HOST = "github.com";
 const TRUSTED_GITHUB_OAUTH_AUTHORIZE_PATH = "/login/oauth/authorize";
 const TRUSTED_GITHUB_API_ORIGINS = new Set(["https://api.pull-wise.com"]);
 const GITHUB_AUTH_PATHS = new Set(["/auth/github/authorize", "/api/auth/github/authorize"]);
+const LOCAL_GITHUB_CALLBACK_PATHS = new Set([
+  "/auth/github/callback",
+  "/api/auth/github/callback",
+]);
 const GITHUB_INTEGRATION_PATH_PREFIXES = ["/integrations/github/", "/api/integrations/github/"];
 
 const TRUSTED_BILLING_PROVIDER_HOSTS = new Set(["checkout.creem.io", "creem.io", "www.creem.io"]);
@@ -38,6 +42,25 @@ function hasGitHubIntegrationPath(parsed) {
 
 function hasGitHubAuthPath(parsed) {
   return GITHUB_AUTH_PATHS.has(parsed.pathname);
+}
+
+function isLoopbackHostname(hostname) {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (normalized === "localhost" || normalized === "::1") return true;
+  const parts = normalized.split(".");
+  return (
+    parts.length === 4 &&
+    parts[0] === "127" &&
+    parts.every((part) => /^\d+$/.test(part) && Number(part) >= 0 && Number(part) <= 255)
+  );
+}
+
+function isTrustedLocalGitHubCallback(parsed) {
+  return (
+    LOCAL_GITHUB_CALLBACK_PATHS.has(parsed.pathname) &&
+    isLoopbackHostname(parsed.hostname) &&
+    trustedGitHubApiOrigins().has(parsed.origin)
+  );
 }
 
 function isSameOrigin(parsed) {
@@ -78,6 +101,7 @@ export function safeGitHubAuthorizeUrl(value, label) {
     return url;
   }
   if (hasGitHubAuthPath(parsed) && trustedGitHubApiOrigins().has(parsed.origin)) return url;
+  if (isTrustedLocalGitHubCallback(parsed)) return url;
 
   throw new Error(`A safe ${label} is required.`);
 }

@@ -555,7 +555,10 @@ export function App({ prototypeNav = false }) {
         });
         return { authenticated: false, error };
       } finally {
-        sessionCheckingRef.current = false;
+        if (sessionAbortRef.current === controller) {
+          sessionAbortRef.current = null;
+          sessionCheckingRef.current = false;
+        }
       }
     },
     [clearSessionConfirmTimer, setAuthState]
@@ -586,7 +589,12 @@ export function App({ prototypeNav = false }) {
     );
     return () => {
       disposed = true;
-      if (sessionAbortRef.current) sessionAbortRef.current.abort();
+      const controller = sessionAbortRef.current;
+      if (controller) controller.abort();
+      if (sessionAbortRef.current === controller) {
+        sessionAbortRef.current = null;
+        sessionCheckingRef.current = false;
+      }
       clearSessionConfirmTimer();
     };
   }, [checkSession, clearSessionConfirmTimer]);

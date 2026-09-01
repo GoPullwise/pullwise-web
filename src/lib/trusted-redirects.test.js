@@ -18,6 +18,21 @@ describe("trusted GitHub authorize redirects", () => {
     expect(safeGitHubAuthorizeUrl(url, "GitHub authorize URL")).toBe(url);
   });
 
+  it("accepts loopback local-mock GitHub callback endpoints", () => {
+    const url = `${window.location.origin}/auth/github/callback?redirectTo=%2Fdashboard`;
+
+    expect(safeGitHubAuthorizeUrl(url, "GitHub authorize URL")).toBe(url);
+  });
+
+  it("rejects non-loopback first-party GitHub callback endpoints", () => {
+    expect(() =>
+      safeGitHubAuthorizeUrl(
+        "https://api.pull-wise.com/auth/github/callback?redirectTo=%2Fdashboard",
+        "GitHub authorize URL"
+      )
+    ).toThrow(/safe GitHub authorize URL/i);
+  });
+
   it("accepts same-origin GitHub installation endpoints", () => {
     const url = `${window.location.origin}/api/integrations/github/install/start?state=abc`;
 
