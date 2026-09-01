@@ -596,6 +596,12 @@ export function StatusScreen({ go, auth }) {
 
   const scanSystem = systemStatus || health?.scanSystem || null;
   const scanStatus = scanSystem?.scanSystemStatus || "down";
+  const availableReviewModels = Array.isArray(scanSystem?.availableReviewModels)
+    ? scanSystem.availableReviewModels.filter((item) => item?.provider && item?.model)
+    : [];
+  const reviewRuntimeDetail = availableReviewModels.length
+    ? availableReviewModels.map((item) => `${item.provider} / ${item.model}`).join(" · ")
+    : T("No online Worker runtime catalog.", "暂无在线 Worker 运行时目录。");
   const scanSystemDetail = scanSystem
     ? T(
         `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.busyWorkerCount ?? 0} busy / ${scanSystem.idleWorkerCount ?? 0} idle workers`,
@@ -650,6 +656,12 @@ export function StatusScreen({ go, auth }) {
             title={T("Scan system", "扫描系统")}
             status={scanStatus === "ok" ? "operational" : scanStatus === "degraded" ? "degraded" : "incident"}
             detail={scanSystemDetail}
+          />
+          <StatusRow
+            icon={<I.Terminal size={14} />}
+            title={T("Review runtimes", "审查运行时")}
+            status={availableReviewModels.length ? "operational" : "degraded"}
+            detail={reviewRuntimeDetail}
           />
         </div>
 

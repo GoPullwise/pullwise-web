@@ -44,6 +44,14 @@ generated-consumer rule in this file is historical cleanup evidence only and
 must not govern target implementation.
 <!-- PULLWISE_REVIEWER_TARGET_END -->
 
+## Public Pi runtime availability
+
+- Public status consumes Server `availableReviewModels` and displays the
+  de-identified union of online Worker provider/model pairs.
+- Never expose credential ids, account labels, API keys, tokens, per-Worker
+  assignments, or infer model availability in Web. Server output is
+  authoritative.
+
 # Pullwise Web Agent Notes
 
 ## Worker Deployment Assumptions

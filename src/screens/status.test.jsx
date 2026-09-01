@@ -58,6 +58,33 @@ describe("StatusScreen", () => {
     expect(screen.queryByText(/Brief web app outage/i)).not.toBeInTheDocument();
   });
 
+  it("shows the de-identified union of Worker provider and model support", async () => {
+    pullwiseApi.system.health.mockResolvedValue({
+      ok: true,
+      service: "pullwise-server",
+      mode: "production",
+      database: { type: "sqlite" },
+    });
+    pullwiseApi.system.status.mockResolvedValue({
+      scanSystemStatus: "ok",
+      queuedJobs: 0,
+      runningJobs: 0,
+      busyWorkerCount: 0,
+      idleWorkerCount: 2,
+      availableReviewModels: [
+        { provider: "anthropic", model: "claude-sonnet-4-5" },
+        { provider: "openai", model: "gpt-5.1" },
+      ],
+    });
+
+    render(<StatusScreen go={vi.fn()} />);
+
+    expect(await screen.findByText("Review runtimes")).toBeInTheDocument();
+    expect(screen.getByText(/anthropic \/ claude-sonnet-4-5/i)).toBeInTheDocument();
+    expect(screen.getByText(/openai \/ gpt-5.1/i)).toBeInTheDocument();
+    expect(screen.queryByText(/credential/i)).not.toBeInTheDocument();
+  });
+
   it("renders backend readiness details when health includes them", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
