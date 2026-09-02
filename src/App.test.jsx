@@ -156,11 +156,9 @@ describe("App", () => {
         {
           plan: "free",
           agentConfig: {
-            provider: "codex",
-            codex: {
-              model: "app-route-model-free",
-              reasoningEffort: "app-route-effort-free",
-            },
+            provider: "openai",
+            model: "app-route-model-free",
+            thinkingLevel: "low",
           },
         },
       ],
@@ -685,7 +683,7 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="docs"]')).toBeInTheDocument();
     });
     expect(await screen.findByRole("heading", { name: /pullwise docs/i })).toBeInTheDocument();
-    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(await screen.findByText("openai")).toBeInTheDocument();
     expect(screen.getByText("app-route-model-free")).toBeInTheDocument();
   });
 

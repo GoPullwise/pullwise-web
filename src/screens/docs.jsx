@@ -71,13 +71,13 @@ const FALLBACK_SERVER_CONFIG_GROUPS = [
         path: `plans.${plan}.maxRepoFiles`,
         candidates: [`plans.${plan}.maxRepoFiles`],
         label: `${PLAN_LABELS[plan]} repository file limit`,
-        description: `Repository checkouts above this file count stop before Codex review for ${PLAN_LABELS[plan]} users.`,
+        description: `Repository checkouts above this file count stop before review for ${PLAN_LABELS[plan]} users.`,
       },
       {
         path: `plans.${plan}.maxRepoBytes`,
         candidates: [`plans.${plan}.maxRepoBytes`],
         label: `${PLAN_LABELS[plan]} repository byte limit`,
-        description: `Repository checkouts above this size stop before Codex review for ${PLAN_LABELS[plan]} users.`,
+        description: `Repository checkouts above this size stop before review for ${PLAN_LABELS[plan]} users.`,
       },
     ]),
   },
@@ -205,17 +205,15 @@ function normalizePlanConfig(record = {}) {
   if (!rawPlan) return null;
   const plan = rawPlan.toLowerCase();
   const provider = textValue(agentConfig.provider).toLowerCase();
-  const providerConfig = objectRecord(agentConfig[provider]) ? agentConfig[provider] : {};
-  const agentCli = provider === "codex" ? provider : "";
 
   return {
     plan,
     label: PLAN_LABELS[plan] || titleCase(rawPlan),
     reviewLimit: valueFromPlanRecord(record, "reviewLimit", "userReviewLimit"),
     repositoryLimits: normalizeRepositoryLimits(record.repositoryLimits) || normalizeRepositoryLimits(record),
-    agentCli,
-    model: textValue(providerConfig.model),
-    reasoningEffort: textValue(providerConfig.reasoningEffort),
+    provider,
+    model: textValue(agentConfig.model),
+    thinkingLevel: textValue(agentConfig.thinkingLevel),
   };
 }
 
@@ -281,11 +279,11 @@ function mergePlanConfig(base, override) {
     label: base.label || override.label || PLAN_LABELS[plan] || titleCase(plan),
     reviewLimit: hasConfigValue(override.reviewLimit) ? override.reviewLimit : base.reviewLimit,
     repositoryLimits: mergeRepositoryLimits(base.repositoryLimits, override.repositoryLimits),
-    agentCli: hasConfigValue(base.agentCli) ? base.agentCli : override.agentCli,
+    provider: hasConfigValue(base.provider) ? base.provider : override.provider,
     model: hasConfigValue(base.model) ? base.model : override.model,
-    reasoningEffort: hasConfigValue(base.reasoningEffort)
-      ? base.reasoningEffort
-      : override.reasoningEffort,
+    thinkingLevel: hasConfigValue(base.thinkingLevel)
+      ? base.thinkingLevel
+      : override.thinkingLevel,
   };
 }
 
@@ -830,8 +828,8 @@ export function DocsScreen({ go, auth }) {
               <b>{T("Server-sourced configuration", "Server-sourced configuration")}</b>
               <p>
                 {T(
-                  "Agent provider, model, reasoning effort, plan quotas, scan limits, public REST API rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
-                  "Agent provider, model, reasoning effort, plan quotas, scan limits, public REST API rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
+                  "Agent provider, model, thinking level, plan quotas, scan limits, public REST API rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered.",
+                  "Agent provider, model, thinking level, plan quotas, scan limits, public REST API rate limits, and billing catalog status come from public docs endpoints. Secrets, host paths, and worker-private settings are not rendered."
                 )}
               </p>
             </div>
@@ -886,15 +884,15 @@ export function DocsScreen({ go, auth }) {
                   </div>
                   <div className="docs-plan-kv">
                     <b>{T("Agent provider", "Agent provider")}</b>
-                    <ConfigValue value={plan.agentCli} />
+                    <ConfigValue value={plan.provider} />
                   </div>
                   <div className="docs-plan-kv">
                     <b>{T("Model", "Model")}</b>
                     <ConfigValue value={plan.model} />
                   </div>
                   <div className="docs-plan-kv">
-                    <b>{T("Reasoning effort", "Reasoning effort")}</b>
-                    <ConfigValue value={plan.reasoningEffort} />
+                    <b>{T("Thinking level", "Thinking level")}</b>
+                    <ConfigValue value={plan.thinkingLevel} />
                   </div>
                   <div className="docs-plan-kv">
                     <b>{T("Monthly account scans", "Monthly account scans")}</b>

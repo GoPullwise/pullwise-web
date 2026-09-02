@@ -227,13 +227,9 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
           agentConfig: {
             plan: "pro",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "model-from-api-pro",
-              reasoningEffort: "effort-from-api-pro",
-            },
+            provider: "deepseek",
+            model: "model-from-api-pro",
+            thinkingLevel: "medium",
           },
         },
         {
@@ -243,13 +239,9 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "model-from-api-free",
-              reasoningEffort: "effort-from-api-free",
-            },
+            provider: "minimax",
+            model: "model-from-api-free",
+            thinkingLevel: "low",
           },
         },
         {
@@ -259,13 +251,9 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
           agentConfig: {
             plan: "max",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "model-from-api-max",
-              reasoningEffort: "effort-from-api-max",
-            },
+            provider: "openai",
+            model: "model-from-api-max",
+            thinkingLevel: "high",
           },
         },
       ],
@@ -273,9 +261,9 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect((await screen.findAllByText("codex")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("deepseek")).length).toBeGreaterThan(0);
     expect(screen.getByText("model-from-api-pro")).toBeInTheDocument();
-    expect(screen.getByText("effort-from-api-max")).toBeInTheDocument();
+    expect(screen.getByText("high")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
     expect(screen.getByText(/1,000 files \/ 20,971,520 bytes \(20 MiB\)/)).toBeInTheDocument();
     expect(screen.getByText(/2,000 files \/ 52,428,800 bytes \(50 MiB\)/)).toBeInTheDocument();
@@ -295,13 +283,9 @@ describe("API screens", () => {
         max: {
           agentConfig: {
             plan: "max",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "map-model-max",
-              reasoningEffort: "map-effort-max",
-            },
+            provider: "openai",
+            model: "map-model-max",
+            thinkingLevel: "high",
           },
         },
       },
@@ -309,9 +293,9 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(await screen.findByText("openai")).toBeInTheDocument();
     expect(screen.getByText("map-model-max")).toBeInTheDocument();
-    expect(screen.getByText("map-effort-max")).toBeInTheDocument();
+    expect(screen.getByText("high")).toBeInTheDocument();
   });
 
   it("moves plan fields from server config into the Docs plan cards", async () => {
@@ -322,13 +306,9 @@ describe("API screens", () => {
           name: "Free",
           agentConfig: {
             plan: "free",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "plan-card-model",
-              reasoningEffort: "medium",
-            },
+            provider: "minimax",
+            model: "plan-card-model",
+            thinkingLevel: "low",
           },
         },
       ],
@@ -401,7 +381,9 @@ describe("API screens", () => {
           provider: "unsupported-record-provider",
           agentConfig: {
             plan: "free",
-            provider: "codex",
+            provider: "openai",
+            model: "canonical-docs-model",
+            thinkingLevel: "medium",
             cli: "unsupported-config-cli",
             agent: {
               cli: "unsupported-agent-cli",
@@ -411,8 +393,8 @@ describe("API screens", () => {
             codex: {
               cli: "codex",
               command: "codex",
-              model: "canonical-docs-model",
-              reasoningEffort: "medium",
+              model: "unsupported-codex-model",
+              reasoningEffort: "unsupported-codex-effort",
             },
           },
         },
@@ -421,7 +403,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(await screen.findByText("openai")).toBeInTheDocument();
     expect(screen.getByText("canonical-docs-model")).toBeInTheDocument();
     expect(screen.queryByText("unsupported-agent-cli")).not.toBeInTheDocument();
     expect(screen.queryByText("unsupported-agent-model")).not.toBeInTheDocument();
@@ -439,13 +421,9 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
           agentConfig: {
             plan: "free",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "docs-model-free",
-              reasoningEffort: "medium",
-            },
+            provider: "openai",
+            model: "docs-model-free",
+            thinkingLevel: "medium",
           },
         },
       ],
@@ -546,7 +524,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(await screen.findByText("openai")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 1,048,576 bytes \(1.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
@@ -574,13 +552,9 @@ describe("API screens", () => {
           repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
           agentConfig: {
             plan: "free",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "settings-model-free",
-              reasoningEffort: "medium",
-            },
+            provider: "openai",
+            model: "settings-model-free",
+            thinkingLevel: "medium",
           },
         },
       ],
@@ -602,7 +576,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(await screen.findByText("openai")).toBeInTheDocument();
     expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
     expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
     expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
@@ -621,13 +595,9 @@ describe("API screens", () => {
           id: "free",
           agentConfig: {
             plan: "free",
-            provider: "codex",
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "endpoint-missing-model",
-              reasoningEffort: "medium",
-            },
+            provider: "openai",
+            model: "endpoint-missing-model",
+            thinkingLevel: "medium",
           },
         },
       ],
@@ -638,7 +608,7 @@ describe("API screens", () => {
 
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
-    expect(await screen.findByText("codex")).toBeInTheDocument();
+    expect(await screen.findByText("openai")).toBeInTheDocument();
     expect(
       screen.getByText("Server configuration docs are not available from this backend yet.")
     ).toBeInTheDocument();
