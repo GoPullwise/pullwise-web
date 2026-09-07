@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: "22.23.1"
           cache: npm
-      - name: Check current Reviewer authority and Node.js/Pi target
+      - name: Check current Node.js/Pi Reviewer target
         run: node scripts/check-reviewer-authority.mjs
       - name: Install dependencies
         run: npm ci

@@ -247,8 +247,8 @@ export function LandingScreen({ go, auth }) {
               i: <I.Terminal />,
               h: T("Run in isolated workers", "在隔离 Worker 中运行"),
               p: T(
-                "Keep each review workspace, Codex state, artifacts, and logs isolated so one run cannot leak into another.",
-                "隔离每次审查的工作区、Codex 状态、产物与日志，避免不同运行之间相互污染。"
+                "Keep each review workspace, agent state, artifacts, and logs isolated so one run cannot leak into another.",
+                "隔离每次审查的工作区、智能体状态、产物与日志，避免不同运行之间相互污染。"
               ),
             },
             {

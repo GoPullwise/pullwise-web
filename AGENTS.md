@@ -34,8 +34,17 @@ must not govern target implementation.
 - Never expose credential ids, account labels, API keys, tokens, per-Worker
   assignments, or infer model availability in Web. Server output is
   authoritative.
+- Keep review eligibility and architecture copy provider-neutral; concrete
+  provider/model names belong to Server-reported runtime choices. Keep locale
+  keys synchronized when updating the English source text. Use UTF-8-safe edits
+  for localization: Windows PowerShell's default native stdin encoding can
+  replace accented and CJK text with question marks.
 
 ## Four-project local debug behavior
+
+- `scripts/check-reviewer-authority.mjs` checks the leading current Node/Pi
+  target block only. Do not restore an external-authority prefix or mandatory
+  Notion references; `src/test/reviewer-ci-target.test.js` covers the CI gate.
 
 - The production entry renders `App` inside React `StrictMode`. Initial session
   cleanup must abort and synchronously release only its own in-flight session
