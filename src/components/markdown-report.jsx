@@ -21,6 +21,7 @@ export function MarkdownReport({ markdown, className = "scan-human-report-markdo
   let list = [];
   let code = [];
   let inCode = false;
+  let codeFence = "";
 
   const flushParagraph = () => {
     if (!paragraph.length) return;
@@ -53,7 +54,8 @@ export function MarkdownReport({ markdown, className = "scan-human-report-markdo
   };
 
   lines.forEach((line) => {
-    if (line.trim().startsWith("```")) {
+    const fence = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    if (fence && (!inCode || (fence[1][0] === codeFence[0] && fence[1].length >= codeFence.length && !fence[2].trim()))) {
       if (inCode) {
         flushCode();
         inCode = false;
@@ -61,6 +63,7 @@ export function MarkdownReport({ markdown, className = "scan-human-report-markdo
         flushParagraph();
         flushList();
         inCode = true;
+        codeFence = fence[1];
       }
       return;
     }

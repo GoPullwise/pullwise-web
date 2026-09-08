@@ -943,7 +943,7 @@ function normalizeEvidence(evidence) {
       if (!objectRecord(item)) return null;
       const type = textValue(item.type) || "code";
       const label = textValue(item.label) || type.replaceAll("_", " ");
-      const summary = textValue(item.summary);
+      const summary = typeof item.summary === "string" ? item.summary.replace(/\r\n?/g, "\n") : "";
       const file = textValue(item.file);
       const command = textValue(item.command);
       const logPath = textValue(item.logPath, item.log_path);
@@ -1589,6 +1589,7 @@ export function useRepositories({ limit = 50, owner = "", q = "" } = {}) {
         payload.needsAuthorization ?? payload.needs_authorization
       ),
       userQuota: normalizeQuotaUsage(payload.userQuota ?? payload.user_quota),
+      repositoryLimits: normalizePreflightRepositoryLimits(payload.repositoryLimits),
     };
   }, []);
   return usePagedList({

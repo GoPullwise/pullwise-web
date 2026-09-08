@@ -330,6 +330,21 @@ function issueEvidenceText(item) {
   return [label, summary, location, command].filter(Boolean).join(" - ");
 }
 
+function appendIssueEvidence(lines, evidence) {
+  if (!Array.isArray(evidence) || !evidence.length) return;
+  lines.push("", "## Evidence");
+  for (const item of evidence) {
+    if (item?.type === "code" && typeof item.summary === "string" && item.summary) {
+      const source = item.summary.replace(/\r\n?/g, "\n");
+      const fence = "`".repeat(Math.max(3, ...(source.match(/`+/g) || []).map((run) => run.length + 1)));
+      lines.push("", [item.label || "Code", locationLabel(item)].filter(Boolean).join(" - "), "", fence, source, fence);
+    } else {
+      const text = issueEvidenceText(item);
+      if (text) lines.push(`- ${text}`);
+    }
+  }
+}
+
 function issueValidationSourceRows(sources) {
   if (!sources || typeof sources !== "object") return [];
   return Object.entries(sources).map(([key, value]) => [key, issueSourceValueText(value)]);
@@ -373,7 +388,7 @@ function buildIssuePageMarkdown(issue, currentStatus) {
     "Affected locations",
     (issue.affectedLocations || []).map(locationLabel)
   );
-  appendMarkdownListSection(lines, "Evidence", (issue.evidence || []).map(issueEvidenceText));
+  appendIssueEvidence(lines, issue.evidence);
   appendMarkdownListSection(lines, "False-positive checks", issue.whyNotFalsePositive);
   appendMarkdownSection(lines, "Recommendation", issue.recommendation);
   appendMarkdownSection(lines, "Next agent task", issue.nextAgentTask);
@@ -387,7 +402,6 @@ function buildIssuePageMarkdown(issue, currentStatus) {
   appendMarkdownListSection(lines, "Limitations", issue.limitations);
   return `${lines
     .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
     .trim()}\n`;
 }
 

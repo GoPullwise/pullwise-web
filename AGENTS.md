@@ -24,6 +24,14 @@ generated-consumer rule in this file is historical cleanup evidence only and
 must not govern target implementation.
 <!-- PULLWISE_REVIEWER_TARGET_END -->
 
+## Current result evidence display
+
+- Preserve multiline `evidence[].summary` through normalizeEvidence. The
+  single-line text helper truncates verified source and must not be used here.
+- Render code evidence in fenced blocks, choosing a fence longer than embedded
+  backtick runs. MarkdownReport must respect fence length and render JSX as
+  literal text. Never collapse blank lines inside source when building reports.
+
 ## Public Pi runtime availability
 
 - Public status consumes Server `availableReviewModels` and displays the
@@ -41,6 +49,14 @@ must not govern target implementation.
   replace accented and CJK text with question marks.
 
 ## Four-project local debug behavior
+
+- Full Worker flow checks must include a scan lasting several heartbeat periods,
+  the running progress display, and account quota after success/failure/cancel.
+  A short scan jumping from queued to done cannot verify intermediate progress
+  or final reservation settlement.
+- Authenticated repository eligibility must display the account plan's checkout
+  limits. The public `/health` repository limits are a fleet-wide ceiling and
+  must not be labeled as that user's current entitlement.
 
 - `scripts/check-reviewer-authority.mjs` checks the leading current Node/Pi
   target block only. Do not restore an external-authority prefix or mandatory

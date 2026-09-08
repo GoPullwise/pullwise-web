@@ -771,6 +771,7 @@ describe("ReposScreen scan selection", () => {
       loading: false,
       error: "",
       needsAuthorization: false,
+      repositoryLimits: { maxFiles: 7, maxBytes: 4096 },
       reload: vi.fn(),
     });
 
@@ -783,8 +784,9 @@ describe("ReposScreen scan selection", () => {
       )
     ).toBeInTheDocument();
     expect(
-      await screen.findByText("Current checkout limit: 2,000 files / 50 MB.")
+      await screen.findByText("Current checkout limit: 7 files / 4 KB.")
     ).toBeInTheDocument();
+    expect(screen.queryByText("Current checkout limit: 2,000 files / 50 MB.")).not.toBeInTheDocument();
     expect(
       screen.getByText(
         (content, element) => element?.classList.contains("tag") && content.includes("fork")

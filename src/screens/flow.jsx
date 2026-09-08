@@ -1216,6 +1216,7 @@ export function ReposScreen({
     installations,
     installationAccounts,
     userQuota,
+    repositoryLimits,
     loading,
     loadingMore,
     error,
@@ -1226,7 +1227,7 @@ export function ReposScreen({
   } = useRepositories({ owner: activeOwner, q: query });
   const displayError = error || connectError || authorizationError;
   const hasInstallationDetails = Array.isArray(installations) && installations.length > 0;
-  const [scanPolicyLimits, setScanPolicyLimits] = useState(null);
+  const scanPolicyLimits = normalizeRepositoryScanPolicyLimits(repositoryLimits);
   const allLabel = T("All", "所有");
   const orgs = useMemo(
     () => [
@@ -1261,23 +1262,6 @@ export function ReposScreen({
   const refreshGitHubRepositoryAccess = useCallback(async () => {
     await reload({ sync: true });
   }, [reload]);
-  useEffect(() => {
-    if (typeof pullwiseApi.system?.health !== "function") return undefined;
-    let cancelled = false;
-    pullwiseApi.system
-      .health()
-      .then((payload) => {
-        if (!cancelled) {
-          setScanPolicyLimits(normalizeRepositoryScanPolicyLimits(payload?.limits?.repository));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setScanPolicyLimits(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
   const repos = availableRepos.filter(
     (repo) => !activeOwner || repoOwner(repo) === activeOwner
   );

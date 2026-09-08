@@ -48,7 +48,17 @@ vi.mock("../lib/pullwise-data.js", async (importOriginal) => {
 });
 
 import { pullwiseApi } from "../api/pullwise.js";
-import { rememberIssueUpdate, useIssues, useScans } from "../lib/pullwise-data.js";
+import { normalizeIssue, rememberIssueUpdate, useIssues, useScans } from "../lib/pullwise-data.js";
+
+it("preserves multiline source evidence, fences and JSX in the rendered report", () => {
+  const source = 'export function total(items) {\n\n\n  const note = `\n```\n`;\n  return <span>{items[0].price}</span>;\n}';
+  render(<IssueDetailScreen go={vi.fn()} issue={normalizeIssue({ id: 'source-evidence', title: 'Quantity omitted',
+    repo: 'demo/cart', severity: 'medium', status: 'open', file: 'cart.jsx',
+    evidence: [{ type: 'code', label: 'Code', file: 'cart.jsx', startLine: 1, summary: source }],
+  })} />);
+  expect(document.querySelector('.issue-markdown-report pre code')?.textContent).toBe(source);
+  expect(document.querySelector('.issue-markdown-report pre span')).toBeNull();
+});
 
 function baseStyles() {
   return readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");

@@ -81,6 +81,7 @@ describe("useRepositories", () => {
       installations: [],
       installationAccounts: [],
       userQuota: { scope: "user", used: "8", limit: "10", remaining: "2" },
+      repositoryLimits: { maxFiles: 7, maxBytes: 4096 },
       needsAuthorization: "false",
     });
 
@@ -94,6 +95,7 @@ describe("useRepositories", () => {
       limit: 10,
       remaining: 2,
     });
+    expect(result.current.repositoryLimits).toEqual({ maxFiles: 7, maxBytes: 4096 });
     unmount();
 
     pullwiseApi.repositories.list.mockResolvedValueOnce({
