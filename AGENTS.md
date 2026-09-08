@@ -26,6 +26,15 @@ must not govern target implementation.
 
 ## Current result evidence display
 
+- Keep recommendation, nextAgentTask and disproofAttempt through normalizeIssue
+  as multiline fields so detail rendering and Copy Page preserve Server handoff
+  facts. The pi-public-issue fixture comes from the real Server projection.
+- Shared paged-list items and metadata belong to their cache key. Query changes
+  may expose only that key's cache or loading state. Cancellation completions
+  belong to the initiating scan context, including re-entry of the same scan id.
+- Dashboard GET failures show unavailable data and a data reload action; healthy
+  zero counts and empty conclusions require successful source loads.
+
 - Preserve multiline `evidence[].summary` through normalizeEvidence. The
   single-line text helper truncates verified source and must not be used here.
 - Render code evidence in fenced blocks, choosing a fence longer than embedded

@@ -1266,6 +1266,9 @@ export function normalizeIssue(issue = {}) {
     ),
     summary: textValue(issue.summary, issue.description),
     impact: textValue(issue.impact),
+    recommendation: multilineTextValue(issue.recommendation, 12000),
+    nextAgentTask: multilineTextValue(issue.nextAgentTask, 12000),
+    disproofAttempt: multilineTextValue(issue.disproofAttempt, 12000),
     detectionReasoning: textValue(issue.detectionReasoning),
     reproductionPath: textValue(issue.reproductionPath),
     verificationStatus: normalizeVerificationStatus(issue.verificationStatus),
@@ -1453,6 +1456,14 @@ export function notifyIssuesChanged(detail = {}) {
   window.dispatchEvent(new CustomEvent("pullwise:issues-changed", { detail }));
 }
 
+function pagedListStateForCacheKey(cacheKey, limit, extraState, cachedState = cachedListState(cacheKey)) {
+  return {
+    ...baseListState(cachedState, Boolean(cachedState), limit),
+    ...(extraState ? extraState(cachedState || {}) : {}),
+    cacheKey,
+  };
+}
+
 function usePagedList({
   cacheName,
   limit,
@@ -1469,13 +1480,17 @@ function usePagedList({
   const requestedOffsetsRef = useRef(new Set());
   const cacheKey = stableCacheKey(cacheName, { limit, ...params });
   const { initialCachedState, shouldRefreshQuietly } = useInitialCachedListState(cacheKey);
-  const [state, setState] = useState(() => ({
-    ...baseListState(initialCachedState, shouldRefreshQuietly, limit),
-    ...(extraState ? extraState(initialCachedState || {}) : {}),
-  }));
+  const currentCacheKeyRef = useRef(cacheKey);
+  currentCacheKeyRef.current = cacheKey;
+  const [state, setState] = useState(() =>
+    pagedListStateForCacheKey(cacheKey, limit, extraState, initialCachedState)
+  );
+  const visibleState = state.cacheKey === cacheKey ? state
+    : pagedListStateForCacheKey(cacheKey, limit, extraState, initialCachedState);
 
   const load = useCallback(
     async ({ quiet = false, append = false, offset = 0 } = {}) => {
+      if (currentCacheKeyRef.current !== cacheKey) return;
       const requestedOffset = Number(offset) || 0;
       if (append) {
         if (requestedOffsetsRef.current.has(requestedOffset)) return;
@@ -1488,12 +1503,11 @@ function usePagedList({
       abortRef.current?.abort?.();
       const controller = makeAbortController();
       abortRef.current = controller;
-      setState((current) => ({
-        ...current,
-        loading: quiet || append ? current.loading : true,
-        loadingMore: append,
-        error: "",
-      }));
+      setState((current) => {
+        const base = current.cacheKey === cacheKey ? current
+          : pagedListStateForCacheKey(cacheKey, limit, extraState, initialCachedState);
+        return { ...base, loading: quiet || append ? base.loading : true, loadingMore: append, error: "" };
+      });
       try {
         const requestParams = listParams({ limit, offset, ...params });
         const payload = await dedupedDataRequest(
@@ -1501,7 +1515,7 @@ function usePagedList({
           (signal) => fetchList(requestParams, { signal }),
           controller?.signal
         );
-        if (requestId !== requestIdRef.current) return;
+        if (requestId !== requestIdRef.current || currentCacheKeyRef.current !== cacheKey) return;
         const nextItems = normalizeItems(payload);
         setState((current) => {
           const nextMeta = pageMeta(payload, limit);
@@ -1533,7 +1547,7 @@ function usePagedList({
         });
       } catch (error) {
         if (isAbortError(error)) return;
-        if (requestId !== requestIdRef.current) return;
+        if (requestId !== requestIdRef.current || currentCacheKeyRef.current !== cacheKey) return;
         if (append) requestedOffsetsRef.current.delete(requestedOffset);
         setState((current) => ({
           ...current,
@@ -1545,12 +1559,15 @@ function usePagedList({
         if (abortRef.current === controller) abortRef.current = null;
       }
     },
-    [cacheKey, fetchList, limit, normalizeItems, params, requestName, extraState]
+    [cacheKey, fetchList, limit, normalizeItems, params, requestName, extraState, initialCachedState]
   );
 
   useEffect(() => {
     load({ quiet: shouldRefreshQuietly });
-    return () => abortRef.current?.abort?.();
+    return () => {
+      requestIdRef.current += 1;
+      abortRef.current?.abort?.();
+    };
   }, [load, shouldRefreshQuietly]);
 
   useEffect(() => {
@@ -1561,11 +1578,11 @@ function usePagedList({
   }, [changeEvent, load, refreshOnChange]);
 
   const loadMore = useCallback(() => {
-    if (!state.meta.hasMore || state.loadingMore) return;
-    load({ append: true, offset: state.meta.nextOffset ?? state.items.length });
-  }, [load, state.meta, state.loadingMore, state.items.length]);
+    if (!visibleState.meta.hasMore || visibleState.loadingMore || visibleState.loading) return;
+    load({ append: true, offset: visibleState.meta.nextOffset ?? visibleState.items.length });
+  }, [load, visibleState.meta, visibleState.loadingMore, visibleState.loading, visibleState.items.length]);
 
-  return { ...state, reload: load, loadMore };
+  return { ...visibleState, reload: load, loadMore };
 }
 
 export function useRepositories({ limit = 50, owner = "", q = "" } = {}) {
@@ -1957,8 +1974,20 @@ export function useScanRun({
   const [errorCode, setErrorCode] = useState("");
   const [pollRetryTick, setPollRetryTick] = useState(0);
   const [canceling, setCanceling] = useState(false);
+  const cancelRequestRef = useRef(null);
+  const scanContextRef = useRef(0);
   const initialScanRef = useRef(initialScan);
   const errorSourceRef = useRef("");
+
+  useEffect(() => {
+    scanContextRef.current += 1;
+    cancelRequestRef.current = null;
+    setCanceling(false);
+    return () => {
+      scanContextRef.current += 1;
+      cancelRequestRef.current = null;
+    };
+  }, [scanId, repoId, repo, branch, commit, requestId]);
 
   const setRunError = useCallback((err, fallback, source) => {
     errorSourceRef.current = source;
@@ -2082,7 +2111,10 @@ export function useScanRun({
   }, [scan, pollIntervalMs, pollRetryTick, clearRunError, setRunError]);
 
   const cancel = async () => {
-    if (!scan?.id || isTerminalScan(scan) || canceling) return;
+    if (!scan?.id || isTerminalScan(scan) || cancelRequestRef.current) return;
+    const request = { context: scanContextRef.current };
+    cancelRequestRef.current = request;
+    const isCurrent = () => cancelRequestRef.current === request && scanContextRef.current === request.context;
     const previousScan = scan;
     const cancelledAt = Math.floor(Date.now() / 1000);
     setCanceling(true);
@@ -2100,14 +2132,19 @@ export function useScanRun({
     });
     try {
       const updated = await pullwiseApi.scans.cancel(previousScan.id);
+      if (!isCurrent()) return;
       setScan(normalizeScan(updated));
     } catch (err) {
+      if (!isCurrent()) return;
       setScan((current) =>
         current?.id === previousScan.id && current.status === "cancelled" ? previousScan : current
       );
       setRunError(err, "Cancel failed.", "cancel");
     } finally {
-      setCanceling(false);
+      if (isCurrent()) {
+        cancelRequestRef.current = null;
+        setCanceling(false);
+      }
     }
   };
 

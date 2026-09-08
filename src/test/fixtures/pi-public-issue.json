@@ -1,0 +1,174 @@
+{
+  "id": "finding_local_audit",
+  "userId": "usr_local_audit",
+  "scanId": "scan_local_audit",
+  "jobId": "job_local_audit",
+  "repo": "acme/cart",
+  "branch": "main",
+  "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "open",
+  "severity": "medium",
+  "category": "Quality",
+  "title": "Quantity omitted",
+  "summary": "A cart with quantity two charges only one item.",
+  "impact": "A cart with quantity two charges only one item.",
+  "detectionReasoning": "",
+  "reproductionPath": "",
+  "verificationStatus": "static_proof",
+  "verificationSummary": "",
+  "affectedLocations": [
+    {
+      "file": "cart.js",
+      "startLine": 7,
+      "endLine": 7,
+      "url": "https://github.com/acme/cart/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/cart.js#L7"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "code",
+      "label": "Code",
+      "summary": "return items[0].price;",
+      "file": "cart.js",
+      "startLine": 7,
+      "endLine": 7,
+      "url": "https://github.com/acme/cart/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/cart.js#L7"
+    }
+  ],
+  "whyNotFalsePositive": [],
+  "limitations": [],
+  "evidenceChecklist": [
+    {
+      "label": "Fixed commit",
+      "met": true
+    },
+    {
+      "label": "Precise file and line",
+      "met": true
+    },
+    {
+      "label": "Evidence chain",
+      "met": true
+    },
+    {
+      "label": "Reproduction command",
+      "met": false
+    },
+    {
+      "label": "Runtime output",
+      "met": false
+    },
+    {
+      "label": "Raw log or test",
+      "met": false
+    }
+  ],
+  "confidenceLevel": "high",
+  "evidenceTrace": [
+    {
+      "key": "code",
+      "label": "Code",
+      "status": "present",
+      "summary": "Affected code location: cart.js:L7",
+      "items": [
+        "Affected code location: cart.js:L7",
+        "Code: return items[0].price;"
+      ]
+    },
+    {
+      "key": "path",
+      "label": "Path",
+      "status": "present",
+      "summary": "Disproof attempt: Checked the caller: it passes one row with quantity two.",
+      "items": [
+        "Disproof attempt: Checked the caller: it passes one row with quantity two."
+      ]
+    },
+    {
+      "key": "trigger",
+      "label": "Trigger",
+      "status": "missing",
+      "summary": "No trigger input or reproduction command was captured.",
+      "items": []
+    },
+    {
+      "key": "runtime",
+      "label": "Runtime",
+      "status": "missing",
+      "summary": "No runtime output or test evidence was captured.",
+      "items": []
+    },
+    {
+      "key": "impact",
+      "label": "Impact",
+      "status": "present",
+      "summary": "Impact: A cart with quantity two charges only one item.",
+      "items": [
+        "Impact: A cart with quantity two charges only one item."
+      ]
+    },
+    {
+      "key": "fix",
+      "label": "Fix",
+      "status": "present",
+      "summary": "Recommendation: Multiply each unit price by the item quantity before summing.",
+      "items": [
+        "Recommendation: Multiply each unit price by the item quantity before summing.",
+        "Next agent task: Add a two-quantity regression case and update total(items)."
+      ]
+    }
+  ],
+  "reasoningBreakdown": {
+    "facts": [
+      "Finding is pinned to commit aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.",
+      "Affected location recorded: cart.js:L7.",
+      "Code: return items[0].price;"
+    ],
+    "inferences": [
+      "A cart with quantity two charges only one item.",
+      "Impact: A cart with quantity two charges only one item."
+    ],
+    "recommendations": [
+      "Multiply each unit price by the item quantity before summing.",
+      "Add a two-quantity regression case and update total(items)."
+    ]
+  },
+  "audit": {
+    "repo": "acme/cart",
+    "branch": "main",
+    "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "scanId": "scan_local_audit",
+    "jobId": "job_local_audit"
+  },
+  "file": "cart.js",
+  "line": 7,
+  "confidence": 0.98,
+  "confidenceRationale": "",
+  "autoFix": false,
+  "autoFixable": false,
+  "fixabilityState": "missing_patch",
+  "fixabilityReason": "No safe deterministic patch was generated for this issue.",
+  "effort": "-",
+  "fixBenefits": "",
+  "fixRisks": "",
+  "tags": [
+    "review-worker"
+  ],
+  "steps": [],
+  "badCode": [],
+  "goodCode": [],
+  "references": [],
+  "createdAt": 1788840732,
+  "failureScenario": "A cart with quantity two charges only one item.",
+  "recommendation": "Multiply each unit price by the item quantity before summing.",
+  "nextAgentTask": "Add a two-quantity regression case and update total(items).",
+  "disproofAttempt": "Checked the caller: it passes one row with quantity two.",
+  "reproduction": {
+    "commands": [],
+    "input": "",
+    "expected": "",
+    "actual": "",
+    "testFile": "",
+    "logPath": ""
+  }
+}

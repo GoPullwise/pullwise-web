@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -396,6 +396,7 @@ export function DashboardScreen({ go, setIssue }) {
     error: issuesError,
     meta: issuesMeta = {},
     loadMore: loadMoreIssues,
+    reload: reloadIssues,
   } = useIssues({
     status: "open",
     limit: 50,
@@ -406,10 +407,13 @@ export function DashboardScreen({ go, setIssue }) {
     loading: scansLoading,
     error: scansError,
     meta: scansMeta = {},
+    reload: reloadScans,
   } = useScans({ limit: 50 });
   const {
     items: repositories,
     loading: reposLoading,
+    error: reposError,
+    reload: reloadRepositories,
     needsAuthorization,
     meta: repositoriesMeta = {},
   } = useRepositories();
@@ -496,6 +500,18 @@ export function DashboardScreen({ go, setIssue }) {
     : repositories.length;
 
   const dashboardLoading = issuesLoading || completingOpenIssuePages || scansLoading || reposLoading;
+  const dataErrors = [
+    { label: T("Issues", "问题"), error: issuesError, reload: reloadIssues },
+    { label: T("Repositories", "仓库"), error: reposError, reload: reloadRepositories },
+    { label: T("Scans", "扫描"), error: scansError, reload: reloadScans },
+  ].filter(source => source.error);
+  const retryingRef = useRef(false);
+  const retryData = async () => {
+    if (retryingRef.current) return;
+    retryingRef.current = true;
+    try { await Promise.all(dataErrors.map(source => source.reload?.())); }
+    finally { retryingRef.current = false; }
+  };
 
   return (
     <div className="app fade-in">
@@ -520,7 +536,18 @@ export function DashboardScreen({ go, setIssue }) {
             </div>
           </div>
 
-          {dashboardLoading ? (
+          {dataErrors.length > 0 ? (
+            <section className="card dash-summary" role="alert">
+              <h3>{T("Overview data unavailable", "总览数据暂不可用")}</h3>
+              <p className="sub">{T("Reload the data to view the account overview.", "请重新加载数据以查看账户总览。")}</p>
+              {dataErrors.map(source => (
+                <p key={source.label}><strong>{source.label}: </strong><span>{source.error}</span></p>
+              ))}
+              <button className="btn" onClick={retryData} disabled={dashboardLoading}>
+                <I.Refresh size={14} /> {T("Retry loading data", "重试加载数据")}
+              </button>
+            </section>
+          ) : dashboardLoading ? (
             <DashboardSkeleton />
           ) : (
             <>
