@@ -1,28 +1,22 @@
-<!-- PULLWISE_REVIEWER_TARGET_START -->
-## Pullwise Reviewer Target — Node.js + Pi Coding Agent
+<!-- PULLWISE_PRODUCT_TARGET_START -->
+## Current target — PR / CI / Updates design 1.4
 
-For all new Pullwise Reviewer implementation, the sole Worker target is
-Node.js/TypeScript on Node `>=22.19.0`, embedding
-`@earendil-works/pi-coding-agent`. One active attempt owns one Pi
-`AgentSession`.
+Implement the product defined by `../docs/design/pr-ci-updates/README.md` and
+01–07. Old scan, finding, full-repository Reviewer, Worker, and Agent-first
+notes below are historical cleanup evidence only. Do not preserve their routes,
+contracts, or user-facing claims when they conflict with design 1.4.
 
-This is a clean break. Do not add or preserve a Codex SDK or CLI, `CODEX_HOME`,
-a Python Worker runtime, compatibility or shadow adapters, dual runtimes, or
-automatic provider/model fallback. Server plan policy resolves one exact
-provider/model/thinking level against each Worker's advertised catalog. Pi is not a sandbox:
-the Worker supervisor must enforce operating-system containment, process-tree
-ownership, cancellation, cleanup, and late-publication fencing.
+P5a delivers compact counts, labeled lists, the complete Updates source table,
+evidence, and handling history through the shared Server REST contract. P5b
+matrices and full timelines remain gated on measured usability benefit. Keep
+the existing hard-edged visual system, non-Dashboard pages, payment controls,
+auth behavior, responsive behavior, and `worker.js` Cloudflare hosting proxy.
 
-Do not query or poll subscription/account quota windows, percentages, reset
-times, low/exhausted readiness, or refresh-window commands. Preserve immutable
-per-attempt input/output/cache-token usage, cost when reported, timing,
-provider/model identity, and provider-error facts. Product account/repository
-scan quotas are separate business controls and remain in force.
-
-Any later Reviewer-specific Python, Codex, quota-window, runtime, phase, or
-generated-consumer rule in this file is historical cleanup evidence only and
-must not govern target implementation.
-<!-- PULLWISE_REVIEWER_TARGET_END -->
+Browser reads, filtering, detail expansion, and manual GitHub fact sync must
+never schedule model work or increase processing usage. Do not add classify,
+reanalyze, retry-analysis, batch, or force controls. Permission loss must clear
+protected cached details and must not render stale content as a healthy zero.
+<!-- PULLWISE_PRODUCT_TARGET_END -->
 
 ## Current result evidence display
 
@@ -67,9 +61,10 @@ must not govern target implementation.
   limits. The public `/health` repository limits are a fleet-wide ceiling and
   must not be labeled as that user's current entitlement.
 
-- `scripts/check-reviewer-authority.mjs` checks the leading current Node/Pi
-  target block only. Do not restore an external-authority prefix or mandatory
-  Notion references; `src/test/reviewer-ci-target.test.js` covers the CI gate.
+- CI uses current repository instructions, code, and tests directly. Do not
+  restore the removed hash-pinned Reviewer authority script or a Notion/
+  external-authority gate; keep lint, tests, build, production audit, and the
+  Cloudflare worker syntax check as the active Web lanes.
 
 - The production entry renders `App` inside React `StrictMode`. Initial session
   cleanup must abort and synchronously release only its own in-flight session
