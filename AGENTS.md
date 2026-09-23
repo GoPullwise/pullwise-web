@@ -469,6 +469,21 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 - Pages API proxy tests must assert both the stripped upstream path (`/api/...` to `/...`) and byte-for-byte request-body forwarding; header-only assertions do not protect the proxy contract.
 - When joining a root-relative API base to a server-provided debug artifact URL, preserve URLs that already contain that base path; `/api` plus `/api/v1/...` must remain `/api/v1/...`.
 
+## P0 visual baseline
+
+- Local P0 visual baselines now have 20 original screenshots from detached
+  `f5b1b2f` and 20 current screenshots under the preserved untracked
+  `output/p0-original-f5b1b2/` and `output/p0-baseline-final/`. They cover
+  login, repositories, Settings, Billing and Pricing at 1440px/390px in
+  light/dark using a synthetic loopback API and real headless Chrome/CDP.
+  Ten image pairs are byte-identical (login, Settings, desktop repositories);
+  the others show expected Billing/Pricing content changes or the 390px
+  repository fix. This is local visual evidence, not live OAuth/payment QA.
+  At <=760px, keep `.repo-main` in the second grid column and `.repo-meta`
+  wrapping; otherwise repository names collapse into the 24px checkbox column.
+  All captured 390px pages had scrollWidth=clientWidth=390. Preserve all
+  existing `output/` content and the isolated original worktree while reviewing.
+
 ## P5a product dashboard
 
 - Billing/Pricing now render `plan.entitlements` (repository/watch capacity and

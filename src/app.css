@@ -1687,6 +1687,20 @@ body.has-proto-nav {
     grid-template-columns: 24px minmax(0, 1fr);
   }
 
+  .repo-row .repo-icon {
+    display: none;
+  }
+
+  .repo-row .repo-check {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .repo-row .repo-main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .docs-table-r {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1704,7 +1718,9 @@ body.has-proto-nav {
   .repo-meta {
     max-width: 100%;
     justify-content: flex-start;
-    grid-template-columns: max-content max-content max-content;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
   }
 
   .repo-meta > span {
