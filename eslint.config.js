@@ -10,6 +10,7 @@ export default [
       ".worktrees/**",
       "build/**",
       "coverage/**",
+      ".pytest_cache/**",
       "dist/**",
       "dist-ssr/**",
       "node_modules/**",

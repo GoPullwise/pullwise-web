@@ -468,3 +468,46 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   `partial_completed` as a distinct terminal presentation.
 - Pages API proxy tests must assert both the stripped upstream path (`/api/...` to `/...`) and byte-for-byte request-body forwarding; header-only assertions do not protect the proxy contract.
 - When joining a root-relative API base to a server-provided debug artifact URL, preserve URLs that already contain that base path; `/api` plus `/api/v1/...` must remain `/api/v1/...`.
+
+## P5a product dashboard
+
+- `product-http-contract.test.jsx` uses the actual Web client and worker proxy
+  against a loopback Pullwise HTTP server with fresh synthetic SQLite data.
+  PULLWISE_CONTRACT_PYTHON opts in; no real identity, GitHub or model is used.
+  It covers Cookie/API-key reads, SameSite=None Origin checks, handling CAS,
+  sync and unchanged usage. Browser cookie storage is simulated explicitly;
+  do not call this browser/Cloudflare end-to-end validation.
+- Cross-project subprocess tests have a 30-second test deadline (the source
+  exporter itself remains capped at 20 seconds). The default five seconds can
+  expire under a full concurrent Web/Server regression despite valid responses.
+- Render evidence.progressType=completion_claim as neutral model classification
+  only for available evidence. Never label it as a GitHub fact or verified work,
+  and never infer handling/role changes from it in Web.
+
+- Render Updates context.relevance/updateSignals exactly as supplied by Server;
+  null is not absence. Source detail selects the clicked contextId and renders
+  that context's saved assessments/evidence. Never merge watch conclusions.
+- For local cross-project contract verification, set PULLWISE_CONTRACT_PYTHON
+  to the existing Server test interpreter before npm run check. The optional
+  product-source-contract test generates fresh SQLite/shared REST handler DTOs
+  from the sibling Server checkout. Web-only CI skips it explicitly; ordinary
+  Dashboard tests still run. It does not prove network or Cloudflare behavior.
+
+- Dashboard now consumes product-v1 through src/api/product.js; do not restore
+  scan/finding-derived counts, old issue search, or new-scan actions there.
+  Non-Dashboard routes remain separate pending their own migration.
+- Preserve the no-cache, exact-read-key and AbortSignal discipline in
+  useProductRead. Failure/revocation clears protected rows and details; missing
+  or invalid counts are not successful zero values.
+- Source lists in Updates are independent of Item view/attention filters.
+  Keep release × visible watch-context rows even without an Item. Partial
+  coverage is not a negative classification; do not reconstruct absent
+  release assessments from Item labels.
+- Handling writes bind both itemVersion and If-Match revision. A synchronous
+  in-flight guard prevents duplicate writes. 409/412 requires an explicit
+  detail reload; never automatically replay a write. Notes remain optional.
+- Server-only detail additions are content on Source and handlingHistory on
+  Item. History ordering is supplied by Server, not sorted by UUID/time in Web.
+- The product drawer traps focus, restores its opener on Escape, hides expired
+  evidence text, and uses only safe HTTPS GitHub source links. Keep 390px
+  layouts free of document overflow and preserve the shared hard-edged shell.

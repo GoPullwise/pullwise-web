@@ -10,7 +10,7 @@ import { useDebouncedValue } from "./lib/use-debounced-value.js";
 const IS_MAC =
   typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform || "");
 
-export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
+export function Topbar({ go, breadcrumbs, setIssue = null, loading = false, searchEnabled = true }) {
   useLang();
   const [searchOpen, setSearchOpen] = React.useState(false);
   const searchTriggerRef = React.useRef(null);
@@ -21,7 +21,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
 
   React.useEffect(() => {
     const onKey = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (searchEnabled && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setSearchOpen(true);
       } else if (event.key === "Escape" && searchOpen) {
@@ -30,7 +30,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [closeSearch, searchOpen]);
+  }, [closeSearch, searchOpen, searchEnabled]);
 
   return (
     <header className="topbar">
@@ -77,7 +77,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
             <I.Refresh size={14} />
           </span>
         )}
-        <button
+        {searchEnabled && <button
           ref={searchTriggerRef}
           type="button"
           className="btn ghost sm"
@@ -89,7 +89,7 @@ export function Topbar({ go, breadcrumbs, setIssue = null, loading = false }) {
           <span className="kbd" style={{ marginLeft: 6 }}>
             {IS_MAC ? "⌘K" : "Ctrl K"}
           </span>
-        </button>
+        </button>}
         <a
           className="btn ghost sm"
           aria-label={T("Open account settings", "打开账户设置")}
@@ -315,6 +315,20 @@ export function Sidebar({ section, go }) {
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} />, badge: null },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} />, badge: null },
   ];
+  return <SidebarLinks section={section} go={go} items={items} />;
+}
+
+export function ProductSidebar({ go }) {
+  useLang();
+  return <SidebarLinks section="dashboard" go={go} items={[
+    { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} /> },
+    { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },
+    { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} /> },
+    { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
+  ]} />;
+}
+
+function SidebarLinks({ section, go, items }) {
   return (
     <aside className="side">
       <nav className="side-nav-landmark" aria-label={T("Navigation", "Navigation")}>

@@ -1,580 +1,181 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { DashboardScreen } from "./dashboard.jsx";
+import { productApi } from "../api/product.js";
+import { setLang } from "../i18n.jsx";
+import { itemFixture, overviewFixture, releaseFixture, page } from "../test/product-fixtures.js";
 
-vi.mock("../api/pullwise.js", () => ({
-  pullwiseApi: {
-    scans: {
-      get: vi.fn(),
-    },
-  },
-}));
+beforeEach(() => {
+  setLang("en");
+  vi.spyOn(productApi, "overview").mockResolvedValue(structuredClone(overviewFixture));
+  vi.spyOn(productApi, "items").mockResolvedValue(page([structuredClone(itemFixture)]));
+  vi.spyOn(productApi, "repositories").mockResolvedValue(page([{ id: "repo-1", fullName: "acme/api" }]));
+  vi.spyOn(productApi, "watches").mockResolvedValue(page([{ id: "watch-1", upstreamRepositoryId: "upstream-1", interests: ["OAuth"], contextVersion: 2 }]));
+  vi.spyOn(productApi, "sources").mockResolvedValue(page([structuredClone(releaseFixture)]));
+  vi.spyOn(productApi, "item").mockResolvedValue(structuredClone(itemFixture));
+  vi.spyOn(productApi, "source").mockResolvedValue(structuredClone(releaseFixture));
+  vi.spyOn(productApi, "handle").mockResolvedValue({ ...itemFixture, revision: 5, handling: { disposition: "done" } });
+});
+afterEach(() => vi.restoreAllMocks());
 
-vi.mock("../lib/pullwise-data.js", async () => {
-  const actual = await vi.importActual("../lib/pullwise-data.js");
-  return {
-    ...actual,
-    useIssues: vi.fn(),
-    useRepositories: vi.fn(),
-    useScans: vi.fn(),
-  };
+const mount = () => render(<DashboardScreen go={vi.fn()} />);
+
+it("renders saved source classifications and assessments without an Item", async () => {
+  const release = structuredClone(releaseFixture);
+  Object.assign(release.contexts[0], {
+    relevance: "relevant", updateSignals: { migration_stated: "present", security_fix_stated: null },
+    assessments: [{ id: "saved-source", model: "jev-1.13.0", questionVersion: "updates-filter/v3", answers: {} }],
+  });
+  productApi.sources.mockResolvedValue(page([release]));
+  productApi.source.mockResolvedValue(release);
+  mount();
+  fireEvent.click(screen.getByRole("button", { name: "Updates module" }));
+  expect(await screen.findByText("Relevant")).toBeVisible();
+  expect(screen.getByText("Migration: Explicitly stated")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "SDK 2.0" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(await within(dialog).findByText(/Model assessment.*jev-1.13.0/)).toBeVisible();
+  expect(within(dialog).queryByRole("button", { name: "Mark done" })).toBeNull();
+});
+const openItem = async () => {
+  fireEvent.click(await screen.findByRole("button", { name: itemFixture.title }));
+  return screen.findByRole("dialog");
+};
+
+it("shows authoritative distinct counts and multiple labels without legacy requests", async () => {
+  const fetch = vi.spyOn(globalThis, "fetch");
+  mount();
+  await screen.findByRole("button", { name: itemFixture.title });
+  expect(screen.getByRole("button", { name: "Needs action: 1" })).toBeVisible();
+  expect(screen.getByText("Changes requested")).toBeVisible();
+  expect(screen.getByText("Reply needed")).toBeVisible();
+  expect(fetch).not.toHaveBeenCalled();
+  expect(screen.queryByText("New scan")).toBeNull();
 });
 
-import { pullwiseApi } from "../api/pullwise.js";
-import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
+it("passes module, view, scope and state filters to REST", async () => {
+  mount();
+  await screen.findByRole("button", { name: itemFixture.title });
+  fireEvent.click(screen.getByRole("button", { name: "PR module" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Unassigned: 1" }));
+  await screen.findByRole("option", { name: "acme/api" });
+  fireEvent.change(screen.getByLabelText("Repository scope"), { target: { value: "repo-1" } });
+  await waitFor(() => expect(productApi.items).toHaveBeenLastCalledWith(expect.objectContaining({ module: "pr", view: "unassigned", repositoryId: "repo-1" }), expect.anything()));
+  fireEvent.click(await screen.findByRole("button", { name: "Needs action: 1" }));
+  await waitFor(() => expect(productApi.items).toHaveBeenLastCalledWith(expect.objectContaining({ attentionState: "needs_action" }), expect.anything()));
+});
 
-describe("DashboardScreen issue list", () => {
-  beforeEach(() => {
-    pullwiseApi.scans.get.mockReset();
-    pullwiseApi.scans.get.mockResolvedValue({ id: "scan_retry_next", status: "queued" });
-  });
+it("keeps Updates without Items independent of item-view filters and displays partial coverage", async () => {
+  mount();
+  fireEvent.click(screen.getByRole("button", { name: "Updates module" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Unassigned: 1" }));
+  await screen.findByText("v2.0");
+  expect(productApi.sources).toHaveBeenLastCalledWith({ module: "updates", repositoryId: "", watchId: "", cursor: "" }, expect.anything());
+  expect(screen.getByText("1 / 4 units selected")).toBeVisible();
+  expect(screen.queryByText("Not relevant")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "SDK 2.0" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(await within(dialog).findByText(releaseFixture.content.body)).toBeVisible();
+  expect(within(dialog).queryByRole("button", { name: "Mark done" })).toBeNull();
+});
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+it("shows literal evidence and GitHub links, and restores keyboard focus", async () => {
+  const user = userEvent.setup();
+  mount();
+  const opener = await screen.findByRole("button", { name: itemFixture.title });
+  await user.click(opener);
+  const dialog = await screen.findByRole("dialog");
+  expect(await within(dialog).findByText(/const cache = new Map/)).toHaveTextContent("Why is this cached?");
+  expect(within(dialog).getByRole("link", { name: "Open on GitHub" })).toHaveAttribute("href", itemFixture.sourceUrl);
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(opener).toHaveFocus();
+});
 
-  it("labels the dashboard as an account overview with real page-jump links", async () => {
-    const user = userEvent.setup();
-    const go = vi.fn();
-    useIssues.mockReturnValue({
-      items: [
-        {
-          id: "f_1",
-          repo: "acme/api",
-          severity: "high",
-          category: "Security",
-          title: "Test issue",
-          file: "src/test.js",
-          line: 10,
-          confidence: 0.9,
-          effort: "S",
-          status: "open",
-        },
-      ],
-      loading: false,
-      error: "",
-    });
-    useRepositories.mockReturnValue({
-      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [{ id: "scan_1", repo: "acme/api", branch: "main", commit: "abc123", time: "now" }],
-      loading: false,
-    });
+it.each(["done", "dismissed"])("writes %s once with version/revision and optional note, then refreshes counts", async disposition => {
+  mount();
+  const dialog = await openItem();
+  const button = await within(dialog).findByRole("button", { name: disposition === "done" ? "Mark done" : "Do not follow up" });
+  let finish;
+  productApi.handle.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  fireEvent.click(button);
+  fireEvent.click(button);
+  expect(productApi.handle).toHaveBeenCalledTimes(1);
+  expect(productApi.handle).toHaveBeenCalledWith(expect.objectContaining({ itemVersion: 2, revision: 4 }), { disposition, note: null }, expect.anything());
+  productApi.items.mockResolvedValue(page([]));
+  productApi.overview.mockResolvedValue({ ...overviewFixture, totalCount: 0, counts: { ...overviewFixture.counts, needs_action: 0 } });
+  await act(async () => finish({ ...itemFixture, revision: 5 }));
+  await screen.findByRole("button", { name: "Needs action: 0" });
+});
 
-    render(<DashboardScreen go={go} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
+it.each([409, 412])("requires a fresh detail after %s without replaying a write", async status => {
+  productApi.handle.mockRejectedValueOnce(Object.assign(new Error("Changed"), { status }));
+  mount();
+  const dialog = await openItem();
+  fireEvent.click(await within(dialog).findByRole("button", { name: "Mark done" }));
+  await within(dialog).findByText("This item changed. Reload it before handling it again.");
+  expect(within(dialog).getByRole("button", { name: "Mark done" })).toBeDisabled();
+  productApi.item.mockResolvedValue({ ...itemFixture, revision: 8, itemVersion: 3 });
+  fireEvent.click(within(dialog).getByRole("button", { name: "Reload item" }));
+  await waitFor(() => expect(within(dialog).getByRole("button", { name: "Mark done" })).toBeEnabled());
+  expect(productApi.handle).toHaveBeenCalledTimes(1);
+});
 
-    expect(screen.getByRole("heading", { name: /overview/i })).toBeInTheDocument();
-    expect(screen.getByText(/account overview/i)).toBeInTheDocument();
-    const accountHealth = screen.getByRole("region", { name: /account health/i });
-    expect(within(accountHealth).getAllByRole("article")).toHaveLength(4);
-    expect(
-      screen.queryByRole("heading", { name: /connected repositories/i })
-    ).not.toBeInTheDocument();
+it("clears protected data when a write loses access", async () => {
+  productApi.handle.mockRejectedValueOnce(Object.assign(new Error("Access unavailable"), { status: 403 }));
+  mount();
+  const dialog = await openItem();
+  fireEvent.click(await within(dialog).findByRole("button", { name: "Mark done" }));
+  await screen.findByText("Access unavailable");
+  expect(screen.queryByText(/const cache = new Map/)).toBeNull();
+  expect(screen.queryByRole("button", { name: itemFixture.title })).toBeNull();
+});
 
-    const newScan = screen.getByRole("link", { name: /new scan/i });
-    expect(newScan).toHaveAttribute("href", "/repos");
+it("ignores obsolete responses and aborts old scope requests", async () => {
+  let finish;
+  productApi.items.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  mount();
+  await waitFor(() => expect(productApi.items).toHaveBeenCalledTimes(1));
+  fireEvent.click(screen.getByRole("button", { name: "CI module" }));
+  await waitFor(() => expect(productApi.items).toHaveBeenCalledTimes(2));
+  expect(productApi.items.mock.calls[0][1].signal.aborted).toBe(true);
+  await act(async () => finish(page([{ ...itemFixture, title: "Stale secret" }])));
+  expect(screen.queryByText("Stale secret")).toBeNull();
+});
 
-    const allIssues = screen.getAllByRole("link", { name: /all issues/i });
-    allIssues.forEach((link) => {
-      expect(link).toHaveAttribute("href", "/issues");
-    });
+it("loads opaque cursors while retaining filters and authoritative totals", async () => {
+  productApi.items.mockResolvedValueOnce({ ...page([itemFixture]), nextCursor: "page-2", hasMore: true });
+  mount();
+  fireEvent.click(await screen.findByRole("button", { name: "Next items page" }));
+  await waitFor(() => expect(productApi.items).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: "page-2" }), expect.anything()));
+  expect(await screen.findByRole("button", { name: "Needs action: 1" })).toBeVisible();
+});
 
-    await user.click(newScan);
-    expect(go).toHaveBeenCalledWith("repos");
-  });
+it("hides expired evidence and unsafe URLs", async () => {
+  productApi.item.mockResolvedValue({ ...itemFixture, sourceUrl: "javascript:alert(1)", evidence: [{ id: "old", status: "expired", text: "Secret old body", actionTypes: [] }] });
+  mount();
+  const dialog = await openItem();
+  expect(await within(dialog).findByText("Evidence expired")).toBeVisible();
+  expect(within(dialog).queryByText("Secret old body")).toBeNull();
+  expect(within(dialog).queryByRole("link", { name: "Open on GitHub" })).toBeNull();
+});
 
-  it("shows the latest scan worker agent configuration in the scans KPI", () => {
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [
-        {
-          id: "scan_1",
-          repo: "acme/api",
-          branch: "main",
-          commit: "abc123",
-          time: "now",
-          aiUsage: {
-            agentCli: "codex",
-            model: "gpt-5.5",
-            reasoningEffort: "high",
-          },
-        },
-      ],
-      loading: false,
-    });
+it("displays versioned handling history without inventing a model assessment", async () => {
+  productApi.item.mockResolvedValue({ ...itemFixture, handlingHistory: [{ id: "h1", itemVersion: 1, actorId: "usr_1", disposition: "done", eventKind: "handling_updated", createdAt: 1800000000, note: "Checked earlier version" }] });
+  mount();
+  const dialog = await openItem();
+  expect(await within(dialog).findByText("Checked earlier version")).toBeVisible();
+  expect(within(dialog).queryByText("Model assessment")).toBeNull();
+});
 
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    expect(screen.getByText("Last: now · codex · gpt-5.5 · reasoning: high")).toBeInTheDocument();
-  });
-
-  it("shows the latest queued scan position in the scans KPI", () => {
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [
-        {
-          id: "scan_queued_latest",
-          repo: "acme/api",
-          branch: "main",
-          commit: "pending",
-          status: "queued",
-          time: "now",
-          queue: { position: 4, ahead: 3, message: "Queued with 3 scans ahead." },
-        },
-      ],
-      loading: false,
-    });
-
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    expect(screen.getByText(/Position 4 \/ 3 scans ahead/i)).toBeInTheDocument();
-  });
-
-  it("shows active AI review progress on the dashboard", () => {
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [
-        {
-          id: "sc_running",
-          repo: "acme/api",
-          branch: "main",
-          commit: "pending",
-          status: "running",
-          phase: "ai",
-          progress: 80,
-          progressMessage: "Repo map: mapping shards 12/80",
-          logsSummary: "run=codex_run phase=repo_map progress=12/80 task=bundle-0012",
-          estimate: {
-            state: "available",
-            lowerSeconds: 780,
-            remainingSeconds: 900,
-            upperSeconds: 1080,
-          },
-          time: "now",
-        },
-      ],
-      loading: false,
-    });
-
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    const activeScan = screen.getByRole("region", { name: /active scan/i });
-    expect(within(activeScan).getByText("acme/api")).toBeInTheDocument();
-    expect(within(activeScan).getByText("AI review")).toBeInTheDocument();
-    expect(within(activeScan).getByText("Repo map: mapping shards 12/80")).toBeInTheDocument();
-    expect(
-      within(activeScan).getByText("run=codex_run phase=repo_map progress=12/80 task=bundle-0012")
-    ).toBeInTheDocument();
-    expect(within(activeScan).getByText("80%")).toBeInTheDocument();
-    expect(within(activeScan).getByText("13–18 min remaining")).toBeInTheDocument();
-    expect(within(activeScan).getByRole("link", { name: /scan details/i })).toHaveAttribute(
-      "href",
-      "/scanning/sc_running"
-    );
-  });
-
-  it("uses the server-filtered open issue total for the open issues KPI", () => {
-    const pagedIssues = Array.from({ length: 50 }, (_, index) => ({
-      id: `f_${index + 1}`,
-      repo: "acme/api",
-      severity: "high",
-      category: "Security",
-      title: `Issue ${index + 1}`,
-      file: "src/test.js",
-      line: index + 1,
-      confidence: 0.9,
-      effort: "S",
-      status: "open",
-    }));
-    useIssues.mockImplementation(({ limit } = {}) => ({
-      items: limit === 1 ? [{ id: "sidebar-count-sample", status: "open" }] : pagedIssues,
-      meta: { total: 76 },
-      loading: false,
-      error: "",
-    }));
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({ items: [], loading: false });
-
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    const openIssuesKpi = screen
-      .getAllByText("Open issues")
-      .find((node) => node.classList.contains("kpi-l"))
-      ?.closest(".kpi");
-    expect(openIssuesKpi).toHaveTextContent("76");
-    expect(openIssuesKpi).not.toHaveTextContent("50");
-  });
-
-  it("uses the server scan total for the scans KPI", () => {
-    const pagedScans = Array.from({ length: 50 }, (_, index) => ({
-      id: `scan_${index + 1}`,
-      repo: "acme/api",
-      branch: "main",
-      commit: `abc${index + 1}`,
-      time: "now",
-    }));
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: pagedScans,
-      meta: { total: 123 },
-      loading: false,
-    });
-
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    const scansKpi = screen
-      .getAllByText("Scans")
-      .find((node) => node.classList.contains("kpi-l"))
-      ?.closest(".kpi");
-    expect(scansKpi).toHaveTextContent("123");
-    expect(scansKpi).not.toHaveTextContent("50");
-  });
-
-  it("loads every open issue page before rendering overview issue analytics", async () => {
-    const loadMore = vi.fn();
-    const firstPageIssues = Array.from({ length: 50 }, (_, index) => ({
-      id: `f_${index + 1}`,
-      repo: "acme/api",
-      severity: "info",
-      category: "Security",
-      title: `Issue ${index + 1}`,
-      file: "src/common.js",
-      line: index + 1,
-      verificationStatus: "unverified",
-      confidenceLevel: "medium",
-      status: "open",
-    }));
-    const secondPageIssue = {
-      id: "f_51",
-      repo: "acme/critical",
-      severity: "critical",
-      category: "Security",
-      title: "Critical issue from the second page",
-      file: "src/critical.js",
-      line: 51,
-      verificationStatus: "static_proof",
-      confidenceLevel: "high",
-      status: "open",
-    };
-
-    useIssues.mockReturnValue({
-      items: firstPageIssues,
-      meta: { total: 51, hasMore: true, nextOffset: 50 },
-      loading: false,
-      loadingMore: false,
-      error: "",
-      loadMore,
-    });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({ items: [], loading: false });
-
-    const { container, rerender } = render(
-      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
-    );
-
-    expect(container.querySelector(".dashboard-skeleton")).toBeInTheDocument();
-    await waitFor(() => expect(loadMore).toHaveBeenCalledTimes(1));
-
-    useIssues.mockReturnValue({
-      items: [...firstPageIssues, secondPageIssue],
-      meta: { total: 51, hasMore: false, nextOffset: null },
-      loading: false,
-      loadingMore: false,
-      error: "",
-      loadMore,
-    });
-    rerender(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    const criticalRows = screen
-      .getAllByText("Critical")
-      .map((node) => node.closest(".dash-donut-row"))
-      .filter(Boolean);
-    expect(criticalRows.some((row) => row.textContent.includes("1"))).toBe(true);
-    expect(screen.getAllByText("1/51")).toHaveLength(2);
-    expect(screen.getByText("src/critical.js")).toBeInTheDocument();
-    expect(screen.getByText("Showing 8 of 51 open issues")).toBeInTheDocument();
-  });
-
-  it("does not render a manual retry action for the latest failed scan", () => {
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [
-        {
-          id: "scan_failed_latest",
-          repo: "acme/api",
-          branch: "main",
-          commit: "abc123",
-          status: "failed",
-          time: "now",
-        },
-      ],
-      loading: false,
-    });
-
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    expect(screen.queryByRole("button", { name: /^retry$/i })).not.toBeInTheDocument();
-  });
-  it("keeps overview KPI sparklines aligned across all cards", () => {
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [{ id: "repo_1", name: "api", fullName: "acme/api", private: true }],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({
-      items: [{ id: "scan_1", repo: "acme/api", branch: "main", commit: "abc123", time: "now" }],
-      loading: false,
-    });
-
-    const { container } = render(
-      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
-    );
-
-    const kpis = Array.from(container.querySelectorAll(".kpi"));
-    expect(kpis).toHaveLength(4);
-    kpis.forEach((kpi) => {
-      expect(kpi.querySelectorAll(".kpi-foot")).toHaveLength(1);
-      const chart = kpi.querySelector(".kpi-chart");
-      expect(chart).toBeInTheDocument();
-      expect(chart.querySelector("svg")).toHaveStyle({ height: "20px" });
-    });
-  });
-
-  it("shows severity-weighted repository and file risk hotspots", () => {
-    const makeIssue = (overrides) => ({
-      id: overrides.id,
-      repo: overrides.repo,
-      severity: overrides.severity,
-      category: "Security",
-      title: overrides.title || overrides.id,
-      file: overrides.file,
-      line: 10,
-      confidence: 0.9,
-      effort: "S",
-      status: "open",
-    });
-    useIssues.mockReturnValue({
-      items: [
-        makeIssue({
-          id: "f_1",
-          repo: "acme/api",
-          severity: "critical",
-          file: "src/auth.js",
-        }),
-        makeIssue({
-          id: "f_2",
-          repo: "acme/api",
-          severity: "high",
-          file: "src/auth.js",
-        }),
-        makeIssue({
-          id: "f_3",
-          repo: "acme/api",
-          severity: "high",
-          file: "src/routes.js",
-        }),
-        makeIssue({
-          id: "f_4",
-          repo: "acme/web",
-          severity: "medium",
-          file: "src/cart.js",
-        }),
-        makeIssue({
-          id: "f_5",
-          repo: "acme/web",
-          severity: "low",
-          file: "src/cart.js",
-        }),
-      ],
-      loading: false,
-      error: "",
-    });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({ items: [], loading: false });
-
-    render(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    expect(screen.getByRole("region", { name: /risk hotspots/i })).toBeInTheDocument();
-
-    const repoRows = within(
-      screen.getByRole("list", { name: /top risky repositories/i })
-    ).getAllByRole("listitem");
-    expect(repoRows[0]).toHaveTextContent("acme/api");
-    expect(repoRows[0]).toHaveTextContent("24 risk");
-    expect(repoRows[0]).toHaveTextContent("3 open issues");
-    expect(repoRows[1]).toHaveTextContent("acme/web");
-    expect(repoRows[1]).toHaveTextContent("6 risk");
-
-    const fileRows = within(screen.getByRole("list", { name: /top file hotspots/i })).getAllByRole(
-      "listitem"
-    );
-    expect(fileRows[0]).toHaveTextContent("src/auth.js");
-    expect(fileRows[0]).toHaveTextContent("acme/api");
-    expect(fileRows[0]).toHaveTextContent("17 risk");
-    expect(fileRows[1]).toHaveTextContent("src/routes.js");
-  });
-
-  it("shows a topbar loading spinner only while dashboard data is loading", () => {
-    useIssues.mockReturnValue({ items: [], loading: true, error: "" });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({ items: [], loading: false });
-
-    const { rerender } = render(
-      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
-    );
-
-    expect(screen.getByRole("status", { name: /^loading$/i })).toHaveClass(
-      "topbar-loading",
-      "spin"
-    );
-
-    useIssues.mockReturnValue({ items: [], loading: false, error: "" });
-    rerender(<DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />);
-
-    expect(screen.queryByRole("status", { name: /^loading$/i })).not.toBeInTheDocument();
-  });
-
-  it("keeps the topbar loading glyph centered on its rotation axis", () => {
-    const baseCss = readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
-
-    expect(baseCss).toMatch(
-      /\.spin\s*\{[^}]*display:\s*inline-flex;[^}]*align-items:\s*center;[^}]*justify-content:\s*center;[^}]*transform-origin:\s*50%\s+50%;/s
-    );
-  });
-
-  it("renders overview layout skeletons while dashboard data is loading", () => {
-    useIssues.mockReturnValue({ items: [], loading: true, error: "" });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: true,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({ items: [], loading: true });
-
-    const { container } = render(
-      <DashboardScreen go={vi.fn()} layout="list" setIssue={vi.fn()} accent="#6366f1" />
-    );
-
-    expect(container.querySelector(".dashboard-skeleton")).toBeInTheDocument();
-    expect(container.querySelectorAll(".dashboard-skeleton .kpi.card")).toHaveLength(4);
-    expect(container.querySelectorAll(".dashboard-skeleton .issue-row")).toHaveLength(4);
-    expect(screen.queryByText(/loading issues/i)).not.toBeInTheDocument();
-  });
-
-  it("pins KPI footnote text to a fixed slot above the sparkline", () => {
-    const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
-
-    expect(appCss).toMatch(/grid-template-rows:\s*20px 39px 32px 20px;/);
-    expect(appCss).not.toMatch(/grid-template-rows:\s*auto auto 32px 20px;/);
-    expect(appCss).toMatch(/\.kpi-h\s*\{[^}]*margin-bottom:\s*0;/s);
-    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*margin-bottom:\s*0;/s);
-    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*font-size:\s*30px;/s);
-    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*font-weight:\s*700;/s);
-    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*line-height:\s*36px;/s);
-    expect(appCss).toMatch(/\.kpi-v\s*\{[^}]*white-space:\s*nowrap;/s);
-    expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*align-self:\s*end;/s);
-    expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*line-height:\s*16px;/s);
-    expect(appCss).toMatch(/\.kpi-foot\s*\{[^}]*max-height:\s*32px;/s);
-  });
-
-  it("keeps dashboard issue tags from inheriting ellipsis clipping", () => {
-    const appCss = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
-    const screenCss = readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
-    const truncatingAtomSelector =
-      appCss.match(
-        /:where\((?<selector>[^)]*)\)\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;[^}]*white-space:\s*nowrap;/s
-      )?.groups?.selector || "";
-
-    expect(truncatingAtomSelector).not.toContain(".tag");
-    expect(screenCss).toMatch(/\.issue-meta\s*\{[^}]*flex-wrap:\s*wrap;/s);
-  });
-
-  it("opens a dashboard issue row with keyboard activation", async () => {
-    const user = userEvent.setup();
-    const go = vi.fn();
-    const setIssue = vi.fn();
-    const issue = {
-      id: "f_123",
-      repo: "acme/api",
-      severity: "high",
-      category: "Security",
-      title: "Validate redirect targets",
-      file: "src/auth.py",
-      line: 42,
-      confidence: 0.91,
-      effort: "S",
-      status: "open",
-    };
-    useIssues.mockReturnValue({ items: [issue], loading: false, error: "" });
-    useRepositories.mockReturnValue({
-      items: [],
-      loading: false,
-      needsAuthorization: false,
-    });
-    useScans.mockReturnValue({ items: [], loading: false });
-
-    render(<DashboardScreen go={go} layout="list" setIssue={setIssue} accent="#6366f1" />);
-
-    const openIssue = screen.getByRole("button", { name: /validate redirect targets/i });
-    openIssue.focus();
-    await user.keyboard("{Enter}");
-
-    expect(setIssue).toHaveBeenCalledWith(issue);
-    expect(go).toHaveBeenCalledWith("issue", { issueId: "f_123" });
-
-    setIssue.mockClear();
-    go.mockClear();
-    await user.keyboard(" ");
-
-    expect(setIssue).toHaveBeenCalledWith(issue);
-    expect(go).toHaveBeenCalledWith("issue", { issueId: "f_123" });
-  });
+it.each(["overview", "items", "repositories", "watches"])("%s failure stays unavailable until reload succeeds", async name => {
+  productApi[name].mockRejectedValue(new Error("Data unavailable"));
+  mount();
+  await screen.findByText("Data unavailable");
+  expect(screen.queryByRole("button", { name: "Needs action: 0" })).toBeNull();
+  expect(screen.queryByText("No matching items.")).toBeNull();
+  productApi[name].mockResolvedValue(name === "overview" ? overviewFixture : page([]));
+  fireEvent.click(screen.getByRole("button", { name: "Retry loading data" }));
+  await screen.findByRole("button", { name: "Needs action: 1" });
 });

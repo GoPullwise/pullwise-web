@@ -11,6 +11,10 @@ import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./api/pullwise.js";
 import { App } from "./App.jsx";
+import { productApi } from "./api/product.js";
+import { overviewFixture, page } from "./test/product-fixtures.js";
+
+vi.mock("./api/product.js");
 import { NotificationProvider } from "./components/notifications.jsx";
 import { setLang } from "./i18n.jsx";
 import {
@@ -98,6 +102,10 @@ const OTHER_ACTIVE_REPO_STORAGE_KEY = activeRepoStorageKey("other@example.com");
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    productApi.overview.mockResolvedValue(overviewFixture);
+    productApi.items.mockResolvedValue(page([]));
+    productApi.repositories.mockResolvedValue(page([]));
+    productApi.watches.mockResolvedValue(page([]));
     clearPullwiseDataCache();
     setLang("en");
     document.title = "";
@@ -505,7 +513,7 @@ describe("App", () => {
     });
   });
 
-  it("keeps bulk-fixed issue state after navigating through Overview despite a stale list refresh", async () => {
+  it("keeps bulk-fixed issue state after returning from the product overview via history", async () => {
     window.history.replaceState({}, "", "/issues");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
@@ -558,7 +566,10 @@ describe("App", () => {
     await waitFor(() =>
       expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument()
     );
-    await user.click(await screen.findByRole("link", { name: /^issues\b/i }));
+    await act(async () => {
+      window.history.replaceState({}, "", "/issues");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
 
     await waitFor(() => {
       const firstRow = screen.getByText("Validate bulk redirect targets").closest(".issues-trow");
@@ -1609,7 +1620,7 @@ describe("App", () => {
     expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
   });
   it("opens issue search results directly in the issue detail view", async () => {
-    window.history.replaceState({}, "", "/dashboard");
+    window.history.replaceState({}, "", "/issues");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
