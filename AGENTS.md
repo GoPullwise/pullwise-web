@@ -471,6 +471,17 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## P5a product dashboard
 
+- Billing/Pricing now render `plan.entitlements` (repository/watch capacity and
+  monthly intelligent-processing units) from Server, and Billing uses only
+  `account.usage.metric=intelligent_processing` plus saved
+  `account.processingActivity`. Do not show reviewLimit, checkout size,
+  model-tier, legacy scan quota or scan-detail links as new product benefits.
+  Keep Creem price/interval, subscription actions and payment history behavior.
+  If product usage is missing, show unavailable instead of a zero-filled
+  fallback. The local 390px synthetic browser check had
+  `documentElement.scrollWidth=clientWidth=390` for Billing and Pricing; its
+  screenshots are under the preserved untracked `output/playwright/`.
+
 - `product-http-contract.test.jsx` uses the actual Web client and worker proxy
   against a loopback Pullwise HTTP server with fresh synthetic SQLite data.
   PULLWISE_CONTRACT_PYTHON opts in; no real identity, GitHub or model is used.

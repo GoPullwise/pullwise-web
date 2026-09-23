@@ -39,9 +39,8 @@ describe("BillingScreen", () => {
       {
         id: "free",
         name: "Free",
-        description: "Try Pullwise with a small monthly review allowance.",
-        reviewLimit: 5,
-        repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
+        description: "Follow PR feedback, CI failures and upstream releases.",
+        entitlements: { activeRepositoryLimit: 1, activeWatchLimit: 3, monthlyProcessingLimit: 200 },
         prices: {
           month: { amount: "0", currency: "USD", interval: "month", configured: true },
         },
@@ -49,9 +48,8 @@ describe("BillingScreen", () => {
       {
         id: "pro",
         name: "Pullwise Pro",
-        description: "Repository review for production teams.",
-        reviewLimit: 100,
-        repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
+        description: "PR, CI and Updates follow-up for production teams.",
+        entitlements: { activeRepositoryLimit: 5, activeWatchLimit: 25, monthlyProcessingLimit: 5000 },
         prices: {
           month: { amount: "29", currency: "USD", interval: "month", configured: true },
           year: { amount: "290", currency: "USD", interval: "year", configured: true },
@@ -63,9 +61,8 @@ describe("BillingScreen", () => {
   const maxPlan = {
     id: "max",
     name: "Pullwise Max",
-    description: "Higher-capacity repository review for production teams.",
-    reviewLimit: 90,
-    repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
+    description: "Higher-capacity PR, CI and Updates follow-up for production teams.",
+    entitlements: { activeRepositoryLimit: 20, activeWatchLimit: 100, monthlyProcessingLimit: 25000 },
     prices: {
       month: { amount: "49", currency: "USD", interval: "month", configured: true },
       year: { amount: "490", currency: "USD", interval: "year", configured: true },
@@ -74,6 +71,40 @@ describe("BillingScreen", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("shows PR/CI/Updates capacity and saved processing instead of scan quota", async () => {
+    const productPlans = billingCatalog.plans.map((plan) => ({
+      ...plan,
+      reviewLimit: undefined,
+      repositoryLimits: undefined,
+      entitlements: plan.id === "free"
+        ? { activeRepositoryLimit: 1, activeWatchLimit: 3, monthlyProcessingLimit: 200 }
+        : { activeRepositoryLimit: 5, activeWatchLimit: 25, monthlyProcessingLimit: 5000 },
+    }));
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: productPlans,
+      account: {
+        status: "active", plan: "pro", interval: "month",
+        entitlements: productPlans[1].entitlements,
+        usage: { metric: "intelligent_processing", period: "cycle:2026-05",
+          used: 12, reserved: 1, limit: 5000, remaining: 4987 },
+        processingActivity: [{ id: "res-1", module: "pr", period: "cycle:2026-05",
+          metric: "intelligent_processing", processedAt: "2026-05-01T00:00:00Z" }],
+        subscriptionEvents: [],
+      },
+    });
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    expect(await screen.findByText(/12 \/ 5000 processed/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /account usage/i }));
+    expect(screen.getByText(/Processing activity/i)).toBeInTheDocument();
+    expect(screen.getByText(/PR processing/i)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("scan quota");
+
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+    expect(await screen.findByText(/200 intelligent processing units \/ month/i)).toBeInTheDocument();
+    expect(screen.getByText(/Choose capacity for PR, CI and Updates/i)).toBeInTheDocument();
   });
 
   it("renders all pricing tiers immediately with skeletons while pricing loads", () => {
@@ -193,7 +224,7 @@ describe("BillingScreen", () => {
           id: "max",
           name: "Pullwise Max",
           description: "Higher-capacity repository review for production teams.",
-          reviewLimit: 90,
+          entitlements: { activeRepositoryLimit: 20, activeWatchLimit: 100, monthlyProcessingLimit: 25000 },
           prices: {
             month: { amount: "49", currency: "USD", interval: "month", configured: true },
             year: { amount: "490", currency: "USD", interval: "year", configured: true },
@@ -484,7 +515,7 @@ describe("BillingScreen", () => {
           id: "max",
           name: "Pullwise Max",
           description: "Higher-capacity repository review for production teams.",
-          reviewLimit: 90,
+          entitlements: { activeRepositoryLimit: 20, activeWatchLimit: 100, monthlyProcessingLimit: 25000 },
           prices: {
             month: { amount: "49", currency: "USD", interval: "month", configured: true },
             year: { amount: "490", currency: "USD", interval: "year", configured: true },
@@ -498,7 +529,7 @@ describe("BillingScreen", () => {
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Pullwise Max")).toBeInTheDocument();
-    expect(screen.getByText("Deeper reasoning")).toBeInTheDocument();
+    expect(screen.getByText("100 active update watches")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 
@@ -548,7 +579,7 @@ describe("BillingScreen", () => {
 
     render(<BillingScreen go={go} navigate={vi.fn()} />);
 
-    expect(await screen.findByText(/0 \/ 5 reviews used/i)).toBeInTheDocument();
+    expect(await screen.findByText(/processing usage unavailable/i)).toBeInTheDocument();
     const terms = screen.getByRole("link", { name: /^terms$/i });
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
 
@@ -605,108 +636,46 @@ describe("BillingScreen", () => {
       account: {
         status: "none",
         plan: "free",
-        usage: { period: "2026-05", used: 2, limit: 5, remaining: 3, resetAt },
+        usage: { metric: "intelligent_processing", period: "2026-05", used: 2,
+          limit: 200, remaining: 198, resetAt },
       },
     });
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    expect(await screen.findByText(/2 \/ 5 reviews used/)).toBeInTheDocument();
-    expect(screen.getByText(/Monthly quota resets 2026-06-01 00:00 UTC/i)).toBeInTheDocument();
+    expect(await screen.findByText(/2 \/ 200 processed/)).toBeInTheDocument();
+    expect(screen.getByText(/Processing allowance resets 2026-06-01 00:00 UTC/i)).toBeInTheDocument();
     const usageTag = document.querySelector(".billing-summary-meter .tag");
     expect(usageTag).toHaveTextContent("Free");
     expect(usageTag).not.toHaveTextContent("none");
   });
 
-  it("toggles scan quota activity from account usage and links to scan details", async () => {
+  it("shows saved processing activity without borrowing legacy scan quota events", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       account: {
         status: "none",
         plan: "free",
-        usage: { period: "2026-05", used: 2, reserved: 1, limit: 5, remaining: 2 },
-        quotaActivity: [
-          {
-            id: "ql_reserved",
-            action: "reserved",
-            amount: 1,
-            delta: 1,
-            scanId: "sc_reserved",
-            repo: "owner/queued-repo",
-            branch: "main",
-            commit: "pending",
-            status: "queued",
-            requestId: "req_reserved",
-            reason: "scan_reserved",
-            eventAt: Date.UTC(2026, 4, 2, 11, 55, 0) / 1000,
-          },
-          {
-            id: "ql_done",
-            action: "consumed",
-            amount: 1,
-            delta: 1,
-            scanId: "sc_done",
-            repo: "owner/repo",
-            branch: "main",
-            commit: "abc1234",
-            status: "done",
-            requestId: "req_done",
-            reason: "scan_created",
-            eventAt: Date.UTC(2026, 4, 2, 12, 0, 0) / 1000,
-          },
-          {
-            id: "sc_failed:refunded",
-            action: "refunded",
-            amount: 1,
-            delta: -1,
-            scanId: "sc_failed",
-            repo: "owner/failing-repo",
-            branch: "main",
-            commit: "def5678",
-            status: "failed",
-            requestId: "req_failed",
-            reason: "REPOSITORY_TOO_LARGE",
-            eventAt: Date.UTC(2026, 4, 2, 12, 5, 0) / 1000,
-          },
-          {
-            id: "ql_released",
-            action: "released",
-            amount: 1,
-            delta: -1,
-            scanId: "sc_cancelled",
-            repo: "owner/cancelled-repo",
-            branch: "main",
-            commit: "pending",
-            status: "cancelled",
-            requestId: "req_cancelled",
-            reason: "scan_reservation_released",
-            eventAt: Date.UTC(2026, 4, 2, 12, 6, 0) / 1000,
-          },
+        usage: { metric: "intelligent_processing", period: "2026-05",
+          used: 2, reserved: 1, limit: 200, remaining: 197 },
+        processingActivity: [
+          { id: "res-pr", module: "pr", metric: "intelligent_processing",
+            period: "2026-05", processedAt: "2026-05-02T12:00:00Z" },
+          { id: "res-updates", module: "updates", metric: "intelligent_processing",
+            period: "2026-05", processedAt: "2026-05-02T12:05:00Z" },
         ],
+        quotaActivity: [{ scanId: "old-scan", action: "consumed", repo: "owner/old" }],
       },
     });
-    const go = vi.fn();
     const user = userEvent.setup();
-
-    render(<BillingScreen go={go} navigate={vi.fn()} />);
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: /account usage/i }));
-
-    expect(screen.getByText("Quota activity")).toBeInTheDocument();
-    expect(screen.getByText("Quota reserved")).toBeInTheDocument();
-    expect(screen.getByText("Quota consumed")).toBeInTheDocument();
-    expect(screen.getByText("Quota refunded")).toBeInTheDocument();
-    expect(screen.getByText("Reservation released")).toBeInTheDocument();
-    expect(screen.getByText("-1 pending")).toBeInTheDocument();
-    expect(screen.getByText("+1 pending")).toBeInTheDocument();
-    expect(screen.getByText(/repository too large/i)).toBeInTheDocument();
-
-    const consumedRow = screen.getByRole("link", { name: /owner\/repo/i });
-    expect(consumedRow).toHaveAttribute("href", "/scanning/sc_done");
-
-    await user.click(consumedRow);
-
-    expect(go).toHaveBeenCalledWith("scanning", { scanId: "sc_done" });
+    expect(screen.getByText("Processing activity")).toBeInTheDocument();
+    expect(screen.getByText("PR processing")).toBeInTheDocument();
+    expect(screen.getByText("Updates processing")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("old-scan");
+    expect(screen.queryByRole("link", { name: /owner\/old/i })).not.toBeInTheDocument();
   });
 
   it("rejects unsafe checkout URLs before navigating", async () => {
@@ -794,6 +763,7 @@ describe("BillingScreen", () => {
   it("shows free and pro monthly limits with yearly pricing toggle", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
+      plans: [...billingCatalog.plans, maxPlan],
       account: {
         status: "active",
         plan: "pro",
@@ -806,10 +776,10 @@ describe("BillingScreen", () => {
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Free")).toBeInTheDocument();
-    expect(screen.getByText("5 shared account reviews / month")).toBeInTheDocument();
-    expect(screen.getByText("Repository checkout up to 200 files / 5 MB")).toBeInTheDocument();
-    expect(screen.getByText("Repository checkout up to 1,000 files / 20 MB")).toBeInTheDocument();
-    expect(screen.getByText("Repository checkout up to 2,000 files / 50 MB")).toBeInTheDocument();
+    expect(screen.getByText("200 intelligent processing units / month")).toBeInTheDocument();
+    expect(screen.getByText("1 active repository")).toBeInTheDocument();
+    expect(screen.getByText("5 active repositories")).toBeInTheDocument();
+    expect(screen.getByText("20 active repositories")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 
@@ -821,20 +791,21 @@ describe("BillingScreen", () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       plans: [
-        { ...billingCatalog.plans[0], reviewLimit: "not-a-number" },
-        { ...billingCatalog.plans[1], reviewLimit: "not-a-number" },
+        { ...billingCatalog.plans[0], entitlements: { monthlyProcessingLimit: "not-a-number" } },
+        { ...billingCatalog.plans[1], entitlements: { monthlyProcessingLimit: "not-a-number" } },
       ],
       account: {
         status: "active",
         plan: "pro",
         interval: "month",
-        usage: { period: "2026-05", used: "not-a-number", limit: "not-a-number", remaining: -3 },
+        usage: { metric: "intelligent_processing", period: "2026-05", used: "not-a-number",
+          limit: "not-a-number", remaining: -3 },
       },
     });
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    expect(await screen.findByText(/0 \/ 0 reviews used/)).toBeInTheDocument();
+    expect(await screen.findByText(/0 \/ 0 processed/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("NaN");
   });
 
@@ -1021,7 +992,7 @@ describe("BillingScreen", () => {
       id: "max",
       name: "Pullwise Max",
       description: "Higher-capacity repository review for production teams.",
-      reviewLimit: 90,
+      entitlements: { activeRepositoryLimit: 20, activeWatchLimit: 100, monthlyProcessingLimit: 25000 },
       prices: {
         month: { amount: "49", currency: "USD", interval: "month", configured: true },
         year: { amount: "490", currency: "USD", interval: "year", configured: true },
@@ -1035,7 +1006,8 @@ describe("BillingScreen", () => {
           status: "active",
           plan: "pro",
           interval: "month",
-          usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+          usage: { metric: "intelligent_processing", period: "2026-05",
+            used: 12, limit: 5000, remaining: 4988 },
         },
       })
       .mockResolvedValueOnce({
@@ -1091,7 +1063,7 @@ describe("BillingScreen", () => {
       id: "max",
       name: "Pullwise Max",
       description: "Higher-capacity repository review for production teams.",
-      reviewLimit: 90,
+      entitlements: { activeRepositoryLimit: 20, activeWatchLimit: 100, monthlyProcessingLimit: 25000 },
       prices: {
         month: { amount: "49", currency: "USD", interval: "month", configured: true },
         year: { amount: "490", currency: "USD", interval: "year", configured: true },
@@ -1105,7 +1077,8 @@ describe("BillingScreen", () => {
           status: "active",
           plan: "pro",
           interval: "month",
-          usage: { period: "2026-05", used: 12, limit: 60, remaining: 48 },
+          usage: { metric: "intelligent_processing", period: "2026-05",
+            used: 12, limit: 5000, remaining: 4988 },
         },
       })
       .mockResolvedValueOnce({
@@ -1116,10 +1089,11 @@ describe("BillingScreen", () => {
           plan: "max",
           interval: "month",
           usage: {
+            metric: "intelligent_processing",
             period: "2026-06",
             used: 0,
-            limit: 90,
-            remaining: 90,
+            limit: 25000,
+            remaining: 25000,
             resetAt: 1783555200,
           },
           subscriptionEvents: [
@@ -1146,7 +1120,7 @@ describe("BillingScreen", () => {
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    expect(await screen.findByText(/12 \/ 60 reviews used/i)).toBeInTheDocument();
+    expect(await screen.findByText(/12 \/ 5000 processed/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /switch to max/i }));
     await user.click(await screen.findByRole("button", { name: /confirm change/i }));
@@ -1154,8 +1128,8 @@ describe("BillingScreen", () => {
     await waitFor(() => {
       expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2);
     });
-    expect(await screen.findByText(/0 \/ 90 reviews used/i)).toBeInTheDocument();
-    expect(screen.getByText(/Monthly quota resets 2026-07-09 00:00 UTC/i)).toBeInTheDocument();
+    expect(await screen.findByText(/0 \/ 25000 processed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Processing allowance resets 2026-07-09 00:00 UTC/i)).toBeInTheDocument();
     expect(screen.getByText("Subscription activity")).toBeInTheDocument();
     expect(screen.getByText(/subscription\.updated/)).toBeInTheDocument();
     expect(screen.getByText(/evt_upgrade - 2026-06-09 00:00 UTC/i)).toBeInTheDocument();
@@ -1170,7 +1144,7 @@ describe("BillingScreen", () => {
           id: "max",
           name: "Pullwise Max",
           description: "Higher-capacity repository review for production teams.",
-          reviewLimit: 90,
+          entitlements: { activeRepositoryLimit: 20, activeWatchLimit: 100, monthlyProcessingLimit: 25000 },
           prices: {
             month: { amount: "49", currency: "USD", interval: "month", configured: true },
             year: { amount: "490", currency: "USD", interval: "year", configured: true },
@@ -1249,7 +1223,8 @@ describe("BillingScreen", () => {
         status: "active",
         plan: "pro",
         interval: "month",
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        usage: { metric: "intelligent_processing", period: "2026-05",
+          used: 12, limit: 5000, remaining: 4988 },
       },
     });
     pullwiseApi.billing.cancelSubscription.mockImplementation(() => new Promise(() => {}));
@@ -1501,7 +1476,8 @@ describe("BillingScreen", () => {
         status: "active",
         plan: "pro",
         interval: "month",
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        usage: { metric: "intelligent_processing", period: "2026-05",
+          used: 12, limit: 5000, remaining: 4988 },
         subscriptions: [
           {
             provider: "creem",
@@ -1520,7 +1496,7 @@ describe("BillingScreen", () => {
 
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    expect(await screen.findByText(/12 \/ 100 reviews used/i)).toBeInTheDocument();
+    expect(await screen.findByText(/12 \/ 5000 processed/i)).toBeInTheDocument();
     expect(screen.queryByText("Subscription activity")).not.toBeInTheDocument();
     expect(screen.queryByText(/checkout\.completed/)).not.toBeInTheDocument();
   });
@@ -1532,14 +1508,15 @@ describe("BillingScreen", () => {
         status: "active",
         plan: "pro",
         interval: "year",
-        usage: { period: "2026-05", used: 12, limit: 100, remaining: 88 },
+        usage: { metric: "intelligent_processing", period: "2026-05",
+          used: 12, limit: 5000, remaining: 4988 },
       },
     });
     const navigate = vi.fn();
 
     render(<BillingScreen go={vi.fn()} navigate={navigate} />);
 
-    expect(await screen.findByText(/12 \/ 100 reviews used/i)).toBeInTheDocument();
+    expect(await screen.findByText(/12 \/ 5000 processed/i)).toBeInTheDocument();
 
     expect(screen.queryByRole("button", { name: /manage billing/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /manage billing/i })).not.toBeInTheDocument();

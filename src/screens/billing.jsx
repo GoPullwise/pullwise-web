@@ -124,7 +124,7 @@ function billingChangeDeltaText(currentPlan, currentInterval, targetPlan, target
 function planRank(plan) {
   const ranks = { free: 0, pro: 1, max: 2 };
   if (Object.prototype.hasOwnProperty.call(ranks, plan?.id)) return ranks[plan.id];
-  return nonNegativeInteger(plan?.reviewLimit);
+  return 0;
 }
 
 function subscriptionChangeIsUpgrade(currentPlan, currentInterval, targetPlan, targetInterval) {
@@ -191,15 +191,14 @@ function chargeCallout(deltaText) {
 function planFeatureDeltas(currentPlan, targetPlan) {
   if (!currentPlan || !targetPlan) return [];
   const rows = [];
-  const currentLimit = nonNegativeInteger(currentPlan.reviewLimit);
-  const targetLimit = nonNegativeInteger(targetPlan.reviewLimit);
-  if (currentLimit !== targetLimit) {
-    rows.push({
-      key: "reviewLimit",
-      label: T("Shared account reviews / month", "共享账户审查 / 月"),
-      before: T(`${currentLimit} reviews`, `${currentLimit} 次审查`),
-      after: T(`${targetLimit} reviews`, `${targetLimit} 次审查`),
-    });
+  for (const [key, label] of [
+    ["activeRepositoryLimit", T("Active repositories", "启用的仓库")],
+    ["activeWatchLimit", T("Active update watches", "启用的更新关注")],
+    ["monthlyProcessingLimit", T("Intelligent processing / month", "每月智能处理量")],
+  ]) {
+    const before = nonNegativeInteger(currentPlan.entitlements?.[key]);
+    const after = nonNegativeInteger(targetPlan.entitlements?.[key]);
+    if (before !== after) rows.push({ key, label, before: String(before), after: String(after) });
   }
   const currentName = planName(currentPlan);
   const targetName = planName(targetPlan);
@@ -252,118 +251,47 @@ function nonNegativeInteger(value) {
   return Math.max(0, Math.trunc(number));
 }
 
-function repositoryLimitsForPlan(plan) {
-  const limits = plan?.repositoryLimits || plan?.repository_limits || null;
-  if (!limits || typeof limits !== "object") return null;
-  const maxFiles = nonNegativeInteger(limits.maxFiles ?? limits.max_files);
-  const maxBytes = nonNegativeInteger(limits.maxBytes ?? limits.max_bytes);
-  return maxFiles || maxBytes ? { maxFiles, maxBytes } : null;
-}
-
-function formatCompactBytes(value) {
-  const bytes = nonNegativeInteger(value);
-  if (!bytes) return "";
-  const mib = 1024 * 1024;
-  const kib = 1024;
-  if (bytes >= mib && bytes % mib === 0) return `${bytes / mib} MB`;
-  if (bytes >= kib && bytes % kib === 0) return `${bytes / kib} KB`;
-  return `${bytes.toLocaleString("en-US")} bytes`;
-}
-
-function repositoryCheckoutFeatureText(plan) {
-  const limits = repositoryLimitsForPlan(plan);
-  if (!limits) return "";
-  const parts = [];
-  if (limits.maxFiles) parts.push(`${limits.maxFiles.toLocaleString("en-US")} files`);
-  if (limits.maxBytes) parts.push(formatCompactBytes(limits.maxBytes));
-  return T(
-    `Repository checkout up to ${parts.join(" / ")}`,
-    `仓库 checkout 最高 ${parts.join(" / ")}`
-  );
+function planCapacity(plan, key) {
+  const value = plan?.entitlements?.[key];
+  return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
 function usagePercent(usage) {
+  if (usage?.metric !== "intelligent_processing") return 0;
   const limit = nonNegativeInteger(usage?.limit);
   if (!limit) return 0;
   return Math.min(100, (nonNegativeInteger(usage?.used) / limit) * 100);
 }
 
 function usageText(usage) {
+  if (usage?.metric !== "intelligent_processing") {
+    return T("Processing usage unavailable", "智能处理用量暂不可用");
+  }
   const used = nonNegativeInteger(usage?.used);
   const reserved = nonNegativeInteger(usage?.reserved);
   const limit = nonNegativeInteger(usage?.limit);
-  const base = T(`${used} / ${limit} reviews used`, `${used} / ${limit} reviews used`);
+  const base = T(`${used} / ${limit} processed`, `${used} / ${limit} 次已处理`);
   if (!reserved) return base;
   return T(`${base} - ${reserved} pending`, `${base} - ${reserved} pending`);
-  // eslint-disable-next-line no-unreachable
-  return T(`${used} / ${limit} reviews used`, `${used} / ${limit} 次审查已用`);
 }
 
-function quotaActivityRecords(account) {
-  return Array.isArray(account?.quotaActivity)
-    ? account.quotaActivity.filter(
-        (record) => record && typeof record === "object" && record.scanId
+function processingActivityRecords(account) {
+  return Array.isArray(account?.processingActivity)
+    ? account.processingActivity.filter(
+        (record) => record?.metric === "intelligent_processing" && record?.id && record?.module
       )
     : [];
 }
 
-function quotaActivityRecordKey(record, index) {
-  return record?.id || `${record?.scanId || "scan"}-${record?.action || "quota"}-${index}`;
+function processingActivityTitle(record) {
+  const names = { pr: "PR", ci: "CI", updates: "Updates" };
+  const name = names[record?.module] || "Saved";
+  return T(`${name} processing`, `${name} 智能处理`);
 }
 
-function quotaActivityAction(record) {
-  return ["reserved", "released", "refunded"].includes(record?.action) ? record.action : "consumed";
-}
-
-function quotaActivityTitle(record) {
-  const action = quotaActivityAction(record);
-  if (action === "refunded") return T("Quota refunded", "Quota refunded");
-  if (action === "reserved") return T("Quota reserved", "Quota reserved");
-  if (action === "released") return T("Reservation released", "Reservation released");
-  return T("Quota consumed", "Quota consumed");
-  // eslint-disable-next-line no-unreachable
-  return quotaActivityAction(record) === "refunded"
-    ? T("Quota refunded", "配额已回退")
-    : T("Quota consumed", "配额已消耗");
-}
-
-function quotaActivityAmountText(record) {
-  const amount = nonNegativeInteger(record?.amount || Math.abs(Number(record?.delta || 0))) || 1;
-  const action = quotaActivityAction(record);
-  if (action === "refunded") return T(`+${amount} quota`, `+${amount} quota`);
-  if (action === "released") return T(`+${amount} pending`, `+${amount} pending`);
-  if (action === "reserved") return T(`-${amount} pending`, `-${amount} pending`);
-  return T(`-${amount} quota`, `-${amount} quota`);
-  // eslint-disable-next-line no-unreachable
-  return quotaActivityAction(record) === "refunded"
-    ? T(`+${amount} quota`, `+${amount} 配额`)
-    : T(`-${amount} quota`, `-${amount} 配额`);
-}
-
-function quotaActivityReasonText(reason) {
-  const text = String(reason || "").trim();
-  if (!text) return "";
-  return text.replace(/[_-]+/g, " ").toLowerCase();
-}
-
-function quotaActivityMeta(record) {
-  return [
-    record?.repo,
-    record?.branch,
-    record?.commit && record.commit !== "pending" ? record.commit : "",
-    record?.status,
-  ]
-    .filter(Boolean)
-    .join(" - ");
-}
-
-function quotaActivityEventText(record) {
-  const parts = [];
-  if (record?.requestId) parts.push(record.requestId);
-  const reason = quotaActivityReasonText(record?.reason);
-  if (reason && reason !== "scan created") parts.push(reason);
-  if (record?.eventAt) parts.push(formatQuotaResetAt(record.eventAt));
-  return parts.join(" - ");
+function processingActivityMeta(record) {
+  const timestamp = Date.parse(record?.processedAt || "");
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString().replace(".000Z", "Z") : "";
 }
 
 function subscriptionRecords(account) {
@@ -416,11 +344,10 @@ function fallbackFreePlan(loading = false) {
     id: "free",
     name: "Free",
     description: T(
-      "Try Pullwise with shared account and repository quota.",
-      "使用共享账户和仓库配额试用 Pullwise。"
+      "Follow PR feedback, CI failures and upstream releases.",
+      "跟进 PR 反馈、CI 失败和上游更新。"
     ),
-    reviewLimit: 10,
-    repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
+    entitlements: null,
     loading,
     prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
   };
@@ -435,14 +362,11 @@ function fallbackPaidPlan(id, payload, loading = false) {
       payload?.description ||
       (max
         ? T(
-            "Higher-capacity repository review for production teams.",
-            "Higher-capacity repository review for production teams."
+            "Higher-capacity PR, CI and Updates follow-up for teams.",
+            "为团队提供更高容量的 PR、CI 与更新跟进。"
           )
-        : T("Repository review for production teams.", "面向生产团队的仓库审查。")),
-    reviewLimit: max ? 90 : 60,
-    repositoryLimits: max
-      ? { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 }
-      : { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
+        : T("PR, CI and Updates follow-up for teams.", "面向团队的 PR、CI 与更新跟进。")),
+    entitlements: null,
     loading,
     prices: {
       month: {
@@ -664,15 +588,10 @@ export function BillingScreen({
   const cancellationScheduled = String(accountStatus).toLowerCase() === "canceling";
   const subscriptionInterval = account.interval || "month";
   const currentPlan = activePaid ? paidPlanById[account.plan] || proPlan : freePlan;
-  const usage = account.usage || {
-    used: 0,
-    limit: activePaid ? currentPlan.reviewLimit : freePlan.reviewLimit,
-    remaining: activePaid ? currentPlan.reviewLimit : freePlan.reviewLimit,
-    period: "",
-  };
-  const quotaActivity = useMemo(() => quotaActivityRecords(account), [account]);
+  const usage = account.usage?.metric === "intelligent_processing" ? account.usage : null;
+  const processingActivity = useMemo(() => processingActivityRecords(account), [account]);
   const subscriptions = subscriptionRecords(account);
-  const usageResetText = quotaResetText(usage, "Monthly quota resets");
+  const usageResetText = quotaResetText(usage, T("Processing allowance resets", "智能处理额度重置于"));
   const billingEnabled = Boolean(plan?.enabled);
   const alternatePaidPlans = paidPlans.filter((paidPlan) =>
     subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, paidPlan, subscriptionInterval)
@@ -961,7 +880,7 @@ export function BillingScreen({
                     usageExpanded ? " open" : ""
                   }`}
                   aria-expanded={usageExpanded}
-                  aria-controls="billing-quota-activity"
+                  aria-controls="billing-processing-activity"
                   onClick={() => setUsageExpanded((expanded) => !expanded)}
                 >
                   <div className="billing-summary-main">
@@ -985,67 +904,45 @@ export function BillingScreen({
 
                 {usageExpanded && (
                   <div
-                    id="billing-quota-activity"
+                    id="billing-processing-activity"
                     className="bill-card bill-card-list billing-usage-activity"
                   >
                     <div className="billing-summary-main">
                       <I.Activity size={18} />
                       <div>
-                        <b>{T("Quota activity", "配额明细")}</b>
+                        <b>{T("Processing activity", "智能处理明细")}</b>
                         <div className="muted">
-                          {quotaActivity.length
+                          {processingActivity.length
                             ? T(
-                                `${quotaActivity.length} scan quota events`,
-                                `${quotaActivity.length} 条 scan 配额事件`
+                                `${processingActivity.length} successful processing events`,
+                                `${processingActivity.length} 条成功处理记录`
                               )
-                            : T("No scan quota events yet.", "暂无 scan 配额事件。")}
+                            : T("No processing events yet.", "暂无智能处理记录。")}
                         </div>
                       </div>
                     </div>
                     <div className="sub-record-list">
-                      {quotaActivity.length > 0 ? (
-                        quotaActivity.map((record, index) => {
-                          const scanId = record.scanId;
-                          return (
-                            <a
-                              className={`sub-record-row quota-activity-row quota-activity-${quotaActivityAction(
-                                record
-                              )}`}
-                              key={quotaActivityRecordKey(record, index)}
-                              aria-label={T(
-                                `Open quota activity for ${record.repo || scanId}`,
-                                `打开 ${record.repo || scanId} 的配额明细`
-                              )}
-                              {...screenLinkProps(go, "scanning", { scanId })}
-                            >
-                              <div className="quota-activity-main">
-                                <span className="quota-activity-icon" aria-hidden="true">
-                                  {["refunded", "released"].includes(
-                                    quotaActivityAction(record)
-                                  ) ? (
-                                    <I.Refresh size={13} />
-                                  ) : (
-                                    <I.Activity size={13} />
-                                  )}
-                                </span>
-                                <span className="sub-record-main">
-                                  <b>{quotaActivityTitle(record)}</b>
-                                  <span className="muted">{quotaActivityMeta(record)}</span>
-                                  <span className="muted">{quotaActivityEventText(record)}</span>
-                                </span>
-                              </div>
-                              <span className="tag">{quotaActivityAmountText(record)}</span>
-                            </a>
-                          );
-                        })
+                      {processingActivity.length > 0 ? (
+                        processingActivity.map((record) => (
+                          <div className="sub-record-row quota-activity-row" key={record.id}>
+                            <div className="quota-activity-main">
+                              <span className="quota-activity-icon" aria-hidden="true"><I.Activity size={13} /></span>
+                              <span className="sub-record-main">
+                                <b>{processingActivityTitle(record)}</b>
+                                <span className="muted">{processingActivityMeta(record)}</span>
+                              </span>
+                            </div>
+                            <span className="tag">{T("1 unit", "1 单位")}</span>
+                          </div>
+                        ))
                       ) : (
                         <div className="sub-record-row quota-activity-empty">
                           <div className="sub-record-main">
-                            <b>{T("No quota activity", "暂无配额明细")}</b>
+                            <b>{T("No processing activity", "暂无智能处理明细")}</b>
                             <div className="muted">
                               {T(
-                                "Scans that consume or refund quota will appear here.",
-                                "消耗或回退配额的 scan 会显示在这里。"
+                                "Successful PR, CI and Updates processing will appear here.",
+                                "成功完成的 PR、CI 与更新处理会显示在这里。"
                               )}
                             </div>
                           </div>
@@ -1518,8 +1415,8 @@ export function PricingScreen({
         <h1 className="lp-title">{T("Pricing", "Pricing")}</h1>
         <p className="lp-sub">
           {T(
-            "Choose review capacity for the account. Billing status and invoices stay on Billing.",
-            "Choose review capacity for the account. Billing status and invoices stay on Billing."
+            "Choose capacity for PR, CI and Updates. Billing status and invoices stay on Billing.",
+            "选择 PR、CI 与更新跟进容量；订阅状态和账单仍在账单页。"
           )}
         </p>
         <div className="pricing-toggle" role="group" aria-label={T("Billing interval", "计费周期")}>
@@ -1624,8 +1521,9 @@ function PricingSkeletonLine({ className = "" }) {
 
 function PlanCard({ plan, price, interval, active, featured, cta }) {
   const loading = Boolean(plan?.loading);
-  const reviewLimit = nonNegativeInteger(plan?.reviewLimit);
-  const repositoryLimitText = repositoryCheckoutFeatureText(plan);
+  const processingLimit = planCapacity(plan, "monthlyProcessingLimit");
+  const repositoryLimit = planCapacity(plan, "activeRepositoryLimit");
+  const watchLimit = planCapacity(plan, "activeWatchLimit");
   const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
@@ -1667,31 +1565,24 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
           {loading ? (
             <PricingSkeletonLine className="pricing-skeleton-feature" />
           ) : (
-            T(`${reviewLimit} shared account reviews / month`, `${reviewLimit} 次/月 共享账户审查`)
+            processingLimit === null
+              ? T("Processing capacity unavailable", "智能处理容量暂不可用")
+              : T(`${processingLimit} intelligent processing units / month`, `${processingLimit} 次/月智能处理`)
           )}
         </li>
-        {repositoryLimitText && (
-          <li>
-            <I.Check size={13} />{" "}
-            {loading ? (
-              <PricingSkeletonLine className="pricing-skeleton-feature" />
-            ) : (
-              repositoryLimitText
-            )}
-          </li>
-        )}
         <li>
           <I.Check size={13} />{" "}
-          {T("Repository quota is shared by GitHub repo ID", "仓库配额按 GitHub repo ID 共享")}
+          {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
+            repositoryLimit === null ? T("Repository capacity unavailable", "仓库容量暂不可用") :
+              T(`${repositoryLimit} active ${repositoryLimit === 1 ? "repository" : "repositories"}`, `${repositoryLimit} 个启用仓库`)}
         </li>
         <li>
-          <I.Check size={13} /> {T("GitHub repository review history", "GitHub 仓库审查历史")}
+          <I.Check size={13} />{" "}
+          {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
+            watchLimit === null ? T("Watch capacity unavailable", "关注容量暂不可用") :
+              T(`${watchLimit} active update watches`, `${watchLimit} 个启用更新关注`)}
         </li>
-        {plan?.id === "max" && (
-          <li>
-            <I.Check size={13} /> {T("Deeper reasoning", "更深的思考")}
-          </li>
-        )}
+        <li><I.Check size={13} /> {T("PR, CI and Updates with one REST API", "PR、CI 与更新共用一套 REST API")}</li>
         {plan?.id && plan.id !== "free" && (
           <li>
             <I.Check size={13} /> {T("Cancel renewal from Billing", "从账单页取消续订")}
