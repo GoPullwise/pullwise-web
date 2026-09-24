@@ -708,7 +708,7 @@
   display: block;
   color: var(--text-3);
   font: 600 var(--fs-micro)/1.2 var(--font-mono);
-  letter-spacing: 0.11em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .scan-detail-panel-status {
@@ -848,7 +848,7 @@
   margin: 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: clamp(18px, 2vw, 22px);
+  font-size: clamp(var(--fs-3xl), 2vw, var(--fs-4xl));
   font-weight: 650;
   line-height: 1.2;
   letter-spacing: -0.015em;
@@ -1117,7 +1117,7 @@
 .scanning-phase-d {
   min-height: 34px;
   font-size: var(--fs-sm);
-  line-height: 1.42;
+  line-height: 1.45;
   color: var(--text-2);
   margin-top: 0;
 }
@@ -1396,7 +1396,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  padding: 11px 8px 10px;
+  padding: 10px 8px;
   background: transparent;
   border: 0;
   border-right: 1px solid var(--border);
@@ -1451,7 +1451,7 @@
 }
 .scanning-log > .scanning-counts-h {
   margin: 0;
-  padding: 15px 16px 13px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -1932,7 +1932,7 @@
   gap: 6px;
   min-width: 0;
   height: 28px;
-  padding: 0 11px;
+  padding: 0 12px;
   border: 0;
   background: transparent;
   color: var(--text-2);
@@ -2444,8 +2444,8 @@
 }
 .switch.on span {
   transform: translateX(12px);
-  background: white;
-  border-color: white;
+  background: var(--accent-fg);
+  border-color: var(--accent-fg);
 }
 
 .int-row {
@@ -3135,7 +3135,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
   align-items: flex-start;
-  padding: 11px 12px;
+  padding: 12px;
   border: 1px solid var(--border);
   background: var(--bg-soft);
   color: var(--text-2);
@@ -3459,7 +3459,8 @@
 @media (max-width: 820px) {
   .docs-shell {
     grid-template-columns: 1fr;
-    padding: 24px 20px;
+    padding-top: 24px;
+    padding-bottom: 24px;
   }
   .docs-side {
     position: static;
@@ -3829,7 +3830,7 @@
   justify-content: space-between;
   gap: 10px;
   min-height: 48px;
-  padding: 13px 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
 }
 .docs-plan-name {
@@ -3849,7 +3850,7 @@
   display: grid;
   grid-template-columns: minmax(96px, 118px) minmax(0, 1fr);
   gap: 10px;
-  padding: 11px 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   align-items: baseline;
 }
@@ -4230,10 +4231,6 @@
     flex: 0 0 auto;
   }
 
-  .lp-hero {
-    padding: 54px 20px 32px;
-  }
-
   .lp-cta,
   .lp-meta,
   .lp-foot {
@@ -4242,10 +4239,6 @@
 
   .lp-cta .btn {
     flex: 1 1 150px;
-  }
-
-  .lp-preview {
-    padding: 18px 16px 40px;
   }
 
   .lp-preview-body {
@@ -4264,12 +4257,6 @@
   .lp-preview-issue {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
-  }
-
-  .lp-features {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 22px;
-    padding: 40px 20px;
   }
 
   .lp-cta-band,
@@ -4728,12 +4715,6 @@
   letter-spacing: 0;
   margin: 0;
 }
-.status-dot {
-  width: 10px;
-  height: 10px;
-  background: var(--text-3);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--text-3) 18%, transparent);
-}
 .status-overall.operational .status-dot {
   background: var(--ok);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ok) 24%, transparent);
@@ -4805,7 +4786,7 @@
 .status-row-t .status-dot {
   width: 8px;
   height: 8px;
-  box-shadow: 0 0 0 3px color-mix(in oklch, currentColor 0%, transparent);
+  box-shadow: none;
 }
 .status-row-t .status-dot.up {
   background: var(--ok);

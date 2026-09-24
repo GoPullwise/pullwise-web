@@ -502,9 +502,20 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   `--fs-4xl` 22px); inline `fontSize` styles use the scale vars, not numbers;
   the dev `.proto-nav*` uses the token font stacks. Static display numerals
   (`.kpi-v` 34px, `.pricing-num` 38px, `.scan-findings-total b` 26px,
-  `.notfound-code` 72px) and the ≤900px `.docs-h1` 30px override are kept
+  `.notfound-code` 72px) and the ≤520px `.docs-h1` 30px override are kept
   deliberately as display sizes; if they ever change, move them to local
   `clamp()` rather than adding new static off-scale values.
+- Unification pass (fixed 2026-09-24): `.status-dot` base style lives only in
+  `src/app.css` (9px, `--text-4`, srgb halo); the dead screens.css duplicate was
+  removed, so do not re-add it. All three backdrops (`.modal-back`,
+  `.quota-modal-back`, `.product-backdrop`) pair the shared scrim with
+  `backdrop-filter: blur(10px)` plus the `-webkit-` prefix. The dark-theme text
+  ramp is monotonic (`--text-2` #a3a3a3 brighter than `--text-3` #9e9e9e,
+  mirroring the light ramp); letter-spacing is em-only. First-generation
+  landing blocks (old `.lp-hero`/`.lp-features`/`.lp-cta-band`, duplicate
+  `.lp-top`/`.lp-foot`, and the ≤760px lp-* copies in screens.css) were deleted
+  as dead rules — the surviving app.css rules own the frame, so do not re-add
+  overridden copies.
 - Hygiene (fixed 2026-09-24, same test group plus an App.test.jsx behavior
   test): `.main.narrow`/`.issue-grid`/`.issue-kanban` were deleted as dead
   CSS; the mobile `.lp-top` frame lives only in app.css and the
@@ -543,13 +554,27 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   REST for repository PR/CI service switches, owner watches, watch creation/
   edit/archive and manual fact-only sync. PUT/PATCH/DELETE carry If-Match;
   creation/sync carry fresh Idempotency-Key; a ref-backed lock blocks duplicate
-  actions. OAuth/App management remains in the existing account flow. The old
-  `/repos` scan screen and other scan routes remain cleanup work.
+  actions. OAuth/App management remains in the existing account flow. `/repos`
+  now renders the same product management screen for existing GitHub return
+  links; key it by authenticated user identity so a session switch cannot
+  retain another account's repository rows. `ScanningScreen`, History, Issue
+  routes and their direct legacy tests remain cleanup work; do not route new
+  users from `/repos` into batch scan creation.
+  When `repoAuth=1` automatic continuation succeeds, increment the App
+  authorization revision and reload the product directory; a pre-refresh
+  empty read must not persist after the GitHub access sync completes.
 - The `/services` repository and watch lists page independently through
   `repositoryPage` and `watchPage`; labels state "This page" rather than
   presenting one page as an account total. Preserve a selected shared-watch
   target while browsing other repository pages. Access failures clear protected
   configuration; cursor loops stop with recoverable guidance.
+  Dashboard Item search submits `q` to the shared `/items`, overview and Item
+  visualization reads; Updates release rows stay on their independent Source
+  scope. Do not search just the currently loaded Item page in the browser.
+  Updates signal labels with a saved state are buttons; use the Server's
+  `signalEvidenceIds` to open the matching Source context and focus that
+  evidence. Null labels remain absent, and stale/expired evidence stays
+  visibly unavailable in the detail drawer.
 - A synthetic loopback Chrome check of `/services` at 390px/1440px in light
   and dark had `scrollWidth=clientWidth` and no page errors. Preserve the four
   screenshots under untracked `output/playwright/product-services-*.png`.

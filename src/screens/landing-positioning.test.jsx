@@ -4,7 +4,7 @@ import { LandingScreen } from "./public.jsx";
 
 describe("landing positioning", () => {
   it("explains the product, outcome, and next step without internal implementation jargon", () => {
-    render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
+    render(<LandingScreen go={vi.fn()} auth={{ authenticated: false }} />);
 
     expect(
       screen.getByRole("heading", {

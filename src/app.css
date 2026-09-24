@@ -248,7 +248,7 @@
   align-items: start;
   padding: 12px;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg-elev) 94%, white 6%);
+  background: color-mix(in srgb, var(--bg-elev) 94%, var(--accent-fg) 6%);
   color: var(--text);
   box-shadow: var(--shadow-3);
   overflow: hidden;
@@ -1026,6 +1026,7 @@ body.has-proto-nav {
   padding: 18px;
   background: rgba(8, 12, 20, 0.52);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .quota-modal {
@@ -1966,20 +1967,14 @@ body.has-proto-nav {
 
 @media (max-width: 900px) {
   .pricing-hero {
-    padding: 58px 24px 32px;
-  }
-
-  .docs-shell {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-top: 58px;
+    padding-bottom: 32px;
   }
 }
 
 @media (max-width: 760px) {
   .pricing-hero {
     max-width: 100%;
-    padding-left: 20px;
-    padding-right: 20px;
   }
 
   .pricing-hero .lp-sub {
@@ -2270,12 +2265,6 @@ body.has-proto-nav {
   justify-self: center;
 }
 
-.lp-hero {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 88px 36px 48px;
-  text-align: center;
-}
 .lp-hero-tag {
   display: inline-flex;
   align-items: center;
@@ -2311,8 +2300,6 @@ body.has-proto-nav {
   font-size: var(--fs-2xl);
   line-height: 1.6;
   color: var(--text-2);
-  max-width: 620px;
-  margin: 0 auto 36px;
   text-wrap: pretty;
 }
 .lp-cta {
@@ -2441,15 +2428,6 @@ body.has-proto-nav {
   font-size: var(--fs-xs);
 }
 
-.lp-features {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 72px 36px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  border-top: 1px solid var(--border);
-}
 .lp-feat-i {
   width: 36px;
   height: 36px;
@@ -2469,20 +2447,6 @@ body.has-proto-nav {
   color: var(--text-2);
   font-size: var(--fs-md);
   line-height: 1.55;
-}
-
-.lp-cta-band {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 72px 40px;
-  text-align: center;
-  border-top: 1px solid var(--border);
-}
-.lp-cta-band h2 {
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  margin-bottom: 28px;
 }
 
 .lp-foot {
@@ -2519,11 +2483,6 @@ body.has-proto-nav {
   overflow-x: clip;
 }
 
-.lp-top {
-  max-width: 1240px;
-  padding: 22px 40px;
-}
-
 .lp-top .brand {
   font-size: var(--fs-2xl);
 }
@@ -2535,6 +2494,7 @@ body.has-proto-nav {
   align-items: start;
   width: 100%;
   max-width: 1240px;
+  margin: 0 auto;
   padding: 88px 40px 48px;
   text-align: left;
 }
@@ -2770,8 +2730,9 @@ body.has-proto-nav {
   justify-content: space-between;
   gap: 40px;
   width: min(100%, 1240px);
+  margin: 0 auto;
   padding: 72px 40px;
-  border-top-color: var(--border-strong);
+  border-top: 1px solid var(--border-strong);
   text-align: left;
 }
 
@@ -2779,6 +2740,8 @@ body.has-proto-nav {
   max-width: 700px;
   margin: 14px 0 0;
   font-size: clamp(30px, 4vw, 44px);
+  font-weight: 650;
+  letter-spacing: -0.01em;
   line-height: 1.08;
 }
 
@@ -3091,11 +3054,6 @@ body.has-proto-nav {
 }
 
 /* Public frame alignment and Pricing isolation */
-.lp-foot {
-  max-width: 1240px;
-  padding: 28px 40px;
-}
-
 .pricing-hero,
 .pricing-tiers,
 .pricing-faq,

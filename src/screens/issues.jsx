@@ -2457,10 +2457,12 @@ export function SettingsScreen({ go, setIssue = null }) {
                       )}
                     </div>
                     <span
-                      className="pill sev-bg-low"
+                      className="pill"
                       style={{
-                        background: "color-mix(in oklch, var(--ok) 14%, transparent)",
-                        color: "var(--ok)",
+                        background: github?.connected
+                          ? "color-mix(in oklch, var(--ok) 14%, transparent)"
+                          : "color-mix(in oklch, var(--sev-info) 14%, transparent)",
+                        color: github?.connected ? "var(--ok)" : "var(--sev-info)",
                       }}
                     >
                       <span className="dot"></span>{" "}

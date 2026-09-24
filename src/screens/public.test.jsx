@@ -9,7 +9,7 @@ describe("public navigation links", () => {
     const user = userEvent.setup();
     const go = vi.fn();
 
-    render(<LandingScreen go={go} accent="#6366f1" auth={{ authenticated: false }} />);
+    render(<LandingScreen go={go} auth={{ authenticated: false }} />);
 
     const headerNav = screen.getByRole("navigation");
     const product = within(headerNav).getByRole("link", { name: /^product$/i });
@@ -44,7 +44,7 @@ describe("public navigation links", () => {
   });
 
   it("exposes signed-in landing header actions as real screen links", () => {
-    render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: true }} />);
+    render(<LandingScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
     const header = screen.getByRole("banner");
     expect(within(header).getByRole("button", { name: /^sign out$/i })).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe("public navigation links", () => {
   });
 
   it("summarizes implemented product capabilities on the landing page", () => {
-    render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: false }} />);
+    render(<LandingScreen go={vi.fn()} auth={{ authenticated: false }} />);
 
     const pipeline = screen.getByRole("region", { name: /how pullwise reviews a repository/i });
     expect(within(pipeline).getAllByRole("article")).toHaveLength(6);
@@ -89,7 +89,7 @@ describe("public navigation links", () => {
     const user = userEvent.setup();
     const go = vi.fn();
 
-    render(<LandingScreen go={go} accent="#6366f1" auth={{ authenticated: false }} />);
+    render(<LandingScreen go={go} auth={{ authenticated: false }} />);
 
     const privacy = screen.getByRole("link", { name: /^privacy$/i });
     expect(privacy).toHaveAttribute("href", "/privacy");

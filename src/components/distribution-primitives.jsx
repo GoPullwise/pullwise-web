@@ -94,7 +94,7 @@ export function Donut({
   centerTop,
   centerBottom,
   className = "",
-  trackColor = "var(--bg-2, rgba(0,0,0,0.06))",
+  trackColor = "var(--bg-2)",
 }) {
   const safeSegments = segments.map((segment) => ({
     ...segment,
