@@ -14,7 +14,7 @@ import {
 import { clearPullwiseDataCache } from "./lib/pullwise-data-cache.js";
 import { applyCurrentSeoMetadata } from "./lib/seo-client.js";
 import { NotFoundScreen } from "./screens/error.jsx";
-import { ReposScreen, ScanningScreen } from "./screens/flow.jsx";
+import { ScanningScreen } from "./screens/flow.jsx";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 const LAYOUT = "list";
@@ -305,6 +305,7 @@ export function App({ prototypeNav = false }) {
   );
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
+  const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const continuedRepositoryAuthorization = useRef(false);
@@ -660,7 +661,9 @@ export function App({ prototypeNav = false }) {
     if (continuedRepositoryAuthorization.current || !repositoryAuthorizationRequested()) return;
     continuedRepositoryAuthorization.current = true;
     clearRepositoryAuthorizationRequest();
-    connectGitHubRepositories().catch((error) => {
+    connectGitHubRepositories().then(() => {
+      setRepositoryAuthorizationRevision(value => value + 1);
+    }).catch((error) => {
       setRepositoryAuthorizationError(
         error?.message || "Unable to connect GitHub repository access."
       );
@@ -737,15 +740,10 @@ export function App({ prototypeNav = false }) {
         body = <OAuthScreen go={go} auth={auth} />;
         break;
       case "repos":
-        body = (
-          <ReposScreen
-            go={go}
-            setIssue={setIssue}
-            setActiveRepo={setActiveRepo}
-            authorizationError={repositoryAuthorizationError}
-            clearAuthorizationError={() => setRepositoryAuthorizationError("")}
-          />
-        );
+        body = <ProductManagementScreen key={auth.user?.id || auth.user?.email || "anonymous"}
+          go={go} authorizationError={repositoryAuthorizationError}
+          authorizationRevision={repositoryAuthorizationRevision}
+          clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
         break;
       case "scanning":
         body = (
@@ -762,6 +760,7 @@ export function App({ prototypeNav = false }) {
         break;
       case "services":
         body = <ProductManagementScreen go={go} authorizationError={repositoryAuthorizationError}
+          authorizationRevision={repositoryAuthorizationRevision}
           clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
         break;
       case "issues":

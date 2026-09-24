@@ -3,10 +3,10 @@ import { T, useLang } from "../i18n.jsx";
 import { Topbar, ProductSidebar } from "../shell.jsx";
 import { productApi } from "../api/product.js";
 import { useProductRead, requireOverview, requirePage, requireWorkload, requirePRActions, requireCIFailures, requireUpdatesReleases } from "../lib/product-data.js";
-import { Coverage, ProductDetail, UpdateClassification, productLabel } from "../components/product-detail.jsx";
+import { Coverage, ProductDetail, productLabel } from "../components/product-detail.jsx";
 import "./product.css";
 
-const initialFilters = { module: "", repositoryId: "", watchId: "", view: "all", attentionState: "", pullNumber: "", actionType: "", ciStage: "", ciSymptom: "", classificationState: "" };
+const initialFilters = { module: "", repositoryId: "", watchId: "", view: "all", attentionState: "", pullNumber: "", actionType: "", ciStage: "", ciSymptom: "", classificationState: "", q: "" };
 
 function Pager({ page, cursors, onChange, kind }) {
   const current = cursors.at(-1);
@@ -22,6 +22,7 @@ function Pager({ page, cursors, onChange, kind }) {
 export function DashboardScreen({ go }) {
   useLang();
   const [filters, setFilters] = useState(initialFilters);
+  const [searchText, setSearchText] = useState("");
   const [itemCursors, setItemCursors] = useState([""]);
   const [releaseCursors, setReleaseCursors] = useState([""]);
   const [prCursors, setPrCursors] = useState([""]);
@@ -82,6 +83,13 @@ export function DashboardScreen({ go }) {
               <button key={module} aria-label={T(name + " module", name + " 模块")} aria-pressed={filters.module === module} onClick={() => change({ module, watchId: module === "updates" ? filters.watchId : "", pullNumber: "", actionType: "", ciStage: "", ciSymptom: "", classificationState: "" })}>{name}</button>)}
           </div>
           <div className="product-filters">
+            <form className="product-search" onSubmit={event => { event.preventDefault(); change({q: searchText.trim()}); }}>
+              <label>{T("Search items", "搜索事项")}<input value={searchText} maxLength={200}
+                onChange={event => setSearchText(event.target.value)} /></label>
+              <button className="btn" type="submit">{T("Search items", "搜索事项")}</button>
+              {filters.q && <button className="btn" type="button" onClick={() => {
+                setSearchText(""); change({q: ""}); }}>{T("Clear search", "清除搜索")}</button>}
+            </form>
             <label>{T("Repository scope", "仓库范围")}<select disabled={read.loading} value={filters.repositoryId} onChange={event => change({ repositoryId: event.target.value })}>
               <option value="">{T("All repositories", "全部仓库")}</option>
               {!data && filters.repositoryId && <option value={filters.repositoryId}>{filters.repositoryId}</option>}
@@ -163,8 +171,14 @@ export function DashboardScreen({ go }) {
                   <div className="sub">{row.watchId} · {T("Context version", "关注版本")} {row.contextVersion} · {row.publishedAt}</div>
                   {row.contextStale && <p>{productLabel("context_stale")}</p>}
                   <Coverage coverage={row.coverage} />
-                  <UpdateClassification context={row} />
-                  {row.evidenceIds?.length > 0 && <span className="sub">{row.evidenceIds.length} {T("saved evidence references", "条已保存证据引用")}</span>}
+                  {!row.contextStale && <div className="product-tags">
+                    {row.relevance && <span>{productLabel(row.relevance)}</span>}
+                    {Object.entries(row.updateSignals || {}).filter(([, state]) => state != null).map(([signal, state]) =>
+                      <button key={signal} onClick={() => setSelection({kind: "source", id: row.sourceId,
+                        contextId: row.contextId, evidenceId: row.signalEvidenceIds?.[signal]?.[0]})}>
+                        {productLabel(signal)}: {productLabel(state)}</button>)}
+                  </div>}
+                  {!row.contextStale && row.evidenceIds?.length > 0 && <span className="sub">{row.evidenceIds.length} {T("saved evidence references", "条已保存证据引用")}</span>}
                   <p className="sub">{T("No classification is implied for omitted material.", "未覆盖的内容不推定为不相关或未提及。")}</p>
                 </article>)}
                 <Pager page={data.releases} cursors={releaseCursors} onChange={setReleaseCursors} kind="sources" />

@@ -19,7 +19,6 @@ import { NotificationProvider } from "./components/notifications.jsx";
 import { setLang } from "./i18n.jsx";
 import {
   connectGitHubRepositories,
-  manageGitHubInstallation,
   startGitHubLogin,
 } from "./lib/auth.js";
 import { clearPullwiseDataCache } from "./lib/pullwise-data-cache.js";
@@ -83,16 +82,6 @@ async function flushPromises() {
     await Promise.resolve();
     await Promise.resolve();
   });
-}
-
-function deferredPromise() {
-  let resolve;
-  let reject;
-  const promise = new Promise((promiseResolve, promiseReject) => {
-    resolve = promiseResolve;
-    reject = promiseReject;
-  });
-  return { promise, resolve, reject };
 }
 
 const activeRepoStorageKey = (email) => `pw-active-repo:v2:${encodeURIComponent(`user:${email}`)}`;
@@ -793,11 +782,8 @@ describe("App", () => {
         authenticated: true,
         user: { name: "User B", email: "b@example.com" },
       });
-    pullwiseApi.repositories.list
-      .mockResolvedValueOnce({
-        items: [{ id: "repo_a", fullName: "user-a/private-repo" }],
-        needsAuthorization: false,
-      })
+    productApi.repositoryPage
+      .mockResolvedValueOnce(page([{ id: "repo_a", fullName: "user-a/private-repo" }]))
       .mockReturnValueOnce(new Promise(() => {}));
 
     render(<App />);
@@ -808,7 +794,7 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(2);
-      expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2);
+      expect(productApi.repositoryPage).toHaveBeenCalledTimes(2);
       expect(screen.queryByText("user-a/private-repo")).not.toBeInTheDocument();
     });
   });
@@ -821,6 +807,16 @@ describe("App", () => {
     expect(await screen.findByRole("heading", {name: "Repositories and watches"})).toBeVisible();
     expect(productApi.repositoryPage).toHaveBeenCalled();
     expect(screen.queryByText("New scan")).toBeNull();
+  });
+
+  it("uses product management at the existing repositories URL", async () => {
+    window.history.replaceState({}, "", "/repos");
+    pullwiseApi.auth.getSession.mockResolvedValue({authenticated: true,
+      user: {name: "Dev", email: "dev@example.com"}});
+    render(<App />);
+    expect(await screen.findByRole("heading", {name: "Repositories and watches"})).toBeVisible();
+    expect(productApi.repositoryPage).toHaveBeenCalled();
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
   it("sends an authenticated private screen to login after signed-out recheck is confirmed", async () => {
@@ -855,7 +851,7 @@ describe("App", () => {
   });
 
   it("shows signed-in actions on the landing page", () => {
-    render(<LandingScreen go={vi.fn()} accent="#6366f1" auth={{ authenticated: true }} />);
+    render(<LandingScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
     expect(screen.getAllByRole("link", { name: /dashboard/i }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("link", { name: /^sign in$/i })).not.toBeInTheDocument();
@@ -1098,18 +1094,18 @@ describe("App", () => {
     expect(go).not.toHaveBeenCalled();
   });
 
-  it("uses the full-width repository row layout for the GitHub connection prompt", async () => {
+  it("shows a product GitHub connection prompt for an empty repository directory", async () => {
     window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
     });
-    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    productApi.repositoryPage.mockResolvedValue(page([]));
 
     render(<App />);
 
-    const title = await screen.findByText("Connect GitHub repositories");
-    expect(title.closest(".repo-row")).toHaveClass("repo-row-status");
+    expect(await screen.findByRole("button", { name: "Connect GitHub repositories" })).toBeVisible();
+    expect(screen.queryByText("New scan")).toBeNull();
   });
 
   it("starts GitHub repository authorization from the repositories empty state", async () => {
@@ -1118,539 +1114,119 @@ describe("App", () => {
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
     });
-    pullwiseApi.repositories.list.mockResolvedValue({ items: [], needsAuthorization: true });
+    productApi.repositoryPage.mockResolvedValue(page([]));
     connectGitHubRepositories.mockResolvedValueOnce(undefined);
     const user = userEvent.setup();
 
     render(<App />);
 
-    const title = await screen.findByText("Connect GitHub repositories");
-    await user.click(title.closest(".repo-row"));
+    await user.click(await screen.findByRole("button", { name: "Connect GitHub repositories" }));
 
     await waitFor(() => {
       expect(connectGitHubRepositories).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("starts adding another GitHub account or organization from the repositories footer", async () => {
-    window.history.replaceState({}, "", "/repos");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [
-        {
-          id: "repo_1",
-          name: "private-repo",
-          fullName: "octocat/private-repo",
-          desc: "",
-        },
-      ],
-      needsAuthorization: false,
-    });
-    connectGitHubRepositories.mockResolvedValueOnce(undefined);
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await user.click(await screen.findByText(/add github account or organization/i));
-
-    await waitFor(() => {
       expect(connectGitHubRepositories).toHaveBeenCalledWith({ add: true });
     });
   });
 
-  it("shows each authorized GitHub App installation on the repositories screen", async () => {
+  it("opens GitHub access management from the product repository page", async () => {
     window.history.replaceState({}, "", "/repos");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
       authenticated: true,
       user: { name: "Dev", email: "dev@example.com" },
     });
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [
-        {
-          id: "repo_pullwise_server",
-          name: "pullwise-server",
-          fullName: "GoPullwise/pullwise-server",
-          desc: "",
-        },
-      ],
-      needsAuthorization: false,
-      installations: [
-        {
-          installationId: "130258770",
-          installationAccount: "GoPullwise",
-          installationTargetType: "Organization",
-          installationHtmlUrl:
-            "https://github.com/organizations/GoPullwise/settings/installations/130258770",
-          repositorySelection: "selected",
-          repositoryCount: 1,
-        },
-        {
-          installationId: "134816087",
-          installationAccount: "GoTagma",
-          installationTargetType: "Organization",
-          installationHtmlUrl:
-            "https://github.com/organizations/GoTagma/settings/installations/134816087",
-          repositorySelection: "all",
-          repositoryCount: 4,
-        },
-      ],
-    });
-
-    render(<App />);
-
-    expect(await screen.findByText("Authorized GitHub installations")).toBeInTheDocument();
-    expect(screen.getByText("GoPullwise")).toBeInTheDocument();
-    const pullwiseMeta = screen
-      .getByText("GoPullwise")
-      .closest(".gh-install-row")
-      .querySelector(".gh-install-meta");
-    expect(within(pullwiseMeta).getByText("Organization")).toBeInTheDocument();
-    expect(within(pullwiseMeta).getByText("selected")).toBeInTheDocument();
-    expect(within(pullwiseMeta).getByText("1 repository")).toBeInTheDocument();
-    expect(screen.getByText("GoTagma")).toBeInTheDocument();
-    const tagmaMeta = screen
-      .getByText("GoTagma")
-      .closest(".gh-install-row")
-      .querySelector(".gh-install-meta");
-    expect(within(tagmaMeta).getByText("Organization")).toBeInTheDocument();
-    expect(within(tagmaMeta).getByText("all repositories")).toBeInTheDocument();
-    expect(within(tagmaMeta).getByText("4 repositories")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /manage gopullwise/i })).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /manage gopullwise github app installation/i })
-    ).toBeInTheDocument();
-  });
-
-  it("syncs repositories after returning from GitHub installation management", async () => {
-    window.history.replaceState({}, "", "/repos");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const initialPayload = {
-      items: [
-        {
-          id: "repo_pullwise_server",
-          name: "pullwise-server",
-          fullName: "GoPullwise/pullwise-server",
-          desc: "",
-        },
-      ],
-      needsAuthorization: false,
-      installationAccounts: ["GoPullwise"],
-      installations: [
-        {
-          installationId: "130258770",
-          installationAccount: "GoPullwise",
-          installationTargetType: "Organization",
-          installationHtmlUrl:
-            "https://github.com/organizations/GoPullwise/settings/installations/130258770",
-          repositorySelection: "selected",
-          repositoryCount: 1,
-        },
-      ],
-    };
-    const updatedPayload = {
-      items: [
-        {
-          id: "repo_pullwise_server",
-          name: "pullwise-server",
-          fullName: "GoPullwise/pullwise-server",
-          desc: "",
-        },
-        {
-          id: "repo_pullwise_web",
-          name: "pullwise-web",
-          fullName: "GoPullwise/pullwise-web",
-          desc: "",
-        },
-      ],
-      needsAuthorization: false,
-      installationAccounts: ["GoPullwise"],
-      installations: [
-        {
-          installationId: "130258770",
-          installationAccount: "GoPullwise",
-          installationTargetType: "Organization",
-          installationHtmlUrl:
-            "https://github.com/organizations/GoPullwise/settings/installations/130258770",
-          repositorySelection: "selected",
-          repositoryCount: 2,
-        },
-      ],
-    };
-    pullwiseApi.repositories.list.mockResolvedValue(initialPayload);
-    manageGitHubInstallation.mockImplementationOnce(async () => {
-      pullwiseApi.repositories.list.mockResolvedValue(updatedPayload);
-    });
+    productApi.repositoryPage.mockResolvedValue(page([
+      { id: "repo_1", fullName: "octocat/private-repo" },
+    ]));
+    connectGitHubRepositories.mockResolvedValueOnce(undefined);
     const user = userEvent.setup();
 
     render(<App />);
 
-    expect(await screen.findByText("GoPullwise/pullwise-server")).toBeInTheDocument();
-    expect(screen.queryByText("GoPullwise/pullwise-web")).not.toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: /manage gopullwise github app installation/i })
-    );
+    await user.click(await screen.findByRole("button", { name: "Manage GitHub access" }));
 
     await waitFor(() => {
-      expect(manageGitHubInstallation).toHaveBeenCalledWith("130258770", {
-        githubIdentityId: undefined,
-      });
-      expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
+      expect(connectGitHubRepositories).toHaveBeenCalledWith({ manage: true });
     });
-    expect(screen.getByText(/2 repositories/i)).toBeInTheDocument();
   });
 
-  it("submits a repository batch and returns to scan history", async () => {
+  const managedProductRepo = {
+    id: "repo_1", fullName: "GoPullwise/pullwise-server", private: true,
+    service: {repositoryId: "repo_1", enabled: true, revision: 1,
+      modules: {pr: true, ci: false}, analysisEnabled: {pr: false, ci: false},
+      allowMemberSync: false, defaultAssigneeId: null, priorityOrder: 0},
+  };
+
+  async function openProductRepositories(items = [managedProductRepo]) {
     window.history.replaceState({}, "", "/repos");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const repoAlpha = {
-      id: "repo_alpha",
-      name: "alpha",
-      fullName: "octocat/alpha",
-      desc: "Alpha service",
-      defaultBranch: "main",
-    };
-    const repoBeta = {
-      id: "repo_beta",
-      name: "beta",
-      fullName: "octocat/beta",
-      desc: "Beta service",
-      defaultBranch: "develop",
-    };
-    const scanAlpha = {
-      id: "sc_alpha",
-      repo: "octocat/alpha",
-      branch: "main",
-      commit: "pending",
-      status: "queued",
-      progress: 0,
-    };
-    const scanBeta = {
-      id: "sc_beta",
-      repo: "octocat/beta",
-      branch: "develop",
-      commit: "pending",
-      status: "queued",
-      progress: 0,
-    };
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [repoAlpha, repoBeta],
-      needsAuthorization: false,
-    });
-    pullwiseApi.scans.preflight.mockResolvedValueOnce({
-      requestedCount: 2,
-      allowedCount: 2,
-      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
-      repositories: [],
-    });
-    pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
-    pullwiseApi.scans.list.mockResolvedValue({ items: [scanAlpha, scanBeta] });
-    const user = userEvent.setup();
-
+    pullwiseApi.auth.getSession.mockResolvedValue({authenticated: true,
+      user: {name: "Dev", email: "dev@example.com"}});
+    productApi.repositoryPage.mockResolvedValue(page(items));
     render(<App />);
+    await screen.findByRole("heading", {name: "Repositories and watches"});
+  }
 
-    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
-    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
-    await user.click(screen.getByRole("button", { name: /start scan/i }));
-
-    await waitFor(() => expect(window.location.pathname).toBe("/history"));
-    expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2);
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    await waitFor(() => expect(pullwiseApi.scans.list).toHaveBeenCalled());
-    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
-    expect(screen.getByText("octocat/beta")).toBeInTheDocument();
+  it("shows authorized product service configuration on the repositories route", async () => {
+    await openProductRepositories();
+    expect(screen.getByRole("heading", {name: "GoPullwise/pullwise-server"})).toBeVisible();
+    expect(screen.getByRole("button", {name: "Save service for GoPullwise/pullwise-server"})).toBeVisible();
+    expect(screen.getByRole("button", {name: "Manage GitHub access"})).toBeVisible();
+    expect(screen.queryByText("New scan")).toBeNull();
   });
 
-  it("waits for selected repository branches before starting a batch scan", async () => {
-    window.history.replaceState({}, "", "/repos");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
+  it("refreshes the product directory after GitHub access management", async () => {
+    const second = {...managedProductRepo, id: "repo_2", fullName: "GoPullwise/pullwise-web"};
+    await openProductRepositories();
+    connectGitHubRepositories.mockImplementationOnce(async () => {
+      productApi.repositoryPage.mockResolvedValue(page([managedProductRepo, second]));
     });
-    const repoAlpha = {
-      id: "repo_alpha",
-      name: "alpha",
-      fullName: "octocat/alpha",
-      desc: "Alpha service",
-      defaultBranch: "main",
-    };
-    const repoBeta = {
-      id: "repo_beta",
-      name: "beta",
-      fullName: "octocat/beta",
-      desc: "Beta service",
-      defaultBranch: "develop",
-    };
-    const branchRequests = new Map();
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [repoAlpha, repoBeta],
-      needsAuthorization: false,
-    });
-    pullwiseApi.repositories.branches.mockImplementation((repoId) => {
-      const request = deferredPromise();
-      branchRequests.set(repoId, request);
-      return request.promise;
-    });
-    pullwiseApi.scans.preflight.mockResolvedValueOnce({
-      requestedCount: 2,
-      allowedCount: 2,
-      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
-      repositories: [],
-    });
-    pullwiseApi.scans.create
-      .mockResolvedValueOnce({
-        id: "sc_alpha",
-        repo: "octocat/alpha",
-        branch: "release",
-        commit: "pending",
-        status: "queued",
-        progress: 0,
-      })
-      .mockResolvedValueOnce({
-        id: "sc_beta",
-        repo: "octocat/beta",
-        branch: "hotfix",
-        commit: "pending",
-        status: "queued",
-        progress: 0,
-      });
-    pullwiseApi.scans.list.mockResolvedValue({ items: [] });
-    pullwiseApi.scans.status.mockResolvedValue({ items: [] });
-    const user = userEvent.setup();
+    fireEvent.click(screen.getByRole("button", {name: "Manage GitHub access"}));
+    expect(await screen.findByRole("heading", {name: "GoPullwise/pullwise-web"})).toBeVisible();
+    expect(connectGitHubRepositories).toHaveBeenCalledWith({manage: true});
+  });
 
-    render(<App />);
-
-    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
-    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
-    await waitFor(() => expect(pullwiseApi.repositories.branches).toHaveBeenCalledTimes(2));
-    await user.click(screen.getByRole("button", { name: /start scan/i }));
-
-    expect(pullwiseApi.scans.preflight).not.toHaveBeenCalled();
+  it("saves one repository service revision without starting a scan", async () => {
+    await openProductRepositories();
+    productApi.saveRepositoryService.mockResolvedValue({...managedProductRepo.service, revision: 2});
+    fireEvent.click(screen.getByRole("button", {name: "Save service for GoPullwise/pullwise-server"}));
+    await waitFor(() => expect(productApi.saveRepositoryService).toHaveBeenCalledWith(
+      "repo_1", 1, expect.objectContaining({modules: {pr: true, ci: false},
+        analysisEnabled: {pr: false, ci: false}})));
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-
-    await act(async () => {
-      branchRequests.get("repo_alpha").resolve({
-        defaultBranch: "release",
-        branches: ["release", "main"],
-      });
-      branchRequests.get("repo_beta").resolve({
-        defaultBranch: "hotfix",
-        branches: ["hotfix", "develop"],
-      });
-      await Promise.resolve();
-    });
-
-    await waitFor(() => expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(2));
-    expect(pullwiseApi.scans.preflight).toHaveBeenCalledWith({
-      repositories: [
-        expect.objectContaining({ repo: "octocat/alpha", branch: "release" }),
-        expect.objectContaining({ repo: "octocat/beta", branch: "hotfix" }),
-      ],
-    });
-    expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({ repo: "octocat/alpha", branch: "release" })
-    );
-    expect(pullwiseApi.scans.create).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ repo: "octocat/beta", branch: "hotfix" })
-    );
   });
 
-  it("keeps cached scan history behind a skeleton until newly created batch scans load", async () => {
-    window.history.replaceState({}, "", "/history");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const repoAlpha = {
-      id: "repo_alpha",
-      name: "alpha",
-      fullName: "octocat/alpha",
-      desc: "Alpha service",
-      defaultBranch: "main",
-    };
-    const repoBeta = {
-      id: "repo_beta",
-      name: "beta",
-      fullName: "octocat/beta",
-      desc: "Beta service",
-      defaultBranch: "develop",
-    };
-    const oldScan = {
-      id: "sc_old",
-      repo: "octocat/old-repo",
-      branch: "main",
-      commit: "abc123",
-      status: "done",
-      createdAt: 1710000000,
-      time: "Earlier",
-      by: "you",
-    };
-    const scanAlpha = {
-      id: "sc_alpha",
-      repo: "octocat/alpha",
-      branch: "main",
-      commit: "pending",
-      status: "queued",
-      progress: 0,
-    };
-    const scanBeta = {
-      id: "sc_beta",
-      repo: "octocat/beta",
-      branch: "develop",
-      commit: "pending",
-      status: "queued",
-      progress: 0,
-    };
-    const staleHistoryReload = deferredPromise();
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [repoAlpha, repoBeta],
-      needsAuthorization: false,
-    });
-    pullwiseApi.scans.preflight.mockResolvedValueOnce({
-      requestedCount: 2,
-      allowedCount: 2,
-      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
-      repositories: [],
-    });
-    pullwiseApi.scans.create.mockResolvedValueOnce(scanAlpha).mockResolvedValueOnce(scanBeta);
-    const historyResponses = [Promise.resolve({ items: [oldScan] }), staleHistoryReload.promise];
-    pullwiseApi.scans.list.mockImplementation((params = {}) => {
-      if (params.limit === 1) return Promise.resolve({ items: [], total: 1 });
-      return historyResponses.shift() || Promise.resolve({ items: [scanAlpha, scanBeta] });
-    });
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    expect(await screen.findByText("octocat/old-repo")).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: /new scan/i }));
-    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
-    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
-    await user.click(screen.getByRole("button", { name: /start scan/i }));
-
-    await waitFor(() => expect(window.location.pathname).toBe("/history"));
-    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
-
-    await act(async () => {
-      staleHistoryReload.resolve({ items: [oldScan] });
-      await Promise.resolve();
-    });
-
-    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText("octocat/old-repo")).not.toBeInTheDocument();
+  it("requests fact-only repository sync and shows its job", async () => {
+    await openProductRepositories();
+    productApi.syncRepository.mockResolvedValue({id: "job-product", status: "queued"});
+    fireEvent.click(screen.getByRole("button", {name: "Sync facts for GoPullwise/pullwise-server"}));
+    expect(await screen.findByText(/job-product/)).toBeVisible();
+    expect(productApi.syncRepository).toHaveBeenCalledWith("repo_1", expect.any(String));
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
-  it("keeps cached scan history behind a skeleton when batch create responses have no scan ids yet", async () => {
-    window.history.replaceState({}, "", "/history");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const repoAlpha = {
-      id: "repo_alpha",
-      name: "alpha",
-      fullName: "octocat/alpha",
-      desc: "Alpha service",
-      defaultBranch: "main",
-    };
-    const repoBeta = {
-      id: "repo_beta",
-      name: "beta",
-      fullName: "octocat/beta",
-      desc: "Beta service",
-      defaultBranch: "develop",
-    };
-    const oldScanAlpha = {
-      id: "sc_old_alpha",
-      repo: "octocat/alpha",
-      branch: "main",
-      commit: "abc123",
-      status: "done",
-      createdAt: 1710000000,
-      time: "Earlier",
-      by: "you",
-    };
-    const oldScanBeta = {
-      id: "sc_old_beta",
-      repo: "octocat/beta",
-      branch: "develop",
-      commit: "abc123",
-      status: "done",
-      createdAt: 1710000001,
-      time: "Earlier",
-      by: "you",
-    };
-    const staleHistoryReload = deferredPromise();
-    pullwiseApi.repositories.list.mockResolvedValue({
-      items: [repoAlpha, repoBeta],
-      needsAuthorization: false,
-    });
-    pullwiseApi.scans.preflight.mockResolvedValueOnce({
-      requestedCount: 2,
-      allowedCount: 2,
-      userQuota: { scope: "user", used: 0, limit: 99, remaining: 99 },
-      repositories: [],
-    });
-    pullwiseApi.scans.create
-      .mockImplementationOnce((payload) =>
-        Promise.resolve({
-          repo: payload.repo,
-          branch: payload.branch,
-          requestId: payload.requestId,
-          status: "queued",
-        })
-      )
-      .mockImplementationOnce((payload) =>
-        Promise.resolve({
-          repo: payload.repo,
-          branch: payload.branch,
-          requestId: payload.requestId,
-          status: "queued",
-        })
-      );
-    const historyResponses = [
-      Promise.resolve({ items: [oldScanAlpha, oldScanBeta] }),
-      staleHistoryReload.promise,
-    ];
-    pullwiseApi.scans.list.mockImplementation((params = {}) => {
-      if (params.limit === 1) return Promise.resolve({ items: [], total: 2 });
-      return historyResponses.shift() || Promise.resolve({ items: [oldScanAlpha, oldScanBeta] });
-    });
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    expect(await screen.findByText("octocat/alpha")).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: /new scan/i }));
-    await user.click((await screen.findByText("octocat/alpha")).closest(".repo-row"));
-    await user.click(screen.getByText("octocat/beta").closest(".repo-row"));
-    await user.click(screen.getByRole("button", { name: /start scan/i }));
-
-    await waitFor(() => expect(window.location.pathname).toBe("/history"));
-    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
-    expect(screen.queryByText("octocat/beta")).not.toBeInTheDocument();
-
-    await act(async () => {
-      staleHistoryReload.resolve({ items: [oldScanAlpha, oldScanBeta] });
-      await Promise.resolve();
-    });
-
-    expect(document.querySelector(".history-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText("octocat/alpha")).not.toBeInTheDocument();
+  it("creates a personal Updates watch through the shared product API", async () => {
+    await openProductRepositories([]);
+    productApi.createWatch.mockResolvedValue({id: "watch-new"});
+    fireEvent.change(screen.getByLabelText("Upstream owner"), {target: {value: "acme"}});
+    fireEvent.change(screen.getByLabelText("Repository name"), {target: {value: "sdk"}});
+    const create = screen.getByRole("region", {name: "Create watch"});
+    fireEvent.change(within(create).getByLabelText("Interests"), {target: {value: "OAuth"}});
+    fireEvent.click(within(create).getByRole("button", {name: "Create watch"}));
+    await waitFor(() => expect(productApi.createWatch).toHaveBeenCalledWith(
+      expect.objectContaining({targetRepositoryId: null, interests: ["OAuth"],
+        analysisEnabled: false}), expect.any(String)));
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
+
+  it("requires a reload after a stale service revision without replaying it", async () => {
+    await openProductRepositories();
+    productApi.saveRepositoryService.mockRejectedValue(Object.assign(
+      new Error("Changed"), {status: 412}));
+    fireEvent.click(screen.getByRole("button", {name: "Save service for GoPullwise/pullwise-server"}));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Configuration changed");
+    expect(productApi.saveRepositoryService).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
+  });
+
   it("opens issue search results directly in the issue detail view", async () => {
     window.history.replaceState({}, "", "/issues");
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
@@ -1852,5 +1428,17 @@ describe("App", () => {
 
     expect(await screen.findByText("GitHub App install URL is unavailable")).toBeInTheDocument();
     expect(new URLSearchParams(window.location.search).get("repoAuth")).toBeNull();
+  });
+
+  it("reloads product repositories after automatic GitHub authorization completes", async () => {
+    window.history.replaceState({}, "", "/repos?repoAuth=1");
+    pullwiseApi.auth.getSession.mockResolvedValue({authenticated: true,
+      user: {name: "Dev", email: "dev@example.com"}});
+    productApi.repositoryPage.mockResolvedValueOnce(page([]))
+      .mockResolvedValue(page([{id: "repo-new", fullName: "acme/new"}]));
+    connectGitHubRepositories.mockResolvedValue();
+    render(<App />);
+    expect(await screen.findByRole("heading", {name: "acme/new"})).toBeVisible();
+    expect(productApi.repositoryPage).toHaveBeenCalledTimes(2);
   });
 });

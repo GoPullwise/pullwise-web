@@ -116,7 +116,8 @@ function ManagementPager({page, cursors, onChange, resource}) {
   </div>;
 }
 
-export function ProductManagementScreen({ go, authorizationError = "", clearAuthorizationError = () => {} }) {
+export function ProductManagementScreen({ go, authorizationError = "",
+  authorizationRevision = 0, clearAuthorizationError = () => {} }) {
   useLang();
   const [revision, setRevision] = useState(0);
   const [repoCursors, setRepoCursors] = useState([""]);
@@ -132,10 +133,16 @@ export function ProductManagementScreen({ go, authorizationError = "", clearAuth
   const [includePrerelease, setIncludePrerelease] = useState(false);
   const [analysisEnabled, setAnalysisEnabled] = useState(false);
   const inFlight = useRef(false);
+  const lastAuthorizationRevision = useRef(authorizationRevision);
   const mounted = useRef(true);
   useEffect(() => () => { mounted.current = false; }, []);
   const reload = useCallback(() => { setError(""); setBlocked(false);
     setRepoCursors([""]); setWatchCursors([""]); setRevision(value => value + 1); }, []);
+  useEffect(() => {
+    if (lastAuthorizationRevision.current === authorizationRevision) return;
+    lastAuthorizationRevision.current = authorizationRevision;
+    reload();
+  }, [authorizationRevision, reload]);
   const read = useProductRead(JSON.stringify([revision, repoCursors, watchCursors]), async signal => {
     const [repositories, watches, usage] = await Promise.all([
       productApi.repositoryPage({cursor: repoCursors.at(-1)}, {signal}),

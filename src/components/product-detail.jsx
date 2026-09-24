@@ -136,6 +136,13 @@ export function ProductDetail({ selection, onClose, onSaved, onAccessLost }) {
   useEffect(() => {
     if ([401, 403, 404].includes(read.error?.status)) onAccessLost(read.error);
   }, [read.error, onAccessLost]);
+  useEffect(() => {
+    if (!read.value || !selection.evidenceId) return;
+    const target = document.getElementById(`evidence-${encodeURIComponent(selection.evidenceId)}`);
+    if (!target || !dialogRef.current?.contains(target)) return;
+    target.focus({preventScroll: true});
+    target.scrollIntoView?.({block: "center"});
+  }, [read.value, selection.evidenceId]);
 
   async function save(fields) {
     if (lock.current || conflict || !item) return;
@@ -170,7 +177,7 @@ export function ProductDetail({ selection, onClose, onSaved, onAccessLost }) {
         {item.module === "ci" && !item.sourceFacts?.recovery && <p>{T("Successor relationship unknown unless verified by the server.", "后续执行的对应关系以服务端核验为准。")}</p>}
         <h3>{T("Source evidence", "来源证据")}</h3>
         {selection.kind === "source" && <pre className="product-evidence">{typeof item.content?.body === "string" ? item.content.body : JSON.stringify(item.content || {}, null, 2)}</pre>}
-        {(item.evidence || []).map(evidence => <section id={`evidence-${encodeURIComponent(evidence.id)}`} key={evidence.id}>
+        {(item.evidence || []).map(evidence => <section id={`evidence-${encodeURIComponent(evidence.id)}`} tabIndex={-1} key={evidence.id}>
           <p>{(evidence.actionTypes || []).map(productLabel).join(" · ")}</p>
           {evidence.status === "available" && evidence.progressType === "completion_claim" && <p>{T("Completion claim · model classification, not verified completion", "完成声明 · 模型分类，实际完成情况未核验")}</p>}
           {evidence.status === "expired" ? <p>{T("Evidence expired", "证据已过期")}</p> : evidence.status && evidence.status !== "available" ? <p>{T("Evidence unavailable", "证据不可用")}</p> : <pre className="product-evidence">{evidence.text || T("No text evidence", "无正文证据")}</pre>}
@@ -181,7 +188,7 @@ export function ProductDetail({ selection, onClose, onSaved, onAccessLost }) {
           <Coverage coverage={context.coverage} />
           <UpdateClassification context={context} />
           {!context.contextStale && <>
-            {(context.evidence || []).map(evidence => <section key={evidence.id} id={`evidence-${encodeURIComponent(evidence.id)}`}>
+            {(context.evidence || []).map(evidence => <section key={evidence.id} id={`evidence-${encodeURIComponent(evidence.id)}`} tabIndex={-1}>
               {evidence.status === "expired" ? <p>{T("Evidence expired", "证据已过期")}</p> : evidence.status && evidence.status !== "available" ? <p>{T("Evidence unavailable", "证据不可用")}</p> : <pre className="product-evidence">{evidence.text}</pre>}
             </section>)}
             <Assessments assessments={context.assessments || []} />

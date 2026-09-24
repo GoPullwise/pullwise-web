@@ -165,6 +165,17 @@ it("keeps Updates without Items independent of item-view filters and displays pa
   expect(within(dialog).queryByRole("button", { name: "Mark done" })).toBeNull();
 });
 
+it("sends Item search text to the shared REST filters", async () => {
+  mount();
+  await screen.findByRole("button", {name: itemFixture.title});
+  fireEvent.change(screen.getByLabelText("Search items"), {target: {value: "cache"}});
+  fireEvent.click(screen.getByRole("button", {name: "Search items"}));
+  await waitFor(() => expect(productApi.items).toHaveBeenLastCalledWith(
+    expect.objectContaining({q: "cache"}), expect.anything()));
+  expect(productApi.overview).toHaveBeenLastCalledWith(
+    expect.objectContaining({q: "cache"}), expect.anything());
+});
+
 it("shows unclassified Release by watch from the Server table", async () => {
   mount();
   fireEvent.click(screen.getByRole("button", { name: "Updates module" }));
@@ -174,6 +185,38 @@ it("shows unclassified Release by watch from the Server table", async () => {
     expect.objectContaining({ kind: "updates_releases", module: "updates" }),
     expect.anything());
   expect(screen.queryByText("Not relevant")).toBeNull();
+});
+
+it("opens a saved Updates signal at its bound evidence", async () => {
+  const table = structuredClone(await productApi.updatesReleases());
+  Object.assign(table.data.rows[0], {relevance: "relevant",
+    updateSignals: {migration_stated: "present"},
+    signalEvidenceIds: {migration_stated: ["ev-migration"]}});
+  productApi.updatesReleases.mockResolvedValue(table);
+  const detail = structuredClone(releaseFixture);
+  detail.contexts[0].evidence = [{id: "ev-migration", status: "available",
+    text: "OAuth migration is required."}];
+  productApi.source.mockResolvedValue(detail);
+  mount();
+  fireEvent.click(screen.getByRole("button", {name: "Updates module"}));
+  fireEvent.click(await screen.findByRole("button", {name: "Migration: Explicitly stated"}));
+  const dialog = await screen.findByRole("dialog");
+  expect(await within(dialog).findByText("OAuth migration is required.")).toBeVisible();
+  expect(document.getElementById("evidence-ev-migration")).toHaveFocus();
+  expect(productApi.source).toHaveBeenCalledWith("release-1", expect.anything());
+});
+
+it("hides stale Updates signal controls even when an old label is present", async () => {
+  const table = structuredClone(await productApi.updatesReleases());
+  Object.assign(table.data.rows[0], {contextStale: true, relevance: "relevant",
+    updateSignals: {migration_stated: "present"},
+    signalEvidenceIds: {migration_stated: ["old-evidence"]}});
+  productApi.updatesReleases.mockResolvedValue(table);
+  mount();
+  fireEvent.click(screen.getByRole("button", {name: "Updates module"}));
+  expect(await screen.findByText("Context stale")).toBeVisible();
+  expect(screen.queryByRole("button", {name: "Migration: Explicitly stated"})).toBeNull();
+  expect(screen.queryByText("Relevant")).toBeNull();
 });
 
 it("shows literal evidence and GitHub links, and restores keyboard focus", async () => {
