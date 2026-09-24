@@ -106,6 +106,10 @@ describe("App", () => {
     productApi.items.mockResolvedValue(page([]));
     productApi.repositories.mockResolvedValue(page([]));
     productApi.watches.mockResolvedValue(page([]));
+    productApi.repositoryPage.mockResolvedValue(page([]));
+    productApi.watchPage.mockResolvedValue(page([]));
+    productApi.usage.mockResolvedValue({entitlements: {activeRepositoryLimit: 3,
+      activeWatchLimit: 5}});
     clearPullwiseDataCache();
     setLang("en");
     document.title = "";
@@ -807,6 +811,16 @@ describe("App", () => {
       expect(pullwiseApi.repositories.list).toHaveBeenCalledTimes(2);
       expect(screen.queryByText("user-a/private-repo")).not.toBeInTheDocument();
     });
+  });
+
+  it("routes authenticated users to product repository and watch management", async () => {
+    window.history.replaceState({}, "", "/services");
+    pullwiseApi.auth.getSession.mockResolvedValue({authenticated: true,
+      user: {name: "Dev", email: "dev@example.com"}});
+    render(<App />);
+    expect(await screen.findByRole("heading", {name: "Repositories and watches"})).toBeVisible();
+    expect(productApi.repositoryPage).toHaveBeenCalled();
+    expect(screen.queryByText("New scan")).toBeNull();
   });
 
   it("sends an authenticated private screen to login after signed-out recheck is confirmed", async () => {

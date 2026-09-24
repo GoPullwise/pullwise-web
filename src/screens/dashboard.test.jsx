@@ -58,6 +58,10 @@ beforeEach(() => {
       sourceKind: "github", eventType: "thread_resolved", occurredAt: null,
       observedAt: "2026-09-22T05:00:00Z", timeBasis: "observed",
       sourceRefs: [], evidenceIds: [], actor: null},
+    {id: "event-comment-edited", itemId: "item-pr", itemVersion: 2,
+      sourceKind: "github", eventType: "comment_edited",
+      occurredAt: "2026-09-22T06:00:00Z", observedAt: "2026-09-22T07:00:00Z",
+      timeBasis: "source", sourceRefs: [], evidenceIds: [], actor: null},
   ], relations: [], nextCursor: null, hasMore: false,
     coverage: {historicalStartAt: "2026-09-22T03:00:00Z", limitations: []}});
   vi.spyOn(productApi, "source").mockResolvedValue(structuredClone(releaseFixture));
@@ -191,6 +195,7 @@ it("shows saved Item events with observed versus occurred time", async () => {
   expect(await within(dialog).findByText("Snapshot first observed")).toBeVisible();
   expect(within(dialog).getByText("Disposition changed")).toBeVisible();
   expect(within(dialog).getByText("Thread resolved")).toBeVisible();
+  expect(within(dialog).getByText("Comment edited")).toBeVisible();
   expect(within(dialog).getAllByText(/First observed/)).toHaveLength(2);
   expect(productApi.itemTimeline).toHaveBeenCalledWith("item-pr", {}, expect.anything());
 });

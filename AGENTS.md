@@ -539,6 +539,20 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## P5a product dashboard
 
+- Local `/services` routes to `ProductManagementScreen` and uses shared Server
+  REST for repository PR/CI service switches, owner watches, watch creation/
+  edit/archive and manual fact-only sync. PUT/PATCH/DELETE carry If-Match;
+  creation/sync carry fresh Idempotency-Key; a ref-backed lock blocks duplicate
+  actions. OAuth/App management remains in the existing account flow. The old
+  `/repos` scan screen and other scan routes remain cleanup work.
+- The `/services` repository and watch lists page independently through
+  `repositoryPage` and `watchPage`; labels state "This page" rather than
+  presenting one page as an account total. Preserve a selected shared-watch
+  target while browsing other repository pages. Access failures clear protected
+  configuration; cursor loops stop with recoverable guidance.
+- A synthetic loopback Chrome check of `/services` at 390px/1440px in light
+  and dark had `scrollWidth=clientWidth` and no page errors. Preserve the four
+  screenshots under untracked `output/playwright/product-services-*.png`.
 - The local product Dashboard now requests Server `kind=workload` alongside
   overview/items and displays a module-by-attention distribution. Use the
   returned Item drilldown filters; do not derive bucket totals from the loaded
@@ -550,8 +564,11 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   Updates consumes `kind=updates_releases` Release × watch rows, including
   null labels and rows without Items. Item detail now reads the saved-event
   timeline with its own abortable lifecycle, marks first-observed versus
-  occurred times, and displays only verified CI successor relations. Specific
-  GitHub source-event history remains incomplete in the local Server.
+  occurred times, and displays only verified CI successor relations. Local
+  named events include verified thread resolved/reopened,
+  comment/release edits, PR close/merge and source deletion. Render
+  `timeBasis=observed` as first observation, never as GitHub occurrence;
+  broader GitHub source-event history remains incomplete.
 - The public developer API page now renders the PR/CI/Updates product-v1
   preview from `screens/api-docs.jsx`, with saved Source/Item, usage, handling,
   owner sync and service routes. It explicitly says the Cloudflare Server is

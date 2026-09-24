@@ -22,6 +22,17 @@
 .product-workload-cells { display: flex; flex-wrap: wrap; gap: 8px; }
 .product-workload-cells button { border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text); padding: 7px 10px; font: inherit; cursor: pointer; }
 .product-workload-cells button span { font-family: var(--font-mono); margin-left: 6px; }
+.product-management-row { display: grid; gap: 14px; padding: 18px 0 24px; border-bottom: 1px solid var(--border); min-width: 0; }
+.product-management-row label, .product-management-create label { display: grid; gap: 8px; color: var(--text-2); font-size: var(--fs-sm); }
+.product-management-row label:has(input[type="checkbox"]), .product-management-create label:has(input[type="checkbox"]) { display: flex; align-items: center; }
+.product-management-row input:not([type="checkbox"]), .product-management-row textarea,
+.product-management-create input:not([type="checkbox"]), .product-management-create textarea,
+.product-management-create select { width: 100%; min-width: 0; max-width: 100%; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text); padding: 10px; font: inherit; }
+.product-management-row textarea, .product-management-create textarea { min-height: 88px; resize: vertical; }
+.product-management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; align-items: start; }
+.product-management-grid fieldset { min-width: 0; border: 1px solid var(--border); padding: 12px; display: grid; gap: 12px; }
+.product-management-grid legend { padding: 0 5px; font-size: var(--fs-sm); }
+.product-management-create { display: grid; gap: 18px; }
 .product-sync { color: var(--text-3); padding: 14px 0; }
 .product-list { margin-top: 24px; border-top: 1px solid var(--border-strong); }
 .product-list-heading { display: flex; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--border); }

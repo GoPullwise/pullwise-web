@@ -318,10 +318,11 @@ export function Sidebar({ section, go }) {
   return <SidebarLinks section={section} go={go} items={items} />;
 }
 
-export function ProductSidebar({ go }) {
+export function ProductSidebar({ go, section = "dashboard" }) {
   useLang();
-  return <SidebarLinks section="dashboard" go={go} items={[
+  return <SidebarLinks section={section} go={go} items={[
     { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} /> },
+    { k: "services", label: T("Repositories & watches", "仓库与关注"), icon: <I.GitBranch size={15} /> },
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },
     { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} /> },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },

@@ -3,6 +3,7 @@ const SCREEN_TO_PATH = {
   login: "/login",
   oauth: "/oauth",
   repos: "/repos",
+  services: "/services",
   scanning: "/scanning",
   dashboard: "/dashboard/overview",
   issues: "/issues",

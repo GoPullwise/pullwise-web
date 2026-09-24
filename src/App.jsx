@@ -32,6 +32,7 @@ const ApiDocsScreen = lazyScreen(() => import("./screens/api-docs.jsx"), "ApiDoc
 const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "BillingScreen");
 const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
 const DashboardScreen = lazyScreen(() => import("./screens/dashboard.jsx"), "DashboardScreen");
+const ProductManagementScreen = lazyScreen(() => import("./screens/product-management.jsx"), "ProductManagementScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const HistoryScreen = lazyScreen(() => import("./screens/issues.jsx"), "HistoryScreen");
 const IssueDetailScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssueDetailScreen");
@@ -758,6 +759,10 @@ export function App({ prototypeNav = false }) {
         break;
       case "dashboard":
         body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} />;
+        break;
+      case "services":
+        body = <ProductManagementScreen go={go} authorizationError={repositoryAuthorizationError}
+          clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
         break;
       case "issues":
         body = (

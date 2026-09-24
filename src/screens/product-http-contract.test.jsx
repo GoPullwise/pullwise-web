@@ -64,6 +64,23 @@ it.skipIf(!process.env.PULLWISE_CONTRACT_PYTHON)("uses Web client and proxy agai
     expect(sync.status).toBe(202);
     const release = await productApi.source(ready.releaseId);
     expect(release.contexts[0].itemId).toBeNull();
+    const repositories = await productApi.repositories();
+    const managed = repositories.items.find(repo => repo.id === ready.repositoryId);
+    expect(managed?.service?.revision).toBe(1);
+    const service = await productApi.saveRepositoryService(ready.repositoryId, 1, {
+      enabled: true, modules: {pr: true, ci: false},
+      analysisEnabled: {pr: false, ci: false}, allowMemberSync: false,
+      defaultAssigneeId: null, priorityOrder: 0,
+    });
+    expect(service.revision).toBe(2);
+    const body = {upstream: {owner: "acme", repository: "sdk"},
+      targetRepositoryId: null, interests: ["OAuth"],
+      enabled: true, analysisEnabled: false, includePrerelease: false,
+      priorityOrder: 0};
+    const created = await productApi.createWatch(body, "http-create-watch");
+    const replay = await productApi.createWatch(body, "http-create-watch");
+    expect(replay.id).toBe(created.id);
+    expect((await productApi.watches()).items.some(row => row.id === created.id)).toBe(true);
     child.stdin.end("verify\n");
     const { value } = await iterator.next();
     expect(JSON.parse(value)).toMatchObject({ unchangedUsage: true, modelJobs: 0 });
