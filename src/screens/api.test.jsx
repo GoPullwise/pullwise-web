@@ -54,17 +54,17 @@ describe("API screens", () => {
     });
   });
 
-  it("documents repository automation endpoints", () => {
+  it("documents the PR CI Updates product contract without scan routes", () => {
     const go = vi.fn();
 
     render(<ApiDocsScreen go={go} auth={{ authenticated: true }} />);
 
     expect(screen.getByRole("heading", { name: /pullwise rest api/i })).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/repositories")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/repositories/{repoId}/scans")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/repositories/{repoId}/scans/stop")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/repositories/{repoId}/scans/current")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/repositories/{repoId}/quota")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/items")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/sources")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/items/overview")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/watches/{watchId}/sync")).toBeInTheDocument();
+    expect(screen.queryByText(/\/scans(\/|$)/)).not.toBeInTheDocument();
   });
 
   it("copies the rendered API docs page as markdown", async () => {
@@ -110,7 +110,7 @@ describe("API screens", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
     expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
-    expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(6);
+    expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(18);
   });
   it("resolves root-relative API base URLs for same-origin API docs examples", async () => {
     const user = userEvent.setup();
@@ -131,7 +131,7 @@ describe("API screens", () => {
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /copy page/i }));
       await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
-      expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/v1/repositories`);
+      expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/v1/items?module=pr&view=mine`);
       expect(writeText.mock.calls[0][0]).not.toContain("curl https://api.pull-wise.com");
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
@@ -169,52 +169,33 @@ describe("API screens", () => {
     expect(styles).toMatch(/\.docs-lede\s*{[^}]*max-width:\s*none;/);
   });
 
-  it("keeps scan response examples aligned with the public API payload", () => {
+  it("describes saved product reads without a model submission route", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    const scanResponse = screen.getByText("Scan response").closest(".docs-code");
-    expect(scanResponse?.querySelector("pre")).not.toHaveTextContent(/"requestId"/);
-    expect(scanResponse?.querySelector("pre")).toHaveTextContent(/"verification"/);
-    expect(scanResponse?.querySelector("pre")).toHaveTextContent(/"quotaState": "reserved"/);
-    expect(scanResponse?.querySelector("pre")).toHaveTextContent(/"reserved": 1/);
-    expect(scanResponse?.querySelector("pre")).toHaveTextContent(
-      /"limit": 10,[\s\S]*"used": 1,[\s\S]*"reserved": 1,[\s\S]*"remaining": 8/
-    );
-    expect(scanResponse?.querySelector("pre")).toHaveTextContent(
-      /"limit": 3,[\s\S]*"used": 1,[\s\S]*"reserved": 1,[\s\S]*"remaining": 1/
-    );
+    expect(screen.getByText("/api/v1/items/overview")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/usage/events")).toBeInTheDocument();
+    expect(screen.getByText(/GET never starts model processing/i)).toBeInTheDocument();
+    expect(screen.queryByText(/agentFixPrompt/i)).not.toBeInTheDocument();
   });
 
-  it("documents only commit values accepted by the public scan API", () => {
+  it("documents empty-body idempotent fact sync", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    const startScan = screen.getByText("Start a scan").closest(".docs-code");
-
-    expect(startScan?.querySelector("pre")).not.toHaveTextContent(/"commit": "HEAD"/);
-    expect(screen.getAllByText(/commit SHA/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/idempotencyKey/i).length).toBeGreaterThan(0);
+    const example = screen.getByText("Sync watch facts").closest(".docs-code");
+    expect(example?.querySelector("pre")).toHaveTextContent(/Idempotency-Key:/);
+    expect(example?.querySelector("pre")).toHaveTextContent(/-d '\{\}'/);
+    expect(screen.getByText(/does not invoke Jev or spend intelligent-processing usage/i)).toBeInTheDocument();
   });
 
-  it("uses the implemented free-plan quota defaults in response examples", () => {
+  it("shows usage and availability without scan quota examples", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    const quotaResponse = screen.getByText("Quota response").closest(".docs-code");
-    const quotaExample = quotaResponse?.querySelector("pre");
-
-    expect(quotaExample).toHaveTextContent(/"scope": "user"[\s\S]*"limit": 10,/);
-    expect(quotaExample).toHaveTextContent(/"scope": "repository"[\s\S]*"limit": 3,/);
-    expect(quotaExample).toHaveTextContent(/"reserved": 0/);
+    expect(screen.getByText("/api/v1/usage")).toBeInTheDocument();
+    expect(screen.getByText(/repository listing\/creation, watch creation/i)).toBeInTheDocument();
+    expect(screen.queryByText(/scan quota/i)).not.toBeInTheDocument();
   });
 
-  it("documents the GitHub App write permissions required by implementation", () => {
+  it("marks the Cloudflare product Server as a preview", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    const repositoryResponse = screen.getByText("Repository response").closest(".docs-code");
-    const repositoryExample = repositoryResponse?.querySelector("pre");
-
-    expect(repositoryExample).toHaveTextContent(/"contents": "write"/);
-    expect(repositoryExample).toHaveTextContent(/"pull_requests": "write"/);
-    expect(repositoryExample).not.toHaveTextContent(/"contents": "read"/);
+    expect(screen.getByText(/cloudflare server is not deployed yet/i)).toBeInTheDocument();
+    expect(screen.getAllByText("/api/v1/repositories/{repositoryId}/service")).toHaveLength(2);
   });
 
   it("loads subscription plan configs for Docs from the API", async () => {
@@ -756,7 +737,7 @@ describe("API screens", () => {
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
         name: "CI scanner",
-        scopes: ["repositories:read", "scans:write", "scans:read", "quota:read"],
+        scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read"],
       });
     });
     expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
@@ -898,7 +879,7 @@ describe("API screens", () => {
       id: "key_2",
       name: "CI scanner",
       prefix: "pwk_new",
-      scopes: ["repositories:read", "scans:read"],
+      scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write", "sync:write"],
       key: "pwk_live_secret",
     });
     const user = userEvent.setup();
@@ -908,16 +889,33 @@ describe("API screens", () => {
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/key name/i));
     await user.type(screen.getByLabelText(/key name/i), "CI scanner");
-    await user.click(screen.getByRole("checkbox", { name: /start repository scans/i }));
-    await user.click(screen.getByRole("checkbox", { name: /read quota/i }));
+    await user.click(screen.getByRole("checkbox", { name: /handle items/i }));
+    await user.click(screen.getByRole("checkbox", { name: /sync github facts/i }));
     await user.click(screen.getByRole("button", { name: /create key/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
         name: "CI scanner",
-        scopes: ["repositories:read", "scans:read"],
+        scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write", "sync:write"],
       });
     });
+  });
+
+  it("defaults new API keys to product reads and leaves writes opt-in", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_read", name: "Read key", prefix: "pwk_read", key: "pwk_read_secret",
+    });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /read items and sources/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /sync github facts/i })).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: /create key/i }));
+    await waitFor(() => expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+      name: "Account automation",
+      scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read"],
+    }));
   });
 
   it("uses a streamlined API key creation panel without redundant scope explainer rows", async () => {
@@ -945,9 +943,9 @@ describe("API screens", () => {
     );
     expect(scopes).toHaveClass("api-scope-panel");
     expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/^Scopes/);
-    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("4 / 4 selected");
-    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(4);
-    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(4);
+    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 9 selected");
+    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(9);
+    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(9);
     expect(styles).toMatch(
       /\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/
     );

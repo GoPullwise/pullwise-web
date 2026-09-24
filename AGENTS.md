@@ -486,6 +486,19 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## P5a product dashboard
 
+- The public developer API page now renders the PR/CI/Updates product-v1
+  preview from `screens/api-docs.jsx`, with saved Source/Item, usage, handling,
+  owner sync and service routes. It explicitly says the Cloudflare Server is
+  not deployed and lists unavailable creation/member/P5b capabilities.
+  Retired scan/quota examples were removed from the rendered page and its old
+  implementation in `screens/api.jsx`. The 390px API page uses a horizontal
+  scrollable table of contents, keeps code blocks internally scrollable, and
+  passed local Chrome `scrollWidth=clientWidth=390`.
+- API key creation offers the nine current product scopes; the five Server
+  `DEFAULT_SCOPES` are selected by default in the same order, while handling,
+  watch management, sync and repository management remain explicit opt-ins.
+  Existing saved key metadata is still rendered as returned by Server.
+
 - Billing/Pricing now render `plan.entitlements` (repository/watch capacity and
   monthly intelligent-processing units) from Server, and Billing uses only
   `account.usage.metric=intelligent_processing` plus saved
