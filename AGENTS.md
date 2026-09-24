@@ -548,7 +548,10 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   total is distinct even when cells have multiple labels. CI matrix cells use
   Server paired stage/symptom drilldowns and keep unclassified failures visible.
   Updates consumes `kind=updates_releases` Release × watch rows, including
-  null labels and rows without Items. Full timelines remain unimplemented.
+  null labels and rows without Items. Item detail now reads the saved-event
+  timeline with its own abortable lifecycle, marks first-observed versus
+  occurred times, and displays only verified CI successor relations. Specific
+  GitHub source-event history remains incomplete in the local Server.
 - The public developer API page now renders the PR/CI/Updates product-v1
   preview from `screens/api-docs.jsx`, with saved Source/Item, usage, handling,
   owner sync and service routes. It explicitly says the Cloudflare Server is

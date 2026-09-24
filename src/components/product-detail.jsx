@@ -36,6 +36,8 @@ const labels = {
   configuration_error: ["Configuration error", "配置错误"],
   unclassified: ["Symptom unclassified", "现象未确定"],
   snapshot_observed: ["Snapshot first observed", "首次观察到快照"],
+  thread_resolved: ["Thread resolved", "评审讨论已解决"],
+  thread_reopened: ["Thread reopened", "评审讨论已重新打开"],
   event_assessed: ["Assessment saved", "判断已保存"],
   disposition_changed: ["Disposition changed", "处理状态已变更"],
   assignee_changed: ["Assignee changed", "处理人已变更"],
