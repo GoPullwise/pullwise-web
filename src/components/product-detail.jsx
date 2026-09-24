@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { T } from "../i18n.jsx";
 import { productApi } from "../api/product.js";
-import { useProductRead, safeSourceUrl } from "../lib/product-data.js";
+import { useProductRead, safeSourceUrl, requireTimeline } from "../lib/product-data.js";
 import { useModalFocus } from "../lib/modal-focus.js";
 
 const labels = {
@@ -22,8 +22,30 @@ const labels = {
   migration_stated: ["Migration", "迁移"], deprecation_stated: ["Deprecation", "弃用"],
   breaking_change_stated: ["Breaking change", "破坏性变化"], security_fix_stated: ["Security fix", "安全修复"],
   present: ["Explicitly stated", "明确提及"], absent: ["Not explicitly stated", "未明确提及"],
+  dependency_install: ["Dependency install", "依赖安装"], build: ["Build", "构建"],
+  test: ["Test", "测试"], deploy: ["Deploy", "部署"], runtime: ["Runtime", "运行时"],
+  unknown: ["Unknown stage", "阶段未知"],
+  connection_timeout: ["Connection timeout", "连接超时"],
+  name_resolution_failure: ["Name resolution failure", "域名解析失败"],
+  authentication_denied: ["Authentication denied", "身份验证失败"],
+  authorization_denied: ["Authorization denied", "权限被拒绝"],
+  assertion_failure: ["Assertion failure", "断言失败"],
+  syntax_or_type_error: ["Syntax or type error", "语法或类型错误"],
+  package_resolution_failure: ["Package resolution failure", "依赖包解析失败"],
+  resource_exhausted: ["Resource exhausted", "资源耗尽"],
+  configuration_error: ["Configuration error", "配置错误"],
+  unclassified: ["Symptom unclassified", "现象未确定"],
+  snapshot_observed: ["Snapshot first observed", "首次观察到快照"],
+  event_assessed: ["Assessment saved", "判断已保存"],
+  disposition_changed: ["Disposition changed", "处理状态已变更"],
+  assignee_changed: ["Assignee changed", "处理人已变更"],
+  feedback_changed: ["Feedback changed", "反馈已变更"],
+  disposition_carried_forward: ["Handling carried forward", "处理状态已继承"],
 };
 export const productLabel = value => labels[value] ? T(...labels[value]) : String(value || T("Unknown", "未知"));
+// Timeline event types share wire values with processing statuses (e.g.
+// "assessed"); namespace the event label so both stay distinct.
+export const eventTypeLabel = value => productLabel(value === "assessed" ? "event_assessed" : value);
 
 export function UpdateClassification({ context }) {
   if (context.contextStale) return null;
@@ -41,6 +63,38 @@ export function Coverage({ coverage }) {
     <span>{coverage.state === "complete" ? T("Discovered material only", "仅已发现材料") : T("Partial or unavailable material", "材料不完整或不可用")}</span>
     {(coverage.limitations || []).map(limit => <span key={limit}>{limit}</span>)}
   </div>;
+}
+
+function ItemTimeline({ itemId, onAccessLost }) {
+  const [cursor, setCursor] = useState("");
+  const key = JSON.stringify([itemId, cursor]);
+  const read = useProductRead(key, signal => productApi.itemTimeline(itemId,
+    cursor ? { cursor } : {}, { signal }).then(requireTimeline));
+  useEffect(() => {
+    if ([401, 403, 404].includes(read.error?.status)) onAccessLost(read.error);
+  }, [read.error, onAccessLost]);
+  return <section className="product-timeline" aria-label={T("Saved event timeline", "已保存事件时间线")}>
+    <h3>{T("Saved event timeline", "已保存事件时间线")}</h3>
+    {read.loading ? <p role="status">{T("Loading events…", "正在加载事件…")}</p> :
+      read.error ? <p role="alert">{read.error.message}</p> : read.value && <>
+        {read.value.items.length === 0 ? <p>{T("No saved events.", "暂无已保存事件。")}</p> :
+          <ol className="product-history">{read.value.items.map(event => <li key={event.id}>
+            <strong>{eventTypeLabel(event.eventType)}</strong> · {event.sourceKind}
+            <p>{event.timeBasis === "observed" ? T("First observed", "首次观察") : T("Occurred", "发生时间")}: <time>{event.occurredAt || event.observedAt}</time></p>
+            {event.evidenceIds?.length > 0 && <p>{event.evidenceIds.length} {T("evidence references", "条证据引用")}</p>}
+          </li>)}</ol>}
+        {read.value.relations.map(relation => <p className="product-timeline-relation" key={`${relation.fromEventId}:${relation.kind}`}>
+          <strong>{relation.kind === "later_run_succeeded" ?
+            T("Verified successor execution succeeded", "已核验的后续执行成功") :
+            T("Corresponding later attempt succeeded", "对应的后续尝试成功")}</strong>
+          <span> · {relation.toExecution.runId} / {relation.toExecution.jobId}</span>
+          {!relation.fromLoaded && <span> · {T("Earlier event is on another page", "先前事件在其他页")}</span>}
+        </p>)}
+        {read.value.coverage?.limitations?.map(limit => <p className="sub" key={limit}>{limit}</p>)}
+        {read.value.hasMore && <button className="btn" disabled={!read.value.nextCursor || read.value.nextCursor === cursor}
+          onClick={() => setCursor(read.value.nextCursor)}>{T("Next events", "下一页事件")}</button>}
+      </>}
+  </section>;
 }
 
 function Assessments({ assessments }) {
@@ -151,6 +205,7 @@ export function ProductDetail({ selection, onClose, onSaved, onAccessLost }) {
             {event.note && <pre className="product-evidence">{event.note}</pre>}
             {event.feedback && <p>{T("Classification feedback recorded", "已记录分类反馈")}</p>}
           </li>)}</ol>}
+          <ItemTimeline itemId={item.id} onAccessLost={onAccessLost} />
         </>}
       </>}
     </section>

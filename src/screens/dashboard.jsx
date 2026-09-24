@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
 import { Topbar, ProductSidebar } from "../shell.jsx";
 import { productApi } from "../api/product.js";
-import { useProductRead, requireOverview, requirePage } from "../lib/product-data.js";
+import { useProductRead, requireOverview, requirePage, requireWorkload, requirePRActions, requireCIFailures, requireUpdatesReleases } from "../lib/product-data.js";
 import { Coverage, ProductDetail, UpdateClassification, productLabel } from "../components/product-detail.jsx";
 import "./product.css";
 
-const initialFilters = { module: "", repositoryId: "", watchId: "", view: "all", attentionState: "" };
+const initialFilters = { module: "", repositoryId: "", watchId: "", view: "all", attentionState: "", pullNumber: "", actionType: "", ciStage: "", ciSymptom: "", classificationState: "" };
 
 function Pager({ page, cursors, onChange, kind }) {
   const current = cursors.at(-1);
@@ -23,7 +23,8 @@ export function DashboardScreen({ go }) {
   useLang();
   const [filters, setFilters] = useState(initialFilters);
   const [itemCursors, setItemCursors] = useState([""]);
-  const [sourceCursors, setSourceCursors] = useState([""]);
+  const [releaseCursors, setReleaseCursors] = useState([""]);
+  const [prCursors, setPrCursors] = useState([""]);
   const [revision, setRevision] = useState(0);
   const [selection, setSelection] = useState(null);
   const [blocked, setBlocked] = useState("");
@@ -31,7 +32,8 @@ export function DashboardScreen({ go }) {
     setSelection(null);
     setBlocked("");
     setItemCursors([""]);
-    setSourceCursors([""]);
+    setReleaseCursors([""]);
+    setPrCursors([""]);
     setRevision(value => value + 1);
   }, []);
   const accessLost = useCallback(error => { setSelection(null); setBlocked(error.message || T("Access unavailable", "访问权不可用")); }, []);
@@ -40,23 +42,27 @@ export function DashboardScreen({ go }) {
     document.addEventListener("visibilitychange", visible);
     return () => document.removeEventListener("visibilitychange", visible);
   }, [refresh]);
-  const key = JSON.stringify([filters, itemCursors, sourceCursors, revision]);
+  const key = JSON.stringify([filters, itemCursors, releaseCursors, prCursors, revision]);
   const read = useProductRead(key, async signal => {
     const options = { signal };
-    const sourceFilters = { module: "updates", repositoryId: filters.repositoryId, watchId: filters.watchId, cursor: sourceCursors.at(-1) };
-    const [overview, items, repositories, watches, sources] = await Promise.all([
+    const releaseFilters = { kind: "updates_releases", module: "updates", repositoryId: filters.repositoryId, watchId: filters.watchId, cursor: releaseCursors.at(-1) };
+    const [overview, workload, prActions, ciFailures, items, repositories, watches, releases] = await Promise.all([
       productApi.overview(filters, options),
+      productApi.visualizations({ kind: "workload", ...filters }, options),
+      filters.module === "pr" ? productApi.prActions({ kind: "pr_actions", ...filters, cursor: prCursors.at(-1) }, options) : null,
+      filters.module === "ci" ? productApi.ciFailures({ kind: "ci_failures", ...filters }, options) : null,
       productApi.items({ ...filters, cursor: itemCursors.at(-1) }, options),
       productApi.repositories(options),
       productApi.watches(options),
-      filters.module === "updates" ? productApi.sources(sourceFilters, options) : null,
+      filters.module === "updates" ? productApi.updatesReleases(releaseFilters, options) : null,
     ]);
-    return { overview: requireOverview(overview), items: requirePage(items), repositories: requirePage(repositories), watches: requirePage(watches), sources: sources && requirePage(sources) };
+    return { overview: requireOverview(overview), workload: requireWorkload(workload), prActions: prActions && requirePRActions(prActions), ciFailures: ciFailures && requireCIFailures(ciFailures), items: requirePage(items), repositories: requirePage(repositories), watches: requirePage(watches), releases: releases && requireUpdatesReleases(releases) };
   });
   function change(next) {
     setSelection(null);
     setItemCursors([""]);
-    setSourceCursors([""]);
+    setReleaseCursors([""]);
+    setPrCursors([""]);
     setFilters(value => ({ ...value, ...next }));
   }
   const data = blocked ? null : read.value;
@@ -73,7 +79,7 @@ export function DashboardScreen({ go }) {
           </div>
           <div className="product-tabs" role="group" aria-label={T("Modules", "模块")}>
             {[["", T("All", "全部")], ["pr", "PR"], ["ci", "CI"], ["updates", "Updates"]].map(([module, name]) =>
-              <button key={module} aria-label={T(name + " module", name + " 模块")} aria-pressed={filters.module === module} onClick={() => change({ module, watchId: module === "updates" ? filters.watchId : "" })}>{name}</button>)}
+              <button key={module} aria-label={T(name + " module", name + " 模块")} aria-pressed={filters.module === module} onClick={() => change({ module, watchId: module === "updates" ? filters.watchId : "", pullNumber: "", actionType: "", ciStage: "", ciSymptom: "", classificationState: "" })}>{name}</button>)}
           </div>
           <div className="product-filters">
             <label>{T("Repository scope", "仓库范围")}<select disabled={read.loading} value={filters.repositoryId} onChange={event => change({ repositoryId: event.target.value })}>
@@ -87,6 +93,8 @@ export function DashboardScreen({ go }) {
               {data?.watches.items.map(watch => <option value={watch.id} key={watch.id}>{watch.upstreamRepositoryId} · {(watch.interests || []).join(", ")}</option>)}
             </select></label>}
             {filters.attentionState && <button className="btn" onClick={() => change({ attentionState: "" })}>{productLabel(filters.attentionState)} × {T("Clear filter", "清除筛选")}</button>}
+            {(filters.pullNumber || filters.actionType) && <button className="btn" onClick={() => change({ pullNumber: "", actionType: "" })}>{T("Clear PR drilldown", "清除 PR 筛选")}</button>}
+            {(filters.ciStage || filters.ciSymptom || filters.classificationState) && <button className="btn" onClick={() => change({ ciStage: "", ciSymptom: "", classificationState: "" })}>{T("Clear CI drilldown", "清除 CI 筛选")}</button>}
           </div>
           {error ? <section className="product-message" role="alert"><h2>{T("Overview data unavailable", "总览数据暂不可用")}</h2><p>{error}</p><button className="btn" onClick={refresh}>{T("Retry loading data", "重试加载数据")}</button></section> :
             read.loading ? <p className="product-message" role="status">{T("Loading follow-up…", "正在加载跟进事项…")}</p> : data && <>
@@ -95,6 +103,40 @@ export function DashboardScreen({ go }) {
                   <strong>{count}</strong><span>{productLabel(state)}</span>
                 </button>)}
               </section>
+              <section className="product-workload" aria-label={T("Workload by module", "按模块分布的事项")}>
+                <h2>{T("Workload by module", "按模块的事项")}</h2>
+                {data.workload.data.rows.map(row => <div className="product-workload-row" key={row.key}>
+                  <strong>{row.key.toUpperCase()}</strong><span>{row.totalCount} {T("items", "事项")}</span>
+                  <div className="product-workload-cells">{row.cells.filter(cell => cell.count > 0).map(cell =>
+                    <button key={cell.key} aria-label={`${row.key.toUpperCase()} ${productLabel(cell.key)}: ${cell.count}`}
+                      onClick={() => change(cell.drilldown.filters)}>{productLabel(cell.key)} <span>{cell.count}</span></button>)}</div>
+                </div>)}
+              </section>
+              {data.prActions && <section className="product-workload" aria-label={T("PR action matrix", "PR 行动矩阵")}>
+                <h2>{T("PR action matrix", "PR 行动矩阵")}</h2>
+                <p className="sub">{data.prActions.data.rowsTotal} PR · {data.prActions.totalCount} {T("distinct items", "独立事项")}</p>
+                {data.prActions.data.rows.map(row => <div className="product-workload-row" key={row.key}>
+                  <strong>PR #{row.pullNumber}</strong><span>{row.totalCount} {T("items", "事项")}</span>
+                  <div className="product-workload-cells">{row.cells.filter(cell => cell.count > 0).map(cell =>
+                    <button key={cell.key} aria-label={`PR #${row.pullNumber} ${productLabel(cell.key)}: ${cell.count}`}
+                      onClick={() => change(cell.drilldown.filters)}>{productLabel(cell.key)} <span>{cell.count}</span></button>)}</div>
+                </div>)}
+                <Pager page={data.prActions} cursors={prCursors} onChange={setPrCursors} kind="pr" />
+              </section>}
+              {data.ciFailures && <section className="product-workload" aria-label={T("CI stage and symptom matrix", "CI 阶段与现象矩阵")}>
+                <h2>{T("CI stage and symptom matrix", "CI 阶段与现象矩阵")}</h2>
+                <p className="sub">{data.ciFailures.totalCount} {T("failed job attempts", "失败的任务执行")}</p>
+                {data.ciFailures.data.rows.map(row => <div className="product-workload-row" key={row.key}>
+                  <strong>{productLabel(row.key)}</strong>
+                  <div className="product-workload-cells product-workload-wide">{data.ciFailures.data.cells
+                    .filter(cell => cell.rowKey === row.key && cell.count > 0).map(cell =>
+                    <button key={cell.columnKey} aria-label={`${productLabel(row.key)} ${productLabel(cell.columnKey)}: ${cell.count}`}
+                      onClick={() => change(cell.drilldown.filters)}>{productLabel(cell.columnKey)} <span>{cell.count}</span></button>)}</div>
+                </div>)}
+                {data.ciFailures.data.unclassifiedCount > 0 && data.ciFailures.data.unclassifiedDrilldown &&
+                  <button className="btn" onClick={() => change(data.ciFailures.data.unclassifiedDrilldown.filters)}>
+                    {productLabel("unclassified")}: {data.ciFailures.data.unclassifiedCount}</button>}
+              </section>}
               <div className="product-sync">
                 <span>{T("Last synced", "最近同步")}: {data.overview.lastSyncedAt || T("Sync not completed", "尚未完成同步")}</span>
                 <span>{T("Coverage is limited to discovered visible sources.", "覆盖范围仅限已发现且可见的来源。")}</span>
@@ -112,19 +154,20 @@ export function DashboardScreen({ go }) {
                 </article>)}
               </section>
               <Pager page={data.items} cursors={itemCursors} onChange={setItemCursors} kind="items" />
-              {data.sources && <section className="product-list" aria-label={T("All releases", "全部发布")}>
-                <div className="product-list-heading"><h2>{T("All releases", "全部发布")}</h2></div>
+              {data.releases && <section className="product-list" aria-label={T("All releases", "全部发布")}>
+                <div className="product-list-heading"><h2>{T("All releases", "全部发布")}</h2><span>{data.releases.totalCount} {T("Release and watch rows", "发布与关注行")}</span></div>
                 <p className="product-sync">{T("Release × watch. Item view and action filters do not apply here.", "按发布 × 关注范围展示，不受事项视图和行动筛选影响。")}</p>
-                {data.sources.items.length === 0 && <p className="product-message">{T("No discovered releases.", "尚未发现发布。")}</p>}
-                {data.sources.items.flatMap(source => source.contexts.filter(context => !filters.watchId || context.watchId === filters.watchId).map(context => <article className="product-row" key={JSON.stringify([source.id, context.id])}>
-                  <div className="product-row-title"><span className="product-module">{source.sourceFacts?.tagName || source.sourceFacts?.tag}</span><button onClick={() => setSelection({ kind: "source", id: source.id, contextId: context.id })}>{source.sourceFacts?.name || source.sourceFacts?.title || source.id}</button><span>{productLabel(context.processingStatus)}</span></div>
-                  <div className="sub">{context.watchId} · {T("Context version", "关注版本")} {context.contextVersion} · {source.sourceFacts?.publishedAt}</div>
-                  {context.contextStale && <p>{productLabel("context_stale")}</p>}
-                  <Coverage coverage={context.coverage} />
-                  <UpdateClassification context={context} />
+                {data.releases.data.rows.length === 0 && <p className="product-message">{T("No discovered releases.", "尚未发现发布。")}</p>}
+                {data.releases.data.rows.map(row => <article className="product-row" key={JSON.stringify([row.sourceId, row.contextId])}>
+                  <div className="product-row-title"><span className="product-module">{row.tagName}</span><button onClick={() => setSelection({ kind: "source", id: row.sourceId, contextId: row.contextId })}>{row.title || row.sourceId}</button><span>{productLabel(row.processingStatus)}</span></div>
+                  <div className="sub">{row.watchId} · {T("Context version", "关注版本")} {row.contextVersion} · {row.publishedAt}</div>
+                  {row.contextStale && <p>{productLabel("context_stale")}</p>}
+                  <Coverage coverage={row.coverage} />
+                  <UpdateClassification context={row} />
+                  {row.evidenceIds?.length > 0 && <span className="sub">{row.evidenceIds.length} {T("saved evidence references", "条已保存证据引用")}</span>}
                   <p className="sub">{T("No classification is implied for omitted material.", "未覆盖的内容不推定为不相关或未提及。")}</p>
-                </article>))}
-                <Pager page={data.sources} cursors={sourceCursors} onChange={setSourceCursors} kind="sources" />
+                </article>)}
+                <Pager page={data.releases} cursors={releaseCursors} onChange={setReleaseCursors} kind="sources" />
               </section>}
             </>}
         </main>

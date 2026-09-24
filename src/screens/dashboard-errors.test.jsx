@@ -8,6 +8,8 @@ beforeEach(() => {
   setLang("en");
   vi.spyOn(productApi, "items").mockResolvedValue(page([itemFixture]));
   vi.spyOn(productApi, "overview").mockResolvedValue(overviewFixture);
+  vi.spyOn(productApi, "visualizations").mockResolvedValue({kind: "workload",
+    countUnit: "item", totalCount: 1, data: {rows: []}});
   vi.spyOn(productApi, "repositories").mockResolvedValue(page([]));
   vi.spyOn(productApi, "watches").mockResolvedValue(page([]));
 });

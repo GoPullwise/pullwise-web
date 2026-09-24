@@ -110,7 +110,10 @@ describe("API screens", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
 
     expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
-    expect(document.querySelectorAll(".docs-endpoint-card")).toHaveLength(18);
+    const cards = [...document.querySelectorAll(".docs-endpoint-card")];
+    expect(cards.length).toBeGreaterThanOrEqual(18);
+    expect(cards.some(card => card.textContent.includes("/api/v1/visualizations?kind=workload"))).toBe(true);
+    expect(cards.some(card => card.textContent.includes("/api/v1/visualizations?kind=pr_actions"))).toBe(true);
   });
   it("resolves root-relative API base URLs for same-origin API docs examples", async () => {
     const user = userEvent.setup();
