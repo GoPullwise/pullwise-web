@@ -365,7 +365,7 @@ export function LoginScreen({ go } = {}) {
             width="24"
             height="24"
           />
-          <span style={{ fontSize: 16 }}>Pullwise</span>
+          <span style={{ fontSize: "var(--fs-2xl)" }}>Pullwise</span>
         </div>
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">

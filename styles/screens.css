@@ -207,7 +207,7 @@
 }
 .oauth-logo.app {
   background: var(--accent);
-  color: white;
+  color: var(--accent-fg);
   border-color: var(--accent);
   object-fit: contain;
   padding: 6px;
@@ -482,7 +482,7 @@
   background: var(--bg-elev);
   display: grid;
   place-items: center;
-  color: white;
+  color: var(--accent-fg);
   transition:
     background 120ms var(--ease-out),
     border-color 120ms var(--ease-out);
@@ -1051,7 +1051,7 @@
 .scanning-phase.done .scanning-phase-bullet {
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--accent-fg);
 }
 .scanning-phase.on .scanning-phase-bullet {
   color: var(--accent-fg);
@@ -1059,7 +1059,7 @@
   background: var(--accent);
 }
 .scanning-phase.failed .scanning-phase-bullet {
-  color: white;
+  color: var(--accent-fg);
   border-color: var(--sev-critical);
   background: var(--sev-critical);
 }
@@ -1885,11 +1885,6 @@
 }
 
 /* Issue grid */
-.issue-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
 .issue-card {
   padding: 16px;
   cursor: default;
@@ -2047,7 +2042,7 @@
   min-width: 0;
 }
 .issues-file {
-  font: 12px var(--font-mono);
+  font: var(--fs-sm) var(--font-mono);
   color: var(--text-3);
   white-space: nowrap;
   overflow: hidden;
@@ -2318,7 +2313,7 @@
 }
 .pr-step.on > span:first-child {
   background: var(--accent);
-  color: white;
+  color: var(--accent-fg);
   border-color: var(--accent);
 }
 
@@ -2379,7 +2374,7 @@
   height: 56px;
   display: grid;
   place-items: center;
-  color: white;
+  color: var(--accent-fg);
   font: 600 var(--fs-4xl)/1 var(--font-display);
 }
 .set-pref {
@@ -3314,7 +3309,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--accent);
-  color: white;
+  color: var(--accent-fg);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -3597,7 +3592,7 @@
 }
 .docs-h2 {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: var(--fs-4xl);
   font-weight: 600;
   letter-spacing: 0;
   margin: 36px 0 14px;
@@ -4063,7 +4058,7 @@
   border: 0;
   outline: none;
   color: var(--text);
-  font: 400 var(--fs-xl)/1.4 var(--font-sans);
+  font: 400 var(--fs-2xl)/1.4 var(--font-sans);
 }
 .search-h input::placeholder {
   color: var(--text-3);
@@ -4153,7 +4148,7 @@
   height: 16px;
   padding: 0 5px;
   background: var(--accent);
-  color: white;
+  color: var(--accent-fg);
   font: 600 var(--fs-xs)/1 var(--font-mono);
 }
 
@@ -4166,9 +4161,6 @@
   }
   .risk-hotspot-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .issue-kanban {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .issue-detail-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -4223,12 +4215,6 @@
 }
 
 @media (max-width: 760px) {
-  .lp-top {
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-    padding: 16px;
-  }
-
   .lp-nav {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -4375,7 +4361,6 @@
     justify-self: start;
   }
 
-  .issue-grid,
   .set-shell,
   .status-row {
     flex-direction: column;
@@ -4502,7 +4487,7 @@
   }
 
   .modal-search {
-    max-width: none;
+    width: 100%;
   }
 
   .search-i {
@@ -4738,7 +4723,7 @@
 }
 .status-overall h1 {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: var(--fs-4xl);
   font-weight: 600;
   letter-spacing: 0;
   margin: 0;
@@ -5146,10 +5131,6 @@
 }
 
 @media (max-width: 760px) {
-  .repo-row {
-    grid-template-columns: 24px minmax(0, 1fr);
-  }
-
   .issue-row {
     grid-template-columns: minmax(0, 1fr) auto;
   }

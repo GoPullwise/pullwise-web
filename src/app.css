@@ -340,9 +340,9 @@
 
 @media (max-width: 520px) {
   .notification-stack {
-    right: 166px;
-    bottom: 18px;
-    width: calc(100vw - 184px);
+    right: 16px;
+    bottom: 72px;
+    width: calc(100vw - 32px);
   }
 
   .notification-toast {
@@ -381,10 +381,7 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  font:
-    11.5px/1 "Geist",
-    ui-sans-serif,
-    sans-serif;
+  font: var(--fs-sm)/1 var(--font-sans);
 }
 
 .proto-nav-l {
@@ -412,10 +409,7 @@
   color: rgba(255, 255, 255, 0.6);
   padding: 6px 10px;
   border-radius: 0;
-  font:
-    11.5px/1 "Geist",
-    ui-sans-serif,
-    sans-serif;
+  font: var(--fs-sm)/1 var(--font-sans);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -434,7 +428,7 @@
 }
 
 .proto-nav-n {
-  font-family: "Geist Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: var(--fs-micro);
   opacity: 0.55;
 }
@@ -716,7 +710,6 @@ body.has-proto-nav {
   margin-bottom: 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 30px;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 36px;
@@ -1147,17 +1140,19 @@ body.has-proto-nav {
   min-width: 0;
 }
 
-.issues-thead,
-.issues-trow {
-  grid-template-columns:
-    24px
-    minmax(260px, 1.55fr)
-    minmax(180px, 1.15fr)
-    minmax(110px, 0.75fr)
-    minmax(90px, 0.65fr)
-    minmax(78px, 0.55fr)
-    minmax(190px, auto);
-  align-items: center;
+@media (min-width: 761px) {
+  .issues-thead,
+  .issues-trow {
+    grid-template-columns:
+      24px
+      minmax(260px, 1.55fr)
+      minmax(180px, 1.15fr)
+      minmax(110px, 0.75fr)
+      minmax(90px, 0.65fr)
+      minmax(78px, 0.55fr)
+      minmax(190px, auto);
+    align-items: center;
+  }
 }
 
 .issues-title-c {
@@ -2214,7 +2209,7 @@ body.has-proto-nav {
   width: 16px;
   height: 16px;
   border: 1px solid var(--border-strong);
-  color: white;
+  color: var(--accent-fg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2226,7 +2221,7 @@ body.has-proto-nav {
   border-color: var(--accent);
 }
 
-/* 鈹€鈹€ Landing 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */
+/* ── Landing ── */
 .landing {
   background: var(--bg);
 }

@@ -968,6 +968,35 @@ describe("HistoryScreen queue state", () => {
     }
   );
 
+  it("keeps the scan row menu hard-edged with a theme-visible border", () => {
+    const css = baseStyles();
+    const menuBlock = css.match(/\.scan-row-menu\s*\{(?<body>[^}]*)\}/s)?.groups?.body;
+
+    expect(menuBlock).toBeTruthy();
+    expect(menuBlock).not.toMatch(/box-shadow:\s*0 8px 24px rgba\(0, 0, 0, 0\.08\)/);
+    expect(menuBlock).toMatch(/border:\s*1px solid var\(--border-strong\)/);
+  });
+
+  it("scopes the fixed issues-row grid columns above the mobile breakpoint", () => {
+    const css = appStyles();
+    const withoutMediaBlocks = css.replace(
+      /@media[^{}]+\{(?:[^{}]|\{[^{}]*\})*\}/gs,
+      ""
+    );
+    expect(withoutMediaBlocks).not.toMatch(
+      /\.issues-trow\s*\{[^}]*grid-template-columns/s
+    );
+
+    const desktopBands = [
+      ...css.matchAll(/@media\s*\(min-width:\s*761px\)[^{]*\{(?<body>[\s\S]*?)\n\}/g),
+    ].map((match) => match.groups?.body || "");
+    expect(
+      desktopBands.some((body) =>
+        /\.issues-thead,\s*\.issues-trow\s*\{[^}]*grid-template-columns[^}]*minmax\(260px/s.test(body)
+      )
+    ).toBe(true);
+  });
+
   it("keeps the scan history page title on one truncated line", () => {
     useScans.mockReturnValue({
       items: [],

@@ -186,6 +186,24 @@ describe("App", () => {
     expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
   });
 
+  it("syncs the browser theme-color meta with the active theme", async () => {
+    const meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    meta.setAttribute("content", "#f8f7f6");
+    document.head.appendChild(meta);
+    localStorage.setItem("pw-theme", "dark");
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(
+        document.querySelector('meta[name="theme-color"]')?.getAttribute("content")
+      ).toBe("#080808");
+    });
+    localStorage.removeItem("pw-theme");
+    meta.remove();
+  });
+
   it("restarts initial session recovery after StrictMode aborts the first request", async () => {
     let calls = 0;
     pullwiseApi.auth.getSession.mockImplementation(({ signal } = {}) => {

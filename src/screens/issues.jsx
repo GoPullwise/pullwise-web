@@ -1227,7 +1227,7 @@ export function IssueDetailScreen({ go, issue: initialIssue, issueId = "", setIs
                 )}
                 <span className="tag">{currentStatus}</span>
               </div>
-              <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
+              <h1 style={{ fontSize: "var(--fs-4xl)", fontWeight: 600, letterSpacing: 0, marginBottom: 6 }}>
                 {issue.title}
               </h1>
               {issue.summary && (
@@ -2066,7 +2066,7 @@ export function HistoryScreen({
                   padding: "32px 16px",
                   textAlign: "center",
                   color: "var(--text-3)",
-                  fontSize: 13,
+                  fontSize: "var(--fs-md)",
                 }}
               >
                 {T("No scans yet.", "\u6682\u65e0\u626b\u63cf\u3002")}

@@ -471,6 +471,59 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## P0 visual baseline
 
+- Local visual checks run fully loopback: a synthetic Python API on 127.0.0.1:8080
+  plus `VITE_API_BASE_URL=http://localhost:8080 npx vite --port <free-port>` and
+  headless Chrome via playwright-core (`executablePath` to the installed Chrome).
+  A working synthetic API and audit scripts are kept in `../.test-tmp/ui-audit/`
+  (synthetic_api.py, audit.js). The synthetic API must echo the request `Origin`
+  in `Access-Control-Allow-Origin` and send `Access-Control-Allow-Credentials:
+  true`, because the app fetches cross-origin with credentials in this setup.
+  Port 5173 is often already bound on this machine by another project's dev
+  server (including on [::1]); always pick a distinct free port with
+  `--strictPort` instead of fighting over 5173. No Wrangler/workerd/D1 commands.
+- Mobile CSS layering (fixed 2026-09-24): `src/app.css` imports after
+  `styles/screens.css`, so any top-level app.css rule beats screens.css
+  `@media (max-width: 760px)` rules at equal specificity. Desktop-only
+  `.issues-thead/.issues-trow` grid columns therefore live inside
+  `@media (min-width: 761px)` in app.css; the ≤760 card restack stays in
+  screens.css. `.modal-search` keeps its `calc(100vw - 40px)` cap and uses
+  `width: 100%` in the ≤760 block instead of `max-width: none`, which had
+  clipped the 560px dialog off-screen below ~584px.
+- Token discipline (fixed 2026-09-24, guarded by shell.test.jsx "Design token
+  discipline"): foregrounds on accent/severity fills use `var(--accent-fg)`;
+  literal `white` survives only in the dark-theme scanning-phase block and the
+  always-dark dev `.proto-nav*`. Every modal/drawer backdrop (`.modal-back`,
+  `.quota-modal-back`, `.product-backdrop`) uses the single scrim
+  `rgba(8, 12, 20, 0.52)`. The hard-edged system keeps `--shadow-*` at none;
+  overlays such as `.scan-row-menu` get elevation from a
+  `var(--border-strong)` border, never a real box-shadow.
+- Font discipline (fixed 2026-09-24, same test group): no fractional-px font
+  sizes anywhere; content headings stay on the `--fs-*` scale (max
+  `--fs-4xl` 22px); inline `fontSize` styles use the scale vars, not numbers;
+  the dev `.proto-nav*` uses the token font stacks. Static display numerals
+  (`.kpi-v` 34px, `.pricing-num` 38px, `.scan-findings-total b` 26px,
+  `.notfound-code` 72px) and the ≤900px `.docs-h1` 30px override are kept
+  deliberately as display sizes; if they ever change, move them to local
+  `clamp()` rather than adding new static off-scale values.
+- Hygiene (fixed 2026-09-24, same test group plus an App.test.jsx behavior
+  test): `.main.narrow`/`.issue-grid`/`.issue-kanban` were deleted as dead
+  CSS; the mobile `.lp-top` frame lives only in app.css and the
+  screens.css ≤760 `.repo-row` duplicate was removed — do not re-add
+  overridden copies in screens.css. `--font-sans`/`--font-display` end with
+  explicit CJK fallbacks (PingFang SC, Hiragino Sans GB, Microsoft YaHei,
+  Noto Sans CJK SC); keep them last before the generic family. The
+  `theme-color` meta follows the active theme from the App.jsx theme effect
+  (#f8f7f6 light / #080808 dark); index.html keeps the light value as the
+  pre-JS default.
+- Mobile usability (fixed 2026-09-24, same test group): the search dialog
+  input uses `--fs-2xl` (16px) so iOS Safari does not zoom on focus. At
+  ≤520px `.notification-stack` is full-width (`calc(100vw - 32px)`) at
+  `bottom: 72px`, above the floating lang/theme pickers (bottom: 18px, 42px
+  tall); do not move it back beside the pickers. Coarse pointers get
+  `min-width: 44px` on collapsed `.topbar .btn.ghost.sm`. At ≤420px the
+  public header hides non-primary buttons on purpose — the primary
+  Get started/Dashboard CTA always stays visible and covers login.
+
 - Local P0 visual baselines now have 20 original screenshots from detached
   `f5b1b2f` and 20 current screenshots under the preserved untracked
   `output/p0-original-f5b1b2/` and `output/p0-baseline-final/`. They cover
@@ -486,6 +539,16 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
 
 ## P5a product dashboard
 
+- The local product Dashboard now requests Server `kind=workload` alongside
+  overview/items and displays a module-by-attention distribution. Use the
+  returned Item drilldown filters; do not derive bucket totals from the loaded
+  page. Validate the response before rendering and clear it with the same
+  protected read lifecycle as the rest of the Dashboard. The PR tab also reads
+  paged `kind=pr_actions` rows and uses returned cell drilldowns; a row's Item
+  total is distinct even when cells have multiple labels. CI matrix cells use
+  Server paired stage/symptom drilldowns and keep unclassified failures visible.
+  Updates consumes `kind=updates_releases` Release × watch rows, including
+  null labels and rows without Items. Full timelines remain unimplemented.
 - The public developer API page now renders the PR/CI/Updates product-v1
   preview from `screens/api-docs.jsx`, with saved Source/Item, usage, handling,
   owner sync and service routes. It explicitly says the Cloudflare Server is

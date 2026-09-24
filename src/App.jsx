@@ -624,6 +624,9 @@ export function App({ prototypeNav = false }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme === "dark" ? "#080808" : "#f8f7f6");
     localStorageSet("pw-theme", theme);
   }, [theme]);
 
@@ -709,7 +712,7 @@ export function App({ prototypeNav = false }) {
               width="24"
               height="24"
             />
-            <span style={{ fontSize: 16 }}>Pullwise</span>
+            <span style={{ fontSize: "var(--fs-2xl)" }}>Pullwise</span>
           </div>
           <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
           <p className="auth-sub">
