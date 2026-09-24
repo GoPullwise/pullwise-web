@@ -365,6 +365,22 @@ describe("Design token discipline", () => {
     expect(coarse).toBeTruthy();
     expect(coarse).toMatch(/\.topbar \.btn\.ghost\.sm\s*\{[^}]*min-width:\s*44px/s);
   });
+
+  it("collapses the product counts band at the shared 760px breakpoint", () => {
+    const product = stylesOf("src/screens/product.css");
+
+    // Five count cells squeeze to ~123px each at 650px when the collapse
+    // waits for 600px; fold to two columns at the shared app breakpoint.
+    const wide = product.match(
+      /@media\s*\(max-width:\s*760px\)\s*\{\s*\.product-counts\s*\{(?<counts>[^}]*)\}\s*\.product-counts button\s*\{(?<btn>[^}]*)\}/,
+    );
+    expect(wide).toBeTruthy();
+    expect(wide.groups.counts).toContain("repeat(2, minmax(0, 1fr))");
+    expect(wide.groups.btn).toContain("border-bottom");
+
+    const narrow = product.match(/@media\s*\(max-width:\s*600px\)\s*\{(?<body>[\s\S]*?)\n\}/);
+    expect(narrow?.groups?.body || "").not.toContain(".product-counts");
+  });
 });
 
 describe("Sidebar navigation", () => {

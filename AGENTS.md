@@ -505,6 +505,9 @@ A debug bundle is not the audit bundle and must never silently fall back to the 
   `.notfound-code` 72px) and the ≤520px `.docs-h1` 30px override are kept
   deliberately as display sizes; if they ever change, move them to local
   `clamp()` rather than adding new static off-scale values.
+- Unification pass (fixed 2026-09-24): `.product-counts` collapses to two
+  columns at the shared ≤760px breakpoint, not 600px; the ≤600px product.css
+  block keeps only the non-counts rules.
 - Unification pass (fixed 2026-09-24): `.status-dot` base style lives only in
   `src/app.css` (9px, `--text-4`, srgb halo); the dead screens.css duplicate was
   removed, so do not re-add it. All three backdrops (`.modal-back`,

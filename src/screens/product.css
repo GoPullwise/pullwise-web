@@ -70,12 +70,14 @@
 .product-history li { padding: 12px 0; }
 .product-history time { font-size: var(--fs-xs); color: var(--text-3); }
 .product-workspace button:focus-visible, .product-detail :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-@media (max-width: 600px) {
+@media (max-width: 760px) {
   .product-counts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-counts button { border-bottom: 1px solid var(--border); padding: 16px; }
+}
+@media (max-width: 600px) {
   .product-workload-row { grid-template-columns: 60px minmax(0, 1fr); }
   .product-workload-cells { grid-column: 1 / -1; }
   .product-workload-wide { grid-column: 1 / -1; }
-  .product-counts button { border-bottom: 1px solid var(--border); padding: 16px; }
   .product-tabs button { padding: 12px; }
   .product-filters label, .product-filters select { width: 100%; }
   .product-search, .product-search label, .product-search input { width: 100%; }
