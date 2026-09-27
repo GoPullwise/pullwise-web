@@ -1,35 +1,19 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useIssues, useRepositories, useScans } from "./lib/pullwise-data.js";
+import { describe, expect, it, vi } from "vitest";
 import { Sidebar, Topbar } from "./shell.jsx";
-
-vi.mock("./lib/pullwise-data.js", () => ({
-  useIssues: vi.fn(),
-  useRepositories: vi.fn(),
-  useScans: vi.fn(),
-}));
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  useIssues.mockReturnValue({ items: [] });
-  useScans.mockReturnValue({ items: [] });
-  useRepositories.mockReturnValue({
-    items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
-  });
-});
 
 describe("Topbar navigation", () => {
   it("renders the current breadcrumb with the same base styling as clickable breadcrumbs", () => {
-    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
+    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Overview" }]} />);
 
-    const current = screen.getByText("Issues");
+    const current = screen.getByText("Overview");
 
     expect(current).toHaveClass("crumb-button");
     expect(current).not.toHaveClass("now");
-    expect(screen.queryByRole("link", { name: /^issues$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^overview$/i })).not.toBeInTheDocument();
   });
 
   it("overrides generic topbar link padding for clickable breadcrumbs", () => {
@@ -43,142 +27,6 @@ describe("Topbar navigation", () => {
 
     expect(genericTopbarLinkBlock).toMatch(/\bpadding:\s*0 10px;/);
     expect(breadcrumbButtonBlock).toMatch(/\bpadding:\s*0;/);
-  });
-
-  it("exposes search as a named button and dialog", async () => {
-    const user = userEvent.setup();
-
-    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
-
-    await user.click(screen.getByRole("button", { name: /^search$/i }));
-
-    const dialog = screen.getByRole("dialog", { name: /^search$/i });
-    expect(dialog).toHaveAttribute("aria-modal", "true");
-    expect(screen.getByRole("searchbox", { name: /^search$/i })).toBeInTheDocument();
-  });
-
-  it("keeps a result-heavy search dialog inside the remaining viewport", () => {
-    const styles = readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
-    const modalSearchStyles = styles.match(
-      /\.modal-search\s*\{(?<body>[^}]*)\}/s,
-    )?.groups?.body;
-    const searchBodyStyles = styles.match(
-      /\.search-body\s*\{(?<body>[^}]*)\}/s,
-    )?.groups?.body;
-    const modalSearchBodyStyles = styles.match(
-      /\.modal-search \.search-body\s*\{(?<body>[^}]*)\}/s,
-    )?.groups?.body;
-
-    expect(modalSearchStyles).toContain("--search-modal-top-offset: 12vh;");
-    expect(modalSearchStyles).toContain("margin-top: var(--search-modal-top-offset);");
-    expect(modalSearchStyles).toContain(
-      "max-height: calc(100vh - 40px - var(--search-modal-top-offset));",
-    );
-    expect(modalSearchStyles).toContain(
-      "max-height: calc(100dvh - 40px - var(--search-modal-top-offset));",
-    );
-    expect(searchBodyStyles).toContain("min-height: 0;");
-    expect(searchBodyStyles).toContain("overflow-y: auto;");
-    expect(modalSearchBodyStyles).toContain("max-height: none;");
-    expect(modalSearchBodyStyles).toContain("flex: 1 1 auto;");
-  });
-
-  it("keeps the search dialog inside narrow mobile viewports", () => {
-    const styles = readFileSync(resolve(process.cwd(), "styles/screens.css"), "utf8");
-    const modalBlocks = [
-      ...styles.matchAll(/\.modal-search\s*\{(?<body>[^}]*)\}/g),
-    ].map((match) => match.groups?.body || "");
-
-    expect(modalBlocks.length).toBeGreaterThan(0);
-    expect(modalBlocks[0]).toContain("max-width: calc(100vw - 40px);");
-    for (const body of modalBlocks) {
-      expect(body).not.toMatch(/max-width:\s*none/);
-    }
-    expect(modalBlocks.some((body) => /width:\s*100%/.test(body))).toBe(true);
-  });
-
-  it("sends the typed global search query to the server-backed hooks", async () => {
-    const user = userEvent.setup();
-
-    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
-
-    await user.click(screen.getByRole("button", { name: /^search$/i }));
-    await user.type(screen.getByRole("searchbox", { name: /^search$/i }), "needle");
-
-    await waitFor(() => {
-      expect(useIssues).toHaveBeenLastCalledWith({ q: "needle", limit: 5, refreshOnChange: false });
-      expect(useRepositories).toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
-    });
-  });
-
-  it("waits for a pause before sending each global search query", async () => {
-    vi.useFakeTimers();
-    try {
-      render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} />);
-
-      fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
-      fireEvent.change(screen.getByRole("searchbox", { name: /^search$/i }), {
-        target: { value: "needle" },
-      });
-
-      expect(useIssues).not.toHaveBeenLastCalledWith({
-        q: "needle",
-        limit: 5,
-        refreshOnChange: false,
-      });
-      expect(useRepositories).not.toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
-
-      expect(useIssues).toHaveBeenLastCalledWith({
-        q: "",
-        limit: 5,
-        refreshOnChange: false,
-      });
-      expect(useRepositories).toHaveBeenLastCalledWith({ q: "", limit: 4 });
-
-      await act(async () => {
-        vi.advanceTimersByTime(300);
-      });
-
-      expect(useIssues).toHaveBeenLastCalledWith({
-        q: "needle",
-        limit: 5,
-        refreshOnChange: false,
-      });
-      expect(useRepositories).toHaveBeenLastCalledWith({ q: "needle", limit: 4 });
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("keeps authoritative server matches whose display fields do not contain the literal query", async () => {
-    useIssues.mockImplementation(({ q }) => ({
-      items: q
-        ? [
-            {
-              id: "iss_ranked",
-              title: "Authentication boundary",
-              file: "src/auth.js",
-              category: "Security",
-              repo: "acme/service",
-              severity: "high",
-            },
-          ]
-        : [],
-    }));
-    useRepositories.mockImplementation(({ q }) => ({
-      items: q
-        ? [{ id: "repo_ranked", name: "api", fullName: "acme/api", desc: "Service repository" }]
-        : [],
-    }));
-    const user = userEvent.setup();
-
-    render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Issues" }]} setIssue={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: /^search$/i }));
-    await user.type(screen.getByRole("searchbox", { name: /^search$/i }), "oauth-token-rotation");
-
-    expect(await screen.findByText("Authentication boundary")).toBeInTheDocument();
-    expect(await screen.findByText("acme/api")).toBeInTheDocument();
   });
 
   it("exposes brand, breadcrumbs, and account navigation as real screen links", async () => {
@@ -297,8 +145,6 @@ describe("Design token discipline", () => {
 
     expect(stylesOf("src/App.jsx")).not.toContain("fontSize: 16");
     expect(stylesOf("src/screens/public.jsx")).not.toContain("fontSize: 16");
-    expect(stylesOf("src/screens/issues.jsx")).not.toContain("fontSize: 22");
-    expect(stylesOf("src/screens/issues.jsx")).not.toContain("fontSize: 13");
   });
   it("keeps the stylesheet free of dead rules, duplicates, and mojibake", () => {
     const base = stylesOf("styles/base.css");
@@ -400,24 +246,19 @@ describe("Sidebar navigation", () => {
   it("exposes navigation destinations as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
-    useIssues.mockReturnValue({ items: [{ id: "f_1", status: "open" }] });
-
     render(<Sidebar section="dashboard" go={go} />);
 
     const overview = screen.getByRole("link", { name: /^overview$/i });
-    const issues = screen.getByRole("link", { name: /^issues\b/i });
-    const repositories = screen.getByRole("link", { name: /^repositories$/i });
-    const history = screen.getByRole("link", { name: /^scan history$/i });
+    const services = screen.getByRole("link", { name: /^repositories & watches$/i });
     const apiKeys = screen.getByRole("link", { name: /^api keys$/i });
     const billing = screen.getByRole("link", { name: /^billing$/i });
     const settings = screen.getByRole("link", { name: /^settings$/i });
 
     expect(screen.queryByRole("link", { name: /^workers$/i })).not.toBeInTheDocument();
-    expect(screen.queryByText(/repository access/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^issues$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^scan history$/i })).not.toBeInTheDocument();
     expect(overview).toHaveAttribute("href", "/dashboard/overview");
-    expect(issues).toHaveAttribute("href", "/issues");
-    expect(repositories).toHaveAttribute("href", "/repos");
-    expect(history).toHaveAttribute("href", "/history");
+    expect(services).toHaveAttribute("href", "/services");
     expect(apiKeys).toHaveAttribute("href", "/api-keys");
     expect(billing).toHaveAttribute("href", "/billing");
     expect(settings).toHaveAttribute("href", "/settings");
@@ -427,28 +268,5 @@ describe("Sidebar navigation", () => {
     expect(go).toHaveBeenCalledWith("apiKeys");
   });
 
-  it("uses the server-filtered open issue total for the issues badge", () => {
-    useIssues.mockReturnValue({
-      items: [{ id: "f_1", status: "open" }],
-      meta: { total: 12 },
-    });
 
-    render(<Sidebar section="dashboard" go={vi.fn()} />);
-
-    expect(useIssues).toHaveBeenCalledWith({ status: "open", limit: 1 });
-    expect(screen.getByText("12")).toBeInTheDocument();
-  });
-
-  it("uses the server scan total for the scan history badge", () => {
-    useScans.mockReturnValue({
-      items: [{ id: "scan_1" }],
-      meta: { total: 123 },
-    });
-
-    render(<Sidebar section="dashboard" go={vi.fn()} />);
-
-    const history = screen.getByRole("link", { name: /^scan history\b/i });
-    expect(useScans).toHaveBeenCalledWith({ limit: 1 });
-    expect(history).toHaveTextContent("123");
-  });
 });

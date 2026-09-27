@@ -13,8 +13,6 @@ export const API_KEY_SCOPES = [
     descEn: "Save handling and classification feedback.", descZh: "保存处理状态与分类反馈。" },
   { value: "watches:write", labelEn: "Manage watches", labelZh: "管理关注项",
     descEn: "Change or archive authorized watches.", descZh: "更改或归档已授权关注项。" },
-  { value: "sync:write", labelEn: "Sync GitHub facts", labelZh: "同步 GitHub 事实",
-    descEn: "Queue fact-only sync without model analysis.", descZh: "排队同步事实，不启动模型分析。" },
   { value: "repositories:manage", labelEn: "Manage repository services", labelZh: "管理仓库服务",
     descEn: "Update authorized repository service switches.", descZh: "更新已授权仓库服务的开关。" },
 ];

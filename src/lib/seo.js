@@ -6,48 +6,48 @@ const PAGE_DEFINITIONS = {
   landing: {
     path: "/",
     title: {
-      en: "Pullwise — AI Code Review for GitHub Repositories",
-      zh: "Pullwise — 面向 GitHub 仓库的 AI 代码审查",
+      en: "Pullwise — Pull Requests, CI, and Upstream Updates",
+      zh: "Pullwise — 拉取请求、CI 与上游更新工作台",
     },
     description: {
-      en: "Scan entire GitHub repositories for security, correctness, and test gaps. Pullwise validates findings and returns file-level evidence and next steps.",
-      zh: "扫描完整 GitHub 仓库中的安全、正确性与测试缺口。Pullwise 验证发现，并提供文件级证据和下一步修复建议。",
+      en: "Follow pull request activity, CI failures, and upstream releases with saved source evidence and team handling in one GitHub-connected workspace.",
+      zh: "在连接 GitHub 的工作台跟进拉取请求、CI 失败与上游版本发布，并查看已保存证据和团队处理记录。",
     },
     schemaType: "software",
   },
   pricing: {
     path: "/pricing",
     title: {
-      en: "Pullwise Pricing — AI Repository Review Plans",
-      zh: "Pullwise 价格 — AI 全仓代码审查套餐",
+      en: "Pullwise Pricing — PR, CI, and Updates Plans",
+      zh: "Pullwise 价格 — PR、CI 与更新套餐",
     },
     description: {
-      en: "Compare Pullwise plans for full-repository AI code review, validated findings, GitHub workflows, and REST API automation.",
-      zh: "比较 Pullwise 全仓 AI 代码审查套餐，涵盖验证后的发现、GitHub 工作流和 REST API 自动化。",
+      en: "Compare Pullwise plans for connected repositories, update watches, and monthly intelligent processing.",
+      zh: "比较 Pullwise 的已连接仓库、更新关注和每月智能处理量套餐。",
     },
     schemaType: "software",
   },
   docs: {
     path: "/developers/docs",
     title: {
-      en: "Pullwise Docs — Run AI Repository Reviews",
-      zh: "Pullwise 文档 — 运行 AI 全仓代码审查",
+      en: "Pullwise Docs — Configure PR, CI, and Updates",
+      zh: "Pullwise 文档 — 配置 PR、CI 与更新服务",
     },
     description: {
-      en: "Learn how to connect GitHub repositories, run full-codebase reviews, inspect validated findings, and manage Pullwise scans.",
-      zh: "了解如何连接 GitHub 仓库、运行全代码库审查、查看验证后的发现并管理 Pullwise 扫描。",
+      en: "Learn how to connect GitHub repositories, configure PR and CI services, follow upstream releases, and inspect saved evidence.",
+      zh: "了解如何连接 GitHub 仓库、配置 PR 与 CI 服务、关注上游版本并查看已保存证据。",
     },
     schemaType: "article",
   },
   api: {
     path: "/developers/api",
     title: {
-      en: "Pullwise API — Automate GitHub Repository Reviews",
-      zh: "Pullwise API — 自动化 GitHub 仓库审查",
+      en: "Pullwise API — PR, CI, and Updates Contract",
+      zh: "Pullwise API — PR、CI 与更新接口",
     },
     description: {
-      en: "Use the Pullwise REST API to list authorized repositories, start AI code reviews, read scan results, and check account or repository quota.",
-      zh: "使用 Pullwise REST API 列出授权仓库、启动 AI 代码审查、读取扫描结果并检查账户或仓库配额。",
+      en: "Explore the Pullwise REST contract for authorized repositories, PR and CI items, upstream watches, evidence, and handling.",
+      zh: "查看 Pullwise REST 接口中的已授权仓库、PR 与 CI 事项、上游关注、证据和处理记录。",
     },
     schemaType: "article",
   },
@@ -58,32 +58,32 @@ const PAGE_DEFINITIONS = {
       zh: "Pullwise 隐私政策 — 仓库与账户数据",
     },
     description: {
-      en: "Read how Pullwise handles account information, GitHub repository access, review artifacts, billing data, and support communications.",
-      zh: "了解 Pullwise 如何处理账户信息、GitHub 仓库访问、审查产物、账单数据和支持沟通。",
+      en: "Read how Pullwise handles account information, GitHub source facts, saved evidence, billing data, and support communications.",
+      zh: "了解 Pullwise 如何处理账户信息、GitHub 来源事实、已保存证据、账单数据和支持沟通。",
     },
     schemaType: "page",
   },
   terms: {
     path: "/terms",
     title: {
-      en: "Pullwise Terms of Service — AI Code Review",
-      zh: "Pullwise 服务条款 — AI 代码审查",
+      en: "Pullwise Terms of Service — PR, CI, and Updates",
+      zh: "Pullwise 服务条款 — PR、CI 与更新",
     },
     description: {
-      en: "Read the terms governing Pullwise web, API, GitHub-connected review workflows, account keys, subscriptions, and billing.",
-      zh: "阅读适用于 Pullwise Web、API、GitHub 审查工作流、账户密钥、订阅和账单的服务条款。",
+      en: "Read the terms governing Pullwise web, API, GitHub-connected services, account keys, subscriptions, and billing.",
+      zh: "阅读适用于 Pullwise Web、API、GitHub 连接服务、账户密钥、订阅和账单的服务条款。",
     },
     schemaType: "page",
   },
   status: {
     path: "/status",
     title: {
-      en: "Pullwise Status — Web, API, and Review Worker Health",
-      zh: "Pullwise 状态 — Web、API 与审查 Worker 健康度",
+      en: "Pullwise Status — Web and API Health",
+      zh: "Pullwise 状态 — Web 与 API 健康度",
     },
     description: {
-      en: "Check current Pullwise web, API, database, GitHub integration, billing, and review worker availability.",
-      zh: "查看 Pullwise Web、API、数据库、GitHub 集成、账单和审查 Worker 的当前可用性。",
+      en: "Check current Pullwise web, API, database, GitHub integration, and billing availability.",
+      zh: "查看 Pullwise Web、API、数据库、GitHub 集成和账单的当前可用性。",
     },
     schemaType: "page",
   },
@@ -157,12 +157,12 @@ function publicSchema(definition, title, description, canonical, origin) {
       description,
       publisher: { "@id": organizationId },
       featureList: [
-        "Full-repository AI code review",
-        "Security, correctness, and test-gap analysis",
-        "Validator-checked findings",
-        "File-level evidence and remediation guidance",
+        "Pull request action tracking",
+        "CI failure context",
+        "Upstream release watches",
+        "Saved source evidence",
+        "Team handling history",
         "GitHub repository integration",
-        "REST API automation",
       ],
     });
   } else if (definition.schemaType === "article") {
@@ -198,8 +198,8 @@ export function seoMetadataForScreen(screen, options = {}) {
 
   if (!definition) {
     return {
-      title: "Pullwise — AI Repository Review",
-      description: "Pullwise reviews GitHub repositories for security, correctness, and test gaps.",
+      title: "Pullwise — PR, CI, and Updates",
+      description: "Pullwise follows GitHub pull requests, CI failures, and upstream updates.",
       robots: "noindex,nofollow",
       canonical: "",
       image: "",
@@ -264,7 +264,7 @@ export function renderSeoHead(metadata) {
       `<meta ${managed} property="og:image" content="${escapeAttribute(metadata.image)}" />`,
       `<meta ${managed} property="og:image:width" content="1200" />`,
       `<meta ${managed} property="og:image:height" content="630" />`,
-      `<meta ${managed} property="og:image:alt" content="Pullwise AI repository review" />`,
+      `<meta ${managed} property="og:image:alt" content="Pullwise PR, CI, and Updates workspace" />`,
       `<meta name="twitter:card" content="summary_large_image" ${managed} />`,
       `<meta ${managed} name="twitter:title" content="${escapeAttribute(metadata.title)}" />`,
       `<meta ${managed} name="twitter:description" content="${escapeAttribute(metadata.description)}" />`,

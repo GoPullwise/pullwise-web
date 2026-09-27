@@ -5,23 +5,13 @@ import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
 import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
-import {
-  issueIdFromPath,
-  pathFromScreen,
-  scanIdFromPath,
-  screenFromPath,
-} from "./lib/navigation.js";
-import { clearPullwiseDataCache } from "./lib/pullwise-data-cache.js";
+import { pathFromScreen, screenFromPath } from "./lib/navigation.js";
 import { applyCurrentSeoMetadata } from "./lib/seo-client.js";
 import { NotFoundScreen } from "./screens/error.jsx";
-import { ScanningScreen } from "./screens/flow.jsx";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
-const LAYOUT = "list";
 const INITIAL_SESSION_RETRY_DELAY_MS = 2000;
 const SESSION_SIGNED_OUT_CONFIRM_DELAY_MS = 2000;
-const ACTIVE_REPO_LEGACY_STORAGE_KEY = "pw-active-repo";
-const ACTIVE_REPO_STORAGE_KEY_PREFIX = "pw-active-repo:v2";
 const BACK_TO_TOP_THRESHOLD_PX = 240;
 function lazyScreen(loader, exportName) {
   return lazy(() => loader().then((module) => ({ default: module[exportName] })));
@@ -34,10 +24,7 @@ const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "Pricing
 const DashboardScreen = lazyScreen(() => import("./screens/dashboard.jsx"), "DashboardScreen");
 const ProductManagementScreen = lazyScreen(() => import("./screens/product-management.jsx"), "ProductManagementScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
-const HistoryScreen = lazyScreen(() => import("./screens/issues.jsx"), "HistoryScreen");
-const IssueDetailScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssueDetailScreen");
-const IssuesScreen = lazyScreen(() => import("./screens/issues.jsx"), "IssuesScreen");
-const SettingsScreen = lazyScreen(() => import("./screens/issues.jsx"), "SettingsScreen");
+const SettingsScreen = lazyScreen(() => import("./screens/settings.jsx"), "SettingsScreen");
 const PrivacyScreen = lazyScreen(() => import("./screens/legal.jsx"), "PrivacyScreen");
 const StatusScreen = lazyScreen(() => import("./screens/legal.jsx"), "StatusScreen");
 const TermsScreen = lazyScreen(() => import("./screens/legal.jsx"), "TermsScreen");
@@ -84,7 +71,7 @@ function clearRepositoryAuthorizationRequest() {
 function replaceAutomaticScreenPath(screen) {
   const path = pathFromScreen(screen);
   if (window.location.pathname === path) return;
-  window.history.replaceState({ screen, issueId: "", scanId: "" }, "", path);
+  window.history.replaceState({ screen }, "", path);
 }
 
 function shouldShowSessionCheck(screen) {
@@ -125,120 +112,14 @@ function sessionIdentity(authenticated, session) {
   return identity ? `user:${String(identity)}` : `session:${sessionFingerprint(session)}`;
 }
 
-function activeRepoStorageKeyForIdentity(identity) {
-  return identity && identity !== "signed-out"
-    ? `${ACTIVE_REPO_STORAGE_KEY_PREFIX}:${encodeURIComponent(identity)}`
-    : "";
-}
-
-function activeRepoStorageKeyForAuth(auth) {
-  if (auth.status !== "ready" || !auth.authenticated) return "";
-  return activeRepoStorageKeyForIdentity(sessionIdentity(true, auth.session));
-}
-
-function isUsableActiveRepo(value) {
-  if (!isObject(value)) return false;
-  if (Array.isArray(value.selectedRepos)) return value.selectedRepos.length > 0;
-  return Boolean(value.scanId || value.repoId || value.fullName || value.name || value.repo);
-}
-
-function storedActiveRepo(storageKey) {
-  if (!storageKey) return null;
-  const raw = localStorageGet(storageKey, null);
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    return isUsableActiveRepo(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function activeRepoForScanRoute(activeRepo, routeScanId) {
-  if (!routeScanId) return activeRepo;
-  if (Array.isArray(activeRepo?.selectedRepos)) {
-    const selectedRepo = activeRepo.selectedRepos.length === 1 ? activeRepo.selectedRepos[0] : null;
-    if (selectedRepo?.scanId === routeScanId || selectedRepo?.initialScan?.id === routeScanId) {
-      return activeRepo;
-    }
-    return { scanId: routeScanId };
-  }
-  if (activeRepo?.scanId === routeScanId) return activeRepo;
-  if (activeRepo?.initialScan?.id === routeScanId) return { ...activeRepo, scanId: routeScanId };
-  return { scanId: routeScanId };
-}
-
-function activeRepoWithResolvedScan(activeRepo, scan) {
-  if (!scan?.id) return activeRepo;
-  const scanContext = {
-    scanId: scan.id,
-    fullName: scan.repo,
-    name: scan.repo,
-    defaultBranch: scan.branch || "main",
-    commit: scan.commit || "pending",
-    initialScan: scan,
-  };
-  if (Array.isArray(activeRepo?.selectedRepos)) {
-    if (activeRepo.selectedRepos.length !== 1) return activeRepo;
-    return {
-      ...activeRepo,
-      selectedRepos: [{ ...activeRepo.selectedRepos[0], ...scanContext }],
-    };
-  }
-  return { ...activeRepo, ...scanContext };
-}
-
-function cleanPendingScanIds(value) {
-  if (!Array.isArray(value)) return [];
-  const ids = [];
-  const seen = new Set();
-  for (const item of value) {
-    const id = String(item || "").trim();
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    ids.push(id);
-  }
-  return ids;
-}
-
-function cleanPendingScanRequests(value) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => ({
-      scanId: String(item?.scanId || "").trim(),
-      repoId: String(item?.repoId || "").trim(),
-      repo: String(item?.repo || "").trim(),
-      branch: String(item?.branch || "main").trim() || "main",
-      requestId: String(item?.requestId || "").trim(),
-    }))
-    .filter((item) => item.scanId || item.repoId || item.repo || item.requestId);
-}
-
-function pendingScanIdsFromHistoryState(state) {
-  return isObject(state) ? cleanPendingScanIds(state.pendingScanIds) : [];
-}
-
-function pendingScanRequestsFromHistoryState(state) {
-  return isObject(state) ? cleanPendingScanRequests(state.pendingScanRequests) : [];
-}
-
-function pendingScanStartedAtFromHistoryState(state) {
-  if (!isObject(state)) return null;
-  const timestamp = Number(state.pendingScanStartedAt);
-  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null;
-}
-
 function PrototypeNav({ go, current }) {
   const screens = [
     { k: "landing", t: T("Landing", "首页") },
     { k: "login", t: T("Sign in", "登录") },
     { k: "oauth", t: T("GitHub OAuth", "GitHub 授权") },
-    { k: "repos", t: T("Repositories", "选仓库") },
-    { k: "scanning", t: T("Scanning…", "扫描中") },
+    { k: "repos", t: T("Repositories", "仓库") },
+    { k: "services", t: T("Services", "服务") },
     { k: "dashboard", t: T("Dashboard", "工作台") },
-    { k: "issues", t: T("Issues", "问题") },
-    { k: "issue", t: T("Issue", "详情") },
-    { k: "history", t: T("Scan history", "历史") },
     { k: "apiKeys", t: T("API Keys", "API Keys") },
     { k: "settings", t: T("Settings", "设置") },
     { k: "billing", t: T("Billing", "账单") },
@@ -288,21 +169,6 @@ export function App({ prototypeNav = false }) {
   const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
   const [screen, setScreen] = useState(getInitialScreen);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
-  const [issue, setIssue] = useState(null);
-  const [routeIssueId, setRouteIssueId] = useState(() => issueIdFromPath(window.location.pathname));
-  const [routeScanId, setRouteScanId] = useState(() => scanIdFromPath(window.location.pathname));
-  const [issueScanFilter, setIssueScanFilter] = useState(null);
-  const [activeRepoStorageKey, setActiveRepoStorageKey] = useState("");
-  const [activeRepo, setActiveRepo] = useState(null);
-  const [pendingHistoryScanIds, setPendingHistoryScanIds] = useState(() =>
-    pendingScanIdsFromHistoryState(window.history.state)
-  );
-  const [pendingHistoryScanRequests, setPendingHistoryScanRequests] = useState(() =>
-    pendingScanRequestsFromHistoryState(window.history.state)
-  );
-  const [pendingHistoryScanStartedAt, setPendingHistoryScanStartedAt] = useState(() =>
-    pendingScanStartedAtFromHistoryState(window.history.state)
-  );
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
@@ -331,100 +197,28 @@ export function App({ prototypeNav = false }) {
       }
       window.clearTimeout(timeout);
     };
-  }, [screen, routeIssueId, routeScanId]);
+  }, [screen]);
 
-  const go = (nextScreen, params = {}) => {
-    const path = pathFromScreen(nextScreen, params);
-    const nextIssueId = nextScreen === "issue" ? issueIdFromPath(path) : "";
-    const nextScanId = nextScreen === "scanning" ? scanIdFromPath(path) : "";
-    const nextPendingHistoryScanIds =
-      nextScreen === "history" ? cleanPendingScanIds(params.pendingScanIds) : [];
-    const nextPendingHistoryScanRequests =
-      nextScreen === "history" ? cleanPendingScanRequests(params.pendingScanRequests) : [];
-    const nextPendingHistoryScanStartedAt =
-      nextScreen === "history" ? pendingScanStartedAtFromHistoryState(params) : null;
-    const historyState = { screen: nextScreen, issueId: nextIssueId, scanId: nextScanId };
-    if (nextPendingHistoryScanIds.length) {
-      historyState.pendingScanIds = nextPendingHistoryScanIds;
-    }
-    if (nextPendingHistoryScanRequests.length) {
-      historyState.pendingScanRequests = nextPendingHistoryScanRequests;
-    }
-    if (nextPendingHistoryScanStartedAt) {
-      historyState.pendingScanStartedAt = nextPendingHistoryScanStartedAt;
-    }
+  const go = (nextScreen) => {
+    const path = pathFromScreen(nextScreen);
+    const historyState = { screen: nextScreen };
     if (window.location.pathname !== path) {
       window.history.pushState(historyState, "", path);
     } else {
       window.history.replaceState(historyState, "", path);
     }
-    setRouteIssueId(nextIssueId);
-    setRouteScanId(nextScanId);
-    setPendingHistoryScanIds(nextPendingHistoryScanIds);
-    setPendingHistoryScanRequests(nextPendingHistoryScanRequests);
-    setPendingHistoryScanStartedAt(nextPendingHistoryScanStartedAt);
-    setScreen(nextScreen);
+    setScreen(screenFromPath(path) || "notfound");
     window.scrollTo({ top: 0 });
   };
 
   useEffect(() => {
-    const onPopState = (event) => {
+    const onPopState = () => {
       const nextScreen = screenFromPath(window.location.pathname) || "notfound";
-      setRouteIssueId(nextScreen === "issue" ? issueIdFromPath(window.location.pathname) : "");
-      setRouteScanId(nextScreen === "scanning" ? scanIdFromPath(window.location.pathname) : "");
-      setPendingHistoryScanIds(
-        nextScreen === "history" ? pendingScanIdsFromHistoryState(event.state) : []
-      );
-      setPendingHistoryScanRequests(
-        nextScreen === "history" ? pendingScanRequestsFromHistoryState(event.state) : []
-      );
-      setPendingHistoryScanStartedAt(
-        nextScreen === "history" ? pendingScanStartedAtFromHistoryState(event.state) : null
-      );
       setScreen(nextScreen);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
-
-  const openScan = (scan) => {
-    const scanId = scan?.id || "";
-    setActiveRepo({
-      scanId,
-      fullName: scan?.repo,
-      name: scan?.repo,
-      defaultBranch: scan?.branch || "main",
-      commit: scan?.commit || "pending",
-      initialScan: scan,
-    });
-    go("scanning", scanId ? { scanId } : {});
-  };
-
-  const openScanIssues = (scan) => {
-    if (!scan?.id) return;
-    setIssueScanFilter({
-      id: scan.id,
-      repo: scan.repo,
-      branch: scan.branch || "main",
-      commit: scan.commit || "pending",
-      time: scan.time || "",
-    });
-    go("issues");
-  };
-
-  const handleScanResolved = useCallback(
-    (scan) => {
-      if (!scan?.id || screen !== "scanning") return;
-      setActiveRepo((current) => activeRepoWithResolvedScan(current, scan));
-      const path = pathFromScreen("scanning", { scanId: scan.id });
-      if (window.location.pathname !== path) {
-        window.history.replaceState({ screen: "scanning", issueId: "", scanId: scan.id }, "", path);
-      }
-      setRouteIssueId("");
-      setRouteScanId(scan.id);
-    },
-    [screen]
-  );
 
   useEffect(() => {
     document.body.classList.toggle("has-proto-nav", prototypeNav && navOpen);
@@ -477,12 +271,6 @@ export function App({ prototypeNav = false }) {
     const resolvedAuth = typeof nextAuth === "function" ? nextAuth(authRef.current) : nextAuth;
     const nextIdentity = sessionIdentity(resolvedAuth.authenticated, resolvedAuth.session);
     if (authIdentityRef.current !== nextIdentity) {
-      clearPullwiseDataCache();
-      if (authIdentityRef.current !== null) {
-        setIssue(null);
-        setIssueScanFilter(null);
-        setPendingHistoryScanIds([]);
-      }
       authIdentityRef.current = nextIdentity;
     }
     authRef.current = resolvedAuth;
@@ -633,30 +421,6 @@ export function App({ prototypeNav = false }) {
   }, [theme]);
 
   useEffect(() => {
-    const nextStorageKey = activeRepoStorageKeyForAuth(auth);
-    localStorageSet(ACTIVE_REPO_LEGACY_STORAGE_KEY, null);
-    if (!nextStorageKey) {
-      if (activeRepoStorageKey) localStorageSet(activeRepoStorageKey, null);
-      setActiveRepoStorageKey("");
-      setActiveRepo(null);
-      return;
-    }
-    if (nextStorageKey === activeRepoStorageKey) return;
-    setActiveRepoStorageKey(nextStorageKey);
-    setActiveRepo(storedActiveRepo(nextStorageKey));
-  }, [auth, activeRepoStorageKey]);
-
-  useEffect(() => {
-    localStorageSet(ACTIVE_REPO_LEGACY_STORAGE_KEY, null);
-    if (!activeRepoStorageKey || activeRepoStorageKey !== activeRepoStorageKeyForAuth(auth)) return;
-    if (activeRepo) {
-      localStorageSet(activeRepoStorageKey, JSON.stringify(activeRepo));
-    } else {
-      localStorageSet(activeRepoStorageKey, null);
-    }
-  }, [activeRepo, activeRepoStorageKey, auth]);
-
-  useEffect(() => {
     if (auth.status !== "ready" || !auth.authenticated || screen !== "repos") return;
     if (continuedRepositoryAuthorization.current || !repositoryAuthorizationRequested()) return;
     continuedRepositoryAuthorization.current = true;
@@ -672,7 +436,7 @@ export function App({ prototypeNav = false }) {
 
   // Show the back-to-top button once the user has scrolled past the threshold,
   // and hide it again when they return to the top. This lets long list pages
-  // (dashboard, repositories, issues, scan history) recover from deep scroll.
+  // (dashboard and repository management) recover from deep scroll.
   useEffect(() => {
     const updateBackToTop = () => {
       setShowBackToTop(window.scrollY > BACK_TO_TOP_THRESHOLD_PX);
@@ -687,20 +451,6 @@ export function App({ prototypeNav = false }) {
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
   }, []);
-
-  const clearPendingHistoryScanIds = useCallback(() => {
-    setPendingHistoryScanIds([]);
-    setPendingHistoryScanRequests([]);
-    setPendingHistoryScanStartedAt(null);
-    if (screen !== "history") return;
-    const currentState = isObject(window.history.state) ? { ...window.history.state } : {};
-    delete currentState.pendingScanIds;
-    delete currentState.pendingScanRequests;
-    delete currentState.pendingScanStartedAt;
-    window.history.replaceState(currentState, "", window.location.pathname);
-  }, [screen]);
-
-  const scanningActiveRepo = activeRepoForScanRoute(activeRepo, routeScanId);
 
   let body;
   if (auth.status === "checking" && shouldShowSessionCheck(screen)) {
@@ -740,66 +490,27 @@ export function App({ prototypeNav = false }) {
         body = <OAuthScreen go={go} auth={auth} />;
         break;
       case "repos":
-        body = <ProductManagementScreen key={auth.user?.id || auth.user?.email || "anonymous"}
+        body = <ProductManagementScreen
           go={go} authorizationError={repositoryAuthorizationError}
           authorizationRevision={repositoryAuthorizationRevision}
           clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
         break;
-      case "scanning":
-        body = (
-          <ScanningScreen
-            go={go}
-            activeRepo={scanningActiveRepo}
-            setIssue={setIssue}
-            onScanResolved={handleScanResolved}
-          />
-        );
-        break;
       case "dashboard":
-        body = <DashboardScreen go={go} layout={LAYOUT} setIssue={setIssue} />;
+        body = <DashboardScreen go={go} />;
         break;
       case "services":
         body = <ProductManagementScreen go={go} authorizationError={repositoryAuthorizationError}
           authorizationRevision={repositoryAuthorizationRevision}
           clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
         break;
-      case "issues":
-        body = (
-          <IssuesScreen
-            go={go}
-            setIssue={setIssue}
-            scanFilter={issueScanFilter}
-            onClearScanFilter={() => setIssueScanFilter(null)}
-          />
-        );
-        break;
-      case "issue":
-        body = (
-          <IssueDetailScreen go={go} issue={issue} issueId={routeIssueId} setIssue={setIssue} />
-        );
-        break;
-      case "history":
-        body = (
-          <HistoryScreen
-            go={go}
-            openScan={openScan}
-            openScanIssues={openScanIssues}
-            setIssue={setIssue}
-            expectedScanIds={pendingHistoryScanIds}
-            expectedScanRequests={pendingHistoryScanRequests}
-            expectedScanStartedAt={pendingHistoryScanStartedAt}
-            onExpectedScansLoaded={clearPendingHistoryScanIds}
-          />
-        );
-        break;
       case "apiKeys":
-        body = <ApiKeysScreen go={go} setIssue={setIssue} />;
+        body = <ApiKeysScreen go={go} />;
         break;
       case "settings":
-        body = <SettingsScreen go={go} setIssue={setIssue} />;
+        body = <SettingsScreen go={go} />;
         break;
       case "billing":
-        body = <BillingScreen go={go} setIssue={setIssue} />;
+        body = <BillingScreen go={go} />;
         break;
       case "pricing":
         body = <PricingScreen go={go} auth={auth} />;

@@ -54,20 +54,23 @@ describe("public navigation links", () => {
     );
   });
 
-  it("summarizes implemented product capabilities on the landing page", () => {
+  it("describes the PR, CI and Updates product without advertising the retired scan service", () => {
     render(<LandingScreen go={vi.fn()} auth={{ authenticated: false }} />);
 
-    const pipeline = screen.getByRole("region", { name: /how pullwise reviews a repository/i });
+    const pipeline = screen.getByRole("region", { name: /how pullwise keeps work in view/i });
     expect(within(pipeline).getAllByRole("article")).toHaveLength(6);
-    expect(screen.getByText("Map the whole repository")).toBeInTheDocument();
-    expect(screen.getByText("Review high-risk code paths")).toBeInTheDocument();
-    expect(screen.getByText("Run in isolated workers")).toBeInTheDocument();
-    expect(screen.getByText("Verify before reporting")).toBeInTheDocument();
-    expect(screen.getByText("Deliver fix-ready evidence")).toBeInTheDocument();
-    expect(screen.getByText("Automate through the API")).toBeInTheDocument();
-    expect(
-      screen.getByText(/confirmed and plausible findings include file locations/i)
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /follow pull requests, ci failures, and upstream updates/i })).toBeInTheDocument();
+    expect(screen.getByText("Track pull request actions")).toBeInTheDocument();
+    expect(screen.getByText("Investigate CI failures")).toBeInTheDocument();
+    expect(screen.getByText("Watch upstream releases")).toBeInTheDocument();
+    expect(screen.getByText(/saved source evidence and handling history/i)).toBeInTheDocument();
+    expect(screen.queryByText(/full-repository|start scans|fix-ready|review high-risk/i)).not.toBeInTheDocument();
+  });
+
+  it("explains repository access in terms of the new services", () => {
+    render(<LoginScreen go={vi.fn()} />);
+    expect(screen.getAllByText(/configure PR, CI, and Updates services/i)).toHaveLength(2);
+    expect(screen.queryByText(/start a scan/i)).not.toBeInTheDocument();
   });
 
   it("keeps the public-page frame on one shared horizontal baseline", () => {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
 import { Topbar, ProductSidebar } from "../shell.jsx";
 import { productApi } from "../api/product.js";
-import { useProductRead, requireOverview, requirePage, requireWorkload, requirePRActions, requireCIFailures, requireUpdatesReleases } from "../lib/product-data.js";
+import { useProductRead, requireOverview, requirePage, requireWorkload, requirePRActions, requireCIFailures, requireUpdatesReleases, loadScopePages } from "../lib/product-data.js";
 import { Coverage, ProductDetail, productLabel } from "../components/product-detail.jsx";
 import "./product.css";
 
@@ -53,8 +53,8 @@ export function DashboardScreen({ go }) {
       filters.module === "pr" ? productApi.prActions({ kind: "pr_actions", ...filters, cursor: prCursors.at(-1) }, options) : null,
       filters.module === "ci" ? productApi.ciFailures({ kind: "ci_failures", ...filters }, options) : null,
       productApi.items({ ...filters, cursor: itemCursors.at(-1) }, options),
-      productApi.repositories(options),
-      productApi.watches(options),
+      loadScopePages(productApi.repositories, productApi.repositoryPage, options),
+      loadScopePages(productApi.watches, productApi.watchPage, options),
       filters.module === "updates" ? productApi.updatesReleases(releaseFilters, options) : null,
     ]);
     return { overview: requireOverview(overview), workload: requireWorkload(workload), prActions: prActions && requirePRActions(prActions), ciFailures: ciFailures && requireCIFailures(ciFailures), items: requirePage(items), repositories: requirePage(repositories), watches: requirePage(watches), releases: releases && requireUpdatesReleases(releases) };
@@ -155,7 +155,11 @@ export function DashboardScreen({ go }) {
               </div>
               <section aria-label={T("Items", "事项")} className="product-list">
                 <div className="product-list-heading"><h2>{T("Items", "事项")}</h2><span>{data.overview.totalCount} {T("distinct items", "个独立事项")}</span></div>
-                {data.items.items.length === 0 ? <p className="product-message">{T("No matching items.", "没有符合筛选的事项。")}</p> : data.items.items.map(item => <article className="product-row" key={item.id}>
+                {data.items.items.length === 0 ?
+                  data.repositories.items.length === 0 && data.watches.items.length === 0 ?
+                    <div className="product-message"><p>{T("Choose repositories or create an Updates watch to start following work.", "选择仓库或创建 Updates 关注后即可开始跟进。")}</p>
+                      <button className="btn primary" onClick={() => go("services")}>{T("Configure services", "配置服务")}</button></div> :
+                    <p className="product-message">{T("No matching items.", "没有符合筛选的事项。")}</p> : data.items.items.map(item => <article className="product-row" key={item.id}>
                   <div className="product-row-title"><span className="product-module">{item.module}</span><button onClick={() => setSelection({ kind: "item", id: item.id })}>{item.title || item.id}</button><span>{productLabel(item.attentionState)}</span></div>
                   <div className="product-tags">{item.actionTypes.map(action => <span key={action}>{productLabel(action)}</span>)}</div>
                   <div className="sub">{item.repositoryId || item.watchId} · {item.unit?.type} · v{item.itemVersion}</div>

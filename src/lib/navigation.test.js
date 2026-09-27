@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  issueIdFromPath,
   pathFromScreen,
-  scanIdFromPath,
   screenFromPath,
   screenLinkProps,
 } from "./navigation.js";
@@ -24,17 +22,17 @@ describe("screenLinkProps", () => {
     const go = vi.fn();
     const event = fakeClick();
 
-    screenLinkProps(go, "issues").onClick(event);
+    screenLinkProps(go, "services").onClick(event);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
-    expect(go).toHaveBeenCalledWith("issues");
+    expect(go).toHaveBeenCalledWith("services");
   });
 
   it("preserves browser behavior for modified screen-link clicks", () => {
     const go = vi.fn();
     const event = fakeClick({ ctrlKey: true });
 
-    screenLinkProps(go, "issues").onClick(event);
+    screenLinkProps(go, "services").onClick(event);
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
@@ -44,7 +42,7 @@ describe("screenLinkProps", () => {
     const go = vi.fn();
     const event = fakeClick({ button: 1 });
 
-    screenLinkProps(go, "issues").onClick(event);
+    screenLinkProps(go, "services").onClick(event);
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
@@ -85,35 +83,13 @@ describe("removed public routes", () => {
   });
 });
 
-describe("issue detail routes", () => {
-  it("encodes issue identity in the URL so detail pages can reload", () => {
-    expect(pathFromScreen("issue", { issueId: "issue/with spaces#1" })).toBe(
-      "/issues/issue%2Fwith%20spaces%231"
-    );
-    expect(screenFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue");
-    expect(issueIdFromPath("/issues/issue%2Fwith%20spaces%231")).toBe("issue/with spaces#1");
-  });
-
-  it("rejects empty, reserved, and malformed issue detail identities", () => {
-    expect(pathFromScreen("issue")).toBe("/404");
-    expect(screenFromPath("/issues/detail")).toBeNull();
-    expect(screenFromPath("/issues/%E0%A4%A")).toBeNull();
-    expect(issueIdFromPath("/issues/%E0%A4%A")).toBe("");
-  });
-});
-
-describe("scan detail routes", () => {
-  it("encodes scan identity in the URL so scan pages can reload", () => {
-    expect(pathFromScreen("scanning", { scanId: "scan/with spaces#1" })).toBe(
-      "/scanning/scan%2Fwith%20spaces%231"
-    );
-    expect(pathFromScreen("scanning")).toBe("/scanning");
-    expect(screenFromPath("/scanning/scan%2Fwith%20spaces%231")).toBe("scanning");
-    expect(scanIdFromPath("/scanning/scan%2Fwith%20spaces%231")).toBe("scan/with spaces#1");
-  });
-
-  it("rejects malformed scan detail identities", () => {
-    expect(screenFromPath("/scanning/%E0%A4%A")).toBeNull();
-    expect(scanIdFromPath("/scanning/%E0%A4%A")).toBe("");
+describe("retired scan routes", () => {
+  it("does not route full-repository scan or issue URLs", () => {
+    for (const name of ["scanning", "history", "issues", "issue"]) {
+      expect(pathFromScreen(name)).toBe("/404");
+    }
+    for (const path of ["/scanning", "/scanning/scan-1", "/history", "/issues", "/issues/f_1"]) {
+      expect(screenFromPath(path)).toBeNull();
+    }
   });
 });

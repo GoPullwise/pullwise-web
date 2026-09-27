@@ -25,6 +25,7 @@ export function useModalFocus({ open, dialogRef, initialFocusRef = null, onClose
     let frame = 0;
 
     const focusInitial = () => {
+      if (dialog?.contains(document.activeElement)) return;
       const preferred = initialFocusRef?.current;
       const first = preferred || focusableElements(dialog)[0];
       first?.focus?.();

@@ -21,7 +21,6 @@ import {
   connectGitHubRepositories,
   startGitHubLogin,
 } from "./lib/auth.js";
-import { clearPullwiseDataCache } from "./lib/pullwise-data-cache.js";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./screens/public.jsx";
 
 vi.mock("./api/pullwise.js", () => ({
@@ -84,10 +83,6 @@ async function flushPromises() {
   });
 }
 
-const activeRepoStorageKey = (email) => `pw-active-repo:v2:${encodeURIComponent(`user:${email}`)}`;
-const DEV_ACTIVE_REPO_STORAGE_KEY = activeRepoStorageKey("dev@example.com");
-const OTHER_ACTIVE_REPO_STORAGE_KEY = activeRepoStorageKey("other@example.com");
-
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -99,7 +94,6 @@ describe("App", () => {
     productApi.watchPage.mockResolvedValue(page([]));
     productApi.usage.mockResolvedValue({entitlements: {activeRepositoryLimit: 3,
       activeWatchLimit: 5}});
-    clearPullwiseDataCache();
     setLang("en");
     document.title = "";
     window.history.replaceState({}, "", "/");
@@ -229,13 +223,13 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(document.title).toBe("Pullwise — AI Code Review for GitHub Repositories");
+      expect(document.title).toBe("Pullwise — Pull Requests, CI, and Upstream Updates");
     });
 
     setLang("zh");
 
     await waitFor(() => {
-      expect(document.title).toBe("Pullwise — 面向 GitHub 仓库的 AI 代码审查");
+      expect(document.title).toBe("Pullwise — 拉取请求、CI 与上游更新工作台");
     });
   });
 
@@ -247,185 +241,24 @@ describe("App", () => {
     expect(screen.getAllByText("Pullwise").length).toBeGreaterThan(0);
   });
 
-  it("restores persisted scan context from JSON on the scanning route", async () => {
-    window.history.replaceState({}, "", "/scanning");
-    localStorage.setItem(
-      DEV_ACTIVE_REPO_STORAGE_KEY,
-      JSON.stringify({
-        scanId: "sc_restore",
-        fullName: "GoPullwise/pullwise-web",
-        name: "pullwise-web",
-        defaultBranch: "main",
-        commit: "abc123",
-        initialScan: {
-          id: "sc_restore",
-          repo: "GoPullwise/pullwise-web",
-          branch: "main",
-          commit: "abc123",
-          status: "running",
-          phase: "clone",
-          progress: 15,
-        },
-      })
-    );
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.scans.get.mockResolvedValueOnce({
-      id: "sc_restore",
-      repo: "GoPullwise/pullwise-web",
-      branch: "main",
-      commit: "abc123",
-      status: "done",
-      phase: "report",
-      progress: 100,
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
-        "sc_restore",
-        expect.objectContaining({ signal: expect.any(Object) })
-      );
-    });
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-    expect(screen.getByText("GoPullwise/pullwise-web")).toBeInTheDocument();
-  });
-
-  it("loads a scan detail page directly from the scan id in the route", async () => {
-    window.history.replaceState({}, "", "/scanning/sc_route");
-    localStorage.removeItem(DEV_ACTIVE_REPO_STORAGE_KEY);
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.scans.get.mockResolvedValueOnce({
-      id: "sc_route",
-      repo: "GoPullwise/pullwise-server",
-      branch: "main",
-      commit: "def456",
-      status: "done",
-      phase: "report",
-      progress: 100,
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
-        "sc_route",
-        expect.objectContaining({ signal: expect.any(Object) })
-      );
-    });
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-    expect(await screen.findByText("GoPullwise/pullwise-server")).toBeInTheDocument();
-  });
-
-  it("replaces a new scan route with the created scan id", async () => {
-    window.history.replaceState({}, "", "/scanning");
-    localStorage.setItem(
-      DEV_ACTIVE_REPO_STORAGE_KEY,
-      JSON.stringify({
-        fullName: "GoPullwise/pullwise-web",
-        name: "pullwise-web",
-        defaultBranch: "main",
-        commit: "pending",
-      })
-    );
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const createdScan = {
-      id: "sc_created_route",
-      repo: "GoPullwise/pullwise-web",
-      branch: "main",
-      commit: "pending",
-      status: "queued",
-      phase: "clone",
-      progress: 0,
-    };
-    pullwiseApi.scans.create.mockResolvedValueOnce(createdScan);
-    pullwiseApi.scans.get.mockResolvedValue(createdScan);
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(window.location.pathname).toBe("/scanning/sc_created_route");
-    });
-    expect(pullwiseApi.scans.create).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(JSON.parse(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).scanId).toBe(
-        "sc_created_route"
-      );
-    });
-  });
-
-  it("clears invalid persisted scan context instead of passing it to the scanning route", async () => {
-    window.history.replaceState({}, "", "/scanning");
-    localStorage.setItem(DEV_ACTIVE_REPO_STORAGE_KEY, "[object Object]");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).toBeNull();
-    });
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-  });
-
-  it("does not restore scan context from the previous global active repo key", async () => {
-    window.history.replaceState({}, "", "/scanning");
-    localStorage.setItem(
-      "pw-active-repo",
-      JSON.stringify({ scanId: "sc_previous", fullName: "Other/private", defaultBranch: "main" })
-    );
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(localStorage.getItem("pw-active-repo")).toBeNull();
-    });
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-  });
-
-  it("does not restore scan context from another authenticated user", async () => {
-    window.history.replaceState({}, "", "/scanning");
-    localStorage.setItem(
-      OTHER_ACTIVE_REPO_STORAGE_KEY,
-      JSON.stringify({ scanId: "sc_other", fullName: "Other/private", defaultBranch: "main" })
-    );
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(localStorage.getItem(DEV_ACTIVE_REPO_STORAGE_KEY)).toBeNull();
-    });
-    expect(localStorage.getItem(OTHER_ACTIVE_REPO_STORAGE_KEY)).not.toBeNull();
-    expect(pullwiseApi.scans.get).not.toHaveBeenCalled();
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-  });
-
   it("renders the prototype navigator entry", () => {
     render(<App prototypeNav />);
 
     expect(screen.getByText("PR · Prototype")).toBeInTheDocument();
   });
+
+  it.each(["/scanning", "/scanning/scan-1", "/history", "/issues", "/issues/f_1"])(
+    "does not expose the retired full-repository route %s",
+    async (path) => {
+      window.history.replaceState({}, "", path);
+      pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true,
+        user: { name: "Dev", email: "dev@example.com" } });
+      render(<App />);
+      expect(await screen.findByText("This page took a wrong turn")).toBeInTheDocument();
+      expect(pullwiseApi.scans.list).not.toHaveBeenCalled();
+      expect(pullwiseApi.issues.list).not.toHaveBeenCalled();
+    }
+  );
 
   it("restores a valid session without leaving the landing page", async () => {
     pullwiseApi.auth.getSession.mockResolvedValueOnce({
@@ -439,156 +272,6 @@ describe("App", () => {
       expect(document.querySelector('[data-screen-label="landing"]')).toBeInTheDocument();
     });
     expect(window.location.pathname).toBe("/");
-  });
-
-  it("loads an issue detail page directly from the issue id in the route", async () => {
-    window.history.replaceState({}, "", "/issues/f_123");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(pullwiseApi.issues.get).toHaveBeenCalledWith(
-        "f_123",
-        expect.objectContaining({ signal: expect.any(Object) })
-      );
-    });
-    expect(
-      await screen.findByRole("heading", { level: 1, name: "Validate redirect targets" })
-    ).toBeInTheDocument();
-  });
-
-  it("keeps multiple detail status updates when returning to the issue list", async () => {
-    window.history.replaceState({}, "", "/issues");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const firstIssue = {
-      id: "f_first",
-      scanId: "sc_1",
-      jobId: "job_1",
-      repo: "GoPullwise/pullwise-web",
-      severity: "high",
-      category: "Security",
-      title: "Validate redirect targets",
-      file: "src/auth.js",
-      line: 10,
-      status: "open",
-      createdAt: 100,
-    };
-    const secondIssue = {
-      ...firstIssue,
-      id: "f_second",
-      jobId: "job_2",
-      title: "Escape shell arguments",
-      file: "src/shell.js",
-      line: 20,
-      createdAt: 101,
-    };
-    pullwiseApi.issues.list.mockResolvedValue({ items: [firstIssue, secondIssue] });
-    pullwiseApi.issues.get.mockImplementation((issueId) =>
-      Promise.resolve(issueId === "f_first" ? firstIssue : secondIssue)
-    );
-    pullwiseApi.issues.updateStatus.mockImplementation((issueId, payload) =>
-      Promise.resolve({
-        ...(issueId === "f_first" ? firstIssue : secondIssue),
-        status: payload.status,
-      })
-    );
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await user.click(await screen.findByRole("button", { name: /open issue f_first/i }));
-    await user.click(await screen.findByRole("button", { name: /mark fixed/i }));
-    await user.click(await screen.findByRole("link", { name: /back to list/i }));
-
-    await waitFor(() => {
-      const firstRow = screen.getByText("Validate redirect targets").closest(".issues-trow");
-      expect(within(firstRow).getByText(/^fixed$/i)).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole("button", { name: /open issue f_second/i }));
-    await user.click(await screen.findByRole("button", { name: /mark fixed/i }));
-    await user.click(await screen.findByRole("link", { name: /back to list/i }));
-
-    await waitFor(() => {
-      const firstRow = screen.getByText("Validate redirect targets").closest(".issues-trow");
-      const secondRow = screen.getByText("Escape shell arguments").closest(".issues-trow");
-      expect(within(firstRow).getByText(/^fixed$/i)).toBeInTheDocument();
-      expect(within(secondRow).getByText(/^fixed$/i)).toBeInTheDocument();
-    });
-  });
-
-  it("keeps bulk-fixed issue state after returning from the product overview via history", async () => {
-    window.history.replaceState({}, "", "/issues");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const issues = [
-      {
-        id: "f_bulk_first",
-        scanId: "sc_bulk",
-        jobId: "job_bulk_1",
-        repo: "GoPullwise/pullwise-web",
-        severity: "high",
-        category: "Security",
-        title: "Validate bulk redirect targets",
-        file: "src/auth.js",
-        line: 10,
-        status: "open",
-        createdAt: 100,
-      },
-      {
-        id: "f_bulk_second",
-        scanId: "sc_bulk",
-        jobId: "job_bulk_2",
-        repo: "GoPullwise/pullwise-web",
-        severity: "medium",
-        category: "Reliability",
-        title: "Escape bulk shell arguments",
-        file: "src/shell.js",
-        line: 20,
-        status: "open",
-        createdAt: 101,
-      },
-    ];
-    pullwiseApi.issues.list.mockResolvedValue({ items: issues, total: issues.length });
-    pullwiseApi.issues.updateStatus.mockImplementation((issueId, payload) =>
-      Promise.resolve({
-        ...issues.find((issue) => issue.id === issueId),
-        status: payload.status,
-      })
-    );
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await user.click(await screen.findByRole("button", { name: /mark all fixed/i }));
-    await user.click(await screen.findByRole("button", { name: /confirm mark all fixed/i }));
-    await waitFor(() => expect(pullwiseApi.issues.updateStatus).toHaveBeenCalledTimes(2));
-
-    await user.click(screen.getByRole("link", { name: /^overview$/i }));
-    await waitFor(() =>
-      expect(document.querySelector('[data-screen-label="dashboard"]')).toBeInTheDocument()
-    );
-    await act(async () => {
-      window.history.replaceState({}, "", "/issues");
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    });
-
-    await waitFor(() => {
-      const firstRow = screen.getByText("Validate bulk redirect targets").closest(".issues-trow");
-      const secondRow = screen.getByText("Escape bulk shell arguments").closest(".issues-trow");
-      expect(within(firstRow).getByText(/^fixed$/i)).toBeInTheDocument();
-      expect(within(secondRow).getByText(/^fixed$/i)).toBeInTheDocument();
-    });
-    expect(screen.queryByRole("button", { name: /^mark fixed$/i })).not.toBeInTheDocument();
   });
 
   it("does not show signed-out landing actions while the session check is pending", () => {
@@ -704,9 +387,8 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector('[data-screen-label="docs"]')).toBeInTheDocument();
     });
-    expect(await screen.findByRole("heading", { name: /pullwise docs/i })).toBeInTheDocument();
-    expect(await screen.findByText("openai")).toBeInTheDocument();
-    expect(screen.getByText("app-route-model-free")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /configure PR, CI, and Updates/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /pull request actions/i })).toBeInTheDocument();
   });
 
   it("keeps login actions hidden while confirming an initial signed-out session result", async () => {
@@ -1029,7 +711,7 @@ describe("App", () => {
     expect(go).not.toHaveBeenCalled();
   });
 
-  it("explains missing GitHub App write permissions for private repository remediation", async () => {
+  it("explains missing GitHub App repository access for the new services", async () => {
     connectGitHubRepositories.mockRejectedValueOnce(
       new Error("GitHub App installation must grant Contents: read access.")
     );
@@ -1041,7 +723,7 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: /connect github repositories/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      /Contents: write and Pull requests: write/i
+      /repository access required to read PR, CI, and release facts/i
     );
     expect(go).not.toHaveBeenCalled();
   });
@@ -1194,15 +876,6 @@ describe("App", () => {
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 
-  it("requests fact-only repository sync and shows its job", async () => {
-    await openProductRepositories();
-    productApi.syncRepository.mockResolvedValue({id: "job-product", status: "queued"});
-    fireEvent.click(screen.getByRole("button", {name: "Sync facts for GoPullwise/pullwise-server"}));
-    expect(await screen.findByText(/job-product/)).toBeVisible();
-    expect(productApi.syncRepository).toHaveBeenCalledWith("repo_1", expect.any(String));
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-  });
-
   it("creates a personal Updates watch through the shared product API", async () => {
     await openProductRepositories([]);
     productApi.createWatch.mockResolvedValue({id: "watch-new"});
@@ -1224,175 +897,6 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", {name: "Save service for GoPullwise/pullwise-server"}));
     expect(await screen.findByRole("alert")).toHaveTextContent("Configuration changed");
     expect(productApi.saveRepositoryService).toHaveBeenCalledTimes(1);
-    expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
-  });
-
-  it("opens issue search results directly in the issue detail view", async () => {
-    window.history.replaceState({}, "", "/issues");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.issues.list.mockResolvedValue({
-      items: [
-        {
-          id: "f_redirect",
-          scanId: "sc_1",
-          repo: "octocat/private-repo",
-          title: "Unsafe redirect target",
-          summary: "Redirects accept attacker-controlled URLs.",
-          impact: "Attackers can redirect users to phishing domains.",
-          severity: "high",
-          category: "Security",
-          status: "open",
-          file: "src/auth.js",
-          line: 42,
-          confidence: 0.94,
-          effort: "S",
-        },
-      ],
-    });
-    pullwiseApi.issues.get.mockResolvedValueOnce({
-      id: "f_redirect",
-      scanId: "sc_1",
-      repo: "octocat/private-repo",
-      title: "Unsafe redirect target",
-      summary: "Redirects accept attacker-controlled URLs.",
-      impact: "Attackers can redirect users to phishing domains.",
-      severity: "high",
-      category: "Security",
-      status: "open",
-      file: "src/auth.js",
-      line: 42,
-      confidence: 0.94,
-      effort: "S",
-    });
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await user.click(await screen.findByRole("button", { name: /search/i }));
-    const searchModal = document.querySelector(".modal-search");
-    await waitFor(() => expect(searchModal).toBeInTheDocument());
-    await user.click(within(searchModal).getByRole("button", { name: /unsafe redirect target/i }));
-
-    await waitFor(() => {
-      expect(document.querySelector('[data-screen-label="issue"]')).toBeInTheDocument();
-    });
-    expect(window.location.pathname).toBe("/issues/f_redirect");
-    await waitFor(() =>
-      expect(pullwiseApi.issues.get).toHaveBeenCalledWith(
-        "f_redirect",
-        expect.objectContaining({ signal: expect.any(Object) })
-      )
-    );
-    expect(
-      await screen.findByRole("heading", { level: 1, name: /unsafe redirect target/i })
-    ).toBeInTheDocument();
-    expect(
-      await screen.findAllByText("Redirects accept attacker-controlled URLs.")
-    ).not.toHaveLength(0);
-  });
-
-  it("opens scan history issues with a scanId filter", async () => {
-    window.history.replaceState({}, "", "/history");
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    pullwiseApi.scans.list.mockResolvedValue({
-      items: [
-        {
-          id: "sc_history_1",
-          repo: "octocat/private-repo",
-          branch: "main",
-          commit: "abc123",
-          status: "done",
-          createdAt: 1710000000,
-          time: "Today",
-          by: "you",
-          issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
-        },
-      ],
-    });
-    pullwiseApi.issues.list.mockResolvedValue({
-      items: [
-        {
-          id: "f_history",
-          scanId: "sc_history_1",
-          repo: "octocat/private-repo",
-          title: "History-only issue",
-          severity: "high",
-          category: "Security",
-          status: "open",
-          file: "src/auth.js",
-          line: 42,
-        },
-      ],
-      total: 1,
-    });
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    const historyRow = (await screen.findByText("octocat/private-repo")).closest(".scan-row");
-    await user.click(within(historyRow).getByRole("button", { name: /^issues$/i }));
-
-    await waitFor(() => {
-      expect(pullwiseApi.issues.list).toHaveBeenCalledWith(
-        expect.objectContaining({ scanId: "sc_history_1" }),
-        expect.objectContaining({ signal: expect.any(Object) })
-      );
-    });
-    expect(await screen.findByText("History-only issue")).toBeInTheDocument();
-    expect(screen.getByText(/scan sc_history_1/i)).toBeInTheDocument();
-
-    const filteredCallCount = pullwiseApi.issues.list.mock.calls.length;
-    await user.click(screen.getByRole("button", { name: /clear scan/i }));
-
-    await waitFor(() => {
-      expect(pullwiseApi.issues.list.mock.calls.length).toBeGreaterThan(filteredCallCount);
-    });
-    const latestIssueParams = pullwiseApi.issues.list.mock.calls.at(-1)?.[0] || {};
-    expect(latestIssueParams.scanId).toBeUndefined();
-  });
-
-  it("opens scan history details on a URL with the scan id", async () => {
-    window.history.replaceState({}, "", "/history");
-    localStorage.removeItem(DEV_ACTIVE_REPO_STORAGE_KEY);
-    pullwiseApi.auth.getSession.mockResolvedValueOnce({
-      authenticated: true,
-      user: { name: "Dev", email: "dev@example.com" },
-    });
-    const scan = {
-      id: "sc_history_1",
-      repo: "octocat/private-repo",
-      branch: "main",
-      commit: "abc123",
-      status: "done",
-      createdAt: 1710000000,
-      time: "Today",
-      by: "you",
-      phase: "report",
-      progress: 100,
-      issues: { critical: 0, high: 1, medium: 0, low: 0, info: 0 },
-    };
-    pullwiseApi.scans.list.mockResolvedValue({ items: [scan] });
-    pullwiseApi.scans.get.mockResolvedValueOnce(scan);
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    const historyRow = (await screen.findByText("octocat/private-repo")).closest(".scan-row");
-    await user.click(within(historyRow).getByRole("button", { name: /^view$/i }));
-
-    await waitFor(() => {
-      expect(window.location.pathname).toBe("/scanning/sc_history_1");
-      expect(pullwiseApi.scans.get).toHaveBeenCalledWith(
-        "sc_history_1",
-        expect.objectContaining({ signal: expect.any(Object) })
-      );
-    });
     expect(pullwiseApi.scans.create).not.toHaveBeenCalled();
   });
 

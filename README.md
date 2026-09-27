@@ -1,33 +1,24 @@
 # Pullwise Web
 
+The requested replacement is the [GitHub project expense ledger design](../pullwise-server/docs/design/github-project-ledger/README.md). The description below records the current runtime until that replacement is implemented.
+
 Pullwise Web is a Vite React app for the Pullwise backend in
-`../pullwise-server`. The current product surfaces only server-backed flows:
+`../pullwise-server`. The current product follows GitHub pull requests, CI
+failures, and upstream updates:
 
 - GitHub identity login through the backend OAuth endpoint
 - GitHub App repository authorization
-- Repository listing and sync
-- Scan creation, polling, cancellation, and history
-- Rich issue review plus manual triage/status changes
-- Deterministic fix preview and GitHub pull request creation for auto-fixable issues
+- Authorized repository and service configuration
+- PR and CI item lists, saved source evidence, and handling history
+- Upstream release watches and relevant update evidence
+- Saved processing usage and plan capacity
 - Account-level GitHub integration settings
 - Creem account billing through backend-created checkout, supported upgrades, and scheduled cancellation
-- Batch scan creation, bulk status polling, cancellation flows, and audit bundle downloads
-- API-key documentation, legal, privacy, security, and live status/readiness pages
+- API-key contract preview, legal, privacy, and status pages
 
-Stage 2 remediation is intentionally narrow in this build. The browser can ask
-the backend to preview deterministic fix diffs and open GitHub pull requests for
-auto-fixable findings. Still unavailable:
-
-- Direct in-place fix application
-- Batch fixes
-- Auto-merge
-- Notifications
-- Slack or Linear writes
-- AI-generated replacement patches beyond the finding payload
-
-Secret-bearing Git and GitHub App work stays on the backend. The GitHub App
-installation must grant `Contents: write` and `Pull requests: write` for branch
-push and pull request creation.
+The old full-repository scan, finding, fix preview, and scan-history screens
+have been retired. Browser reads and manual GitHub fact sync do not start model
+processing. GitHub credentials and model access stay on the backend.
 
 ## Local Development
 
@@ -77,10 +68,9 @@ The Python API now requires real GitHub OAuth/App configuration for production
 login flows. Explicit local auth switches live in the sibling `pullwise-server`
 repository; they are not enabled by the frontend.
 
-Billing and scan limits are resource-scoped. Account quota follows the user's
-billing/free account cycle, while repository quota resets at UTC calendar-month
-boundaries. The frontend displays account billing status plus repository quota
-from `/repositories`.
+Billing capacity is shown as active repository and watch limits plus monthly
+intelligent processing usage. The current product is still being migrated;
+Cloudflare and Jev production gates remain open.
 
 ## Useful Commands
 
@@ -110,8 +100,8 @@ styles/*            Existing CSS
 src/i18n.jsx        Inline language helper
 src/icons.jsx       Inline icon set
 src/shell.jsx       Shared authenticated shell components
-src/components/*    Shared issue, repository, markdown, skeleton, and progress components
-src/screens/*       Screen components for product, docs, billing, API, status, scans, and issues
+src/components/*    Shared product detail, notifications, and skeleton components
+src/screens/*       Product, configuration, billing, docs, API, and status screens
 src/api/http.js     Shared HTTP request helper
 src/api/pullwise.js Pullwise backend endpoint wrapper
 src/config/env.js   Frontend env validation with zod
@@ -126,9 +116,8 @@ eslint.config.js    ESLint config
 ## Backend Boundary
 
 Secret-bearing and privileged operations stay server-side: GitHub OAuth client
-secrets, GitHub App private keys, repository cloning, scan workers, AI provider
-credentials, payment provider keys, webhook handling, fix branch pushes, and
-pull request creation credentials.
+secrets, GitHub App private keys, model provider credentials, payment provider
+keys, and webhook handling.
 
 ## Cloudflare Workers Deployment
 
@@ -139,8 +128,8 @@ The recommended production topology is:
 - `pullwise-server` runs on a separate VM/container/server platform.
 
 This keeps browser API calls, session cookies, and GitHub OAuth callbacks on the
-frontend domain. The Cloudflare Worker is only a proxy; it does not run repository
-scans, Git, SQLite, or Codex.
+frontend domain. The frontend Cloudflare Worker is only a proxy; it does not run
+product processing or model calls.
 
 Cloudflare references:
 

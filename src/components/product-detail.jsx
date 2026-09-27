@@ -72,6 +72,36 @@ export function Coverage({ coverage }) {
   </div>;
 }
 
+export function CiTriage({ item }) {
+  const windows = item.sourceFacts?.windows || [];
+  const candidates = item.historyCandidates || [];
+  return <>
+    <section aria-label={T("Visible CI symptoms", "可见 CI 症状")}>
+      <h3>{T("Visible CI symptoms", "可见 CI 症状")}</h3>
+      {item.observedErrorSignature && <p>{T("Observed error", "观察到的报错")}: <code>{item.observedErrorSignature}</code></p>}
+      <p>{T("Flaky status unknown", "偶发失败状态未知")}</p>
+      {windows.length === 0 && <p>{T("No usable log windows saved.", "没有可用的日志片段。")}</p>}
+      {windows.map(window => <div key={window.windowId}>
+        <h4>{window.stepName || window.windowId} · {productLabel(window.stage)}</h4>
+        {(window.symptoms || []).length === 0 ? <p>{T("Symptom unknown from visible evidence.", "可见证据中症状未知。")}</p> :
+          <ul>{window.symptoms.map(symptom => <li key={symptom}>{productLabel(symptom)}</li>)}</ul>}
+        {(window.evidenceIds || []).map(id => <a key={id} href={`#evidence-${encodeURIComponent(id)}`}>
+          {T("Evidence", "证据")} {id}</a>)}
+      </div>)}
+    </section>
+    {candidates.length > 0 && <section aria-label={T("Historical handling candidates", "历史处置候选")}>
+      <h3>{T("Historical handling candidates", "历史处置候选")}</h3>
+      <p>{T("Same observed symptom; cause has not been confirmed.", "观察到相同症状；原因尚未确认。")}</p>
+      <ul>{candidates.map(candidate => <li key={candidate.itemId}>
+        <strong>{productLabel(candidate.disposition)}</strong>
+        {candidate.note && <pre className="product-evidence">{candidate.note}</pre>}
+        {safeSourceUrl(candidate.sourceUrl) && <a href={candidate.sourceUrl} target="_blank" rel="noopener noreferrer">
+          {T("Prior failure on GitHub", "GitHub 上的历史失败")}</a>}
+      </li>)}</ul>
+    </section>}
+  </>;
+}
+
 function ItemTimeline({ itemId, onAccessLost }) {
   const [cursor, setCursor] = useState("");
   const key = JSON.stringify([itemId, cursor]);
@@ -174,6 +204,7 @@ export function ProductDetail({ selection, onClose, onSaved, onAccessLost }) {
         {url && <a className="product-source-link" href={url} target="_blank" rel="noopener noreferrer">{T("Open on GitHub", "在 GitHub 打开")}</a>}
         <h3>{T("GitHub facts", "GitHub 事实")}</h3>
         <pre className="product-evidence">{JSON.stringify(item.sourceFacts || {}, null, 2)}</pre>
+        {selection.kind === "item" && item.module === "ci" && <CiTriage item={item} />}
         {item.module === "ci" && !item.sourceFacts?.recovery && <p>{T("Successor relationship unknown unless verified by the server.", "后续执行的对应关系以服务端核验为准。")}</p>}
         <h3>{T("Source evidence", "来源证据")}</h3>
         {selection.kind === "source" && <pre className="product-evidence">{typeof item.content?.body === "string" ? item.content.body : JSON.stringify(item.content || {}, null, 2)}</pre>}

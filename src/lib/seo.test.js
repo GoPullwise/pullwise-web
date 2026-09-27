@@ -7,16 +7,16 @@ import {
 } from "./seo.js";
 
 describe("public SEO metadata", () => {
-  it("describes the landing page as full-repository AI code review", () => {
+  it("describes the PR, CI and Updates product", () => {
     const metadata = seoMetadataForScreen("landing", {
       lang: "en",
       origin: "https://pull-wise.com",
       pathname: "/",
     });
 
-    expect(metadata.title).toBe("Pullwise — AI Code Review for GitHub Repositories");
-    expect(metadata.description).toMatch(/entire GitHub repositories/i);
-    expect(metadata.description).toMatch(/security, correctness, and test gaps/i);
+    expect(metadata.title).toBe("Pullwise — Pull Requests, CI, and Upstream Updates");
+    expect(metadata.description).toMatch(/pull request activity, CI failures, and upstream releases/i);
+    expect(metadata.description).not.toMatch(/scan|full-repository|finding/i);
     expect(metadata.canonical).toBe("https://pull-wise.com/");
     expect(metadata.robots).toBe("index,follow");
     expect(metadata.schema["@graph"].map((entry) => entry["@type"])).toEqual(

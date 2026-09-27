@@ -9,14 +9,14 @@ describe("NotFoundScreen", () => {
 
     expect(screen.getByText("Sign in")).toBeInTheDocument();
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
-    expect(screen.queryByText("Issues")).not.toBeInTheDocument();
+    expect(screen.queryByText("Repositories and watches")).not.toBeInTheDocument();
   });
 
   it("suggests private account pages when signed in", () => {
     render(<NotFoundScreen go={vi.fn()} requested="missing" auth={{ authenticated: true }} />);
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    expect(screen.getByText("Issues")).toBeInTheDocument();
+    expect(screen.getByText("Repositories and watches")).toBeInTheDocument();
   });
 
   it("exposes signed-out recovery suggestions as real screen links", async () => {
@@ -45,9 +45,9 @@ describe("NotFoundScreen", () => {
       "href",
       "/dashboard/overview"
     );
-    expect(screen.getByRole("link", { name: /^issues/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^repositories and watches/i })).toHaveAttribute(
       "href",
-      "/issues"
+      "/services"
     );
   });
 

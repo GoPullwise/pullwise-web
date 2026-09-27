@@ -57,8 +57,8 @@ function getRepositoryAuthErrorMessage(error) {
   }
   if (message.includes("Contents: read")) {
     return T(
-      "The GitHub App must grant Contents: write and Pull requests: write so Pullwise can push fix branches and open pull requests.",
-      "GitHub App 必须授予 Contents: write 和 Pull requests: write 权限，Pullwise 才能推送修复分支并创建拉取请求。"
+      "The GitHub App needs the repository access required to read PR, CI, and release facts. Check its permissions and try again.",
+      "GitHub App 需要读取 PR、CI 和版本发布事实所需的仓库权限。请检查权限后重试。"
     );
   }
   return getAuthErrorMessage(error);
@@ -91,18 +91,18 @@ export function LandingScreen({ go, auth }) {
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
           <span>
-            {T("AI code review for GitHub repositories", "面向 GitHub 仓库的 AI 代码审查")}
+            {T("PR, CI, and Updates for GitHub teams", "面向 GitHub 团队的 PR、CI 与更新工作台")}
           </span>
         </div>
         <h1 id="lp-title" className="lp-title">
-          {T("Find repository-wide risks.", "发现全仓风险。")}
+          {T("Follow pull requests, CI failures, and upstream updates.", "跟进拉取请求、CI 失败与上游更新。")}
           <br />
-          <span className="lp-title-em">{T("Ship fixes with evidence.", "用证据推动修复。")}</span>
+          <span className="lp-title-em">{T("Keep the next action clear.", "让下一步行动更清晰。")}</span>
         </h1>
         <p className="lp-sub">
           {T(
-            "Pullwise is an AI code review platform for engineering teams. Connect a GitHub repository to scan the full codebase for security, correctness, and test gaps—then get validated findings with exact file locations and next steps.",
-            "Pullwise 是面向工程团队的 AI 代码审查平台。连接 GitHub 仓库，扫描完整代码库中的安全、正确性和测试缺口，并获得经过验证、包含准确文件位置与下一步建议的发现。"
+            "Connect GitHub to organize pull request activity, CI failures, and upstream releases in one workspace. Pullwise keeps source facts, saved evidence, and your team's handling history together.",
+            "连接 GitHub，在一个工作台整理拉取请求动态、CI 失败和上游版本发布。Pullwise 将来源事实、已保存证据和团队处理记录关联呈现。"
           )}
         </p>
         <div className="lp-cta">
@@ -128,16 +128,16 @@ export function LandingScreen({ go, auth }) {
         </div>
         <div className="lp-meta">
           <span>
-            <I.Check size={12} /> {T("Full-repository context", "全仓库上下文")}
+            <I.Check size={12} /> {T("Pull request actions", "拉取请求待办")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Security, correctness, and tests", "安全、正确性与测试")}
+            <I.Check size={12} /> {T("CI failure context", "CI 失败上下文")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Validator-checked findings", "经 Validator 检查的发现")}
+            <I.Check size={12} /> {T("Upstream release watches", "上游版本关注")}
           </span>
           <span>
-            <I.Check size={12} /> {T("CI-ready REST API", "可接入 CI 的 REST API")}
+            <I.Check size={12} /> {T("Saved evidence and handling", "已保存证据与处理记录")}
           </span>
         </div>
       </section>
@@ -145,16 +145,16 @@ export function LandingScreen({ go, auth }) {
       <section className="lp-preview">
         <div className="lp-preview-card">
           <div className="lp-preview-bar">
-            <span className="lp-preview-kicker">{T("REVIEW TRACE / LIVE", "审查轨迹 / 实时")}</span>
+            <span className="lp-preview-kicker">{T("WORKSPACE / PREVIEW", "工作台 / 预览")}</span>
             <div className="lp-preview-url">pull-wise.com / dashboard</div>
           </div>
           <div className="lp-preview-body">
             <div className="lp-preview-side">
               {[
-                T("Snapshot", "Snapshot"),
-                T("Risk routes", "风险路由"),
-                T("Validate", "验证"),
-                T("Report", "报告"),
+                T("Overview", "总览"),
+                T("Pull requests", "拉取请求"),
+                T("CI failures", "CI 失败"),
+                T("Updates", "更新"),
               ].map((item, index) => (
                 <div key={item} className={"lp-preview-side-i" + (index === 1 ? " active" : "")}>
                   {item}
@@ -167,41 +167,41 @@ export function LandingScreen({ go, auth }) {
                   <b>
                     <I.GitPull size={18} />
                   </b>
-                  <span>{T("Snapshot", "Snapshot")}</span>
+                  <span>{T("PR", "PR")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
                     <I.Layers size={18} />
                   </b>
-                  <span>{T("Bundle", "Bundle")}</span>
+                  <span>{T("CI", "CI")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b style={{ color: "var(--accent)" }}>
                     <I.Bug size={18} />
                   </b>
-                  <span>{T("Review", "审查")}</span>
+                  <span>{T("Updates", "更新")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
                     <I.Shield size={18} />
                   </b>
-                  <span>{T("Validate", "验证")}</span>
+                  <span>{T("Evidence", "证据")}</span>
                 </div>
               </div>
               <div className="lp-preview-issues">
                 <div className="lp-preview-issue">
                   <span className="sev sev-info">
                     <span className="dot" style={{ background: "currentColor" }} />
-                    {T("confirmed", "已确认")}
+                    {T("saved", "已保存")}
                   </span>
                   <div className="lp-preview-issue-t">
                     {T(
-                      "Confirmed and plausible findings include file locations, evidence, impact, and next-agent tasks.",
-                      "已确认和可信的问题会包含文件位置、证据、影响与下一步 agent 任务。"
+                      "Saved source evidence and handling history stay linked to the work they describe.",
+                      "已保存的来源证据与处理记录会关联到对应事项。"
                     )}
                   </div>
                   <span className="lp-preview-issue-f">
-                    {T("Stable envelope + versioned artifacts", "稳定 envelope + 版本化 artifacts")}
+                    {T("Source facts + team handling", "来源事实 + 团队处理")}
                   </span>
                 </div>
               </div>
@@ -215,12 +215,12 @@ export function LandingScreen({ go, auth }) {
           <div className="lp-section-index">PROCESS / 02</div>
           <div>
             <h2 id="lp-capabilities-title">
-              {T("How Pullwise reviews a repository.", "Pullwise 如何审查一个仓库。")}
+              {T("How Pullwise keeps work in view.", "Pullwise 如何持续呈现待处理事项。")}
             </h2>
             <p>
               {T(
-                "From repository mapping to validated findings, every stage is designed to reduce noise and make the result usable by developers.",
-                "从仓库映射到发现验证，每个阶段都在减少噪声，让开发者能够直接使用审查结果。"
+                "Configure the services you need, then use saved facts and evidence to decide what deserves attention.",
+                "配置所需服务，再根据已保存的事实和证据判断哪些事项值得关注。"
               )}
             </p>
           </div>
@@ -229,50 +229,50 @@ export function LandingScreen({ go, auth }) {
           {[
             {
               i: <I.Layers />,
-              h: T("Map the whole repository", "映射完整仓库"),
+              h: T("Connect authorized repositories", "连接已授权仓库"),
               p: T(
-                "Read the current code tree, symbols, entry points, and trust boundaries before deciding where review effort matters most.",
-                "先读取当前代码树、符号、入口与信任边界，再决定审查精力最应该投入的位置。"
+                "Choose the GitHub repositories and services your team wants to follow.",
+                "选择团队希望关注的 GitHub 仓库和服务。"
               ),
             },
             {
               i: <I.Bug />,
-              h: T("Review high-risk code paths", "审查高风险代码路径"),
+              h: T("Track pull request actions", "跟进拉取请求待办"),
               p: T(
-                "Focus security, correctness, and test-gap reviewers on planned code areas instead of treating every file as equal.",
-                "让安全、正确性和测试缺口审查聚焦于规划后的代码区域，而不是平等对待每个文件。"
+                "Bring requested changes, discussion, and review follow-up into one actionable list.",
+                "将修改请求、讨论和审查跟进汇集成可处理的列表。"
               ),
             },
             {
               i: <I.Terminal />,
-              h: T("Run in isolated workers", "在隔离 Worker 中运行"),
+              h: T("Investigate CI failures", "调查 CI 失败"),
               p: T(
-                "Keep each review workspace, agent state, artifacts, and logs isolated so one run cannot leak into another.",
-                "隔离每次审查的工作区、智能体状态、产物与日志，避免不同运行之间相互污染。"
+                "See failed runs, stages, symptoms, and saved context together.",
+                "集中查看失败运行、阶段、症状和已保存上下文。"
               ),
             },
             {
               i: <I.Shield />,
-              h: T("Verify before reporting", "报告前先验证"),
+              h: T("Watch upstream releases", "关注上游版本发布"),
               p: T(
-                "Check file locations, merge duplicate claims, and challenge candidate findings before they reach the main report.",
-                "检查文件位置、合并重复结论并质疑候选发现，然后才允许它们进入主报告。"
+                "Follow selected upstream projects and inspect relevant release changes.",
+                "关注选定的上游项目并查看相关版本变化。"
               ),
             },
             {
               i: <I.FileCode />,
-              h: T("Deliver fix-ready evidence", "交付可直接修复的证据"),
+              h: T("Inspect saved evidence", "查看已保存证据"),
               p: T(
-                "Return severity, exact file locations, evidence, impact, and next steps that developers or coding agents can act on.",
-                "返回严重程度、准确文件位置、证据、影响与下一步，让开发者或编码 Agent 可以直接行动。"
+                "Read source facts and saved assessments without starting new processing from the browser.",
+                "读取来源事实与已保存的判断；浏览操作不会启动新的处理。"
               ),
             },
             {
               i: <I.Code />,
-              h: T("Automate through the API", "通过 API 自动化"),
+              h: T("Record team handling", "记录团队处理"),
               p: T(
-                "Start scans, read results, and check account or repository quota from CI, scripts, and internal engineering tools.",
-                "从 CI、脚本和内部工程工具启动扫描、读取结果，并检查账户或仓库配额。"
+                "Mark items done or dismissed, assign follow-up, and keep a saved handling history.",
+                "标记完成或不跟进、分配后续处理，并保留处理历史。"
               ),
             },
           ].map((feature, index) => (
@@ -298,7 +298,7 @@ export function LandingScreen({ go, auth }) {
               ? T("Restoring your account.", "正在恢复你的账户。")
               : signedIn
                 ? T("Continue from your account.", "从你的账户继续。")
-                : T("Review your next repository.", "审查你的下一个仓库。")}
+                : T("Bring your team's work into view.", "让团队事项清晰可见。")}
           </h2>
         </div>
         {checkingSession ? (
@@ -370,8 +370,8 @@ export function LoginScreen({ go } = {}) {
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Use GitHub to sign in. Repository access is requested later, when you start a scan.",
-            "使用 GitHub 登录。仓库权限将在你开始扫描时再请求。"
+            "Use GitHub to sign in. Connect repositories later to configure PR, CI, and Updates services.",
+            "使用 GitHub 登录。之后连接仓库，配置 PR、CI 和更新服务。"
           )}
         </p>
 
@@ -403,7 +403,7 @@ export function LoginScreen({ go } = {}) {
           <div className="auth-next-i">
             <span>2</span>
             <p>
-              {T("Connect repositories only when you start a scan.", "仅在开始扫描时连接仓库。")}
+              {T("Connect repositories and configure PR, CI, and Updates services.", "连接仓库并配置 PR、CI 和更新服务。")}
             </p>
           </div>
         </div>
@@ -470,8 +470,8 @@ export function OAuthScreen({ go, auth }) {
           <h2>{T("Connect GitHub repository access", "连接 GitHub 仓库访问")}</h2>
           <p className="oauth-org">
             {T(
-              "Install Pullwise on your GitHub account or organization, then choose the repositories to scan.",
-              "在你的 GitHub 账户或组织上安装 Pullwise，然后选择要扫描的仓库。"
+              "Install Pullwise on your GitHub account or organization, then choose repositories and configure services.",
+              "在你的 GitHub 账户或组织上安装 Pullwise，然后选择仓库并配置服务。"
             )}
           </p>
         </div>
@@ -493,8 +493,8 @@ export function OAuthScreen({ go, auth }) {
               i: <I.FileCode size={15} />,
               h: T("Contents and pull requests", "内容和拉取请求"),
               p: T(
-                "Contents: write and Pull requests: write are required for scan checkout, fix branches, and pull request creation.",
-                "Contents: write 和 Pull requests: write 是扫描 checkout、修复分支和拉取请求所必需的权限。"
+                "Repository access lets Pullwise read authorized PR, CI, and Updates facts. Pullwise handling does not change GitHub content.",
+                "仓库权限让 Pullwise 读取已授权的 PR、CI 和更新事实。Pullwise 内的处理操作不会修改 GitHub 内容。"
               ),
             },
           ].map((permission, index) => (

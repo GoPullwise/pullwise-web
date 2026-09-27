@@ -24,9 +24,6 @@ const ENDPOINTS = [
   ["GET", "/api/v1/items/{itemId}", "items:read", "Evidence and handling history"],
   ["GET", "/api/v1/items/{itemId}/timeline", "items:read", "Saved observations, assessments and handling events"],
   ["PATCH", "/api/v1/items/{itemId}", "items:write", "Handling with itemVersion and If-Match"],
-  ["POST", "/api/v1/watches/{watchId}/sync", "watches:read + sync:write", "GitHub fact sync only"],
-  ["POST", "/api/v1/repositories/{repositoryId}/sync", "repositories:read + sync:write", "Repository fact sync only"],
-  ["GET", "/api/v1/jobs/{jobId}", "items:read", "Requester-owned manual sync status"],
   ["GET", "/api/v1/repositories/{repositoryId}/service", "repositories:read", "Saved owner service"],
   ["PUT", "/api/v1/repositories/{repositoryId}/service", "repositories:manage", "Existing owner service update"],
 ];
@@ -50,17 +47,16 @@ function DocsCode({ title, children }) {
     <I.Terminal size={12} /> {title}</span></div><pre>{children}</pre></div>;
 }
 
-function markdown(base, itemExample, syncExample) {
+function markdown(base, itemExample) {
   return ["# Pullwise REST API", "", "PR / CI / Updates contract preview. Cloudflare Server is not deployed for this product yet.", "",
-    "## Authentication", "", "Use a Bearer API key or X-Pullwise-Api-Key. Handling and sync need explicit write scopes.", "",
+    "## Authentication", "", "Use a Bearer API key or X-Pullwise-Api-Key. Handling needs an explicit write scope.", "",
     "### Base URL", "", "```text", base, "```", "", "## Endpoints", "",
     ...ENDPOINTS.flatMap(([method, path, scope, description]) => [
       `### ${method} ${path}`, "", description, `Required scope: ${scope}`, "",
     ]),
     "## Saved items", "", "```sh", itemExample, "```", "",
-    "## Manual fact sync", "", "```sh", syncExample, "```", "",
-    "GET and manual sync do not invoke Jev or spend intelligent-processing usage.", "",
-    "## Availability", "", "Repository listing/creation, watch creation, private/member sync, matrices and full timelines are not enabled on the Cloudflare Server candidate.", "",
+    "GET does not invoke Jev or spend intelligent-processing usage.", "",
+    "## Availability", "", "Repository listing/creation, watch creation, private watches, matrices and full timelines are not enabled on the Cloudflare Server candidate.", "",
     "## Errors and limits", "", "| Code | Description |", "| --- | --- |",
     "| 401 | Session or API key required |", "| 403 | Scope or Origin denied |",
     "| 404 | Resource unavailable or no longer authorized |", "| 409 | Idempotency conflict |",
@@ -73,13 +69,12 @@ export function ApiDocsScreen({ go, auth }) {
   const [copied, setCopied] = useState(false);
   const base = baseUrl();
   const itemExample = `curl '${apiUrl("/api/v1/items?module=pr&view=mine", base)}' \\\n+  -H 'Authorization: Bearer $PULLWISE_API_KEY'`;
-  const syncExample = `curl -X POST '${apiUrl("/api/v1/watches/watch_123/sync", base)}' \\\n+  -H 'Authorization: Bearer $PULLWISE_API_KEY' \\\n+  -H 'Idempotency-Key: github-facts-1' -H 'Content-Type: application/json' -d '{}'`;
   const nav = [["overview", "Overview"], ["authentication", "Authentication"],
-    ["endpoints", "Endpoints"], ["items", "Saved items"], ["sync", "Manual fact sync"],
+    ["endpoints", "Endpoints"], ["items", "Saved items"],
     ["availability", "Availability"], ["errors", "Errors and limits"]];
   async function copyPage() {
     try {
-      await navigator.clipboard.writeText(markdown(base, itemExample, syncExample));
+      await navigator.clipboard.writeText(markdown(base, itemExample));
       setCopied(true);
     } catch { setCopied(false); }
   }
@@ -105,8 +100,8 @@ export function ApiDocsScreen({ go, auth }) {
           <p>{T("Every read checks current account, key scope and resource permission. Revoked private content is hidden.",
             "每次读取都会核对账户、密钥范围和资源权限；已撤销的私有内容不会返回。")}</p></div></div>
         <h2 id="authentication" className="docs-h2">{T("Authentication", "认证")}</h2>
-        <p>{T("Create a key in API Keys. Read scopes are the default; handling and manual sync need explicit write scopes.",
-          "在 API Keys 中创建密钥。默认是只读权限；处理和手动同步需要显式写权限。")}</p>
+        <p>{T("Create a key in API Keys. Read scopes are the default; handling needs an explicit write scope.",
+          "在 API Keys 中创建密钥。默认是只读权限；处理需要显式写权限。")}</p>
         <DocsCode title={T("Base URL", "基础地址")}>{base}</DocsCode>
         <DocsCode title={T("Authorization headers", "认证请求头")}>{`Authorization: Bearer pwk_example\nX-Pullwise-Api-Key: pwk_example`}</DocsCode>
         <h2 id="endpoints" className="docs-h2">{T("Endpoints", "接口")}</h2>
@@ -119,13 +114,9 @@ export function ApiDocsScreen({ go, auth }) {
         <p>{T("Lists, overviews and evidence read saved results. GET never starts model processing.",
           "列表、概览和证据读取已保存结果。GET 不会启动模型处理。")}</p>
         <DocsCode title={T("Read current PR work", "读取当前 PR 事项")}>{itemExample}</DocsCode>
-        <h2 id="sync" className="docs-h2">{T("Manual fact sync", "手动事实同步")}</h2>
-        <p>{T("Manual sync only queues GitHub fact collection. Send {} and Idempotency-Key; a retry returns the saved response. It does not invoke Jev or spend intelligent-processing usage.",
-          "手动同步只排队采集 GitHub 事实。发送 {} 和 Idempotency-Key；重试返回已保存响应，不调用 Jev 或消耗智能处理用量。")}</p>
-        <DocsCode title={T("Sync watch facts", "同步 watch 事实")}>{syncExample}</DocsCode>
         <h2 id="availability" className="docs-h2">{T("Availability", "可用范围")}</h2>
-        <p>{T("Repository listing/creation, watch creation, private/member sync, matrices and full timelines are not enabled on the Cloudflare Server candidate. Production GitHub ingestion and Jev remain disabled.",
-          "Cloudflare Server 候选尚未启用仓库列表/创建、watch 创建、私有/成员同步、矩阵和完整时间线；生产 GitHub 接入与 Jev 仍关闭。")}</p>
+        <p>{T("Repository listing/creation, watch creation, private watches, matrices and full timelines are not enabled on the Cloudflare Server candidate. Production GitHub ingestion and Jev remain disabled.",
+          "Cloudflare Server 候选尚未启用仓库列表/创建、watch 创建、私有 watch、矩阵和完整时间线；生产 GitHub 接入与 Jev 仍关闭。")}</p>
         <h2 id="errors" className="docs-h2">{T("Errors and limits", "错误与限制")}</h2>
         <div className="docs-table">{[["401", "Session or API key required"], ["403", "Scope or Origin denied"],
           ["404", "Resource unavailable or no longer authorized"], ["409", "Idempotency conflict"],

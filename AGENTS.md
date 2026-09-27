@@ -7,12 +7,12 @@ The requested replacement product is specified in `../pullwise-server/docs/desig
 Implement the replacement one Sxx stage at a time as defined in design section 8. After completing and locally verifying a Web stage, write `docs/handoffs/Sxx-<name>.md`, report it, and stop development until the developer explicitly continues or assigns another agent. For cross-project stages, write a handoff in both repositories.
 
 <!-- PULLWISE_PRODUCT_TARGET_START -->
-## Current target — PR / CI / Updates design 1.4
+## Historical runtime notes — PR / CI / Updates
 
-Implement the product defined by `../docs/design/pr-ci-updates/README.md` and
-01–07. Old scan, finding, full-repository Reviewer, Worker, and Agent-first
-notes below are historical cleanup evidence only. Do not preserve their routes,
-contracts, or user-facing claims when they conflict with design 1.4.
+The notes below describe the prior PR, CI, and Updates frontend. The old design
+documents have been removed; use the GitHub project expense ledger design above
+for the replacement product. Old scan, finding, full-repository Reviewer,
+Worker, and Agent-first notes are historical cleanup evidence only.
 
 P5a delivers compact counts, labeled lists, the complete Updates source table,
 evidence, and handling history through the shared Server REST contract. P5b
@@ -20,10 +20,58 @@ matrices and full timelines remain gated on measured usability benefit. Keep
 the existing hard-edged visual system, non-Dashboard pages, payment controls,
 auth behavior, responsive behavior, and `worker.js` Cloudflare hosting proxy.
 
-Browser reads, filtering, detail expansion, and manual GitHub fact sync must
-never schedule model work or increase processing usage. Do not add classify,
+Browser reads, filtering, and detail expansion must never schedule model work
+or increase processing usage. The manual sync queue was retired because the
+Cloudflare product runtime has no consumer; do not restore its button, client,
+or API Docs contract. Do not add classify,
 reanalyze, retry-analysis, batch, or force controls. Permission loss must clear
 protected cached details and must not render stale content as a healthy zero.
+Dashboard repository/watch selectors and the shared-watch target selector read
+all authorized pages with the same page size and bound the traversal; an
+invalid or repeated cursor renders an unavailable state instead of silently
+hiding later scope options.
+When an account has no selected repositories or watches, Dashboard directs the
+owner to Services instead of treating an unconfigured account as an empty
+follow-up list.
+
+The old `/scanning`, `/history`, and `/issues` Web routes and their runtime
+screens have been removed. Do not restore them or the unused Agent-First
+contract wrapper/pin. `/repos` remains a product-management OAuth return path;
+`/services` is the main configuration route. Old route and generated-contract
+notes below are historical only.
+CI Item detail shows saved visible symptoms with links to their evidence.
+Show Server-provided historical handling candidates only with their prior
+GitHub failure links, as the same observed symptom; never imply verified same
+cause without explicit confirmation. Show flaky status as unknown until Server
+provides verified comparable cross-run facts.
+The unreferenced scan progress/timing, issue distribution and scan report
+components and their dedicated styles/tests are removed. Build current PR,
+CI and Updates views from the product detail and distribution components.
+
+The public landing, sign-in, OAuth, SEO and README copy describes PR, CI and
+Updates. Keep `src/lib/seo.js` and the prerendered `index.html` metadata in
+sync when changing product positioning. Do not advertise whole-repository
+scans, finding fixes, or write permissions for the retired service.
+
+Privacy and Terms in `src/screens/legal.jsx` must describe selected GitHub
+source facts, saved assessments, handling history, and processing usage. Keep
+their English and Chinese service descriptions aligned; update the displayed
+revision date when changing substantive legal copy. They must not promise
+legacy scans, generated fixes, repository cloning, or pull request writes.
+
+The old `pullwise-data.js` scan/issue hooks, their cache module, and the
+`pullwiseApi.scans`/`pullwiseApi.issues` browser clients are removed. Current
+product reads and writes use `src/api/product.js`; do not recreate the old
+client or cache when implementing PR/CI/Updates behavior.
+
+Public Docs is a product workflow guide. Do not load or display the retired
+subscription-plan agent config, scan quota or Worker settings there. Current
+plan capacity belongs on Pricing/Billing; the REST contract belongs on API Docs.
+
+The public Status page reads `/health` only. Do not render legacy scan queues,
+Worker model catalogs or review-provider state as product availability. Show
+only health fields that directly describe the Web/API and current integration
+readiness, and do not expose host paths or credentials.
 <!-- PULLWISE_PRODUCT_TARGET_END -->
 
 ## Current result evidence display

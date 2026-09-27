@@ -8,7 +8,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const CONTACT_EMAIL = "contact@pull-wise.com";
 const SECURITY_EMAIL = CONTACT_EMAIL;
-const LAST_UPDATED = "2026-06-29";
+const LAST_UPDATED = "2026-09-27";
 const STATUS_REFRESH_MS = 30_000;
 
 function LegalChrome({ go, current, children, auth }) {
@@ -84,7 +84,7 @@ export function PrivacyScreen({ go, auth }) {
   const sections = [
     { id: "scope", title: T("Scope", "适用范围") },
     { id: "data", title: T("Data we collect", "我们收集的数据") },
-    { id: "code", title: T("Repository code", "仓库代码") },
+    { id: "code", title: T("GitHub content", "GitHub 内容") },
     { id: "use", title: T("How we use data", "数据用途") },
     { id: "sharing", title: T("Processors and sharing", "处理方与共享") },
     { id: "retention", title: T("Retention", "保留期限") },
@@ -101,8 +101,8 @@ export function PrivacyScreen({ go, auth }) {
       sections={sections}
       title={T("Privacy Policy", "隐私政策")}
       subtitle={T(
-        "This Privacy Policy explains how Pullwise handles account, GitHub, billing, API key, quota, repository preflight, scan, finding, and workflow data for its GitHub-connected code review service.",
-        "本隐私政策说明 Pullwise 如何在连接 GitHub 的代码审查服务中处理账户、GitHub、计费、API key、配额、仓库预检、扫描、发现和工作流数据。"
+        "This Privacy Policy explains how Pullwise handles account, GitHub, billing, API key, usage, and product data for its pull request follow-up, CI failure, and upstream release service.",
+        "本隐私政策说明 Pullwise 如何在拉取请求跟进、CI 失败定位和上游版本跟踪服务中处理账户、GitHub、计费、API key、用量及产品数据。"
       )}
     >
       <Section id="scope" title={sections[0].title}>
@@ -122,8 +122,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="data" title={sections[1].title}>
         <p>
           {T(
-            "We collect the information needed to provide and operate Pullwise, including account identity, GitHub profile and installation metadata, authorized repository metadata, subscription and billing provider identifiers, API key metadata, quota buckets and ledger activity, scan records, repository preflight evidence, progress logs, issue findings, generated reports, fix preview and pull request workflow records, and operational logs.",
-            "我们收集提供和运营 Pullwise 所需的信息，包括账户身份、GitHub 资料和安装元数据、已授权仓库元数据、订阅和支付提供方标识、API key 元数据、配额 bucket 与 ledger 活动、扫描记录、仓库预检证据、进度日志、问题发现、生成报告、修复预览和拉取请求流程记录，以及运行日志。"
+            "We collect the information needed to provide Pullwise, including account identity, GitHub profile and installation metadata, authorized repository and watch metadata, subscription and billing identifiers, API key metadata, processing usage, pull request and CI facts, upstream release facts, saved assessments and handling history, and operational logs.",
+            "我们收集提供 Pullwise 所需的信息，包括账户身份、GitHub 资料和安装元数据、已授权仓库及关注配置元数据、订阅和计费标识、API key 元数据、处理用量、拉取请求及 CI 事实、上游版本事实、已保存的评估与处理历史，以及运行日志。"
           )}
         </p>
         <LegalList
@@ -133,16 +133,16 @@ export function PrivacyScreen({ go, auth }) {
               "账户数据：邮箱、会话状态、GitHub 登录名和已关联的 GitHub 身份。"
             ),
             T(
-              "Repository data: repository id, full name, owner, default branch, visibility, GitHub App installation, permissions, and repository quota.",
-              "仓库数据：仓库 id、完整名称、所有者、默认分支、可见性、GitHub App 安装、权限和仓库配额。"
+              "Repository and watch data: repository identity, visibility, GitHub App installation and permissions, selected services, and upstream release watches.",
+              "仓库及关注数据：仓库身份、可见性、GitHub App 安装和权限、所选服务及上游版本关注配置。"
             ),
             T(
               "API data: API key name, key prefix, hashed key value, scopes, creation time, last used time, and revocation state. The full API key token is shown only once.",
               "API 数据：API key 名称、前缀、哈希后的 key 值、权限范围、创建时间、最近使用时间和吊销状态。完整 API key token 只显示一次。"
             ),
             T(
-              "Review data: scan id, branch, commit, status, phase, progress logs, repository preflight evidence, issue and verification counts, structured findings, generated reports, audit bundle metadata, and fix or pull request workflow records when you use those features.",
-              "审查数据：扫描 id、分支、commit、状态、阶段、进度日志、仓库预检证据、问题和验证计数、结构化发现、生成报告、审计包元数据，以及你使用修复或 pull request 功能时产生的流程记录。"
+              "Product data: pull request activity and review threads, CI runs and failure details, upstream releases, source evidence, saved assessments, item history, and your handling decisions.",
+              "产品数据：拉取请求活动和审查讨论、CI 运行及失败详情、上游版本、来源证据、已保存的评估、事项历史和你的处理决定。"
             ),
           ]}
         />
@@ -150,22 +150,22 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="code" title={sections[2].title}>
         <p>
           {T(
-            "Repository contents are cloned by backend workers only for repository preflight, scans, audit evidence, fix previews, or pull request workflows that you initiate. Source code is not stored in the browser, is not exposed to other Pullwise accounts, and is not used by Pullwise to train models.",
-            "仓库内容只会由后端 worker 为你主动发起的仓库预检、扫描、审计证据、修复预览或 pull request 工作流进行克隆。源码不会存入浏览器，不会暴露给其他 Pullwise 账户，也不会被 Pullwise 用于训练模型。"
+            "Pullwise reads authorized GitHub facts needed for selected services, such as pull request metadata, review discussions, CI failure details, and release notes. Access to saved content follows account and repository authorization. Pullwise does not use this content to train models.",
+            "Pullwise 读取所选服务所需的已授权 GitHub 事实，例如拉取请求元数据、审查讨论、CI 失败详情和版本说明。已保存内容的访问受账户和仓库授权约束。Pullwise 不会使用这些内容训练模型。"
           )}
         </p>
         <p>
           {T(
-            "When Pullwise calls a configured external review provider, repository content and scan context may be processed by that provider solely to generate findings or proposed fixes for your repository. Provider credentials stay on the backend.",
-            "当 Pullwise 调用已配置的外部审查提供方时，仓库内容和扫描上下文可能会由该提供方处理，但目的仅限于为你的仓库生成发现或建议修复。提供方凭据保存在后端。"
+            "When model processing is enabled for a selected service, relevant source evidence may be sent to the configured model provider to produce an assessment. Provider credentials remain on the backend.",
+            "当所选服务启用模型处理时，相关来源证据可能发送给配置的模型提供方以生成评估。提供方凭据保存在后端。"
           )}
         </p>
       </Section>
       <Section id="use" title={sections[3].title}>
         <p>
           {T(
-            "We use data to authenticate users, connect and manage GitHub repository access, run preflight checks and scans, show findings and reports, generate audit bundles, manage API keys, reserve and consume quota, enforce rate limits, process subscriptions and subscription changes, prevent abuse, maintain reliability, investigate errors, and respond to support requests.",
-            "我们使用数据来认证用户、连接和管理 GitHub 仓库访问、运行预检和扫描、展示发现和报告、生成审计包、管理 API key、预留和消耗配额、执行限流、处理订阅和订阅变更、防止滥用、维护服务可靠性、排查错误并响应支持请求。"
+            "We use data to authenticate users, manage GitHub access and selected services, synchronize source facts, display evidence and saved assessments, track handling decisions, manage API keys and processing usage, process subscriptions, prevent abuse, maintain reliability, investigate errors, and respond to support requests.",
+            "我们使用数据来认证用户、管理 GitHub 访问及所选服务、同步来源事实、展示证据和已保存的评估、记录处理决定、管理 API key 和处理用量、处理订阅、防止滥用、维护可靠性、排查错误并响应支持请求。"
           )}
         </p>
         <p>
@@ -178,8 +178,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="sharing" title={sections[4].title}>
         <p>
           {T(
-            "Pullwise uses service providers only as needed to operate the product. These may include hosting and database infrastructure, GitHub for OAuth, GitHub App installation, repository access, and pull request workflows, Creem payments when enabled, support systems, and configured review providers.",
-            "Pullwise 仅在运营产品所需范围内使用服务提供方。这些提供方可能包括托管和数据库基础设施、用于 OAuth、GitHub App 安装、仓库访问和 pull request 工作流的 GitHub、启用时的 Creem 支付、支持系统，以及已配置的审查提供方。"
+            "Pullwise uses service providers as needed to operate the product. These may include hosting and database infrastructure, GitHub for OAuth and authorized source facts, Creem payments when enabled, support systems, and a configured model provider when model processing is enabled.",
+            "Pullwise 在运营产品所需范围内使用服务提供方，包括托管和数据库基础设施、用于 OAuth 和已授权来源事实的 GitHub、启用时的 Creem 支付、支持系统，以及启用模型处理时配置的模型提供方。"
           )}
         </p>
         <p>
@@ -192,8 +192,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="retention" title={sections[5].title}>
         <p>
           {T(
-            "Account, GitHub authorization, API key metadata, billing metadata, subscription records, quota ledger activity, and operational logs are kept while your account is active or while needed for service operation, security, tax, audit, or legal reasons. Scan findings, generated reports, preflight evidence, audit bundle metadata, and history may be retained so you can review past results.",
-            "账户、GitHub 授权、API key 元数据、计费元数据、订阅记录、配额 ledger 活动和运行日志会在账户有效期间保留，或在服务运营、安全、税务、审计或法律需要期间保留。扫描发现、生成报告、预检证据、审计包元数据和历史可能会被保留，以便你查看过去结果。"
+            "Account, GitHub authorization, API key and billing metadata, subscription records, processing usage, and operational logs are kept while needed for service operation, security, tax, audit, or legal reasons. Source facts, saved assessments, and handling history may be retained so you can review past activity.",
+            "账户、GitHub 授权、API key 和计费元数据、订阅记录、处理用量及运行日志会在服务运营、安全、税务、审计或法律需要期间保留。来源事实、已保存的评估和处理历史可能会被保留，以便你查看过去的活动。"
           )}
         </p>
         <p>
@@ -214,8 +214,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="security" title={sections[7].title}>
         <p>
           {T(
-            "Pullwise uses backend-held secrets, scoped API keys, GitHub authorization checks, branch and repository validation, body-size limits, optional database-backed rate limiting, CORS controls, and server-side persistence. You remain responsible for protecting your GitHub account, Pullwise sessions, and API keys.",
-            "Pullwise 使用后端保存的密钥、带权限范围的 API key、GitHub 授权检查、分支和仓库校验、body 大小限制、可选的数据库支持限流、CORS 控制和服务端持久化。你仍需负责保护自己的 GitHub 账户、Pullwise 会话和 API key。"
+            "Pullwise uses backend-held secrets, scoped API keys, GitHub authorization checks, request-size limits, rate limits, CORS controls, and server-side persistence. You remain responsible for protecting your GitHub account, Pullwise sessions, and API keys.",
+            "Pullwise 使用后端保存的密钥、带权限范围的 API key、GitHub 授权检查、请求大小限制、限流、CORS 控制和服务端持久化。你仍需负责保护自己的 GitHub 账户、Pullwise 会话和 API key。"
           )}
         </p>
       </Section>
@@ -254,8 +254,8 @@ export function TermsScreen({ go, auth }) {
       sections={sections}
       title={T("Terms of Service", "服务条款")}
       subtitle={T(
-        "These Terms govern your use of Pullwise, including pull-wise.com, https://api.pull-wise.com, GitHub-connected review workflows, API keys, and billing features.",
-        "本条款适用于你对 Pullwise 的使用，包括 pull-wise.com、https://api.pull-wise.com、连接 GitHub 的审查流程、API key 和计费功能。"
+        "These Terms govern your use of Pullwise, including pull-wise.com, https://api.pull-wise.com, GitHub-connected PR, CI, and Updates services, API keys, and billing features.",
+        "本条款适用于你对 Pullwise 的使用，包括 pull-wise.com、https://api.pull-wise.com、连接 GitHub 的 PR、CI 和 Updates 服务、API key 及计费功能。"
       )}
     >
       <Section id="acceptance" title={sections[0].title}>
@@ -269,14 +269,14 @@ export function TermsScreen({ go, auth }) {
       <Section id="service" title={sections[1].title}>
         <p>
           {T(
-            "Pullwise provides GitHub-connected code review workflows. The service can list authorized repositories, run repository preflight checks, queue and cancel scans, store scan history, generate structured findings and reports, expose account-scoped REST API endpoints, manage API keys, show live configuration and status docs, and help preview deterministic fixes or open GitHub pull requests when those features and permissions are available.",
-            "Pullwise 提供连接 GitHub 的代码审查流程。服务可以列出已授权仓库、运行仓库预检、排队和取消扫描、保存扫描历史、生成结构化发现和报告、提供账户范围的 REST API 端点、管理 API key、展示实时配置和状态文档，并在功能和权限可用时帮助预览确定性修复或打开 GitHub 拉取请求。"
+            "Pullwise provides pull request follow-up, CI failure, and upstream release tracking for selected GitHub sources. The service displays source evidence, saved assessments, and handling history, and provides account-scoped REST API and API key controls where available.",
+            "Pullwise 为选定的 GitHub 来源提供拉取请求跟进、CI 失败定位和上游版本跟踪。服务展示来源证据、已保存的评估和处理历史，并在可用时提供账户范围的 REST API 及 API key 管理。"
           )}
         </p>
         <p>
           {T(
-            "Findings, summaries, generated reports, proposed fixes, and generated pull request content are recommendations. You are responsible for reviewing the underlying code and deciding whether to rely on or merge any result.",
-            "发现、摘要、生成报告、建议修复和生成的 pull request 内容均为建议。你需要负责审查底层代码，并决定是否依赖或合并任何结果。"
+            "Assessments and suggested follow-up actions are recommendations. You are responsible for reviewing the source evidence and deciding whether to act on them.",
+            "评估和建议的后续操作仅供参考。你需要审查来源证据，并自行决定是否采取行动。"
           )}
         </p>
       </Section>
@@ -297,14 +297,14 @@ export function TermsScreen({ go, auth }) {
       <Section id="api" title={sections[3].title}>
         <p>
           {T(
-            "Pullwise API keys are account-scoped credentials. They inherit the creator's authorized repositories and are limited by configured scopes such as repositories:read, scans:write, scans:read, and quota:read. Public scan creation accepts only authorized repositories and validates requested branches and commit SHA values before queueing where applicable.",
-            "Pullwise API key 是账户范围的凭据。它们继承创建者已授权的仓库，并受 repositories:read、scans:write、scans:read、quota:read 等配置权限范围限制。公开扫描创建只接受已授权仓库，并会在适用时校验请求分支和 commit SHA 后再入队。"
+            "Pullwise API keys are account-scoped credentials. They are limited by configured product scopes and the creator's authorized resources. API access to source facts, items, watches, and handling actions is subject to the same authorization checks as account access.",
+            "Pullwise API key 是账户范围的凭据，受配置的产品权限范围及创建者已授权资源限制。通过 API 访问来源事实、事项、关注配置和处理操作时，适用与账户访问相同的授权检查。"
           )}
         </p>
         <p>
           {T(
-            "You may not bypass rate limits, quota reservation or consumption controls, authentication, authorization checks, branch validation, or repository access restrictions. Pullwise may suspend or revoke API access that risks service stability or security.",
-            "你不得绕过限流、配额预留或消耗控制、认证、授权检查、分支校验或仓库访问限制。对于影响服务稳定性或安全性的 API 访问，Pullwise 可以暂停或吊销。"
+            "You may not bypass rate limits, processing usage controls, authentication, authorization checks, or source access restrictions. Pullwise may suspend or revoke API access that risks service stability or security.",
+            "你不得绕过限流、处理用量控制、认证、授权检查或来源访问限制。对于影响服务稳定性或安全性的 API 访问，Pullwise 可以暂停或吊销。"
           )}
         </p>
       </Section>
@@ -349,16 +349,16 @@ export function TermsScreen({ go, auth }) {
       <Section id="limits" title={sections[5].title}>
         <p>
           {T(
-            "You must not use Pullwise to scan repositories you are not authorized to access, process illegal or harmful content, exfiltrate secrets, attack GitHub, payment providers, review providers, or Pullwise infrastructure, overload the service, reverse engineer non-public systems, or violate another party's rights.",
-            "你不得使用 Pullwise 扫描未授权仓库、处理违法或有害内容、窃取密钥、攻击 GitHub、支付提供方、审查提供方或 Pullwise 基础设施、过载服务、逆向非公开系统，或侵犯他人权利。"
+            "You must not connect GitHub sources you are not authorized to access, process illegal or harmful content, exfiltrate secrets, attack GitHub, payment providers, model providers, or Pullwise infrastructure, overload the service, reverse engineer non-public systems, or violate another party's rights.",
+            "你不得连接无权访问的 GitHub 来源、处理违法或有害内容、窃取密钥、攻击 GitHub、支付提供方、模型提供方或 Pullwise 基础设施、过载服务、逆向非公开系统，或侵犯他人权利。"
           )}
         </p>
       </Section>
       <Section id="content" title={sections[6].title}>
         <p>
           {T(
-            "You retain ownership of your repository code and other customer content. You grant Pullwise the limited rights needed to host, clone, preflight, process, analyze, display, transmit, and generate review artifacts from that content only to provide, secure, support, and improve the service.",
-            "你保留对仓库代码和其他客户内容的所有权。你授予 Pullwise 为提供、保护、支持和改进服务所必需的有限权利，以托管、克隆、预检、处理、分析、展示、传输这些内容，并基于这些内容生成审查产物。"
+            "You retain ownership of your repository data and other customer content. You grant Pullwise the limited rights needed to access, store, process, analyze, display, and transmit selected source facts only to provide, secure, support, and improve the service.",
+            "你保留仓库数据及其他客户内容的所有权。你授予 Pullwise 为提供、保护、支持和改进服务所必需的有限权利，以访问、保存、处理、分析、展示和传输选定的来源事实。"
           )}
         </p>
         <p>
@@ -377,8 +377,8 @@ export function TermsScreen({ go, auth }) {
         </p>
         <p>
           {T(
-            "To the maximum extent permitted by law, Pullwise is not liable for indirect, incidental, special, consequential, exemplary, or punitive damages, lost profits, lost revenue, lost data, security incidents caused by your credential handling, or decisions you make based on review findings.",
-            "在法律允许的最大范围内，Pullwise 不对间接、附带、特殊、后果性、示范性或惩罚性损害、利润损失、收入损失、数据损失、因你的凭据处理导致的安全事件，或你基于审查发现作出的决定承担责任。"
+            "To the maximum extent permitted by law, Pullwise is not liable for indirect, incidental, special, consequential, exemplary, or punitive damages, lost profits, lost revenue, lost data, security incidents caused by your credential handling, or decisions you make based on assessments.",
+            "在法律允许的最大范围内，Pullwise 不对间接、附带、特殊、后果性、示范性或惩罚性损害、利润损失、收入损失、数据损失、因你的凭据处理导致的安全事件，或你基于评估作出的决定承担责任。"
           )}
         </p>
       </Section>
@@ -429,48 +429,14 @@ function configuredLabel(value, configured, missing) {
   return value ? configured : missing;
 }
 
-function reviewProviderDetail(value) {
-  return value && value !== "disabled" ? T("Configured", "已配置") : T("Disabled", "未启用");
-}
-
-function statusCount(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return 0;
-  return Math.max(0, Math.trunc(number)).toLocaleString();
-}
-
-function statusBytes(value) {
-  const bytes = Number(value);
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-  const rounded = size >= 10 ? Math.round(size) : Math.round(size * 10) / 10;
-  return `${rounded.toLocaleString()} ${units[unitIndex]}`;
-}
-
-function repositoryLimitDetail(limits) {
-  const repository = limits?.repository;
-  if (!repository) return "";
-  return T(
-    `Repo checkout ${statusCount(repository.maxFiles)} files / ${statusBytes(repository.maxBytes)}`,
-    `仓库 checkout ${statusCount(repository.maxFiles)} 个文件 / ${statusBytes(repository.maxBytes)}`
-  );
-}
-
 function readinessAvailable(health) {
-  return Boolean(health?.reviewProvider || health?.github || health?.billing || health?.limits);
+  return Boolean(health?.github || health?.billing);
 }
 
 export function StatusScreen({ go, auth }) {
   useLang();
   const [now, setNow] = useState(() => new Date());
   const [health, setHealth] = useState(null);
-  const [systemStatus, setSystemStatus] = useState(null);
   const [error, setError] = useState("");
   useErrorNotification(error, {
     title: T("Status error", "Status error"),
@@ -508,21 +474,13 @@ export function StatusScreen({ go, auth }) {
       setNow(new Date());
       try {
         const payload = await pullwiseApi.system.health(requestOptions);
-        const statusPayload =
-          payload?.scanSystem
-            ? payload.scanSystem
-            : typeof pullwiseApi.system.status === "function"
-            ? await pullwiseApi.system.status(requestOptions).catch(() => payload?.scanSystem || null)
-            : payload?.scanSystem || null;
         if (isCurrentRequest()) {
           setHealth(payload);
-          setSystemStatus(statusPayload || payload?.scanSystem || null);
           setError("");
         }
       } catch (healthError) {
         if (isCurrentRequest()) {
           setHealth(null);
-          setSystemStatus(null);
           setError(healthError?.message || "Unable to reach the Pullwise API.");
         }
       } finally {
@@ -565,7 +523,6 @@ export function StatusScreen({ go, auth }) {
     : error || "GET /health";
   const github = health?.github || null;
   const billing = health?.billing || null;
-  const limits = health?.limits || null;
   const githubReady = Boolean(
     github?.oauthConfigured && github?.appInstallConfigured && github?.appApiConfigured
   );
@@ -580,37 +537,9 @@ export function StatusScreen({ go, auth }) {
   const billingDetail = billing
     ? `${billing.provider || "unknown"} (${billing.enabled ? T("enabled", "已启用") : T("not enabled", "未启用")})`
     : "";
-  const limitsDetail = limits
-    ? [
-        T(
-          `${limits.maxQueuedScansGlobal ?? "-"} global queued`,
-          `全局排队上限 ${limits.maxQueuedScansGlobal ?? "-"}`
-        ),
-        repositoryLimitDetail(limits),
-        `${T("Public REST API rate limiting", "公共 REST API 限流")} ${limits.rateLimitEnabled ? T("enabled", "已启用") : T("disabled", "未启用")}`,
-      ].filter(Boolean).join(" - ")
-    : "";
   const databaseDetail = health?.database?.type
     ? `${health.database.type}: ${T("configured backend", "已配置后端")}`
     : T("Waiting for backend health.", "等待后端健康检查。");
-
-  const scanSystem = systemStatus || health?.scanSystem || null;
-  const scanStatus = scanSystem?.scanSystemStatus || "down";
-  const availableReviewModels = Array.isArray(scanSystem?.availableReviewModels)
-    ? scanSystem.availableReviewModels.filter((item) => item?.provider && item?.model)
-    : [];
-  const reviewRuntimeDetail = availableReviewModels.length
-    ? availableReviewModels.map((item) => `${item.provider} / ${item.model}`).join(" · ")
-    : T("No online Worker runtime catalog.", "暂无在线 Worker 运行时目录。");
-  const scanSystemDetail = scanSystem
-    ? T(
-        `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.busyWorkerCount ?? 0} busy / ${scanSystem.idleWorkerCount ?? 0} idle workers`,
-        `${scanSystem.queuedJobs ?? 0} queued / ${scanSystem.runningJobs ?? 0} running / ${scanSystem.busyWorkerCount ?? 0} busy / ${scanSystem.idleWorkerCount ?? 0} idle workers`
-      )
-    : T("Waiting for scan system status.", "等待扫描系统状态。");
-  const reviewProviderConfigured = Boolean(
-    health?.reviewProvider && health.reviewProvider !== "disabled"
-  );
 
   return (
     <LegalChrome go={go} current="status" auth={auth}>
@@ -651,18 +580,6 @@ export function StatusScreen({ go, auth }) {
             status={health?.database ? "operational" : apiStatus}
             detail={databaseDetail}
           />
-          <StatusRow
-            icon={<I.Activity size={14} />}
-            title={T("Scan system", "扫描系统")}
-            status={scanStatus === "ok" ? "operational" : scanStatus === "degraded" ? "degraded" : "incident"}
-            detail={scanSystemDetail}
-          />
-          <StatusRow
-            icon={<I.Terminal size={14} />}
-            title={T("Review runtimes", "审查运行时")}
-            status={availableReviewModels.length ? "operational" : "degraded"}
-            detail={reviewRuntimeDetail}
-          />
         </div>
 
         {readinessAvailable(health) && (
@@ -676,12 +593,6 @@ export function StatusScreen({ go, auth }) {
                 )}
               </span>
             </div>
-            <StatusRow
-              icon={<I.Terminal size={14} />}
-              title={T("Review provider", "审查提供方")}
-              status={reviewProviderConfigured ? "operational" : "degraded"}
-              detail={reviewProviderDetail(health?.reviewProvider)}
-            />
             {github && (
               <StatusRow
                 icon={<I.Github size={14} />}
@@ -696,14 +607,6 @@ export function StatusScreen({ go, auth }) {
                 title={T("Billing provider", "支付提供方")}
                 status={billing.enabled ? "operational" : "degraded"}
                 detail={billingDetail}
-              />
-            )}
-            {limits && (
-              <StatusRow
-                icon={<I.Activity size={14} />}
-                title={T("Runtime limits", "运行时限制")}
-                status={limits.maxQueuedScansGlobal ? "operational" : "degraded"}
-                detail={limitsDetail}
               />
             )}
           </div>

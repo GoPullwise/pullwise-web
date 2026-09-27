@@ -5,10 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { NotificationProvider } from "../components/notifications.jsx";
 import { env } from "../config/env.js";
-import { useIssues, useRepositories, useScans } from "../lib/pullwise-data.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
-import { DocsScreen } from "./docs.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -17,17 +15,7 @@ vi.mock("../api/pullwise.js", () => ({
       create: vi.fn(),
       revoke: vi.fn(),
     },
-    docs: {
-      getSubscriptionPlanConfigs: vi.fn(),
-      getServerConfig: vi.fn(),
-    },
   },
-}));
-
-vi.mock("../lib/pullwise-data.js", () => ({
-  useIssues: vi.fn(),
-  useRepositories: vi.fn(),
-  useScans: vi.fn(),
 }));
 
 function render(ui, options) {
@@ -45,13 +33,6 @@ function deferredPromise() {
 describe("API screens", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({ plans: [] });
-    pullwiseApi.docs.getServerConfig.mockResolvedValue({ groups: [] });
-    useIssues.mockReturnValue({ items: [] });
-    useScans.mockReturnValue({ items: [] });
-    useRepositories.mockReturnValue({
-      items: [{ id: "repo_1", name: "api", fullName: "acme/api" }],
-    });
   });
 
   it("documents the PR CI Updates product contract without scan routes", () => {
@@ -63,7 +44,7 @@ describe("API screens", () => {
     expect(screen.getByText("/api/v1/items")).toBeInTheDocument();
     expect(screen.getByText("/api/v1/sources")).toBeInTheDocument();
     expect(screen.getByText("/api/v1/items/overview")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/watches/{watchId}/sync")).toBeInTheDocument();
+    expect(screen.queryByText("/api/v1/watches/{watchId}/sync")).not.toBeInTheDocument();
     expect(screen.queryByText(/\/scans(\/|$)/)).not.toBeInTheDocument();
   });
 
@@ -180,12 +161,10 @@ describe("API screens", () => {
     expect(screen.queryByText(/agentFixPrompt/i)).not.toBeInTheDocument();
   });
 
-  it("documents empty-body idempotent fact sync", () => {
+  it("does not advertise retired manual sync", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    const example = screen.getByText("Sync watch facts").closest(".docs-code");
-    expect(example?.querySelector("pre")).toHaveTextContent(/Idempotency-Key:/);
-    expect(example?.querySelector("pre")).toHaveTextContent(/-d '\{\}'/);
-    expect(screen.getByText(/does not invoke Jev or spend intelligent-processing usage/i)).toBeInTheDocument();
+    expect(screen.queryByText("Sync watch facts")).not.toBeInTheDocument();
+    expect(screen.queryByText("/api/v1/jobs/{jobId}")).not.toBeInTheDocument();
   });
 
   it("shows usage and availability without scan quota examples", () => {
@@ -199,448 +178,6 @@ describe("API screens", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
     expect(screen.getByText(/cloudflare server is not deployed yet/i)).toBeInTheDocument();
     expect(screen.getAllByText("/api/v1/repositories/{repositoryId}/service")).toHaveLength(2);
-  });
-
-  it("loads subscription plan configs for Docs from the API", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [
-        {
-          id: "pro",
-          name: "Pro",
-          reviewLimit: 60,
-          repositoryLimits: { maxFiles: 1000, maxBytes: 20 * 1024 * 1024 },
-          agentConfig: {
-            plan: "pro",
-            provider: "deepseek",
-            model: "model-from-api-pro",
-            thinkingLevel: "medium",
-          },
-        },
-        {
-          id: "free",
-          name: "Free",
-          reviewLimit: 5,
-          repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
-          agentConfig: {
-            plan: "free",
-            provider: "minimax",
-            model: "model-from-api-free",
-            thinkingLevel: "low",
-          },
-        },
-        {
-          id: "max",
-          name: "Max",
-          reviewLimit: 90,
-          repositoryLimits: { maxFiles: 2000, maxBytes: 50 * 1024 * 1024 },
-          agentConfig: {
-            plan: "max",
-            provider: "openai",
-            model: "model-from-api-max",
-            thinkingLevel: "high",
-          },
-        },
-      ],
-    });
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect((await screen.findAllByText("deepseek")).length).toBeGreaterThan(0);
-    expect(screen.getByText("model-from-api-pro")).toBeInTheDocument();
-    expect(screen.getByText("high")).toBeInTheDocument();
-    expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
-    expect(screen.getByText(/1,000 files \/ 20,971,520 bytes \(20 MiB\)/)).toBeInTheDocument();
-    expect(screen.getByText(/2,000 files \/ 52,428,800 bytes \(50 MiB\)/)).toBeInTheDocument();
-    expect(pullwiseApi.docs.getSubscriptionPlanConfigs).toHaveBeenCalledTimes(1);
-
-    const cards = [...document.querySelectorAll(".docs-plan-card")];
-    expect(cards.map((card) => card.querySelector(".docs-plan-key")?.textContent)).toEqual([
-      "free",
-      "pro",
-      "max",
-    ]);
-  });
-
-  it("accepts canonical map-shaped subscription plan config payloads", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: {
-        max: {
-          agentConfig: {
-            plan: "max",
-            provider: "openai",
-            model: "map-model-max",
-            thinkingLevel: "high",
-          },
-        },
-      },
-    });
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByText("openai")).toBeInTheDocument();
-    expect(screen.getByText("map-model-max")).toBeInTheDocument();
-    expect(screen.getByText("high")).toBeInTheDocument();
-  });
-
-  it("moves plan fields from server config into the Docs plan cards", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [
-        {
-          id: "free",
-          name: "Free",
-          agentConfig: {
-            plan: "free",
-            provider: "minimax",
-            model: "plan-card-model",
-            thinkingLevel: "low",
-          },
-        },
-      ],
-    });
-    pullwiseApi.docs.getServerConfig.mockResolvedValue({
-      groups: [
-        {
-          id: "plans",
-          title: "Plan quotas",
-          fields: [
-            { path: "plans.free.userReviewLimit", label: "Free user monthly scans", value: 11 },
-            { path: "plans.free.maxRepoFiles", label: "Free repository file limit", value: 321 },
-            {
-              path: "plans.free.maxRepoBytes",
-              label: "Free repository byte limit",
-              value: 2 * 1024 * 1024,
-            },
-          ],
-        },
-        {
-          id: "quota",
-          title: "Repository quota",
-          fields: [
-            {
-              path: "quota.repositoryReviewLimit",
-              label: "Repository monthly scans",
-              value: 7,
-            },
-          ],
-        },
-        {
-          id: "scan",
-          title: "Scan limits",
-          fields: [
-            {
-              path: "scan.maxQueuedScansGlobal",
-              label: "Global queued scans",
-              value: 4,
-            },
-          ],
-        },
-      ],
-    });
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByText("plan-card-model")).toBeInTheDocument();
-    const freeCard = screen.getByText("free").closest(".docs-plan-card");
-    expect(within(freeCard).getByText("11")).toBeInTheDocument();
-    const repoQuotaLabel = screen.getByText("Repository monthly scans");
-    expect(within(repoQuotaLabel.closest(".docs-config-row")).getByText("7")).toBeInTheDocument();
-    expect(
-      within(freeCard).getByText(/321 files \/ 2,097,152 bytes \(2.0 MiB\)/)
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
-    expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
-    expect(screen.getByText("Global queued scans")).toBeInTheDocument();
-  });
-
-  it("ignores unsupported plan agent aliases in Docs", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [
-        {
-          id: "free",
-          name: "Free",
-          reviewLimit: 5,
-          repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
-          agentCli: "unsupported-record-cli",
-          cli: "unsupported-record-command",
-          provider: "unsupported-record-provider",
-          agentConfig: {
-            plan: "free",
-            provider: "openai",
-            model: "canonical-docs-model",
-            thinkingLevel: "medium",
-            cli: "unsupported-config-cli",
-            agent: {
-              cli: "unsupported-agent-cli",
-              model: "unsupported-agent-model",
-              reasoningEffort: "unsupported-agent-effort",
-            },
-            codex: {
-              cli: "codex",
-              command: "codex",
-              model: "unsupported-codex-model",
-              reasoningEffort: "unsupported-codex-effort",
-            },
-          },
-        },
-      ],
-    });
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByText("openai")).toBeInTheDocument();
-    expect(screen.getByText("canonical-docs-model")).toBeInTheDocument();
-    expect(screen.queryByText("unsupported-agent-cli")).not.toBeInTheDocument();
-    expect(screen.queryByText("unsupported-agent-model")).not.toBeInTheDocument();
-    expect(screen.queryByText("unsupported-config-cli")).not.toBeInTheDocument();
-    expect(screen.queryByText("unsupported-record-cli")).not.toBeInTheDocument();
-  });
-
-  it("renders public server configuration groups while filtering private fields", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [
-        {
-          id: "free",
-          name: "Free",
-          reviewLimit: 5,
-          repositoryLimits: { maxFiles: 200, maxBytes: 1048576 },
-          agentConfig: {
-            plan: "free",
-            provider: "openai",
-            model: "docs-model-free",
-            thinkingLevel: "medium",
-          },
-        },
-      ],
-    });
-    pullwiseApi.docs.getServerConfig.mockResolvedValue({
-      groups: [
-        {
-          id: "plans",
-          title: "Plan quotas",
-          description: "Monthly scan quotas enforced by the server.",
-          fields: [
-            {
-              path: "plans.free.userReviewLimit",
-              label: "Free user monthly scans",
-              value: 5,
-              description: "Maximum scans one Free user can start in a billing cycle.",
-            },
-            {
-              path: "plans.free.maxRepoFiles",
-              label: "Free repository file limit",
-              value: 200,
-              description: "Repository checkouts above this file count stop before review.",
-            },
-            {
-              path: "plans.free.maxRepoBytes",
-              label: "Free repository byte limit",
-              value: 1048576,
-              description: "Repository checkouts above this size stop before review.",
-            },
-            {
-              path: "secrets.apiToken",
-              label: "API token",
-              value: "pw_secret_docs",
-              description: "This must never be rendered.",
-            },
-          ],
-        },
-        {
-          id: "quota",
-          title: "Repository quota",
-          fields: [
-            {
-              path: "quota.repositoryReviewLimit",
-              label: "Repository monthly scans",
-              value: 3,
-              description: "Maximum scans one repository can receive in the current calendar month.",
-            },
-          ],
-        },
-        {
-          id: "scan",
-          title: "Scan limits",
-          fields: [
-            {
-              path: "scan.maxQueuedScansGlobal",
-              label: "Global queued scans",
-              value: 4,
-              description: "Maximum queued scans across the service.",
-            },
-          ],
-        },
-        {
-          id: "rateLimit",
-          title: "API rate limit",
-          fields: [
-            {
-              path: "rateLimit.requests",
-              label: "Requests per window",
-              value: 120,
-              description: "Allowed requests per subject in one window.",
-            },
-          ],
-        },
-        {
-          id: "billing",
-          title: "Billing catalog",
-          fields: [
-            {
-              path: "billing.creemProProductCount",
-              label: "Creem Pro products",
-              value: 2,
-              description: "Configured product IDs are counted by the server, not displayed.",
-            },
-            {
-              path: "billing.webhookSecret",
-              label: "Webhook secret",
-              value: "whsec_docs",
-            },
-          ],
-        },
-        {
-          id: "worker",
-          title: "Worker private config",
-          fields: [{ path: "worker.claimToken", label: "Worker token", value: "token_docs" }],
-        },
-      ],
-    });
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByText("openai")).toBeInTheDocument();
-    expect(screen.getByText(/200 files \/ 1,048,576 bytes \(1.0 MiB\)/)).toBeInTheDocument();
-    expect(screen.queryByText("Plan quotas")).not.toBeInTheDocument();
-    expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
-    expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
-    expect(screen.queryByText("Free repository byte limit")).not.toBeInTheDocument();
-    const repoQuotaLabel = screen.getByText("Repository monthly scans");
-    expect(within(repoQuotaLabel.closest(".docs-config-row")).getByText("3")).toBeInTheDocument();
-    const queuedLabel = screen.getByText("Global queued scans");
-    expect(within(queuedLabel.closest(".docs-config-row")).getByText("4")).toBeInTheDocument();
-    expect(screen.getByText("Requests per window")).toBeInTheDocument();
-    expect(screen.getByText("2 products configured")).toBeInTheDocument();
-    expect(screen.queryByText("prod_pro_a")).not.toBeInTheDocument();
-    expect(screen.queryByText("pw_secret_docs")).not.toBeInTheDocument();
-    expect(screen.queryByText("whsec_docs")).not.toBeInTheDocument();
-    expect(screen.queryByText("Worker private config")).not.toBeInTheDocument();
-  });
-
-  it("accepts settings-shaped server config payloads", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [
-        {
-          id: "free",
-          name: "Free",
-          reviewLimit: 8,
-          repositoryLimits: { maxFiles: 200, maxBytes: 5 * 1024 * 1024 },
-          agentConfig: {
-            plan: "free",
-            provider: "openai",
-            model: "settings-model-free",
-            thinkingLevel: "medium",
-          },
-        },
-      ],
-    });
-    pullwiseApi.docs.getServerConfig.mockResolvedValue({
-      settings: {
-        plans: {
-          free: {
-            userReviewLimit: 8,
-            maxRepoFiles: 200,
-            maxRepoBytes: 5 * 1024 * 1024,
-          },
-        },
-        quota: { repositoryReviewLimit: 2 },
-        rateLimit: { enabled: true, requests: 90, windowSeconds: 60 },
-        billing: { creemProProductCount: 1, creemMaxProductCount: 0 },
-      },
-    });
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByText("openai")).toBeInTheDocument();
-    expect(screen.getByText(/200 files \/ 5,242,880 bytes \(5.0 MiB\)/)).toBeInTheDocument();
-    expect(screen.queryByText("Free user monthly scans")).not.toBeInTheDocument();
-    expect(screen.queryByText("Free repository file limit")).not.toBeInTheDocument();
-    expect(screen.getByText("Repository monthly scans")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("Rate limiting enabled")).toBeInTheDocument();
-    expect(screen.getByText("Enabled")).toBeInTheDocument();
-    expect(screen.getByText("60 seconds")).toBeInTheDocument();
-    expect(screen.getByText("1 product configured")).toBeInTheDocument();
-  });
-
-  it("keeps Docs usable when the server config endpoint is missing", async () => {
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockResolvedValue({
-      plans: [
-        {
-          id: "free",
-          agentConfig: {
-            plan: "free",
-            provider: "openai",
-            model: "endpoint-missing-model",
-            thinkingLevel: "medium",
-          },
-        },
-      ],
-    });
-    pullwiseApi.docs.getServerConfig.mockRejectedValue(
-      Object.assign(new Error("Not found"), { status: 404 })
-    );
-
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByText("openai")).toBeInTheDocument();
-    expect(
-      screen.getByText("Server configuration docs are not available from this backend yet.")
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
-  it("shows Docs loading, empty, and error states", async () => {
-    let resolvePlans;
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockReturnValue(
-      new Promise((resolve) => {
-        resolvePlans = resolve;
-      })
-    );
-    const { unmount } = render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(screen.getByRole("status")).toHaveTextContent(/loading subscription plan configs/i);
-    resolvePlans({ plans: [] });
-    await waitFor(() => {
-      expect(screen.getByRole("status")).toHaveTextContent(/no subscription plan configs/i);
-    });
-    unmount();
-
-    pullwiseApi.docs.getSubscriptionPlanConfigs.mockRejectedValue(new Error("Docs API failed"));
-    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("Docs API failed");
-  });
-
-  it("aborts a pending Docs retry when the screen unmounts", async () => {
-    let retrySignal;
-    pullwiseApi.docs.getSubscriptionPlanConfigs
-      .mockRejectedValueOnce(new Error("Docs API failed"))
-      .mockImplementationOnce(({ signal } = {}) => {
-        retrySignal = signal;
-        return new Promise(() => {});
-      });
-    const user = userEvent.setup();
-    const { unmount } = render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    await user.click(await screen.findByRole("button", { name: /retry/i }));
-    await waitFor(() => {
-      expect(pullwiseApi.docs.getSubscriptionPlanConfigs).toHaveBeenCalledTimes(2);
-    });
-
-    unmount();
-
-    expect(retrySignal).toBeInstanceOf(AbortSignal);
-    expect(retrySignal.aborted).toBe(true);
   });
 
   it("exposes API docs navigation destinations as real screen links", async () => {
@@ -882,7 +419,7 @@ describe("API screens", () => {
       id: "key_2",
       name: "CI scanner",
       prefix: "pwk_new",
-      scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write", "sync:write"],
+      scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write"],
       key: "pwk_live_secret",
     });
     const user = userEvent.setup();
@@ -893,13 +430,13 @@ describe("API screens", () => {
     await user.clear(screen.getByLabelText(/key name/i));
     await user.type(screen.getByLabelText(/key name/i), "CI scanner");
     await user.click(screen.getByRole("checkbox", { name: /handle items/i }));
-    await user.click(screen.getByRole("checkbox", { name: /sync github facts/i }));
+    expect(screen.queryByRole("checkbox", { name: /sync github facts/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /create key/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
         name: "CI scanner",
-        scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write", "sync:write"],
+        scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write"],
       });
     });
   });
@@ -913,7 +450,7 @@ describe("API screens", () => {
     render(<ApiKeysScreen go={vi.fn()} />);
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /read items and sources/i })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: /sync github facts/i })).not.toBeChecked();
+    expect(screen.queryByRole("checkbox", { name: /sync github facts/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /create key/i }));
     await waitFor(() => expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
       name: "Account automation",
@@ -946,9 +483,9 @@ describe("API screens", () => {
     );
     expect(scopes).toHaveClass("api-scope-panel");
     expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/^Scopes/);
-    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 9 selected");
-    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(9);
-    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(9);
+    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 8 selected");
+    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(8);
+    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(8);
     expect(styles).toMatch(
       /\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/
     );

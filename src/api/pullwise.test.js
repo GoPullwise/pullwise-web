@@ -2,170 +2,71 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "./pullwise.js";
 import { request } from "./http.js";
 
-vi.mock("./http.js", () => ({
-  SERVER_REQUEST_TIMEOUT_MS: 5 * 60 * 1000,
-  request: vi.fn(),
-}));
+vi.mock("./http.js", () => ({ request: vi.fn() }));
 
-describe("pullwiseApi issue fix endpoints", () => {
-  beforeEach(() => {
-    request.mockReset();
+describe("pullwiseApi current product endpoints", () => {
+  beforeEach(() => request.mockReset());
+
+  it("does not expose the retired scan and issue clients", () => {
+    expect(pullwiseApi.scans).toBeUndefined();
+    expect(pullwiseApi.issues).toBeUndefined();
+    expect(pullwiseApi.apiKeys.createAuditBundleKey).toBeUndefined();
   });
 
-  it("calls preview and pull request endpoints", async () => {
+  it("encodes dynamic path segments for current account operations", async () => {
     request.mockResolvedValue({});
 
-    await pullwiseApi.issues.previewFix("f_123");
-    await pullwiseApi.issues.createPullRequest("f_123");
-
-    expect(request).toHaveBeenNthCalledWith(1, "/issues/f_123/fixes/preview", { method: "POST" });
-    expect(request).toHaveBeenNthCalledWith(2, "/issues/f_123/pull-requests", { method: "POST" });
-  });
-
-  it("calls batch scan and issue status endpoints", async () => {
-    request.mockResolvedValue({});
-
-    await pullwiseApi.scans.status(["sc_1", "sc_2"]);
-    await pullwiseApi.issues.updateStatuses([{ id: "iss_1", status: "fixed" }]);
-
-    expect(request).toHaveBeenNthCalledWith(1, "/scans/status", {
-      method: "POST",
-      body: { ids: ["sc_1", "sc_2"] },
-    });
-    expect(request).toHaveBeenNthCalledWith(2, "/issues/status", {
-      method: "PATCH",
-      body: { updates: [{ id: "iss_1", status: "fixed" }] },
-    });
-  });
-
-  it("encodes dynamic path segments before calling routed endpoints", async () => {
-    request.mockResolvedValue({});
-
-    await pullwiseApi.scans.get("scan/with spaces#1");
-    await pullwiseApi.scans.auditBundle("scan/with spaces#1");
-    await pullwiseApi.scans.auditBundleArchive("scan/with spaces#1");
-    await pullwiseApi.scans.cancel("scan/with spaces#1");
-    await pullwiseApi.issues.get("issue/with spaces#1");
-    await pullwiseApi.issues.updateStatus("issue/with spaces#1", { status: "fixed" });
-    await pullwiseApi.issues.previewFix("issue/with spaces#1");
-    await pullwiseApi.issues.createPullRequest("issue/with spaces#1");
-    await pullwiseApi.integrations.disconnect("slack/custom");
+    await pullwiseApi.integrations.disconnect("github/custom");
     await pullwiseApi.integrations.createGitHubInstallationManageSession("install/999", {
       githubIdentityId: "ghi_1",
     });
     await pullwiseApi.apiKeys.revoke("key/with spaces#1");
-    await pullwiseApi.repositories.branches("repo/with spaces#1");
 
-    expect(request).toHaveBeenNthCalledWith(1, "/scans/scan%2Fwith%20spaces%231");
-    expect(request).toHaveBeenNthCalledWith(2, "/scans/scan%2Fwith%20spaces%231/audit-bundle");
-    expect(request).toHaveBeenNthCalledWith(3, "/scans/scan%2Fwith%20spaces%231/audit-bundle.zip", {
-      responseType: "blob",
-      timeout: 5 * 60 * 1000,
-    });
-    expect(request).toHaveBeenNthCalledWith(4, "/scans/scan%2Fwith%20spaces%231/cancel", {
-      method: "POST",
-    });
-    expect(request).toHaveBeenNthCalledWith(5, "/issues/issue%2Fwith%20spaces%231");
-    expect(request).toHaveBeenNthCalledWith(6, "/issues/issue%2Fwith%20spaces%231/status", {
-      method: "PATCH",
-      body: { status: "fixed" },
-    });
-    expect(request).toHaveBeenNthCalledWith(7, "/issues/issue%2Fwith%20spaces%231/fixes/preview", {
-      method: "POST",
-    });
-    expect(request).toHaveBeenNthCalledWith(8, "/issues/issue%2Fwith%20spaces%231/pull-requests", {
-      method: "POST",
-    });
-    expect(request).toHaveBeenNthCalledWith(9, "/integrations/slack%2Fcustom", {
+    expect(request).toHaveBeenNthCalledWith(1, "/integrations/github%2Fcustom", {
       method: "DELETE",
     });
     expect(request).toHaveBeenNthCalledWith(
-      10,
+      2,
       "/integrations/github/installations/install%2F999/manage-sessions",
-      {
-        method: "POST",
-        body: { githubIdentityId: "ghi_1" },
-      }
+      { method: "POST", body: { githubIdentityId: "ghi_1" } }
     );
-    expect(request).toHaveBeenNthCalledWith(11, "/api-keys/key%2Fwith%20spaces%231", {
+    expect(request).toHaveBeenNthCalledWith(3, "/api-keys/key%2Fwith%20spaces%231", {
       method: "DELETE",
     });
-    expect(request).toHaveBeenNthCalledWith(12, "/repositories/repo%2Fwith%20spaces%231/branches");
   });
 
-  it("calls API key endpoints", async () => {
+  it("calls current API key endpoints", async () => {
     request.mockResolvedValue({});
 
     await pullwiseApi.apiKeys.list();
-    await pullwiseApi.apiKeys.create({ name: "CI" });
-    await pullwiseApi.apiKeys.createAuditBundleKey("sc_1", "repo_1");
+    await pullwiseApi.apiKeys.create({ name: "Automation" });
 
     expect(request).toHaveBeenNthCalledWith(1, "/api-keys");
     expect(request).toHaveBeenNthCalledWith(2, "/api-keys", {
       method: "POST",
-      body: { name: "CI" },
-    });
-    expect(request).toHaveBeenNthCalledWith(3, "/api-keys", {
-      method: "POST",
-      body: {
-        name: "Audit bundle download sc_1",
-        scopes: ["scans:read"],
-        expiresInSeconds: 15 * 60,
-        restrictions: { kind: "audit_bundle", scanId: "sc_1", repoId: "repo_1" },
-      },
+      body: { name: "Automation" },
     });
   });
 
-  it("calls public Docs config endpoints", async () => {
-    request.mockResolvedValue({});
-
-    await pullwiseApi.docs.getSubscriptionPlanConfigs();
-    await pullwiseApi.docs.getServerConfig();
-
-    expect(request).toHaveBeenNthCalledWith(1, "/docs/subscription-plans", { signal: undefined });
-    expect(request).toHaveBeenNthCalledWith(2, "/docs/server-config", { signal: undefined });
-  });
-
-  it("passes abort signals to public system endpoints", async () => {
+  it("passes abort signals to health and billing requests", async () => {
     request.mockResolvedValue({});
     const controller = new AbortController();
 
     await pullwiseApi.system.health({ signal: controller.signal });
-    await pullwiseApi.system.status({ signal: controller.signal });
-
-    expect(request).toHaveBeenNthCalledWith(1, "/health", { signal: controller.signal });
-    expect(request).toHaveBeenNthCalledWith(2, "/status/system", { signal: controller.signal });
-  });
-
-  it("passes abort signals to billing checkout sessions", async () => {
-    request.mockResolvedValue({});
-    const controller = new AbortController();
-
     await pullwiseApi.billing.createCheckoutSession({ plan: "pro" }, { signal: controller.signal });
 
-    expect(request).toHaveBeenCalledWith("/billing/checkout-sessions", {
+    expect(request).toHaveBeenNthCalledWith(1, "/health", { signal: controller.signal });
+    expect(request).toHaveBeenNthCalledWith(2, "/billing/checkout-sessions", {
       method: "POST",
       body: { plan: "pro" },
       signal: controller.signal,
     });
   });
 
-  it("rejects empty dynamic path segments before making a request", () => {
-    expect(() => pullwiseApi.scans.get("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.scans.auditBundle("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.scans.auditBundleArchive("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.scans.cancel(null)).toThrow(/path segment/i);
-    expect(() => pullwiseApi.issues.get(undefined)).toThrow(/path segment/i);
-    expect(() => pullwiseApi.issues.updateStatus("", { status: "fixed" })).toThrow(/path segment/i);
-    expect(() => pullwiseApi.issues.previewFix("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.issues.createPullRequest("")).toThrow(/path segment/i);
+  it("rejects empty dynamic account path segments", () => {
     expect(() => pullwiseApi.integrations.disconnect("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(
-      /path segment/i
-    );
+    expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(/path segment/i);
     expect(() => pullwiseApi.apiKeys.revoke("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.repositories.branches("")).toThrow(/path segment/i);
-
     expect(request).not.toHaveBeenCalled();
   });
 });

@@ -51,7 +51,7 @@ describe("legal pages", () => {
   it("shows the current legal document update date", () => {
     render(<PrivacyScreen go={vi.fn()} />);
 
-    expect(screen.getByText("2026-06-29")).toBeInTheDocument();
+    expect(screen.getByText("2026-09-27")).toBeInTheDocument();
   });
 
   it("keeps billing terms aligned with implemented renewal controls", () => {
@@ -62,6 +62,17 @@ describe("legal pages", () => {
     expect(
       screen.getByText(/lower-tier changes or yearly-to-monthly changes/i)
     ).toBeInTheDocument();
+  });
+
+  it("describes the PR, CI, and Updates service without retired scan promises", () => {
+    const { unmount } = render(<PrivacyScreen go={vi.fn()} />);
+    expect(screen.getByText(/pull request follow-up, CI failure, and upstream release/i)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/repository preflight|scan records|fix previews|generated reports/i);
+    unmount();
+
+    render(<TermsScreen go={vi.fn()} />);
+    expect(screen.getByText(/pull request follow-up, CI failure, and upstream release/i)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/queue and cancel scans|deterministic fixes|public scan creation|scans:write/i);
   });
 
 });

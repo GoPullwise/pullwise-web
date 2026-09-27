@@ -151,6 +151,43 @@ it("passes module, view, scope and state filters to REST", async () => {
   await waitFor(() => expect(productApi.items).toHaveBeenLastCalledWith(expect.objectContaining({ attentionState: "needs_action" }), expect.anything()));
 });
 
+it("loads later repository and watch pages for scope filters", async () => {
+  productApi.repositories.mockResolvedValue({items: [{id: "repo-1", fullName: "acme/api"}],
+    hasMore: true, nextCursor: "repo-next"});
+  vi.spyOn(productApi, "repositoryPage").mockResolvedValue(page([{id: "repo-later", fullName: "acme/later"}]));
+  productApi.watches.mockResolvedValue({items: [{id: "watch-1", upstreamRepositoryId: "upstream-1", interests: []}],
+    hasMore: true, nextCursor: "watch-next"});
+  vi.spyOn(productApi, "watchPage").mockResolvedValue(page([{id: "watch-later", upstreamRepositoryId: "upstream-later", interests: ["security"]}]));
+  mount();
+  expect(await screen.findByRole("option", {name: "acme/later"})).toBeVisible();
+  fireEvent.change(screen.getByLabelText("Repository scope"), {target: {value: "repo-later"}});
+  await waitFor(() => expect(productApi.items).toHaveBeenLastCalledWith(
+    expect.objectContaining({repositoryId: "repo-later"}), expect.anything()));
+  fireEvent.click(screen.getByRole("button", {name: "Updates module"}));
+  expect(await screen.findByRole("option", {name: /upstream-later/})).toBeVisible();
+  expect(productApi.repositoryPage).toHaveBeenCalledWith({cursor: "repo-next", limit: 100}, expect.anything());
+  expect(productApi.watchPage).toHaveBeenCalledWith({cursor: "watch-next", limit: 100}, expect.anything());
+});
+
+it("does not treat an incomplete repository scope as the full list", async () => {
+  productApi.repositories.mockResolvedValue({items: [{id: "repo-1", fullName: "acme/api"}],
+    hasMore: true, nextCursor: null});
+  mount();
+  expect(await screen.findByRole("alert")).toHaveTextContent("Scope list pagination is incomplete");
+  expect(screen.queryByRole("button", {name: itemFixture.title})).toBeNull();
+});
+
+it("guides an empty account to service setup", async () => {
+  productApi.repositories.mockResolvedValue(page([]));
+  productApi.watches.mockResolvedValue(page([]));
+  productApi.items.mockResolvedValue(page([]));
+  const go = vi.fn();
+  render(<DashboardScreen go={go} />);
+  fireEvent.click(await screen.findByRole("button", {name: "Configure services"}));
+  expect(go).toHaveBeenCalledWith("services");
+  expect(screen.queryByText("No matching items.")).toBeNull();
+});
+
 it("keeps Updates without Items independent of item-view filters and displays partial coverage", async () => {
   mount();
   fireEvent.click(screen.getByRole("button", { name: "Updates module" }));

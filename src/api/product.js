@@ -38,13 +38,6 @@ export const productApi = {
   archiveWatch: (id, revision, options) => productRequest(`/watches/${encodeURIComponent(id)}`, {
     ...options, method: "DELETE", headers: { "If-Match": `"${revision}"` },
   }),
-  syncRepository: (id, idempotencyKey, options) => productRequest(`/repositories/${encodeURIComponent(id)}/sync`, {
-    ...options, method: "POST", headers: { "Idempotency-Key": idempotencyKey }, body: {},
-  }),
-  syncWatch: (id, idempotencyKey, options) => productRequest(`/watches/${encodeURIComponent(id)}/sync`, {
-    ...options, method: "POST", headers: { "Idempotency-Key": idempotencyKey }, body: {},
-  }),
-  job: (id, options) => productRequest(`/jobs/${encodeURIComponent(id)}`, options),
   item: (id, options) => productRequest(`/items/${encodeURIComponent(id)}`, options),
   itemTimeline: (id, params, options) => productRequest(`/items/${encodeURIComponent(id)}/timeline`, { ...options, params }),
   source: (id, options) => productRequest(`/sources/${encodeURIComponent(id)}`, options),

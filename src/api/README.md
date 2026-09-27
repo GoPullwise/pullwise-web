@@ -1,35 +1,14 @@
-# API Layer
+# Browser API boundary
 
-This folder is the browser-side integration boundary for the Pullwise server.
+`product.js` calls the shared product-v1 REST service for saved PR follow-ups,
+GitHub Actions failures, upstream Releases, watch and repository configuration,
+handling history, usage, and visualizations. `pullwise.js` retains account
+session, GitHub App authorization, API keys, billing, and public health calls.
+The retired full-repository scan, issue-fix, worker, and manual fact-sync
+endpoints are not part of the browser contract.
 
-Currently wired backend responsibilities:
-
-- GitHub identity login
-- GitHub repository authorization through the GitHub App flow
-- Repository listing, branch lookup, and sync
-- Scan preflight, creation, bulk polling, cancellation, history, and audit bundle downloads
-- Rich issue review plus single and batch manual status changes
-- Deterministic issue fix preview
-- GitHub pull request creation for auto-fixable issue fixes
-- Account session, API key, and GitHub integration state
-- Billing plan, checkout sessions, supported upgrades, scheduled cancellation, and renewal resume
-- Public docs helpers for subscription plan and server configuration metadata
-- Backend health and readiness status
-
-Not wired in this stage:
-
-- Direct in-place fix application
-- Batch fixes
-- Auto-merge
-- Notifications
-- Slack and Linear integration authorization or writes
-- AI-generated replacement patches beyond the finding payload
-
-Keep secret-bearing work on the backend. The browser must not hold GitHub App
-private keys, OAuth client secrets, repository clones, installation access
-tokens, scan workers, Git credentials, or AI provider credentials. Branch push
-and pull request creation require backend-held GitHub App credentials with
-`Contents: write` and `Pull requests: write`.
-
-If real GitHub OAuth secrets or GitHub App private keys were ever committed or
-shared outside the local machine, rotate them in GitHub before production use.
+The browser only handles public responses and user-scoped credentials. GitHub
+App secrets, installation tokens, and Jev credentials belong on the server.
+The new product reads GitHub facts and does not need repository write
+permissions. Production GitHub ingestion and Jev remain pending; the Cloudflare
+product service is still a candidate until those paths are connected.

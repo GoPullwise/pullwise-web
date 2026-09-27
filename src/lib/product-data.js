@@ -24,6 +24,22 @@ export function requirePage(value) {
   return value;
 }
 
+export async function loadScopePages(first, next, options) {
+  let page = requirePage(await first({ ...options, params: { limit: 100 } }));
+  const items = [...page.items];
+  const seen = new Set();
+  for (let pages = 1; page.hasMore; pages += 1) {
+    const cursor = page.nextCursor;
+    if (pages >= 10 || typeof cursor !== "string" || !cursor || seen.has(cursor)) {
+      throw new Error("Scope list pagination is incomplete");
+    }
+    seen.add(cursor);
+    page = requirePage(await next({ limit: 100, cursor }, options));
+    items.push(...page.items);
+  }
+  return { ...page, items, hasMore: false, nextCursor: null };
+}
+
 export function requireOverview(value) {
   const counts = ["needs_action", "needs_confirmation", "waiting", "optional", "closed"];
   const views = ["mine", "unassigned", "waiting", "all"];

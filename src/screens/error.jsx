@@ -16,10 +16,10 @@ export function NotFoundScreen({ go, requested, auth }) {
           i: <I.Layout size={14} />,
         },
         {
-          k: "issues",
-          t: T("Issues", "问题列表"),
-          d: T("All findings across repos", "所有仓库的扫描结果"),
-          i: <I.Bug size={14} />,
+          k: "services",
+          t: T("Repositories and watches", "仓库与关注"),
+          d: T("Manage PR, CI and Updates services", "管理 PR、CI 和更新服务"),
+          i: <I.GitBranch size={14} />,
         },
         {
           k: "landing",

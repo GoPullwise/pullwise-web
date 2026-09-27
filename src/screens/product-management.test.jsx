@@ -30,7 +30,6 @@ beforeEach(() => {
   vi.spyOn(productApi, "createWatch").mockResolvedValue(watch);
   vi.spyOn(productApi, "updateWatch").mockResolvedValue(watch);
   vi.spyOn(productApi, "archiveWatch").mockResolvedValue({});
-  vi.spyOn(productApi, "syncRepository").mockResolvedValue({id: "job-1", status: "queued"});
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -44,10 +43,23 @@ it("shows product services and watches without a scan action", async () => {
 
 it("offers GitHub connection when no repository is authorized", async () => {
   productApi.repositoryPage.mockResolvedValue(page([]));
+  productApi.repositories.mockResolvedValue(page([]));
   connectGitHubRepositories.mockResolvedValue();
   render(<ProductManagementScreen go={vi.fn()} />);
   fireEvent.click(await screen.findByRole("button", {name: "Connect GitHub repositories"}));
   await waitFor(() => expect(connectGitHubRepositories).toHaveBeenCalledWith({add: true}));
+});
+
+it("offers enabled repositories from later pages as shared watch targets", async () => {
+  productApi.repositories.mockResolvedValue({items: [repository], hasMore: true,
+    nextCursor: "scope-next", requestId: "first"});
+  productApi.repositoryPage.mockImplementation(params => params.cursor === "scope-next"
+    ? Promise.resolve(page([{...repository, id: "repo-later", fullName: "acme/later"}]))
+    : Promise.resolve(page([repository])));
+  render(<ProductManagementScreen go={vi.fn()} />);
+  expect(await screen.findByRole("option", {name: "acme/later"})).toBeVisible();
+  fireEvent.change(screen.getByLabelText("Watch context"), {target: {value: "repo-later"}});
+  expect(screen.getByLabelText("Watch context")).toHaveValue("repo-later");
 });
 
 it("clears protected configuration after a permission failure", async () => {
@@ -134,12 +146,11 @@ it("creates a personal watch once with a fresh idempotency key and no analysis",
   }, expect.any(String));
 });
 
-it("requests fact-only repository sync with an idempotency key", async () => {
+it("omits manual sync actions that cannot run", async () => {
   render(<ProductManagementScreen go={vi.fn()} />);
-  fireEvent.click(await screen.findByRole("button", {name: "Sync facts for acme/api"}));
-  await waitFor(() => expect(productApi.syncRepository).toHaveBeenCalledWith(
-    "repo-1", expect.any(String)));
-  expect(screen.getByText(/job-1/)).toBeVisible();
+  await screen.findByRole("heading", {name: "acme/api"});
+  expect(screen.queryByRole("button", {name: /sync facts for/i})).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", {name: /sync watch facts/i})).not.toBeInTheDocument();
 });
 
 it("saves watch changes by revision and confirms archive before writing", async () => {
