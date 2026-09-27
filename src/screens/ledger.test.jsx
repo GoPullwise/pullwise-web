@@ -27,6 +27,19 @@ beforeEach(() => {
 });
 
 describe("ledger screens", () => {
+  it("loads later authorized repository pages before project creation", async () => {
+    api.repositories.mockResolvedValueOnce({ items: [{ githubRepoId: 202, fullName: "alice/first" }], nextCursor: "page-2" })
+      .mockResolvedValueOnce({ items: [{ githubRepoId: 404, fullName: "alice/later" }], nextCursor: null });
+    api.createProject.mockResolvedValue({ id: "prj_later" });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("button", { name: /Load more repositories/i }));
+    expect(await screen.findByRole("option", { name: "alice/later" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Repository"), { target: { value: "404" } });
+    fireEvent.click(screen.getByRole("button", { name: /Create project/i }));
+    await waitFor(() => expect(api.createProject).toHaveBeenCalledWith(
+      { githubRepoId: 404, description: "" }, expect.anything()));
+  });
+
   it("creates a project and shows the lost access recovery state", async () => {
     api.repositories.mockResolvedValue({ items: [{ githubRepoId: 303, fullName: "alice/new" }] });
     api.projects.mockResolvedValue({ items: [{ id: "prj_lost", githubRepoId: 202,

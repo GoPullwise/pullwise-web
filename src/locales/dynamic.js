@@ -15,6 +15,24 @@ function severityLabel(value, lang) {
 
 export const DYNAMIC_PHRASE_TRANSLATIONS = [
   {
+    match: /^Contact (.+) to request access, export, correction or deletion of account data\. You can manage GitHub access and revoke API keys in the product\.$/,
+    translations: {
+      zh: "请联系 $1 请求访问、导出、更正或删除账户数据。你也可以在产品中管理 GitHub 授权和撤销 API 密钥。",
+      ja: "$1 に連絡してアカウントデータの閲覧、エクスポート、訂正、削除を依頼できます。製品内で GitHub の権限管理と API キーの失効もできます。",
+      ko: "$1에 연락해 계정 데이터의 열람, 내보내기, 수정 또는 삭제를 요청할 수 있습니다. 제품에서 GitHub 접근을 관리하고 API 키를 폐기할 수도 있습니다.",
+      fr: "Contactez $1 pour demander l'accès, l'exportation, la correction ou la suppression des données de votre compte. Vous pouvez aussi gérer l'accès GitHub et révoquer les clés API dans le produit.",
+      es: "Contacta a $1 para solicitar acceso, exportación, corrección o eliminación de los datos de tu cuenta. También puedes gestionar el acceso a GitHub y revocar claves API en el producto.",
+    },
+  },
+  {
+    match: /^Contact (.+) with privacy or security questions\.$/,
+    translations: { zh: "隐私或安全问题请联系 $1。", ja: "プライバシーやセキュリティに関する質問は $1 までお問い合わせください。", ko: "개인정보 또는 보안 관련 질문은 $1로 문의하세요.", fr: "Pour toute question de confidentialité ou de sécurité, contactez $1.", es: "Para dudas de privacidad o seguridad, contacta a $1." },
+  },
+  {
+    match: /^For questions, contact (.+)\.$/,
+    translations: { zh: "如有问题，请联系 $1。", ja: "ご質問は $1 までお問い合わせください。", ko: "문의 사항은 $1로 연락하세요.", fr: "Pour toute question, contactez $1.", es: "Si tienes preguntas, contacta a $1." },
+  },
+  {
     match: /^(.+) (.+) \((.+)%\)$/,
     translations: {
       zh: "$1 $2（$3%）",

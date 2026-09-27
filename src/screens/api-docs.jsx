@@ -26,6 +26,7 @@ const ENDPOINTS = [
   ["GET", "/api/v1/reports/timeseries", "reports:read", "Date-bucket totals"],
   ["GET", "/api/v1/reports/categories", "reports:read", "Category totals"],
   ["POST", "/api/v1/expense-suggestions", "suggestions:use", "Optional suggestion; never records an expense"],
+  ["POST", "/api/v1/expense-suggestions/{id}/decision", "suggestions:use", "Record a reviewed suggestion decision"],
 ];
 
 function baseUrl() {
@@ -69,10 +70,10 @@ export function ApiDocsScreen({ go, auth }) {
   }
   return <div className="landing fade-in product-api-docs"><PublicHeader go={go} current="api" auth={auth} />
     <div className="docs-shell"><aside className="docs-side"><div className="docs-side-g"><div className="docs-side-h">API</div>
-      {nav.map(([id, label]) => <a key={id} className="docs-side-i" href={`#${id}`}>{label}</a>)}
+      {nav.map(([id, label]) => <a key={id} className="docs-side-i" href={`#${id}`}>{T(label)}</a>)}
     </div></aside><main className="docs-main">
       <div className="docs-crumbs"><a className="auth-link" {...screenLinkProps(go, "landing")}>Pullwise</a><span className="sep">/</span><span className="now">API</span></div>
-      <div className="docs-page-head"><h1 id="overview" className="docs-h1">Pullwise ledger REST API</h1>
+      <div className="docs-page-head"><h1 id="overview" className="docs-h1">{T("Pullwise ledger REST API")}</h1>
         <button className="btn sm" type="button" onClick={copyPage} data-copy-exclude>{copied ? <I.Check size={13} /> : <I.Copy size={13} />} {copied ? T("Copied", "已复制") : T("Copy Page", "复制页面")}</button></div>
       <p className="docs-lede">{T("Record project and shared expenses, then read totals by currency. Platform billing is a separate account service.",
         "记录项目和公共池支出，按币种读取汇总。平台账单是独立的账户服务。")}</p>
@@ -84,7 +85,7 @@ export function ApiDocsScreen({ go, auth }) {
       <h2 id="endpoints" className="docs-h2">{T("Endpoints", "接口")}</h2>
       <div className="docs-endpoint-list">{ENDPOINTS.map(([method, path, scope, description]) => <article key={`${method}-${path}`} className="docs-endpoint-card">
         <div className="docs-endpoint-card-h"><span className="docs-method">{method}</span><code>{path}</code></div>
-        <p>{description}</p><span className="docs-scope">{T("Required scope", "所需权限")}: {scope}</span>
+        <p>{T(description)}</p><span className="docs-scope">{T("Required scope", "所需权限")}: {scope}</span>
       </article>)}</div>
       <h2 id="filters" className="docs-h2">{T("Filters and writes", "筛选与写入")}</h2>
       <p>{T("Expense lists and reports share target, projectId, categoryId, from (inclusive), to (exclusive) and currency filters. Lists also use limit and cursor. Amounts are decimal strings on writes and minor units in totals. Currencies are never combined.",
@@ -96,7 +97,7 @@ export function ApiDocsScreen({ go, auth }) {
       <div className="docs-table">{[["401", "Session or API key required"], ["403", "Scope or target denied"],
         ["404", "Resource unavailable"], ["409", "Idempotency conflict"], ["412", "Saved revision changed"],
         ["422", "Invalid input or filters"], ["429", "Request limit reached"]].map(([code, description]) =>
-        <div key={code} className="docs-table-r"><b>{code}</b><span>{description}</span></div>)}</div>
+        <div key={code} className="docs-table-r"><b>{code}</b><span>{T(description)}</span></div>)}</div>
       <div className="docs-foot-actions"><a className="btn" {...screenLinkProps(go, "docs")}>{T("Guide", "指南")}</a>
         <a className="btn primary" {...screenLinkProps(go, "apiKeys")}>{T("API Keys", "API 密钥")}</a></div>
     </main></div><PublicFooter go={go} current="api" /></div>;
