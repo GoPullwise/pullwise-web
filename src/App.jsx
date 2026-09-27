@@ -23,6 +23,7 @@ const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "Billing
 const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
 const DashboardScreen = lazyScreen(() => import("./screens/dashboard.jsx"), "DashboardScreen");
 const ProductManagementScreen = lazyScreen(() => import("./screens/product-management.jsx"), "ProductManagementScreen");
+const LedgerScreen = lazyScreen(() => import("./screens/ledger.jsx"), "LedgerScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/settings.jsx"), "SettingsScreen");
 const PrivacyScreen = lazyScreen(() => import("./screens/legal.jsx"), "PrivacyScreen");
@@ -168,6 +169,7 @@ export function App({ prototypeNav = false }) {
   const lang = useLang();
   const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
   const [screen, setScreen] = useState(getInitialScreen);
+  const [routeVersion, setRouteVersion] = useState(0);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
@@ -199,8 +201,8 @@ export function App({ prototypeNav = false }) {
     };
   }, [screen]);
 
-  const go = (nextScreen) => {
-    const path = pathFromScreen(nextScreen);
+  const go = (nextScreen, params = {}) => {
+    const path = pathFromScreen(nextScreen, params);
     const historyState = { screen: nextScreen };
     if (window.location.pathname !== path) {
       window.history.pushState(historyState, "", path);
@@ -208,6 +210,7 @@ export function App({ prototypeNav = false }) {
       window.history.replaceState(historyState, "", path);
     }
     setScreen(screenFromPath(path) || "notfound");
+    setRouteVersion(value => value + 1);
     window.scrollTo({ top: 0 });
   };
 
@@ -215,6 +218,7 @@ export function App({ prototypeNav = false }) {
     const onPopState = () => {
       const nextScreen = screenFromPath(window.location.pathname) || "notfound";
       setScreen(nextScreen);
+      setRouteVersion(value => value + 1);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -503,6 +507,19 @@ export function App({ prototypeNav = false }) {
           authorizationRevision={repositoryAuthorizationRevision}
           clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
         break;
+      case "ledgerProjects":
+        body = <LedgerScreen go={go} mode="projects" />;
+        break;
+      case "ledgerCategories":
+        body = <LedgerScreen go={go} mode="categories" />;
+        break;
+      case "ledgerShared":
+        body = <LedgerScreen go={go} mode="shared" />;
+        break;
+      case "ledgerProject":
+        body = <LedgerScreen key={window.location.pathname} go={go} mode="project"
+          projectId={window.location.pathname.slice("/projects/".length)} />;
+        break;
       case "apiKeys":
         body = <ApiKeysScreen go={go} />;
         break;
@@ -555,7 +572,7 @@ export function App({ prototypeNav = false }) {
         key={
           PUBLIC_SCREENS.has(screen)
             ? screen
-            : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}`
+            : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}:${routeVersion}`
         }
       >
         <Suspense fallback={<ScreenFallback />}>{body}</Suspense>

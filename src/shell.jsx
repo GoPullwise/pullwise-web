@@ -71,6 +71,9 @@ export function Sidebar({ section, go }) {
 export function ProductSidebar({ go, section = "dashboard" }) {
   useLang();
   return <SidebarLinks section={section} go={go} items={[
+    { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
+    { k: "ledgerShared", label: T("Shared pool", "公共支出池"), icon: <I.Package size={15} /> },
+    { k: "ledgerCategories", label: T("Categories", "类别"), icon: <I.Layout size={15} /> },
     { k: "dashboard", label: T("Overview", "总览"), icon: <I.Layout size={15} /> },
     { k: "services", label: T("Repositories & watches", "仓库与关注"), icon: <I.GitBranch size={15} /> },
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },

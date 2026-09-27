@@ -4,6 +4,9 @@ const SCREEN_TO_PATH = {
   oauth: "/oauth",
   repos: "/repos",
   services: "/services",
+  ledgerProjects: "/projects",
+  ledgerCategories: "/categories",
+  ledgerShared: "/shared",
   dashboard: "/dashboard/overview",
   apiKeys: "/api-keys",
   settings: "/settings",
@@ -39,10 +42,14 @@ export function screenHref(screen, params = {}) {
 export function screenFromPath(pathname) {
   if (!pathname || pathname === "/") return "landing";
   const clean = cleanPathname(pathname);
+  if (/^\/projects\/[A-Za-z0-9_-]+$/.test(clean)) return "ledgerProject";
   return PATH_TO_SCREEN[clean] || null;
 }
 
-export function pathFromScreen(screen) {
+export function pathFromScreen(screen, params = {}) {
+  if (screen === "ledgerProject" && typeof params.id === "string" && params.id) {
+    return `/projects/${encodeURIComponent(params.id)}`;
+  }
   return SCREEN_TO_PATH[screen] || "/404";
 }
 

@@ -1,0 +1,12 @@
+.ledger-screen .ledger-panel { border: 1px solid var(--border); padding: 20px; margin: 20px 0; }
+.ledger-screen .ledger-panel h2 { margin: 0 0 16px; }
+.ledger-screen .ledger-list { display: grid; gap: 12px; }
+.ledger-screen .ledger-list article { border: 1px solid var(--border); padding: 16px; min-width: 0; }
+.ledger-screen .ledger-list h3 { margin: 0 0 8px; overflow-wrap: anywhere; }
+.ledger-screen .ledger-form { display: grid; gap: 14px; margin: 16px 0; }
+.ledger-screen .ledger-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.ledger-screen label { display: grid; gap: 6px; min-width: 0; }
+.ledger-screen input, .ledger-screen select, .ledger-screen textarea { width: 100%; min-width: 0; border-radius: 0; }
+.ledger-screen .ledger-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.ledger-screen .ledger-message { border: 1px solid var(--border-strong); padding: 12px; }
+@media (max-width: 760px) { .ledger-screen .ledger-panel { padding: 14px; } }
