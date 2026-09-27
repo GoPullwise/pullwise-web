@@ -9,21 +9,21 @@ describe("landing positioning", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /follow pull requests, ci failures, and upstream updates.*keep the next action clear/i,
+        name: /track project and shared expenses.*keep every cost in view/i,
       })
     ).toBeInTheDocument();
-    expect(screen.getByText(/source facts, saved evidence, and your team's handling history/i)).toBeInTheDocument();
+    expect(screen.getByText(/record project and shared costs/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /see pricing/i })).toHaveAttribute("href", "/pricing");
 
     const pipeline = screen.getByRole("region", {
-      name: /how pullwise keeps work in view/i,
+      name: /how pullwise organizes costs/i,
     });
     expect(within(pipeline).getAllByRole("article")).toHaveLength(6);
     expect(screen.getByText("Connect authorized repositories")).toBeInTheDocument();
-    expect(screen.getByText("Track pull request actions")).toBeInTheDocument();
-    expect(screen.getByText("Investigate CI failures")).toBeInTheDocument();
-    expect(screen.getByText("Watch upstream releases")).toBeInTheDocument();
-    expect(screen.getByText("Inspect saved evidence")).toBeInTheDocument();
-    expect(screen.getByText("Record team handling")).toBeInTheDocument();
+    expect(screen.getByText("Record project expenses")).toBeInTheDocument();
+    expect(screen.getByText("Record shared expenses")).toBeInTheDocument();
+    expect(screen.getByText("Review category reports")).toBeInTheDocument();
+    expect(screen.getByText("Compare currencies separately")).toBeInTheDocument();
+    expect(screen.getByText("Control API access")).toBeInTheDocument();
   });
 });

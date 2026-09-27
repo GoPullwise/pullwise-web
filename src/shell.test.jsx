@@ -34,7 +34,7 @@ describe("Topbar navigation", () => {
     const go = vi.fn();
 
     render(
-      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "dashboard" }, { label: "Issues" }]} />
+      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "ledgerProjects" }, { label: "Issues" }]} />
     );
 
     const brand = screen.getByRole("link", { name: /go to pullwise home/i });
@@ -46,10 +46,10 @@ describe("Topbar navigation", () => {
 
     go.mockClear();
     const breadcrumb = screen.getByRole("link", { name: /^go to pullwise$/i });
-    expect(breadcrumb).toHaveAttribute("href", "/dashboard/overview");
+    expect(breadcrumb).toHaveAttribute("href", "/projects");
     await user.click(breadcrumb);
 
-    expect(go).toHaveBeenCalledWith("dashboard");
+    expect(go).toHaveBeenCalledWith("ledgerProjects");
 
     const account = screen.getByRole("link", { name: /open account settings/i });
     expect(account).toHaveAttribute("href", "/settings");
@@ -67,11 +67,9 @@ describe("Design token discipline", () => {
   it("uses one scrim color for every modal and drawer backdrop", () => {
     const screens = stylesOf("styles/screens.css");
     const app = stylesOf("src/app.css");
-    const product = stylesOf("src/screens/product.css");
     const backdrops = [
       screens.match(/\.modal-back\s*\{(?<body>[^}]*)\}/s)?.groups?.body,
       app.match(/\.quota-modal-back\s*\{(?<body>[^}]*)\}/s)?.groups?.body,
-      product.match(/\.product-backdrop\s*\{(?<body>[^}]*)\}/s)?.groups?.body,
     ];
 
     for (const body of backdrops) {
@@ -110,7 +108,6 @@ describe("Design token discipline", () => {
       "styles/screens.css",
       "src/app.css",
       "src/landing-seo.css",
-      "src/screens/product.css",
     ];
     for (const file of files) {
       const css = stylesOf(file);
@@ -212,21 +209,7 @@ describe("Design token discipline", () => {
     expect(coarse).toMatch(/\.topbar \.btn\.ghost\.sm\s*\{[^}]*min-width:\s*44px/s);
   });
 
-  it("collapses the product counts band at the shared 760px breakpoint", () => {
-    const product = stylesOf("src/screens/product.css");
 
-    // Five count cells squeeze to ~123px each at 650px when the collapse
-    // waits for 600px; fold to two columns at the shared app breakpoint.
-    const wide = product.match(
-      /@media\s*\(max-width:\s*760px\)\s*\{\s*\.product-counts\s*\{(?<counts>[^}]*)\}\s*\.product-counts button\s*\{(?<btn>[^}]*)\}/,
-    );
-    expect(wide).toBeTruthy();
-    expect(wide.groups.counts).toContain("repeat(2, minmax(0, 1fr))");
-    expect(wide.groups.btn).toContain("border-bottom");
-
-    const narrow = product.match(/@media\s*\(max-width:\s*600px\)\s*\{(?<body>[\s\S]*?)\n\}/);
-    expect(narrow?.groups?.body || "").not.toContain(".product-counts");
-  });
 });
 
 describe("Sidebar navigation", () => {
@@ -246,10 +229,10 @@ describe("Sidebar navigation", () => {
   it("exposes navigation destinations as real screen links", async () => {
     const user = userEvent.setup();
     const go = vi.fn();
-    render(<Sidebar section="dashboard" go={go} />);
+    render(<Sidebar section="ledgerProjects" go={go} />);
 
-    const overview = screen.getByRole("link", { name: /^overview$/i });
-    const services = screen.getByRole("link", { name: /^repositories & watches$/i });
+    const projects = screen.getByRole("link", { name: /^projects$/i });
+    const shared = screen.getByRole("link", { name: /^shared pool$/i });
     const apiKeys = screen.getByRole("link", { name: /^api keys$/i });
     const billing = screen.getByRole("link", { name: /^billing$/i });
     const settings = screen.getByRole("link", { name: /^settings$/i });
@@ -257,8 +240,8 @@ describe("Sidebar navigation", () => {
     expect(screen.queryByRole("link", { name: /^workers$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^issues$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^scan history$/i })).not.toBeInTheDocument();
-    expect(overview).toHaveAttribute("href", "/dashboard/overview");
-    expect(services).toHaveAttribute("href", "/services");
+    expect(projects).toHaveAttribute("href", "/projects");
+    expect(shared).toHaveAttribute("href", "/shared");
     expect(apiKeys).toHaveAttribute("href", "/api-keys");
     expect(billing).toHaveAttribute("href", "/billing");
     expect(settings).toHaveAttribute("href", "/settings");

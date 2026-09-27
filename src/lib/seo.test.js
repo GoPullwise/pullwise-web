@@ -7,15 +7,15 @@ import {
 } from "./seo.js";
 
 describe("public SEO metadata", () => {
-  it("describes the PR, CI and Updates product", () => {
+  it("describes the project expense ledger", () => {
     const metadata = seoMetadataForScreen("landing", {
       lang: "en",
       origin: "https://pull-wise.com",
       pathname: "/",
     });
 
-    expect(metadata.title).toBe("Pullwise — Pull Requests, CI, and Upstream Updates");
-    expect(metadata.description).toMatch(/pull request activity, CI failures, and upstream releases/i);
+    expect(metadata.title).toBe("Pullwise — GitHub Project Expense Ledger");
+    expect(metadata.description).toMatch(/project and shared expenses for GitHub repositories/i);
     expect(metadata.description).not.toMatch(/scan|full-repository|finding/i);
     expect(metadata.canonical).toBe("https://pull-wise.com/");
     expect(metadata.robots).toBe("index,follow");

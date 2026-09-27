@@ -6,48 +6,48 @@ const PAGE_DEFINITIONS = {
   landing: {
     path: "/",
     title: {
-      en: "Pullwise — Pull Requests, CI, and Upstream Updates",
-      zh: "Pullwise — 拉取请求、CI 与上游更新工作台",
+      en: "Pullwise — GitHub Project Expense Ledger",
+      zh: "Pullwise — GitHub 项目支出账本",
     },
     description: {
-      en: "Follow pull request activity, CI failures, and upstream releases with saved source evidence and team handling in one GitHub-connected workspace.",
-      zh: "在连接 GitHub 的工作台跟进拉取请求、CI 失败与上游版本发布，并查看已保存证据和团队处理记录。",
+      en: "Record project and shared expenses for GitHub repositories, then review separate totals for each currency.",
+      zh: "为 GitHub 仓库记录项目和公共支出，并查看各币种分别汇总的账目。",
     },
     schemaType: "software",
   },
   pricing: {
     path: "/pricing",
     title: {
-      en: "Pullwise Pricing — PR, CI, and Updates Plans",
-      zh: "Pullwise 价格 — PR、CI 与更新套餐",
+      en: "Pullwise Pricing — Project Expense Ledger",
+      zh: "Pullwise 价格 — 项目支出账本",
     },
     description: {
-      en: "Compare Pullwise plans for connected repositories, update watches, and monthly intelligent processing.",
-      zh: "比较 Pullwise 的已连接仓库、更新关注和每月智能处理量套餐。",
+      en: "Compare Pullwise platform plans for your project expense ledger.",
+      zh: "比较 Pullwise 项目支出账本的平台套餐。",
     },
     schemaType: "software",
   },
   docs: {
     path: "/developers/docs",
     title: {
-      en: "Pullwise Docs — Configure PR, CI, and Updates",
-      zh: "Pullwise 文档 — 配置 PR、CI 与更新服务",
+      en: "Pullwise Docs — Project Expense Ledger",
+      zh: "Pullwise 文档 — 项目支出账本",
     },
     description: {
-      en: "Learn how to connect GitHub repositories, configure PR and CI services, follow upstream releases, and inspect saved evidence.",
-      zh: "了解如何连接 GitHub 仓库、配置 PR 与 CI 服务、关注上游版本并查看已保存证据。",
+      en: "Learn how to connect repositories, record expenses and review per-currency reports.",
+      zh: "了解如何连接仓库、记录支出和查看逐币报表。",
     },
     schemaType: "article",
   },
   api: {
     path: "/developers/api",
     title: {
-      en: "Pullwise API — PR, CI, and Updates Contract",
-      zh: "Pullwise API — PR、CI 与更新接口",
+      en: "Pullwise API — Ledger Contract",
+      zh: "Pullwise API — 账本接口",
     },
     description: {
-      en: "Explore the Pullwise REST contract for authorized repositories, PR and CI items, upstream watches, evidence, and handling.",
-      zh: "查看 Pullwise REST 接口中的已授权仓库、PR 与 CI 事项、上游关注、证据和处理记录。",
+      en: "Explore the Pullwise REST contract for projects, categories, expenses and reports.",
+      zh: "查看 Pullwise REST 接口中的项目、类别、支出和报表。",
     },
     schemaType: "article",
   },
@@ -58,16 +58,16 @@ const PAGE_DEFINITIONS = {
       zh: "Pullwise 隐私政策 — 仓库与账户数据",
     },
     description: {
-      en: "Read how Pullwise handles account information, GitHub source facts, saved evidence, billing data, and support communications.",
-      zh: "了解 Pullwise 如何处理账户信息、GitHub 来源事实、已保存证据、账单数据和支持沟通。",
+      en: "Read how Pullwise handles account, GitHub, ledger, billing and support data.",
+      zh: "了解 Pullwise 如何处理账户、GitHub、账本、账单和支持数据。",
     },
     schemaType: "page",
   },
   terms: {
     path: "/terms",
     title: {
-      en: "Pullwise Terms of Service — PR, CI, and Updates",
-      zh: "Pullwise 服务条款 — PR、CI 与更新",
+      en: "Pullwise Terms of Service — Ledger",
+      zh: "Pullwise 服务条款 — 账本",
     },
     description: {
       en: "Read the terms governing Pullwise web, API, GitHub-connected services, account keys, subscriptions, and billing.",
@@ -157,12 +157,12 @@ function publicSchema(definition, title, description, canonical, origin) {
       description,
       publisher: { "@id": organizationId },
       featureList: [
-        "Pull request action tracking",
-        "CI failure context",
-        "Upstream release watches",
-        "Saved source evidence",
-        "Team handling history",
-        "GitHub repository integration",
+        "GitHub repository projects",
+        "Shared expense pool",
+        "Date and category reports",
+        "Per-currency totals",
+        "Expense history",
+        "GitHub repository authorization",
       ],
     });
   } else if (definition.schemaType === "article") {
@@ -198,8 +198,8 @@ export function seoMetadataForScreen(screen, options = {}) {
 
   if (!definition) {
     return {
-      title: "Pullwise — PR, CI, and Updates",
-      description: "Pullwise follows GitHub pull requests, CI failures, and upstream updates.",
+      title: "Pullwise — Project Expense Ledger",
+      description: "Pullwise records project and shared expenses for GitHub repositories.",
       robots: "noindex,nofollow",
       canonical: "",
       image: "",
@@ -264,7 +264,7 @@ export function renderSeoHead(metadata) {
       `<meta ${managed} property="og:image" content="${escapeAttribute(metadata.image)}" />`,
       `<meta ${managed} property="og:image:width" content="1200" />`,
       `<meta ${managed} property="og:image:height" content="630" />`,
-      `<meta ${managed} property="og:image:alt" content="Pullwise PR, CI, and Updates workspace" />`,
+      `<meta ${managed} property="og:image:alt" content="Pullwise project expense ledger" />`,
       `<meta name="twitter:card" content="summary_large_image" ${managed} />`,
       `<meta ${managed} name="twitter:title" content="${escapeAttribute(metadata.title)}" />`,
       `<meta ${managed} name="twitter:description" content="${escapeAttribute(metadata.description)}" />`,

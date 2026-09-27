@@ -6,7 +6,8 @@ const api = vi.hoisted(() => ({
   repositories: vi.fn(), projects: vi.fn(), createProject: vi.fn(), updateProject: vi.fn(),
   categories: vi.fn(), createCategory: vi.fn(), updateCategory: vi.fn(), archiveCategory: vi.fn(),
   project: vi.fn(), expenses: vi.fn(), createExpense: vi.fn(), updateExpense: vi.fn(),
-  removeExpense: vi.fn(),
+  removeExpense: vi.fn(), reportSummary: vi.fn(), reportTimeseries: vi.fn(),
+  reportCategories: vi.fn(), suggestExpense: vi.fn(), suggestDecision: vi.fn(),
 }));
 vi.mock("../api/ledger.js", () => ({ ledgerApi: api }));
 
@@ -16,6 +17,11 @@ beforeEach(() => {
   api.projects.mockResolvedValue({ items: [], nextCursor: null });
   api.categories.mockResolvedValue([]);
   api.expenses.mockResolvedValue({ items: [], nextCursor: null });
+  api.reportSummary.mockResolvedValue({ groups: [] });
+  api.reportTimeseries.mockResolvedValue({ groups: [] });
+  api.reportCategories.mockResolvedValue({ groups: [] });
+  api.suggestExpense.mockResolvedValue({ status: "unavailable", suggestions: {} });
+  api.suggestDecision.mockResolvedValue(null);
   api.project.mockResolvedValue({ id: "prj_1", githubRepoId: 202, githubFullName: "alice/project",
     description: "", status: "active", githubAccess: "authorized", revision: 1, totals: [] });
 });
@@ -104,6 +110,61 @@ describe("ledger screens", () => {
       expect.objectContaining({ target: { kind: "shared" }, amount: "12.00" }),
       expect.any(String), expect.anything()));
     expect(await screen.findByText(/Save conflict/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Hosting");
+  });
+
+  it("uses the same date and category filters for detail and charts", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", revision: 1, archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
+    fireEvent.change(screen.getByLabelText("To date (exclusive)"), { target: { value: "2026-10-01" } });
+    fireEvent.change(screen.getByLabelText("Filter category"), { target: { value: "cat_1" } });
+    await waitFor(() => {
+      const expected = { target: "shared", from: "2026-09-01", to: "2026-10-01", categoryId: "cat_1" };
+      expect(api.expenses).toHaveBeenLastCalledWith(expected, expect.anything());
+      expect(api.reportTimeseries).toHaveBeenLastCalledWith(expected, expect.anything());
+      expect(api.reportCategories).toHaveBeenLastCalledWith(expected, expect.anything());
+    });
+    const exportUrl = new URL(screen.getByRole("link", { name: "Export CSV" }).href);
+    expect(exportUrl.searchParams.get("target")).toBe("shared");
+    expect(exportUrl.searchParams.get("from")).toBe("2026-09-01");
+    expect(exportUrl.searchParams.get("to")).toBe("2026-10-01");
+    expect(exportUrl.searchParams.get("categoryId")).toBe("cat_1");
+  });
+
+  it("shows account totals per currency with project and shared costs separate", async () => {
+    api.reportSummary.mockResolvedValue({ groups: [
+      { target: "project", projectId: null, currency: "USD", amountMinor: 1000 },
+      { target: "shared", projectId: null, currency: "USD", amountMinor: 500 },
+      { target: "account", projectId: null, currency: "USD", amountMinor: 1500 },
+      { target: "account", projectId: null, currency: "JPY", amountMinor: 120 },
+    ] });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    expect(await screen.findByText("USD 15.00")).toBeInTheDocument();
+    expect(screen.getByText("JPY 120")).toBeInTheDocument();
+    expect(screen.getByText("USD 10.00")).toBeInTheDocument();
+    expect(screen.getByText("USD 5.00")).toBeInTheDocument();
+  });
+
+  it("requires confirmation before applying suggestions and keeps manual entry on failure", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.suggestExpense.mockResolvedValueOnce({ status: "available", suggestionId: "sg_123",
+      suggestions: { categoryId: "cat_1", targetKind: "shared", duplicateExpenseId: "exp_1" } });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
+    expect(await screen.findByText(/^Possible duplicate:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Category")).toHaveValue("");
+    fireEvent.click(screen.getByLabelText(/I reviewed the possible duplicate/i));
+    fireEvent.click(screen.getByRole("button", { name: /use suggestion/i }));
+    expect(screen.getByLabelText("Category")).toHaveValue("cat_1");
+    expect(api.createExpense).not.toHaveBeenCalled();
+    expect(api.suggestDecision).toHaveBeenCalled();
+    api.suggestExpense.mockRejectedValueOnce(new Error("offline"));
+    fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
+    expect(await screen.findByText(/Suggestion unavailable/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Purpose")).toHaveValue("Hosting");
   });
 });

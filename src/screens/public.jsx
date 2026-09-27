@@ -57,8 +57,8 @@ function getRepositoryAuthErrorMessage(error) {
   }
   if (message.includes("Contents: read")) {
     return T(
-      "The GitHub App needs the repository access required to read PR, CI, and release facts. Check its permissions and try again.",
-      "GitHub App 需要读取 PR、CI 和版本发布事实所需的仓库权限。请检查权限后重试。"
+      "The GitHub App needs repository access to bind projects. Check its permissions and try again.",
+      "GitHub App 需要仓库权限才能绑定项目。请检查权限后重试。"
     );
   }
   return getAuthErrorMessage(error);
@@ -68,11 +68,11 @@ export function LandingScreen({ go, auth }) {
   useLang();
   const checkingSession = auth?.status === "checking";
   const signedIn = !checkingSession && Boolean(auth?.authenticated);
-  const primaryActionTarget = signedIn ? "dashboard" : "login";
+  const primaryActionTarget = signedIn ? "ledgerProjects" : "login";
   const primaryActionLabel = checkingSession
     ? T("Checking session...", "正在检查会话...")
     : signedIn
-      ? T("Open dashboard", "打开工作台")
+      ? T("Open projects", "打开项目")
       : T("Sign in with GitHub", "使用 GitHub 登录");
   const primaryActionIcon = checkingSession ? (
     <span className="spin">
@@ -91,18 +91,18 @@ export function LandingScreen({ go, auth }) {
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
           <span>
-            {T("PR, CI, and Updates for GitHub teams", "面向 GitHub 团队的 PR、CI 与更新工作台")}
+            {T("Project expenses for GitHub teams", "面向 GitHub 团队的项目支出账本")}
           </span>
         </div>
         <h1 id="lp-title" className="lp-title">
-          {T("Follow pull requests, CI failures, and upstream updates.", "跟进拉取请求、CI 失败与上游更新。")}
+          {T("Track project and shared expenses.", "记录项目与公共支出。")}
           <br />
-          <span className="lp-title-em">{T("Keep the next action clear.", "让下一步行动更清晰。")}</span>
+          <span className="lp-title-em">{T("Keep every cost in view.", "让每笔成本清晰可见。")}</span>
         </h1>
         <p className="lp-sub">
           {T(
-            "Connect GitHub to organize pull request activity, CI failures, and upstream releases in one workspace. Pullwise keeps source facts, saved evidence, and your team's handling history together.",
-            "连接 GitHub，在一个工作台整理拉取请求动态、CI 失败和上游版本发布。Pullwise 将来源事实、已保存证据和团队处理记录关联呈现。"
+            "Connect GitHub repositories, record project and shared costs, and review per-currency totals in one workspace.",
+            "连接 GitHub 仓库，在一个工作台记录项目和公共支出，查看逐币汇总。"
           )}
         </p>
         <div className="lp-cta">
@@ -128,16 +128,16 @@ export function LandingScreen({ go, auth }) {
         </div>
         <div className="lp-meta">
           <span>
-            <I.Check size={12} /> {T("Pull request actions", "拉取请求待办")}
+            <I.Check size={12} /> {T("Repository projects", "仓库项目")}
           </span>
           <span>
-            <I.Check size={12} /> {T("CI failure context", "CI 失败上下文")}
+            <I.Check size={12} /> {T("Shared expense pool", "公共支出池")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Upstream release watches", "上游版本关注")}
+            <I.Check size={12} /> {T("Date and category reports", "日期与类别报表")}
           </span>
           <span>
-            <I.Check size={12} /> {T("Saved evidence and handling", "已保存证据与处理记录")}
+            <I.Check size={12} /> {T("Per-currency totals", "逐币汇总")}
           </span>
         </div>
       </section>
@@ -146,15 +146,15 @@ export function LandingScreen({ go, auth }) {
         <div className="lp-preview-card">
           <div className="lp-preview-bar">
             <span className="lp-preview-kicker">{T("WORKSPACE / PREVIEW", "工作台 / 预览")}</span>
-            <div className="lp-preview-url">pull-wise.com / dashboard</div>
+            <div className="lp-preview-url">pull-wise.com / projects</div>
           </div>
           <div className="lp-preview-body">
             <div className="lp-preview-side">
               {[
                 T("Overview", "总览"),
-                T("Pull requests", "拉取请求"),
-                T("CI failures", "CI 失败"),
-                T("Updates", "更新"),
+                T("Projects", "项目"),
+                T("Shared pool", "公共池"),
+                T("Categories", "类别"),
               ].map((item, index) => (
                 <div key={item} className={"lp-preview-side-i" + (index === 1 ? " active" : "")}>
                   {item}
@@ -167,25 +167,25 @@ export function LandingScreen({ go, auth }) {
                   <b>
                     <I.GitPull size={18} />
                   </b>
-                  <span>{T("PR", "PR")}</span>
+                  <span>{T("Projects", "项目")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
                     <I.Layers size={18} />
                   </b>
-                  <span>{T("CI", "CI")}</span>
+                  <span>{T("Shared", "公共池")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b style={{ color: "var(--accent)" }}>
                     <I.Bug size={18} />
                   </b>
-                  <span>{T("Updates", "更新")}</span>
+                  <span>{T("Categories", "类别")}</span>
                 </div>
                 <div className="lp-preview-stat">
                   <b>
                     <I.Shield size={18} />
                   </b>
-                  <span>{T("Evidence", "证据")}</span>
+                  <span>{T("Reports", "报表")}</span>
                 </div>
               </div>
               <div className="lp-preview-issues">
@@ -196,12 +196,12 @@ export function LandingScreen({ go, auth }) {
                   </span>
                   <div className="lp-preview-issue-t">
                     {T(
-                      "Saved source evidence and handling history stay linked to the work they describe.",
-                      "已保存的来源证据与处理记录会关联到对应事项。"
+                      "Every expense stays with its project or the shared pool.",
+                      "每笔支出均归于一个项目或公共池。"
                     )}
                   </div>
                   <span className="lp-preview-issue-f">
-                    {T("Source facts + team handling", "来源事实 + 团队处理")}
+                    {T("Project + shared costs", "项目 + 公共支出")}
                   </span>
                 </div>
               </div>
@@ -215,12 +215,12 @@ export function LandingScreen({ go, auth }) {
           <div className="lp-section-index">PROCESS / 02</div>
           <div>
             <h2 id="lp-capabilities-title">
-              {T("How Pullwise keeps work in view.", "Pullwise 如何持续呈现待处理事项。")}
+              {T("How Pullwise organizes costs.", "Pullwise 如何整理成本。")}
             </h2>
             <p>
               {T(
-                "Configure the services you need, then use saved facts and evidence to decide what deserves attention.",
-                "配置所需服务，再根据已保存的事实和证据判断哪些事项值得关注。"
+                "Choose a repository, record expenses, then use the same filters for detail and reports.",
+                "选择仓库、记录支出，再用相同条件筛选明细和报表。"
               )}
             </p>
           </div>
@@ -231,48 +231,48 @@ export function LandingScreen({ go, auth }) {
               i: <I.Layers />,
               h: T("Connect authorized repositories", "连接已授权仓库"),
               p: T(
-                "Choose the GitHub repositories and services your team wants to follow.",
-                "选择团队希望关注的 GitHub 仓库和服务。"
+                "Create a project for each authorized GitHub repository.",
+                "为每个已授权的 GitHub 仓库创建项目。"
               ),
             },
             {
               i: <I.Bug />,
-              h: T("Track pull request actions", "跟进拉取请求待办"),
+              h: T("Record project expenses", "记录项目支出"),
               p: T(
-                "Bring requested changes, discussion, and review follow-up into one actionable list.",
-                "将修改请求、讨论和审查跟进汇集成可处理的列表。"
+                "Save amount, currency, date, category and purpose for each project cost.",
+                "为每笔项目成本保存金额、币种、日期、类别和用途。"
               ),
             },
             {
               i: <I.Terminal />,
-              h: T("Investigate CI failures", "调查 CI 失败"),
+              h: T("Record shared expenses", "记录公共支出"),
               p: T(
-                "See failed runs, stages, symptoms, and saved context together.",
-                "集中查看失败运行、阶段、症状和已保存上下文。"
+                "Keep costs used across projects in one shared pool, counted once.",
+                "跨项目支出放入公共池，只计一次。"
               ),
             },
             {
               i: <I.Shield />,
-              h: T("Watch upstream releases", "关注上游版本发布"),
+              h: T("Review category reports", "查看类别报表"),
               p: T(
-                "Follow selected upstream projects and inspect relevant release changes.",
-                "关注选定的上游项目并查看相关版本变化。"
+                "See where costs occur by category and date.",
+                "按类别和日期查看成本分布。"
               ),
             },
             {
               i: <I.FileCode />,
-              h: T("Inspect saved evidence", "查看已保存证据"),
+              h: T("Compare currencies separately", "逐币查看汇总"),
               p: T(
-                "Read source facts and saved assessments without starting new processing from the browser.",
-                "读取来源事实与已保存的判断；浏览操作不会启动新的处理。"
+                "Keep USD, EUR and other currencies separate, without inferred exchange rates.",
+                "不同币种分别汇总，不推断汇率。"
               ),
             },
             {
               i: <I.Code />,
-              h: T("Record team handling", "记录团队处理"),
+              h: T("Control API access", "控制 API 访问"),
               p: T(
-                "Mark items done or dismissed, assign follow-up, and keep a saved handling history.",
-                "标记完成或不跟进、分配后续处理，并保留处理历史。"
+                "Use scoped API keys with project and shared-pool restrictions.",
+                "使用受权限、项目和公共池限制的 API 密钥。"
               ),
             },
           ].map((feature, index) => (
@@ -298,7 +298,7 @@ export function LandingScreen({ go, auth }) {
               ? T("Restoring your account.", "正在恢复你的账户。")
               : signedIn
                 ? T("Continue from your account.", "从你的账户继续。")
-                : T("Bring your team's work into view.", "让团队事项清晰可见。")}
+                : T("Bring your project costs into view.", "让项目成本清晰可见。")}
           </h2>
         </div>
         {checkingSession ? (
@@ -370,8 +370,8 @@ export function LoginScreen({ go } = {}) {
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Use GitHub to sign in. Connect repositories later to configure PR, CI, and Updates services.",
-            "使用 GitHub 登录。之后连接仓库，配置 PR、CI 和更新服务。"
+            "Use GitHub to sign in. Connect repositories later to create ledger projects.",
+            "使用 GitHub 登录，之后连接仓库并创建账本项目。"
           )}
         </p>
 
@@ -403,7 +403,7 @@ export function LoginScreen({ go } = {}) {
           <div className="auth-next-i">
             <span>2</span>
             <p>
-              {T("Connect repositories and configure PR, CI, and Updates services.", "连接仓库并配置 PR、CI 和更新服务。")}
+              {T("Connect repositories and create ledger projects.", "连接仓库并创建账本项目。")}
             </p>
           </div>
         </div>
@@ -425,7 +425,7 @@ export function OAuthScreen({ go, auth }) {
     title: T("Authorization error", "Authorization error"),
     key: `oauth:${error}`,
   });
-  const backTarget = auth?.authenticated ? "repos" : "login";
+  const backTarget = auth?.authenticated ? "ledgerProjects" : "login";
 
   const handleAuthorize = async () => {
     setAuthing(true);
@@ -433,7 +433,7 @@ export function OAuthScreen({ go, auth }) {
 
     try {
       await connectGitHubRepositories();
-      go("repos");
+      go("ledgerProjects");
     } catch (authError) {
       if (authError?.code === "popup_closed") {
         setError(
@@ -470,8 +470,8 @@ export function OAuthScreen({ go, auth }) {
           <h2>{T("Connect GitHub repository access", "连接 GitHub 仓库访问")}</h2>
           <p className="oauth-org">
             {T(
-              "Install Pullwise on your GitHub account or organization, then choose repositories and configure services.",
-              "在你的 GitHub 账户或组织上安装 Pullwise，然后选择仓库并配置服务。"
+              "Install Pullwise on your GitHub account or organization, then choose repositories to bind ledger projects.",
+              "在你的 GitHub 账户或组织上安装 Pullwise，然后选择仓库以绑定记账项目。"
             )}
           </p>
         </div>
@@ -491,10 +491,10 @@ export function OAuthScreen({ go, auth }) {
             },
             {
               i: <I.FileCode size={15} />,
-              h: T("Contents and pull requests", "内容和拉取请求"),
+              h: T("Repository access", "仓库权限"),
               p: T(
-                "Repository access lets Pullwise read authorized PR, CI, and Updates facts. Pullwise handling does not change GitHub content.",
-                "仓库权限让 Pullwise 读取已授权的 PR、CI 和更新事实。Pullwise 内的处理操作不会修改 GitHub 内容。"
+                "Repository access lets Pullwise verify project bindings. Expense entries do not modify GitHub content.",
+                "仓库权限让 Pullwise 核验项目绑定。支出记录不会修改 GitHub 内容。"
               ),
             },
           ].map((permission, index) => (

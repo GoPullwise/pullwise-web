@@ -6,7 +6,7 @@ import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
-import { API_KEY_SCOPES, API_KEY_SCOPE_VALUES, DEFAULT_SCOPE_VALUES } from "./product-api-scopes.js";
+import { API_KEY_SCOPES, API_KEY_SCOPE_VALUES, DEFAULT_SCOPE_VALUES } from "./ledger-api-scopes.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 
 function itemsFrom(payload, ...keys) {
@@ -154,6 +154,9 @@ export function ApiKeysScreen({ go, setIssue = null }) {
   const [keys, setKeys] = useState([]);
   const [name, setName] = useState(T("Account automation", "账户自动化"));
   const [selectedScopes, setSelectedScopes] = useState(DEFAULT_SCOPE_VALUES);
+  const [restrictProjects, setRestrictProjects] = useState(false);
+  const [projectIdsInput, setProjectIdsInput] = useState("");
+  const [allowShared, setAllowShared] = useState(false);
   const [createdCredential, setCreatedCredential] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadedOnce, setLoadedOnce] = useState(false);
@@ -203,9 +206,14 @@ export function ApiKeysScreen({ go, setIssue = null }) {
     setCreatedCredential(null);
     try {
       const scopes = API_KEY_SCOPE_VALUES.filter((scope) => selectedScopes.includes(scope));
+      const projectIds = projectIdsInput.split(/[\s,]+/).filter(Boolean);
+      if (restrictProjects && (projectIds.length > 100 || projectIds.some(id => !/^prj_[A-Za-z0-9_-]{1,100}$/.test(id)))) {
+        throw new Error(T("Enter valid project IDs separated by commas.", "请输入以逗号分隔的有效项目 ID。"));
+      }
       const payload = await pullwiseApi.apiKeys.create({
         name: name.trim() || T("API key", "API 密钥"),
         scopes,
+        restrictions: { shared: allowShared, ...(restrictProjects ? { projectIds: [...new Set(projectIds)] } : {}) },
       });
       const key = normalizeApiKey(createdApiKeyRecord(payload));
       const token = createdApiKeyToken(payload);
@@ -222,6 +230,9 @@ export function ApiKeysScreen({ go, setIssue = null }) {
       setCreatedCredential({ keyId: key.id, token });
       setName(T("Account automation", "账户自动化"));
       setSelectedScopes(DEFAULT_SCOPE_VALUES);
+      setRestrictProjects(false);
+      setProjectIdsInput("");
+      setAllowShared(false);
     } catch (err) {
       setError(err?.message || T("Unable to create API key.", "无法创建 API key。"));
     } finally {
@@ -294,8 +305,8 @@ export function ApiKeysScreen({ go, setIssue = null }) {
               <h1>{T("API Keys", "API 密钥")}</h1>
               <div className="sub">
                 {T(
-                  "REST credentials for saved PR, CI and Updates results, handling and fact sync.",
-                  "用于读取 PR、CI、Updates 保存结果，以及处理事项和同步事实的 REST 凭据。"
+                  "Scoped REST credentials for projects, expenses and reports.",
+                  "用于项目、支出和报表的分范围 REST 凭据。"
                 )}
               </div>
             </div>
@@ -434,6 +445,19 @@ export function ApiKeysScreen({ go, setIssue = null }) {
                           );
                         })}
                       </div>
+                    </fieldset>
+                    <fieldset className="api-scope-panel"><legend className="api-scope-legend">{T("Ledger targets", "账本目标")}</legend>
+                      <label className="api-scope-row"><input type="checkbox" checked={restrictProjects}
+                        onChange={event => setRestrictProjects(event.target.checked)} />
+                        {T("Limit to selected project IDs", "仅允许指定项目 ID")}</label>
+                      {restrictProjects && <label className="auth-field">{T("Project IDs (comma separated)", "项目 ID（逗号分隔）")}
+                        <input value={projectIdsInput} onChange={event => setProjectIdsInput(event.target.value)}
+                          placeholder="prj_..." /></label>}
+                      <label className="api-scope-row"><input type="checkbox" checked={allowShared}
+                        onChange={event => setAllowShared(event.target.checked)} />
+                        {T("Allow shared expense pool", "允许访问公共池")}</label>
+                      <p>{T("Project restrictions never grant access to another account or to the shared pool. An empty project list permits no projects.",
+                        "项目限制不会授予其他账户或公共池权限。空项目列表代表不允许任何项目。")}</p>
                     </fieldset>
                   </div>
                 </form>

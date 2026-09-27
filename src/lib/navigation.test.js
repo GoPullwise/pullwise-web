@@ -22,17 +22,17 @@ describe("screenLinkProps", () => {
     const go = vi.fn();
     const event = fakeClick();
 
-    screenLinkProps(go, "services").onClick(event);
+    screenLinkProps(go, "ledgerShared").onClick(event);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
-    expect(go).toHaveBeenCalledWith("services");
+    expect(go).toHaveBeenCalledWith("ledgerShared");
   });
 
   it("preserves browser behavior for modified screen-link clicks", () => {
     const go = vi.fn();
     const event = fakeClick({ ctrlKey: true });
 
-    screenLinkProps(go, "services").onClick(event);
+    screenLinkProps(go, "ledgerShared").onClick(event);
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
@@ -42,7 +42,7 @@ describe("screenLinkProps", () => {
     const go = vi.fn();
     const event = fakeClick({ button: 1 });
 
-    screenLinkProps(go, "services").onClick(event);
+    screenLinkProps(go, "ledgerShared").onClick(event);
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
@@ -58,9 +58,9 @@ describe("admin routes", () => {
 
 describe("dashboard routes", () => {
   it("uses dashboard overview as the canonical dashboard path", () => {
-    expect(pathFromScreen("dashboard")).toBe("/dashboard/overview");
-    expect(screenFromPath("/dashboard/overview")).toBe("dashboard");
-    expect(screenFromPath("/dashboard")).toBe("dashboard");
+    expect(pathFromScreen("ledgerProjects")).toBe("/projects");
+    expect(screenFromPath("/projects")).toBe("ledgerProjects");
+    expect(screenFromPath("/dashboard")).toBeNull();
   });
 
   it("does not expose private worker management", () => {

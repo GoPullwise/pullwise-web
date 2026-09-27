@@ -23,7 +23,7 @@ describe("product settings", () => {
   it("shows account and read-only GitHub service onboarding without scan controls", async () => {
     render(<SettingsScreen go={vi.fn()} />);
     expect(await screen.findByText("Taylor")).toBeInTheDocument();
-    expect(screen.getByText(/follow PRs, CI failures and upstream releases/i)).toBeInTheDocument();
+    expect(screen.getByText(/create ledger projects/i)).toBeInTheDocument();
     expect(screen.queryByText(/review output language/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/scan history/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /^connect repositories$/i }));

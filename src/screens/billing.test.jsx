@@ -73,7 +73,7 @@ describe("BillingScreen", () => {
     vi.clearAllMocks();
   });
 
-  it("shows PR/CI/Updates capacity and saved processing instead of scan quota", async () => {
+  it("separates platform billing from ledger expenses", async () => {
     const productPlans = billingCatalog.plans.map((plan) => ({
       ...plan,
       reviewLimit: undefined,
@@ -97,14 +97,14 @@ describe("BillingScreen", () => {
     });
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
     expect(await screen.findByText(/12 \/ 5000 processed/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /account usage/i }));
+    fireEvent.click(screen.getByRole("button", { name: /historical processing usage/i }));
     expect(screen.getByText(/Processing activity/i)).toBeInTheDocument();
     expect(screen.getByText(/PR processing/i)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("scan quota");
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
-    expect(await screen.findByText(/200 intelligent processing units \/ month/i)).toBeInTheDocument();
-    expect(screen.getByText(/Choose capacity for PR, CI and Updates/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/Project and shared expense ledger/i)).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Expenses you record in the ledger are separate/i)).toBeInTheDocument();
   });
 
   it("renders all pricing tiers immediately with skeletons while pricing loads", () => {
@@ -529,7 +529,7 @@ describe("BillingScreen", () => {
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Pullwise Max")).toBeInTheDocument();
-    expect(screen.getByText("100 active update watches")).toBeInTheDocument();
+    expect(screen.getAllByText("Per-currency reports and REST API").length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 
@@ -670,7 +670,7 @@ describe("BillingScreen", () => {
     const user = userEvent.setup();
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
-    await user.click(await screen.findByRole("button", { name: /account usage/i }));
+    await user.click(await screen.findByRole("button", { name: /historical processing usage/i }));
     expect(screen.getByText("Processing activity")).toBeInTheDocument();
     expect(screen.getByText("PR processing")).toBeInTheDocument();
     expect(screen.getByText("Updates processing")).toBeInTheDocument();
@@ -776,10 +776,10 @@ describe("BillingScreen", () => {
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
     expect(await screen.findByText("Free")).toBeInTheDocument();
-    expect(screen.getByText("200 intelligent processing units / month")).toBeInTheDocument();
-    expect(screen.getByText("1 active repository")).toBeInTheDocument();
-    expect(screen.getByText("5 active repositories")).toBeInTheDocument();
-    expect(screen.getByText("20 active repositories")).toBeInTheDocument();
+    expect(screen.getAllByText("Project and shared expense ledger").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Per-currency reports and REST API").length).toBeGreaterThan(0);
+
+
 
     await user.click(screen.getByRole("button", { name: /yearly/i }));
 

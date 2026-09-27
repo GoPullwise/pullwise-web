@@ -2,12 +2,9 @@ const SCREEN_TO_PATH = {
   landing: "/",
   login: "/login",
   oauth: "/oauth",
-  repos: "/repos",
-  services: "/services",
   ledgerProjects: "/projects",
   ledgerCategories: "/categories",
   ledgerShared: "/shared",
-  dashboard: "/dashboard/overview",
   apiKeys: "/api-keys",
   settings: "/settings",
   billing: "/billing",
@@ -24,7 +21,6 @@ const PATH_TO_SCREEN = {};
 for (const [screen, path] of Object.entries(SCREEN_TO_PATH)) {
   PATH_TO_SCREEN[path] = screen;
 }
-PATH_TO_SCREEN["/dashboard"] = "dashboard";
 
 function cleanPathname(pathname) {
   const raw = String(pathname || "/").split(/[?#]/, 1)[0] || "/";

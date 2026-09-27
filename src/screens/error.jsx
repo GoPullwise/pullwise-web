@@ -10,15 +10,15 @@ export function NotFoundScreen({ go, requested, auth }) {
   const suggestions = signedIn
     ? [
         {
-          k: "dashboard",
-          t: T("Dashboard", "Dashboard"),
+          k: "ledgerProjects",
+          t: T("Projects", "项目"),
           d: T("Account overview", "账户总览"),
           i: <I.Layout size={14} />,
         },
         {
-          k: "services",
-          t: T("Repositories and watches", "仓库与关注"),
-          d: T("Manage PR, CI and Updates services", "管理 PR、CI 和更新服务"),
+          k: "ledgerShared",
+          t: T("Shared expenses", "公共支出"),
+          d: T("Review shared expenses", "查看公共支出"),
           i: <I.GitBranch size={14} />,
         },
         {

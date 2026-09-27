@@ -35,171 +35,56 @@ describe("API screens", () => {
     vi.clearAllMocks();
   });
 
-  it("documents the PR CI Updates product contract without scan routes", () => {
-    const go = vi.fn();
-
-    render(<ApiDocsScreen go={go} auth={{ authenticated: true }} />);
-
-    expect(screen.getByRole("heading", { name: /pullwise rest api/i })).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/items")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/sources")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/items/overview")).toBeInTheDocument();
-    expect(screen.queryByText("/api/v1/watches/{watchId}/sync")).not.toBeInTheDocument();
-    expect(screen.queryByText(/\/scans(\/|$)/)).not.toBeInTheDocument();
+  it("documents the ledger contract and target restrictions", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+    expect(screen.getByRole("heading", { name: /pullwise ledger rest api/i })).toBeInTheDocument();
+    expect(screen.getAllByText("/api/v1/expenses")).toHaveLength(2);
+    expect(screen.getByText("/api/v1/reports/summary")).toBeInTheDocument();
+    expect(screen.getByText(/Project allowlists do not grant shared-pool access/i)).toBeInTheDocument();
+    expect(screen.queryByText("/api/v1/items")).not.toBeInTheDocument();
   });
 
-  it("copies the rendered API docs page as markdown", async () => {
+  it("copies the ledger contract as markdown", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText },
-    });
-
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     try {
       render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
       await user.click(screen.getByRole("button", { name: /copy page/i }));
-
-      await waitFor(() => {
-        expect(writeText).toHaveBeenCalledTimes(1);
-      });
+      await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
       const markdown = writeText.mock.calls[0][0];
-      expect(markdown).toContain("# Pullwise REST API");
-      expect(markdown).toContain("## Authentication");
-      expect(markdown).toContain("### Base URL");
-      expect(markdown).toContain("```");
-      expect(markdown).toContain("### GET /api/v1/repositories");
-      expect(markdown).toContain("| Code | Description |");
-      expect(markdown).toContain("API routes are versioned under /api/v1.");
-      expect(markdown).not.toContain("Copy Page");
-      expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
+      expect(markdown).toContain("# Pullwise ledger REST API");
+      expect(markdown).toContain("### GET /api/v1/expenses");
+      expect(markdown).toContain("Idempotency-Key");
     } finally {
-      if (originalClipboard) {
-        Object.defineProperty(navigator, "clipboard", {
-          configurable: true,
-          value: originalClipboard,
-        });
-      } else {
-        delete navigator.clipboard;
-      }
+      if (originalClipboard) Object.defineProperty(navigator, "clipboard", { configurable: true, value: originalClipboard });
+      else delete navigator.clipboard;
     }
   });
 
-  it("renders endpoint docs as scannable cards instead of a compressed table", () => {
-    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
-    expect(document.querySelector(".docs-endpoint-list")).toBeInTheDocument();
-    const cards = [...document.querySelectorAll(".docs-endpoint-card")];
-    expect(cards.length).toBeGreaterThanOrEqual(18);
-    expect(cards.some(card => card.textContent.includes("/api/v1/visualizations?kind=workload"))).toBe(true);
-    expect(cards.some(card => card.textContent.includes("/api/v1/visualizations?kind=pr_actions"))).toBe(true);
-  });
-  it("resolves root-relative API base URLs for same-origin API docs examples", async () => {
-    const user = userEvent.setup();
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    const originalClipboard = navigator.clipboard;
+  it("resolves same-origin API base URLs without doubling /api", async () => {
     const originalApiBase = env.VITE_API_BASE_URL;
     const originalPublicApiBase = env.VITE_PUBLIC_API_BASE_URL;
     env.VITE_API_BASE_URL = "/api";
     env.VITE_PUBLIC_API_BASE_URL = "";
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText },
-    });
-
     try {
       render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
-      await user.click(screen.getByRole("button", { name: /copy page/i }));
-      await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
-      expect(writeText.mock.calls[0][0]).toContain(`${window.location.origin}/api/v1/items?module=pr&view=mine`);
-      expect(writeText.mock.calls[0][0]).not.toContain("curl https://api.pull-wise.com");
+      expect(screen.getByText(/curl.*api\/v1\/expenses/)).toBeInTheDocument();
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
       env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
-      if (originalClipboard) {
-        Object.defineProperty(navigator, "clipboard", {
-          configurable: true,
-          value: originalClipboard,
-        });
-      } else {
-        delete navigator.clipboard;
-      }
     }
   });
 
-  it("matches the docs layout width to the marketing header", () => {
-    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    const styles = readFileSync("styles/screens.css", "utf8");
-    const appStyles = readFileSync("src/app.css", "utf8");
-
-    expect(document.querySelector(".docs-toc")).not.toBeInTheDocument();
-    expect(appStyles).toMatch(
-      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
-    );
-    expect(styles).toMatch(
-      /\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/
-    );
-    expect(appStyles).toMatch(
-      /\.docs-shell\s*{[^}]*grid-template-columns:\s*176px minmax\(0,\s*1fr\);/
-    );
-    expect(styles).toMatch(/\.docs-side\s*{[^}]*justify-self:\s*start;/);
-    expect(styles).toMatch(/\.docs-side-h\s*{[^}]*text-align:\s*left;/);
-    expect(styles).toMatch(/\.docs-side-i\s*{[^}]*text-align:\s*left;/);
-    expect(styles).toMatch(/\.docs-h1\s*{[^}]*max-width:\s*none;/);
-    expect(styles).toMatch(/\.docs-lede\s*{[^}]*max-width:\s*none;/);
-  });
-
-  it("describes saved product reads without a model submission route", () => {
-    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    expect(screen.getByText("/api/v1/items/overview")).toBeInTheDocument();
-    expect(screen.getByText("/api/v1/usage/events")).toBeInTheDocument();
-    expect(screen.getByText(/GET never starts model processing/i)).toBeInTheDocument();
-    expect(screen.queryByText(/agentFixPrompt/i)).not.toBeInTheDocument();
-  });
-
-  it("does not advertise retired manual sync", () => {
-    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    expect(screen.queryByText("Sync watch facts")).not.toBeInTheDocument();
-    expect(screen.queryByText("/api/v1/jobs/{jobId}")).not.toBeInTheDocument();
-  });
-
-  it("shows usage and availability without scan quota examples", () => {
-    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    expect(screen.getByText("/api/v1/usage")).toBeInTheDocument();
-    expect(screen.getByText(/repository listing\/creation, watch creation/i)).toBeInTheDocument();
-    expect(screen.queryByText(/scan quota/i)).not.toBeInTheDocument();
-  });
-
-  it("marks the Cloudflare product Server as a preview", () => {
-    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    expect(screen.getByText(/cloudflare server is not deployed yet/i)).toBeInTheDocument();
-    expect(screen.getAllByText("/api/v1/repositories/{repositoryId}/service")).toHaveLength(2);
-  });
-
-  it("exposes API docs navigation destinations as real screen links", async () => {
-    const user = userEvent.setup();
+  it("links the guide and key management", async () => {
     const go = vi.fn();
-
     render(<ApiDocsScreen go={go} auth={{ authenticated: true }} />);
-
-    const docsSide = within(document.querySelector(".docs-side"));
-    const docsFoot = within(document.querySelector(".docs-foot-actions"));
-    const pricing = docsFoot.getByRole("link", { name: /pricing/i });
-    const apiKeysFoot = docsFoot.getByRole("link", { name: /api keys/i });
-    const home = within(document.querySelector(".docs-crumbs")).getByRole("link", {
-      name: /pullwise/i,
-    });
-
-    expect(docsSide.queryByRole("link", { name: /api keys/i })).not.toBeInTheDocument();
-    expect(apiKeysFoot).toHaveAttribute("href", "/api-keys");
-    expect(pricing).toHaveAttribute("href", "/pricing");
-    expect(home).toHaveAttribute("href", "/");
-
-    await user.click(apiKeysFoot);
+    expect(screen.getByRole("link", { name: /^Guide$/ })).toHaveAttribute("href", "/developers/docs");
+    const keys = within(document.querySelector(".docs-foot-actions")).getByRole("link", { name: /api keys/i });
+    expect(keys).toHaveAttribute("href", "/api-keys");
+    await userEvent.setup().click(keys);
     expect(go).toHaveBeenCalledWith("apiKeys");
   });
 
@@ -260,7 +145,7 @@ describe("API screens", () => {
     });
     pullwiseApi.apiKeys.create.mockResolvedValue({
       id: "key_2",
-      name: "CI scanner",
+      name: "Ledger automation",
       prefix: "pwk_new",
       key: "pwk_live_secret",
     });
@@ -271,13 +156,14 @@ describe("API screens", () => {
 
     expect(await screen.findByText("Old key")).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/key name/i));
-    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
+    await user.type(screen.getByLabelText(/key name/i), "Ledger automation");
     await user.click(screen.getByRole("button", { name: /create key/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-        name: "CI scanner",
-        scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read"],
+        name: "Ledger automation",
+        scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "reports:read"],
+        restrictions: { shared: false },
       });
     });
     expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
@@ -417,9 +303,9 @@ describe("API screens", () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({
       id: "key_2",
-      name: "CI scanner",
+      name: "Ledger automation",
       prefix: "pwk_new",
-      scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write"],
+      scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "expenses:write", "reports:read"],
       key: "pwk_live_secret",
     });
     const user = userEvent.setup();
@@ -428,15 +314,16 @@ describe("API screens", () => {
 
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/key name/i));
-    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
-    await user.click(screen.getByRole("checkbox", { name: /handle items/i }));
+    await user.type(screen.getByLabelText(/key name/i), "Ledger automation");
+    await user.click(screen.getByRole("checkbox", { name: /manage expenses/i }));
     expect(screen.queryByRole("checkbox", { name: /sync github facts/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /create key/i }));
 
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-        name: "CI scanner",
-        scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read", "items:write"],
+        name: "Ledger automation",
+        scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "expenses:write", "reports:read"],
+        restrictions: { shared: false },
       });
     });
   });
@@ -449,12 +336,13 @@ describe("API screens", () => {
     const user = userEvent.setup();
     render(<ApiKeysScreen go={vi.fn()} />);
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /read items and sources/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /read expenses/i })).toBeChecked();
     expect(screen.queryByRole("checkbox", { name: /sync github facts/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /create key/i }));
     await waitFor(() => expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
       name: "Account automation",
-      scopes: ["profile:read", "repositories:read", "items:read", "watches:read", "usage:read"],
+      scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "reports:read"],
+      restrictions: { shared: false },
     }));
   });
 
@@ -483,9 +371,9 @@ describe("API screens", () => {
     );
     expect(scopes).toHaveClass("api-scope-panel");
     expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/^Scopes/);
-    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 8 selected");
-    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(8);
-    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(8);
+    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 9 selected");
+    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(9);
+    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(9);
     expect(styles).toMatch(
       /\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/
     );
@@ -499,7 +387,7 @@ describe("API screens", () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({
       id: "key_2",
-      name: "CI scanner",
+      name: "Ledger automation",
       prefix: "pwk_new",
       key: "pwk_live_secret",
     });
@@ -512,7 +400,7 @@ describe("API screens", () => {
 
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/key name/i));
-    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
+    await user.type(screen.getByLabelText(/key name/i), "Ledger automation");
     await user.click(screen.getByRole("button", { name: /create key/i }));
     expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
 
@@ -545,7 +433,7 @@ describe("API screens", () => {
 
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/key name/i));
-    await user.type(screen.getByLabelText(/key name/i), "CI scanner");
+    await user.type(screen.getByLabelText(/key name/i), "Ledger automation");
     await user.click(screen.getByRole("button", { name: /create key/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/api key response was malformed/i);

@@ -9,4 +9,14 @@
 .ledger-screen input, .ledger-screen select, .ledger-screen textarea { width: 100%; min-width: 0; border-radius: 0; }
 .ledger-screen .ledger-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
 .ledger-screen .ledger-message { border: 1px solid var(--border-strong); padding: 12px; }
+.ledger-screen .ledger-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; }
+.ledger-screen .ledger-chart { display: grid; gap: 10px; }
+.ledger-screen .ledger-chart-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(60px, 2fr) auto; align-items: center; gap: 10px; font-size: 13px; }
+.ledger-screen .ledger-chart-row > span:first-child { overflow-wrap: anywhere; }
+.ledger-screen .ledger-chart-track { height: 12px; background: var(--surface-alt, #ececec); }
+.ledger-screen .ledger-chart-track > span { display: block; height: 100%; background: var(--accent, #273f33); }
+.ledger-screen .ledger-suggestion { border: 1px solid var(--border-strong); padding: 14px; display: grid; gap: 8px; }
+.ledger-screen .ledger-suggestion h3, .ledger-screen .ledger-suggestion p { margin: 0; }
+.ledger-screen .ledger-suggestion label { display: flex; align-items: center; gap: 8px; }
+.ledger-screen .ledger-suggestion input[type="checkbox"] { width: auto; }
 @media (max-width: 760px) { .ledger-screen .ledger-panel { padding: 14px; } }

@@ -37,7 +37,7 @@ describe("SEO Worker shell", () => {
     });
     const html = await response.text();
 
-    expect(html).toContain("Pullwise Pricing — PR, CI, and Updates Plans");
+    expect(html).toContain("Pullwise Pricing — Project Expense Ledger");
     expect(html).toContain('<link rel="canonical" href="https://pull-wise.com/pricing"');
     expect(html).toContain('<meta name="robots" content="index,follow"');
   });

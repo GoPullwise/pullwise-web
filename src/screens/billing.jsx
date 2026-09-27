@@ -191,15 +191,6 @@ function chargeCallout(deltaText) {
 function planFeatureDeltas(currentPlan, targetPlan) {
   if (!currentPlan || !targetPlan) return [];
   const rows = [];
-  for (const [key, label] of [
-    ["activeRepositoryLimit", T("Active repositories", "启用的仓库")],
-    ["activeWatchLimit", T("Active update watches", "启用的更新关注")],
-    ["monthlyProcessingLimit", T("Intelligent processing / month", "每月智能处理量")],
-  ]) {
-    const before = nonNegativeInteger(currentPlan.entitlements?.[key]);
-    const after = nonNegativeInteger(targetPlan.entitlements?.[key]);
-    if (before !== after) rows.push({ key, label, before: String(before), after: String(after) });
-  }
   const currentName = planName(currentPlan);
   const targetName = planName(targetPlan);
   if (currentName && targetName && currentName !== targetName) {
@@ -249,11 +240,6 @@ function nonNegativeInteger(value) {
   const number = Number(value ?? 0);
   if (!Number.isFinite(number)) return 0;
   return Math.max(0, Math.trunc(number));
-}
-
-function planCapacity(plan, key) {
-  const value = plan?.entitlements?.[key];
-  return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
 function usagePercent(usage) {
@@ -344,8 +330,8 @@ function fallbackFreePlan(loading = false) {
     id: "free",
     name: "Free",
     description: T(
-      "Follow PR feedback, CI failures and upstream releases.",
-      "跟进 PR 反馈、CI 失败和上游更新。"
+      "Record project and shared expenses.",
+      "记录项目与公共支出。"
     ),
     entitlements: null,
     loading,
@@ -362,10 +348,10 @@ function fallbackPaidPlan(id, payload, loading = false) {
       payload?.description ||
       (max
         ? T(
-            "Higher-capacity PR, CI and Updates follow-up for teams.",
-            "为团队提供更高容量的 PR、CI 与更新跟进。"
+            "Pullwise project expense ledger for teams.",
+            "面向团队的 Pullwise 项目支出账本。"
           )
-        : T("PR, CI and Updates follow-up for teams.", "面向团队的 PR、CI 与更新跟进。")),
+        : T("Pullwise project expense ledger for teams.", "面向团队的 Pullwise 项目支出账本。")),
     entitlements: null,
     loading,
     prices: {
@@ -839,8 +825,8 @@ export function BillingScreen({
               <h1>{T("Billing", "Billing")}</h1>
               <div className="sub">
                 {T(
-                  "Account billing status, usage, and provider actions.",
-                  "Account billing status, usage, and provider actions."
+                  "Pullwise platform subscription and payment history. Your project expenses are recorded separately in the ledger.",
+                  "这里显示 Pullwise 平台订阅和支付历史。项目支出在账本中单独记录。"
                 )}
               </div>
             </div>
@@ -886,7 +872,7 @@ export function BillingScreen({
                   <div className="billing-summary-main">
                     <I.Activity size={18} />
                     <div>
-                      <b>{T("Account usage", "账户用量")}</b>
+                      <b>{T("Historical processing usage", "历史处理用量")}</b>
                       <div className="muted">
                         {accountName} - {usageText(usage)}
                       </div>
@@ -941,8 +927,8 @@ export function BillingScreen({
                             <b>{T("No processing activity", "暂无智能处理明细")}</b>
                             <div className="muted">
                               {T(
-                                "Successful PR, CI and Updates processing will appear here.",
-                                "成功完成的 PR、CI 与更新处理会显示在这里。"
+                                "Historical processing events, if any, appear here.",
+                                "如有历史处理事件，会显示在这里。"
                               )}
                             </div>
                           </div>
@@ -1415,8 +1401,8 @@ export function PricingScreen({
         <h1 className="lp-title">{T("Pricing", "Pricing")}</h1>
         <p className="lp-sub">
           {T(
-            "Choose capacity for PR, CI and Updates. Billing status and invoices stay on Billing.",
-            "选择 PR、CI 与更新跟进容量；订阅状态和账单仍在账单页。"
+            "Compare Pullwise platform subscriptions. Expenses you record in the ledger are separate from these charges.",
+            "比较 Pullwise 平台订阅。你在账本中录入的支出与这些费用分开。"
           )}
         </p>
         <div className="pricing-toggle" role="group" aria-label={T("Billing interval", "计费周期")}>
@@ -1448,9 +1434,9 @@ export function PricingScreen({
           active={account.plan === "free" || !activePaid}
           featured={false}
           cta={
-            <a className="btn" {...screenLinkProps(go, signedIn ? "dashboard" : "login")}>
+            <a className="btn" {...screenLinkProps(go, signedIn ? "ledgerProjects" : "login")}>
               <I.Check size={14} />{" "}
-              {signedIn ? T("Open dashboard", "打开工作台") : T("Start free", "免费开始")}
+              {signedIn ? T("Open projects", "打开项目") : T("Start free", "免费开始")}
             </a>
           }
           />
@@ -1521,9 +1507,6 @@ function PricingSkeletonLine({ className = "" }) {
 
 function PlanCard({ plan, price, interval, active, featured, cta }) {
   const loading = Boolean(plan?.loading);
-  const processingLimit = planCapacity(plan, "monthlyProcessingLimit");
-  const repositoryLimit = planCapacity(plan, "activeRepositoryLimit");
-  const watchLimit = planCapacity(plan, "activeWatchLimit");
   const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
@@ -1560,29 +1543,11 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         )}
       </div>
       <ul className="pricing-feats">
-        <li>
-          <I.Check size={13} />{" "}
-          {loading ? (
-            <PricingSkeletonLine className="pricing-skeleton-feature" />
-          ) : (
-            processingLimit === null
-              ? T("Processing capacity unavailable", "智能处理容量暂不可用")
-              : T(`${processingLimit} intelligent processing units / month`, `${processingLimit} 次/月智能处理`)
-          )}
-        </li>
-        <li>
-          <I.Check size={13} />{" "}
-          {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
-            repositoryLimit === null ? T("Repository capacity unavailable", "仓库容量暂不可用") :
-              T(`${repositoryLimit} active ${repositoryLimit === 1 ? "repository" : "repositories"}`, `${repositoryLimit} 个启用仓库`)}
-        </li>
-        <li>
-          <I.Check size={13} />{" "}
-          {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
-            watchLimit === null ? T("Watch capacity unavailable", "关注容量暂不可用") :
-              T(`${watchLimit} active update watches`, `${watchLimit} 个启用更新关注`)}
-        </li>
-        <li><I.Check size={13} /> {T("PR, CI and Updates with one REST API", "PR、CI 与更新共用一套 REST API")}</li>
+        <li><I.Check size={13} /> {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
+          T("Project and shared expense ledger", "项目与公共支出账本")}</li>
+        <li><I.Check size={13} /> {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
+          T("Per-currency reports and REST API", "逐币报表与 REST API")}</li>
+        <li><I.Check size={13} /> {T("Platform charges stay separate from ledger expenses", "平台收费与账本支出分开")}</li>
         {plan?.id && plan.id !== "free" && (
           <li>
             <I.Check size={13} /> {T("Cancel renewal from Billing", "从账单页取消续订")}

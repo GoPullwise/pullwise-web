@@ -16,8 +16,8 @@ function getScreenRedirectUrl(screen) {
 }
 
 function getRepositoryRedirectUrl(redirectTo) {
-  const redirectUrl = new URL(redirectTo || getScreenRedirectUrl("repos"));
-  redirectUrl.pathname = pathFromScreen("repos");
+  const redirectUrl = new URL(redirectTo || getScreenRedirectUrl("ledgerProjects"));
+  redirectUrl.pathname = pathFromScreen("ledgerProjects");
   return redirectUrl.toString();
 }
 
@@ -91,7 +91,7 @@ export async function startGitHubLogin({ redirectTo, signal } = {}) {
   if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
 
   const result = await pullwiseApi.auth.getGitHubAuthorizeUrl(
-    { redirectTo: redirectTo || getScreenRedirectUrl("dashboard") },
+    { redirectTo: redirectTo || getScreenRedirectUrl("ledgerProjects") },
     { signal }
   );
 

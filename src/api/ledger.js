@@ -39,4 +39,6 @@ export const ledgerApi = {
   reportTimeseries: (params, options) => ledgerRequest("/reports/timeseries", { ...options, params }),
   reportCategories: (params, options) => ledgerRequest("/reports/categories", { ...options, params }),
   suggestExpense: (fields, options) => ledgerRequest("/expense-suggestions", { ...options, method: "POST", body: fields }),
+  suggestDecision: (id, fields, options) => ledgerRequest(`/expense-suggestions/${encodeURIComponent(id)}/decision`,
+    { ...options, method: "POST", body: fields }),
 };

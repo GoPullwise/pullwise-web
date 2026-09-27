@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
+import { env } from "../config/env.js";
 import { connectGitHubRepositories } from "../lib/auth.js";
 import { Topbar, ProductSidebar } from "../shell.jsx";
 import "./ledger.css";
@@ -33,6 +34,31 @@ function formatTotal({ currency, amountMinor }) {
   return `${currency} ${whole}${fraction}`;
 }
 
+function LedgerFilters({ filters, onChange, categories = [] }) {
+  const update = (name, value) => onChange(old => ({ ...old, [name]: value }));
+  return <div className="ledger-filters">
+    <label>From date<input type="date" value={filters.from} onChange={event => update("from", event.target.value)} /></label>
+    <label>To date (exclusive)<input type="date" value={filters.to} min={filters.from || undefined}
+      onChange={event => update("to", event.target.value)} /></label>
+    <label>Filter category<select value={filters.categoryId} onChange={event => update("categoryId", event.target.value)}>
+      <option value="">All categories</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+    </select></label>
+  </div>;
+}
+
+function ReportGroups({ title, groups, categories = [], dimension }) {
+  const rows = groups || [];
+  const largest = Math.max(1, ...rows.map(row => row.amountMinor || 0));
+  return <section className="ledger-panel"><h2>{title}</h2>
+    {rows.length === 0 ? <p>No expenses in this range.</p> : <div className="ledger-chart">
+      {rows.map(row => <div className="ledger-chart-row" key={`${row.target}:${row.projectId}:${row.categoryId}:${row.bucket}:${row.currency}`}>
+        <span>{dimension === "bucket" ? row.bucket : categories.find(category => category.id === row.categoryId)?.name || "Archived category"} · {row.currency}</span>
+        <span className="ledger-chart-track"><span style={{ width: `${Math.max(1, row.amountMinor / largest * 100)}%` }} /></span>
+        <strong>{formatTotal(row)}</strong>
+      </div>)}</div>}
+  </section>;
+}
+
 function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCancel }) {
   const [draft, setDraft] = useState(() => value ? {
     occurredOn: value.occurredOn, amount: value.amount, currency: value.currency,
@@ -41,10 +67,49 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   } : emptyExpense());
   const [validation, setValidation] = useState("");
   const [selectedTarget, setSelectedTarget] = useState(value?.target || target);
+  const [suggestion, setSuggestion] = useState(null);
+  const [suggestionError, setSuggestionError] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+  const [duplicateReviewed, setDuplicateReviewed] = useState(false);
   const createKey = useRef(requestKey());
   const update = (name, next) => {
     createKey.current = requestKey();
+    setSuggestion(null);
+    setSuggestionError("");
+    setDuplicateReviewed(false);
     setDraft(old => ({ ...old, [name]: next }));
+  };
+  const requestSuggestion = async () => {
+    setSuggesting(true);
+    setSuggestionError("");
+    setSuggestion(null);
+    try {
+      const result = await ledgerApi.suggestExpense({ purpose: draft.purpose.trim(),
+        note: draft.note, target: selectedTarget,
+        occurredOn: draft.occurredOn || undefined,
+        amount: draft.amount || undefined,
+        currency: draft.currency?.toUpperCase() || undefined }, {});
+      if (result?.status === "available" || result?.status === "uncertain") {
+        setSuggestion(result);
+        setDuplicateReviewed(false);
+      } else setSuggestionError("Suggestion unavailable. Continue manually.");
+    } catch { setSuggestionError("Suggestion unavailable. Continue manually."); }
+    finally { setSuggesting(false); }
+  };
+  const decideSuggestion = async useIt => {
+    const suggestions = suggestion?.suggestions || {};
+    const nextCategory = useIt && suggestions.categoryId ? suggestions.categoryId : draft.categoryId;
+    const nextTarget = useIt && suggestions.targetKind === "shared" ? { kind: "shared" } : selectedTarget;
+    if (useIt) {
+      if (suggestions.categoryId) update("categoryId", suggestions.categoryId);
+      if (suggestions.targetKind === "shared") setSelectedTarget({ kind: "shared" });
+    }
+    setSuggestion(null);
+    if (suggestion?.suggestionId && nextCategory) {
+      try { await ledgerApi.suggestDecision(suggestion.suggestionId,
+        { target: nextTarget, categoryId: nextCategory }, {}); }
+      catch { /* Feedback does not block manual entry. */ }
+    }
   };
   const field = (name, label, extra = {}) => <label key={name}>{label}
     <input value={draft[name]} onChange={event => update(name, event.target.value)}
@@ -66,6 +131,8 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
     <label>Target<select value={selectedTarget.kind === "shared" ? "shared" : selectedTarget.projectId}
       disabled={busy} onChange={event => {
         createKey.current = requestKey();
+        setSuggestion(null);
+        setSuggestionError("");
         setSelectedTarget(event.target.value === "shared" ? { kind: "shared" } :
           { kind: "project", projectId: event.target.value });
       }}><option value="shared">Shared expense pool</option>
@@ -88,17 +155,36 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
     <label>Note<textarea value={draft.note} maxLength={4000} disabled={busy}
       onChange={event => update("note", event.target.value)} /></label>
     {validation && <p role="alert">{validation}</p>}
-    <div className="ledger-actions"><button className="btn primary" type="submit" disabled={busy}>
+    <div className="ledger-actions"><button className="btn" type="button" disabled={busy || suggesting || !draft.purpose.trim()}
+      onClick={requestSuggestion}>{suggesting ? "Checking…" : "Request suggestion"}</button></div>
+    {suggestionError && <p role="status">{suggestionError}</p>}
+    {suggestion && <div className="ledger-suggestion" role="status">
+      <h3>Review suggestion</h3>
+      {suggestion.suggestions?.categoryId && <p>Category: {categories.find(item => item.id === suggestion.suggestions.categoryId)?.name || "Unknown"}</p>}
+      {suggestion.suggestions?.targetKind && <p>Target: {suggestion.suggestions.targetKind === "shared" ? "Shared expense pool" :
+        "Project — select the intended project in the form before saving"}</p>}
+      {suggestion.suggestions?.duplicateExpenseId && <p>Possible duplicate: {suggestion.suggestions.duplicateExpenseId}. Check existing expenses before saving.</p>}
+      {!suggestion.suggestions?.categoryId && !suggestion.suggestions?.targetKind && !suggestion.suggestions?.duplicateExpenseId &&
+        <p>No confident suggestion. Your manual choices remain available.</p>}
+      {suggestion.suggestions?.duplicateExpenseId && <label><input type="checkbox" checked={duplicateReviewed}
+        onChange={event => setDuplicateReviewed(event.target.checked)} /> I reviewed the possible duplicate</label>}
+      <div className="ledger-actions"><button className="btn" type="button" disabled={Boolean(suggestion.suggestions?.duplicateExpenseId) && !duplicateReviewed}
+        onClick={() => decideSuggestion(true)}>Use suggestion</button>
+        <button className="btn" type="button" onClick={() => decideSuggestion(false)}>Keep my choices</button></div>
+    </div>}
+    <div className="ledger-actions"><button className="btn primary" type="submit" disabled={busy || suggesting || (Boolean(suggestion?.suggestions?.duplicateExpenseId) && !duplicateReviewed)}>
       Save expense</button><button className="btn" type="button" disabled={busy} onClick={onCancel}>Cancel</button></div>
   </form>;
 }
 
-export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
+export function LedgerScreen({ go, mode = "projects", projectId = "",
+  authorizationError = "", authorizationRevision = 0 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [revision, setRevision] = useState(0);
+  const [filters, setFilters] = useState({ from: "", to: "", categoryId: "" });
   const [busy, setBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [description, setDescription] = useState("");
@@ -111,30 +197,40 @@ export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
   const inFlight = useRef(false);
   const requestId = useRef(0);
   const moreController = useRef(null);
+  const loadedScope = useRef(null);
 
   const reload = useCallback(() => setRevision(value => value + 1), []);
+  const filtered = useMemo(() => Object.fromEntries(Object.entries(filters).filter(([, value]) => value)), [filters]);
+  const detailQuery = useMemo(() => mode === "shared" ? { target: "shared", ...filtered } :
+    { target: "project", projectId, ...filtered }, [mode, projectId, filtered]);
+  const exportHref = useMemo(() => `${env.VITE_API_BASE_URL || ""}/api/v1/expenses/export?${
+    new URLSearchParams(detailQuery).toString()}`, [detailQuery]);
   useEffect(() => {
     const controller = new AbortController();
     moreController.current?.abort();
     const request = ++requestId.current;
     setLoading(true);
     setError("");
-    setData(null);
+    const scope = `${mode}:${projectId}`;
+    if (loadedScope.current !== scope) setData(null);
+    loadedScope.current = scope;
     const options = { signal: controller.signal };
     const load = async () => {
       if (mode === "projects") {
-        const [projects, repositories] = await Promise.all([
-          ledgerApi.projects({}, options), ledgerApi.repositories({}, options)]);
-        return { projects, repositories };
+        const [projects, repositories, categories, summary] = await Promise.all([
+          ledgerApi.projects({}, options), ledgerApi.repositories({}, options),
+          ledgerApi.categories(options), ledgerApi.reportSummary(filtered, options)]);
+        return { projects, repositories, categories, summary };
       }
       if (mode === "categories") return { categories: await ledgerApi.categories(options) };
-      const [categories, expenses, project, projects] = await Promise.all([
-        ledgerApi.categories(options), ledgerApi.expenses(
-          mode === "shared" ? { target: "shared" } : { target: "project", projectId }, options),
+      const [categories, expenses, project, projects, summary, timeseries, categoryReport] = await Promise.all([
+        ledgerApi.categories(options), ledgerApi.expenses(detailQuery, options),
         mode === "project" ? ledgerApi.project(projectId, options) : Promise.resolve(null),
         ledgerApi.projects({}, options),
+        ledgerApi.reportSummary(detailQuery, options), ledgerApi.reportTimeseries(detailQuery, options),
+        ledgerApi.reportCategories(detailQuery, options),
       ]);
-      return { categories, expenses, project, projects };
+      return { categories, expenses, project, projects, summary, timeseries, categoryReport };
     };
     load().then(result => {
       if (!controller.signal.aborted && request === requestId.current) {
@@ -147,7 +243,7 @@ export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
       if (!controller.signal.aborted && request === requestId.current) setLoading(false);
     });
     return () => { controller.abort(); moreController.current?.abort(); };
-  }, [mode, projectId, revision]);
+  }, [mode, projectId, revision, filtered, detailQuery, authorizationRevision]);
 
   const loadMore = async kind => {
     const cursor = kind === "projects" ? data?.projects?.nextCursor : data?.expenses?.nextCursor;
@@ -160,8 +256,7 @@ export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
     try {
       const next = kind === "projects"
         ? await ledgerApi.projects({ cursor }, { signal: controller.signal })
-        : await ledgerApi.expenses({ ...(mode === "shared" ? { target: "shared" } :
-          { target: "project", projectId }), cursor }, { signal: controller.signal });
+        : await ledgerApi.expenses({ ...detailQuery, cursor }, { signal: controller.signal });
       if (controller.signal.aborted || request !== requestId.current) return;
       if (next.nextCursor === cursor || (next.items.length === 0 && next.nextCursor)) {
         setActionError("Pagination did not advance. Reload to retry.");
@@ -232,10 +327,20 @@ export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
             mode === "categories" ? "Categories are shared by your projects and pool." :
               "Your recorded expenses remain available when GitHub access changes."}</p></div>
         <button className="btn" onClick={reload} disabled={loading}>Reload</button></div>
+        {authorizationError && <p role="alert" className="ledger-message">{authorizationError}</p>}
         {error && <div role="alert" className="ledger-message">{error} <button className="btn" onClick={reload}>Retry</button></div>}
         {actionError && <p role="alert" className="ledger-message">{actionError}</p>}
         {loading && <p role="status">Loading ledger…</p>}
         {data && mode === "projects" && <>
+          <section className="ledger-panel"><h2>Account overview</h2>
+            <LedgerFilters filters={filters} onChange={setFilters} categories={data.categories} />
+            {data.summary.groups.filter(group => group.target === "account").length === 0 && <p>No expenses in this range.</p>}
+            <div className="ledger-list">{data.summary.groups.filter(group => group.target === "account").map(group =>
+              <article key={group.currency}><h3>{formatTotal(group)}</h3>
+                <p>Projects: <span>{formatTotal(data.summary.groups.find(item => item.target === "project" && item.projectId == null && item.currency === group.currency) || { currency: group.currency, amountMinor: 0 })}</span></p>
+                <p>Shared: <span>{formatTotal(data.summary.groups.find(item => item.target === "shared" && item.currency === group.currency) || { currency: group.currency, amountMinor: 0 })}</span></p>
+              </article>)}</div>
+          </section>
           <section className="ledger-panel"><h2>Create project</h2>
             {availableRepos.length === 0 ? <p>No unbound authorized repositories. Connect GitHub to add a project.</p> :
               <form className="ledger-form" onSubmit={event => { event.preventDefault(); action(() =>
@@ -255,6 +360,7 @@ export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
             {data.projects.items.length === 0 && <p>No projects yet. Choose an authorized repository above.</p>}
             <div className="ledger-list">{data.projects.items.map(project => <article key={project.id}>
               <h3>{project.githubFullName || project.description || "Project history"}</h3>
+              <p>Project ID: <code>{project.id}</code></p>
               {project.description && project.githubFullName && <p>{project.description}</p>}
               {project.githubAccess === "lost" && <p role="status">GitHub access lost. Historical expenses remain available; reconnect GitHub to add new expenses.</p>}
               <p>{project.totals.map(formatTotal).join(" · ") || "No expenses"}</p>
@@ -299,6 +405,16 @@ export function LedgerScreen({ go, mode = "projects", projectId = "" }) {
               </div>}</article>)}</div></section>
         </>}
         {data && (mode === "shared" || mode === "project") && <>
+          <section className="ledger-panel"><h2>Detail filters</h2>
+            <LedgerFilters filters={filters} onChange={setFilters} categories={data.categories} />
+            <a className="btn" href={exportHref} download="expenses.csv">Export CSV</a>
+          </section>
+          <section className="ledger-panel"><h2>Totals by currency</h2>
+            {data.summary.groups.filter(group => group.target === mode && (mode === "shared" || group.projectId === projectId)).map(group =>
+              <p key={group.currency}>{formatTotal(group)}</p>)}
+          </section>
+          <ReportGroups title="Expenses over time" groups={data.timeseries.groups} dimension="bucket" />
+          <ReportGroups title="Expenses by category" groups={data.categoryReport.groups} categories={data.categories} dimension="category" />
           {data.project?.githubAccess === "lost" && <div className="ledger-message" role="status">
             GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses.</div>}
           {mode === "project" && <section className="ledger-panel"><h2>Project description</h2>

@@ -64,14 +64,14 @@ describe("legal pages", () => {
     ).toBeInTheDocument();
   });
 
-  it("describes the PR, CI, and Updates service without retired scan promises", () => {
+  it("describes the ledger and separate platform billing", () => {
     const { unmount } = render(<PrivacyScreen go={vi.fn()} />);
-    expect(screen.getByText(/pull request follow-up, CI failure, and upstream release/i)).toBeInTheDocument();
+    expect(screen.getByText(/handles account, GitHub, expense ledger/i)).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/repository preflight|scan records|fix previews|generated reports/i);
     unmount();
 
     render(<TermsScreen go={vi.fn()} />);
-    expect(screen.getByText(/pull request follow-up, CI failure, and upstream release/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/platform subscription/i)[0]).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/queue and cancel scans|deterministic fixes|public scan creation|scans:write/i);
   });
 

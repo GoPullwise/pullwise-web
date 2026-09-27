@@ -86,7 +86,7 @@ export function SettingsScreen({ go }) {
           <p className="muted">{github?.connected
             ? T(`${repositoryCount} repositories authorized${accounts.length ? ` on ${accounts.join(", ")}` : ""}.`,
               `已授权 ${repositoryCount} 个仓库${accounts.length ? `（${accounts.join("、")}）` : ""}。`)
-            : T("Connect repositories to follow PRs, CI failures and upstream releases.",
+            : T("Connect repositories to create ledger projects.",
               "连接仓库后可跟进 PR、CI 失败和上游版本更新。")}</p>
           <button className="btn sm" onClick={() => runGitHubAction(() =>
             connectGitHubRepositories(github?.connected ? { add: true } : {}))}>

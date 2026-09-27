@@ -60,8 +60,8 @@ export function PublicHeader({ go, current, auth }) {
             <button className="btn sm" onClick={signOut}>
               {T("Sign out", "退出登录")}
             </button>
-            <a className="btn primary sm" {...screenLinkProps(go, "dashboard")}>
-              {T("Dashboard", "工作台")}
+            <a className="btn primary sm" {...screenLinkProps(go, "ledgerProjects")}>
+              {T("Projects", "项目")}
             </a>
           </>
         ) : (

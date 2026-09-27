@@ -21,8 +21,6 @@ const ApiKeysScreen = lazyScreen(() => import("./screens/api.jsx"), "ApiKeysScre
 const ApiDocsScreen = lazyScreen(() => import("./screens/api-docs.jsx"), "ApiDocsScreen");
 const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "BillingScreen");
 const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
-const DashboardScreen = lazyScreen(() => import("./screens/dashboard.jsx"), "DashboardScreen");
-const ProductManagementScreen = lazyScreen(() => import("./screens/product-management.jsx"), "ProductManagementScreen");
 const LedgerScreen = lazyScreen(() => import("./screens/ledger.jsx"), "LedgerScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/settings.jsx"), "SettingsScreen");
@@ -118,9 +116,9 @@ function PrototypeNav({ go, current }) {
     { k: "landing", t: T("Landing", "首页") },
     { k: "login", t: T("Sign in", "登录") },
     { k: "oauth", t: T("GitHub OAuth", "GitHub 授权") },
-    { k: "repos", t: T("Repositories", "仓库") },
-    { k: "services", t: T("Services", "服务") },
-    { k: "dashboard", t: T("Dashboard", "工作台") },
+    { k: "ledgerProjects", t: T("Projects", "项目") },
+    { k: "ledgerShared", t: T("Shared pool", "公共支出池") },
+    { k: "ledgerCategories", t: T("Categories", "类别") },
     { k: "apiKeys", t: T("API Keys", "API Keys") },
     { k: "settings", t: T("Settings", "设置") },
     { k: "billing", t: T("Billing", "账单") },
@@ -425,7 +423,7 @@ export function App({ prototypeNav = false }) {
   }, [theme]);
 
   useEffect(() => {
-    if (auth.status !== "ready" || !auth.authenticated || screen !== "repos") return;
+    if (auth.status !== "ready" || !auth.authenticated || screen !== "ledgerProjects") return;
     if (continuedRepositoryAuthorization.current || !repositoryAuthorizationRequested()) return;
     continuedRepositoryAuthorization.current = true;
     clearRepositoryAuthorizationRequest();
@@ -493,22 +491,10 @@ export function App({ prototypeNav = false }) {
       case "oauth":
         body = <OAuthScreen go={go} auth={auth} />;
         break;
-      case "repos":
-        body = <ProductManagementScreen
-          go={go} authorizationError={repositoryAuthorizationError}
-          authorizationRevision={repositoryAuthorizationRevision}
-          clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
-        break;
-      case "dashboard":
-        body = <DashboardScreen go={go} />;
-        break;
-      case "services":
-        body = <ProductManagementScreen go={go} authorizationError={repositoryAuthorizationError}
-          authorizationRevision={repositoryAuthorizationRevision}
-          clearAuthorizationError={() => setRepositoryAuthorizationError("")} />;
-        break;
       case "ledgerProjects":
-        body = <LedgerScreen go={go} mode="projects" />;
+        body = <LedgerScreen go={go} mode="projects"
+          authorizationError={repositoryAuthorizationError}
+          authorizationRevision={repositoryAuthorizationRevision} />;
         break;
       case "ledgerCategories":
         body = <LedgerScreen go={go} mode="categories" />;

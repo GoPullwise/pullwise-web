@@ -59,7 +59,7 @@ describe("auth redirects", () => {
     await expect(startGitHubLogin()).rejects.toThrow("stop");
 
     const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
-    expect(redirectPath(call)).toBe("/dashboard/overview");
+    expect(redirectPath(call)).toBe("/projects");
     expect(redirectScreen(call)).toBeNull();
   });
 
@@ -69,7 +69,7 @@ describe("auth redirects", () => {
     await expect(connectGitHubRepositories()).rejects.toThrow("stop");
 
     const call = pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0];
-    expect(redirectPath(call)).toBe("/repos");
+    expect(redirectPath(call)).toBe("/projects");
     expect(redirectScreen(call)).toBeNull();
   });
 
@@ -84,7 +84,7 @@ describe("auth redirects", () => {
     await expect(connectGitHubRepositories()).rejects.toThrow("login-started");
 
     const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
-    expect(redirectPath(call)).toBe("/repos");
+    expect(redirectPath(call)).toBe("/projects");
     expect(redirectScreen(call)).toBeNull();
     expect(redirectParam(call, "repoAuth")).toBe("1");
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
