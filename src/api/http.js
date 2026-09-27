@@ -26,7 +26,7 @@ function isAbortError(error) {
 }
 
 function buildUrl(path, params) {
-  const base = env.VITE_API_BASE_URL || "";
+  const base = http.defaults.baseURL;
   const url = `${base}${path}`;
   if (!params) return url;
   const search = new URLSearchParams();

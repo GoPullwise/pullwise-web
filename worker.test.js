@@ -9,6 +9,31 @@ afterEach(() => {
 });
 
 describe("Cloudflare Worker API proxy", () => {
+  it("keeps the Server /api/v1 path and forwards bearer credentials", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { headers: { "content-type": "application/json" } }));
+    globalThis.fetch = fetchMock;
+    await worker.fetch(new Request("https://pull-wise.com/api/api/v1/expenses?target=shared", {
+      headers: { Authorization: "Bearer pwk_test" },
+    }), { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" });
+    expect(String(fetchMock.mock.calls[0][0])).toBe("https://api.pull-wise.com/api/v1/expenses?target=shared");
+    expect(fetchMock.mock.calls[0][1].headers.get("Authorization")).toBe("Bearer pwk_test");
+  });
+
+  it("preserves OAuth callback path, redirect and session cookie", async () => {
+    const fetchMock = vi.fn(async () => new Response(null, {
+      status: 302,
+      headers: { Location: "https://pull-wise.com/dashboard", "Set-Cookie": "pw_session=opaque; Path=/; HttpOnly; Secure; SameSite=None" },
+    }));
+    globalThis.fetch = fetchMock;
+    const response = await worker.fetch(
+      new Request("https://pull-wise.com/api/auth/github/callback?code=sample", { headers: { Origin: "https://pull-wise.com" } }),
+      { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" }
+    );
+    expect(String(fetchMock.mock.calls[0][0])).toBe("https://api.pull-wise.com/auth/github/callback?code=sample");
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("https://pull-wise.com/dashboard");
+    expect(response.headers.get("Set-Cookie")).toContain("SameSite=None");
+  });
   it("routes api requests to the configured backend origin", async () => {
     const fetchMock = vi.fn(
       async (url, init) =>

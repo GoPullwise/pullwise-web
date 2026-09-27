@@ -1,3 +1,11 @@
+## Next product design — GitHub project expense ledger
+
+The requested replacement product is specified in `../pullwise-server/docs/design/github-project-ledger/README.md`. Web will use the replacement Server REST API for per-repository and shared-pool expense accounting while keeping GitHub authorization, account/API-key management and platform billing. This new design supersedes the PR/CI/Updates product target below for future work; the old notes remain current-runtime and cleanup evidence. S02 has added the ledger API client; ledger pages begin at S09. Keep the Cloudflare Web deployment path, and perform no real Cloudflare tests until the entire replacement service is implemented unless the user explicitly requests them.
+
+`src/api/ledger.js` adds `/api/v1/*` to the Web `/api` base; the Web Worker removes only the first `/api` proxy prefix. OAuth callbacks travel through Web `/api/auth/github/callback`. Run `npm run check:workers` and `npm run check` locally before future Web stages; `deploy:workers` is a real publication command and remains gated until S18.
+
+Implement the replacement one Sxx stage at a time as defined in design section 8. After completing and locally verifying a Web stage, write `docs/handoffs/Sxx-<name>.md`, report it, and stop development until the developer explicitly continues or assigns another agent. For cross-project stages, write a handoff in both repositories.
+
 <!-- PULLWISE_PRODUCT_TARGET_START -->
 ## Current target — PR / CI / Updates design 1.4
 

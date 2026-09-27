@@ -15,7 +15,8 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest --passWithNoTests",
     "preview:workers": "npm run build && npx wrangler dev --var PULLWISE_API_ORIGIN:http://localhost:8080",
-    "deploy:workers": "npm run build && npx wrangler deploy",
+    "check:workers": "node scripts/check-cloudflare-config.mjs",
+    "deploy:workers": "npm run check:workers && npm run build && npx wrangler deploy",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run lint && npm run test && npm run build"
