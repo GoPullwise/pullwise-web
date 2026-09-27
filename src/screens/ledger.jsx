@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { env } from "../config/env.js";
+import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories } from "../lib/auth.js";
 import { Topbar, ProductSidebar } from "../shell.jsx";
 import "./ledger.css";
@@ -37,11 +38,11 @@ function formatTotal({ currency, amountMinor }) {
 function LedgerFilters({ filters, onChange, categories = [] }) {
   const update = (name, value) => onChange(old => ({ ...old, [name]: value }));
   return <div className="ledger-filters">
-    <label>From date<input type="date" value={filters.from} onChange={event => update("from", event.target.value)} /></label>
-    <label>To date (exclusive)<input type="date" value={filters.to} min={filters.from || undefined}
+    <label>{T("From date") }<input type="date" value={filters.from} onChange={event => update("from", event.target.value)} /></label>
+    <label>{T("To date (exclusive)") }<input type="date" value={filters.to} min={filters.from || undefined}
       onChange={event => update("to", event.target.value)} /></label>
-    <label>Filter category<select value={filters.categoryId} onChange={event => update("categoryId", event.target.value)}>
-      <option value="">All categories</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+    <label>{T("Filter category") }<select value={filters.categoryId} onChange={event => update("categoryId", event.target.value)}>
+      <option value="">{T("All categories") }</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
     </select></label>
   </div>;
 }
@@ -50,7 +51,7 @@ function ReportGroups({ title, groups, categories = [], dimension }) {
   const rows = groups || [];
   const largest = Math.max(1, ...rows.map(row => row.amountMinor || 0));
   return <section className="ledger-panel"><h2>{title}</h2>
-    {rows.length === 0 ? <p>No expenses in this range.</p> : <div className="ledger-chart">
+    {rows.length === 0 ? <p>{T("No expenses in this range.") }</p> : <div className="ledger-chart">
       {rows.map(row => <div className="ledger-chart-row" key={`${row.target}:${row.projectId}:${row.categoryId}:${row.bucket}:${row.currency}`}>
         <span>{dimension === "bucket" ? row.bucket : categories.find(category => category.id === row.categoryId)?.name || "Archived category"} · {row.currency}</span>
         <span className="ledger-chart-track"><span style={{ width: `${Math.max(1, row.amountMinor / largest * 100)}%` }} /></span>
@@ -128,23 +129,23 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   };
   return <form className="ledger-form" onSubmit={submit}>
     <h2>{value ? "Edit expense" : "Add expense"}</h2>
-    <label>Target<select value={selectedTarget.kind === "shared" ? "shared" : selectedTarget.projectId}
+    <label>{T("Target") }<select value={selectedTarget.kind === "shared" ? "shared" : selectedTarget.projectId}
       disabled={busy} onChange={event => {
         createKey.current = requestKey();
         setSuggestion(null);
         setSuggestionError("");
         setSelectedTarget(event.target.value === "shared" ? { kind: "shared" } :
           { kind: "project", projectId: event.target.value });
-      }}><option value="shared">Shared expense pool</option>
+      }}><option value="shared">{T("Shared expense pool") }</option>
       {projects.map(project => <option key={project.id} value={project.id}>
-        {project.githubFullName || project.description || "Project history"}</option>)}</select></label>
+        {project.githubFullName || project.description || T("Project history")}</option>)}</select></label>
     <div className="ledger-fields">
       {field("occurredOn", "Date", { type: "date", required: true })}
       {field("amount", "Amount", { inputMode: "decimal", required: true })}
       {field("currency", "Currency", { maxLength: 3, required: true })}
-      <label>Category<select value={draft.categoryId} required disabled={busy}
+      <label>{T("Category") }<select value={draft.categoryId} required disabled={busy}
         onChange={event => update("categoryId", event.target.value)}>
-        <option value="">Select category</option>
+        <option value="">{T("Select category") }</option>
         {categories.filter(category => !category.archivedAt || category.id === value?.categoryId)
           .map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
       </select></label>
@@ -152,16 +153,16 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       {field("quantity", "Quantity", { inputMode: "decimal" })}
       {field("unit", "Unit", { maxLength: 40 })}
     </div>
-    <label>Note<textarea value={draft.note} maxLength={4000} disabled={busy}
+    <label>{T("Note") }<textarea value={draft.note} maxLength={4000} disabled={busy}
       onChange={event => update("note", event.target.value)} /></label>
     {validation && <p role="alert">{validation}</p>}
     <div className="ledger-actions"><button className="btn" type="button" disabled={busy || suggesting || !draft.purpose.trim()}
       onClick={requestSuggestion}>{suggesting ? "Checking…" : "Request suggestion"}</button></div>
     {suggestionError && <p role="status">{suggestionError}</p>}
     {suggestion && <div className="ledger-suggestion" role="status">
-      <h3>Review suggestion</h3>
+      <h3>{T("Review suggestion") }</h3>
       {suggestion.suggestions?.categoryId && <p>Category: {categories.find(item => item.id === suggestion.suggestions.categoryId)?.name || "Unknown"}</p>}
-      {suggestion.suggestions?.targetKind && <p>Target: {suggestion.suggestions.targetKind === "shared" ? "Shared expense pool" :
+      {suggestion.suggestions?.targetKind && <p>Target: {suggestion.suggestions.targetKind === "shared" ? T("Shared expense pool") :
         "Project — select the intended project in the form before saving"}</p>}
       {suggestion.suggestions?.duplicateExpenseId && <p>Possible duplicate: {suggestion.suggestions.duplicateExpenseId}. Check existing expenses before saving.</p>}
       {!suggestion.suggestions?.categoryId && !suggestion.suggestions?.targetKind && !suggestion.suggestions?.duplicateExpenseId &&
@@ -169,16 +170,17 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       {suggestion.suggestions?.duplicateExpenseId && <label><input type="checkbox" checked={duplicateReviewed}
         onChange={event => setDuplicateReviewed(event.target.checked)} /> I reviewed the possible duplicate</label>}
       <div className="ledger-actions"><button className="btn" type="button" disabled={Boolean(suggestion.suggestions?.duplicateExpenseId) && !duplicateReviewed}
-        onClick={() => decideSuggestion(true)}>Use suggestion</button>
-        <button className="btn" type="button" onClick={() => decideSuggestion(false)}>Keep my choices</button></div>
+        onClick={() => decideSuggestion(true)}>{T("Use suggestion") }</button>
+        <button className="btn" type="button" onClick={() => decideSuggestion(false)}>{T("Keep my choices") }</button></div>
     </div>}
     <div className="ledger-actions"><button className="btn primary" type="submit" disabled={busy || suggesting || (Boolean(suggestion?.suggestions?.duplicateExpenseId) && !duplicateReviewed)}>
-      Save expense</button><button className="btn" type="button" disabled={busy} onClick={onCancel}>Cancel</button></div>
+      Save expense</button><button className="btn" type="button" disabled={busy} onClick={onCancel}>{T("Cancel") }</button></div>
   </form>;
 }
 
 export function LedgerScreen({ go, mode = "projects", projectId = "",
   authorizationError = "", authorizationRevision = 0 }) {
+  useLang();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -311,8 +313,8 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
     if (ok) setConfirmId("");
   };
 
-  const title = mode === "projects" ? "Projects" : mode === "categories" ? "Categories" :
-    mode === "shared" ? "Shared expense pool" : data?.project?.githubFullName || "Project history";
+  const title = mode === "projects" ? T("Projects") : mode === "categories" ? T("Categories") :
+    mode === "shared" ? T("Shared expense pool") : data?.project?.githubFullName || T("Project history");
   const target = mode === "shared" ? { kind: "shared" } : { kind: "project", projectId };
   const expenses = data?.expenses?.items || [];
   const availableRepos = data?.repositories?.items?.filter(repo =>
@@ -322,48 +324,48 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
     <div className="with-side"><ProductSidebar go={go} section={mode === "shared" ? "ledgerShared" :
       mode === "categories" ? "ledgerCategories" : "ledgerProjects"} />
       <main className="main wide"><div className="page-h"><div><h1>{title}</h1>
-        <p className="sub">{mode === "projects" ? "Track expenses for each GitHub repository." :
-          mode === "shared" ? "Costs used across projects stay in this pool once." :
-            mode === "categories" ? "Categories are shared by your projects and pool." :
-              "Your recorded expenses remain available when GitHub access changes."}</p></div>
-        <button className="btn" onClick={reload} disabled={loading}>Reload</button></div>
+        <p className="sub">{mode === "projects" ? T("Track expenses for each GitHub repository.") :
+          mode === "shared" ? T("Costs used across projects stay in this pool once.") :
+            mode === "categories" ? T("Categories are shared by your projects and pool.") :
+              T("Your recorded expenses remain available when GitHub access changes.")}</p></div>
+        <button className="btn" onClick={reload} disabled={loading}>{T("Reload") }</button></div>
         {authorizationError && <p role="alert" className="ledger-message">{authorizationError}</p>}
-        {error && <div role="alert" className="ledger-message">{error} <button className="btn" onClick={reload}>Retry</button></div>}
+        {error && <div role="alert" className="ledger-message">{error} <button className="btn" onClick={reload}>{T("Retry") }</button></div>}
         {actionError && <p role="alert" className="ledger-message">{actionError}</p>}
         {loading && <p role="status">Loading ledger…</p>}
         {data && mode === "projects" && <>
-          <section className="ledger-panel"><h2>Account overview</h2>
+          <section className="ledger-panel"><h2>{T("Account overview") }</h2>
             <LedgerFilters filters={filters} onChange={setFilters} categories={data.categories} />
-            {data.summary.groups.filter(group => group.target === "account").length === 0 && <p>No expenses in this range.</p>}
+            {data.summary.groups.filter(group => group.target === "account").length === 0 && <p>{T("No expenses in this range.") }</p>}
             <div className="ledger-list">{data.summary.groups.filter(group => group.target === "account").map(group =>
               <article key={group.currency}><h3>{formatTotal(group)}</h3>
                 <p>Projects: <span>{formatTotal(data.summary.groups.find(item => item.target === "project" && item.projectId == null && item.currency === group.currency) || { currency: group.currency, amountMinor: 0 })}</span></p>
                 <p>Shared: <span>{formatTotal(data.summary.groups.find(item => item.target === "shared" && item.currency === group.currency) || { currency: group.currency, amountMinor: 0 })}</span></p>
               </article>)}</div>
           </section>
-          <section className="ledger-panel"><h2>Create project</h2>
+          <section className="ledger-panel"><h2>{T("Create project") }</h2>
             {availableRepos.length === 0 ? <p>No unbound authorized repositories. Connect GitHub to add a project.</p> :
               <form className="ledger-form" onSubmit={event => { event.preventDefault(); action(() =>
                 ledgerApi.createProject({ githubRepoId: Number(selectedRepo || availableRepos[0].githubRepoId),
                   description }, {})); }}>
-                <label>Repository<select value={selectedRepo} disabled={busy}
+                <label>{T("Repository") }<select value={selectedRepo} disabled={busy}
                   onChange={event => setSelectedRepo(event.target.value)}>
                   {availableRepos.map(repo => <option key={repo.githubRepoId} value={repo.githubRepoId}>
                     {repo.fullName}</option>)}</select></label>
-                <label>Project description<textarea value={description} maxLength={2000} disabled={busy}
+                <label>{T("Project description") }<textarea value={description} maxLength={2000} disabled={busy}
                   onChange={event => setDescription(event.target.value)} /></label>
-                <button className="btn primary" type="submit" disabled={busy}>Create project</button>
+                <button className="btn primary" type="submit" disabled={busy}>{T("Create project") }</button>
               </form>}
-            <button className="btn" onClick={() => connectGitHubRepositories({ add: true })}>Manage GitHub access</button>
+            <button className="btn" onClick={() => connectGitHubRepositories({ add: true })}>{T("Manage GitHub access") }</button>
           </section>
-          <section className="ledger-panel"><h2>Your projects</h2>
+          <section className="ledger-panel"><h2>{T("Your projects") }</h2>
             {data.projects.items.length === 0 && <p>No projects yet. Choose an authorized repository above.</p>}
             <div className="ledger-list">{data.projects.items.map(project => <article key={project.id}>
-              <h3>{project.githubFullName || project.description || "Project history"}</h3>
+              <h3>{project.githubFullName || project.description || T("Project history")}</h3>
               <p>Project ID: <code>{project.id}</code></p>
               {project.description && project.githubFullName && <p>{project.description}</p>}
               {project.githubAccess === "lost" && <p role="status">GitHub access lost. Historical expenses remain available; reconnect GitHub to add new expenses.</p>}
-              <p>{project.totals.map(formatTotal).join(" · ") || "No expenses"}</p>
+              <p>{project.totals.map(formatTotal).join(" · ") || T("No expenses")}</p>
               <button className="btn" onClick={() => go("ledgerProject", { id: project.id })}>Open project</button>
             </article>)}</div>
             {data.projects.nextCursor && <button className="btn" disabled={loadingMore}
@@ -371,13 +373,13 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
           </section>
         </>}
         {data && mode === "categories" && <>
-          <section className="ledger-panel"><h2>Add category</h2>
+          <section className="ledger-panel"><h2>{T("Add category") }</h2>
             <form className="ledger-actions" onSubmit={event => { event.preventDefault();
               action(() => ledgerApi.createCategory({ name: categoryName.trim() }, {})); }}>
               <label>Category name<input value={categoryName} maxLength={80} required disabled={busy}
                 onChange={event => setCategoryName(event.target.value)} /></label>
-              <button className="btn primary" type="submit" disabled={busy}>Add category</button></form></section>
-          <section className="ledger-panel"><h2>Your categories</h2>
+              <button className="btn primary" type="submit" disabled={busy}>{T("Add category") }</button></form></section>
+          <section className="ledger-panel"><h2>{T("Your categories") }</h2>
             {data.categories.length === 0 && <p>No categories yet.</p>}
             <div className="ledger-list">{data.categories.map(category => <article key={category.id}>
               <h3>{category.name}</h3><p>{category.archivedAt ? "Archived; retained on historical expenses" : "Active"}</p>
@@ -387,29 +389,29 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
                   { name: categoryEdit.name.trim(), color: category.color }, {})).then(ok => {
                     if (ok) setCategoryEdit(null);
                   });
-              }}><label>New category name<input value={categoryEdit.name} required maxLength={80}
+              }}><label>{T("New category name") }<input value={categoryEdit.name} required maxLength={80}
                 onChange={event => setCategoryEdit({ id: category.id, name: event.target.value })} /></label>
-                <button className="btn primary" type="submit" disabled={busy}>Save category</button>
-                <button className="btn" type="button" onClick={() => setCategoryEdit(null)}>Cancel</button></form>}
+                <button className="btn primary" type="submit" disabled={busy}>{T("Save category") }</button>
+                <button className="btn" type="button" onClick={() => setCategoryEdit(null)}>{T("Cancel") }</button></form>}
               {!category.archivedAt && <div className="ledger-actions">
                 <button className="btn" disabled={busy} onClick={() => setCategoryEdit({ id: category.id,
-                  name: category.name })}>Rename</button>
+                  name: category.name })}>{T("Rename") }</button>
                 {confirmCategoryId === category.id ? <>
                   <button className="btn" disabled={busy} onClick={() => action(() =>
                     ledgerApi.archiveCategory(category.id, category.revision, {})).then(ok => {
                       if (ok) setConfirmCategoryId("");
-                    })}>Confirm archive</button>
-                  <button className="btn" disabled={busy} onClick={() => setConfirmCategoryId("")}>Cancel</button>
+                    })}>{T("Confirm archive") }</button>
+                  <button className="btn" disabled={busy} onClick={() => setConfirmCategoryId("")}>{T("Cancel") }</button>
                 </> : <button className="btn" disabled={busy} onClick={() =>
-                  setConfirmCategoryId(category.id)}>Archive</button>}
+                  setConfirmCategoryId(category.id)}>{T("Archive") }</button>}
               </div>}</article>)}</div></section>
         </>}
         {data && (mode === "shared" || mode === "project") && <>
-          <section className="ledger-panel"><h2>Detail filters</h2>
+          <section className="ledger-panel"><h2>{T("Detail filters") }</h2>
             <LedgerFilters filters={filters} onChange={setFilters} categories={data.categories} />
-            <a className="btn" href={exportHref} download="expenses.csv">Export CSV</a>
+            <a className="btn" href={exportHref} download="expenses.csv">{T("Export CSV") }</a>
           </section>
-          <section className="ledger-panel"><h2>Totals by currency</h2>
+          <section className="ledger-panel"><h2>{T("Totals by currency") }</h2>
             {data.summary.groups.filter(group => group.target === mode && (mode === "shared" || group.projectId === projectId)).map(group =>
               <p key={group.currency}>{formatTotal(group)}</p>)}
           </section>
@@ -417,15 +419,15 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
           <ReportGroups title="Expenses by category" groups={data.categoryReport.groups} categories={data.categories} dimension="category" />
           {data.project?.githubAccess === "lost" && <div className="ledger-message" role="status">
             GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses.</div>}
-          {mode === "project" && <section className="ledger-panel"><h2>Project description</h2>
+          {mode === "project" && <section className="ledger-panel"><h2>{T("Project description") }</h2>
             <form onSubmit={event => { event.preventDefault(); action(() =>
               ledgerApi.updateProject(projectId, data.project.revision, { description }, {})); }}>
               <label>Description<textarea value={description} maxLength={2000}
                 onChange={event => setDescription(event.target.value)} /></label>
               <button className="btn" type="submit" disabled={busy}>Save description</button></form></section>}
-          <section className="ledger-panel"><h2>Expenses</h2>
+          <section className="ledger-panel"><h2>{T("Expenses") }</h2>
             {data.categories.filter(category => !category.archivedAt).length === 0 &&
-              <p>Add a category before recording expenses. <button className="btn" onClick={() => go("ledgerCategories")}>Manage categories</button></p>}
+              <p>Add a category before recording expenses. <button className="btn" onClick={() => go("ledgerCategories")}>{T("Manage categories") }</button></p>}
             {(data.categories.some(category => !category.archivedAt) || editing) &&
               (mode === "shared" || data.project?.githubAccess === "authorized" || editing) &&
               <ExpenseForm key={editing?.id || "new"} value={editing} target={target}
@@ -433,7 +435,7 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
                   ? [data.project, ...data.projects.items] : data.projects.items}
                 categories={data.categories} busy={busy} onSubmit={saveExpense}
                 onCancel={() => setEditing(null)} />}
-            {expenses.length === 0 && <p>No expenses for this target yet.</p>}
+            {expenses.length === 0 && <p>{T("No expenses for this target yet.") }</p>}
             <div className="ledger-list">{expenses.map(expense => <article key={expense.id}>
               <h3>{expense.purpose}</h3><p>{expense.occurredOn} · {expense.currency} {expense.amount}</p>
               {expense.note && <p>{expense.note}</p>}
@@ -442,12 +444,12 @@ export function LedgerScreen({ go, mode = "projects", projectId = "",
                   aria-label={`Edit ${expense.purpose}`}>Edit</button>
                 {confirmId === expense.id ? <>
                   <button className="btn" disabled={busy} onClick={() => removeExpense(expense)}>Confirm removal</button>
-                  <button className="btn" disabled={busy} onClick={() => setConfirmId("")}>Cancel</button>
+                  <button className="btn" disabled={busy} onClick={() => setConfirmId("")}>{T("Cancel") }</button>
                 </> : <button className="btn" disabled={busy} onClick={() => setConfirmId(expense.id)}
                   aria-label={`Remove ${expense.purpose}`}>Remove</button>}
               </div></article>)}</div>
             {data.expenses.nextCursor && <button className="btn" disabled={loadingMore}
-              onClick={() => loadMore("expenses")}>Load more expenses</button>}
+              onClick={() => loadMore("expenses")}>{T("Load more expenses") }</button>}
           </section>
         </>}
       </main></div>

@@ -53,9 +53,10 @@ let activeDynamicRules = null;
 function loadCatalog(code) {
   let pending = catalogCache.get(code);
   if (!pending) {
-    pending = Promise.all([LOCALE_LOADERS[code](), import("./locales/dynamic.js")])
-      .then(([phrases, dynamic]) => ({
-        phrases: phrases.PHRASES,
+    pending = Promise.all([LOCALE_LOADERS[code](), import("./locales/dynamic.js"),
+      import("./locales/ledger.js")])
+      .then(([phrases, dynamic, ledger]) => ({
+        phrases: { ...phrases.PHRASES, ...ledger.LEDGER_PHRASES[code] },
         dynamicRules: dynamic.DYNAMIC_PHRASE_TRANSLATIONS,
       }))
       .catch(() => ({ phrases: null, dynamicRules: null }));

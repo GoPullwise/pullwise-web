@@ -22,7 +22,7 @@ describe("Cloudflare Worker API proxy", () => {
   it("preserves OAuth callback path, redirect and session cookie", async () => {
     const fetchMock = vi.fn(async () => new Response(null, {
       status: 302,
-      headers: { Location: "https://pull-wise.com/dashboard", "Set-Cookie": "pw_session=opaque; Path=/; HttpOnly; Secure; SameSite=None" },
+      headers: { Location: "https://pull-wise.com/projects", "Set-Cookie": "pw_session=opaque; Path=/; HttpOnly; Secure; SameSite=None" },
     }));
     globalThis.fetch = fetchMock;
     const response = await worker.fetch(
@@ -31,8 +31,26 @@ describe("Cloudflare Worker API proxy", () => {
     );
     expect(String(fetchMock.mock.calls[0][0])).toBe("https://api.pull-wise.com/auth/github/callback?code=sample");
     expect(response.status).toBe(302);
-    expect(response.headers.get("Location")).toBe("https://pull-wise.com/dashboard");
+    expect(response.headers.get("Location")).toBe("https://pull-wise.com/projects");
     expect(response.headers.get("Set-Cookie")).toContain("SameSite=None");
+  });
+  it("streams CSV response bytes through the proxy", async () => {
+    let supply;
+    const body = new ReadableStream({
+      start(controller) { supply = controller; },
+    });
+    globalThis.fetch = vi.fn(async () => new Response(body, {
+      headers: { "Content-Type": "text/csv", "Content-Disposition": 'attachment; filename="expenses.csv"' },
+    }));
+    const response = await worker.fetch(
+      new Request("https://pull-wise.com/api/api/v1/expenses/export"),
+      { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" });
+    expect(response.headers.get("Content-Disposition")).toContain("expenses.csv");
+    const reader = response.body.getReader();
+    supply.enqueue(new TextEncoder().encode("id,amount\n"));
+    expect(new TextDecoder().decode((await reader.read()).value)).toBe("id,amount\n");
+    supply.close();
+    expect((await reader.read()).done).toBe(true);
   });
   it("routes api requests to the configured backend origin", async () => {
     const fetchMock = vi.fn(
