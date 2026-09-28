@@ -2,6 +2,21 @@
 
 Updated 2026-09-28. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Cost-control continuation (2026-09-28)
+
+Server now has a locally verified persistent budget coordinator and metered D1
+adapter. Its finite real local control fixture measured 7 Rows Read / 4 Rows
+Written and rejected a third request; cumulative remote usage remains zero.
+Remote admission plans are empty and production stays paused. This introduces
+no Web source/design/deployment change; the existing 252-test/lint/build and
+offline configuration evidence remains applicable.
+
+A bounded browser connector getState attempt timed out after 25.6 seconds;
+no browser navigation/provider journey occurred. S17 browser integration and
+S18 remote/provider acceptance remain pending. Server migration/index/input
+bounds and a reviewed shared preview coordinator are still required; see its
+[budget audit](../../../pullwise-server/docs/validation/d1-validation-budget.md).
+
 ## Conditional S17/S18 continuation (2026-09-28)
 
 The user authorized S17/S18 conditional on controlling D1 Rows Written.

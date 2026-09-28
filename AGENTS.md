@@ -72,6 +72,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   D1_ACCESS_PAUSED while providers, migrations and bounded admission/accounting
   are pending. Do not treat that response as an empty/successful ledger or
   enable remote access merely to make a browser test pass.
+- Server's preview budget coordinator uses one persistent namespace/name
+  across all requests/phases/databases. Its remote case list is empty until
+  numeric SQL bounds pass. A local measured fixture is not permission to
+  enable browser OAuth, payments or ledger requests against remote D1.
 - Web `wrangler.jsonc` targets production domains. Preview routing/config,
   Server domain, Cookie SameSite/domain and provider callbacks require review
   before any deployment. Local checks are not publication approval.
