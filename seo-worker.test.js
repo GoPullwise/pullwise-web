@@ -8,6 +8,14 @@ afterEach(() => {
 });
 
 describe("SEO Worker shell", () => {
+  it("keeps preview pages out of indexing", async () => {
+    const response = await worker.fetch(new Request("https://preview.pull-wise.com/pricing"), {
+      PULLWISE_MODE: "preview",
+      ASSETS: { fetch: async () => new Response("<html><head></head><body></body></html>",
+        { headers: { "Content-Type": "text/html" } }) },
+    });
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow");
+  });
   it("redirects the www hostname to the canonical apex domain", async () => {
     const assets = { fetch: vi.fn() };
 

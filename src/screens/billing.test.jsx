@@ -744,6 +744,29 @@ describe("BillingScreen", () => {
     expect(screen.getAllByText(/2 months free/i)).toHaveLength(2);
   });
 
+  it("renders configurable ledger allowances and Max monthly Jev budget without inventing availability", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [...billingCatalog.plans, maxPlan].map((plan) => ({
+        ...plan,
+        entitlements: {
+          limits: { projects: plan.id === "free" ? 3 : 100, expenseRecords: plan.id === "free" ? 500 : 20000 },
+          jev: { eligible: plan.id === "max", available: false, monthlyBudgetUsd: plan.id === "max" ? "5.00" : "0.00", rollover: false },
+        },
+      })),
+    });
+    const user = userEvent.setup();
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: false }} navigate={vi.fn()} />);
+    expect(await screen.findByText("Projects: 3")).toBeInTheDocument();
+    expect(screen.getAllByText("Projects: 100")).toHaveLength(2);
+    expect(screen.getByText("Expense records: 500")).toBeInTheDocument();
+    expect(screen.getAllByText("Expense records: 20,000")).toHaveLength(2);
+    expect(screen.getByText("Jev budget: $5.00 / month")).toBeInTheDocument();
+    expect(screen.getByText("Activation pending · no rollover")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /yearly/i }));
+    expect(screen.getByText("Jev budget: $5.00 / month")).toBeInTheDocument();
+  });
+
   it("does not leak malformed billing price amounts", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,

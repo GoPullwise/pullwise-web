@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pullwise-web-preview",
+  "main": "./worker-entry.js",
+  "compatibility_date": "2026-05-25",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{"pattern": "preview.pull-wise.com", "custom_domain": true}],
+  "assets": {"directory": "./dist", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"]},
+  "vars": {"PULLWISE_MODE": "preview", "PULLWISE_API_ORIGIN": "https://preview-api.pull-wise.com"},
+  "observability": {"enabled": false}
+}

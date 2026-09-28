@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { LedgerScreen } from "./ledger.jsx";
 
 const api = vi.hoisted(() => ({
+  me: vi.fn(),
   repositories: vi.fn(), projects: vi.fn(), createProject: vi.fn(), updateProject: vi.fn(),
   categories: vi.fn(), createCategory: vi.fn(), updateCategory: vi.fn(), archiveCategory: vi.fn(),
   project: vi.fn(), expenses: vi.fn(), createExpense: vi.fn(), updateExpense: vi.fn(),
@@ -13,6 +14,7 @@ vi.mock("../api/ledger.js", () => ({ ledgerApi: api }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  api.me.mockResolvedValue({ entitlements: { jev: { eligible: true, available: true } } });
   api.repositories.mockResolvedValue({ items: [{ githubRepoId: 202, fullName: "alice/project" }] });
   api.projects.mockResolvedValue({ items: [], nextCursor: null });
   api.categories.mockResolvedValue([]);
@@ -179,5 +181,34 @@ describe("ledger screens", () => {
     fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
     expect(await screen.findByText(/Suggestion unavailable/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Purpose")).toHaveValue("Hosting");
+  });
+
+  it("does not request Jev for Free or Pro and keeps the manual draft", async () => {
+    api.me.mockResolvedValue({ entitlements: { jev: { eligible: false, available: false } } });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
+    expect(await screen.findByText("Jev suggestions require Max.")).toBeInTheDocument();
+    expect(api.suggestExpense).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Hosting");
+  });
+
+  it("does not launch Jev after the entitlement check finishes on an unmounted draft", async () => {
+    let resolveProfile;
+    api.me.mockImplementationOnce(() => new Promise((resolve) => { resolveProfile = resolve; }));
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    const view = render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "Hosting" } });
+    const button = screen.getByRole("button", { name: /request suggestion/i });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(api.me).toHaveBeenCalledTimes(1);
+    view.unmount();
+    resolveProfile({ entitlements: { jev: { eligible: true, available: true } } });
+    await Promise.resolve();
+    expect(api.suggestExpense).not.toHaveBeenCalled();
   });
 });

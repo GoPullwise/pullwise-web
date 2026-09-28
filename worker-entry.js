@@ -13,7 +13,12 @@ export default {
       return Response.redirect(url, 308);
     }
 
-    const response = await baseWorker.fetch(request, env);
+    let response = await baseWorker.fetch(request, env);
+    if (env.PULLWISE_MODE === "preview") {
+      const headers = new Headers(response.headers);
+      headers.set("X-Robots-Tag", "noindex, nofollow");
+      response = new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    }
     if (request.method !== "GET" || !isHtmlResponse(response)) return response;
 
     const metadata = seoMetadataForPath(url.pathname, {

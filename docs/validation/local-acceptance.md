@@ -2,6 +2,29 @@
 
 Updated 2026-09-28. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Plan policy and isolated preview (2026-09-28)
+
+Pricing uses Server-provided configurable capacities and monthly Max Jev budget;
+annual billing does not change the month/no-rollover rule. Free/Pro suggestion
+clicks do not call Jev. The explicit profile check is single-flight and aborts
+on draft change/unmount; no polling is added. Quota errors preserve manual drafts.
+
+`npm run check`: lint, **33 files / 257 tests**, build passed. `npm run
+check:workers` validates production and preview separately. Preview noindex,
+isolated upstream and unavailable-Jev UI behavior are tested locally.
+
+`pullwise-web-preview` was separately deployed at `preview.pull-wise.com`,
+version `3a12463b-32e1-4782-85e9-f5345eef3791`, proxying preview-api.pull-wise.com.
+Existing production Web was not redeployed. Preview Server remains paused at 0;
+its DB is empty/unmigrated and no remote D1 SQL ran. A finite HTTP check stopped
+on its first unexpected preview shell result; real browser/payment verification
+is pending. The user waived real GitHub login/repository authorization testing.
+
+Creem test webhook URL is `https://preview-api.pull-wise.com/webhooks/creem`;
+test return URL is `https://preview.pull-wise.com/billing`. Do not send test
+events or start checkout until Server admission/accounting gates permit the
+finite run. Never use the production API for test payment data.
+
 ## Cost-control continuation (2026-09-28)
 
 Server now has a locally verified persistent budget coordinator and metered D1

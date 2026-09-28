@@ -18,6 +18,16 @@ const emptyExpense = () => ({
 });
 
 function errorText(error) {
+  const code = error?.payload?.error?.code;
+  const allowanceErrors = {
+    PROJECT_LIMIT: T("Project allowance reached. Existing history remains available.", "项目额度已用完，已有历史仍可访问。"),
+    RECORD_LIMIT: T("Expense record allowance reached. Existing records remain available.", "支出记录额度已用完，已有记录仍可访问。"),
+    WRITE_RATE_LIMIT: T("Too many changes in a short time. Wait a minute before trying again.", "短时间内操作过多，请等一分钟再试。"),
+    MONTHLY_WRITE_LIMIT: T("Monthly write allowance reached.", "本月写入额度已用完。"),
+    JEV_BUDGET_LIMIT: T("Monthly Jev budget reached. Continue manually.", "本月 Jev 预算已用完，请继续手工记账。"),
+    MAX_REQUIRED: T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"),
+  };
+  if (allowanceErrors[code]) return allowanceErrors[code];
   if (error?.status === 412) return T("Save conflict. Reload the latest record before retrying.");
   if (error?.status === 403)
     return T("Access changed. Review the current project and key permissions.");
@@ -142,7 +152,12 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   const [suggesting, setSuggesting] = useState(false);
   const [duplicateReviewed, setDuplicateReviewed] = useState(false);
   const createKey = useRef(requestKey());
+  const suggestionController = useRef(null);
+  useEffect(() => () => suggestionController.current?.abort(), []);
   const update = (name, next) => {
+    suggestionController.current?.abort();
+    suggestionController.current = null;
+    setSuggesting(false);
     createKey.current = requestKey();
     setSuggestion(null);
     setSuggestionError("");
@@ -150,10 +165,24 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
     setDraft((old) => ({ ...old, [name]: next }));
   };
   const requestSuggestion = async () => {
+    if (suggestionController.current) return;
+    const controller = new AbortController();
+    suggestionController.current = controller;
     setSuggesting(true);
     setSuggestionError("");
     setSuggestion(null);
     try {
+      // Check only after an explicit user click, without a refresh/poll loop.
+      const profile = await ledgerApi.me({ signal: controller.signal });
+      if (controller.signal.aborted) return;
+      if (profile?.entitlements?.jev?.eligible !== true) {
+        setSuggestionError(T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"));
+        return;
+      }
+      if (profile.entitlements.jev.available !== true) {
+        setSuggestionError(T("Suggestion unavailable. Continue manually."));
+        return;
+      }
       const result = await ledgerApi.suggestExpense(
         {
           purpose: draft.purpose.trim(),
@@ -163,16 +192,20 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
           amount: draft.amount || undefined,
           currency: draft.currency?.toUpperCase() || undefined,
         },
-        {}
+        { signal: controller.signal }
       );
+      if (controller.signal.aborted) return;
       if (result?.status === "available" || result?.status === "uncertain") {
         setSuggestion(result);
         setDuplicateReviewed(false);
       } else setSuggestionError(T("Suggestion unavailable. Continue manually."));
     } catch {
-      setSuggestionError(T("Suggestion unavailable. Continue manually."));
+      if (!controller.signal.aborted) setSuggestionError(T("Suggestion unavailable. Continue manually."));
     } finally {
-      setSuggesting(false);
+      if (suggestionController.current === controller) {
+        suggestionController.current = null;
+        if (!controller.signal.aborted) setSuggesting(false);
+      }
     }
   };
   const decideSuggestion = async (useIt) => {

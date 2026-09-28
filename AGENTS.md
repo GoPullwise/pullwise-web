@@ -76,6 +76,13 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   across all requests/phases/databases. Its remote case list is empty until
   numeric SQL bounds pass. A local measured fixture is not permission to
   enable browser OAuth, payments or ledger requests against remote D1.
+- Preview config targets pullwise-web-preview / preview.pull-wise.com and
+  proxies only preview-api.pull-wise.com. Keep production config separate.
+  Preview responses carry X-Robots-Tag noindex; API upstream remains paused.
+- Pricing displays Server-provided allowances/Max Jev budget. Eligibility is
+  separate from availability. An explicit suggestion click checks /me once;
+  abort on draft change/unmount and never poll or dispatch after a stale check.
+  Annual pricing never changes the monthly Jev budget or enables rollover.
 - Web `wrangler.jsonc` targets production domains. Preview routing/config,
   Server domain, Cookie SameSite/domain and provider callbacks require review
   before any deployment. Local checks are not publication approval.

@@ -1351,6 +1351,13 @@ function PricingSkeletonLine({ className = "" }) {
 function PlanCard({ plan, price, interval, active, featured, cta }) {
   const loading = Boolean(plan?.loading);
   const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
+  const limits = plan?.entitlements?.limits;
+  const jev = plan?.entitlements?.jev;
+  const projects = Number.isSafeInteger(limits?.projects) && limits.projects > 0 ? limits.projects : null;
+  const records = Number.isSafeInteger(limits?.expenseRecords) && limits.expenseRecords > 0 ? limits.expenseRecords : null;
+  const jevBudget = plan?.id === "max" && jev?.eligible === true &&
+    typeof jev.monthlyBudgetUsd === "string" && /^\d+(?:\.\d{1,6})?$/.test(jev.monthlyBudgetUsd)
+    ? jev.monthlyBudgetUsd : null;
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
       {featured && <div className="pricing-badge">{planLabel(plan)}</div>}
@@ -1386,6 +1393,23 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         )}
       </div>
       <ul className="pricing-feats">
+        {!loading && projects !== null && (
+          <li><I.Check size={13} /> {T("Projects", "项目")}: {projects.toLocaleString("en-US")}</li>
+        )}
+        {!loading && records !== null && (
+          <li><I.Check size={13} /> {T("Expense records", "支出记录")}: {records.toLocaleString("en-US")}</li>
+        )}
+        {!loading && jev?.eligible === false && (
+          <li><I.Check size={13} /> {T("Jev: not included", "不含 Jev")}</li>
+        )}
+        {!loading && jevBudget !== null && (
+          <>
+            <li><I.Check size={13} /> {T("Jev budget", "Jev 预算")}: ${jevBudget} / {T("month", "月")}</li>
+            <li><I.Check size={13} /> {jev.available === true
+              ? T("Monthly budget · no rollover", "月度预算 · 不结转")
+              : T("Activation pending · no rollover", "待启用 · 不结转")}</li>
+          </>
+        )}
         <li>
           <I.Check size={13} />{" "}
           {loading ? (
