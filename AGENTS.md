@@ -62,6 +62,16 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - All Wrangler/workerd/D1 commands remain paused until explicit user
   authorization. Never enable cron triggers. Remote validation needs reviewed
   row/operation bounds, frequency, pagination/cache policy and cost guard.
+- Follow the workspace `D1 Rows Written budget guard` for S17/S18: cap browser
+  requests/retries and include upstream Server write effects in the finite
+  validation budget. No automatic polling, refresh loops or remote load tests.
+  A preview database still consumes usage; numeric ceilings and enforceable
+  caps require review before an authorized one-off remote run.
+- The independent Server Worker now handles api.pull-wise.com via an exact
+  zone route; Web's existing origin already matches it. Server returns
+  D1_ACCESS_PAUSED while providers, migrations and bounded admission/accounting
+  are pending. Do not treat that response as an empty/successful ledger or
+  enable remote access merely to make a browser test pass.
 - Web `wrangler.jsonc` targets production domains. Preview routing/config,
   Server domain, Cookie SameSite/domain and provider callbacks require review
   before any deployment. Local checks are not publication approval.
