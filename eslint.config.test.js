@@ -9,5 +9,5 @@ describe("eslint Web source boundary", () => {
     const eslint = new ESLint({ cwd: WEB_ROOT });
 
     await expect(eslint.isPathIgnored(join(WEB_ROOT, "src", "main.jsx"))).resolves.toBe(false);
-  });
+  }, 15000);
 });

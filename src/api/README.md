@@ -1,14 +1,12 @@
 # Browser API boundary
 
-`product.js` calls the shared product-v1 REST service for saved PR follow-ups,
-GitHub Actions failures, upstream Releases, watch and repository configuration,
-handling history, usage, and visualizations. `pullwise.js` retains account
-session, GitHub App authorization, API keys, billing, and public health calls.
-The retired full-repository scan, issue-fix, worker, and manual fact-sync
-endpoints are not part of the browser contract.
+`ledger.js` implements the shared Server ledger REST contract for projects,
+categories, project/shared expenses, per-currency reports, CSV exports and
+optional suggestions. `pullwise.js` implements sessions, GitHub authorization,
+settings, API-key management, subscriptions and public health reads.
 
-The browser only handles public responses and user-scoped credentials. GitHub
-App secrets, installation tokens, and Jev credentials belong on the server.
-The new product reads GitHub facts and does not need repository write
-permissions. Production GitHub ingestion and Jev remain pending; the Cloudflare
-product service is still a candidate until those paths are connected.
+`http.js` joins each route to the configured base. With browser base `/api`,
+ledger `/api/v1/*` becomes `/api/api/v1/*`; `worker.js` strips exactly the outer
+prefix. Server ownership and key restrictions remain authoritative. GitHub,
+Creem and Jev secrets never belong in this client. Reads and manual GitHub
+access refresh do not invoke suggestions or save expenses.

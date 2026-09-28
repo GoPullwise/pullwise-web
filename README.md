@@ -19,4 +19,4 @@ The development server runs at `http://localhost:5173`. Set `VITE_API_BASE_URL=/
 
 `wrangler.jsonc` currently maps `pull-wise.com` and `www.pull-wise.com` to the Web Worker and sends API traffic to `https://api.pull-wise.com`. Coordinate the Server custom domain, OAuth callback, Cookie domain/SameSite, and allowed origins before preview or production deployment. Do not put secrets in `wrangler.jsonc`.
 
-See the stage handoffs under `docs/handoffs/` for local evidence and remaining remote acceptance work.
+See [local acceptance](docs/validation/local-acceptance.md) for current evidence and remaining S17/S18 gates. All Wrangler/workerd and D1 commands remain paused until explicit user authorization; offline configuration checks and the ordinary Vite build remain allowed.

@@ -34,7 +34,10 @@ describe("Topbar navigation", () => {
     const go = vi.fn();
 
     render(
-      <Topbar go={go} breadcrumbs={[{ label: "Pullwise", go: "ledgerProjects" }, { label: "Issues" }]} />
+      <Topbar
+        go={go}
+        breadcrumbs={[{ label: "Pullwise", go: "ledgerProjects" }, { label: "Expenses" }]}
+      />
     );
 
     const brand = screen.getByRole("link", { name: /go to pullwise home/i });
@@ -66,11 +69,7 @@ describe("Design token discipline", () => {
 
   it("uses one scrim color for every modal and drawer backdrop", () => {
     const screens = stylesOf("styles/screens.css");
-    const app = stylesOf("src/app.css");
-    const backdrops = [
-      screens.match(/\.modal-back\s*\{(?<body>[^}]*)\}/s)?.groups?.body,
-      app.match(/\.quota-modal-back\s*\{(?<body>[^}]*)\}/s)?.groups?.body,
-    ];
+    const backdrops = [screens.match(/\.modal-back\s*\{(?<body>[^}]*)\}/s)?.groups?.body];
 
     for (const body of backdrops) {
       expect(body).toBeTruthy();
@@ -80,16 +79,7 @@ describe("Design token discipline", () => {
 
   it("renders accent-fill foregrounds with the --accent-fg token", () => {
     const screens = stylesOf("styles/screens.css");
-    const app = stylesOf("src/app.css");
-    const blocks = [
-      screens.match(/^\.oauth-logo\.app\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-      screens.match(/^\.repo-check-box\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-      screens.match(/^\.scanning-phase\.done \.scanning-phase-bullet\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-      screens.match(/^\.scanning-phase\.failed \.scanning-phase-bullet\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-      screens.match(/^\.pr-step\.on > span:first-child\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-      screens.match(/^\.set-av\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-      app.match(/^\.issue-check-dot\s*\{(?<body>[^}]*)\}/ms)?.groups?.body,
-    ];
+    const blocks = [screens.match(/^\.oauth-logo\.app\s*\{(?<body>[^}]*)\}/ms)?.groups?.body];
 
     for (const body of blocks) {
       expect(body).toBeTruthy();
@@ -97,37 +87,16 @@ describe("Design token discipline", () => {
       expect(body).not.toMatch(/color:\s*white\s*;/);
     }
 
-    // Remaining literal white is allowed only in the dark-theme phase block
-    // (screens.css) and the always-dark dev proto-nav (app.css).
-    expect(screens.match(/^\s*color:\s*white\s*;/gm) || []).toHaveLength(1);
-    expect(app.match(/^\s*color:\s*white\s*;/gm) || []).toHaveLength(3);
+    expect(screens.match(/^\s*color:\s*white\s*;/gm) || []).toHaveLength(0);
   });
   it("keeps font sizes on the --fs-* scale and token font stacks", () => {
-    const files = [
-      "styles/base.css",
-      "styles/screens.css",
-      "src/app.css",
-      "src/landing-seo.css",
-    ];
+    const files = ["styles/base.css", "styles/screens.css", "src/app.css", "src/landing-seo.css"];
     for (const file of files) {
       const css = stylesOf(file);
       expect(css, file).not.toMatch(/font-size:\s*\d+\.\d+px/);
       expect(css, file).not.toMatch(/font:\s*\d+\.\d+px/);
       expect(css, file).not.toContain("11.5px");
     }
-
-    const app = stylesOf("src/app.css");
-    const protoNav = app.match(/^\.proto-nav\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
-    const protoNavItem = app.match(/^\.proto-nav-i\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
-    const protoNavN = app.match(/^\.proto-nav-n\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
-    expect(protoNav).toContain("var(--font-sans)");
-    expect(protoNavItem).toContain("var(--font-sans)");
-    expect(protoNavN).toContain("var(--font-mono)");
-
-    const kpiValueSizes = [
-      ...app.matchAll(/^\.kpi-v\s*\{(?<body>[^}]*)\}/gms),
-    ].filter((match) => /font-size/.test(match.groups?.body || ""));
-    expect(kpiValueSizes).toHaveLength(1);
 
     const screens = stylesOf("styles/screens.css");
     const docsH2 = screens.match(/^\.docs-h2\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
@@ -137,8 +106,6 @@ describe("Design token discipline", () => {
       expect(body).toContain("font-size: var(--fs-4xl);");
       expect(body).not.toContain("font-size: 24px;");
     }
-    const issuesFile = screens.match(/^\.issues-file\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
-    expect(issuesFile).toContain("var(--fs-sm)");
 
     expect(stylesOf("src/App.jsx")).not.toContain("fontSize: 16");
     expect(stylesOf("src/screens/public.jsx")).not.toContain("fontSize: 16");
@@ -171,9 +138,8 @@ describe("Design token discipline", () => {
 
     // Explicit CJK fallbacks keep the Chinese locale consistent across OSes.
     for (const token of ["--font-sans", "--font-display"]) {
-      const body = base.match(
-        new RegExp(token.replace("-", "\\-") + "\\s*:(?<body>[^;]*);")
-      )?.groups?.body;
+      const body = base.match(new RegExp(token.replace("-", "\\-") + "\\s*:(?<body>[^;]*);"))
+        ?.groups?.body;
       expect(body, token).toBeTruthy();
       expect(body, token).toContain("PingFang SC");
       expect(body, token).toContain("Microsoft YaHei");
@@ -181,13 +147,7 @@ describe("Design token discipline", () => {
   });
   it("keeps mobile overlays and touch targets usable", () => {
     const base = stylesOf("styles/base.css");
-    const screens = stylesOf("styles/screens.css");
     const app = stylesOf("src/app.css");
-
-    // iOS Safari zooms focused inputs below 16px; --fs-2xl is exactly 16px.
-    const searchInput = screens.match(/^\.search-h input\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
-    expect(searchInput).toContain("var(--fs-2xl)");
-    expect(searchInput).not.toContain("var(--fs-xl)");
 
     // Toasts use the full small-screen width above the floating pickers
     // instead of squeezing beside them at 206px.
@@ -204,12 +164,11 @@ describe("Design token discipline", () => {
 
     // Coarse pointers get the same 44px target on the collapsed topbar
     // icon buttons that the rest of the shell already guarantees.
-    const coarse = base.match(/@media\s*\(pointer:\s*coarse\)\s*\{(?<body>[\s\S]*?)\n\}/s)?.groups?.body;
+    const coarse = base.match(/@media\s*\(pointer:\s*coarse\)\s*\{(?<body>[\s\S]*?)\n\}/s)?.groups
+      ?.body;
     expect(coarse).toBeTruthy();
     expect(coarse).toMatch(/\.topbar \.btn\.ghost\.sm\s*\{[^}]*min-width:\s*44px/s);
   });
-
-
 });
 
 describe("Sidebar navigation", () => {
@@ -222,7 +181,9 @@ describe("Sidebar navigation", () => {
     expect(styles).toMatch(/\.with-side::before\s*\{[^}]*bottom:\s*0;/s);
     expect(styles).toMatch(/\.with-side::before\s*\{[^}]*left:\s*220px;/s);
     expect(styles).toMatch(/\.with-side::before\s*\{[^}]*background:\s*var\(--border\);/s);
-    expect(styles).toMatch(/@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*\.with-side::before\s*\{[^}]*display:\s*none;/s);
+    expect(styles).toMatch(
+      /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*\.with-side::before\s*\{[^}]*display:\s*none;/s
+    );
     expect(styles).not.toMatch(/\.side\s*\{[^}]*border-right:\s*1px solid var\(--border\);/s);
   });
 
@@ -250,6 +211,4 @@ describe("Sidebar navigation", () => {
 
     expect(go).toHaveBeenCalledWith("apiKeys");
   });
-
-
 });

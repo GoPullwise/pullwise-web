@@ -21,10 +21,6 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
       },
-      "/admin": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-      },
       "/webhooks": {
         target: "http://localhost:8080",
         changeOrigin: true,
@@ -46,7 +42,11 @@ export default defineConfig({
         manualChunks(id) {
           const normalized = id.replace(/\\/g, "/");
           if (!normalized.includes("/node_modules/")) return undefined;
-          if (normalized.includes("/react/") || normalized.includes("/react-dom/") || normalized.includes("/scheduler/")) {
+          if (
+            normalized.includes("/react/") ||
+            normalized.includes("/react-dom/") ||
+            normalized.includes("/scheduler/")
+          ) {
             return "vendor-react";
           }
           return "vendor";

@@ -47,16 +47,16 @@ $monoBoldFont = New-Object System.Drawing.Font "Consolas", 11, ([System.Drawing.
 $monoFont = New-Object System.Drawing.Font "Consolas", 10, ([System.Drawing.FontStyle]::Regular)
 
 $graphics.DrawString("Pullwise", $brandFont, $textBrush, 180, 132)
-$graphics.DrawString("Find repository-wide risks.", $headlineFont, $textBrush, 120, 214)
-$graphics.DrawString("Ship fixes with evidence.", $headlineFont, $textMutedBrush, 120, 282)
-$graphics.DrawString("AI code review for GitHub repositories", $subtitleFont, $textQuietBrush, 124, 365)
+$graphics.DrawString("Track project expenses.", $headlineFont, $textBrush, 120, 214)
+$graphics.DrawString("Keep shared costs clear.", $headlineFont, $textMutedBrush, 120, 282)
+$graphics.DrawString("A GitHub-connected expense ledger", $subtitleFont, $textQuietBrush, 124, 365)
 
 $graphics.FillRectangle($surfaceBrush, 128, 424, 944, 70)
 $graphics.DrawRectangle($linePen, 128, 424, 944, 70)
 $graphics.FillEllipse($accentBrush, 152, 453, 12, 12)
-$graphics.DrawString("VALIDATED FINDING", $monoBoldFont, $textBrush, 180, 441)
+$graphics.DrawString("PROJECT + SHARED EXPENSES", $monoBoldFont, $textBrush, 180, 441)
 $graphics.DrawString(
-  "exact file location  /  evidence  /  impact  /  next step",
+  "purpose  /  category  /  date  /  currency  /  audit history",
   $monoFont,
   $textQuietBrush,
   180,
@@ -68,7 +68,7 @@ $graphics.DrawLine($accentPen, 1012, 465, 1020, 459)
 
 $footerFont = New-Object System.Drawing.Font "Consolas", 9, ([System.Drawing.FontStyle]::Regular)
 $graphics.DrawString(
-  "PULL-WISE.COM  /  FULL-REPOSITORY REVIEW",
+  "PULL-WISE.COM  /  PROJECT EXPENSE LEDGER",
   $footerFont,
   $textQuietBrush,
   128,

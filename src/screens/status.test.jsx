@@ -32,10 +32,10 @@ describe("StatusScreen", () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
-      mode: "local",
+      mode: "preview",
       database: {
-        type: "sqlite",
-        path: ".pullwise/pullwise.sqlite3",
+        type: "d1",
+        path: "/private/ledger.db",
       },
     });
 
@@ -44,8 +44,8 @@ describe("StatusScreen", () => {
     expect(await screen.findByText("API reachable")).toBeInTheDocument();
     expect(screen.queryByText("Scan system")).not.toBeInTheDocument();
     expect(pullwiseApi.system.status).toBeUndefined();
-    expect(screen.getByText(/sqlite: configured backend/i)).toBeInTheDocument();
-    expect(screen.queryByText(/\.pullwise\/pullwise\.sqlite3/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/d1: configured backend/i)).toBeInTheDocument();
+    expect(screen.queryByText(/\/private\/ledger\.db/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Elevated scan latency/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Brief web app outage/i)).not.toBeInTheDocument();
   });
@@ -54,7 +54,7 @@ describe("StatusScreen", () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
-      database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
+      database: { type: "d1", path: "/private/ledger.db" },
       github: { oauthConfigured: true, appInstallConfigured: true, appApiConfigured: false },
       billing: { provider: "disabled", enabled: false },
       scanSystem: { queuedJobs: 5, busyWorkerCount: 1 },
@@ -67,8 +67,10 @@ describe("StatusScreen", () => {
     expect(screen.getByText(/OAuth configured/i)).toBeInTheDocument();
     expect(screen.getByText(/App API missing/i)).toBeInTheDocument();
     expect(screen.getByText(/disabled \(not enabled\)/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Scan system|Review runtimes|old-model|queued/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/\.pullwise\/pullwise\.sqlite3/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Scan system|Review runtimes|old-model|queued/i)
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/\/private\/ledger\.db/i)).not.toBeInTheDocument();
   });
 
   it("ignores stale health responses after a newer check fails", async () => {
@@ -93,7 +95,7 @@ describe("StatusScreen", () => {
         ok: true,
         service: "pullwise-server",
         mode: "production",
-        database: { type: "sqlite", path: ".pullwise/pullwise.sqlite3" },
+        database: { type: "d1", path: "/private/ledger.db" },
       });
       await staleHealth.promise;
     });

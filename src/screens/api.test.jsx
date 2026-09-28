@@ -135,7 +135,7 @@ describe("API screens", () => {
     const { container } = render(<ApiKeysScreen go={vi.fn()} />);
 
     expect(container.querySelector(".api-keys-skeleton")).toBeInTheDocument();
-    expect(container.querySelectorAll(".api-keys-skeleton .issue-row")).toHaveLength(3);
+    expect(container.querySelectorAll(".api-keys-skeleton .key-row")).toHaveLength(3);
     expect(screen.queryByText(/no api keys have been created/i)).not.toBeInTheDocument();
   });
 
@@ -197,7 +197,7 @@ describe("API screens", () => {
     await user.click(screen.getByRole("button", { name: /create key/i }));
     expect(await screen.findByText("pwk_live_new_secret")).toBeInTheDocument();
 
-    await user.click(within(oldKey.closest(".issue-row")).getByRole("button", { name: /revoke/i }));
+    await user.click(within(oldKey.closest(".key-row")).getByRole("button", { name: /revoke/i }));
     await user.click(await screen.findByRole("button", { name: /confirm revoke/i }));
 
     await waitFor(() => {

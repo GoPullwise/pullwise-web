@@ -1,8 +1,8 @@
-.lp-preview-issue .dot {
+.lp-preview-expense .dot {
   transform-origin: center;
 }
 
-@keyframes lpReviewPulse {
+@keyframes lpExpensePulse {
   0%,
   100% {
     opacity: 0.4;
@@ -16,7 +16,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .lp-preview-issue .dot {
-    animation: lpReviewPulse 1.8s ease-in-out infinite;
+  .lp-preview-expense .dot {
+    animation: lpExpensePulse 1.8s ease-in-out infinite;
   }
 }

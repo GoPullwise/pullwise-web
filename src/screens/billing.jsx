@@ -6,7 +6,7 @@ import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
-import { formatQuotaResetAt, quotaResetText } from "../lib/quota-display.js";
+import { formatBillingTimestamp } from "../lib/billing-date.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { useModalFocus } from "../lib/modal-focus.js";
 import { Sidebar, Topbar } from "../shell.jsx";
@@ -210,7 +210,7 @@ function formatRenewalDate(value) {
   if (typeof value === "number") {
     if (!Number.isFinite(value) || value <= 0) return "";
     const seconds = value > 1e12 ? Math.trunc(value / 1000) : Math.trunc(value);
-    return formatQuotaResetAt(seconds).split(" ")[0];
+    return formatBillingTimestamp(seconds).split(" ")[0];
   }
   const text = String(value).trim();
   if (!text) return "";
@@ -234,50 +234,6 @@ function isActiveStatus(status) {
 
 function isRestoredSubscriptionStatus(status) {
   return ["active", "trialing"].includes(String(status || "").toLowerCase());
-}
-
-function nonNegativeInteger(value) {
-  const number = Number(value ?? 0);
-  if (!Number.isFinite(number)) return 0;
-  return Math.max(0, Math.trunc(number));
-}
-
-function usagePercent(usage) {
-  if (usage?.metric !== "intelligent_processing") return 0;
-  const limit = nonNegativeInteger(usage?.limit);
-  if (!limit) return 0;
-  return Math.min(100, (nonNegativeInteger(usage?.used) / limit) * 100);
-}
-
-function usageText(usage) {
-  if (usage?.metric !== "intelligent_processing") {
-    return T("Processing usage unavailable", "智能处理用量暂不可用");
-  }
-  const used = nonNegativeInteger(usage?.used);
-  const reserved = nonNegativeInteger(usage?.reserved);
-  const limit = nonNegativeInteger(usage?.limit);
-  const base = T(`${used} / ${limit} processed`, `${used} / ${limit} 次已处理`);
-  if (!reserved) return base;
-  return T(`${base} - ${reserved} pending`, `${base} - ${reserved} pending`);
-}
-
-function processingActivityRecords(account) {
-  return Array.isArray(account?.processingActivity)
-    ? account.processingActivity.filter(
-        (record) => record?.metric === "intelligent_processing" && record?.id && record?.module
-      )
-    : [];
-}
-
-function processingActivityTitle(record) {
-  const names = { pr: "PR", ci: "CI", updates: "Updates" };
-  const name = names[record?.module] || "Saved";
-  return T(`${name} processing`, `${name} 智能处理`);
-}
-
-function processingActivityMeta(record) {
-  const timestamp = Date.parse(record?.processedAt || "");
-  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString().replace(".000Z", "Z") : "";
 }
 
 function subscriptionRecords(account) {
@@ -314,8 +270,8 @@ function subscriptionRecordMeta(record) {
 function subscriptionEventText(record) {
   const parts = [];
   if (record?.eventId) parts.push(record.eventId);
-  if (record?.eventCreated) parts.push(formatQuotaResetAt(record.eventCreated));
-  else if (record?.processedAt) parts.push(formatQuotaResetAt(record.processedAt));
+  if (record?.eventCreated) parts.push(formatBillingTimestamp(record.eventCreated));
+  else if (record?.processedAt) parts.push(formatBillingTimestamp(record.processedAt));
   if (record?.stale) parts.push(T("stale", "stale"));
   return parts.join(" - ") || T("billing update", "billing update");
 }
@@ -329,10 +285,7 @@ function fallbackFreePlan(loading = false) {
   return {
     id: "free",
     name: "Free",
-    description: T(
-      "Record project and shared expenses.",
-      "记录项目与公共支出。"
-    ),
+    description: T("Record project and shared expenses.", "记录项目与公共支出。"),
     entitlements: null,
     loading,
     prices: { month: { amount: "0", currency: "USD", interval: "month", configured: true } },
@@ -347,10 +300,7 @@ function fallbackPaidPlan(id, payload, loading = false) {
     description:
       payload?.description ||
       (max
-        ? T(
-            "Pullwise project expense ledger for teams.",
-            "面向团队的 Pullwise 项目支出账本。"
-          )
+        ? T("Pullwise project expense ledger for teams.", "面向团队的 Pullwise 项目支出账本。")
         : T("Pullwise project expense ledger for teams.", "面向团队的 Pullwise 项目支出账本。")),
     entitlements: null,
     loading,
@@ -407,28 +357,9 @@ function planLabel(plan) {
   return String(plan?.id || "").toUpperCase() || T("Plan", "套餐");
 }
 
-function accountNameLabel(plan) {
-  return plan?.account?.name || T("Account", "账户");
-}
-
 function BillingSkeleton() {
   return (
     <div className="set-body billing-skeleton" aria-busy="true">
-      <div className="bill-card billing-summary">
-        <div className="billing-summary-main">
-          <SkeletonLine className="sk-square sk-size-32" />
-          <div className="skeleton-stack">
-            <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
-            <SkeletonLine className="sk-line sk-w-60" />
-            <SkeletonLine className="sk-line sk-w-44" />
-          </div>
-        </div>
-        <div className="billing-summary-meter">
-          <SkeletonLine className="sk-line sk-w-100 sk-h-10" />
-          <SkeletonLine className="sk-line sk-w-24 sk-h-20" />
-        </div>
-      </div>
-
       <div className="bill-card billing-summary">
         <div className="billing-summary-main">
           <SkeletonLine className="sk-square sk-size-32" />
@@ -490,9 +421,7 @@ function PricingLoadError({ error, onRetry }) {
       <I.Lightbulb size={18} />
       <div>
         <h2>{T("Pricing is unavailable", "Pricing is unavailable")}</h2>
-        <p className="muted">
-          {error || T("Unable to load pricing.", "Unable to load pricing.")}
-        </p>
+        <p className="muted">{error || T("Unable to load pricing.", "Unable to load pricing.")}</p>
         <button type="button" className="btn primary" onClick={onRetry}>
           <I.Refresh size={14} /> {T("Retry pricing", "Retry pricing")}
         </button>
@@ -517,7 +446,6 @@ export function BillingScreen({
   const [pendingAction, setPendingAction] = useState("");
   const [changeDraft, setChangeDraft] = useState(null);
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
-  const [usageExpanded, setUsageExpanded] = useState(false);
   const billingMutationRef = useRef("");
   const mountedRef = useRef(true);
   const changeDialogRef = useRef(null);
@@ -568,16 +496,12 @@ export function BillingScreen({
 
   const account = billingAccount(plan);
   const accountStatus = account.status || "none";
-  const accountName = accountNameLabel(plan);
   const active = isActiveStatus(accountStatus);
   const activePaid = active && account.plan && account.plan !== "free";
   const cancellationScheduled = String(accountStatus).toLowerCase() === "canceling";
   const subscriptionInterval = account.interval || "month";
   const currentPlan = activePaid ? paidPlanById[account.plan] || proPlan : freePlan;
-  const usage = account.usage?.metric === "intelligent_processing" ? account.usage : null;
-  const processingActivity = useMemo(() => processingActivityRecords(account), [account]);
   const subscriptions = subscriptionRecords(account);
-  const usageResetText = quotaResetText(usage, T("Processing allowance resets", "智能处理额度重置于"));
   const billingEnabled = Boolean(plan?.enabled);
   const alternatePaidPlans = paidPlans.filter((paidPlan) =>
     subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, paidPlan, subscriptionInterval)
@@ -811,254 +735,175 @@ export function BillingScreen({
   return (
     <div className="app fade-in">
       <div ref={billingBackgroundRef} className="billing-background">
-      <Topbar
-        go={go}
-        breadcrumbs={[{ label: T("Billing", "Billing") }]}
-        setIssue={setIssue}
-        loading={loading}
-      />
-      <div className="with-side">
-        <Sidebar section="billing" go={go} />
-        <div className="main wide" role="main">
-          <div className="page-h">
-            <div>
-              <h1>{T("Billing", "Billing")}</h1>
-              <div className="sub">
-                {T(
-                  "Pullwise platform subscription and payment history. Your project expenses are recorded separately in the ledger.",
-                  "这里显示 Pullwise 平台订阅和支付历史。项目支出在账本中单独记录。"
-                )}
+        <Topbar
+          go={go}
+          breadcrumbs={[{ label: T("Billing", "Billing") }]}
+          setIssue={setIssue}
+          loading={loading}
+        />
+        <div className="with-side">
+          <Sidebar section="billing" go={go} />
+          <div className="main wide" role="main">
+            <div className="page-h">
+              <div>
+                <h1>{T("Billing", "Billing")}</h1>
+                <div className="sub">
+                  {T(
+                    "Pullwise platform subscription and payment history. Your project expenses are recorded separately in the ledger.",
+                    "这里显示 Pullwise 平台订阅和支付历史。项目支出在账本中单独记录。"
+                  )}
+                </div>
+              </div>
+              <div className="actions">
+                <a className="btn" {...screenLinkProps(go, "pricing")}>
+                  <I.Trend size={14} /> {T("View pricing", "查看价格")}
+                </a>
               </div>
             </div>
-            <div className="actions">
-              <a className="btn" {...screenLinkProps(go, "pricing")}>
-                <I.Trend size={14} /> {T("View pricing", "查看价格")}
-              </a>
-            </div>
-          </div>
 
-
-          <div className="set-shell">
-            <aside className="set-side">
-              <button className="set-side-i active">
-                <I.Package size={14} />
-                <span>{T("Plan", "Plan")}</span>
-              </button>
-              <a className="set-side-i" {...screenLinkProps(go, "terms")}>
-                <I.FileCode size={14} />
-                <span>{T("Terms", "Terms")}</span>
-              </a>
-              <a className="set-side-i" {...screenLinkProps(go, "privacy")}>
-                <I.Lock size={14} />
-                <span>{T("Privacy", "Privacy")}</span>
-              </a>
-            </aside>
-
-            {loading ? (
-              <BillingSkeleton />
-            ) : error && !plan ? (
-              <BillingLoadError error={error} onRetry={loadBillingPlan} />
-            ) : (
-              <div className="set-body">
-                <button
-                  type="button"
-                  className={`bill-card billing-summary billing-usage-toggle${
-                    usageExpanded ? " open" : ""
-                  }`}
-                  aria-expanded={usageExpanded}
-                  aria-controls="billing-processing-activity"
-                  onClick={() => setUsageExpanded((expanded) => !expanded)}
-                >
-                  <div className="billing-summary-main">
-                    <I.Activity size={18} />
-                    <div>
-                      <b>{T("Historical processing usage", "历史处理用量")}</b>
-                      <div className="muted">
-                        {accountName} - {usageText(usage)}
-                      </div>
-                      {usageResetText && <div className="muted">{usageResetText}</div>}
-                    </div>
-                  </div>
-                  <div className="billing-summary-meter">
-                    <div className="usage-bar">
-                      <div style={{ width: `${usagePercent(usage)}%` }} />
-                    </div>
-                    <span className="tag">{currentPlan?.name || T("Plan", "套餐")}</span>
-                    <I.ArrowR className="billing-usage-caret" size={13} aria-hidden="true" />
-                  </div>
+            <div className="set-shell">
+              <aside className="set-side">
+                <button className="set-side-i active">
+                  <I.Package size={14} />
+                  <span>{T("Plan", "Plan")}</span>
                 </button>
+                <a className="set-side-i" {...screenLinkProps(go, "terms")}>
+                  <I.FileCode size={14} />
+                  <span>{T("Terms", "Terms")}</span>
+                </a>
+                <a className="set-side-i" {...screenLinkProps(go, "privacy")}>
+                  <I.Lock size={14} />
+                  <span>{T("Privacy", "Privacy")}</span>
+                </a>
+              </aside>
 
-                {usageExpanded && (
-                  <div
-                    id="billing-processing-activity"
-                    className="bill-card bill-card-list billing-usage-activity"
-                  >
+              {loading ? (
+                <BillingSkeleton />
+              ) : error && !plan ? (
+                <BillingLoadError error={error} onRetry={loadBillingPlan} />
+              ) : (
+                <div className="set-body">
+                  <div className="bill-card billing-summary">
                     <div className="billing-summary-main">
-                      <I.Activity size={18} />
+                      <I.Package size={18} />
                       <div>
-                        <b>{T("Processing activity", "智能处理明细")}</b>
+                        <b>{planName(currentPlan) || T("Free", "免费")}</b>
                         <div className="muted">
-                          {processingActivity.length
-                            ? T(
-                                `${processingActivity.length} successful processing events`,
-                                `${processingActivity.length} 条成功处理记录`
-                              )
-                            : T("No processing events yet.", "暂无智能处理记录。")}
+                          {accountStatus} -{" "}
+                          {activePaid
+                            ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
+                            : T("Upgrade from Pricing", "前往价格页升级")}
                         </div>
                       </div>
                     </div>
-                    <div className="sub-record-list">
-                      {processingActivity.length > 0 ? (
-                        processingActivity.map((record) => (
-                          <div className="sub-record-row quota-activity-row" key={record.id}>
-                            <div className="quota-activity-main">
-                              <span className="quota-activity-icon" aria-hidden="true"><I.Activity size={13} /></span>
-                              <span className="sub-record-main">
-                                <b>{processingActivityTitle(record)}</b>
-                                <span className="muted">{processingActivityMeta(record)}</span>
+                    {activePaid && (
+                      <div className="billing-actions">
+                        {alternatePaidPlans.map((paidPlan) => (
+                          <button
+                            key={paidPlan.id}
+                            className="btn primary"
+                            disabled={Boolean(pendingAction)}
+                            onClick={() =>
+                              requestSubscriptionChange({
+                                targetPlan: paidPlan.id,
+                                targetInterval: subscriptionInterval,
+                              })
+                            }
+                          >
+                            {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
+                              <span className="spin">
+                                <I.Refresh size={14} />
                               </span>
-                            </div>
-                            <span className="tag">{T("1 unit", "1 单位")}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="sub-record-row quota-activity-empty">
-                          <div className="sub-record-main">
-                            <b>{T("No processing activity", "暂无智能处理明细")}</b>
-                            <div className="muted">
-                              {T(
-                                "Historical processing events, if any, appear here.",
-                                "如有历史处理事件，会显示在这里。"
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                            )}
+                            <I.Trend size={14} />{" "}
+                            {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
+                          </button>
+                        ))}
+                        {subscriptionInterval === "month" && (
+                          <button
+                            className="btn"
+                            disabled={Boolean(pendingAction)}
+                            onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
+                          >
+                            {pendingAction === `change-${account.plan}-year` && (
+                              <span className="spin">
+                                <I.Refresh size={14} />
+                              </span>
+                            )}
+                            <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
+                          </button>
+                        )}
+                        {cancellationScheduled ? (
+                          <button
+                            className="btn"
+                            disabled={Boolean(pendingAction)}
+                            onClick={resumeSubscription}
+                          >
+                            {pendingAction === "resume" && (
+                              <span className="spin">
+                                <I.Refresh size={14} />
+                              </span>
+                            )}
+                            <I.Refresh size={14} /> {T("Resume renewal", "Resume renewal")}
+                          </button>
+                        ) : (
+                          <button
+                            className="btn"
+                            disabled={Boolean(pendingAction)}
+                            onClick={requestCancelSubscription}
+                            aria-busy={pendingAction === "cancel"}
+                          >
+                            {pendingAction === "cancel" && (
+                              <span className="spin">
+                                <I.Refresh size={14} />
+                              </span>
+                            )}
+                            <I.X size={14} /> {T("Cancel renewal", "取消续订")}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
 
-                <div className="bill-card billing-summary">
-                  <div className="billing-summary-main">
-                    <I.Package size={18} />
-                    <div>
-                      <b>{planName(currentPlan) || T("Free", "免费")}</b>
-                      <div className="muted">
-                        {accountStatus} -{" "}
-                        {activePaid
-                          ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
-                          : T("Upgrade from Pricing", "前往价格页升级")}
+                  {subscriptions.length > 0 && (
+                    <div className="bill-card bill-card-list">
+                      <div className="billing-summary-main">
+                        <I.FileCode size={18} />
+                        <div>
+                          <b>{T("Subscription activity", "订阅动态")}</b>
+                        </div>
+                      </div>
+                      <div className="sub-record-list">
+                        {subscriptions.map((record, index) => (
+                          <div
+                            className="sub-record-row"
+                            key={`${subscriptionRecordKey(record)}-${index}`}
+                          >
+                            <div className="sub-record-main">
+                              <b>{subscriptionRecordTitle(record)}</b>
+                              <div className="muted">{subscriptionRecordMeta(record)}</div>
+                              <div className="muted">{subscriptionEventText(record)}</div>
+                            </div>
+                            <span className="tag">{record?.plan || account.plan || "free"}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  {activePaid && (
-                    <div className="billing-actions">
-                      {alternatePaidPlans.map((paidPlan) => (
-                        <button
-                          key={paidPlan.id}
-                          className="btn primary"
-                          disabled={Boolean(pendingAction)}
-                          onClick={() =>
-                            requestSubscriptionChange({
-                              targetPlan: paidPlan.id,
-                              targetInterval: subscriptionInterval,
-                            })
-                          }
-                        >
-                          {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
-                            <span className="spin">
-                              <I.Refresh size={14} />
-                            </span>
-                          )}
-                          <I.Trend size={14} />{" "}
-                          {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
-                        </button>
-                      ))}
-                      {subscriptionInterval === "month" && (
-                        <button
-                          className="btn"
-                          disabled={Boolean(pendingAction)}
-                          onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
-                        >
-                          {pendingAction === `change-${account.plan}-year` && (
-                            <span className="spin">
-                              <I.Refresh size={14} />
-                            </span>
-                          )}
-                          <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
-                        </button>
-                      )}
-                      {cancellationScheduled ? (
-                        <button
-                          className="btn"
-                          disabled={Boolean(pendingAction)}
-                          onClick={resumeSubscription}
-                        >
-                          {pendingAction === "resume" && (
-                            <span className="spin">
-                              <I.Refresh size={14} />
-                            </span>
-                          )}
-                          <I.Refresh size={14} /> {T("Resume renewal", "Resume renewal")}
-                        </button>
-                      ) : (
-                        <button
-                          className="btn"
-                          disabled={Boolean(pendingAction)}
-                          onClick={requestCancelSubscription}
-                          aria-busy={pendingAction === "cancel"}
-                        >
-                          {pendingAction === "cancel" && (
-                            <span className="spin">
-                              <I.Refresh size={14} />
-                            </span>
-                          )}
-                          <I.X size={14} /> {T("Cancel renewal", "取消续订")}
-                        </button>
+                  )}
+
+                  {!billingEnabled && !error && (
+                    <div className="muted">
+                      {T(
+                        "Billing is not configured on the backend yet.",
+                        "Billing is not configured on the backend yet."
                       )}
                     </div>
                   )}
                 </div>
-
-                {subscriptions.length > 0 && (
-                  <div className="bill-card bill-card-list">
-                    <div className="billing-summary-main">
-                      <I.FileCode size={18} />
-                      <div>
-                        <b>{T("Subscription activity", "订阅动态")}</b>
-                      </div>
-                    </div>
-                    <div className="sub-record-list">
-                      {subscriptions.map((record, index) => (
-                        <div
-                          className="sub-record-row"
-                          key={`${subscriptionRecordKey(record)}-${index}`}
-                        >
-                          <div className="sub-record-main">
-                            <b>{subscriptionRecordTitle(record)}</b>
-                            <div className="muted">{subscriptionRecordMeta(record)}</div>
-                            <div className="muted">{subscriptionEventText(record)}</div>
-                          </div>
-                          <span className="tag">{record?.plan || account.plan || "free"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {!billingEnabled && !error && (
-                  <div className="muted">
-                    {T(
-                      "Billing is not configured on the backend yet.",
-                      "Billing is not configured on the backend yet."
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
       {changeDetails && (
         <div className="modal-back billing-change-back" onClick={closeChangeConfirmation}>
@@ -1422,63 +1267,63 @@ export function PricingScreen({
         </div>
       </section>
 
-
       {error && !plan ? (
         <PricingLoadError error={error} onRetry={loadPricingPlan} />
       ) : (
         <section className="pricing-tiers">
           <PlanCard
-          plan={freePlan}
-          price={priceFor(freePlan, "month")}
-          interval="month"
-          active={account.plan === "free" || !activePaid}
-          featured={false}
-          cta={
-            <a className="btn" {...screenLinkProps(go, signedIn ? "ledgerProjects" : "login")}>
-              <I.Check size={14} />{" "}
-              {signedIn ? T("Open projects", "打开项目") : T("Start free", "免费开始")}
-            </a>
-          }
+            plan={freePlan}
+            price={priceFor(freePlan, "month")}
+            interval="month"
+            active={account.plan === "free" || !activePaid}
+            featured={false}
+            cta={
+              <a className="btn" {...screenLinkProps(go, signedIn ? "ledgerProjects" : "login")}>
+                <I.Check size={14} />{" "}
+                {signedIn ? T("Open projects", "打开项目") : T("Start free", "免费开始")}
+              </a>
+            }
           />
 
           {paidPlans.map((paidPlan) => {
-          const selectedPrice = priceFor(paidPlan, interval);
-          const activePlan = activePaid && account.plan === paidPlan.id;
-          const canStartPlan = billingEnabled && Boolean(selectedPrice?.configured) && !activePaid;
-          const hasMax = paidPlans.some((candidate) => candidate.id === "max");
+            const selectedPrice = priceFor(paidPlan, interval);
+            const activePlan = activePaid && account.plan === paidPlan.id;
+            const canStartPlan =
+              billingEnabled && Boolean(selectedPrice?.configured) && !activePaid;
+            const hasMax = paidPlans.some((candidate) => candidate.id === "max");
             return (
               <PlanCard
-              key={paidPlan.id}
-              plan={paidPlan}
-              price={selectedPrice}
-              interval={interval}
-              active={activePlan}
-              featured={hasMax ? paidPlan.id === "max" : paidPlan.id === "pro"}
-              cta={
-                <div className="billing-actions">
-                  {activePaid ? (
-                    <a className="btn" {...screenLinkProps(go, "billing")}>
-                      <I.Settings size={14} /> {T("Open billing", "打开账单")}
-                    </a>
-                  ) : (
-                    <button
-                      className="btn primary"
-                      disabled={!canStartPlan || Boolean(pendingAction)}
-                      onClick={() => startCheckout(paidPlan)}
-                    >
-                      {pendingAction === `checkout-${paidPlan.id}` && (
-                        <span className="spin">
-                          <I.Refresh size={14} />
-                        </span>
-                      )}
-                      <I.Package size={14} />{" "}
-                      {signedIn
-                        ? T(`Start ${planLabel(paidPlan)}`, `升级 ${planLabel(paidPlan)}`)
-                        : T("Sign in to subscribe", "登录后订阅")}
-                    </button>
-                  )}
-                </div>
-              }
+                key={paidPlan.id}
+                plan={paidPlan}
+                price={selectedPrice}
+                interval={interval}
+                active={activePlan}
+                featured={hasMax ? paidPlan.id === "max" : paidPlan.id === "pro"}
+                cta={
+                  <div className="billing-actions">
+                    {activePaid ? (
+                      <a className="btn" {...screenLinkProps(go, "billing")}>
+                        <I.Settings size={14} /> {T("Open billing", "打开账单")}
+                      </a>
+                    ) : (
+                      <button
+                        className="btn primary"
+                        disabled={!canStartPlan || Boolean(pendingAction)}
+                        onClick={() => startCheckout(paidPlan)}
+                      >
+                        {pendingAction === `checkout-${paidPlan.id}` && (
+                          <span className="spin">
+                            <I.Refresh size={14} />
+                          </span>
+                        )}
+                        <I.Package size={14} />{" "}
+                        {signedIn
+                          ? T(`Start ${planLabel(paidPlan)}`, `升级 ${planLabel(paidPlan)}`)
+                          : T("Sign in to subscribe", "登录后订阅")}
+                      </button>
+                    )}
+                  </div>
+                }
               />
             );
           })}
@@ -1543,11 +1388,26 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         )}
       </div>
       <ul className="pricing-feats">
-        <li><I.Check size={13} /> {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
-          T("Project and shared expense ledger", "项目与公共支出账本")}</li>
-        <li><I.Check size={13} /> {loading ? <PricingSkeletonLine className="pricing-skeleton-feature" /> :
-          T("Per-currency reports and REST API", "逐币报表与 REST API")}</li>
-        <li><I.Check size={13} /> {T("Platform charges stay separate from ledger expenses", "平台收费与账本支出分开")}</li>
+        <li>
+          <I.Check size={13} />{" "}
+          {loading ? (
+            <PricingSkeletonLine className="pricing-skeleton-feature" />
+          ) : (
+            T("Project and shared expense ledger", "项目与公共支出账本")
+          )}
+        </li>
+        <li>
+          <I.Check size={13} />{" "}
+          {loading ? (
+            <PricingSkeletonLine className="pricing-skeleton-feature" />
+          ) : (
+            T("Per-currency reports and REST API", "逐币报表与 REST API")
+          )}
+        </li>
+        <li>
+          <I.Check size={13} />{" "}
+          {T("Platform charges stay separate from ledger expenses", "平台收费与账本支出分开")}
+        </li>
         {plan?.id && plan.id !== "free" && (
           <li>
             <I.Check size={13} /> {T("Cancel renewal from Billing", "从账单页取消续订")}

@@ -90,14 +90,14 @@ export function LandingScreen({ go, auth }) {
       <section className="lp-hero" aria-labelledby="lp-title">
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
-          <span>
-            {T("Project expenses for GitHub teams", "面向 GitHub 团队的项目支出账本")}
-          </span>
+          <span>{T("Project expenses for GitHub teams", "面向 GitHub 团队的项目支出账本")}</span>
         </div>
         <h1 id="lp-title" className="lp-title">
           {T("Track project and shared expenses.", "记录项目与公共支出。")}
           <br />
-          <span className="lp-title-em">{T("Keep every cost in view.", "让每笔成本清晰可见。")}</span>
+          <span className="lp-title-em">
+            {T("Keep every cost in view.", "让每笔成本清晰可见。")}
+          </span>
         </h1>
         <p className="lp-sub">
           {T(
@@ -188,19 +188,19 @@ export function LandingScreen({ go, auth }) {
                   <span>{T("Reports", "报表")}</span>
                 </div>
               </div>
-              <div className="lp-preview-issues">
-                <div className="lp-preview-issue">
+              <div className="lp-preview-expenses">
+                <div className="lp-preview-expense">
                   <span className="sev sev-info">
                     <span className="dot" style={{ background: "currentColor" }} />
                     {T("saved", "已保存")}
                   </span>
-                  <div className="lp-preview-issue-t">
+                  <div className="lp-preview-expense-t">
                     {T(
                       "Every expense stays with its project or the shared pool.",
                       "每笔支出均归于一个项目或公共池。"
                     )}
                   </div>
-                  <span className="lp-preview-issue-f">
+                  <span className="lp-preview-expense-f">
                     {T("Project + shared costs", "项目 + 公共支出")}
                   </span>
                 </div>
@@ -254,10 +254,7 @@ export function LandingScreen({ go, auth }) {
             {
               i: <I.Shield />,
               h: T("Review category reports", "查看类别报表"),
-              p: T(
-                "See where costs occur by category and date.",
-                "按类别和日期查看成本分布。"
-              ),
+              p: T("See where costs occur by category and date.", "按类别和日期查看成本分布。"),
             },
             {
               i: <I.FileCode />,

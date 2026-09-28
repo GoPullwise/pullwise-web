@@ -3,12 +3,12 @@ import { ApiError, SERVER_REQUEST_TIMEOUT_MS, http, request } from "./http.js";
 
 describe("ApiError", () => {
   it("preserves structured backend error codes", () => {
-    const error = new ApiError("Repository quota exceeded", {
+    const error = new ApiError("Request rate limit exceeded", {
       status: 429,
-      payload: { code: "QUOTA_EXCEEDED_REPOSITORY" },
+      payload: { code: "RATE_LIMITED" },
     });
 
-    expect(error.code).toBe("QUOTA_EXCEEDED_REPOSITORY");
+    expect(error.code).toBe("RATE_LIMITED");
   });
 });
 
@@ -18,18 +18,18 @@ describe("request", () => {
   });
 
   it("passes per-request timeout overrides through to the transport", async () => {
-    const httpRequest = vi.spyOn(http, "request").mockResolvedValueOnce({ data: "zip" });
+    const httpRequest = vi.spyOn(http, "request").mockResolvedValueOnce({ data: "csv" });
 
     await expect(
-      request("/scans/sc_done/audit-bundle.zip", {
+      request("/api/v1/expenses/export", {
         responseType: "blob",
         timeout: SERVER_REQUEST_TIMEOUT_MS,
       })
-    ).resolves.toBe("zip");
+    ).resolves.toBe("csv");
 
     expect(httpRequest).toHaveBeenCalledWith(
       expect.objectContaining({
-        url: "/scans/sc_done/audit-bundle.zip",
+        url: "/api/v1/expenses/export",
         responseType: "blob",
         timeout: SERVER_REQUEST_TIMEOUT_MS,
       })
@@ -42,9 +42,9 @@ describe("request", () => {
     const canceled = new DOMException("canceled", "AbortError");
     const httpRequest = vi.spyOn(http, "request").mockRejectedValueOnce(canceled);
 
-    await expect(request("/scans", { signal: new AbortController().signal })).rejects.toBe(
-      canceled
-    );
+    await expect(
+      request("/api/v1/expenses", { signal: new AbortController().signal })
+    ).rejects.toBe(canceled);
 
     httpRequest.mockRestore();
   });
@@ -61,21 +61,23 @@ describe("fetch transport", () => {
   it("serializes params and drops empty values", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(jsonResponse({ ok: 1 }));
 
-    await request("/scans", { params: { status: "done", repo: "", limit: 50, owner: undefined } });
+    await request("/api/v1/expenses", {
+      params: { target: "project", projectId: "", limit: 50, owner: undefined },
+    });
 
     const [url] = fetchMock.mock.calls[0];
-    expect(url).toBe("/scans?status=done&limit=50");
+    expect(url).toBe("/api/v1/expenses?target=project&limit=50");
     fetchMock.mockRestore();
   });
 
   it("sends a JSON body only when one is supplied", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(jsonResponse({ ok: 1 }));
 
-    await request("/issues/i_1/status", { method: "PATCH", body: { status: "fixed" } });
+    await request("/api/v1/expenses/exp_1", { method: "PATCH", body: { amount: "20.00" } });
 
     const [, init] = fetchMock.mock.calls[0];
     expect(init.method).toBe("PATCH");
-    expect(init.body).toBe(JSON.stringify({ status: "fixed" }));
+    expect(init.body).toBe(JSON.stringify({ amount: "20.00" }));
     expect(init.headers["Content-Type"]).toBe("application/json");
     expect(init.credentials).toBe("include");
 
@@ -86,34 +88,35 @@ describe("fetch transport", () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
-        jsonResponse({ message: "Repository quota exceeded", code: "QUOTA_EXCEEDED_REPOSITORY" }, { status: 429 })
+        jsonResponse(
+          { message: "Request rate limit exceeded", code: "RATE_LIMITED" },
+          { status: 429 }
+        )
       );
 
-    const error = await request("/scans", { method: "POST" }).catch((e) => e);
+    const error = await request("/api/v1/expenses", { method: "POST" }).catch((e) => e);
 
     expect(error).toBeInstanceOf(ApiError);
     expect(error.status).toBe(429);
-    expect(error.code).toBe("QUOTA_EXCEEDED_REPOSITORY");
-    expect(error.message).toBe("Repository quota exceeded");
+    expect(error.code).toBe("RATE_LIMITED");
+    expect(error.message).toBe("Request rate limit exceeded");
 
     fetchMock.mockRestore();
   });
 
   it("returns binary downloads as a blob rather than parsed JSON", async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValueOnce(
-        new Response("zip-bytes", {
-          status: 200,
-          headers: { "content-type": "application/zip" },
-        })
-      );
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response("csv-bytes", {
+        status: 200,
+        headers: { "content-type": "application/zip" },
+      })
+    );
 
     // jsdom's Blob global and undici's Response.blob() are different realms,
     // so assert on shape and content rather than instanceof.
-    const result = await request("/scans/sc_done/audit-bundle.zip", { responseType: "blob" });
+    const result = await request("/api/v1/expenses/export", { responseType: "blob" });
     expect(typeof result.arrayBuffer).toBe("function");
-    await expect(result.text()).resolves.toBe("zip-bytes");
+    await expect(result.text()).resolves.toBe("csv-bytes");
 
     fetchMock.mockRestore();
   });
@@ -123,7 +126,7 @@ describe("fetch transport", () => {
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
-    await expect(request("/sessions", { method: "DELETE" })).resolves.toBeNull();
+    await expect(request("/api-keys/key_1", { method: "DELETE" })).resolves.toBeNull();
     fetchMock.mockRestore();
   });
 });

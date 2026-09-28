@@ -294,191 +294,6 @@
   }
 }
 
-.proto-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  z-index: var(--z-nav);
-  background: rgba(10, 10, 10, 0.92);
-  backdrop-filter: blur(14px);
-  color: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 14px 8px 50px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  font: var(--fs-sm)/1 var(--font-sans);
-}
-
-.proto-nav-l {
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  opacity: 0.85;
-  flex: 0 0 auto;
-}
-
-.proto-nav-screens {
-  display: flex;
-  gap: 4px;
-  flex: 1;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.proto-nav-screens::-webkit-scrollbar {
-  display: none;
-}
-
-.proto-nav-i {
-  background: transparent;
-  border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.6);
-  padding: 6px 10px;
-  border-radius: 0;
-  font: var(--fs-sm)/1 var(--font-sans);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.proto-nav-i:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.proto-nav-i.on {
-  color: white;
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.proto-nav-n {
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  opacity: 0.55;
-}
-
-.proto-nav-hint {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: var(--fs-xs);
-  flex: 0 0 auto;
-}
-
-.proto-nav-toggle {
-  position: fixed;
-  left: 8px;
-  top: 6px;
-  z-index: var(--z-nav-toggle);
-  width: 30px;
-  height: 26px;
-  border-radius: 0;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(10, 10, 10, 0.92);
-  color: white;
-  font-size: var(--fs-sm);
-}
-
-body.has-proto-nav {
-  padding-top: 42px;
-}
-/* ── Alignment pass: stable rows, truncation, and responsive wrapping ── */
-:where(
-  .topbar,
-  .topbar > div,
-  .crumbs,
-  .with-side,
-  .main,
-  .page-h,
-  .page-h > div,
-  .page-h .sub,
-  .page-h .actions,
-  .card,
-  .kpi,
-  .dash-summary,
-  .dash-summary-head,
-  .dash-donut-row,
-  .issue-list,
-  .issue-row,
-  .issue-main,
-  .issue-meta,
-  .issue-card,
-  .filters,
-  .filters-row,
-  .issues-table,
-  .issues-thead,
-  .issues-trow,
-  .issues-title-c,
-  .issue-detail-h,
-  .issue-detail-grid,
-  .section,
-  .code,
-  .fix-preview,
-  .modal,
-  .modal-h,
-  .modal-body,
-  .search-i,
-  .search-i-t,
-  .repo-row,
-  .repo-main,
-  .repo-name,
-  .repo-meta,
-  .repo-quota,
-  .gh-install-row,
-  .gh-install-main,
-  .scanning,
-  .scanning-h,
-  .scanning-copy,
-  .scanning-actions,
-  .scanning-flow,
-  .scanning-flow-viewport,
-  .scanning-flow-track,
-  .scanning-flow-step,
-  .scanning-phase,
-  .scanning-side,
-  .set-shell,
-  .set-body,
-  .set-row,
-  .set-pref,
-  .int-row,
-  .bill-card,
-  .billing-summary,
-  .billing-summary-main,
-  .billing-summary-meter,
-  .billing-actions,
-  .pricing-card,
-  .pricing-card-h,
-  .docs-shell,
-  .docs-main,
-  .docs-state,
-  .docs-page-head,
-  .docs-plan-grid,
-  .docs-plan-card,
-  .docs-plan-card-h,
-  .docs-plan-kv,
-  .docs-config-grid,
-  .docs-config-group,
-  .docs-config-group-h,
-  .docs-config-row,
-  .docs-config-copy,
-  .docs-config-value,
-  .docs-endpoint-list,
-  .docs-endpoint-card,
-  .docs-endpoint-card-h,
-  .docs-table,
-  .docs-table-r,
-  .docs-code,
-  .docs-code-h,
-  .docs-foot,
-  .legal-shell,
-  .legal-main,
-  .status-card,
-  .notfound-card
-) {
-  min-width: 0;
-}
-
 .with-side {
   grid-template-columns: 220px minmax(0, 1fr);
 }
@@ -490,7 +305,6 @@ body.has-proto-nav {
 
 .topbar > div:last-child,
 .page-h .actions,
-.scanning-actions,
 .modal-foot,
 .docs-foot-actions,
 .billing-actions {
@@ -502,33 +316,13 @@ body.has-proto-nav {
   max-width: min(56vw, 720px);
 }
 
-.crumb-label,
 .crumb-button,
 .side-i > span,
-.repo-name > span:first-child,
 .gh-install-account,
-.search-i-tt,
-.search-i-s,
-.fix-preview-h b,
 .notfound-suggest-t,
 .notfound-suggest-d {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-:where(.btn, .tag, .chip, .pill, .sev, .pill-btn, .seg-i, .repos-org) {
-  max-width: 100%;
-  min-width: 0;
-}
-
-:where(.chip, .pill, .kbd, .repos-org) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-:where(.pill-btn, .seg-i) {
   white-space: nowrap;
 }
 
@@ -537,21 +331,10 @@ body.has-proto-nav {
   vertical-align: middle;
 }
 
-.issue-detail-back {
-  align-self: flex-start;
-  display: inline-flex;
-  justify-content: flex-start;
-  width: fit-content;
-  margin: 0 0 12px 0;
-}
-
 .btn > svg,
 .btn .spin,
 .tag > svg,
-.chip > svg,
-.pill > svg,
-.sev .dot,
-.lang-dot {
+.sev .dot {
   flex: 0 0 auto;
 }
 
@@ -570,19 +353,10 @@ body.has-proto-nav {
 .pricing-tag,
 .docs-lede,
 .legal-lede,
-.status-section-h p,
 .notfound-sub {
   overflow-wrap: anywhere;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.page-h h1.page-title-truncate {
-  max-width: 100%;
-  overflow: hidden;
-  overflow-wrap: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .page-h .sub {
@@ -591,12 +365,9 @@ body.has-proto-nav {
 }
 
 .page-h .sub,
-.issue-meta,
-.repo-meta,
+.key-meta,
 .gh-install-meta,
-.scanning-sub,
 .billing-summary-main .muted,
-.docs-foot,
 .legal-foot-actions {
   gap: 8px;
 }
@@ -611,185 +382,62 @@ body.has-proto-nav {
   flex-wrap: wrap;
 }
 
-.kpi svg,
-.dash-summary svg,
-.scanning-log svg {
-  max-width: 100%;
-  height: auto;
-}
-
-.kpi {
-  display: grid;
-  grid-template-rows: 20px 39px 32px 20px;
-  align-content: start;
-}
-
-.kpi-h {
-  align-self: start;
-  min-width: 0;
-  margin-bottom: 0;
-  overflow: hidden;
-}
-
-.kpi-v {
-  align-self: start;
-  min-width: 0;
-  margin-bottom: 0;
-  color: var(--text);
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 36px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.kpi-foot {
-  align-self: end;
-  min-width: 0;
-  line-height: 16px;
-  max-height: 32px;
-  overflow-wrap: anywhere;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.kpi-chart {
-  align-self: end;
-  min-width: 0;
-  height: 20px;
-}
-
-.kpi-h,
-.dash-summary-head,
 .section-h,
 .status-card-h {
   gap: 10px;
 }
 
-.dash-summary-head > :first-child,
-.section-h > :first-child,
-.dash-donut-row > span:nth-child(2) {
+.section-h > :first-child {
   min-width: 0;
 }
 
-.dash-donut-row > span:nth-child(2) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-.issue-row {
+.key-row {
   grid-template-columns: 76px 150px minmax(0, 1fr) minmax(64px, auto) 14px;
 }
 
-.issue-row > *,
-.issues-trow > *,
-.repo-row > *,
-.int-row > * {
+.key-row > * {
   min-width: 0;
 }
 
-.issue-sev,
-.issue-id,
-.issue-effort {
+.key-sev,
+.key-id {
   justify-self: start;
   white-space: nowrap;
 }
 
-.issue-id {
+.key-id {
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.issue-meta > span:first-child {
+.key-meta > span:first-child {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.issue-t,
-.issue-card-t,
-.scanning-title,
-.scanning-phase-t,
-.scanning-phase-d,
+.key-t,
 .section p,
-.legal-list li,
-.legal-list-flat li,
-.docs-plan-kv code,
-.docs-config-copy p,
-.docs-config-path,
-.docs-config-value code {
+.legal-list li {
   overflow-wrap: anywhere;
 }
 
-.repo-row {
-  grid-template-columns: 30px 24px minmax(0, 1fr) auto;
-}
-
-.repo-check,
-.repo-icon,
 .gh-install-icon {
   display: inline-grid;
   place-items: center;
   align-self: center;
 }
 
-.repo-name {
-  align-items: center;
-}
-
-.repo-name .tag,
 .gh-install-row > .btn,
-.int-row > .btn,
 .billing-actions .btn {
   flex: 0 0 auto;
 }
 
-.repo-desc,
 .gh-install-status,
-.scanning-queue-message,
-.auth-error,
-.auth-success,
-.oauth-error {
+.auth-success {
   overflow-wrap: anywhere;
-}
-
-.repo-meta {
-  display: grid;
-  grid-template-rows: repeat(2, minmax(16px, auto));
-  grid-template-columns: 220px max-content max-content;
-  grid-auto-flow: column;
-  max-width: min(52vw, 620px);
-  justify-content: flex-end;
-  justify-self: end;
-  align-content: center;
-  align-items: center;
-  gap: 8px 12px;
-}
-
-.repo-meta .repo-meta-lang {
-  justify-self: end;
-  text-align: right;
-}
-
-.repo-meta > span {
-  min-width: 0;
-  max-width: 190px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.repo-meta .repo-quota {
-  max-width: 360px;
-  white-space: normal;
 }
 
 @media (max-width: 820px) {
@@ -817,231 +465,6 @@ body.has-proto-nav {
   }
 }
 
-.repo-meta .repo-branch-picker {
-  max-width: 220px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 6px;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--bg-soft);
-}
-
-.repo-meta .repo-branch-placeholder {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.repo-branch-picker .repo-branch-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  flex: 1 1 auto;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.repo-branch-picker .repo-branch-trigger:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-
-.repo-branch-picker .repo-branch-trigger:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 1px;
-  border-radius: 0;
-}
-
-.repo-branch-picker .repo-branch-value {
-  min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.repo-branch-picker .repo-branch-chev {
-  flex: 0 0 auto;
-  color: var(--text-3);
-  transition: transform 150ms var(--ease-out);
-}
-
-.repo-branch-picker .repo-branch-trigger[aria-expanded="true"] .repo-branch-chev {
-  transform: rotate(180deg);
-}
-
-.repo-branch-picker .repo-branch-menu {
-  max-width: 240px;
-  max-height: 240px;
-  overflow-y: auto;
-  margin: 0;
-  padding: 4px;
-  list-style: none;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  box-shadow: var(--shadow-3);
-  z-index: var(--z-float);
-}
-
-.repo-branch-picker .repo-branch-empty {
-  padding: 6px 8px;
-  color: var(--text-3);
-  font-size: var(--fs-sm);
-  list-style: none;
-}
-
-.repo-branch-picker .repo-branch-option {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
-  border-radius: 0;
-  font-size: var(--fs-sm);
-  color: var(--text);
-  cursor: pointer;
-  user-select: none;
-}
-
-.repo-branch-picker .repo-branch-option:hover,
-.repo-branch-picker .repo-branch-option:focus-visible {
-  background: var(--bg-soft);
-  outline: 0;
-}
-
-.repo-branch-picker .repo-branch-option.selected {
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev));
-  color: var(--text);
-}
-
-.repo-branch-picker .repo-branch-option-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.repo-branch-picker .repo-branch-option-check {
-  flex: 0 0 auto;
-  color: var(--accent);
-}
-
-.repo-branch-picker.repo-branch-error {
-  border-color: color-mix(in srgb, var(--danger) 38%, var(--border));
-}
-
-.quota-selection-alert {
-  border-color: color-mix(in srgb, var(--warn) 34%, var(--border));
-}
-
-.quota-modal-back {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-quota-modal);
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgba(8, 12, 20, 0.52);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.quota-modal {
-  width: min(620px, 100%);
-  max-height: min(720px, calc(100vh - 36px));
-  max-height: min(720px, calc(100dvh - 36px));
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--bg-elev);
-  color: var(--text);
-  box-shadow: var(--shadow-3);
-}
-
-.quota-modal .modal-h {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.quota-modal .modal-h h2 {
-  margin: 0;
-  font-size: var(--fs-3xl);
-  line-height: 1.25;
-}
-
-.quota-modal .modal-h p {
-  margin: 6px 0 0;
-  color: var(--text-2);
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-.quota-choice-count {
-  color: var(--text-3);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-}
-
-.quota-choice-list {
-  display: grid;
-  gap: 8px;
-  overflow: auto;
-  padding-right: 2px;
-}
-
-.quota-choice-row {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--bg-soft);
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.quota-choice-row.on {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--bg-soft));
-}
-
-.quota-choice-row.unavailable {
-  opacity: 0.58;
-  cursor: not-allowed;
-}
-
-.quota-choice-copy {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
-
-.quota-choice-copy strong,
-.quota-choice-copy span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .gh-install-row {
   grid-template-columns: 24px minmax(0, 1fr) max-content;
 }
@@ -1053,8 +476,7 @@ body.has-proto-nav {
 }
 
 .gh-install-meta > span,
-.gh-install-meta > a,
-.gh-identities > * {
+.gh-install-meta > a {
   min-width: 0;
   max-width: 100%;
 }
@@ -1063,351 +485,21 @@ body.has-proto-nav {
   color: var(--text-3);
 }
 
-.filters-row > .repos-search {
-  flex: 1 1 260px;
-  min-width: 0;
-}
-
-@media (min-width: 761px) {
-  .issues-thead,
-  .issues-trow {
-    grid-template-columns:
-      24px
-      minmax(260px, 1.55fr)
-      minmax(180px, 1.15fr)
-      minmax(110px, 0.75fr)
-      minmax(90px, 0.65fr)
-      minmax(78px, 0.55fr)
-      minmax(190px, auto);
-    align-items: center;
-  }
-}
-
-.issues-title-c {
-  display: block;
-}
-
-.issues-title-c > div:first-child {
-  align-items: center;
-  gap: 6px 8px !important;
-}
-
-.issues-file,
-.issue-id,
-.kpi-v,
+.key-id,
 .pricing-num {
   font-variant-numeric: tabular-nums;
 }
 
-.issues-file {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.issues-trow > div:nth-child(4),
-.issues-trow > div:nth-child(5),
-.issues-trow > div:nth-child(6),
-.issues-trow > div:nth-child(7) {
-  align-items: center;
-}
-
-.issues-trow > div:nth-child(7) {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-
-.issue-detail-h h1,
-.issue-detail-h .sub,
-.issue-detail-grid .section,
-.issue-detail-main-col,
-.audit-scope,
-.fix-preview,
 .docs-code pre {
   max-width: 100%;
   min-width: 0;
 }
 
-.issue-detail-h h1 {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.issue-detail-h > div:first-child {
-  min-width: 0;
-}
-
-.issue-detail-h > div:first-child > div:first-child {
-  flex-wrap: wrap;
-}
-
-.issue-detail-h .sub > span {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-
-.diff-block,
 .docs-code pre {
   overflow-x: auto;
 }
 
-.audit-tag {
-  overflow: visible;
-  overflow-wrap: anywhere;
-  text-overflow: clip;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.scan-human-report {
-  min-width: 0;
-  margin: 0;
-}
-
-.review-run-card {
-  min-width: 0;
-  margin: 0;
-  padding: 16px;
-}
-
-.review-run-card .section-h {
-  margin-bottom: 12px;
-}
-
-.review-run-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  border: 1px solid var(--border);
-}
-
-.review-run-metrics > div {
-  min-width: 0;
-  padding: 10px 12px;
-  border: 0;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: transparent;
-}
-
-.review-run-metrics > div:nth-child(2n) {
-  border-right: 0;
-}
-
-.review-run-metrics > div:nth-last-child(-n + 2) {
-  border-bottom: 0;
-}
-
-.review-run-metrics b {
-  display: block;
-  min-width: 0;
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: var(--fs-2xl);
-  font-weight: 650;
-  letter-spacing: 0;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.review-run-metrics span {
-  display: block;
-  margin-top: 3px;
-  color: var(--text-3);
-  font-size: var(--fs-xs);
-}
-
-.review-run-summary-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.review-run-artifacts {
-  min-width: 0;
-  margin-top: 12px;
-}
-
-.review-run-artifacts > summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  cursor: pointer;
-  list-style: none;
-}
-
-.review-run-artifacts > summary::-webkit-details-marker {
-  display: none;
-}
-
-.review-run-artifact-menu {
-  display: grid;
-  gap: 0;
-  margin-top: 8px;
-  border-top: 1px solid var(--border);
-}
-
-.review-run-artifact {
-  min-width: 0;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.review-run-artifact-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.review-run-artifact-main a,
-.review-run-artifact-main span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  color: var(--text);
-  font-weight: 650;
-  text-decoration: none;
-}
-
-.review-run-artifact-main a:hover {
-  color: var(--accent);
-}
-
-.review-run-artifact-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 5px;
-  color: var(--text-3);
-  font-size: var(--fs-xs);
-}
-
-.review-run-artifact-meta span:not(:last-child)::after {
-  content: "|";
-  margin-left: 6px;
-  color: var(--text-3);
-}
-
-.scanning-h {
-  align-items: flex-start;
-}
-
-.scanning-icon {
-  flex: 0 0 auto;
-}
-
-.scanning-title b,
-.scanning-sub .tag,
-.scanning-queue-meta .tag {
-  max-width: 100%;
-}
-
-.scanning-sub .tag {
-  white-space: normal;
-}
-
-.scanning-actions {
-  align-self: flex-start;
-  gap: 8px;
-}
-
-.scanning-h-terminal {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  align-items: flex-start;
-  column-gap: 14px;
-  row-gap: 8px;
-}
-
-.scanning-h-terminal .scanning-icon {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.scanning-h-terminal .scanning-copy {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.scanning-h-terminal .scanning-actions {
-  grid-column: 2;
-  grid-row: 2;
-  width: 100%;
-  margin-left: 0;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-}
-
-.scanning-h-terminal .scanning-actions .btn {
-  flex: 0 1 auto;
-}
-
-.scanning-phase > div:last-child {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.scanning-phase-t {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.scanning-phase-d {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  white-space: normal;
-}
-
-.scanning-sub {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  min-width: 0;
-  overflow: visible;
-}
-
-.scanning-sub > * {
-  min-width: 0;
-  flex-shrink: 1;
-  overflow-wrap: anywhere;
-  white-space: normal;
-}
-
-.scanning-sub > .scanning-sub-label,
-.scanning-sub > .scanning-sub-sep {
-  flex-shrink: 0;
-}
-
-.scanning-sub-label {
-  color: var(--text-3);
-  opacity: 0.85;
-}
-
-.scanning-sub-sep {
-  color: var(--text-3);
-  opacity: 0.5;
-}
-
 .set-row,
-.set-pref,
 .billing-summary,
 .bill-card {
   align-items: center;
@@ -1422,9 +514,7 @@ body.has-proto-nav {
 }
 
 .set-row > div:last-child,
-.set-pref > div:first-child,
 .billing-summary-main > div,
-.int-row > div:nth-child(2),
 .api-key-create,
 .api-key-create-head > div:last-child,
 .api-key-create-main,
@@ -1441,22 +531,6 @@ body.has-proto-nav {
   min-width: 0;
 }
 
-.set-pref .muted {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.int-row {
-  grid-template-columns: 24px minmax(0, 1fr) max-content max-content;
-}
-
-.int-row > .pill,
-.int-row > .btn,
-.int-row > .tag {
-  justify-self: end;
-}
-
 .billing-summary {
   display: flex;
   flex-wrap: wrap;
@@ -1464,10 +538,6 @@ body.has-proto-nav {
 
 .billing-summary-main {
   flex: 1 1 260px;
-}
-
-.billing-summary-meter {
-  flex: 0 1 320px;
 }
 
 .billing-actions {
@@ -1484,8 +554,6 @@ body.has-proto-nav {
   min-width: 0;
 }
 
-
-
 .docs-shell {
   grid-template-columns: 176px minmax(0, 1fr);
 }
@@ -1501,49 +569,13 @@ body.has-proto-nav {
   overflow-wrap: anywhere;
 }
 
-.docs-foot {
-  flex-wrap: wrap;
-  align-items: center;
-}
-
 .docs-page-head {
   min-width: 0;
   flex-wrap: wrap;
 }
 
-.search-i > div,
 .notfound-suggest-i > div {
   min-width: 0;
-}
-
-.search-i .tag {
-  flex: 0 0 auto;
-}
-
-@media (min-width: 761px) and (max-width: 1180px) {
-  .repo-row {
-    grid-template-columns: 30px 24px minmax(0, 1fr);
-  }
-
-  .repo-meta {
-    grid-column: 3;
-    justify-content: flex-start;
-    max-width: 100%;
-    grid-template-columns: max-content max-content max-content;
-  }
-
-  .issues-table {
-    overflow-x: auto;
-  }
-
-  .issues-thead,
-  .issues-trow {
-    min-width: 1020px;
-  }
-
-  .issue-detail-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 900px) {
@@ -1566,7 +598,6 @@ body.has-proto-nav {
     justify-content: flex-start;
   }
 
-  .billing-summary-meter,
   .billing-actions {
     flex: 1 1 100%;
   }
@@ -1585,100 +616,21 @@ body.has-proto-nav {
     max-width: none;
   }
 
-  .repo-row,
-  .gh-install-row,
-  .int-row {
+  .gh-install-row {
     grid-template-columns: 24px minmax(0, 1fr);
-  }
-
-  .repo-row .repo-icon {
-    display: none;
-  }
-
-  .repo-row .repo-check {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .repo-row .repo-main {
-    grid-column: 2;
-    grid-row: 1;
   }
 
   .docs-table-r {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .repo-meta,
-  .gh-install-row > .btn,
-  .int-row > .pill,
-  .int-row > .btn,
-  .int-row > .tag {
+  .gh-install-row > .btn {
     grid-column: 2;
     justify-self: start;
     text-align: left;
   }
 
-  .repo-meta {
-    max-width: 100%;
-    justify-content: flex-start;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-  }
-
-  .repo-meta > span {
-    max-width: 100%;
-  }
-
-  .filters-row > .repos-search {
-    min-width: 0;
-  }
-
-  .issues-table {
-    overflow: visible;
-  }
-
-  .issues-thead,
-  .issues-trow {
-    min-width: 0;
-  }
-
-  .issues-trow > div:nth-child(3),
-  .issues-trow > div:nth-child(4),
-  .issues-trow > div:nth-child(5),
-  .issues-trow > div:nth-child(6) {
-    display: grid;
-    grid-template-columns: 88px minmax(0, 1fr);
-    gap: 8px;
-    align-items: center;
-  }
-
-  .issues-mobile-label {
-    display: block;
-    color: var(--text-3);
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .issues-cell-value {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .issues-trow > div:nth-child(7) {
-    align-items: stretch;
-    justify-content: flex-start;
-  }
-
   .docs-shell {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  
-  .issue-detail-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1696,38 +648,8 @@ body.has-proto-nav {
     flex: 1 1 100%;
   }
 
-  
-  
-  .issue-row {
+  .key-row {
     grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .scanning-h {
-    display: grid;
-    grid-template-columns: 38px minmax(0, 1fr);
-    gap: 12px;
-    padding: 18px;
-  }
-
-  .scanning-icon {
-    width: 38px;
-    height: 38px;
-  }
-
-  .scanning-actions {
-    grid-column: 1 / -1;
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .scan-execution-panel,
-  .scan-human-report {
-    padding: 14px;
-  }
-
-  .scan-detail-panel-head {
-    margin-bottom: 12px;
-    padding-bottom: 12px;
   }
 
   .set-shell {
@@ -1747,9 +669,6 @@ body.has-proto-nav {
     white-space: nowrap;
   }
 }
-
-/* Responsive completion pass: keep medium and phone layouts usable with
-   long real-world repo names, API values, and billing copy. */
 .lp-top > div:last-child {
   min-width: 0;
   display: flex;
@@ -1775,9 +694,9 @@ body.has-proto-nav {
 .lp-preview-main,
 .lp-preview-row,
 .lp-preview-stat,
-.lp-preview-issue,
-.lp-preview-issue-t,
-.lp-preview-issue-f,
+.lp-preview-expense,
+.lp-preview-expense-t,
+.lp-preview-expense-f,
 .lp-preview-url,
 .pricing-hero,
 .pricing-toggle,
@@ -1788,16 +707,6 @@ body.has-proto-nav {
 .pricing-price,
 .pricing-feats,
 .pricing-feats li,
-.docs-state,
-.docs-plan-card,
-.docs-plan-card-h,
-.docs-plan-kv,
-.docs-config-grid,
-.docs-config-group,
-.docs-config-group-h,
-.docs-config-row,
-.docs-config-copy,
-.docs-config-value,
 .billing-change-callout,
 .billing-change-callout-text,
 .billing-change-features,
@@ -1806,27 +715,12 @@ body.has-proto-nav {
   min-width: 0;
 }
 
-.docs-state {
-  flex-wrap: wrap;
-}
-
-.docs-state .btn {
-  margin-left: 0;
-}
-
-.docs-plan-name,
-.docs-plan-key,
-.docs-plan-kv b,
-.docs-plan-kv code,
-.docs-config-copy b,
-.docs-config-path,
-.docs-config-value code,
 .lp-title,
 .lp-title-em,
 .lp-sub,
 .lp-meta span,
-.lp-preview-issue-t,
-.lp-preview-issue-f,
+.lp-preview-expense-t,
+.lp-preview-expense-f,
 .pricing-hero .lp-sub,
 .pricing-tag,
 .pricing-feats li,
@@ -1925,41 +819,6 @@ body.has-proto-nav {
     text-overflow: clip;
   }
 
-  .page-h h1.page-title-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .repo-meta {
-    width: 100%;
-    max-width: 100%;
-    grid-template-columns: minmax(0, 1fr);
-    grid-auto-flow: row;
-  }
-
-  .repo-meta > span,
-  .repo-meta .repo-branch-picker,
-  .repo-meta .repo-quota {
-    justify-self: start;
-    max-width: 100%;
-    white-space: normal;
-  }
-
-  .docs-plan-kv {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-  }
-
-  .docs-config-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .docs-config-value {
-    justify-self: start;
-    text-align: left;
-  }
-
   .docs-foot-actions {
     width: 100%;
   }
@@ -2056,50 +915,6 @@ body.has-proto-nav {
     min-width: 0;
   }
 }
-
-.issue-checklist {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-}
-
-.issue-check b {
-  color: var(--text);
-  font-size: var(--fs-sm);
-  font-weight: 650;
-}
-
-.issue-check span {
-  color: var(--text-2);
-  font-size: var(--fs-sm);
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-.issue-check {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 8px;
-  align-items: start;
-}
-
-.issue-check-dot {
-  width: 16px;
-  height: 16px;
-  border: 1px solid var(--border-strong);
-  color: var(--accent-fg);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1px;
-}
-
-.issue-check-dot.met {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-/* ── Landing ── */
 .landing {
   background: var(--bg);
 }
@@ -2286,12 +1101,12 @@ body.has-proto-nav {
   letter-spacing: 0.02em;
 }
 
-.lp-preview-issues {
+.lp-preview-expenses {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.lp-preview-issue {
+.lp-preview-expense {
   display: grid;
   grid-template-columns: 80px 1fr auto;
   align-items: center;
@@ -2299,13 +1114,13 @@ body.has-proto-nav {
   padding: 10px 12px;
   font-size: var(--fs-sm);
 }
-.lp-preview-issue:hover {
+.lp-preview-expense:hover {
   background: var(--bg-soft);
 }
-.lp-preview-issue-t {
+.lp-preview-expense-t {
   color: var(--text);
 }
-.lp-preview-issue-f {
+.lp-preview-expense-f {
   color: var(--text-3);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -2342,8 +1157,6 @@ body.has-proto-nav {
   font-size: var(--fs-sm);
   color: var(--text-3);
 }
-
-/* === Web visual refinement: editorial hard-edge system === */
 .lang-toggle,
 .theme-toggle,
 .back-to-top,
@@ -2632,89 +1445,6 @@ body.has-proto-nav {
   flex: 0 0 auto;
 }
 
-.kpi-row {
-  gap: 0;
-  margin-bottom: 24px;
-  border-top: 1px solid var(--border-strong);
-  border-bottom: 1px solid var(--border-strong);
-  background: transparent;
-}
-
-.kpi.card {
-  min-height: 154px;
-  padding: 18px 20px;
-  border: 0;
-  border-right: 1px solid var(--border);
-  background: transparent;
-}
-
-.kpi.card:last-child {
-  border-right: 0;
-}
-
-.kpi.card:hover {
-  border-color: var(--border);
-  background: var(--bg-tint);
-}
-
-.kpi-l {
-  color: var(--text-3);
-  font-size: var(--fs-xs);
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.kpi-v {
-  font-size: 34px;
-  font-variant-numeric: tabular-nums;
-}
-
-.dash-grid {
-  gap: 0;
-  margin-bottom: 24px;
-  border-top: 1px solid var(--border-strong);
-  border-bottom: 1px solid var(--border-strong);
-}
-
-.dash-grid > .dash-summary.card {
-  padding: 22px 20px;
-  border: 0;
-  border-right: 1px solid var(--border);
-  background: transparent;
-}
-
-.dash-grid > .dash-summary.card:last-child {
-  border-right: 0;
-}
-
-.dash-grid > .dash-summary.card:hover {
-  border-color: var(--border);
-}
-
-.risk-hotspots.card {
-  padding: 24px 0;
-  border-right: 0;
-  border-left: 0;
-  background: transparent;
-}
-
-.risk-hotspot-grid {
-  gap: 0;
-  margin-top: 18px;
-  border-top: 1px solid var(--border);
-}
-
-.risk-hotspot-list {
-  padding: 18px 20px 6px;
-  border: 0;
-  background: transparent;
-}
-
-.risk-hotspot-list + .risk-hotspot-list {
-  border-left: 1px solid var(--border);
-}
-
 @keyframes lpRise {
   from {
     opacity: 0;
@@ -2763,27 +1493,6 @@ body.has-proto-nav {
 
   .lp-features {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .kpi.card:nth-child(2) {
-    border-right: 0;
-  }
-
-  .kpi.card:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .dash-grid > .dash-summary.card {
-    border-right: 0;
-  }
-
-  .dash-grid > .dash-summary.card:first-child {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .risk-hotspot-list + .risk-hotspot-list {
-    border-top: 1px solid var(--border);
-    border-left: 0;
   }
 }
 
@@ -2935,8 +1644,6 @@ body.has-proto-nav {
     padding-left: 16px;
   }
 }
-
-/* Public frame alignment and Pricing isolation */
 .pricing-hero,
 .pricing-tiers,
 .pricing-faq,
@@ -3006,7 +1713,6 @@ body.has-proto-nav {
     padding-right: 16px;
   }
 }
-/* Settings inline recovery state */
 .settings-inline-error {
   display: flex;
   align-items: flex-start;
@@ -3046,8 +1752,6 @@ body.has-proto-nav {
     width: 100%;
   }
 }
-
-/* Reduced motion: state changes become instant; infinite pulses stop. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -3063,8 +1767,6 @@ body.has-proto-nav {
   }
 
   .spin,
-  .pulse,
-  .scan-row-running .scan-status-dot,
   .status-overall.operational .status-dot {
     animation: none !important;
   }

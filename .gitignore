@@ -67,8 +67,8 @@ Desktop.ini
 .worktrees/
 
 .claude/settings.local.json
-.tmp-chrome-profile/
-tmp-scan-actions.png
-.tmp-scan-layout.html
-.responsive-audit
+output/
+# Local verification artifacts
+.playwright-cli/
+.pytest_cache/
 output/

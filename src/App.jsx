@@ -111,65 +111,12 @@ function sessionIdentity(authenticated, session) {
   return identity ? `user:${String(identity)}` : `session:${sessionFingerprint(session)}`;
 }
 
-function PrototypeNav({ go, current }) {
-  const screens = [
-    { k: "landing", t: T("Landing", "首页") },
-    { k: "login", t: T("Sign in", "登录") },
-    { k: "oauth", t: T("GitHub OAuth", "GitHub 授权") },
-    { k: "ledgerProjects", t: T("Projects", "项目") },
-    { k: "ledgerShared", t: T("Shared pool", "公共支出池") },
-    { k: "ledgerCategories", t: T("Categories", "类别") },
-    { k: "apiKeys", t: T("API Keys", "API Keys") },
-    { k: "settings", t: T("Settings", "设置") },
-    { k: "billing", t: T("Billing", "账单") },
-    { k: "pricing", t: T("Pricing", "价格") },
-    { k: "docs", t: T("Docs", "Docs") },
-    { k: "api", t: T("API docs", "API 文档") },
-    { k: "privacy", t: T("Privacy Policy", "隐私") },
-    { k: "terms", t: T("Terms of Service", "条款") },
-    { k: "status", t: T("Status", "状态") },
-    { k: "notfound", t: "404" },
-  ];
-
-  return (
-    <div className="proto-nav">
-      <div className="proto-nav-l">
-        <span className="proto-nav-brand">
-          {T("PR · Prototype", {
-            zh: "PR · 原型",
-            ja: "PR · プロトタイプ",
-            ko: "PR · 프로토타입",
-            fr: "PR · Prototype",
-            es: "PR · Prototipo",
-          })}
-        </span>
-      </div>
-      <div className="proto-nav-screens">
-        {screens.map((s, i) => (
-          <button
-            key={s.k}
-            className={"proto-nav-i" + (current === s.k ? " on" : "")}
-            onClick={() => go(s.k)}
-          >
-            <span className="proto-nav-n">{String(i + 1).padStart(2, "0")}</span>
-            {s.t}
-          </button>
-        ))}
-      </div>
-      <div className="proto-nav-hint">
-        {T("Click any prototype page to jump", "点击跳转任意原型页面")}
-      </div>
-    </div>
-  );
-}
-
-export function App({ prototypeNav = false }) {
+export function App() {
   const lang = useLang();
   const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
   const [screen, setScreen] = useState(getInitialScreen);
   const [routeVersion, setRouteVersion] = useState(0);
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
-  const [navOpen, setNavOpen] = useState(true);
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -208,7 +155,7 @@ export function App({ prototypeNav = false }) {
       window.history.replaceState(historyState, "", path);
     }
     setScreen(screenFromPath(path) || "notfound");
-    setRouteVersion(value => value + 1);
+    setRouteVersion((value) => value + 1);
     window.scrollTo({ top: 0 });
   };
 
@@ -216,15 +163,11 @@ export function App({ prototypeNav = false }) {
     const onPopState = () => {
       const nextScreen = screenFromPath(window.location.pathname) || "notfound";
       setScreen(nextScreen);
-      setRouteVersion(value => value + 1);
+      setRouteVersion((value) => value + 1);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle("has-proto-nav", prototypeNav && navOpen);
-  }, [prototypeNav, navOpen]);
 
   useEffect(() => {
     applyCurrentSeoMetadata();
@@ -427,18 +370,20 @@ export function App({ prototypeNav = false }) {
     if (continuedRepositoryAuthorization.current || !repositoryAuthorizationRequested()) return;
     continuedRepositoryAuthorization.current = true;
     clearRepositoryAuthorizationRequest();
-    connectGitHubRepositories().then(() => {
-      setRepositoryAuthorizationRevision(value => value + 1);
-    }).catch((error) => {
-      setRepositoryAuthorizationError(
-        error?.message || "Unable to connect GitHub repository access."
-      );
-    });
+    connectGitHubRepositories()
+      .then(() => {
+        setRepositoryAuthorizationRevision((value) => value + 1);
+      })
+      .catch((error) => {
+        setRepositoryAuthorizationError(
+          error?.message || "Unable to connect GitHub repository access."
+        );
+      });
   }, [auth.status, auth.authenticated, screen]);
 
   // Show the back-to-top button once the user has scrolled past the threshold,
   // and hide it again when they return to the top. This lets long list pages
-  // (dashboard and repository management) recover from deep scroll.
+  // (project and expense lists) recover from deep scroll.
   useEffect(() => {
     const updateBackToTop = () => {
       setShowBackToTop(window.scrollY > BACK_TO_TOP_THRESHOLD_PX);
@@ -492,9 +437,14 @@ export function App({ prototypeNav = false }) {
         body = <OAuthScreen go={go} auth={auth} />;
         break;
       case "ledgerProjects":
-        body = <LedgerScreen go={go} mode="projects"
-          authorizationError={repositoryAuthorizationError}
-          authorizationRevision={repositoryAuthorizationRevision} />;
+        body = (
+          <LedgerScreen
+            go={go}
+            mode="projects"
+            authorizationError={repositoryAuthorizationError}
+            authorizationRevision={repositoryAuthorizationRevision}
+          />
+        );
         break;
       case "ledgerCategories":
         body = <LedgerScreen go={go} mode="categories" />;
@@ -503,8 +453,14 @@ export function App({ prototypeNav = false }) {
         body = <LedgerScreen go={go} mode="shared" />;
         break;
       case "ledgerProject":
-        body = <LedgerScreen key={window.location.pathname} go={go} mode="project"
-          projectId={window.location.pathname.slice("/projects/".length)} />;
+        body = (
+          <LedgerScreen
+            key={window.location.pathname}
+            go={go}
+            mode="project"
+            projectId={window.location.pathname.slice("/projects/".length)}
+          />
+        );
         break;
       case "apiKeys":
         body = <ApiKeysScreen go={go} />;
@@ -542,15 +498,6 @@ export function App({ prototypeNav = false }) {
 
   return (
     <NotificationProvider>
-      {prototypeNav && (
-        <>
-          <button className="proto-nav-toggle" onClick={() => setNavOpen((open) => !open)}>
-            {navOpen ? "▲" : "●"}
-          </button>
-          {navOpen && <PrototypeNav go={go} current={screen} />}
-        </>
-      )}
-
       <div
         ref={screenRootRef}
         tabIndex={-1}

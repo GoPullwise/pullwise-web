@@ -2,7 +2,7 @@ function twoDigits(value) {
   return String(value).padStart(2, "0");
 }
 
-export function formatQuotaResetAt(value) {
+export function formatBillingTimestamp(value) {
   if (typeof value === "boolean") return "";
   const seconds = Number(value);
   if (!Number.isFinite(seconds) || seconds <= 0) return "";
@@ -13,9 +13,4 @@ export function formatQuotaResetAt(value) {
     `${twoDigits(date.getUTCHours())}:${twoDigits(date.getUTCMinutes())}`,
     "UTC",
   ].join(" ");
-}
-
-export function quotaResetText(quota, prefix = "resets") {
-  const formatted = formatQuotaResetAt(quota?.resetAt ?? quota?.reset_at);
-  return formatted ? `${prefix} ${formatted}` : "";
 }

@@ -1,16 +1,11 @@
-/* === Pullwise — base design system === */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  /* The design language is square-edged. Rounding is the exception, so it is
-     opted into per-rule rather than reset away ~100 times. */
   border-radius: 0;
 }
-
-/* The one native control in the app; keep its UA rounding. */
 input[type="checkbox"] {
   border-radius: revert;
 }
@@ -37,9 +32,6 @@ input[type="checkbox"] {
   --sev-medium: #ca8a04;
   --sev-low: #2563eb;
   --sev-info: #6b7280;
-
-  /* Categorical hues for chart buckets beyond the severity ramp
-   * (issue "Style" category, per-repo band colors). */
   --cat-violet: #7c3aed;
   --cat-sky: #0ea5e9;
   --cat-purple: #a855f7;
@@ -51,12 +43,13 @@ input[type="checkbox"] {
   --shadow-2: none;
   --shadow-3: none;
 
-  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-sans:
+    "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-display: "Geist", "Inter", ui-sans-serif, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-
-  /* Type scale. Every UI font-size resolves to one of these steps;
-   * display/hero sizes use clamp() and stay local to their rules. */
+  --font-display:
+    "Geist", "Inter", ui-sans-serif, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", sans-serif;
   --fs-micro: 10px;
   --fs-xs: 11px;
   --fs-sm: 12px;
@@ -70,32 +63,20 @@ input[type="checkbox"] {
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Soft tint for track wells and quiet fills. */
   --bg-2: rgba(0, 0, 0, 0.04);
-
-  /* Semantic status colours. These were previously only reachable through
-   * inline var() fallbacks, so a theme could not override them. */
   --ok: #15803d;
   --warn: #a16207;
   --danger: #dc2626;
-
-  /* Per-element accents: components override these inline (repo language dot,
-   * risk hotspot bar). The declarations here are the neutral default. */
   --repo-lang-color: var(--text-3);
   --risk-hotspot-color: var(--sev-high);
-
-  /* Stacking order, low to high. The values are the ones already in use — the
-   * point is that the order is now readable in one place instead of being
-   * inferred from 16 scattered magic numbers. */
-  --z-raised: 1; /* in-flow lift: trace nodes, page backdrop */
+  --z-raised: 1;
   --z-flow-bar: 3;
   --z-side: 9;
   --z-topbar: 10;
   --z-row-menu: 20;
   --z-nav: 50;
   --z-nav-toggle: 51;
-  --z-float: 60; /* floating controls + dropdown menus */
+  --z-float: 60;
   --z-quota-modal: 90;
   --z-toast: 120;
   --z-modal: 100;
@@ -154,19 +135,6 @@ html {
   scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
 }
-
-/* === Interactive base — the project's three text roles ===
- *  1) Text-only chrome (labels, badges, nav chrome, status indicators)
- *     → user-select: none. They are decoration, not content.
- *  2) Interactive controls (<button>, <a href>, <summary>, [role=button])
- *     → cursor: pointer; user-select: none. The cursor tells the user
- *     the element is clickable; we still don't want a drag-select to
- *     grab the label inside a button.
- *  3) Actual content the user may want to copy (code bodies, prose,
- *     log output, form values) → default behaviour: text cursor on
- *     inputs, I-beam on plain text, no special cursor on containers.
- *     Don't add user-select: none to these — copy is a feature.
- */
 button,
 a[href],
 summary,
@@ -191,8 +159,6 @@ select {
   cursor: text;
   user-select: text;
 }
-
-/* === Shared atoms === */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -238,16 +204,6 @@ select {
   border-color: var(--text-2);
 }
 
-.btn.accent {
-  background: var(--accent);
-  color: var(--accent-fg);
-  border-color: var(--accent);
-}
-.btn.accent:hover {
-  background: color-mix(in oklch, var(--accent) 88%, var(--accent-fg));
-  border-color: color-mix(in oklch, var(--accent) 88%, var(--accent-fg));
-}
-
 .btn.ghost {
   background: transparent;
   border-color: transparent;
@@ -276,12 +232,6 @@ select {
   flex: 0 0 auto;
 }
 
-.chip .dot {
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-}
-
 .kbd {
   display: inline-flex;
   align-items: center;
@@ -295,11 +245,6 @@ select {
   background: var(--bg-elev);
 }
 
-.divider {
-  height: 1px;
-  background: var(--border);
-}
-
 .card {
   background: var(--bg-elev);
   border: 1px solid var(--border);
@@ -308,8 +253,6 @@ select {
 .card:hover {
   border-color: var(--border-strong);
 }
-
-/* Severity */
 .sev {
   display: inline-flex;
   align-items: center;
@@ -331,69 +274,13 @@ select {
   border-radius: 50%;
   background: currentColor;
 }
-.sev-critical {
-  color: var(--sev-critical);
-}
-.sev-high {
-  color: var(--sev-high);
-}
-.sev-medium {
-  color: var(--sev-medium);
-}
-.sev-low {
-  color: var(--sev-low);
-}
 .sev-info {
   color: var(--sev-info);
-}
-
-.sev-bg-critical {
-  background: color-mix(in oklch, var(--sev-critical) 10%, transparent);
-  color: var(--sev-critical);
-}
-.sev-bg-high {
-  background: color-mix(in oklch, var(--sev-high) 12%, transparent);
-  color: var(--sev-high);
-}
-.sev-bg-medium {
-  background: color-mix(in oklch, var(--sev-medium) 14%, transparent);
-  color: var(--sev-medium);
-}
-.sev-bg-low {
-  background: color-mix(in oklch, var(--sev-low) 12%, transparent);
-  color: var(--sev-low);
 }
 .sev-bg-info {
   background: color-mix(in oklch, var(--sev-info) 14%, transparent);
   color: var(--sev-info);
 }
-
-/* Code blocks */
-.code {
-  font: var(--fs-sm)/1.6 var(--font-mono);
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.code-line.add {
-  background: color-mix(in oklch, var(--ok) 10%, transparent);
-}
-.code-line.del {
-  background: color-mix(in oklch, var(--danger) 10%, transparent);
-}
-.code-line.add .marker,
-.code-line.del .marker {
-  font-weight: 600;
-}
-.code-line.add .marker {
-  color: var(--ok);
-}
-.code-line.del .marker {
-  color: var(--danger);
-}
-
-/* Scrollbars — thin, square, theme-tinted (class-level hides, e.g.
- * .proto-nav-screens, still win over this global default) */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
@@ -412,19 +299,13 @@ select {
 *::-webkit-scrollbar-thumb:hover {
   background: var(--text-4);
 }
-
-/* Focus */
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-
-/* Selection */
 ::selection {
   background: var(--accent-glow);
 }
-
-/* App shell */
 .app {
   min-height: 100vh;
   min-height: 100dvh;
@@ -432,8 +313,6 @@ select {
   flex-direction: column;
   background: var(--bg);
 }
-
-/* Topbar */
 .topbar {
   height: 54px;
   flex: 0 0 auto;
@@ -519,7 +398,6 @@ select {
 .crumbs .sep {
   color: var(--text-4);
 }
-.crumb-label,
 .crumb-button {
   display: inline-flex;
   align-items: center;
@@ -546,8 +424,6 @@ a.crumb-button:hover {
   color: var(--text);
   font-weight: 500;
 }
-
-/* Sidebar layout */
 .with-side {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -678,8 +554,6 @@ a.crumb-button:hover {
   align-items: center;
   flex-wrap: wrap;
 }
-
-/* Animation utilities */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -722,16 +596,6 @@ a.crumb-button:hover {
     opacity: 0.5;
   }
 }
-.pulse {
-  animation: pulse 1.6s ease-in-out infinite;
-}
-
-/* Kept for skeleton loading, no animation */
-.shimmer-bg {
-  background: var(--bg-soft);
-}
-
-/* Empty / loading */
 .skeleton {
   display: block;
   background: var(--bg-soft);
@@ -744,40 +608,21 @@ a.crumb-button:hover {
   min-width: 0;
   flex: 1 1 auto;
 }
-.skeleton-panel {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
 .skeleton-row {
   pointer-events: none;
 }
-.sk-line,
-.sk-block {
+.sk-line {
   display: block;
   max-width: 100%;
 }
-.sk-block,
-.sk-w-100 {
-  width: 100%;
-}
-.sk-w-10 {
-  width: 10%;
-}
 .sk-w-12 {
   width: 12%;
-}
-.sk-w-14 {
-  width: 14%;
 }
 .sk-w-16 {
   width: 16%;
 }
 .sk-w-18 {
   width: 18%;
-}
-.sk-w-20 {
-  width: 20%;
 }
 .sk-w-22 {
   width: 22%;
@@ -800,32 +645,14 @@ a.crumb-button:hover {
 .sk-w-34 {
   width: 34%;
 }
-.sk-w-35 {
-  width: 35%;
-}
-.sk-w-36 {
-  width: 36%;
-}
 .sk-w-42 {
   width: 42%;
-}
-.sk-w-44 {
-  width: 44%;
 }
 .sk-w-45 {
   width: 45%;
 }
-.sk-w-48 {
-  width: 48%;
-}
-.sk-w-50 {
-  width: 50%;
-}
 .sk-w-52 {
   width: 52%;
-}
-.sk-w-55 {
-  width: 55%;
 }
 .sk-w-56 {
   width: 56%;
@@ -842,17 +669,8 @@ a.crumb-button:hover {
 .sk-w-70 {
   width: 70%;
 }
-.sk-w-80 {
-  width: 80%;
-}
-.sk-h-10 {
-  height: 10px;
-}
 .sk-h-16 {
   height: 16px;
-}
-.sk-h-18 {
-  height: 18px;
 }
 .sk-h-20 {
   height: 20px;
@@ -860,14 +678,8 @@ a.crumb-button:hover {
 .sk-h-22 {
   height: 22px;
 }
-.sk-h-24 {
-  height: 24px;
-}
 .sk-h-28 {
   height: 28px;
-}
-.sk-h-32 {
-  height: 32px;
 }
 .sk-h-34 {
   height: 34px;
@@ -875,28 +687,15 @@ a.crumb-button:hover {
 .sk-h-40 {
   height: 40px;
 }
-.sk-square,
-.sk-circle {
+.sk-square {
   flex: 0 0 auto;
 }
 .sk-square {
   aspect-ratio: 1;
 }
-.sk-circle {
-  aspect-ratio: 1;
-  border-radius: 50%;
-}
 .sk-size-16 {
   width: 16px;
   height: 16px;
-}
-.sk-size-18 {
-  width: 18px;
-  height: 18px;
-}
-.sk-size-28 {
-  width: 28px;
-  height: 28px;
 }
 .sk-size-32 {
   width: 32px;
@@ -906,30 +705,9 @@ a.crumb-button:hover {
   width: 36px;
   height: 36px;
 }
-.sk-size-72 {
-  width: 72px;
-  height: 72px;
-}
-.issues-table-skeleton,
-.repos-skeleton,
-.history-skeleton {
-  display: flex;
-  flex-direction: column;
-}
-.dashboard-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.dashboard-skeleton .kpi-row,
-.dashboard-skeleton .dash-grid {
-  margin: 0;
-}
 .skeleton-row:hover {
   background: inherit;
 }
-
-/* Tag */
 .tag {
   display: inline-flex;
   align-items: center;
@@ -948,93 +726,66 @@ a.crumb-button:hover {
   text-overflow: clip;
   white-space: normal;
 }
-
-/* Status pill */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 22px;
-  padding: 0 9px;
-  font-size: var(--fs-xs);
-  font-weight: 500;
-}
-.pill .dot {
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-}
-
-/* Non-selectable UI chrome (atoms + screen chrome).
- * The single canonical list — keep this in sync if a new chrome-only
- * class is added. Anything not in this list is treated as content the
- * user is allowed to select / copy.
- */
-/* Landing */
-.lp-top, .lp-nav, .lp-hero-tag, .lp-meta,
-.lp-preview-bar, .lp-preview-side, .lp-preview-issue-f,
-.lp-feat-i, .lp-foot,
-/* Auth / OAuth */
-.auth-or, .auth-legal,
-.oauth-head, .oauth-perm-h, .oauth-perm-i,
-.oauth-actions, .oauth-foot,
-/* Repos */
-.repos-toolbar, .repos-orgs, .repos-foot,
-.repo-check-box, .repo-meta, .lang-dot,
-.gh-installs-h, .gh-install-icon, .gh-install-meta, .gh-install-status,
-/* Scanning */
-.scanning-h, .scanning-icon,
-.scanning-phases, .scanning-phase-bullet,
-.scanning-counts-h, .scanning-counts-grid span,
-/* Dashboard */
-.kpi-h, .kpi-l, .kpi-d, .kpi-foot,
-.dash-summary-head, .dash-donut-dot,
-.seg, .seg-i,
-.dash-issues-h,
-/* Issues list */
-.issue-sev, .issue-id, .issue-effort, .issue-meta,
-.issue-card-foot,
-/* Issues table */
-.filters, .filter-l, .filter-pills, .pill-btn,
-.issues-thead, .issues-check, .conf-bar,
-/* Issue detail */
-.section-h, .step-n,
-.diff-tag, .diff-col-h,
-/* Modal / PR form */
-.modal-h, .modal-foot,
-.pr-progress, .pr-step, .pr-check,
-/* Settings */
-.set-side, .set-side-i, .set-av,
-.switch, .int-row,
-.usage-bar,
-/* Pricing */
-.pricing-toggle, .pricing-save, .pricing-badge,
+.lp-top,
+.lp-nav,
+.lp-hero-tag,
+.lp-meta,
+.lp-preview-bar,
+.lp-preview-side,
+.lp-preview-expense-f,
+.lp-feat-i,
+.lp-foot,
+.auth-legal,
+.oauth-head,
+.oauth-perm-h,
+.oauth-perm-i,
+.oauth-actions,
+.oauth-foot,
+.gh-installs-h,
+.gh-install-icon,
+.gh-install-meta,
+.gh-install-status,
+.seg-i,
+.key-sev,
+.key-id,
+.key-meta,
+.filters,
+.section-h,
+.modal-h,
+.modal-foot,
+.set-side,
+.set-side-i,
+.pricing-toggle,
+.pricing-save,
+.pricing-badge,
 .pricing-billed,
 .pricing-feats svg,
-.pricing-faq-i summary,
-/* Docs */
-.docs-side, .docs-toc, .docs-crumbs,
-.docs-side-h, .docs-toc-h, .docs-side-i, .docs-foot,
-/* Search modal */
-.search-h, .search-gh, .search-foot, .search-empty,
-/* Legal / Status / 404 */
-.legal-side, .legal-side-h, .legal-side-i, .legal-side-foot, .legal-side-l,
-.legal-crumbs, .legal-foot-actions,
-.status-overall, .status-dot, .status-bar, .status-bar-i,
-.status-row-region, .status-row-pct, .status-legend,
-.status-inc-sev, .status-inc-tl-h,
-.notfound-code, .notfound-suggest-h, .notfound-suggest-ic, .notfound-suggest-d,
-/* Atoms */
-.chip,
+.docs-side,
+.docs-crumbs,
+.docs-side-h,
+.docs-side-i,
+.legal-side,
+.legal-side-h,
+.legal-side-i,
+.legal-side-foot,
+.legal-side-l,
+.legal-crumbs,
+.legal-foot-actions,
+.status-overall,
+.status-dot,
+.status-row-region,
+.status-row-pct,
+.notfound-code,
+.notfound-suggest-h,
+.notfound-suggest-ic,
+.notfound-suggest-d,
 .kbd,
 .tag,
-.pill,
 .sev,
 .dot,
 .badge,
 .topbar,
 .crumbs,
-.crumb-label,
 .crumb-button,
 .crumbs .sep,
 .crumbs .now,
@@ -1054,8 +805,6 @@ a.crumb-button:hover {
 .docs-endpoint-card-h,
 .docs-code-h,
 .docs-foot-actions,
-.legal-list-h,
-.status-section-h,
 .status-card-h,
 .notfound-sub,
 .notfound-suggest-i,
@@ -1065,31 +814,13 @@ a.crumb-button:hover {
 .lang-menu-i,
 .lang-menu-code,
 .theme-toggle,
-.proto-nav,
-.proto-nav-i,
-.proto-nav-l,
-.proto-nav-n,
-.proto-nav-hint,
-.proto-nav-toggle,
-.quota-choice-count,
 .billing-summary,
 .billing-summary-main,
-.billing-summary-meter,
 .billing-actions,
 .bill-card,
-.bill-card-h,
 .muted,
-.text-3,
-.text-4,
 .sub,
-.code-line .ln,
-.kpi-v,
-.scanning-title,
-.scanning-sub,
-.scanning-phase-t,
-.scanning-phase-d,
-.search-i .tag,
-.issue-t {
+.key-t {
   user-select: none;
 }
 
@@ -1141,8 +872,6 @@ a.crumb-button:hover {
     overflow-y: hidden;
   }
 
-  .side-workspace,
-  .side-repos,
   .side-h {
     display: none;
   }
@@ -1180,8 +909,7 @@ a.crumb-button:hover {
     align-items: stretch;
   }
 
-  .page-h .actions .btn,
-  .page-h .actions .seg {
+  .page-h .actions .btn {
     flex: 1 1 auto;
   }
 }
@@ -1190,7 +918,6 @@ a.crumb-button:hover {
   .btn.sm,
   .btn.icon,
   .side-i,
-  .repo-branch-trigger,
   .seg-i {
     min-height: 44px;
   }
@@ -1203,24 +930,10 @@ a.crumb-button:hover {
     min-width: 44px;
   }
 }
-
-/* === Display hardening utilities === */
 #root {
   min-height: 100vh;
   min-height: 100dvh;
   min-width: 0;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 :where(.app, .with-side, .main, .card, .section, .modal, .modal-body) {
@@ -1255,728 +968,8 @@ a.crumb-button:hover {
   flex-shrink: 0;
 }
 
-
-:where(.text-wrap, .break-anywhere, .muted, p, li) {
-  overflow-wrap: anywhere;
-}
-
-:where(.btn, .chip, .tag, .pill, .kbd) {
-  max-width: 100%;
-}
-
-:where(.btn, .chip, .pill) > span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 @supports (text-wrap: pretty) {
   :where(p, li, .muted) {
     text-wrap: pretty;
-  }
-}
-
-/* === Distribution primitives (donut / stacked bar / legend) === */
-.disto-card {
-  padding: 14px 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-.disto-card-h {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-.disto-card-h h4 {
-  margin: 0;
-  font-size: var(--fs-md);
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--text);
-}
-.disto-card-h .sub {
-  font-size: var(--fs-sm);
-  color: var(--text-3);
-  margin-top: 2px;
-}
-.disto-card-total {
-  font-size: var(--fs-3xl);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-  line-height: 1;
-}
-.disto-bar {
-  position: relative;
-  width: 100%;
-  background: var(--bg-2);
-  overflow: hidden;
-}
-.disto-bar-empty {
-  opacity: 0.5;
-}
-.disto-bar-seg {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  display: block;
-}
-.disto-legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-  font-size: var(--fs-sm);
-  color: var(--text-2);
-}
-.disto-legend-i {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  width: 100%;
-  line-height: 1.3;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-}
-.disto-legend-i > b {
-  margin-left: auto;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-.disto-legend-dot {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-}
-.disto-legend-l {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-transform: capitalize;
-}
-.disto-legend-pct {
-  font-size: var(--fs-xs);
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-  min-width: 32px;
-  text-align: right;
-  margin-left: auto;
-}
-.disto-legend-click {
-  cursor: pointer;
-  padding: 2px 4px;
-  margin: -2px -4px;
-  border-radius: 0;
-  transition: background 120ms var(--ease-out);
-}
-.disto-legend-click:hover {
-  background: var(--bg-2);
-}
-.disto-legend-click:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.disto-legend-click:disabled {
-  cursor: default;
-}
-.disto-legend-active {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.disto-legend-active > b {
-  color: var(--accent);
-}
-.disto-donut {
-  position: relative;
-  display: inline-block;
-}
-.disto-donut-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  line-height: 1.05;
-  pointer-events: none;
-}
-.disto-donut-top {
-  font-size: var(--fs-3xl);
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.disto-donut-bot {
-  font-size: var(--fs-xs);
-  color: var(--text-3);
-  margin-top: 2px;
-  max-width: 80%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.disto-card-donut {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.disto-legend-stacked {
-  grid-template-columns: 1fr;
-  gap: 4px 0;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* === Issue distribution band (Issues list) === */
-.issue-disto {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
-}
-@media (max-width: 720px) {
-  .issue-disto {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (max-width: 460px) {
-  .issue-disto {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* === Dashboard donut row === */
-.dash-donut-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-.dash-donut-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
-}
-.dash-donut-card {
-  padding: 12px 14px;
-}
-.dash-donut-card .disto-card-donut {
-  gap: 18px;
-}
-
-
-/* === History timeline (Scan history) === */
-/* Scan history: day groups with compact scan rows. Replaces the older
-   `.hist-timeline*` long-strip layout. The structure is:
-
-   .scan-list
-     .scan-day-group          (one per day)
-       .scan-day-title        (day name + scan count)
-       .scan-day-body
-         .scan-time-block     (one per unique time within the day)
-           .scan-time         (left column with the time label)
-           .scan-row          (one scan item, stacked via .scan-stack)
-
-   Each scan row carries a status dot, a header with repo + badges
-   (including a prominent issue-count badge), a full-width severity
-   bar with a textual legend below it, and a compact set of actions
-   on the right. A more menu (⋯) holds less-used actions like
-   downloading the audit bundle. */
-
-.scan-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 4px 16px 16px 4px;
-}
-.scan-day-group {
-  padding: 14px 16px 16px;
-}
-.scan-day-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: var(--fs-md);
-  color: var(--text-2);
-  margin-bottom: 12px;
-}
-.scan-day-title strong {
-  color: var(--text);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  letter-spacing: 0;
-}
-.scan-day-count {
-  color: var(--text-3);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-}
-.scan-day-dot {
-  width: 10px;
-  height: 10px;
-  background: var(--ok);
-  box-shadow:
-    0 0 0 2px var(--bg-elev),
-    0 0 0 3px var(--border);
-  flex-shrink: 0;
-}
-.scan-day-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.scan-time-block {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 14px;
-  align-items: stretch;
-}
-
-.scan-progress {
-  display: grid;
-  gap: 7px;
-  min-width: 0;
-}
-.scan-progress-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 0;
-}
-.scan-progress-label {
-  min-width: 0;
-  color: var(--text);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.scan-progress-value {
-  color: var(--text-2);
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.scan-progress-message {
-  color: var(--text-2);
-  font-size: var(--fs-sm);
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-.scan-progress-meta {
-  padding: 7px 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
-  color: var(--text-3);
-  font: var(--fs-xs)/1.5 var(--font-mono);
-  overflow-wrap: anywhere;
-}
-.scan-progress-track {
-  height: 5px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
-}
-.scan-progress-track span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  transition: width 240ms var(--ease-out);
-}
-.scan-progress-compact {
-  gap: 5px;
-}
-.scan-progress-compact .scan-progress-head {
-  gap: 8px;
-}
-.scan-progress-compact .scan-progress-label,
-.scan-progress-compact .scan-progress-value {
-  font-size: var(--fs-sm);
-}
-.scan-progress-compact .scan-progress-message {
-  font-size: var(--fs-sm);
-  color: var(--text-3);
-}
-.scan-progress-compact .scan-progress-track {
-  height: 4px;
-}
-.scan-time {
-  padding-top: 18px;
-  color: var(--text-3);
-  font-size: var(--fs-sm);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.scan-time-batch {
-  font-size: var(--fs-xs);
-  color: var(--text-3);
-  opacity: 0.85;
-}
-.scan-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.scan-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 14px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 78px;
-  padding: 12px 14px;
-  background: transparent;
-  border: 0;
-  transition: background 120ms var(--ease-out);
-  cursor: pointer;
-}
-.scan-row:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-.scan-row:hover {
-  background: var(--bg-soft);
-}
-.scan-status-dot {
-  width: 10px;
-  height: 10px;
-  background: var(--sev-info);
-  box-shadow:
-    0 0 0 2px var(--bg),
-    0 0 0 3px var(--border);
-}
-.scan-row-done .scan-status-dot {
-  background: var(--ok);
-}
-.scan-row-running .scan-status-dot,
-.scan-row-queued .scan-status-dot {
-  background: var(--accent);
-}
-.scan-row-running .scan-status-dot {
-  animation: scan-row-pulse 1.6s ease-in-out infinite;
-}
-.scan-row-queued .scan-status-dot {
-  opacity: 0.55;
-}
-.scan-row-failed .scan-status-dot,
-.scan-row-cancelled .scan-status-dot,
-.scan-row-lost .scan-status-dot {
-  background: var(--sev-critical);
-}
-@keyframes scan-row-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.18);
-  }
-}
-.scan-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.scan-main {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-.scan-repo {
-  font-size: var(--fs-lg);
-  font-weight: 600;
-  color: var(--text);
-  margin-right: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.scan-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 22px;
-  padding: 0 8px;
-  background: var(--bg-soft);
-  color: var(--text-2);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  white-space: nowrap;
-}
-.scan-badge-muted {
-  color: var(--text-3);
-  font-weight: 500;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-}
-.scan-badge-status {
-  text-transform: capitalize;
-  font-weight: 600;
-}
-.scan-badge-done {
-  color: var(--ok);
-  background: color-mix(in oklch, var(--ok) 14%, transparent);
-}
-.scan-badge-failed,
-.scan-badge-cancelled,
-.scan-badge-lost {
-  color: var(--sev-critical);
-  background: color-mix(in oklch, var(--sev-critical) 12%, transparent);
-}
-.scan-badge-running,
-.scan-badge-queued {
-  color: var(--accent);
-  background: color-mix(in oklch, var(--accent) 12%, transparent);
-}
-.scan-issues-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 8px;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  margin-left: 2px;
-  white-space: nowrap;
-}
-.scan-issues-badge-ok {
-  color: var(--text-3);
-  background: var(--bg-soft);
-}
-.scan-issues-badge-warning {
-  color: var(--warn);
-  background: color-mix(in oklch, var(--warn) 16%, transparent);
-}
-.scan-issues-badge-danger {
-  color: var(--danger);
-  background: color-mix(in oklch, var(--sev-critical) 16%, transparent);
-}
-/* === Scan row severity strip ===
-   Replaces the previous full-width colored bar, which read as a
-   progress meter. Default view is a row of small severity capsules
-   (one per non-zero severity). On hover/focus, the strip morphs into
-   a granular "issue cartridge" — one dot per issue, colored by
-   severity — so the user can count individual issues at a glance. */
-.scan-severity-strip {
-  position: relative;
-  margin-top: 4px;
-  min-height: 22px;
-  max-width: 100%;
-}
-.scan-severity-capsules {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  align-items: center;
-  transition: opacity 140ms var(--ease-out);
-}
-.scan-severity-dots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  align-items: center;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 140ms var(--ease-out);
-}
-.scan-row:hover .scan-severity-capsules,
-.scan-row:focus-within .scan-severity-capsules {
-  opacity: 0;
-}
-.scan-row:hover .scan-severity-dots,
-.scan-row:focus-within .scan-severity-dots {
-  opacity: 1;
-}
-
-.scan-severity-capsule {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 22px;
-  padding: 0 9px;
-  font-size: var(--fs-sm);
-  line-height: 1;
-  font-weight: 700;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  border: 1px solid transparent;
-  transition:
-    filter 120ms var(--ease-out),
-    transform 120ms var(--ease-out);
-}
-.scan-severity-capsule:hover {
-  filter: brightness(0.97);
-}
-.scan-severity-capsule-dot {
-  width: 7px;
-  height: 7px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.scan-severity-capsule.scan-severity-critical {
-  color: var(--sev-critical);
-  background: color-mix(in oklch, var(--sev-critical) 12%, transparent);
-  border-color: color-mix(in oklch, var(--sev-critical) 26%, transparent);
-}
-.scan-severity-capsule.scan-severity-critical .scan-severity-capsule-dot {
-  background: var(--sev-critical);
-}
-.scan-severity-capsule.scan-severity-high {
-  color: var(--sev-high);
-  background: color-mix(in oklch, var(--sev-high) 12%, transparent);
-  border-color: color-mix(in oklch, var(--sev-high) 26%, transparent);
-}
-.scan-severity-capsule.scan-severity-high .scan-severity-capsule-dot {
-  background: var(--sev-high);
-}
-.scan-severity-capsule.scan-severity-medium {
-  color: var(--sev-medium);
-  background: color-mix(in oklch, var(--sev-medium) 14%, transparent);
-  border-color: color-mix(in oklch, var(--sev-medium) 28%, transparent);
-}
-.scan-severity-capsule.scan-severity-medium .scan-severity-capsule-dot {
-  background: var(--sev-medium);
-}
-.scan-severity-capsule.scan-severity-low {
-  color: var(--text-3);
-  background: var(--bg-soft);
-  border-color: var(--bg-2);
-}
-.scan-severity-capsule.scan-severity-low .scan-severity-capsule-dot {
-  background: var(--text-3);
-}
-
-.scan-issue-dot {
-  width: 9px;
-  height: 9px;
-  display: inline-block;
-}
-.scan-issue-dot.scan-severity-critical {
-  background: var(--sev-critical);
-}
-.scan-issue-dot.scan-severity-high {
-  background: var(--sev-high);
-}
-.scan-issue-dot.scan-severity-medium {
-  background: var(--sev-medium);
-}
-.scan-issue-dot.scan-severity-low {
-  background: var(--text-3);
-}
-.scan-row-progress {
-  margin-top: 2px;
-  max-width: 520px;
-}
-
-.scan-summary {
-  font-size: var(--fs-sm);
-  color: var(--text-2);
-}
-.scan-row-actions {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.scan-row-more {
-  min-width: 30px;
-  padding: 0 8px;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-}
-.scan-row-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 180px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border-strong);
-  border-radius: 0;
-  padding: 4px;
-  z-index: var(--z-row-menu);
-  display: flex;
-  flex-direction: column;
-}
-.scan-row-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  color: var(--text);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-}
-.scan-row-menu-item:hover:not(:disabled) {
-  background: var(--bg-soft);
-}
-.scan-row-menu-item:disabled {
-  color: var(--text-3);
-  cursor: not-allowed;
-}
-@media (max-width: 900px) {
-  .scan-time-block {
-    grid-template-columns: 56px minmax(0, 1fr);
-    gap: 10px;
-  }
-  .scan-time {
-    padding-top: 14px;
-    font-size: var(--fs-sm);
-  }
-}
-@media (max-width: 720px) {
-  .scan-row {
-    grid-template-columns: 12px minmax(0, 1fr);
-    grid-template-rows: auto auto;
-  }
-  .scan-row-actions {
-    grid-column: 2;
-    flex-wrap: wrap;
-    margin-top: 6px;
-  }
-  .scan-time-block {
-    grid-template-columns: 1fr;
-  }
-  .scan-time {
-    text-align: left;
-    padding-top: 0;
-    flex-direction: row;
-    gap: 8px;
-    font-size: var(--fs-sm);
-  }
-  .scan-day-group {
-    padding: 12px 12px 14px;
   }
 }
