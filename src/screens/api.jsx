@@ -147,7 +147,7 @@ function ApiKeysLoadError({ error, onRetry }) {
   );
 }
 
-export function ApiKeysScreen({ go, setIssue = null }) {
+export function ApiKeysScreen({ go }) {
   useLang();
   const [keys, setKeys] = useState([]);
   const [name, setName] = useState(T("Account automation", "账户自动化"));
@@ -300,7 +300,6 @@ export function ApiKeysScreen({ go, setIssue = null }) {
         <Topbar
           go={go}
           breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
-          setIssue={setIssue}
           loading={loading}
         />
         <div className="with-side">

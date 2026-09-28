@@ -184,7 +184,7 @@ describe("BillingScreen", () => {
   it("renders billing account skeletons while billing data is loading", () => {
     pullwiseApi.billing.getPlan.mockReturnValue(new Promise(() => {}));
 
-    const { container } = render(<BillingScreen go={vi.fn()} setIssue={vi.fn()} />);
+    const { container } = render(<BillingScreen go={vi.fn()} />);
 
     expect(container.querySelector(".billing-skeleton")).toBeInTheDocument();
     expect(container.querySelectorAll(".billing-skeleton .bill-card")).toHaveLength(2);

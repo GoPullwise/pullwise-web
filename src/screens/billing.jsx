@@ -432,7 +432,6 @@ function PricingLoadError({ error, onRetry }) {
 
 export function BillingScreen({
   go,
-  setIssue = null,
   navigate = (url) => window.location.assign(url),
 }) {
   useLang();
@@ -738,7 +737,6 @@ export function BillingScreen({
         <Topbar
           go={go}
           breadcrumbs={[{ label: T("Billing", "Billing") }]}
-          setIssue={setIssue}
           loading={loading}
         />
         <div className="with-side">

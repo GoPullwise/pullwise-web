@@ -51,11 +51,6 @@ export const pullwiseApi = {
       request(`/integrations/${pathSegment(provider)}`, { method: "DELETE" }),
   },
 
-  settings: {
-    get: () => request("/settings"),
-    update: (payload) => request("/settings", { method: "PATCH", body: payload }),
-  },
-
   billing: {
     getBilling: () => request("/billing"),
     getPlan: () => request("/billing/plan"),

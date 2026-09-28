@@ -71,4 +71,18 @@ output/
 # Local verification artifacts
 .playwright-cli/
 .pytest_cache/
-output/
+
+# CodeGraph follows Git visibility: exclude non-product/generated code.
+.agents/
+.codex/
+.kimi-code/
+.cleanup-backups/
+.pullwise/
+.test-tmp/
+.venv/
+.venv*/
+python_modules/
+vendor/
+.wrangler/
+__pycache__/
+*.py[cod]

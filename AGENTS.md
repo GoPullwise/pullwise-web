@@ -68,3 +68,13 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - `docs/validation/local-acceptance.md` is the current verification record.
   Keep durable source/tests/contracts/docs; exclude generated output, logs,
   screenshots and caches. Do not restore deleted prototype or old product code.
+
+## CodeGraph indexing
+
+The installed CodeGraph scanner uses Git visibility and .gitignore rules.
+Keep current source, tests and schema/contracts available; exclude dependency
+folders, generated mirrors, build/cache output, local tools and data backups.
+The workspace .gitignore protects whole-workspace scans; each repository
+keeps its own rules because Git boundaries do not inherit workspace rules.
+After changing exclusions, force-reindex an already initialized project to
+remove previously indexed paths; do not initialize another project implicitly.
