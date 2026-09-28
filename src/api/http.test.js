@@ -58,6 +58,18 @@ describe("fetch transport", () => {
     });
   }
 
+  it("reports a paused service clearly instead of a generic 503 status", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      jsonResponse({ error: { code: "D1_ACCESS_PAUSED" } }, { status: 503 }));
+    try {
+      const error = await request("/auth/github/authorize").catch((failure) => failure);
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error.code).toBe("D1_ACCESS_PAUSED");
+      expect(error.message).toBe("Service is temporarily paused. Please try again later.");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally { fetchMock.mockRestore(); }
+  });
+
   it("serializes params and drops empty values", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(jsonResponse({ ok: 1 }));
 

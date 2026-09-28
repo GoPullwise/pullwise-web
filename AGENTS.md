@@ -14,6 +14,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   `worker.js` serve assets/SEO and proxy API traffic; there is no Pages function
   or prototype review entry. Preserve credential headers, OAuth redirects,
   Set-Cookie, request bytes and streaming responses at the proxy boundary.
+- Bind `PULLWISE_SERVER` to pullwise-server-production/preview for the matching
+  Web environment. A same-zone fetch cannot target a zone-route Worker and can
+  hit its DNS origin (521). Service-binding failures never retry public origins.
+  Keep API origin for target URL construction and direct/external client routing.
 - The browser ledger path `/api/v1/*` behind base `/api` becomes
   `/api/api/v1/*`; the Web Worker strips exactly the outer prefix. Vite matches
   that rewrite. Never put GitHub, Creem or Jev secrets into browser variables.
@@ -67,8 +71,8 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   validation budget. No automatic polling, refresh loops or remote load tests.
   A preview database still consumes usage; numeric ceilings and enforceable
   caps require review before an authorized one-off remote run.
-- The independent Server Worker now handles api.pull-wise.com via an exact
-  zone route; Web's existing origin already matches it. Server returns
+- The independent Server Worker handles api.pull-wise.com via an exact zone
+  route; Web invokes it with the matching service binding. Server returns
   D1_ACCESS_PAUSED while providers, migrations and bounded admission/accounting
   are pending. Do not treat that response as an empty/successful ledger or
   enable remote access merely to make a browser test pass.

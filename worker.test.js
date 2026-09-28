@@ -9,6 +9,47 @@ afterEach(() => {
 });
 
 describe("Cloudflare Worker API proxy", () => {
+  it("uses the Server service binding instead of same-zone route fetch for GitHub login", async () => {
+    const network = vi.fn(async () => new Response("origin connection refused", { status: 521 }));
+    globalThis.fetch = network;
+    const service = { fetch: vi.fn(async () => new Response('{"error":{"code":"D1_ACCESS_PAUSED"}}',
+      { status: 503, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } })) };
+    const response = await worker.fetch(new Request("https://pull-wise.com/api/auth/github/authorize?redirectTo=%2Fprojects",
+      { headers: { Cookie: "pw_session=opaque", Origin: "https://pull-wise.com" } }),
+      { PULLWISE_API_ORIGIN: "https://api.pull-wise.com", PULLWISE_SERVER: service });
+    expect(service.fetch).toHaveBeenCalledTimes(1);
+    expect(network).not.toHaveBeenCalled();
+    const forwarded = service.fetch.mock.calls[0][0];
+    expect(forwarded.url).toBe("https://api.pull-wise.com/auth/github/authorize?redirectTo=%2Fprojects");
+    expect(forwarded.headers.get("Cookie")).toBe("pw_session=opaque");
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: { code: "D1_ACCESS_PAUSED" } });
+  });
+
+  it("does not fall back to external origin after a service-binding failure", async () => {
+    const network = vi.fn();
+    globalThis.fetch = network;
+    const response = await worker.fetch(new Request("https://pull-wise.com/api/auth/github/authorize"),
+      { PULLWISE_API_ORIGIN: "https://api.pull-wise.com", PULLWISE_SERVER: { fetch: vi.fn(async () => { throw new Error("unavailable"); }) } });
+    expect(response.status).toBe(502);
+    expect(network).not.toHaveBeenCalled();
+  });
+
+  it("preserves body, trusted Origin, redirect and cookies over the service binding", async () => {
+    const service = { fetch: vi.fn(async (forwarded) => {
+      expect(forwarded.method).toBe("POST");
+      expect(await forwarded.text()).toBe('{"amount":"1.00"}');
+      expect(forwarded.headers.get("Origin")).toBe("https://pull-wise.com");
+      return new Response(null, { status: 302, headers: {
+        Location: "https://pull-wise.com/projects", "Set-Cookie": "pw_session=opaque; HttpOnly; Secure; SameSite=None" } });
+    }) };
+    const response = await worker.fetch(new Request("https://pull-wise.com/api/billing/change-interval", {
+      method: "POST", body: '{"amount":"1.00"}', headers: { Origin: "https://pull-wise.com" },
+    }), { PULLWISE_API_ORIGIN: "https://api.pull-wise.com", PULLWISE_SERVER: service });
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("https://pull-wise.com/projects");
+    expect(response.headers.get("Set-Cookie")).toContain("SameSite=None");
+  });
   it("keeps the Server /api/v1 path and forwards bearer credentials", async () => {
     const fetchMock = vi.fn(async () => new Response("{}", { headers: { "content-type": "application/json" } }));
     globalThis.fetch = fetchMock;

@@ -2,6 +2,38 @@
 
 Updated 2026-09-28. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Production login proxy 521 correction (2026-09-28)
+
+Reproduced with three finite no-redirect requests: direct production API health
+503, production Web GitHub-authorize proxy 521, preview proxy 503. Settings
+confirmed API origin api.pull-wise.com, no Web service binding, the exact Server
+zone route and an existing proxied A record. Cloudflare's
+[routing documentation](https://developers.cloudflare.com/workers/configuration/routing/routes/)
+states that same-zone fetch cannot target Routes. The Web request was reaching
+the DNS origin instead of the Server Worker; direct-only pause checks missed this
+boundary. Production DNS and Server deployment were retained.
+
+Added per-environment PULLWISE_SERVER HTTP Service Binding; the proxy preserves
+request bytes/credentials/Origin, redirects, cookies and streams. A binding
+failure returns 502 without external-origin fallback/retry. Offline config
+checks reject missing/wrong-environment bindings. HTTP errors retain nested
+Server codes and render a clear public pause message instead of a generic 503.
+
+Test-first reproductions failed before repair and passed afterwards. Full Web
+check: 33 files / **261 tests**, lint/build passed; one subsequent body/cookie
+binding regression passed in the **37-test** transport/config focused check.
+Offline Worker config passed. GitHub CLI returned no Web CI workflow runs.
+
+Production Web upload: `fae1b441-483a-468e-84f9-c337ac6d8e1c`. Metadata read-back
+confirmed binding to pullwise-server-production. One finite post-fix request to
+`/api/auth/github/authorize` returned exactly **503 D1_ACCESS_PAUSED**, replacing
+521. Server access remains 0; no OAuth/provider action or remote D1 SQL occurred.
+Preview Web is updated to the corresponding binding separately.
+
+This repairs transport, not login activation. The user waived real GitHub
+acceptance; the intentional pause remains until runtime/cost gates pass.
+**Cumulative remote usage remains 0 read / 0 written.** No polling or cron.
+
 ## Plan policy and isolated preview (2026-09-28)
 
 Pricing uses Server-provided configurable capacities and monthly Max Jev budget;

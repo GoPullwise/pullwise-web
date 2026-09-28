@@ -8,5 +8,6 @@
   "routes": [{"pattern": "preview.pull-wise.com", "custom_domain": true}],
   "assets": {"directory": "./dist", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"]},
   "vars": {"PULLWISE_MODE": "preview", "PULLWISE_API_ORIGIN": "https://preview-api.pull-wise.com"},
+  "services": [{"binding": "PULLWISE_SERVER", "service": "pullwise-server-preview"}],
   "observability": {"enabled": false}
 }

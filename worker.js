@@ -54,6 +54,16 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
     redirect: "manual",
   };
 
+  if (env.PULLWISE_SERVER) {
+    // Route-backed Workers cannot be reached by same-zone external fetch().
+    // Service bindings retain the HTTP contract without touching DNS/origin.
+    try {
+      return proxyResponse(await env.PULLWISE_SERVER.fetch(new Request(targetUrl, init)));
+    } catch {
+      return json({ message: "Unable to reach Pullwise API service." }, 502);
+    }
+  }
+
   let response = await fetchUpstream(targetUrl, init);
   const fallbackOrigin = fallbackApiOrigin(env);
   if (await shouldRetryCloudflare1003(response, upstreamOrigin, fallbackOrigin, request)) {

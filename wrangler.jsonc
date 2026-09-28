@@ -21,6 +21,7 @@
   "vars": {
     "PULLWISE_API_ORIGIN": "https://api.pull-wise.com"
   },
+  "services": [{"binding": "PULLWISE_SERVER", "service": "pullwise-server-production"}],
   "observability": {
     "enabled": false,
     "head_sampling_rate": 1,

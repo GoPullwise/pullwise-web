@@ -8,7 +8,8 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
     this.payload = payload;
-    this.code = typeof payload?.code === "string" ? payload.code : "";
+    this.code = typeof payload?.error?.code === "string" ? payload.error.code
+      : typeof payload?.code === "string" ? payload.code : "";
   }
 }
 
@@ -133,7 +134,9 @@ export async function request(path, options = {}) {
     }
 
     if (error instanceof HttpStatusError) {
-      throw new ApiError(error.response?.data?.message || error.message, {
+      const paused = error.response?.data?.error?.code === "D1_ACCESS_PAUSED";
+      throw new ApiError(paused ? "Service is temporarily paused. Please try again later."
+        : error.response?.data?.message || error.message, {
         status: error.response?.status,
         payload: error.response?.data,
       });

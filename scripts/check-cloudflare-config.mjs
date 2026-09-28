@@ -6,6 +6,11 @@ export function validateWorkerConfig(config, productionEnv, environment = "produ
   const errors = [];
   const routes = config.routes || [];
   const workerName = environment === "preview" ? "pullwise-web-preview" : "pullwise-web";
+  const serverName = environment === "preview" ? "pullwise-server-preview" : "pullwise-server-production";
+  const serverBindings = (config.services || []).filter((service) => service.binding === "PULLWISE_SERVER");
+  if (serverBindings.length !== 1 || serverBindings[0].service !== serverName) {
+    errors.push("Server service binding is missing or targets another environment");
+  }
   if (config.name !== workerName || config.main !== "./worker-entry.js") {
     errors.push("Web Worker entry or name is missing");
   }

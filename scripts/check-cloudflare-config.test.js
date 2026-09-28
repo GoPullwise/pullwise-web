@@ -7,6 +7,7 @@ const valid = {
   routes: [{ pattern: "pull-wise.com", custom_domain: true }],
   assets: { directory: "./dist", not_found_handling: "single-page-application", run_worker_first: ["/api/*"] },
   vars: { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" },
+  services: [{ binding: "PULLWISE_SERVER", service: "pullwise-server-production" }],
 };
 
 describe("Web Cloudflare config guard", () => {
@@ -21,9 +22,16 @@ describe("Web Cloudflare config guard", () => {
     preview.preview_urls = false;
     preview.routes = [{ pattern: "preview.pull-wise.com", custom_domain: true }];
     preview.vars = { PULLWISE_MODE: "preview", PULLWISE_API_ORIGIN: "https://preview-api.pull-wise.com" };
+    preview.services = [{ binding: "PULLWISE_SERVER", service: "pullwise-server-preview" }];
     expect(validateWorkerConfig(preview, "VITE_API_BASE_URL=/api\n", "preview")).toEqual([]);
     preview.vars.PULLWISE_API_ORIGIN = "https://api.pull-wise.com";
     expect(validateWorkerConfig(preview, "VITE_API_BASE_URL=/api\n", "preview").length).toBeGreaterThan(0);
+  });
+
+  it("rejects missing or cross-environment Server service bindings", () => {
+    const missing = structuredClone(valid);
+    missing.services = [];
+    expect(validateWorkerConfig(missing, "VITE_API_BASE_URL=/api\n")).toContain("Server service binding is missing or targets another environment");
   });
 
   it("rejects missing API-first routing, cross-origin browser base and plaintext upstream", () => {
