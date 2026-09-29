@@ -15,6 +15,22 @@ included. Server source/config, production hosting, cron and D1 are unchanged.
 Joint verification passed `npm run check`: lint, 34 test files / 279 tests and
 production build. `npm run check:workers` and pinned Wrangler 4.136.3 preview
 packaging dry-run passed. Publication evidence is appended after deployment.
+The final production build also passed a loopback Playwright journey with
+synthetic API responses: explicit project creation opened its detail page;
+Projects, Shared Pool, Categories, OAuth and Settings had document width 390px
+at a 390px viewport and no JavaScript page errors. Final light/English and
+dark/Chinese captures were checked. A stale Vite development-session attempt
+timed out; the final-build check supersedes that attempt.
+
+Code commit `12da105` was pushed to main and deployed to
+`pullwise-web-preview`, version `027a1540-6ad3-4df0-893e-21d21dc03021`, at
+https://preview.pull-wise.com. The matching Server service binding and preview
+variables were retained. Exactly four remote GETs returned 200: `/projects`
+and the final index CSS, index JS and ledger JS. HTML had `X-Robots-Tag: noindex`
+and referenced the current build; all three assets matched local SHA-256 hashes.
+There were no retries or D1/provider requests. GitHub CLI still reports no
+workflow run for this commit, so CI acceptance is unavailable despite passing
+local checks. This release does not claim real GitHub/provider acceptance.
 Remote verification remains limited to one HTML GET and three exact hashed
 static assets, with zero retries and zero D1 rows read/written. No browser
 provider journey or authenticated API validation is part of this publication.
