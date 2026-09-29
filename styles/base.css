@@ -726,6 +726,65 @@ a.crumb-button:hover {
   margin-bottom: 0;
   line-height: 1.5;
 }
+
+/* Flat workbench page section: hairline-separated, no box chrome. The single
+   container language for authenticated pages; boxes stay reserved for
+   overlays, notices and nested control groups. */
+.panel {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+.panel > h2 {
+  font-size: var(--fs-3xl);
+  font-weight: 600;
+  margin: 0 0 18px;
+}
+.panel-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.panel-h h2 {
+  font-size: var(--fs-3xl);
+  font-weight: 600;
+  margin: 0;
+}
+.panel-h > svg {
+  color: var(--accent);
+}
+.panel-h .count {
+  margin-left: auto;
+  font: var(--fs-sm) var(--font-mono);
+  color: var(--text-3);
+}
+
+/* Shared empty state. */
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--bg-elev);
+  border: 1px dashed var(--border-strong);
+}
+.empty > svg {
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.empty h3 {
+  font-size: var(--fs-4xl);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.empty p {
+  color: var(--text-3);
+  line-height: 1.7;
+  max-width: 330px;
+  margin: 0 auto 24px;
+}
+.empty > :last-child {
+  margin-bottom: 0;
+}
 /* Chrome where accidental text selection hurts interaction. Buttons, links
    and summaries are already covered by the global rule above; container
    selectors cover their descendants. Prose stays selectable. */
@@ -830,6 +889,10 @@ a.crumb-button:hover {
   .main {
     max-width: none;
     padding: 20px 16px 48px;
+  }
+
+  .empty {
+    padding: 32px 16px;
   }
 
   .crumbs {

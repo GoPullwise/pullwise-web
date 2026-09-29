@@ -187,7 +187,7 @@ describe("BillingScreen", () => {
     const { container } = render(<BillingScreen go={vi.fn()} />);
 
     expect(container.querySelector(".billing-skeleton")).toBeInTheDocument();
-    expect(container.querySelectorAll(".billing-skeleton .bill-card")).toHaveLength(2);
+    expect(container.querySelectorAll(".billing-skeleton .panel")).toHaveLength(2);
     expect(screen.queryByText(/billing is not configured/i)).not.toBeInTheDocument();
   });
 

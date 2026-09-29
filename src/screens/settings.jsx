@@ -93,10 +93,8 @@ export function SettingsScreen({ go }) {
               {error}
             </div>
           )}
-          <section className="card section" aria-label={T("Profile", "个人资料")}>
-            <div className="section-h">
-              <h2>{T("Profile", "个人资料")}</h2>
-            </div>
+          <section className="panel" aria-label={T("Profile", "个人资料")}>
+            <h2>{T("Profile", "个人资料")}</h2>
             {session ? (
               <>
                 <div className="set-row">
@@ -117,10 +115,8 @@ export function SettingsScreen({ go }) {
               !loading && <p>{T("Account profile unavailable.", "账户资料暂不可用。")}</p>
             )}
           </section>
-          <section className="card section" aria-label={T("GitHub access", "GitHub 授权")}>
-            <div className="section-h">
-              <h2>{T("GitHub access", "GitHub 授权")}</h2>
-            </div>
+          <section className="panel" aria-label={T("GitHub access", "GitHub 授权")}>
+            <h2>{T("GitHub access", "GitHub 授权")}</h2>
             <p className="muted">
               {github?.connected
                 ? T(

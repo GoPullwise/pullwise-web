@@ -360,7 +360,7 @@ function planLabel(plan) {
 function BillingSkeleton() {
   return (
     <div className="set-body billing-skeleton" aria-busy="true">
-      <div className="bill-card billing-summary">
+      <div className="panel">
         <div className="billing-summary-main">
           <SkeletonLine className="sk-square sk-size-32" />
           <div className="skeleton-stack">
@@ -375,7 +375,7 @@ function BillingSkeleton() {
         </div>
       </div>
 
-      <div className="bill-card bill-card-list">
+      <div className="panel">
         <div className="billing-summary-main">
           <SkeletonLine className="sk-square sk-size-32" />
           <SkeletonLine className="sk-line sk-w-32 sk-h-16" />
@@ -781,21 +781,25 @@ export function BillingScreen({
                 <BillingLoadError error={error} onRetry={loadBillingPlan} />
               ) : (
                 <div className="set-body">
-                  <div className="bill-card billing-summary">
-                    <div className="billing-summary-main">
-                      <I.Package size={18} />
-                      <div>
-                        <b>{planName(currentPlan) || T("Free", "免费")}</b>
-                        <div className="muted">
-                          {accountStatus} -{" "}
-                          {activePaid
-                            ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
-                            : T("Upgrade from Pricing", "前往价格页升级")}
+                  <section className="panel">
+                    <div className="panel-h">
+                      <I.Package size={20} />
+                      <h2>{T("Plan", "Plan")}</h2>
+                    </div>
+                    <div className="billing-summary">
+                      <div className="billing-summary-main">
+                        <div>
+                          <b>{planName(currentPlan) || T("Free", "免费")}</b>
+                          <div className="muted">
+                            {accountStatus} -{" "}
+                            {activePaid
+                              ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
+                              : T("Upgrade from Pricing", "前往价格页升级")}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {activePaid && (
-                      <div className="billing-actions">
+                      {activePaid && (
+                        <div className="billing-actions">
                         {alternatePaidPlans.map((paidPlan) => (
                           <button
                             key={paidPlan.id}
@@ -859,17 +863,16 @@ export function BillingScreen({
                             <I.X size={14} /> {T("Cancel renewal", "取消续订")}
                           </button>
                         )}
-                      </div>
-                    )}
-                  </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
 
                   {subscriptions.length > 0 && (
-                    <div className="bill-card bill-card-list">
-                      <div className="billing-summary-main">
-                        <I.FileCode size={18} />
-                        <div>
-                          <b>{T("Subscription activity", "订阅动态")}</b>
-                        </div>
+                    <section className="panel">
+                      <div className="panel-h">
+                        <I.FileCode size={20} />
+                        <h2>{T("Subscription activity", "订阅动态")}</h2>
                       </div>
                       <div className="sub-record-list">
                         {subscriptions.map((record, index) => (
@@ -886,7 +889,7 @@ export function BillingScreen({
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </section>
                   )}
 
                   {!billingEnabled && !error && (

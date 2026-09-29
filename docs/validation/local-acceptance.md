@@ -2,6 +2,66 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Stage 3 preview publication (2026-09-29)
+
+The user explicitly requested committing, pushing and deploying the completed
+UI unification. This authorizes the Web preview release and supersedes the
+local-only/deployment-pending statements in the following Stage 3 record.
+Server and production configurations are unchanged. Publication verification
+is capped at one HTML GET and three exact hashed static assets, with no
+redirects/retries, authenticated API calls or provider traffic. These checks
+have a D1 bound of zero Rows Read and zero Rows Written; no migration, cron or
+budget reset is involved. Verification and release results are recorded after
+completion.
+
+The release candidate passed a fresh `npm run check` (lint, 34 files / 280
+tests, production build), `npm run check:workers` and pinned Wrangler 4.136.3
+preview packaging dry-run. The supplied eight-page loopback browser evidence
+remains local UI acceptance; real provider/database acceptance is separate.
+
+## Stage 3 workbench unification (2026-09-29, local only)
+
+The approved Stage 3 visual proposals are implemented. Authenticated pages
+now share one container language: flat, hairline-separated `.panel` sections
+with `.panel-h` headings on Ledger, Billing, API Keys and Settings;
+bordered boxes remain only for overlays, notices and nested control groups.
+Item lists (projects, expenses, categories, API keys, GitHub installations,
+subscription activity) are hairline rows, and the dashed `.empty` state is
+shared. The Add repository/Add category panels lost their accent rail and
+soft fill; Categories now mirrors Projects (list left, creation panel right)
+via one `.ledger-split` grid. Detail pages merge filters and CSV export
+into the Expenses section, render per-currency totals as large mono numerals
+and place the two report charts side by side. The empty-state call to action
+focuses the repository picker through a panel ref instead of a global
+document query. The now-unused "Find an expense" heading was removed from
+the locale catalogs. Stage 1/2 also removed the `.bill-card` family.
+
+Local verification passed `npm run check`: lint, 34 test files / 280 tests
+(including a new empty-state focus test and updated billing skeleton
+assertion) and production build. No Wrangler/workerd/D1 commands were run;
+Cloudflare runtime acceptance and deployment remain pending under the
+existing pause. These changes are unpushed working-tree edits on top of the
+deployed 12da105 baseline (current documentation HEAD: 409b70e).
+
+Resume verification completed on 2026-09-29: `npm run check` passed again
+(34 files / 280 tests, lint and build), as did the offline `check:workers`.
+The API Keys loading skeleton's remaining `.bill-card` reference was changed
+to `.panel`; no `.bill-card` consumers remain. This single-class visual cleanup
+uses the existing skeleton test and browser review rather than a new test
+that merely asserts its class name.
+
+Loopback Playwright checks with synthetic API responses covered Projects,
+project detail, Shared Pool, Categories, OAuth, Settings, Billing and API Keys.
+All eight pages fit a 390px document width; desktop captures used 1440px.
+Project creation opened its detail route, and Chinese/dark Projects was
+visually checked. No JavaScript page errors occurred in the six-page ledger/
+settings journey. External requests were blocked, including Google Fonts, so
+captures exercise fallback fonts. API Keys direct navigation encountered the
+local Vite `/api` proxy prefix; its HTML was supplied from the loopback index
+for this UI check. This does not validate hosting/proxy behavior.
+GitHub `gh run list` returned no runs; CI acceptance remains unavailable.
+No deployment, provider traffic or D1 commands were performed in this resume.
+
 ## Joint preview release (2026-09-29)
 
 The user approved deploying the completed Projects behavior repair together

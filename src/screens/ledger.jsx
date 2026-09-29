@@ -113,7 +113,7 @@ function ReportGroups({ title, groups, categories = [], dimension }) {
   const rows = groups || [];
   const largest = Math.max(1, ...rows.map((row) => row.amountMinor || 0));
   return (
-    <section className="ledger-panel">
+    <section className="panel">
       <h2>{title}</h2>
       {rows.length === 0 ? (
         <p>{T("No expenses in this range.")}</p>
@@ -471,6 +471,7 @@ export function LedgerScreen({
   const moreController = useRef(null);
   const loadedScope = useRef(null);
   const mounted = useRef(false);
+  const addProjectPanelRef = useRef(null);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -723,18 +724,18 @@ export function LedgerScreen({
           )}
           {loading && <p role="status">{T("Loading ledger…")}</p>}
           {data && mode === "projects" && (
-            <div className="ledger-project-layout">
-              <section className="ledger-panel ledger-your-projects">
-                <div className="ledger-section-title">
+            <div className="ledger-split">
+              <section className="panel ledger-your-projects">
+                <div className="panel-h">
                   <I.Folder size={20} />
                   <h2>{T("Your projects")}</h2>
-                  <span className="ledger-count">
+                  <span className="count">
                     {data.projects.items.length}
                     {data.projects.nextCursor ? "+" : ""}
                   </span>
                 </div>
                 {data.projects.items.length === 0 && (
-                  <div className="ledger-empty">
+                  <div className="empty">
                     <I.Folder size={32} />
                     <h3>{T("Your first project starts here", "从第一个项目开始")}</h3>
                     <p>
@@ -748,9 +749,11 @@ export function LedgerScreen({
                       href="#add-repository"
                       onClick={(event) => {
                         event.preventDefault();
-                        document
-                          .querySelector(".ledger-add-project select, .ledger-add-project button")
-                          ?.focus();
+                        const panel = addProjectPanelRef.current;
+                        if (!panel) return;
+                        const control = panel.querySelector("select, button");
+                        if (control) control.focus();
+                        else panel.scrollIntoView({ block: "start" });
                       }}
                     >
                       {T("Add a repository", "添加一个仓库")} <I.ArrowR size={14} />
@@ -793,8 +796,8 @@ export function LedgerScreen({
                   </button>
                 )}
               </section>
-              <section className="ledger-panel ledger-add-project" id="add-repository">
-                <div className="ledger-section-title">
+              <section className="panel" id="add-repository" ref={addProjectPanelRef}>
+                <div className="panel-h">
                   <I.Github size={20} />
                   <h2>{T("Add a repository", "添加一个仓库")}</h2>
                 </div>
@@ -886,7 +889,7 @@ export function LedgerScreen({
                   <I.Github size={14} /> {T("Manage GitHub access")}
                 </button>
               </section>
-              <section className="ledger-panel ledger-overview">
+              <section className="panel ledger-overview">
                 <h2>{T("Account overview")}</h2>
                 <LedgerFilters
                   filters={filters}
@@ -942,46 +945,11 @@ export function LedgerScreen({
             </div>
           )}
           {data && mode === "categories" && (
-            <div className="ledger-category-layout">
-              <section className="ledger-panel">
-                <h2>{T("Add category")}</h2>
-                <p className="ledger-help">
-                  {T(
-                    "Try Hosting, Domains or AI tools. You can use the same categories in every project.",
-                    "比如「托管」「域名」「AI 工具」，所有项目都可以使用这些分类。"
-                  )}
-                </p>
-                <form
-                  className="ledger-actions"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    action(() => ledgerApi.createCategory({ name: categoryName.trim() }, {})).then(
-                      (ok) => {
-                        if (ok) setCategoryName("");
-                      }
-                    );
-                  }}
-                >
-                  <label>
-                    {T("Category name")}
-                    <input
-                      value={categoryName}
-                      maxLength={80}
-                      placeholder={T("e.g. Hosting", "例如：托管")}
-                      required
-                      disabled={busy}
-                      onChange={(event) => setCategoryName(event.target.value)}
-                    />
-                  </label>
-                  <button className="btn primary" type="submit" disabled={busy}>
-                    {T("Add category")}
-                  </button>
-                </form>
-              </section>
-              <section className="ledger-panel">
+            <div className="ledger-split">
+              <section className="panel">
                 <h2>{T("Your categories")}</h2>
                 {data.categories.length === 0 && (
-                  <div className="ledger-empty">
+                  <div className="empty">
                     <I.Folder size={28} />
                     <h3>{T("Give your expenses a home", "先为支出建个分类")}</h3>
                     <p>
@@ -1093,6 +1061,41 @@ export function LedgerScreen({
                   ))}
                 </div>
               </section>
+              <section className="panel">
+                <h2>{T("Add category")}</h2>
+                <p className="ledger-help">
+                  {T(
+                    "Try Hosting, Domains or AI tools. You can use the same categories in every project.",
+                    "比如「托管」「域名」「AI 工具」，所有项目都可以使用这些分类。"
+                  )}
+                </p>
+                <form
+                  className="ledger-actions"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    action(() => ledgerApi.createCategory({ name: categoryName.trim() }, {})).then(
+                      (ok) => {
+                        if (ok) setCategoryName("");
+                      }
+                    );
+                  }}
+                >
+                  <label>
+                    {T("Category name")}
+                    <input
+                      value={categoryName}
+                      maxLength={80}
+                      placeholder={T("e.g. Hosting", "例如：托管")}
+                      required
+                      disabled={busy}
+                      onChange={(event) => setCategoryName(event.target.value)}
+                    />
+                  </label>
+                  <button className="btn primary" type="submit" disabled={busy}>
+                    {T("Add category")}
+                  </button>
+                </form>
+              </section>
             </div>
           )}
           {data && (mode === "shared" || mode === "project") && (
@@ -1116,7 +1119,14 @@ export function LedgerScreen({
                   </div>
                 </div>
               )}
-              <section className="ledger-panel">
+              {data.project?.githubAccess === "lost" && (
+                <div className="notice" role="status">
+                  {T(
+                    "GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses."
+                  )}
+                </div>
+              )}
+              <section className="panel">
                 <h2>{T("Expenses")}</h2>
                 <p className="ledger-help">
                   {T(
@@ -1153,6 +1163,16 @@ export function LedgerScreen({
                       onCancel={() => setEditing(null)}
                     />
                   )}
+                <LedgerFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  categories={data.categories}
+                />
+                <div className="ledger-actions">
+                  <a className="btn" href={exportHref} download="expenses.csv">
+                    {T("Export CSV")}
+                  </a>
+                </div>
                 {expenses.length === 0 && <p>{T("No expenses for this target yet.")}</p>}
                 <div className="ledger-list">
                   {expenses.map((expense) => (
@@ -1212,18 +1232,7 @@ export function LedgerScreen({
                   </button>
                 )}
               </section>
-              <section className="ledger-panel">
-                <h2>{T("Find an expense", "查找支出")}</h2>
-                <LedgerFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  categories={data.categories}
-                />
-                <a className="btn" href={exportHref} download="expenses.csv">
-                  {T("Export CSV")}
-                </a>
-              </section>
-              <section className="ledger-panel">
+              <section className="panel">
                 <h2>{T("Totals by currency")}</h2>
                 {data.summary.groups.length === 0 && (
                   <p className="ledger-help">
@@ -1233,35 +1242,35 @@ export function LedgerScreen({
                     )}
                   </p>
                 )}
-                {data.summary.groups
-                  .filter(
-                    (group) =>
-                      group.target === mode && (mode === "shared" || group.projectId === projectId)
-                  )
-                  .map((group) => (
-                    <p key={group.currency}>{formatTotal(group)}</p>
-                  ))}
-              </section>
-              <ReportGroups
-                title={T("Expenses over time")}
-                groups={data.timeseries.groups}
-                dimension="bucket"
-              />
-              <ReportGroups
-                title={T("Expenses by category")}
-                groups={data.categoryReport.groups}
-                categories={data.categories}
-                dimension="category"
-              />
-              {data.project?.githubAccess === "lost" && (
-                <div className="notice" role="status">
-                  {T(
-                    "GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses."
-                  )}
+                <div className="ledger-list ledger-totals">
+                  {data.summary.groups
+                    .filter(
+                      (group) =>
+                        group.target === mode &&
+                        (mode === "shared" || group.projectId === projectId)
+                    )
+                    .map((group) => (
+                      <article key={group.currency}>
+                        <h3>{formatTotal(group)}</h3>
+                      </article>
+                    ))}
                 </div>
-              )}
+              </section>
+              <div className="ledger-reports">
+                <ReportGroups
+                  title={T("Expenses over time")}
+                  groups={data.timeseries.groups}
+                  dimension="bucket"
+                />
+                <ReportGroups
+                  title={T("Expenses by category")}
+                  groups={data.categoryReport.groups}
+                  categories={data.categories}
+                  dimension="category"
+                />
+              </div>
               {mode === "project" && (
-                <section className="ledger-panel">
+                <section className="panel">
                   <h2>{T("Project description")}</h2>
                   <form
                     onSubmit={(event) => {

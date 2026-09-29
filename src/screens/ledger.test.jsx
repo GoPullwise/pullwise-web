@@ -106,6 +106,12 @@ describe("ledger screens", () => {
     expect(api.createProject).toHaveBeenCalledTimes(1);
   });
 
+  it("focuses the repository picker from the empty-state call to action", async () => {
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("link", { name: /Add a repository/i }));
+    expect(await screen.findByRole("combobox", { name: "Repository" })).toHaveFocus();
+  });
+
   it("does not ask to reconnect when all visible repositories already have projects", async () => {
     api.projects.mockResolvedValue({
       items: [{ id: "prj_1", githubRepoId: 202, githubFullName: "alice/project", totals: [] }],

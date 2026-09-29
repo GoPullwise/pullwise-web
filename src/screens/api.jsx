@@ -74,7 +74,7 @@ function createdApiKeyToken(payload) {
 function ApiKeysSkeleton() {
   return (
     <div className="set-body api-keys-skeleton" aria-busy="true">
-      <div className="bill-card api-key-create">
+      <div className="panel api-key-create">
         <div className="api-key-create-head">
           <SkeletonLine className="sk-square sk-size-36" />
           <div className="skeleton-stack">
@@ -372,7 +372,7 @@ export function ApiKeysScreen({ go }) {
                       </button>
                     </div>
                   )}
-                  <form className="bill-card api-key-create" onSubmit={createKey}>
+                  <form className="api-key-create panel" onSubmit={createKey}>
                     <div className="api-key-create-head">
                       <div className="api-key-create-icon">
                         <I.Shield size={16} />
@@ -495,8 +495,9 @@ export function ApiKeysScreen({ go }) {
                     </div>
                   </form>
 
-                  <div className="key-list">
-                    {keys.map((key) => (
+                  <section className="panel">
+                    <div className="key-list">
+                      {keys.map((key) => (
                       <div key={key.id || key.prefix || key.name} className="key-row">
                         <div className="key-sev sev-bg-info">
                           <I.Code size={12} /> {T("key", "key")}
@@ -527,12 +528,14 @@ export function ApiKeysScreen({ go }) {
                         </button>
                       </div>
                     ))}
-                    {!loading && keys.length === 0 && (
-                      <div className="card section muted">
-                        {T("No API keys have been created yet.", "尚未创建任何 API key。")}
-                      </div>
-                    )}
-                  </div>
+                      {!loading && keys.length === 0 && (
+                        <div className="empty">
+                          <I.Code size={28} />
+                          <h3>{T("No API keys have been created yet.", "尚未创建任何 API key。")}</h3>
+                        </div>
+                      )}
+                    </div>
+                  </section>
                 </div>
               )}
             </div>

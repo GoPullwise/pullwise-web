@@ -445,10 +445,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.bill-card.api-key-create {
-  align-items: stretch;
-}
-
 .set-row {
   flex-wrap: wrap;
 }
