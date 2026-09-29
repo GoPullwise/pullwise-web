@@ -112,6 +112,43 @@ describe("ledger screens", () => {
     expect(await screen.findByRole("combobox", { name: "Repository" })).toHaveFocus();
   });
 
+  it("starts GitHub authorization from Add a repository when no repositories are available", async () => {
+    api.repositories.mockResolvedValueOnce({ items: [], nextCursor: null });
+    github.connect.mockResolvedValueOnce(undefined);
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("link", { name: /Add a repository/i }));
+    await waitFor(() => expect(github.connect).toHaveBeenCalledWith({ add: true }));
+    expect(await screen.findByRole("option", { name: "alice/project" })).toBeInTheDocument();
+    expect(api.createProject).not.toHaveBeenCalled();
+  });
+
+  it("loads the next authorized repository page from Add a repository before reconnecting", async () => {
+    api.repositories.mockResolvedValueOnce({ items: [], nextCursor: "page-2" });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("link", { name: /Add a repository/i }));
+    expect(await screen.findByRole("option", { name: "alice/project" })).toBeInTheDocument();
+    expect(github.connect).not.toHaveBeenCalled();
+  });
+
+  it("opens the available repository picker instead of reconnecting GitHub", async () => {
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    const picker = await screen.findByRole("combobox", { name: "Repository" });
+    picker.showPicker = vi.fn();
+    fireEvent.click(screen.getByRole("link", { name: /Add a repository/i }));
+    expect(picker.showPicker).toHaveBeenCalledTimes(1);
+    expect(picker).toHaveFocus();
+    expect(github.connect).not.toHaveBeenCalled();
+  });
+
+  it("keeps the focused picker usable when native picker opening is restricted", async () => {
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    const picker = await screen.findByRole("combobox", { name: "Repository" });
+    picker.showPicker = vi.fn(() => { throw new DOMException("Restricted", "NotAllowedError"); });
+    fireEvent.click(screen.getByRole("link", { name: /Add a repository/i }));
+    expect(picker).toHaveFocus();
+    expect(github.connect).not.toHaveBeenCalled();
+  });
+
   it("does not ask to reconnect when all visible repositories already have projects", async () => {
     api.projects.mockResolvedValue({
       items: [{ id: "prj_1", githubRepoId: 202, githubFullName: "alice/project", totals: [] }],

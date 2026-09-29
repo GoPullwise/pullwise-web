@@ -2,6 +2,24 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Add repository interaction repair (2026-09-29)
+
+The empty-state action only focused a control, so empty candidates focused
+Manage GitHub access without invoking it. Three regressions failed before
+the fix. Add now opens/focuses the available native chooser, loads an existing
+next repository page, or invokes guarded GitHub access when no candidates exist.
+Picker restrictions/unsupported browsers retain the usable focus fallback.
+The matching Server change supplies live preinstalled grants and popup sync.
+
+The complete Web suite passed 34 files / 284 tests; lint, build and offline
+configuration checks passed. A loopback final-build browser journey verified
+chooser opening, synthetic GitHub popup completion, sync and newly visible
+candidates. Mobile document width was 390px at a 390px viewport, with no JS page
+errors. Real external requests were blocked; synthetic GitHub navigation was
+fulfilled locally. This is not real provider acceptance. Publication checks
+are capped at one HTML GET and three exact static assets, no retries and zero
+D1 reads/writes; no authenticated API request is part of agent validation.
+
 ## Stage 3 preview publication (2026-09-29)
 
 The user explicitly requested committing, pushing and deploying the completed

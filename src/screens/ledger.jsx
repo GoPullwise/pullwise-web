@@ -660,6 +660,25 @@ export function LedgerScreen({
     ) || [];
   const selectedRepository =
     availableRepos.find((repo) => String(repo.githubRepoId) === selectedRepo) || availableRepos[0];
+  const startAddingRepository = () => {
+    if (busy || loading || loadingMore) return;
+    const panel = addProjectPanelRef.current;
+    const picker = panel?.querySelector("select");
+    if (picker) {
+      picker.scrollIntoView?.({ block: "center" });
+      picker.focus({ preventScroll: true });
+      try {
+        picker.showPicker?.();
+      } catch {
+        // Focus remains usable where native pickers are unavailable or restricted.
+      }
+    } else if (data?.repositories?.nextCursor) {
+      panel?.scrollIntoView?.({ block: "center" });
+      void loadMore("repositories");
+    } else {
+      void action(() => connectGitHubRepositories({ add: true }));
+    }
+  };
   return (
     <div className="app product-workspace ledger-screen">
       <Topbar go={go} breadcrumbs={[{ label: title }]} loading={loading} />
@@ -749,11 +768,7 @@ export function LedgerScreen({
                       href="#add-repository"
                       onClick={(event) => {
                         event.preventDefault();
-                        const panel = addProjectPanelRef.current;
-                        if (!panel) return;
-                        const control = panel.querySelector("select, button");
-                        if (control) control.focus();
-                        else panel.scrollIntoView({ block: "start" });
+                        startAddingRepository();
                       }}
                     >
                       {T("Add a repository", "添加一个仓库")} <I.ArrowR size={14} />

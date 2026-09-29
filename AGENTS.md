@@ -48,6 +48,11 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   expense projects. Await popup authorization and reload repositories; catch
   cancellations as action errors. Open a successfully created project only
   while the originating view is still current. Never auto-create on a GET.
+- The empty-state Add repository action opens/focuses the current chooser,
+  loads the next repository page when present, or starts guarded GitHub access
+  when no candidates remain. Native `showPicker` is optional; keep the focused
+  chooser usable when unsupported/restricted. Popup completion verifies access
+  via Server's read-only `/repositories/sync` before reloading candidates.
 - A failed spending summary must not hide otherwise loaded project/repository
   controls or render successful zero totals. Distinguish missing repositories
   from repositories that already have projects; preserve independent cursors.
