@@ -20,6 +20,14 @@ fulfilled locally. This is not real provider acceptance. Publication checks
 are capped at one HTML GET and three exact static assets, no retries and zero
 D1 reads/writes; no authenticated API request is part of agent validation.
 
+Code `bf43805` was pushed to main and deployed to `pullwise-web-preview` as
+`59877c97-34e7-476b-9918-8d2255b097e4`. Exactly four remote GETs returned 200:
+the Projects HTML and current index CSS/index JS/ledger JS. HTML retained noindex
+and referenced the new build; all three static assets matched local SHA-256.
+No retries, provider or D1 requests occurred. Web CI still has no run record;
+the companion Server repair's CI passed. Real user GitHub acceptance remains
+separate from the loopback simulated authorization journey.
+
 ## Stage 3 preview publication (2026-09-29)
 
 The user explicitly requested committing, pushing and deploying the completed
