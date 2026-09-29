@@ -19,6 +19,16 @@ tests, production build), `npm run check:workers` and pinned Wrangler 4.136.3
 preview packaging dry-run. The supplied eight-page loopback browser evidence
 remains local UI acceptance; real provider/database acceptance is separate.
 
+Code commit `b16a000` was pushed to main and deployed to
+`pullwise-web-preview`, version `8e53153d-af2f-4cfc-ab7c-5697f1059c18`, at
+https://preview.pull-wise.com. Wrangler confirmed the custom-domain deployment
+and retained the matching Server binding/preview vars. The first planned HTML
+check stopped during the local curl Schannel TLS handshake (exit 35, HTTP 000).
+No response was received, no asset checks or retries followed, and no D1/API/
+provider requests were made. Post-deploy HTTP/content verification remains
+pending; do not treat the previous release's asset hashes as this release's
+acceptance. GitHub CLI reports no workflow run for this commit.
+
 ## Stage 3 workbench unification (2026-09-29, local only)
 
 The approved Stage 3 visual proposals are implemented. Authenticated pages
