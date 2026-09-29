@@ -48,6 +48,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   expense projects. Await popup authorization and reload repositories; catch
   cancellations as action errors. Open a successfully created project only
   while the originating view is still current. Never auto-create on a GET.
+- Project detail keeps a clickable Projects parent breadcrumb and visible
+  Back to projects header link, including loading/error states. Use shared
+  `screenLinkProps` so `/projects` navigation works with SPA history, keyboard
+  activation and normal modified-link clicks rather than browser-back guesses.
 - The empty-state Add repository action opens/focuses the current chooser,
   loads the next repository page when present, or starts guarded GitHub access
   when no candidates remain. Native `showPicker` is optional; keep the focused

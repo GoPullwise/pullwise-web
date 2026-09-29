@@ -2,6 +2,28 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Project detail return navigation (2026-09-29)
+
+Project detail now shows Projects / current project in the shared Topbar, with
+Projects linking to the list. A visible Back to projects link sits beside the
+page title/actions and remains available while loading or on an API error.
+Both links reuse screenLinkProps and its real `/projects` href; the current
+project remains aria-current=page. All five non-English catalogs include the
+new return label. Shared/project-list/category screens keep their existing
+breadcrumbs and no new Server/API behavior was introduced.
+
+Three regressions failed before implementation. `npm run check` passed lint,
+34 files / 287 tests and the production build; `npm run check:workers` passed.
+Loopback Playwright drove the final build: parent breadcrumb and header link
+returned to Projects with its list, including a simulated project-load 503.
+Desktop/mobile screenshots were checked; the 390px document did not overflow,
+and no JavaScript page errors occurred. All API/provider data was simulated.
+
+Publication verification is limited to one HTML GET and three exact hashed
+assets with no retries, authenticated API/provider requests or D1 traffic.
+Per-case and total D1 bounds are zero Rows Read / zero Rows Written. Server,
+production Web, runtime budget limits, database and schedules are unchanged.
+
 ## Add repository interaction repair (2026-09-29)
 
 The empty-state action only focused a control, so empty candidates focused

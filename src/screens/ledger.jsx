@@ -4,6 +4,7 @@ import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
 import { connectGitHubRepositories } from "../lib/auth.js";
+import { screenLinkProps } from "../lib/navigation.js";
 import { Topbar, Sidebar } from "../shell.jsx";
 import "./ledger.css";
 
@@ -681,7 +682,13 @@ export function LedgerScreen({
   };
   return (
     <div className="app product-workspace ledger-screen">
-      <Topbar go={go} breadcrumbs={[{ label: title }]} loading={loading} />
+      <Topbar
+        go={go}
+        breadcrumbs={mode === "project"
+          ? [{ label: T("Projects"), go: "ledgerProjects" }, { label: title }]
+          : [{ label: title }]}
+        loading={loading}
+      />
       <div className="with-side">
         <Sidebar
           go={go}
@@ -719,9 +726,16 @@ export function LedgerScreen({
                         )}
               </p>
             </div>
-            <button className="btn" onClick={reload} disabled={loading}>
-              {T("Reload")}
-            </button>
+            <div className="actions">
+              {mode === "project" && (
+                <a className="btn ghost" {...screenLinkProps(go, "ledgerProjects")}>
+                  <I.ArrowL size={14} /> {T("Back to projects", "返回项目列表")}
+                </a>
+              )}
+              <button className="btn" onClick={reload} disabled={loading}>
+                {T("Reload")}
+              </button>
+            </div>
           </div>
           {authorizationError && (
             <p role="alert" className="notice">

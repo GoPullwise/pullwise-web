@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LedgerScreen } from "./ledger.jsx";
 
 const api = vi.hoisted(() => ({
@@ -52,6 +52,36 @@ beforeEach(() => {
 });
 
 describe("ledger screens", () => {
+  it("shows Projects as a navigable parent of the current project", async () => {
+    const go = vi.fn();
+    render(<LedgerScreen go={go} mode="project" projectId="prj_1" />);
+    await screen.findByRole("heading", { name: "alice/project", level: 1 });
+    const breadcrumbs = within(screen.getByRole("navigation", { name: "Breadcrumbs" }));
+    const parent = breadcrumbs.getByRole("link", { name: "Go to Projects" });
+    expect(parent).toHaveAttribute("href", "/projects");
+    expect(breadcrumbs.getByText("alice/project")).toHaveAttribute("aria-current", "page");
+    fireEvent.click(parent);
+    expect(go).toHaveBeenCalledWith("ledgerProjects");
+  });
+
+  it("offers a visible return to the project list from the page header", async () => {
+    const go = vi.fn();
+    render(<LedgerScreen go={go} mode="project" projectId="prj_1" />);
+    const back = await screen.findByRole("link", { name: "Back to projects" });
+    expect(back).toHaveAttribute("href", "/projects");
+    fireEvent.click(back);
+    expect(go).toHaveBeenCalledWith("ledgerProjects");
+  });
+
+  it("keeps the return path available when project loading fails", async () => {
+    api.project.mockRejectedValueOnce(new Error("Project unavailable"));
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    await screen.findByRole("alert");
+    expect(screen.getByRole("link", { name: "Back to projects" })).toHaveAttribute("href", "/projects");
+    expect(within(screen.getByRole("navigation", { name: "Breadcrumbs" }))
+      .getByRole("link", { name: "Go to Projects" })).toHaveAttribute("href", "/projects");
+  });
+
   it("shows authorization failures without pretending there are authorized repositories", async () => {
     api.repositories.mockResolvedValue({ items: [], nextCursor: null });
     github.connect.mockRejectedValue(new Error("GitHub authorization was cancelled"));
