@@ -2,6 +2,26 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Active product preview publication (2026-09-29)
+
+The user explicitly requested product-wide preview. Web route repair was
+published to pullwise-web-preview, version 66ff72ed-cd94-4cf0-89f2-9c9af21d71cc,
+retaining the preview Server binding. A finite homepage GET verified 200 HTML
+and X-Robots-Tag noindex. Production Web config was not changed.
+
+Preview Server now admits product paths with per-SQL reservations and its fixed
+1,000-write / 10,000-read budget. It initializes the frozen empty test schema
+under the same journal; no new namespace/reset was used. Web auth/session
+returned 200 unauthenticated, GitHub authorize 200, and the real test Creem
+catalog 200. Its final recorded status was 67 written observed / 135 reserved
+and no stop. These are finite HTTP checks, not real browser/login/payment
+acceptance. The browser connector remained unavailable. Jev stays unavailable.
+
+This supersedes the historical undeployed/pause/empty-case notes below. User
+manual testing can now start at https://preview.pull-wise.com/. Budget exhaustion
+or incomplete native accounting stops the test environment; never treat such
+an error as an empty successful ledger or reset its counters.
+
 ## Zero-SQL checks and preview HTML routing repair (2026-09-29)
 
 The user authorized only the preview Server access switch at 1; production

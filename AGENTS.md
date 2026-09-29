@@ -85,11 +85,13 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   Preview must bind ASSETS and run Worker first on ["/*", "!/assets/*"] so
   HTML receives X-Robots-Tag noindex and hashed static assets bypass the Worker.
   API-only Worker-first routing bypasses HTML middleware and is rejected by
-  the config guard. The local repair is not deployed yet; do not claim the
-  current remote homepage has the noindex header.
-- Preview Server's switch is user-authorized at 1 but its deployed remote
-  plans remain empty: authorize returns UNREVIEWED_CASE before D1/provider
-  access. Treat the ledger/login/payment gate as closed despite the switch.
+  the config guard. The repair was deployed on 2026-09-29 and a finite homepage
+  check confirmed the noindex header.
+- Preview Server's product-wide mode was explicitly authorized and deployed
+  on 2026-09-29. Product paths now use serialized per-SQL reservations in the
+  fixed budget journal; 1,000 written / 10,000 read hard ceilings remain.
+  Do not confuse an enabled path with completed real login/payment acceptance;
+  a budget stop must stay an error and never trigger automated retries/resets.
 - Pricing displays Server-provided allowances/Max Jev budget. Eligibility is
   separate from availability. An explicit suggestion click checks /me once;
   abort on draft change/unmount and never poll or dispatch after a stale check.
