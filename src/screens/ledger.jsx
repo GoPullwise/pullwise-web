@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
+import { I } from "../icons.jsx";
 import { connectGitHubRepositories } from "../lib/auth.js";
 import { Topbar, Sidebar } from "../shell.jsx";
 import "./ledger.css";
@@ -20,11 +21,23 @@ const emptyExpense = () => ({
 function errorText(error) {
   const code = error?.payload?.error?.code;
   const allowanceErrors = {
-    PROJECT_LIMIT: T("Project allowance reached. Existing history remains available.", "项目额度已用完，已有历史仍可访问。"),
-    RECORD_LIMIT: T("Expense record allowance reached. Existing records remain available.", "支出记录额度已用完，已有记录仍可访问。"),
-    WRITE_RATE_LIMIT: T("Too many changes in a short time. Wait a minute before trying again.", "短时间内操作过多，请等一分钟再试。"),
+    PROJECT_LIMIT: T(
+      "Project allowance reached. Existing history remains available.",
+      "项目额度已用完，已有历史仍可访问。"
+    ),
+    RECORD_LIMIT: T(
+      "Expense record allowance reached. Existing records remain available.",
+      "支出记录额度已用完，已有记录仍可访问。"
+    ),
+    WRITE_RATE_LIMIT: T(
+      "Too many changes in a short time. Wait a minute before trying again.",
+      "短时间内操作过多，请等一分钟再试。"
+    ),
     MONTHLY_WRITE_LIMIT: T("Monthly write allowance reached.", "本月写入额度已用完。"),
-    JEV_BUDGET_LIMIT: T("Monthly Jev budget reached. Continue manually.", "本月 Jev 预算已用完，请继续手工记账。"),
+    JEV_BUDGET_LIMIT: T(
+      "Monthly Jev budget reached. Continue manually.",
+      "本月 Jev 预算已用完，请继续手工记账。"
+    ),
     MAX_REQUIRED: T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"),
   };
   if (allowanceErrors[code]) return allowanceErrors[code];
@@ -70,7 +83,7 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
         />
       </label>
       <label>
-        {T("To date (exclusive)")}
+        {T("Before date", "截止日期（不含当天）")}
         <input
           type="date"
           value={filters.to}
@@ -200,7 +213,8 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
         setDuplicateReviewed(false);
       } else setSuggestionError(T("Suggestion unavailable. Continue manually."));
     } catch {
-      if (!controller.signal.aborted) setSuggestionError(T("Suggestion unavailable. Continue manually."));
+      if (!controller.signal.aborted)
+        setSuggestionError(T("Suggestion unavailable. Continue manually."));
     } finally {
       if (suggestionController.current === controller) {
         suggestionController.current = null;
@@ -274,7 +288,7 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
     <form className="ledger-form" onSubmit={submit}>
       <h2>{value ? T("Edit expense") : T("Add expense")}</h2>
       <label>
-        {T("Target")}
+        {T("Project or shared cost", "归到项目还是公共支出")}
         <select
           value={selectedTarget.kind === "shared" ? "shared" : selectedTarget.projectId}
           disabled={busy}
@@ -299,7 +313,11 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       </label>
       <div className="ledger-fields">
         {field("occurredOn", T("Date"), { type: "date", required: true })}
-        {field("amount", T("Amount"), { inputMode: "decimal", required: true })}
+        {field("amount", T("Amount"), {
+          inputMode: "decimal",
+          required: true,
+          placeholder: "12.00",
+        })}
         {field("currency", T("Currency"), { maxLength: 3, required: true })}
         <label>
           {T("Category")}
@@ -319,12 +337,19 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
               ))}
           </select>
         </label>
-        {field("purpose", T("Purpose"), { maxLength: 500, required: true })}
-        {field("quantity", T("Quantity"), { inputMode: "decimal" })}
-        {field("unit", T("Unit"), { maxLength: 40 })}
+        {field("purpose", T("What did you pay for?", "这笔钱花在哪儿了？"), {
+          maxLength: 500,
+          required: true,
+          placeholder: T("e.g. September hosting", "例如：九月托管费用"),
+        })}
+        {field("quantity", T("Quantity (optional)", "数量（选填）"), { inputMode: "decimal" })}
+        {field("unit", T("Unit (optional)", "单位（选填）"), {
+          maxLength: 40,
+          placeholder: T("e.g. hours or requests", "例如：小时、次"),
+        })}
       </div>
       <label>
-        {T("Note")}
+        {T("Note (optional)", "备注（选填）")}
         <textarea
           value={draft.note}
           maxLength={4000}
@@ -345,7 +370,7 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       </div>
       {suggestionError && <p role="status">{suggestionError}</p>}
       {suggestion && (
-        <div className="ledger-suggestion" role="status">
+        <div className="notice notice-grid" role="status">
           <h3>{T("Review suggestion")}</h3>
           {suggestion.suggestions?.categoryId && (
             <p>
@@ -452,7 +477,6 @@ export function LedgerScreen({
       mounted.current = false;
     };
   }, []);
-
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -649,18 +673,30 @@ export function LedgerScreen({
                 : "ledgerProjects"
           }
         />
-        <main className="main wide">
+        <main className={`main wide ledger-${mode}`}>
           <div className="page-h">
             <div>
               <h1>{title}</h1>
               <p className="sub">
                 {mode === "projects"
-                  ? T("Track expenses for each GitHub repository.")
+                  ? T(
+                      "See what each project costs. Start with a GitHub repository.",
+                      "看看每个项目花了多少钱，从添加一个 GitHub 仓库开始。"
+                    )
                   : mode === "shared"
-                    ? T("Costs used across projects stay in this pool once.")
+                    ? T(
+                        "One place for tools and services you use across projects.",
+                        "多个项目共用的工具和服务费用，都记在这里。"
+                      )
                     : mode === "categories"
-                      ? T("Categories are shared by your projects and pool.")
-                      : T("Your recorded expenses remain available when GitHub access changes.")}
+                      ? T(
+                          "Group your spending so you can see where the money goes.",
+                          "给支出分个类，看看钱都花在哪儿了。"
+                        )
+                      : T(
+                          "Hosting, domains, tools — keep this project's costs together.",
+                          "托管、域名、工具，把这个项目的费用记在一起。"
+                        )}
               </p>
             </div>
             <button className="btn" onClick={reload} disabled={loading}>
@@ -668,12 +704,12 @@ export function LedgerScreen({
             </button>
           </div>
           {authorizationError && (
-            <p role="alert" className="ledger-message">
+            <p role="alert" className="notice">
               {authorizationError}
             </p>
           )}
           {error && (
-            <div role="alert" className="ledger-message">
+            <div role="alert" className="notice">
               {error}{" "}
               <button className="btn" onClick={reload}>
                 {T("Retry")}
@@ -681,64 +717,107 @@ export function LedgerScreen({
             </div>
           )}
           {actionError && (
-            <p role="alert" className="ledger-message">
+            <p role="alert" className="notice">
               {actionError}
             </p>
           )}
           {loading && <p role="status">{T("Loading ledger…")}</p>}
           {data && mode === "projects" && (
-            <>
-              <section className="ledger-panel">
-                <h2>{T("Account overview")}</h2>
-                <LedgerFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  categories={data.categories}
-                />
-                {data.summaryError && <p role="status">{T("Spending summary is unavailable. Your projects are still ready to use.", "支出汇总暂时无法加载，你仍可以使用项目。")} {data.summaryError}</p>}
-                {data.summary && data.summary.groups.filter((group) => group.target === "account").length === 0 && (
-                  <p>{T("No expenses in this range.")}</p>
+            <div className="ledger-project-layout">
+              <section className="ledger-panel ledger-your-projects">
+                <div className="ledger-section-title">
+                  <I.Folder size={20} />
+                  <h2>{T("Your projects")}</h2>
+                  <span className="ledger-count">
+                    {data.projects.items.length}
+                    {data.projects.nextCursor ? "+" : ""}
+                  </span>
+                </div>
+                {data.projects.items.length === 0 && (
+                  <div className="ledger-empty">
+                    <I.Folder size={32} />
+                    <h3>{T("Your first project starts here", "从第一个项目开始")}</h3>
+                    <p>
+                      {T(
+                        "Add a repository to start tracking hosting, domains and other project costs.",
+                        "添加一个仓库，就能记录托管、域名和其他项目费用。"
+                      )}
+                    </p>
+                    <a
+                      className="btn"
+                      href="#add-repository"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        document
+                          .querySelector(".ledger-add-project select, .ledger-add-project button")
+                          ?.focus();
+                      }}
+                    >
+                      {T("Add a repository", "添加一个仓库")} <I.ArrowR size={14} />
+                    </a>
+                  </div>
                 )}
                 <div className="ledger-list">
-                  {data.summary?.groups
-                    .filter((group) => group.target === "account")
-                    .map((group) => (
-                      <article key={group.currency}>
-                        <h3>{formatTotal(group)}</h3>
-                        <p>
-                          {T("Projects")}:{" "}
-                          <span>
-                            {formatTotal(
-                              data.summary.groups.find(
-                                (item) =>
-                                  item.target === "project" &&
-                                  item.projectId == null &&
-                                  item.currency === group.currency
-                              ) || { currency: group.currency, amountMinor: 0 }
-                            )}
-                          </span>
+                  {data.projects.items.map((project) => (
+                    <article key={project.id}>
+                      <h3>
+                        {project.githubFullName || project.description || T("Project history")}
+                      </h3>
+                      {project.description && project.githubFullName && (
+                        <p>{project.description}</p>
+                      )}
+                      {project.githubAccess === "lost" && (
+                        <p role="status">
+                          {T(
+                            "GitHub access lost. Historical expenses remain available; reconnect GitHub to add new expenses."
+                          )}
                         </p>
-                        <p>
-                          {T("Shared pool")}:{" "}
-                          <span>
-                            {formatTotal(
-                              data.summary.groups.find(
-                                (item) =>
-                                  item.target === "shared" && item.currency === group.currency
-                              ) || { currency: group.currency, amountMinor: 0 }
-                            )}
-                          </span>
-                        </p>
-                      </article>
-                    ))}
+                      )}
+                      <p>{project.totals.map(formatTotal).join(" · ") || T("No expenses")}</p>
+                      <button
+                        className="btn"
+                        onClick={() => go("ledgerProject", { id: project.id })}
+                      >
+                        {T("Open project")}
+                      </button>
+                    </article>
+                  ))}
                 </div>
+                {data.projects.nextCursor && (
+                  <button
+                    className="btn"
+                    disabled={loadingMore}
+                    onClick={() => loadMore("projects")}
+                  >
+                    {T("Load more projects")}
+                  </button>
+                )}
               </section>
-              <section className="ledger-panel">
-                <h2>{T("Create project")}</h2>
+              <section className="ledger-panel ledger-add-project" id="add-repository">
+                <div className="ledger-section-title">
+                  <I.Github size={20} />
+                  <h2>{T("Add a repository", "添加一个仓库")}</h2>
+                </div>
+                {availableRepos.length > 0 && (
+                  <p className="ledger-help">
+                    {T(
+                      "GitHub access is ready. Choose a repository and create its expense project below.",
+                      "GitHub 已授权。在下面选一个仓库，创建它的支出项目。"
+                    )}
+                  </p>
+                )}
                 {availableRepos.length === 0 && !data.repositories.nextCursor ? (
-                  <p>{data.repositories.items.length > 0
-                    ? T("These repositories are already in your projects. Open one to record an expense, or connect another repository.", "这些仓库已经添加到项目了。打开项目即可记账，也可以再连接其他仓库。")
-                    : T("No unbound authorized repositories. Connect GitHub to add a project.")}</p>
+                  <p className="ledger-help">
+                    {data.repositories.items.length > 0
+                      ? T(
+                          "These repositories are already in your projects. Open one to record an expense, or connect another repository.",
+                          "这些仓库已经添加到项目了。打开项目即可记账，也可以再连接其他仓库。"
+                        )
+                      : T(
+                          "No repositories are available yet. Connect GitHub and choose the repositories you want to track.",
+                          "还没有可用仓库。连接 GitHub，选择你想记账的仓库。"
+                        )}
+                  </p>
                 ) : availableRepos.length > 0 ? (
                   <form
                     className="ledger-form"
@@ -777,6 +856,10 @@ export function LedgerScreen({
                       <textarea
                         value={description}
                         maxLength={2000}
+                        placeholder={T(
+                          "What are you building? (optional)",
+                          "这个项目是做什么的？（选填）"
+                        )}
                         disabled={busy}
                         onChange={(event) => setDescription(event.target.value)}
                       />
@@ -795,65 +878,88 @@ export function LedgerScreen({
                     {T("Load more repositories")}
                   </button>
                 )}
-                <button className="btn" disabled={busy || loading} onClick={() => action(() => connectGitHubRepositories({ add: true }))}>
-                  {T("Manage GitHub access")}
+                <button
+                  className="btn ghost"
+                  disabled={busy || loading}
+                  onClick={() => action(() => connectGitHubRepositories({ add: true }))}
+                >
+                  <I.Github size={14} /> {T("Manage GitHub access")}
                 </button>
               </section>
-              <section className="ledger-panel">
-                <h2>{T("Your projects")}</h2>
-                {data.projects.items.length === 0 && (
-                  <p>{T("No projects yet. Choose an authorized repository above.")}</p>
+              <section className="ledger-panel ledger-overview">
+                <h2>{T("Account overview")}</h2>
+                <LedgerFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  categories={data.categories}
+                />
+                {data.summaryError && (
+                  <p role="status">
+                    {T(
+                      "Spending summary is unavailable. Your projects are still ready to use.",
+                      "支出汇总暂时无法加载，你仍可以使用项目。"
+                    )}{" "}
+                    {data.summaryError}
+                  </p>
                 )}
+                {data.summary &&
+                  data.summary.groups.filter((group) => group.target === "account").length ===
+                    0 && <p>{T("No expenses in this range.")}</p>}
                 <div className="ledger-list">
-                  {data.projects.items.map((project) => (
-                    <article key={project.id}>
-                      <h3>
-                        {project.githubFullName || project.description || T("Project history")}
-                      </h3>
-                      <p>
-                        {T("Project ID")}: <code>{project.id}</code>
-                      </p>
-                      {project.description && project.githubFullName && (
-                        <p>{project.description}</p>
-                      )}
-                      {project.githubAccess === "lost" && (
-                        <p role="status">
-                          {T(
-                            "GitHub access lost. Historical expenses remain available; reconnect GitHub to add new expenses."
-                          )}
+                  {data.summary?.groups
+                    .filter((group) => group.target === "account")
+                    .map((group) => (
+                      <article key={group.currency}>
+                        <h3>{formatTotal(group)}</h3>
+                        <p>
+                          {T("Projects")}:{" "}
+                          <span>
+                            {formatTotal(
+                              data.summary.groups.find(
+                                (item) =>
+                                  item.target === "project" &&
+                                  item.projectId == null &&
+                                  item.currency === group.currency
+                              ) || { currency: group.currency, amountMinor: 0 }
+                            )}
+                          </span>
                         </p>
-                      )}
-                      <p>{project.totals.map(formatTotal).join(" · ") || T("No expenses")}</p>
-                      <button
-                        className="btn"
-                        onClick={() => go("ledgerProject", { id: project.id })}
-                      >
-                        {T("Open project")}
-                      </button>
-                    </article>
-                  ))}
+                        <p>
+                          {T("Shared pool")}:{" "}
+                          <span>
+                            {formatTotal(
+                              data.summary.groups.find(
+                                (item) =>
+                                  item.target === "shared" && item.currency === group.currency
+                              ) || { currency: group.currency, amountMinor: 0 }
+                            )}
+                          </span>
+                        </p>
+                      </article>
+                    ))}
                 </div>
-                {data.projects.nextCursor && (
-                  <button
-                    className="btn"
-                    disabled={loadingMore}
-                    onClick={() => loadMore("projects")}
-                  >
-                    {T("Load more projects")}
-                  </button>
-                )}
               </section>
-            </>
+            </div>
           )}
           {data && mode === "categories" && (
-            <>
+            <div className="ledger-category-layout">
               <section className="ledger-panel">
                 <h2>{T("Add category")}</h2>
+                <p className="ledger-help">
+                  {T(
+                    "Try Hosting, Domains or AI tools. You can use the same categories in every project.",
+                    "比如「托管」「域名」「AI 工具」，所有项目都可以使用这些分类。"
+                  )}
+                </p>
                 <form
                   className="ledger-actions"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    action(() => ledgerApi.createCategory({ name: categoryName.trim() }, {}));
+                    action(() => ledgerApi.createCategory({ name: categoryName.trim() }, {})).then(
+                      (ok) => {
+                        if (ok) setCategoryName("");
+                      }
+                    );
                   }}
                 >
                   <label>
@@ -861,6 +967,7 @@ export function LedgerScreen({
                     <input
                       value={categoryName}
                       maxLength={80}
+                      placeholder={T("e.g. Hosting", "例如：托管")}
                       required
                       disabled={busy}
                       onChange={(event) => setCategoryName(event.target.value)}
@@ -873,15 +980,29 @@ export function LedgerScreen({
               </section>
               <section className="ledger-panel">
                 <h2>{T("Your categories")}</h2>
-                {data.categories.length === 0 && <p>{T("No categories yet.")}</p>}
+                {data.categories.length === 0 && (
+                  <div className="ledger-empty">
+                    <I.Folder size={28} />
+                    <h3>{T("Give your expenses a home", "先为支出建个分类")}</h3>
+                    <p>
+                      {T(
+                        "Add your first category above. You will choose one when recording an expense.",
+                        "在上方添加第一个分类，记账时就可以选择了。"
+                      )}
+                    </p>
+                  </div>
+                )}
                 <div className="ledger-list">
                   {data.categories.map((category) => (
                     <article key={category.id}>
                       <h3>{category.name}</h3>
                       <p>
                         {category.archivedAt
-                          ? T("Archived; retained on historical expenses")
-                          : T("Active")}
+                          ? T(
+                              "Archived · past expenses keep this category",
+                              "已归档 · 以前的支出仍保留此分类"
+                            )
+                          : T("Ready to use", "可用于记账")}
                       </p>
                       {categoryEdit?.id === category.id && (
                         <form
@@ -972,85 +1093,43 @@ export function LedgerScreen({
                   ))}
                 </div>
               </section>
-            </>
+            </div>
           )}
           {data && (mode === "shared" || mode === "project") && (
             <>
-              <section className="ledger-panel">
-                <h2>{T("Detail filters")}</h2>
-                <LedgerFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  categories={data.categories}
-                />
-                <a className="btn" href={exportHref} download="expenses.csv">
-                  {T("Export CSV")}
-                </a>
-              </section>
-              <section className="ledger-panel">
-                <h2>{T("Totals by currency")}</h2>
-                {data.summary.groups
-                  .filter(
-                    (group) =>
-                      group.target === mode && (mode === "shared" || group.projectId === projectId)
-                  )
-                  .map((group) => (
-                    <p key={group.currency}>{formatTotal(group)}</p>
-                  ))}
-              </section>
-              <ReportGroups
-                title={T("Expenses over time")}
-                groups={data.timeseries.groups}
-                dimension="bucket"
-              />
-              <ReportGroups
-                title={T("Expenses by category")}
-                groups={data.categoryReport.groups}
-                categories={data.categories}
-                dimension="category"
-              />
-              {data.project?.githubAccess === "lost" && (
-                <div className="ledger-message" role="status">
-                  {T(
-                    "GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses."
-                  )}
+              {mode === "shared" && (
+                <div className="notice notice-guide">
+                  <I.Folder size={22} />
+                  <div>
+                    <strong>
+                      {T(
+                        "Used by more than one project? Record it here.",
+                        "不止一个项目在用？记在这里。"
+                      )}
+                    </strong>
+                    <p>
+                      {T(
+                        "An AI coding subscription or a shared server, for example. Record the cost once; it stays separate from each project's expenses.",
+                        "比如 AI 编程订阅或共用服务器。费用只记一笔，与各项目的支出分开展示。"
+                      )}
+                    </p>
+                  </div>
                 </div>
-              )}
-              {mode === "project" && (
-                <section className="ledger-panel">
-                  <h2>{T("Project description")}</h2>
-                  <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      action(() =>
-                        ledgerApi.updateProject(
-                          projectId,
-                          data.project.revision,
-                          { description },
-                          {}
-                        )
-                      );
-                    }}
-                  >
-                    <label>
-                      {T("Description")}
-                      <textarea
-                        value={description}
-                        maxLength={2000}
-                        onChange={(event) => setDescription(event.target.value)}
-                      />
-                    </label>
-                    <button className="btn" type="submit" disabled={busy}>
-                      {T("Save description")}
-                    </button>
-                  </form>
-                </section>
               )}
               <section className="ledger-panel">
                 <h2>{T("Expenses")}</h2>
+                <p className="ledger-help">
+                  {T(
+                    "What did you pay for? Add the amount, date and a category below.",
+                    "这笔钱花在哪儿了？在下面填好金额、日期和分类。"
+                  )}
+                </p>
                 {data.categories.filter((category) => !category.archivedAt).length === 0 && (
                   <p>
-                    {T("Add a category before recording expenses.")}{" "}
+                    {T(
+                      "Start by adding a category, such as Hosting or AI tools.",
+                      "先添加一个分类，比如「托管」或「AI 工具」。"
+                    )}{" "}
                     <button className="btn" onClick={() => go("ledgerCategories")}>
                       {T("Manage categories")}
                     </button>
@@ -1133,6 +1212,84 @@ export function LedgerScreen({
                   </button>
                 )}
               </section>
+              <section className="ledger-panel">
+                <h2>{T("Find an expense", "查找支出")}</h2>
+                <LedgerFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  categories={data.categories}
+                />
+                <a className="btn" href={exportHref} download="expenses.csv">
+                  {T("Export CSV")}
+                </a>
+              </section>
+              <section className="ledger-panel">
+                <h2>{T("Totals by currency")}</h2>
+                {data.summary.groups.length === 0 && (
+                  <p className="ledger-help">
+                    {T(
+                      "Your spending totals will appear after you record an expense.",
+                      "记下第一笔支出后，这里就会显示合计。"
+                    )}
+                  </p>
+                )}
+                {data.summary.groups
+                  .filter(
+                    (group) =>
+                      group.target === mode && (mode === "shared" || group.projectId === projectId)
+                  )
+                  .map((group) => (
+                    <p key={group.currency}>{formatTotal(group)}</p>
+                  ))}
+              </section>
+              <ReportGroups
+                title={T("Expenses over time")}
+                groups={data.timeseries.groups}
+                dimension="bucket"
+              />
+              <ReportGroups
+                title={T("Expenses by category")}
+                groups={data.categoryReport.groups}
+                categories={data.categories}
+                dimension="category"
+              />
+              {data.project?.githubAccess === "lost" && (
+                <div className="notice" role="status">
+                  {T(
+                    "GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses."
+                  )}
+                </div>
+              )}
+              {mode === "project" && (
+                <section className="ledger-panel">
+                  <h2>{T("Project description")}</h2>
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      action(() =>
+                        ledgerApi.updateProject(
+                          projectId,
+                          data.project.revision,
+                          { description },
+                          {}
+                        )
+                      );
+                    }}
+                  >
+                    <label>
+                      {T("Description")}
+                      <textarea
+                        value={description}
+                        maxLength={2000}
+                        onChange={(event) => setDescription(event.target.value)}
+                      />
+                    </label>
+                    <button className="btn" type="submit" disabled={busy}>
+                      {T("Save description")}
+                    </button>
+                  </form>
+                </section>
+              )}
             </>
           )}
         </main>

@@ -407,7 +407,7 @@ export function App() {
           <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
             <img
               className="brand-mark"
-              src="/favicon.ico"
+              src="/brand-mark.png"
               alt=""
               aria-hidden="true"
               width="24"

@@ -36,13 +36,6 @@ input[type="checkbox"] {
   --cat-sky: #0ea5e9;
   --cat-purple: #a855f7;
 
-  --r-2: 0px;
-  --r-3: 0px;
-
-  --shadow-1: none;
-  --shadow-2: none;
-  --shadow-3: none;
-
   --font-sans:
     "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
@@ -67,19 +60,12 @@ input[type="checkbox"] {
   --ok: #15803d;
   --warn: #a16207;
   --danger: #dc2626;
-  --repo-lang-color: var(--text-3);
-  --risk-hotspot-color: var(--sev-high);
   --z-raised: 1;
-  --z-flow-bar: 3;
   --z-side: 9;
   --z-topbar: 10;
-  --z-row-menu: 20;
-  --z-nav: 50;
-  --z-nav-toggle: 51;
   --z-float: 60;
-  --z-quota-modal: 90;
-  --z-toast: 120;
   --z-modal: 100;
+  --z-toast: 120;
 }
 
 [data-theme="dark"] {
@@ -111,10 +97,6 @@ input[type="checkbox"] {
   --ok: #4ade80;
   --warn: #fbbf24;
   --danger: #f87171;
-
-  --shadow-1: none;
-  --shadow-2: none;
-  --shadow-3: none;
 }
 
 html,
@@ -166,7 +148,6 @@ select {
   gap: 7px;
   height: 34px;
   padding: 0 14px;
-  border-radius: var(--r-3);
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
@@ -218,7 +199,6 @@ select {
   height: 28px;
   padding: 0 10px;
   font-size: var(--fs-sm);
-  border-radius: var(--r-2);
 }
 .btn.lg {
   height: 42px;
@@ -335,13 +315,6 @@ select {
   font-weight: 600;
   letter-spacing: 0;
 }
-.topbar .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  letter-spacing: 0;
-}
 .topbar-brand-button {
   border: 0;
   background: transparent;
@@ -390,6 +363,8 @@ select {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 1 1 auto;
+  max-width: min(56vw, 720px);
   color: var(--text-3);
   font-size: var(--fs-md);
   min-width: 0;
@@ -426,7 +401,7 @@ a.crumb-button:hover {
 }
 .with-side {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px minmax(0, 1fr);
   flex: 1;
   min-height: 0;
   position: relative;
@@ -689,8 +664,6 @@ a.crumb-button:hover {
 }
 .sk-square {
   flex: 0 0 auto;
-}
-.sk-square {
   aspect-ratio: 1;
 }
 .sk-size-16 {
@@ -726,101 +699,62 @@ a.crumb-button:hover {
   text-overflow: clip;
   white-space: normal;
 }
-.lp-top,
-.lp-nav,
-.lp-hero-tag,
-.lp-meta,
-.lp-preview-bar,
-.lp-preview-side,
-.lp-preview-expense-f,
-.lp-feat-i,
-.lp-foot,
-.auth-legal,
-.oauth-head,
-.oauth-perm-h,
-.oauth-perm-i,
-.oauth-actions,
-.oauth-foot,
-.gh-installs-h,
-.gh-install-icon,
-.gh-install-meta,
-.gh-install-status,
-.seg-i,
-.key-sev,
-.key-id,
-.key-meta,
-.filters,
-.section-h,
+
+/* Shared inline notice: accent-railed soft box for messages, guides and
+   suggestion panels. Variants adjust layout and padding only. */
+.notice {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-soft);
+  padding: 16px;
+  margin-bottom: 20px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.notice-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px 24px;
+  margin-bottom: 12px;
+  background: var(--accent-soft);
+  line-height: 1.5;
+}
+.notice-grid {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+/* Chrome where accidental text selection hurts interaction. Buttons, links
+   and summaries are already covered by the global rule above; container
+   selectors cover their descendants. Prose stays selectable. */
+.topbar,
+.crumbs,
+.side,
+.page-h,
 .modal-h,
 .modal-foot,
-.set-side,
-.set-side-i,
-.pricing-toggle,
-.pricing-save,
-.pricing-badge,
-.pricing-billed,
-.pricing-feats svg,
-.docs-side,
-.docs-crumbs,
-.docs-side-h,
-.docs-side-i,
-.legal-side,
-.legal-side-h,
-.legal-side-i,
-.legal-side-foot,
-.legal-side-l,
-.legal-crumbs,
-.legal-foot-actions,
-.status-overall,
-.status-dot,
-.status-row-region,
-.status-row-pct,
-.notfound-code,
-.notfound-suggest-h,
-.notfound-suggest-ic,
-.notfound-suggest-d,
+.lang-picker,
 .kbd,
 .tag,
 .sev,
-.dot,
 .badge,
-.topbar,
-.crumbs,
-.crumb-button,
-.crumbs .sep,
-.crumbs .now,
-.brand,
-.brand-mark,
-.side,
-.side-h,
-.side-i,
-.side-i .badge,
-.page-h,
-.page-h h1,
-.page-h .sub,
-.page-h .actions,
-.pricing-card-h,
-.pricing-num,
-.pricing-tag,
-.docs-endpoint-card-h,
-.docs-code-h,
-.docs-foot-actions,
-.status-card-h,
-.notfound-sub,
+.dot,
+.key-row,
 .notfound-suggest-i,
-.lang-picker,
-.lang-toggle,
-.lang-menu,
-.lang-menu-i,
-.lang-menu-code,
-.theme-toggle,
-.billing-summary,
-.billing-summary-main,
-.billing-actions,
-.bill-card,
-.muted,
-.sub,
-.key-t {
+.gh-install-row,
+.seg-i,
+.pricing-toggle,
+.lp-top,
+.lp-preview,
+.docs-side,
+.legal-side,
+.set-side,
+.status-overall,
+.status-dot,
+.status-row-region,
+.status-row-pct {
   user-select: none;
 }
 
@@ -898,6 +832,10 @@ a.crumb-button:hover {
     padding: 20px 16px 48px;
   }
 
+  .crumbs {
+    max-width: none;
+  }
+
   .page-h {
     flex-direction: column;
     align-items: stretch;
@@ -916,14 +854,9 @@ a.crumb-button:hover {
 
 @media (pointer: coarse) {
   .btn.sm,
-  .btn.icon,
   .side-i,
   .seg-i {
     min-height: 44px;
-  }
-
-  .btn.icon {
-    min-width: 44px;
   }
 
   .topbar .btn.ghost.sm {
@@ -954,10 +887,6 @@ a.crumb-button:hover {
 
 .topbar .brand {
   flex: 0 0 auto;
-}
-
-.crumbs {
-  flex: 1 1 auto;
 }
 
 :where(button, a, input, textarea, select) {

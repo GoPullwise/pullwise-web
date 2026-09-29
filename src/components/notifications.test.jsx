@@ -15,13 +15,6 @@ function extractRuleBody(styles, selector) {
   return match[1];
 }
 
-function extractSelectorGroupBody(styles, selectors) {
-  const selectorPattern = selectors.map((selector) => escapeRegex(selector)).join("\\s*,\\s*");
-  const match = styles.match(new RegExp(`${selectorPattern}\\s*\\{([\\s\\S]*?)\\n\\}`, "m"));
-  expect(match, `Expected CSS selector group for ${selectors.join(", ")}`).not.toBeNull();
-  return match[1];
-}
-
 function NotificationHarness() {
   const notify = useNotify();
   return (
@@ -68,19 +61,26 @@ describe("NotificationProvider", () => {
     expect(styles).not.toMatch(/\.notification-toast::before/);
   });
 
-  it("keeps the final floating control override explicitly hard-edged", () => {
+  it("keeps floating controls hard-edged by construction", () => {
     const styles = readFileSync("src/app.css", "utf8");
-    const hardEdgeOverride = extractSelectorGroupBody(styles, [
+    const baseStyles = readFileSync("styles/base.css", "utf8");
+
+    // The global reset owns the hard edge; floating controls need no override.
+    expect(baseStyles).toMatch(/\*\s*,\s*\*::before,\s*\*::after\s*\{[^}]*border-radius:\s*0;/s);
+    for (const selector of [
       ".lang-toggle",
       ".theme-toggle",
       ".back-to-top",
       ".notification-toast",
       ".notification-icon",
       ".notification-close",
-    ]);
-
-    expect(hardEdgeOverride).toMatch(/border-radius:\s*0;/);
-    expect(hardEdgeOverride).toMatch(/box-shadow:\s*none;/);
+    ]) {
+      const rule = styles.match(
+        new RegExp(`${escapeRegex(selector)}\\s*\\{([\\s\\S]*?)\\n\\}`, "m")
+      );
+      expect(rule, `Expected CSS rule for ${selector}`).not.toBeNull();
+      expect(rule[1]).not.toMatch(/border-radius|box-shadow/);
+    }
   });
 
   it("anchors notification toasts beside the bottom control cluster", () => {

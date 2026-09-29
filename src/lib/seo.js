@@ -134,7 +134,7 @@ function publicSchema(definition, title, description, canonical, origin) {
       "@id": organizationId,
       name: SITE_NAME,
       url: `${origin}/`,
-      logo: `${origin}/favicon.ico`,
+      logo: `${origin}/brand-mark.png`,
       email: "contact@pull-wise.com",
     },
     {

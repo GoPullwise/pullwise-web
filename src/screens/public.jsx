@@ -356,7 +356,7 @@ export function LoginScreen({ go } = {}) {
         <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
           <img
             className="brand-mark"
-            src="/favicon.ico"
+            src="/brand-mark.png"
             alt=""
             aria-hidden="true"
             width="24"
@@ -458,40 +458,74 @@ export function OAuthScreen({ go, auth }) {
             </div>
             <img
               className="oauth-logo app"
-              src="/favicon.ico"
+              src="/brand-mark.png"
               alt="Pullwise"
               width="48"
               height="48"
             />
           </div>
-          <h2>{T("Connect GitHub repository access", "连接 GitHub 仓库访问")}</h2>
+          <div className="oauth-brand">Pullwise / GitHub</div>
+          <h1>{T("Bring your projects into Pullwise", "把你的项目带到 Pullwise")}</h1>
           <p className="oauth-org">
             {T(
-              "Install Pullwise on your GitHub account or organization, then choose repositories to bind ledger projects.",
-              "在你的 GitHub 账户或组织上安装 Pullwise，然后选择仓库以绑定记账项目。"
+              "Choose the repositories you want to track, then keep their expenses in one place.",
+              "选择你想记账的仓库，把项目费用集中记录。"
             )}
           </p>
+          <ol className="oauth-steps">
+            <li>
+              <span>01</span>
+              <div>
+                <strong>{T("Choose your GitHub account", "选择 GitHub 账户")}</strong>
+                <p>
+                  {T(
+                    "Your personal account or an organization you manage.",
+                    "个人账户，或你管理的组织。"
+                  )}
+                </p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <strong>{T("Pick your repositories", "选择仓库")}</strong>
+                <p>
+                  {T("Give access to just the repositories you need.", "只授权你需要的仓库即可。")}
+                </p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <strong>{T("Create your first project", "创建第一个项目")}</strong>
+                <p>
+                  {T(
+                    "Back in Pullwise, add a repository and record its first expense.",
+                    "回到 Pullwise，添加仓库，再记下第一笔支出。"
+                  )}
+                </p>
+              </div>
+            </li>
+          </ol>
         </div>
 
         <div className="oauth-perms">
-          <div className="oauth-perm-h">
-            {T("Requested GitHub permissions", "请求的 GitHub 权限")}
-          </div>
+          <div className="oauth-perm-h">{T("What you are sharing", "会授权哪些信息")}</div>
           {[
             {
               i: <I.Folder size={15} />,
               h: T("Repository metadata", "仓库元数据"),
               p: T(
-                "List authorized repositories, branches, languages, and installation status.",
-                "列出已授权的仓库、分支、语言和安装状态。"
+                "Read the names and basic details of repositories you choose.",
+                "读取你所选仓库的名称和基本信息。"
               ),
             },
             {
               i: <I.FileCode size={15} />,
               h: T("Repository access", "仓库权限"),
               p: T(
-                "Repository access lets Pullwise verify project bindings. Expense entries do not modify GitHub content.",
-                "仓库权限让 Pullwise 核验项目绑定。支出记录不会修改 GitHub 内容。"
+                "Check that you can access each project. Recording expenses does not change your code.",
+                "确认你能访问对应项目。记账不会修改你的代码。"
               ),
             },
           ].map((permission, index) => (
@@ -509,8 +543,8 @@ export function OAuthScreen({ go, auth }) {
           <div className="oauth-perm-h">{T("Repository access", "仓库访问")}</div>
           <div className="oauth-org-p">
             {T(
-              "On GitHub, choose your personal account or organization, then grant access to all repositories or selected public/private repositories.",
-              "在 GitHub 上选择你的个人账户或组织，然后授予对所有仓库或选定的公开/私有仓库的访问权限。"
+              "You can change your repository selection later in Settings. An organization owner may need to approve access.",
+              "之后可以在设置中调整已选仓库。组织仓库可能需要组织所有者批准。"
             )}
           </div>
         </div>

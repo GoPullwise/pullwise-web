@@ -10,15 +10,8 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 
 ## Runtime
 
-- Projects must await popup repository authorization through the guarded action
-  and reload once on success. Display cancellation as an error, with manual retry.
-- Authorizations and expense projects are separate: create a project explicitly;
-  never auto-create on GET. Only navigate after creation if the source request
-  is still current. Clear repository data when authorizationRevision changes.
-- Spending summary failure must not hide project/repository controls or display
-  a successful zero. Distinguish already-added repositories from missing access.
-  Resolve selectedRepo against the currently available repositories on submit.
-
+- Clear repository options when `authorizationRevision` changes, and resolve
+  the selected repository against the current available list before submitting.
 - `src/main.jsx` is the only browser entry. Cloudflare `worker-entry.js` and
   `worker.js` serve assets/SEO and proxy API traffic; there is no Pages function
   or prototype review entry. Preserve credential headers, OAuth redirects,
@@ -48,9 +41,36 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 
 ## Visual and localization rules
 
+- Projects distinguishes authorized repositories from explicitly created
+  expense projects. Await popup authorization and reload repositories; catch
+  cancellations as action errors. Open a successfully created project only
+  while the originating view is still current. Never auto-create on a GET.
+- A failed spending summary must not hide otherwise loaded project/repository
+  controls or render successful zero totals. Distinguish missing repositories
+  from repositories that already have projects; preserve independent cursors.
+- Use `public/brand-mark.png` for inline brand images; the ICO is for browser
+  favicons. The PNG preserves the existing mark and decodes in inline images.
+- Ledger onboarding copy explains the next action with concrete expense
+  examples. Keep project/add-repository controls ahead of spending reports,
+  shared expense entry ahead of charts, and translated optional field labels.
 - Preserve the hard-edged design, square overlays, restrained monochrome
   palette, indigo accent, `--fs-*` typography and `--cat-*` chart tokens.
   Keep explicit CJK font fallbacks and accent foreground `--accent-fg`.
+- Hard edge is owned by the global reset (`border-radius: 0` on `*`) and no
+  shadows exist anywhere: do not add `border-radius`/`box-shadow`
+  declarations or radius/shadow tokens. Only the z tokens in `base.css` are
+  live; add a new one only with a real consumer.
+- `base.css` owns shared components: `.btn`, `.card`, `.tag`, `.notice`
+  (accent-railed inline message; `.notice-guide` for the soft-accent icon
+  guide, `.notice-grid` for suggestion stacks). Do not add per-screen
+  message-box classes; extend `.notice` variants instead.
+- `app.css` is the last cascade layer, not a patch layer. To change an
+  existing rule, edit the owning file (`base.css`/`screens.css`) in place;
+  never re-declare the same property downstream. Keep `app.css` for
+  app-shell patches, landing and overlays.
+- Keep prose selectable. `user-select: none` applies only to interactive
+  chrome containers (topbar, sidebars, `.page-h`, menus, clickable rows,
+  chips); buttons/links are already covered globally.
 - Public pages share the 1240px frame, 40px desktop and 16px small-screen
   gutters. Preserve existing 760/761 and 899/900 breakpoint pairs and CSS
   source order (`base.css`, `screens.css`, `app.css`); do not impose new layers.

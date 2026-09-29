@@ -2,6 +2,52 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Joint preview release (2026-09-29)
+
+The user approved deploying the completed Projects behavior repair together
+with the current onboarding/layout/copy and the other agent's Stage 1/2 CSS
+consolidation. Stage 3 visual proposals remain unimplemented. The consolidation
+keeps the existing final appearance, moves OAuth overrides into their owning
+rules, removes unused tokens and uses the shared `.notice` message variants.
+The unchanged inline brand PNG and all five non-English locale catalogs are
+included. Server source/config, production hosting, cron and D1 are unchanged.
+
+Joint verification passed `npm run check`: lint, 34 test files / 279 tests and
+production build. `npm run check:workers` and pinned Wrangler 4.136.3 preview
+packaging dry-run passed. Publication evidence is appended after deployment.
+Remote verification remains limited to one HTML GET and three exact hashed
+static assets, with zero retries and zero D1 rows read/written. No browser
+provider journey or authenticated API validation is part of this publication.
+
+## Projects onboarding and workspace usability (2026-09-29)
+
+Local regressions reproduced missing repository reload after popup authorization,
+summary failure blocking project controls, no navigation after project creation,
+and incorrect reconnect guidance when repositories already have projects.
+The fixes preserve explicit creation, permission boundaries and independent
+pagination. Cancellation errors and late creation completion are covered.
+
+Projects now prioritizes project rows and a repository chooser; Categories
+explains reusable expense categories with examples. Shared Pool explains shared
+tools/server costs and presents expense entry before reports. GitHub onboarding
+shows account/repository/project steps; Settings links connected users to Projects.
+English/Chinese copy and hard-edged light/dark styles are preserved.
+
+Playwright CLI drove a loopback-only synthetic journey: create a project, open
+it, then inspect Projects, Shared Pool, Categories, OAuth and Settings at 1440px
+and 390px. Every mobile document width was 390px, with no JS page errors.
+English/light and Chinese/dark screenshots were visually inspected. External
+font requests were blocked in the harness. An inline ICO decode failure was
+reproduced; extracting its unchanged PNG mark restored 256x256 image decoding.
+Ignored screenshots/fixtures are local evidence only; no provider or D1 calls ran.
+
+Publication is explicitly authorized for preview. Remote verification is capped
+at one HTML GET and three exact hashed assets (one CSS, two JS), no retries,
+no authenticated API or provider requests. These asset requests have a D1 bound
+of zero read/zero written rows. No migration, SQL, cron or budget reset is needed.
+Real preview OAuth and ledger data acceptance remain separate from this local
+UI evidence.
+
 ## Projects authorization and creation repair (2026-09-29)
 
 The user reassigned styling/layout/copy work to another agent. This candidate
@@ -21,8 +67,9 @@ The exact isolated candidate passed `npm run check`: lint, 34 test files /
 archive retained CRLF in robots.txt; that local-only fixture was normalized to
 match the live checkout's LF before the whole suite passed. No unrelated source
 change was included. GitHub CLI currently reports no Web workflow runs;
-post-push CI remains to be checked. Deployment waits for the other agent's
-styles, per the user's instruction. No provider, D1, migration, cron or budget reset is required
+post-push CI remains to be checked. Deployment was deferred until the other
+agent completed the styles; the later joint release supersedes that deferral.
+No provider, D1, migration, cron or budget reset is required
 for local verification. Real preview OAuth/data acceptance is not proven by
 synthetic UI tests.
 

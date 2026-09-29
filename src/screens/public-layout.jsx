@@ -32,7 +32,7 @@ export function PublicHeader({ go, current, auth }) {
         aria-label={T("Go to Pullwise home", "前往 Pullwise 首页")}
         {...screenLinkProps(go, "landing")}
       >
-        <img className="brand-mark" src="/favicon.ico" alt="" aria-hidden="true" width="24" height="24" />
+        <img className="brand-mark" src="/brand-mark.png" alt="" aria-hidden="true" width="24" height="24" />
         <span>Pullwise</span>
       </a>
       <nav className="lp-nav">

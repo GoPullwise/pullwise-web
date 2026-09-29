@@ -27,16 +27,22 @@ export function SettingsScreen({ go }) {
     if (requestId !== requestRef.current) return;
     setSession(sessionResult.status === "fulfilled" ? sessionResult.value : null);
     setIntegrations(integrationsResult.status === "fulfilled" ? integrationsResult.value : null);
-    setError([sessionResult, integrationsResult]
-      .filter(result => result.status === "rejected")
-      .map(result => result.reason?.message || T("Account data unavailable.", "账户数据暂不可用。"))
-      .join(" "));
+    setError(
+      [sessionResult, integrationsResult]
+        .filter((result) => result.status === "rejected")
+        .map(
+          (result) => result.reason?.message || T("Account data unavailable.", "账户数据暂不可用。")
+        )
+        .join(" ")
+    );
     setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
-    return () => { requestRef.current += 1; };
+    return () => {
+      requestRef.current += 1;
+    };
   }, [load]);
 
   const runGitHubAction = async (action, installationId = "") => {
@@ -57,54 +63,118 @@ export function SettingsScreen({ go }) {
 
   const github = integrations?.github;
   const user = session?.user;
-  const accounts = Array.from(new Set([
-    ...(Array.isArray(github?.installationAccounts) ? github.installationAccounts : []),
-    github?.installationAccount,
-  ].filter(Boolean)));
+  const accounts = Array.from(
+    new Set(
+      [
+        ...(Array.isArray(github?.installationAccounts) ? github.installationAccounts : []),
+        github?.installationAccount,
+      ].filter(Boolean)
+    )
+  );
   const repositoryCount = Array.isArray(github?.repositories) ? github.repositories.length : 0;
 
-  return <div className="app fade-in">
-    <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} loading={loading} />
-    <div className="with-side">
-      <Sidebar section="settings" go={go} />
-      <main className="main">
-        <div className="page-h"><div><h1>{T("Settings", "设置")}</h1>
-          <p className="sub">{T("Account and GitHub access", "账户与 GitHub 授权")}</p></div>
-          <button className="btn" onClick={load} disabled={loading}>{T("Reload", "重新加载")}</button>
-        </div>
-        {error && <div className="settings-inline-error" role="alert">{error}</div>}
-        <section className="card section" aria-label={T("Profile", "个人资料")}>
-          <div className="section-h"><h2>{T("Profile", "个人资料")}</h2></div>
-          {session ? <>
-            <div className="set-row"><I.User size={18} /><span>{user?.name || user?.login || T("GitHub account", "GitHub 账户")}</span></div>
-            {user?.email && <div className="set-row"><I.Mail size={16} /><span>{user.email}</span></div>}
-            <button className="btn sm" onClick={signOut}>{T("Sign out", "退出登录")}</button>
-          </> : !loading && <p>{T("Account profile unavailable.", "账户资料暂不可用。")}</p>}
-        </section>
-        <section className="card section" aria-label={T("GitHub access", "GitHub 授权")}>
-          <div className="section-h"><h2>{T("GitHub access", "GitHub 授权")}</h2></div>
-          <p className="muted">{github?.connected
-            ? T(`${repositoryCount} repositories authorized${accounts.length ? ` on ${accounts.join(", ")}` : ""}.`,
-              `已授权 ${repositoryCount} 个仓库${accounts.length ? `（${accounts.join("、")}）` : ""}。`)
-            : T("Connect repositories to create ledger projects.",
-              "连接仓库后可跟进 PR、CI 失败和上游版本更新。")}</p>
-          <button className="btn sm" onClick={() => runGitHubAction(() =>
-            connectGitHubRepositories(github?.connected ? { add: true } : {}))}>
-            {github?.connected ? T("Add account or organization", "添加账户或组织")
-              : T("Connect repositories", "连接仓库")}
-          </button>
-          {github?.connected && <GitHubInstallationsList
-            installations={github.installations}
-            managingInstallationId={managingInstallationId}
-            onManage={installation => {
-              const installationId = installation?.id || installation?.installationId;
-              runGitHubAction(() => manageGitHubInstallation(installationId, {
-                githubIdentityId: installation?.manage?.githubIdentityId || undefined,
-                redirectTo: window.location.href,
-              }), installationId);
-            }} />}
-        </section>
-      </main>
+  return (
+    <div className="app fade-in settings-screen">
+      <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} loading={loading} />
+      <div className="with-side">
+        <Sidebar section="settings" go={go} />
+        <main className="main">
+          <div className="page-h">
+            <div>
+              <h1>{T("Settings", "设置")}</h1>
+              <p className="sub">{T("Account and GitHub access", "账户与 GitHub 授权")}</p>
+            </div>
+            <button className="btn" onClick={load} disabled={loading}>
+              {T("Reload", "重新加载")}
+            </button>
+          </div>
+          {error && (
+            <div className="settings-inline-error" role="alert">
+              {error}
+            </div>
+          )}
+          <section className="card section" aria-label={T("Profile", "个人资料")}>
+            <div className="section-h">
+              <h2>{T("Profile", "个人资料")}</h2>
+            </div>
+            {session ? (
+              <>
+                <div className="set-row">
+                  <I.User size={18} />
+                  <span>{user?.name || user?.login || T("GitHub account", "GitHub 账户")}</span>
+                </div>
+                {user?.email && (
+                  <div className="set-row">
+                    <I.Mail size={16} />
+                    <span>{user.email}</span>
+                  </div>
+                )}
+                <button className="btn sm" onClick={signOut}>
+                  {T("Sign out", "退出登录")}
+                </button>
+              </>
+            ) : (
+              !loading && <p>{T("Account profile unavailable.", "账户资料暂不可用。")}</p>
+            )}
+          </section>
+          <section className="card section" aria-label={T("GitHub access", "GitHub 授权")}>
+            <div className="section-h">
+              <h2>{T("GitHub access", "GitHub 授权")}</h2>
+            </div>
+            <p className="muted">
+              {github?.connected
+                ? T(
+                    `${repositoryCount} repositories authorized${accounts.length ? ` on ${accounts.join(", ")}` : ""}.`,
+                    `已授权 ${repositoryCount} 个仓库${accounts.length ? `（${accounts.join("、")}）` : ""}。`
+                  )
+                : T(
+                    "Connect repositories to create ledger projects.",
+                    "连接仓库，为项目记录支出。"
+                  )}
+            </p>
+            <p className="github-next-step">
+              {T(
+                "After connecting, open Projects and add a repository to start recording expenses.",
+                "授权后，去项目页面添加一个仓库，就可以开始记账了。"
+              )}
+            </p>
+            {github?.connected && (
+              <button className="btn primary" onClick={() => go("ledgerProjects")}>
+                {T("Open projects", "打开项目")} <I.ArrowR size={14} />
+              </button>
+            )}
+            <button
+              className="btn sm"
+              onClick={() =>
+                runGitHubAction(() =>
+                  connectGitHubRepositories(github?.connected ? { add: true } : {})
+                )
+              }
+            >
+              {github?.connected
+                ? T("Add account or organization", "添加账户或组织")
+                : T("Connect repositories", "连接仓库")}
+            </button>
+            {github?.connected && (
+              <GitHubInstallationsList
+                installations={github.installations}
+                managingInstallationId={managingInstallationId}
+                onManage={(installation) => {
+                  const installationId = installation?.id || installation?.installationId;
+                  runGitHubAction(
+                    () =>
+                      manageGitHubInstallation(installationId, {
+                        githubIdentityId: installation?.manage?.githubIdentityId || undefined,
+                        redirectTo: window.location.href,
+                      }),
+                    installationId
+                  );
+                }}
+              />
+            )}
+          </section>
+        </main>
+      </div>
     </div>
-  </div>;
+  );
 }
