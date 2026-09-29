@@ -1,6 +1,36 @@
 # Current local acceptance
 
-Updated 2026-09-28. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Zero-SQL checks and preview HTML routing repair (2026-09-29)
+
+The user authorized only the preview Server access switch at 1; production
+stays 0. Its deployed remote plan list remains empty. Source inspection and
+one no-redirect/no-retry Web authorize GET verified **503 UNREVIEWED_CASE**
+before D1/provider execution, with a row bound of 0/0. This is protection-layer
+acceptance, not a login. No remote schema, account or payment SQL ran.
+
+The browser connector inventory failed with nodeRepl.fetch and opened no page.
+A fallback homepage GET returned 200 HTML with no expected X-Robots-Tag;
+the /pricing and /login checks stopped without being requested. Exactly two
+site requests ran in this phase. Cumulative recorded remote D1 usage remains
+0 read / 0 written; no D1 monitoring query was used.
+
+The preview vars and service binding were correct, but assets.run_worker_first
+only included /api/*, so static HTML bypassed worker-entry's noindex/security
+middleware. The config also lacked the ASSETS binding required by worker.js.
+Cloudflare [asset-routing documentation](https://developers.cloudflare.com/workers/static-assets/binding/)
+supports negative selective patterns. Preview now binds ASSETS and uses
+["/*", "!/assets/*"] so HTML/API paths use the Worker while hashed assets
+remain served directly. Production configuration was not changed.
+
+Two regression checks failed before the guard repair. `npm run check` passed:
+lint, **33 files / 263 tests**, and build. `npm run check:workers` passed for
+both environments. GitHub CLI lists no Web workflow runs; this local repair
+also passed a pinned Wrangler 4.136.3 preview packaging dry run with the ASSETS
+and matching Server bindings. It has no new CI/build result and has not been
+deployed. Real-browser, remote
+noindex-after-repair and ledger/provider acceptance remain pending.
 
 ## Production login proxy 521 correction (2026-09-28)
 

@@ -23,9 +23,26 @@ describe("Web Cloudflare config guard", () => {
     preview.routes = [{ pattern: "preview.pull-wise.com", custom_domain: true }];
     preview.vars = { PULLWISE_MODE: "preview", PULLWISE_API_ORIGIN: "https://preview-api.pull-wise.com" };
     preview.services = [{ binding: "PULLWISE_SERVER", service: "pullwise-server-preview" }];
+    preview.assets.binding = "ASSETS";
+    preview.assets.run_worker_first = ["/*", "!/assets/*"];
     expect(validateWorkerConfig(preview, "VITE_API_BASE_URL=/api\n", "preview")).toEqual([]);
     preview.vars.PULLWISE_API_ORIGIN = "https://api.pull-wise.com";
     expect(validateWorkerConfig(preview, "VITE_API_BASE_URL=/api\n", "preview").length).toBeGreaterThan(0);
+  });
+
+  it("rejects preview HTML that bypasses noindex middleware or lacks its assets binding", () => {
+    const preview = structuredClone(valid);
+    preview.name = "pullwise-web-preview";
+    preview.workers_dev = false;
+    preview.preview_urls = false;
+    preview.routes = [{ pattern: "preview.pull-wise.com", custom_domain: true }];
+    preview.vars = { PULLWISE_MODE: "preview", PULLWISE_API_ORIGIN: "https://preview-api.pull-wise.com" };
+    preview.services = [{ binding: "PULLWISE_SERVER", service: "pullwise-server-preview" }];
+    expect(validateWorkerConfig(preview, "VITE_API_BASE_URL=/api\n", "preview"))
+      .toContain("preview HTML must run noindex middleware with an ASSETS binding and asset exclusion");
+    preview.assets.binding = "ASSETS";
+    preview.assets.run_worker_first = ["/*", "!/assets/*"];
+    expect(validateWorkerConfig(preview, "VITE_API_BASE_URL=/api\n", "preview")).toEqual([]);
   });
 
   it("rejects missing or cross-environment Server service bindings", () => {

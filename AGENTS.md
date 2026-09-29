@@ -82,7 +82,14 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   enable browser OAuth, payments or ledger requests against remote D1.
 - Preview config targets pullwise-web-preview / preview.pull-wise.com and
   proxies only preview-api.pull-wise.com. Keep production config separate.
-  Preview responses carry X-Robots-Tag noindex; API upstream remains paused.
+  Preview must bind ASSETS and run Worker first on ["/*", "!/assets/*"] so
+  HTML receives X-Robots-Tag noindex and hashed static assets bypass the Worker.
+  API-only Worker-first routing bypasses HTML middleware and is rejected by
+  the config guard. The local repair is not deployed yet; do not claim the
+  current remote homepage has the noindex header.
+- Preview Server's switch is user-authorized at 1 but its deployed remote
+  plans remain empty: authorize returns UNREVIEWED_CASE before D1/provider
+  access. Treat the ledger/login/payment gate as closed despite the switch.
 - Pricing displays Server-provided allowances/Max Jev budget. Eligibility is
   separate from availability. An explicit suggestion click checks /me once;
   abort on draft change/unmount and never poll or dispatch after a stale check.

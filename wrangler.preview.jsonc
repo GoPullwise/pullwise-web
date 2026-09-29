@@ -6,7 +6,7 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{"pattern": "preview.pull-wise.com", "custom_domain": true}],
-  "assets": {"directory": "./dist", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"]},
+  "assets": {"directory": "./dist", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/*", "!/assets/*"]},
   "vars": {"PULLWISE_MODE": "preview", "PULLWISE_API_ORIGIN": "https://preview-api.pull-wise.com"},
   "services": [{"binding": "PULLWISE_SERVER", "service": "pullwise-server-preview"}],
   "observability": {"enabled": false}
