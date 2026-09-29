@@ -2,6 +2,9 @@
 
 ## Product and contract
 
+Use `main` for all work unless the user explicitly requests another branch.
+Select preview/production using the matching deployment config and bindings.
+
 The current product is the GitHub project expense ledger in
 `../pullwise-server/docs/design/github-project-ledger/README.md`. Server owns
 authorization, money, aggregates and platform payment facts. Web and external
