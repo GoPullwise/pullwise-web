@@ -24,6 +24,13 @@ assets with no retries, authenticated API/provider requests or D1 traffic.
 Per-case and total D1 bounds are zero Rows Read / zero Rows Written. Server,
 production Web, runtime budget limits, database and schedules are unchanged.
 
+Code `42200b4` was pushed to main and deployed to `pullwise-web-preview`,
+version `4ada70d0-0113-4e62-806c-aeb0ed175829`. Four finite remote GETs returned
+200: Projects HTML and the current index CSS/index JS/ledger JS. HTML retained
+noindex and referenced the new build; all three assets matched local SHA-256.
+No D1/provider or authenticated API requests occurred. Web CI still has no run
+record; local unit/build/configuration and loopback browser evidence above passed.
+
 ## Add repository interaction repair (2026-09-29)
 
 The empty-state action only focused a control, so empty candidates focused
