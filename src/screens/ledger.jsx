@@ -445,6 +445,14 @@ export function LedgerScreen({
   const requestId = useRef(0);
   const moreController = useRef(null);
   const loadedScope = useRef(null);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -471,7 +479,7 @@ export function LedgerScreen({
     const request = ++requestId.current;
     setLoading(true);
     setError("");
-    const scope = `${mode}:${projectId}`;
+    const scope = `${mode}:${projectId}:${authorizationRevision}`;
     if (loadedScope.current !== scope) setData(null);
     loadedScope.current = scope;
     const options = { signal: controller.signal };
@@ -481,9 +489,18 @@ export function LedgerScreen({
           ledgerApi.projects({}, options),
           ledgerApi.repositories({}, options),
           ledgerApi.categories(options),
-          ledgerApi.reportSummary(filtered, options),
+          ledgerApi.reportSummary(filtered, options).then(
+            (value) => ({ value }),
+            (failure) => ({ failure })
+          ),
         ]);
-        return { projects, repositories, categories, summary };
+        return {
+          projects,
+          repositories,
+          categories,
+          summary: summary.value,
+          summaryError: summary.failure ? errorText(summary.failure) : "",
+        };
       }
       if (mode === "categories") return { categories: await ledgerApi.categories(options) };
       const [categories, expenses, project, projects, summary, timeseries, categoryReport] =
@@ -515,6 +532,7 @@ export function LedgerScreen({
     return () => {
       controller.abort();
       moreController.current?.abort();
+      if (request === requestId.current) requestId.current += 1;
     };
   }, [mode, projectId, revision, filtered, detailQuery, authorizationRevision]);
 
@@ -572,16 +590,18 @@ export function LedgerScreen({
     inFlight.current = true;
     setBusy(true);
     setActionError("");
+    const request = requestId.current;
     try {
       await callback();
+      if (request !== requestId.current) return false;
       reload();
       return true;
     } catch (failure) {
-      setActionError(errorText(failure));
+      if (request === requestId.current) setActionError(errorText(failure));
       return false;
     } finally {
       inFlight.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   };
 
@@ -613,6 +633,8 @@ export function LedgerScreen({
     data?.repositories?.items?.filter(
       (repo) => !data.projects.items.some((project) => project.githubRepoId === repo.githubRepoId)
     ) || [];
+  const selectedRepository =
+    availableRepos.find((repo) => String(repo.githubRepoId) === selectedRepo) || availableRepos[0];
   return (
     <div className="app product-workspace ledger-screen">
       <Topbar go={go} breadcrumbs={[{ label: title }]} loading={loading} />
@@ -673,11 +695,12 @@ export function LedgerScreen({
                   onChange={setFilters}
                   categories={data.categories}
                 />
-                {data.summary.groups.filter((group) => group.target === "account").length === 0 && (
+                {data.summaryError && <p role="status">{T("Spending summary is unavailable. Your projects are still ready to use.", "支出汇总暂时无法加载，你仍可以使用项目。")} {data.summaryError}</p>}
+                {data.summary && data.summary.groups.filter((group) => group.target === "account").length === 0 && (
                   <p>{T("No expenses in this range.")}</p>
                 )}
                 <div className="ledger-list">
-                  {data.summary.groups
+                  {data.summary?.groups
                     .filter((group) => group.target === "account")
                     .map((group) => (
                       <article key={group.currency}>
@@ -713,27 +736,32 @@ export function LedgerScreen({
               <section className="ledger-panel">
                 <h2>{T("Create project")}</h2>
                 {availableRepos.length === 0 && !data.repositories.nextCursor ? (
-                  <p>{T("No unbound authorized repositories. Connect GitHub to add a project.")}</p>
+                  <p>{data.repositories.items.length > 0
+                    ? T("These repositories are already in your projects. Open one to record an expense, or connect another repository.", "这些仓库已经添加到项目了。打开项目即可记账，也可以再连接其他仓库。")
+                    : T("No unbound authorized repositories. Connect GitHub to add a project.")}</p>
                 ) : availableRepos.length > 0 ? (
                   <form
                     className="ledger-form"
                     onSubmit={(event) => {
                       event.preventDefault();
-                      action(() =>
-                        ledgerApi.createProject(
+                      const request = requestId.current;
+                      action(async () => {
+                        const project = await ledgerApi.createProject(
                           {
-                            githubRepoId: Number(selectedRepo || availableRepos[0].githubRepoId),
+                            githubRepoId: Number(selectedRepository.githubRepoId),
                             description,
                           },
                           {}
-                        )
-                      );
+                        );
+                        if (request === requestId.current && project?.id)
+                          go("ledgerProject", { id: project.id });
+                      });
                     }}
                   >
                     <label>
                       {T("Repository")}
                       <select
-                        value={selectedRepo}
+                        value={String(selectedRepository.githubRepoId)}
                         disabled={busy}
                         onChange={(event) => setSelectedRepo(event.target.value)}
                       >
@@ -767,7 +795,7 @@ export function LedgerScreen({
                     {T("Load more repositories")}
                   </button>
                 )}
-                <button className="btn" onClick={() => connectGitHubRepositories({ add: true })}>
+                <button className="btn" disabled={busy || loading} onClick={() => action(() => connectGitHubRepositories({ add: true }))}>
                   {T("Manage GitHub access")}
                 </button>
               </section>

@@ -2,6 +2,30 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Projects authorization and creation repair (2026-09-29)
+
+The user reassigned styling/layout/copy work to another agent. This candidate
+contains only Projects behavior, regression tests and these functional notes.
+It preserves the previously published UI and the Server REST contract.
+
+The original code failed local regressions for popup completion refresh, summary
+failure blocking controls, project creation navigation, already-added repository
+guidance, stale repository selection and authorization-change data clearing.
+The repair reloads once after successful authorization, catches cancellation,
+keeps project controls usable when summaries fail and navigates after explicit
+creation. It guards duplicate writes and late completions after unmount; stale
+authorization responses cannot restore old repository options.
+
+The exact isolated candidate passed `npm run check`: lint, 34 test files /
+273 tests and production build. `npm run check:workers` passed offline. The
+archive retained CRLF in robots.txt; that local-only fixture was normalized to
+match the live checkout's LF before the whole suite passed. No unrelated source
+change was included. GitHub CLI currently reports no Web workflow runs;
+post-push CI remains to be checked. Deployment waits for the other agent's
+styles, per the user's instruction. No provider, D1, migration, cron or budget reset is required
+for local verification. Real preview OAuth/data acceptance is not proven by
+synthetic UI tests.
+
 ## Active product preview publication (2026-09-29)
 
 The user explicitly requested product-wide preview. Web route repair was

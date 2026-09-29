@@ -10,6 +10,15 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 
 ## Runtime
 
+- Projects must await popup repository authorization through the guarded action
+  and reload once on success. Display cancellation as an error, with manual retry.
+- Authorizations and expense projects are separate: create a project explicitly;
+  never auto-create on GET. Only navigate after creation if the source request
+  is still current. Clear repository data when authorizationRevision changes.
+- Spending summary failure must not hide project/repository controls or display
+  a successful zero. Distinguish already-added repositories from missing access.
+  Resolve selectedRepo against the currently available repositories on submit.
+
 - `src/main.jsx` is the only browser entry. Cloudflare `worker-entry.js` and
   `worker.js` serve assets/SEO and proxy API traffic; there is no Pages function
   or prototype review entry. Preserve credential headers, OAuth redirects,
