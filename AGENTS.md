@@ -83,6 +83,19 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   creation/entry panel right, on Projects, Categories and the Shared
   Pool/project detail pages. Detail pages lead with per-currency totals
   stats and a shared filter bar (filters + CSV export) ahead of the split.
+- Shared Pool/project detail show records first; open the Add/Edit expense
+  rail only on explicit intent. Keep required fields visible, optional
+  quantity/unit/note in the shared `.disclosure`, and existing optional values
+  expanded when editing. Focus the entry control on open and restore the
+  opener after cancel/save; clear entry state when route/project/access scope
+  changes. Lost GitHub access still permits historical edits with archived
+  categories, but never enables new expense entry.
+- Keep creation rails hairline-separated on desktop and stacked on mobile.
+  Account overview leads with totals before its filters. Project descriptions
+  are low-frequency settings in a native `details.panel`; use shared disclosure
+  styles in `base.css` and retain keyboard/focus behavior.
+- Keep select and controlled textarea labels separate with `htmlFor`/`id`:
+  wrapping these controls can make their labels include option/current values.
 - Loading skeletons use the same `.panel` sections as loaded content
   (Ledger included); the removed `.bill-card` family must not remain in
   loading-only branches.

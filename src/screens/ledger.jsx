@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { env } from "../config/env.js";
@@ -73,6 +73,7 @@ function formatTotal({ currency, amountMinor }) {
 }
 
 function LedgerFilters({ filters, onChange, categories = [] }) {
+  const categoryFieldId = useId();
   const update = (name, value) => onChange((old) => ({ ...old, [name]: value }));
   return (
     <div className="ledger-filters">
@@ -93,9 +94,10 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
           onChange={(event) => update("to", event.target.value)}
         />
       </label>
-      <label>
-        {T("Filter category")}
+      <div className="ledger-field">
+        <label htmlFor={categoryFieldId}>{T("Filter category")}</label>
         <select
+          id={categoryFieldId}
           value={filters.categoryId}
           onChange={(event) => update("categoryId", event.target.value)}
         >
@@ -106,7 +108,7 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
             </option>
           ))}
         </select>
-      </label>
+      </div>
     </div>
   );
 }
@@ -212,21 +214,15 @@ function LedgerSkeleton({ mode }) {
           <div className="panel">
             {headingSkeleton}
             {statsSkeleton}
-          </div>
-          <div className="panel ledger-filter-bar skeleton-row">
-            <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
-            <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
-            <SkeletonLine className="sk-line sk-w-16 sk-h-34" />
-          </div>
-          <div className="ledger-split">
-            <div className="panel">
-              {headingSkeleton}
-              {listSkeleton}
+            <div className="ledger-filter-bar skeleton-row">
+              <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
+              <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
+              <SkeletonLine className="sk-line sk-w-16 sk-h-34" />
             </div>
-            <div className="panel">
-              {headingSkeleton}
-              {formSkeleton}
-            </div>
+          </div>
+          <div className="panel">
+            {headingSkeleton}
+            {listSkeleton}
           </div>
         </>
       )}
@@ -235,6 +231,9 @@ function LedgerSkeleton({ mode }) {
 }
 
 function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCancel }) {
+  const noteId = useId();
+  const targetFieldId = useId();
+  const categoryFieldId = useId();
   const [draft, setDraft] = useState(() =>
     value
       ? {
@@ -377,9 +376,10 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   };
   return (
     <form className="ledger-form" onSubmit={submit}>
-      <label>
-        {T("Project or shared cost", "归到项目还是公共支出")}
+      <div className="ledger-field">
+        <label htmlFor={targetFieldId}>{T("Project or shared cost", "归到项目还是公共支出")}</label>
         <select
+          id={targetFieldId}
           value={selectedTarget.kind === "shared" ? "shared" : selectedTarget.projectId}
           disabled={busy}
           onChange={(event) => {
@@ -400,7 +400,7 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
             </option>
           ))}
         </select>
-      </label>
+      </div>
       <div className="ledger-fields">
         {field("occurredOn", T("Date"), { type: "date", required: true })}
         {field("amount", T("Amount"), {
@@ -409,9 +409,10 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
           placeholder: "12.00",
         })}
         {field("currency", T("Currency"), { maxLength: 3, required: true })}
-        <label>
-          {T("Category")}
+        <div className="ledger-field">
+          <label htmlFor={categoryFieldId}>{T("Category")}</label>
           <select
+            id={categoryFieldId}
             value={draft.categoryId}
             required
             disabled={busy}
@@ -426,27 +427,36 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
                 </option>
               ))}
           </select>
-        </label>
-        {field("purpose", T("What did you pay for?", "这笔钱花在哪儿了？"), {
-          maxLength: 500,
-          required: true,
-          placeholder: T("e.g. September hosting", "例如：九月托管费用"),
-        })}
-        {field("quantity", T("Quantity (optional)", "数量（选填）"), { inputMode: "decimal" })}
-        {field("unit", T("Unit (optional)", "单位（选填）"), {
-          maxLength: 40,
-          placeholder: T("e.g. hours or requests", "例如：小时、次"),
-        })}
+        </div>
       </div>
-      <label>
-        {T("Note (optional)", "备注（选填）")}
-        <textarea
-          value={draft.note}
-          maxLength={4000}
-          disabled={busy}
-          onChange={(event) => update("note", event.target.value)}
-        />
-      </label>
+      {field("purpose", T("What did you pay for?", "这笔钱花在哪儿了？"), {
+        maxLength: 500,
+        required: true,
+        placeholder: T("e.g. September hosting", "例如：九月托管费用"),
+      })}
+      <details
+        className="disclosure"
+        open={Boolean(value?.quantity || value?.unit || value?.note) || undefined}
+      >
+        <summary>{T("More details (optional)", "更多信息（选填）")}</summary>
+        <div className="ledger-fields">
+          {field("quantity", T("Quantity (optional)", "数量（选填）"), { inputMode: "decimal" })}
+          {field("unit", T("Unit (optional)", "单位（选填）"), {
+            maxLength: 40,
+            placeholder: T("e.g. hours or requests", "例如：小时、次"),
+          })}
+        </div>
+        <div className="ledger-field">
+          <label htmlFor={noteId}>{T("Note (optional)", "备注（选填）")}</label>
+          <textarea
+            id={noteId}
+            value={draft.note}
+            maxLength={4000}
+            disabled={busy}
+            onChange={(event) => update("note", event.target.value)}
+          />
+        </div>
+      </details>
       {validation && <p role="alert">{validation}</p>}
       <div className="ledger-actions">
         <button
@@ -555,6 +565,7 @@ export function LedgerScreen({
   const [categoryEdit, setCategoryEdit] = useState(null);
   const [confirmCategoryId, setConfirmCategoryId] = useState("");
   const [editing, setEditing] = useState(null);
+  const [creatingExpense, setCreatingExpense] = useState(false);
   const [confirmId, setConfirmId] = useState("");
   const inFlight = useRef(false);
   const requestId = useRef(0);
@@ -563,6 +574,8 @@ export function LedgerScreen({
   const mounted = useRef(false);
   const addProjectPanelRef = useRef(null);
   const expenseFormPanelRef = useRef(null);
+  const expenseOpenerRef = useRef(null);
+  const restoreExpenseFocus = useRef(false);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -570,8 +583,13 @@ export function LedgerScreen({
     };
   }, []);
   useEffect(() => {
-    if (editing) expenseFormPanelRef.current?.scrollIntoView?.({ block: "start" });
-  }, [editing]);
+    if (editing || creatingExpense) {
+      const panel = expenseFormPanelRef.current;
+      const picker = panel?.querySelector("select");
+      picker?.scrollIntoView?.({ block: "center" });
+      picker?.focus({ preventScroll: true });
+    }
+  }, [editing, creatingExpense]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -599,7 +617,13 @@ export function LedgerScreen({
     setLoading(true);
     setError("");
     const scope = `${mode}:${projectId}:${authorizationRevision}`;
-    if (loadedScope.current !== scope) setData(null);
+    if (loadedScope.current !== scope) {
+      setData(null);
+      setEditing(null);
+      setCreatingExpense(false);
+      expenseOpenerRef.current = null;
+      restoreExpenseFocus.current = false;
+    }
     loadedScope.current = scope;
     const options = { signal: controller.signal };
     const load = async () => {
@@ -731,7 +755,11 @@ export function LedgerScreen({
         ? ledgerApi.updateExpense(current.id, current.revision, fields, {})
         : ledgerApi.createExpense(fields, idempotencyKey, {})
     );
-    if (ok) setEditing(null);
+    if (ok) {
+      setEditing(null);
+      setCreatingExpense(false);
+      restoreExpenseFocus.current = true;
+    }
   };
   const removeExpense = async (expense) => {
     const ok = await action(() => ledgerApi.removeExpense(expense.id, expense.revision, {}));
@@ -748,12 +776,18 @@ export function LedgerScreen({
           : data?.project?.githubFullName || T("Project history");
   const target = mode === "shared" ? { kind: "shared" } : { kind: "project", projectId };
   const expenses = data?.expenses?.items || [];
-  const activeCategories =
-    data?.categories?.filter((category) => !category.archivedAt) || [];
-  const showExpenseForm = Boolean(
-    (activeCategories.length > 0 || editing) &&
-      (mode === "shared" || data?.project?.githubAccess === "authorized" || editing)
+  const activeCategories = data?.categories?.filter((category) => !category.archivedAt) || [];
+  const canAddExpense = Boolean(
+    activeCategories.length > 0 &&
+    (mode === "shared" || (mode === "project" && data?.project?.githubAccess === "authorized"))
   );
+  const showExpenseForm = Boolean(editing || (canAddExpense && creatingExpense));
+  useEffect(() => {
+    if (!showExpenseForm && !loading && !busy && restoreExpenseFocus.current) {
+      restoreExpenseFocus.current = false;
+      expenseOpenerRef.current?.focus();
+    }
+  }, [showExpenseForm, loading, busy]);
   const availableRepos =
     data?.repositories?.items?.filter(
       (repo) => !data.projects.items.some((project) => project.githubRepoId === repo.githubRepoId)
@@ -783,9 +817,11 @@ export function LedgerScreen({
     <div className="app product-workspace ledger-screen fade-in">
       <Topbar
         go={go}
-        breadcrumbs={mode === "project"
-          ? [{ label: T("Projects"), go: "ledgerProjects" }, { label: title }]
-          : [{ label: title }]}
+        breadcrumbs={
+          mode === "project"
+            ? [{ label: T("Projects"), go: "ledgerProjects" }, { label: title }]
+            : [{ label: title }]
+        }
         loading={loading}
       />
       <div className="with-side">
@@ -811,8 +847,8 @@ export function LedgerScreen({
                     )
                   : mode === "shared"
                     ? T(
-                        "One place for tools and services you use across projects.",
-                        "多个项目共用的工具和服务费用，都记在这里。"
+                        "Shared tools and services. Record each cost once, separate from project expenses.",
+                        "共用工具和服务的费用只记一次，与各项目支出分开。"
                       )
                     : mode === "categories"
                       ? T(
@@ -826,6 +862,21 @@ export function LedgerScreen({
               </p>
             </div>
             <div className="actions">
+              {canAddExpense && (
+                <button
+                  className="btn primary"
+                  aria-expanded={showExpenseForm}
+                  aria-controls="expense-form"
+                  disabled={busy || loading || showExpenseForm}
+                  onClick={(event) => {
+                    expenseOpenerRef.current = event.currentTarget;
+                    setEditing(null);
+                    setCreatingExpense(true);
+                  }}
+                >
+                  <I.Plus size={14} /> {T("Add expense")}
+                </button>
+              )}
               {mode === "project" && (
                 <a className="btn ghost" {...screenLinkProps(go, "ledgerProjects")}>
                   <I.ArrowL size={14} /> {T("Back to projects", "返回项目列表")}
@@ -982,19 +1033,22 @@ export function LedgerScreen({
                         ))}
                       </select>
                     </label>
-                    <label>
-                      {T("Project description")}
-                      <textarea
-                        value={description}
-                        maxLength={2000}
-                        placeholder={T(
-                          "What are you building? (optional)",
-                          "这个项目是做什么的？（选填）"
-                        )}
-                        disabled={busy}
-                        onChange={(event) => setDescription(event.target.value)}
-                      />
-                    </label>
+                    <details className="disclosure">
+                      <summary>{T("Project description (optional)", "项目说明（选填）")}</summary>
+                      <label>
+                        {T("Project description")}
+                        <textarea
+                          value={description}
+                          maxLength={2000}
+                          placeholder={T(
+                            "What are you building? (optional)",
+                            "这个项目是做什么的？（选填）"
+                          )}
+                          disabled={busy}
+                          onChange={(event) => setDescription(event.target.value)}
+                        />
+                      </label>
+                    </details>
                     <button className="btn primary" type="submit" disabled={busy}>
                       {T("Create project")}
                     </button>
@@ -1022,11 +1076,6 @@ export function LedgerScreen({
                   <I.Activity size={20} />
                   <h2>{T("Account overview")}</h2>
                 </div>
-                <LedgerFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  categories={data.categories}
-                />
                 {data.summaryError && (
                   <p role="status">
                     {T(
@@ -1072,6 +1121,11 @@ export function LedgerScreen({
                       </article>
                     ))}
                 </div>
+                <LedgerFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  categories={data.categories}
+                />
               </section>
             </div>
           )}
@@ -1097,16 +1151,18 @@ export function LedgerScreen({
                 )}
                 <div className="ledger-list">
                   {data.categories.map((category) => (
-                    <article key={category.id}>
-                      <h3>{category.name}</h3>
-                      <p>
-                        {category.archivedAt
-                          ? T(
-                              "Archived · past expenses keep this category",
-                              "已归档 · 以前的支出仍保留此分类"
-                            )
-                          : T("Ready to use", "可用于记账")}
-                      </p>
+                    <article className="ledger-category-row" key={category.id}>
+                      <div className="ledger-row-main">
+                        <h3>{category.name}</h3>
+                        <p>
+                          {category.archivedAt
+                            ? T(
+                                "Archived · past expenses keep this category",
+                                "已归档 · 以前的支出仍保留此分类"
+                              )
+                            : T("Ready to use", "可用于记账")}
+                        </p>
+                      </div>
                       {categoryEdit?.id === category.id && (
                         <form
                           className="ledger-actions"
@@ -1139,7 +1195,7 @@ export function LedgerScreen({
                             {T("Save category")}
                           </button>
                           <button
-                            className="btn"
+                            className="btn ghost sm"
                             type="button"
                             onClick={() => setCategoryEdit(null)}
                           >
@@ -1147,17 +1203,19 @@ export function LedgerScreen({
                           </button>
                         </form>
                       )}
-                      {!category.archivedAt && (
+                      {!category.archivedAt && categoryEdit?.id !== category.id && (
                         <div className="ledger-actions">
-                          <button
-                            className="btn"
-                            disabled={busy}
-                            onClick={() =>
-                              setCategoryEdit({ id: category.id, name: category.name })
-                            }
-                          >
-                            {T("Rename")}
-                          </button>
+                          {confirmCategoryId !== category.id && (
+                            <button
+                              className="btn ghost sm"
+                              disabled={busy}
+                              onClick={() =>
+                                setCategoryEdit({ id: category.id, name: category.name })
+                              }
+                            >
+                              {T("Rename")}
+                            </button>
+                          )}
                           {confirmCategoryId === category.id ? (
                             <>
                               <button
@@ -1183,7 +1241,7 @@ export function LedgerScreen({
                             </>
                           ) : (
                             <button
-                              className="btn"
+                              className="btn ghost sm"
                               disabled={busy}
                               onClick={() => setConfirmCategoryId(category.id)}
                             >
@@ -1238,25 +1296,6 @@ export function LedgerScreen({
           )}
           {data && (mode === "shared" || mode === "project") && (
             <>
-              {mode === "shared" && (
-                <div className="notice notice-guide">
-                  <I.Folder size={22} />
-                  <div>
-                    <strong>
-                      {T(
-                        "Used by more than one project? Record it here.",
-                        "不止一个项目在用？记在这里。"
-                      )}
-                    </strong>
-                    <p>
-                      {T(
-                        "An AI coding subscription or a shared server, for example. Record the cost once; it stays separate from each project's expenses.",
-                        "比如 AI 编程订阅或共用服务器。费用只记一笔，与各项目的支出分开展示。"
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
               {data.project?.githubAccess === "lost" && (
                 <div className="notice" role="status">
                   {T(
@@ -1290,19 +1329,19 @@ export function LedgerScreen({
                       </article>
                     ))}
                 </div>
-              </section>
-              <div className="panel ledger-filter-bar">
-                <LedgerFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  categories={data.categories}
-                />
-                <div className="ledger-actions">
-                  <a className="btn" href={exportHref} download="expenses.csv">
-                    {T("Export CSV")}
-                  </a>
+                <div className="ledger-filter-bar">
+                  <LedgerFilters
+                    filters={filters}
+                    onChange={setFilters}
+                    categories={data.categories}
+                  />
+                  <div className="ledger-actions">
+                    <a className="btn" href={exportHref} download="expenses.csv">
+                      {T("Export CSV")}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              </section>
               <div className={showExpenseForm ? "ledger-split" : undefined}>
                 <section className="panel">
                   <div className="panel-h">
@@ -1332,17 +1371,27 @@ export function LedgerScreen({
                   )}
                   <div className="ledger-list">
                     {expenses.map((expense) => (
-                      <article key={expense.id}>
-                        <h3>{expense.purpose}</h3>
-                        <p>
-                          {expense.occurredOn} · {expense.currency} {expense.amount}
-                        </p>
-                        {expense.note && <p>{expense.note}</p>}
+                      <article className="ledger-expense-row" key={expense.id}>
+                        <div className="ledger-row-main">
+                          <h3>{expense.purpose}</h3>
+                          <p>
+                            {expense.occurredOn} ·{" "}
+                            {data.categories.find((category) => category.id === expense.categoryId)
+                              ?.name || T("Archived category")}
+                          </p>
+                          {expense.note && <p>{expense.note}</p>}
+                        </div>
+                        <strong className="ledger-amount">
+                          {expense.currency} {expense.amount}
+                        </strong>
                         <div className="ledger-actions">
                           <button
-                            className="btn"
+                            className="btn ghost sm"
                             disabled={busy}
-                            onClick={() => setEditing(expense)}
+                            onClick={(event) => {
+                              expenseOpenerRef.current = event.currentTarget;
+                              setEditing(expense);
+                            }}
                             aria-label={`${T("Edit")} ${expense.purpose}`}
                           >
                             {T("Edit")}
@@ -1350,7 +1399,7 @@ export function LedgerScreen({
                           {confirmId === expense.id ? (
                             <>
                               <button
-                                className="btn"
+                                className="btn ghost sm"
                                 disabled={busy}
                                 onClick={() => removeExpense(expense)}
                               >
@@ -1366,7 +1415,7 @@ export function LedgerScreen({
                             </>
                           ) : (
                             <button
-                              className="btn"
+                              className="btn ghost sm"
                               disabled={busy}
                               onClick={() => setConfirmId(expense.id)}
                               aria-label={`${T("Remove")} ${expense.purpose}`}
@@ -1389,7 +1438,7 @@ export function LedgerScreen({
                   )}
                 </section>
                 {showExpenseForm && (
-                  <section className="panel" ref={expenseFormPanelRef}>
+                  <section className="panel" id="expense-form" ref={expenseFormPanelRef}>
                     <div className="panel-h">
                       <I.Plus size={20} />
                       <h2>{editing ? T("Edit expense") : T("Add expense")}</h2>
@@ -1425,7 +1474,11 @@ export function LedgerScreen({
                       categories={data.categories}
                       busy={busy}
                       onSubmit={saveExpense}
-                      onCancel={() => setEditing(null)}
+                      onCancel={() => {
+                        setEditing(null);
+                        setCreatingExpense(false);
+                        restoreExpenseFocus.current = true;
+                      }}
                     />
                   </section>
                 )}
@@ -1446,11 +1499,11 @@ export function LedgerScreen({
                 />
               </div>
               {mode === "project" && (
-                <section className="panel">
-                  <div className="panel-h">
+                <details className="panel">
+                  <summary className="panel-h">
                     <I.FileCode size={20} />
                     <h2>{T("Project description")}</h2>
-                  </div>
+                  </summary>
                   <form
                     onSubmit={(event) => {
                       event.preventDefault();
@@ -1476,7 +1529,7 @@ export function LedgerScreen({
                       {T("Save description")}
                     </button>
                   </form>
-                </section>
+                </details>
               )}
             </>
           )}

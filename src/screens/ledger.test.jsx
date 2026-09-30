@@ -52,6 +52,71 @@ beforeEach(() => {
 });
 
 describe("ledger screens", () => {
+  it("opens expense entry only on intent and closes it on cancel", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    const add = await screen.findByRole("button", { name: "Add expense" });
+    expect(add).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByLabelText("Amount")).not.toBeInTheDocument();
+    fireEvent.click(add);
+    expect(add).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText("Project or shared cost")).toHaveFocus();
+    fireEvent.click(screen.getByText("More details (optional)"));
+    fireEvent.change(screen.getByLabelText("Note (optional)"), {
+      target: { value: "Manual draft" },
+    });
+    expect(screen.getByRole("textbox", { name: "Note (optional)" })).toHaveValue("Manual draft");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByLabelText("Amount")).not.toBeInTheDocument();
+    expect(add).toHaveFocus();
+    expect(api.createExpense).not.toHaveBeenCalled();
+  });
+
+  it("clears open expense entry when the project scope changes", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    const view = render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
+      target: { value: "Draft" },
+    });
+    view.rerender(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    await screen.findByRole("heading", { name: "alice/project", level: 1 });
+    expect(screen.queryByLabelText("Amount")).not.toBeInTheDocument();
+  });
+
+  it("keeps historical editing available with lost access and archived categories", async () => {
+    api.project.mockResolvedValue({
+      id: "prj_1",
+      githubFullName: "alice/project",
+      githubAccess: "lost",
+    });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: "2026-09-01" }]);
+    api.expenses.mockResolvedValue({
+      items: [
+        {
+          id: "exp_1",
+          purpose: "Hosting",
+          amount: "12.00",
+          currency: "USD",
+          occurredOn: "2026-09-01",
+          categoryId: "cat_1",
+          note: "Original note",
+          revision: 1,
+        },
+      ],
+      nextCursor: null,
+    });
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    const edit = await screen.findByRole("button", { name: "Edit Hosting" });
+    expect(screen.queryByRole("button", { name: "Add expense" })).not.toBeInTheDocument();
+    fireEvent.click(edit);
+    expect(screen.getByLabelText("Category")).toHaveValue("cat_1");
+    expect(screen.getByLabelText("Note (optional)").closest("details")).toHaveAttribute("open");
+    expect(screen.getByLabelText("Note (optional)")).toHaveValue("Original note");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(edit).toHaveFocus();
+  });
+
   it("shows Projects as a navigable parent of the current project", async () => {
     const go = vi.fn();
     render(<LedgerScreen go={go} mode="project" projectId="prj_1" />);
@@ -77,9 +142,15 @@ describe("ledger screens", () => {
     api.project.mockRejectedValueOnce(new Error("Project unavailable"));
     render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
     await screen.findByRole("alert");
-    expect(screen.getByRole("link", { name: "Back to projects" })).toHaveAttribute("href", "/projects");
-    expect(within(screen.getByRole("navigation", { name: "Breadcrumbs" }))
-      .getByRole("link", { name: "Go to Projects" })).toHaveAttribute("href", "/projects");
+    expect(screen.getByRole("link", { name: "Back to projects" })).toHaveAttribute(
+      "href",
+      "/projects"
+    );
+    expect(
+      within(screen.getByRole("navigation", { name: "Breadcrumbs" })).getByRole("link", {
+        name: "Go to Projects",
+      })
+    ).toHaveAttribute("href", "/projects");
   });
 
   it("renders panel skeletons while the projects ledger loads", () => {
@@ -92,9 +163,7 @@ describe("ledger screens", () => {
 
     const status = screen.getByRole("status", { name: /loading ledger/i });
     expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(3);
-    expect(
-      screen.queryByRole("heading", { name: "Your projects" })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Your projects" })).not.toBeInTheDocument();
   });
 
   it("renders panel skeletons while a project detail loads", () => {
@@ -111,10 +180,8 @@ describe("ledger screens", () => {
     const status = screen.getByRole("status", { name: /loading ledger/i });
     expect(status.querySelectorAll(".ledger-stats")).toHaveLength(1);
     expect(status.querySelectorAll(".ledger-filter-bar")).toHaveLength(1);
-    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(2);
-    expect(
-      screen.queryByRole("heading", { name: "Expenses" })
-    ).not.toBeInTheDocument();
+    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(0);
+    expect(screen.queryByRole("heading", { name: "Expenses" })).not.toBeInTheDocument();
   });
 
   it("shows authorization failures without pretending there are authorized repositories", async () => {
@@ -208,7 +275,9 @@ describe("ledger screens", () => {
   it("keeps the focused picker usable when native picker opening is restricted", async () => {
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
     const picker = await screen.findByRole("combobox", { name: "Repository" });
-    picker.showPicker = vi.fn(() => { throw new DOMException("Restricted", "NotAllowedError"); });
+    picker.showPicker = vi.fn(() => {
+      throw new DOMException("Restricted", "NotAllowedError");
+    });
     fireEvent.click(screen.getByRole("link", { name: /Add a repository/i }));
     expect(picker).toHaveFocus();
     expect(github.connect).not.toHaveBeenCalled();
@@ -360,12 +429,26 @@ describe("ledger screens", () => {
     await waitFor(() => expect(api.archiveCategory).toHaveBeenCalled());
   });
 
+  it("keeps category rename and archive confirmation focused on the current action", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="categories" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    fireEvent.click(screen.getByRole("button", { name: "Archive" }));
+    expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirm archive" })).toBeInTheDocument();
+    expect(api.archiveCategory).not.toHaveBeenCalled();
+  });
+
   it("saves the project description with its revision", async () => {
     api.updateProject.mockResolvedValue({ id: "prj_1", revision: 2 });
     render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
     expect(
       await screen.findByRole("heading", { name: "alice/project", level: 1 })
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Project description"));
     fireEvent.change(screen.getByLabelText("Description"), { target: { value: "My repository" } });
     fireEvent.click(screen.getByRole("button", { name: "Save description" }));
     await waitFor(() =>
@@ -385,6 +468,7 @@ describe("ledger screens", () => {
     api.createExpense.mockRejectedValue({ status: 412 });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     expect(await screen.findByText(/No expenses for this target yet/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
@@ -455,6 +539,7 @@ describe("ledger screens", () => {
     });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting" },
     });
@@ -477,6 +562,7 @@ describe("ledger screens", () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting" },
     });
@@ -497,6 +583,7 @@ describe("ledger screens", () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     const view = render(<LedgerScreen go={vi.fn()} mode="shared" />);
     await screen.findByText(/No expenses for this target yet/i);
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting" },
     });

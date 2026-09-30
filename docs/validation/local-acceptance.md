@@ -1,6 +1,53 @@
 # Current local acceptance
 
-Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-09-30. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Ledger intent and region hierarchy (2026-09-30)
+
+Projects, Shared Pool, Categories and project detail keep the shared flat
+`.panel` / `.panel-h` workbench style. Desktop creation rails have a single
+hairline separator; mobile stacks the regions. List headings, row titles,
+metadata and secondary actions now have distinct visual weights. Category
+actions sit beside their record, and expense amounts/actions align separately
+from purpose, date, category and note. Account overview shows totals before
+filters. Shared/project totals and filters form one section; the large Shared
+Pool guidance banner is replaced with concise scope copy in the page header.
+
+Shared/project expense entry opens only from explicit Add/Edit intent. The
+primary header action leads to a focused, visible entry control. Required
+fields lead; quantity/unit/note use the shared native disclosure, with existing
+optional values expanded during edits. Cancel and successful save restore the
+opener; scope changes clear the entry state. Historical editing remains usable
+with lost GitHub access and archived categories, while new entry stays disabled.
+Category rename/archive confirmation display controls for the current action,
+with other row actions restored on cancel. Project creation descriptions and
+project description settings use optional disclosures. Five non-English
+catalogs cover the new labels. The note textarea
+and expense/filter selects use separate associated labels so their names stay
+stable as values change. No API, provider, money or admission behavior changed.
+
+The intent/scope regressions were written first and failed before implementation.
+Four new behavior tests cover explicit entry/cancel/focus, scope changes,
+historical edits and category action states. Visual-only spacing/typography changes were verified through
+browser captures instead of implementation-mirroring tests. `npm run check`
+passed lint, 34 files / 293 tests and build; `npm run check:workers` passed.
+The final label/focus changes passed the complete check again.
+
+Loopback Playwright on the built artifact used synthetic fixtures and blocked
+all external requests. Populated/empty Projects, Categories, Shared Pool and
+detail, lost-access history, initial loading, and Chinese dark screens were
+captured at 1440px/390px; 900px boundaries were checked as well. No page errors
+or document overflow occurred. Add, cancel, edit, optional-draft retention,
+category rename/archive confirmation and direct mobile entry visibility after
+the shared smooth-scroll transition were checked. This is local UI evidence, not
+real OAuth/payment/Cloudflare runtime acceptance.
+
+GitHub CLI CI review failed with a network EOF. Preview publication remains
+pending: Wrangler found an expired OAuth token and could not refresh it in this
+non-interactive environment. No Worker deployment, D1 query or provider traffic
+occurred in this continuation. Once credentials are available, publication
+verification is capped at one HTML GET and three exact hashed asset GETs, no
+retries or authenticated API calls: zero D1 Rows Read / zero Rows Written.
 
 ## Ledger work area hierarchy (2026-09-30, local only)
 

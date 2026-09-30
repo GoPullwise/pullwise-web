@@ -13,17 +13,20 @@
   max-width: 580px;
 }
 
-/* Split layout shared by the Projects and Categories tabs: primary list on
-   the left, secondary creation panel on the right. */
+/* Primary records and secondary creation share one calm workspace. */
 .ledger-screen .ledger-split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  gap: 0 32px;
+  gap: 0 40px;
   align-items: start;
 }
 .ledger-screen .ledger-split > .panel:not(.ledger-overview) {
   padding-top: 0;
   border-bottom: 0;
+}
+.ledger-screen .ledger-split > .panel:nth-child(2) {
+  border-left: 1px solid var(--border);
+  padding-left: 24px;
 }
 .ledger-screen .ledger-overview {
   grid-column: 1 / -1;
@@ -45,12 +48,45 @@
 .ledger-screen .ledger-list h3 {
   margin: 0 0 8px;
   overflow-wrap: anywhere;
-  font-size: var(--fs-3xl);
+  font-size: var(--fs-xl);
+  font-weight: 600;
 }
 .ledger-screen .ledger-list p {
   color: var(--text-2);
   line-height: 1.7;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+.ledger-screen .ledger-row-main {
+  min-width: 0;
+}
+.ledger-screen .ledger-row-main > :last-child {
+  margin-bottom: 0;
+}
+.ledger-screen .ledger-category-row,
+.ledger-screen .ledger-expense-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px 24px;
+}
+.ledger-screen .ledger-category-row > form {
+  grid-column: 1 / -1;
+}
+.ledger-screen .ledger-category-row > .ledger-actions {
+  align-self: center;
+}
+.ledger-screen .ledger-expense-row > .ledger-row-main {
+  grid-row: 1 / span 2;
+}
+.ledger-screen .ledger-expense-row > .ledger-actions {
+  grid-column: 2;
+  justify-content: flex-end;
+  max-width: 240px;
+}
+.ledger-screen .ledger-amount {
+  justify-self: end;
+  font: 500 var(--fs-xl)/1.5 var(--font-mono);
   overflow-wrap: anywhere;
 }
 .ledger-screen .ledger-your-projects .ledger-list article {
@@ -79,13 +115,19 @@
 }
 .ledger-screen .ledger-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
+.ledger-screen .disclosure .ledger-fields {
+  margin-bottom: 18px;
+}
+.ledger-screen .ledger-field,
 .ledger-screen label {
   display: grid;
   gap: 8px;
   min-width: 0;
+}
+.ledger-screen label {
   font-size: var(--fs-md);
   color: var(--text-2);
 }
@@ -126,6 +168,7 @@
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 16px;
+  margin-top: 24px;
 }
 .ledger-screen .ledger-filter-bar .ledger-filters {
   flex: 1 1 520px;
@@ -135,6 +178,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
+}
+.ledger-screen .ledger-overview > .ledger-filters {
+  margin-top: 24px;
+  margin-bottom: 0;
 }
 .ledger-screen .ledger-stat {
   min-width: 0;
@@ -158,20 +205,6 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 0 40px;
   align-items: start;
-}
-.ledger-screen .notice-guide > svg {
-  color: var(--accent);
-  flex-shrink: 0;
-}
-.ledger-screen .notice-guide strong {
-  font-size: var(--fs-3xl);
-  font-weight: 500;
-}
-.ledger-screen .notice-guide p {
-  color: var(--text-2);
-  line-height: 1.7;
-  margin-top: 8px;
-  max-width: 660px;
 }
 .ledger-screen .ledger-chart {
   display: grid;
@@ -221,6 +254,10 @@
   .ledger-screen .ledger-split > .panel:first-child {
     padding-top: 0;
   }
+  .ledger-screen .ledger-split > .panel:nth-child(2) {
+    border-left: 0;
+    padding-left: 0;
+  }
   .ledger-screen .ledger-overview {
     margin-top: 0;
     border-top: 0;
@@ -247,8 +284,27 @@
     grid-column: 1 / -1;
     grid-row: 2;
   }
-  .ledger-screen .notice-guide {
-    padding: 20px 16px;
+  .ledger-screen .ledger-category-row,
+  .ledger-screen .ledger-expense-row {
+    gap: 12px 16px;
+  }
+  .ledger-screen .ledger-category-row > .ledger-actions {
+    grid-column: 1 / -1;
+  }
+  .ledger-screen .ledger-expense-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ledger-screen .ledger-expense-row > .ledger-row-main {
+    grid-row: auto;
+  }
+  .ledger-screen .ledger-expense-row > .ledger-actions {
+    grid-column: 1;
+    justify-content: flex-start;
+    max-width: none;
+  }
+  .ledger-screen .ledger-expense-row > .ledger-amount {
+    grid-row: 2;
+    justify-self: start;
   }
 }
 @media (pointer: coarse) {
