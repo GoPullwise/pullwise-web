@@ -80,9 +80,12 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   and nested control groups) and `.empty` (shared dashed empty state). Do
   not add per-screen section/message/empty classes; extend these instead.
   Ledger split layouts share `.ledger-split`: primary list left, secondary
-  creation panel right, on both Projects and Categories tabs.
-- Loading skeletons use the same `.panel` sections as loaded content; the
-  removed `.bill-card` family must not remain in loading-only branches.
+  creation/entry panel right, on Projects, Categories and the Shared
+  Pool/project detail pages. Detail pages lead with per-currency totals
+  stats and a shared filter bar (filters + CSV export) ahead of the split.
+- Loading skeletons use the same `.panel` sections as loaded content
+  (Ledger included); the removed `.bill-card` family must not remain in
+  loading-only branches.
 - `app.css` is the last cascade layer, not a patch layer. To change an
   existing rule, edit the owning file (`base.css`/`screens.css`) in place;
   never re-declare the same property downstream. Keep `app.css` for

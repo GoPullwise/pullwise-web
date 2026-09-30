@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
+import { SkeletonLine } from "../components/skeleton.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -110,12 +111,19 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
   );
 }
 
-function ReportGroups({ title, groups, categories = [], dimension }) {
+function ReportGroups({ title, groups, categories = [], dimension, icon: IconComponent }) {
   const rows = groups || [];
   const largest = Math.max(1, ...rows.map((row) => row.amountMinor || 0));
   return (
     <section className="panel">
-      <h2>{title}</h2>
+      {IconComponent ? (
+        <div className="panel-h">
+          <IconComponent size={20} />
+          <h2>{title}</h2>
+        </div>
+      ) : (
+        <h2>{title}</h2>
+      )}
       {rows.length === 0 ? (
         <p>{T("No expenses in this range.")}</p>
       ) : (
@@ -141,6 +149,88 @@ function ReportGroups({ title, groups, categories = [], dimension }) {
         </div>
       )}
     </section>
+  );
+}
+
+function LedgerSkeleton({ mode }) {
+  const headingSkeleton = (
+    <div className="panel-h skeleton-row">
+      <SkeletonLine className="sk-square sk-size-16" />
+      <SkeletonLine className="sk-line sk-w-26 sk-h-16" />
+    </div>
+  );
+  const listSkeleton = (
+    <div className="ledger-list">
+      {Array.from({ length: 3 }, (_, index) => (
+        <article className="skeleton-row" key={`ledger-row-skeleton-${index}`}>
+          <SkeletonLine className="sk-line sk-w-42 sk-h-16" />
+          <SkeletonLine className="sk-line sk-w-65" />
+          <SkeletonLine className="sk-line sk-w-30" />
+        </article>
+      ))}
+    </div>
+  );
+  const formSkeleton = (
+    <div className="skeleton-stack">
+      <SkeletonLine className="sk-line sk-w-34" />
+      <SkeletonLine className="sk-line sk-w-70 sk-h-40" />
+      <SkeletonLine className="sk-line sk-w-56 sk-h-40" />
+      <SkeletonLine className="sk-line sk-w-26 sk-h-34" />
+    </div>
+  );
+  const statsSkeleton = (
+    <div className="ledger-stats">
+      {Array.from({ length: 3 }, (_, index) => (
+        <div className="ledger-stat skeleton-row" key={`ledger-stat-skeleton-${index}`}>
+          <SkeletonLine className="sk-line sk-w-22" />
+          <SkeletonLine className="sk-line sk-w-45 sk-h-28" />
+        </div>
+      ))}
+    </div>
+  );
+  return (
+    <div role="status" aria-label={T("Loading ledger…")}>
+      {mode === "projects" || mode === "categories" ? (
+        <div className="ledger-split">
+          <div className="panel">
+            {headingSkeleton}
+            {listSkeleton}
+          </div>
+          <div className="panel">
+            {headingSkeleton}
+            {formSkeleton}
+          </div>
+          {mode === "projects" && (
+            <div className="panel ledger-overview">
+              {headingSkeleton}
+              {statsSkeleton}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="panel">
+            {headingSkeleton}
+            {statsSkeleton}
+          </div>
+          <div className="panel ledger-filter-bar skeleton-row">
+            <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
+            <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
+            <SkeletonLine className="sk-line sk-w-16 sk-h-34" />
+          </div>
+          <div className="ledger-split">
+            <div className="panel">
+              {headingSkeleton}
+              {listSkeleton}
+            </div>
+            <div className="panel">
+              {headingSkeleton}
+              {formSkeleton}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -287,7 +377,6 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   };
   return (
     <form className="ledger-form" onSubmit={submit}>
-      <h2>{value ? T("Edit expense") : T("Add expense")}</h2>
       <label>
         {T("Project or shared cost", "归到项目还是公共支出")}
         <select
@@ -473,12 +562,16 @@ export function LedgerScreen({
   const loadedScope = useRef(null);
   const mounted = useRef(false);
   const addProjectPanelRef = useRef(null);
+  const expenseFormPanelRef = useRef(null);
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
     };
   }, []);
+  useEffect(() => {
+    if (editing) expenseFormPanelRef.current?.scrollIntoView?.({ block: "start" });
+  }, [editing]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -655,6 +748,12 @@ export function LedgerScreen({
           : data?.project?.githubFullName || T("Project history");
   const target = mode === "shared" ? { kind: "shared" } : { kind: "project", projectId };
   const expenses = data?.expenses?.items || [];
+  const activeCategories =
+    data?.categories?.filter((category) => !category.archivedAt) || [];
+  const showExpenseForm = Boolean(
+    (activeCategories.length > 0 || editing) &&
+      (mode === "shared" || data?.project?.githubAccess === "authorized" || editing)
+  );
   const availableRepos =
     data?.repositories?.items?.filter(
       (repo) => !data.projects.items.some((project) => project.githubRepoId === repo.githubRepoId)
@@ -681,7 +780,7 @@ export function LedgerScreen({
     }
   };
   return (
-    <div className="app product-workspace ledger-screen">
+    <div className="app product-workspace ledger-screen fade-in">
       <Topbar
         go={go}
         breadcrumbs={mode === "project"
@@ -755,7 +854,7 @@ export function LedgerScreen({
               {actionError}
             </p>
           )}
-          {loading && <p role="status">{T("Loading ledger…")}</p>}
+          {loading && !data && <LedgerSkeleton mode={mode} />}
           {data && mode === "projects" && (
             <div className="ledger-split">
               <section className="panel ledger-your-projects">
@@ -919,7 +1018,10 @@ export function LedgerScreen({
                 </button>
               </section>
               <section className="panel ledger-overview">
-                <h2>{T("Account overview")}</h2>
+                <div className="panel-h">
+                  <I.Activity size={20} />
+                  <h2>{T("Account overview")}</h2>
+                </div>
                 <LedgerFilters
                   filters={filters}
                   onChange={setFilters}
@@ -937,11 +1039,11 @@ export function LedgerScreen({
                 {data.summary &&
                   data.summary.groups.filter((group) => group.target === "account").length ===
                     0 && <p>{T("No expenses in this range.")}</p>}
-                <div className="ledger-list">
+                <div className="ledger-stats">
                   {data.summary?.groups
                     .filter((group) => group.target === "account")
                     .map((group) => (
-                      <article key={group.currency}>
+                      <article className="ledger-stat" key={group.currency}>
                         <h3>{formatTotal(group)}</h3>
                         <p>
                           {T("Projects")}:{" "}
@@ -976,15 +1078,19 @@ export function LedgerScreen({
           {data && mode === "categories" && (
             <div className="ledger-split">
               <section className="panel">
-                <h2>{T("Your categories")}</h2>
+                <div className="panel-h">
+                  <I.Layers size={20} />
+                  <h2>{T("Your categories")}</h2>
+                  <span className="count">{data.categories.length}</span>
+                </div>
                 {data.categories.length === 0 && (
                   <div className="empty">
                     <I.Folder size={28} />
                     <h3>{T("Give your expenses a home", "先为支出建个分类")}</h3>
                     <p>
                       {T(
-                        "Add your first category above. You will choose one when recording an expense.",
-                        "在上方添加第一个分类，记账时就可以选择了。"
+                        "Create your first category. You will choose one when recording an expense.",
+                        "先创建第一个分类，记账时就可以选择了。"
                       )}
                     </p>
                   </div>
@@ -1091,7 +1197,10 @@ export function LedgerScreen({
                 </div>
               </section>
               <section className="panel">
-                <h2>{T("Add category")}</h2>
+                <div className="panel-h">
+                  <I.Plus size={20} />
+                  <h2>{T("Add category")}</h2>
+                </div>
                 <p className="ledger-help">
                   {T(
                     "Try Hosting, Domains or AI tools. You can use the same categories in every project.",
@@ -1156,26 +1265,153 @@ export function LedgerScreen({
                 </div>
               )}
               <section className="panel">
-                <h2>{T("Expenses")}</h2>
-                <p className="ledger-help">
-                  {T(
-                    "What did you pay for? Add the amount, date and a category below.",
-                    "这笔钱花在哪儿了？在下面填好金额、日期和分类。"
-                  )}
-                </p>
-                {data.categories.filter((category) => !category.archivedAt).length === 0 && (
-                  <p>
+                <div className="panel-h">
+                  <I.Trend size={20} />
+                  <h2>{T("Totals by currency")}</h2>
+                </div>
+                {data.summary.groups.length === 0 && (
+                  <p className="ledger-help">
                     {T(
-                      "Start by adding a category, such as Hosting or AI tools.",
-                      "先添加一个分类，比如「托管」或「AI 工具」。"
-                    )}{" "}
-                    <button className="btn" onClick={() => go("ledgerCategories")}>
-                      {T("Manage categories")}
-                    </button>
+                      "Your spending totals will appear after you record an expense.",
+                      "记下第一笔支出后，这里就会显示合计。"
+                    )}
                   </p>
                 )}
-                {(data.categories.some((category) => !category.archivedAt) || editing) &&
-                  (mode === "shared" || data.project?.githubAccess === "authorized" || editing) && (
+                <div className="ledger-stats">
+                  {data.summary.groups
+                    .filter(
+                      (group) =>
+                        group.target === mode &&
+                        (mode === "shared" || group.projectId === projectId)
+                    )
+                    .map((group) => (
+                      <article className="ledger-stat" key={group.currency}>
+                        <h3>{formatTotal(group)}</h3>
+                      </article>
+                    ))}
+                </div>
+              </section>
+              <div className="panel ledger-filter-bar">
+                <LedgerFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  categories={data.categories}
+                />
+                <div className="ledger-actions">
+                  <a className="btn" href={exportHref} download="expenses.csv">
+                    {T("Export CSV")}
+                  </a>
+                </div>
+              </div>
+              <div className={showExpenseForm ? "ledger-split" : undefined}>
+                <section className="panel">
+                  <div className="panel-h">
+                    <I.Database size={20} />
+                    <h2>{T("Expenses")}</h2>
+                    <span className="count">
+                      {expenses.length}
+                      {data.expenses.nextCursor ? "+" : ""}
+                    </span>
+                  </div>
+                  {!showExpenseForm && activeCategories.length === 0 && (
+                    <p>
+                      {T(
+                        "Start by adding a category, such as Hosting or AI tools.",
+                        "先添加一个分类，比如「托管」或「AI 工具」。"
+                      )}{" "}
+                      <button className="btn" onClick={() => go("ledgerCategories")}>
+                        {T("Manage categories")}
+                      </button>
+                    </p>
+                  )}
+                  {expenses.length === 0 && (
+                    <div className="empty">
+                      <I.Database size={28} />
+                      <h3>{T("No expenses for this target yet.")}</h3>
+                    </div>
+                  )}
+                  <div className="ledger-list">
+                    {expenses.map((expense) => (
+                      <article key={expense.id}>
+                        <h3>{expense.purpose}</h3>
+                        <p>
+                          {expense.occurredOn} · {expense.currency} {expense.amount}
+                        </p>
+                        {expense.note && <p>{expense.note}</p>}
+                        <div className="ledger-actions">
+                          <button
+                            className="btn"
+                            disabled={busy}
+                            onClick={() => setEditing(expense)}
+                            aria-label={`${T("Edit")} ${expense.purpose}`}
+                          >
+                            {T("Edit")}
+                          </button>
+                          {confirmId === expense.id ? (
+                            <>
+                              <button
+                                className="btn"
+                                disabled={busy}
+                                onClick={() => removeExpense(expense)}
+                              >
+                                {T("Confirm removal")}
+                              </button>
+                              <button
+                                className="btn"
+                                disabled={busy}
+                                onClick={() => setConfirmId("")}
+                              >
+                                {T("Cancel")}
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              className="btn"
+                              disabled={busy}
+                              onClick={() => setConfirmId(expense.id)}
+                              aria-label={`${T("Remove")} ${expense.purpose}`}
+                            >
+                              {T("Remove")}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                  {data.expenses.nextCursor && (
+                    <button
+                      className="btn"
+                      disabled={loadingMore}
+                      onClick={() => loadMore("expenses")}
+                    >
+                      {T("Load more expenses")}
+                    </button>
+                  )}
+                </section>
+                {showExpenseForm && (
+                  <section className="panel" ref={expenseFormPanelRef}>
+                    <div className="panel-h">
+                      <I.Plus size={20} />
+                      <h2>{editing ? T("Edit expense") : T("Add expense")}</h2>
+                    </div>
+                    {activeCategories.length === 0 ? (
+                      <p>
+                        {T(
+                          "Start by adding a category, such as Hosting or AI tools.",
+                          "先添加一个分类，比如「托管」或「AI 工具」。"
+                        )}{" "}
+                        <button className="btn" onClick={() => go("ledgerCategories")}>
+                          {T("Manage categories")}
+                        </button>
+                      </p>
+                    ) : (
+                      <p className="ledger-help">
+                        {T(
+                          "What did you pay for? Add the amount, date and a category below.",
+                          "这笔钱花在哪儿了？在下面填好金额、日期和分类。"
+                        )}
+                      </p>
+                    )}
                     <ExpenseForm
                       key={editing?.id || "new"}
                       value={editing}
@@ -1191,116 +1427,30 @@ export function LedgerScreen({
                       onSubmit={saveExpense}
                       onCancel={() => setEditing(null)}
                     />
-                  )}
-                <LedgerFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  categories={data.categories}
-                />
-                <div className="ledger-actions">
-                  <a className="btn" href={exportHref} download="expenses.csv">
-                    {T("Export CSV")}
-                  </a>
-                </div>
-                {expenses.length === 0 && <p>{T("No expenses for this target yet.")}</p>}
-                <div className="ledger-list">
-                  {expenses.map((expense) => (
-                    <article key={expense.id}>
-                      <h3>{expense.purpose}</h3>
-                      <p>
-                        {expense.occurredOn} · {expense.currency} {expense.amount}
-                      </p>
-                      {expense.note && <p>{expense.note}</p>}
-                      <div className="ledger-actions">
-                        <button
-                          className="btn"
-                          disabled={busy}
-                          onClick={() => setEditing(expense)}
-                          aria-label={`${T("Edit")} ${expense.purpose}`}
-                        >
-                          {T("Edit")}
-                        </button>
-                        {confirmId === expense.id ? (
-                          <>
-                            <button
-                              className="btn"
-                              disabled={busy}
-                              onClick={() => removeExpense(expense)}
-                            >
-                              {T("Confirm removal")}
-                            </button>
-                            <button
-                              className="btn"
-                              disabled={busy}
-                              onClick={() => setConfirmId("")}
-                            >
-                              {T("Cancel")}
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            className="btn"
-                            disabled={busy}
-                            onClick={() => setConfirmId(expense.id)}
-                            aria-label={`${T("Remove")} ${expense.purpose}`}
-                          >
-                            {T("Remove")}
-                          </button>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                {data.expenses.nextCursor && (
-                  <button
-                    className="btn"
-                    disabled={loadingMore}
-                    onClick={() => loadMore("expenses")}
-                  >
-                    {T("Load more expenses")}
-                  </button>
+                  </section>
                 )}
-              </section>
-              <section className="panel">
-                <h2>{T("Totals by currency")}</h2>
-                {data.summary.groups.length === 0 && (
-                  <p className="ledger-help">
-                    {T(
-                      "Your spending totals will appear after you record an expense.",
-                      "记下第一笔支出后，这里就会显示合计。"
-                    )}
-                  </p>
-                )}
-                <div className="ledger-list ledger-totals">
-                  {data.summary.groups
-                    .filter(
-                      (group) =>
-                        group.target === mode &&
-                        (mode === "shared" || group.projectId === projectId)
-                    )
-                    .map((group) => (
-                      <article key={group.currency}>
-                        <h3>{formatTotal(group)}</h3>
-                      </article>
-                    ))}
-                </div>
-              </section>
+              </div>
               <div className="ledger-reports">
                 <ReportGroups
                   title={T("Expenses over time")}
                   groups={data.timeseries.groups}
                   dimension="bucket"
+                  icon={I.Clock}
                 />
                 <ReportGroups
                   title={T("Expenses by category")}
                   groups={data.categoryReport.groups}
                   categories={data.categories}
                   dimension="category"
+                  icon={I.Layers}
                 />
               </div>
               {mode === "project" && (
                 <section className="panel">
-                  <h2>{T("Project description")}</h2>
+                  <div className="panel-h">
+                    <I.FileCode size={20} />
+                    <h2>{T("Project description")}</h2>
+                  </div>
                   <form
                     onSubmit={(event) => {
                       event.preventDefault();

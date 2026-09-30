@@ -2,6 +2,35 @@
 
 Updated 2026-09-29. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Ledger work area hierarchy (2026-09-30, local only)
+
+The Ledger pages (Projects list, Shared Pool, Categories and project
+detail) were reorganized into one visible hierarchy — understand, act,
+then analyze — without touching data flow or API behavior. Project detail
+and Shared Pool now lead with per-currency totals stats, then a shared
+filter bar (date/category filters plus CSV export), then the
+`.ledger-split` work area: expense list left, Add/Edit expense entry
+right, matching the Projects/Categories creation rail; report charts and
+the project description form follow. Account overview keeps its position
+after the Projects controls with the same stats treatment. Every panel
+uses the `.panel-h` icon heading row, the screen fades in like Billing and
+API Keys, and a new `LedgerSkeleton` mirrors each mode's panels while the
+first load is pending (later reloads keep showing current data). The
+Categories empty state no longer says "above" (the creation panel sits to
+the right/below); all five non-English catalogs were updated. Editing an
+expense scrolls the entry panel into view. No radius/shadow/token
+additions; `base.css`, `screens.css` and `app.css` are untouched.
+
+Local verification passed `npm run check` (lint, 34 test files / 289 tests
+including two new skeleton tests, production build) and `npm run
+check:workers`. Loopback Playwright with synthetic API fixtures covered
+Projects, project detail, Shared Pool and Categories at 1440px and 390px,
+plus a Chinese dark detail page and a pending-API skeleton capture: no
+page errors and no 390px horizontal overflow. External requests were
+blocked, so captures exercise fallback fonts. No Wrangler/workerd/D1
+commands were run; Cloudflare runtime acceptance and deployment remain
+pending under the existing pause.
+
 ## Project detail return navigation (2026-09-29)
 
 Project detail now shows Projects / current project in the shared Topbar, with

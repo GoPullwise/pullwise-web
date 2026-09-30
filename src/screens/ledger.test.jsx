@@ -82,6 +82,41 @@ describe("ledger screens", () => {
       .getByRole("link", { name: "Go to Projects" })).toHaveAttribute("href", "/projects");
   });
 
+  it("renders panel skeletons while the projects ledger loads", () => {
+    api.projects.mockReturnValue(new Promise(() => {}));
+    api.repositories.mockReturnValue(new Promise(() => {}));
+    api.categories.mockReturnValue(new Promise(() => {}));
+    api.reportSummary.mockReturnValue(new Promise(() => {}));
+
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+
+    const status = screen.getByRole("status", { name: /loading ledger/i });
+    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(3);
+    expect(
+      screen.queryByRole("heading", { name: "Your projects" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders panel skeletons while a project detail loads", () => {
+    api.categories.mockReturnValue(new Promise(() => {}));
+    api.expenses.mockReturnValue(new Promise(() => {}));
+    api.project.mockReturnValue(new Promise(() => {}));
+    api.projects.mockReturnValue(new Promise(() => {}));
+    api.reportSummary.mockReturnValue(new Promise(() => {}));
+    api.reportTimeseries.mockReturnValue(new Promise(() => {}));
+    api.reportCategories.mockReturnValue(new Promise(() => {}));
+
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+
+    const status = screen.getByRole("status", { name: /loading ledger/i });
+    expect(status.querySelectorAll(".ledger-stats")).toHaveLength(1);
+    expect(status.querySelectorAll(".ledger-filter-bar")).toHaveLength(1);
+    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(2);
+    expect(
+      screen.queryByRole("heading", { name: "Expenses" })
+    ).not.toBeInTheDocument();
+  });
+
   it("shows authorization failures without pretending there are authorized repositories", async () => {
     api.repositories.mockResolvedValue({ items: [], nextCursor: null });
     github.connect.mockRejectedValue(new Error("GitHub authorization was cancelled"));

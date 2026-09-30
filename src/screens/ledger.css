@@ -1,11 +1,6 @@
 .ledger-screen .main {
   padding-bottom: 64px;
 }
-.ledger-screen .page-h {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 28px;
-}
 .ledger-screen .page-h .sub {
   max-width: 580px;
   line-height: 1.7;
@@ -78,8 +73,9 @@
   margin: 20px 0;
   max-width: 800px;
 }
-.ledger-screen .ledger-form h2 {
-  margin-bottom: 0;
+.ledger-screen .ledger-split .ledger-form {
+  margin-top: 0;
+  max-width: none;
 }
 .ledger-screen .ledger-fields {
   display: grid;
@@ -125,18 +121,37 @@
   gap: 16px;
   margin-bottom: 20px;
 }
-.ledger-screen .ledger-overview .ledger-list {
+.ledger-screen .ledger-filter-bar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.ledger-screen .ledger-filter-bar .ledger-filters {
+  flex: 1 1 520px;
+  margin-bottom: 0;
+}
+.ledger-screen .ledger-stats {
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
 }
-.ledger-screen .ledger-overview .ledger-list h3 {
-  font-size: var(--fs-4xl);
-  font-family: var(--font-mono);
-  margin-bottom: 18px;
+.ledger-screen .ledger-stat {
+  min-width: 0;
 }
-.ledger-screen .ledger-totals h3 {
+.ledger-screen .ledger-stat h3 {
   font: 600 var(--fs-4xl)/1.2 var(--font-mono);
-  margin: 0;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+.ledger-screen .ledger-stat p {
+  color: var(--text-2);
+  line-height: 1.7;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+.ledger-screen .ledger-stat > :last-child {
+  margin-bottom: 0;
 }
 .ledger-screen .ledger-reports {
   display: grid;
