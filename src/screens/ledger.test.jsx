@@ -52,6 +52,81 @@ beforeEach(() => {
 });
 
 describe("ledger screens", () => {
+  it("separates project views, supports keyboard tabs, and preserves an expense draft", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    const expensesTab = await screen.findByRole("tab", { name: "Expenses" });
+    const reportsTab = screen.getByRole("tab", { name: "Reports" });
+    expect(expensesTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("heading", { name: "Expenses over time" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
+      target: { value: "Hosting draft" },
+    });
+    fireEvent.keyDown(expensesTab, { key: "ArrowRight" });
+    expect(reportsTab).toHaveFocus();
+    expect(reportsTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("heading", { name: "Expenses over time" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Continue draft" }));
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Hosting draft");
+    fireEvent.click(expensesTab);
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Hosting draft");
+    expect(api.expenses).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("tab", { name: "Project settings" }));
+    expect(screen.getByLabelText("Description")).toBeVisible();
+  });
+
+  it("searches loaded projects and recovers from no matches without another API call", async () => {
+    api.projects.mockResolvedValue({
+      items: [
+        { id: "prj_1", githubFullName: "alice/web", description: "Website", totals: [] },
+        { id: "prj_2", githubFullName: "alice/api", description: "Backend", totals: [] },
+      ],
+      nextCursor: "next",
+    });
+    render(<LedgerScreen go={vi.fn()} />);
+    const search = await screen.findByRole("searchbox", { name: "Find a project" });
+    fireEvent.change(search, { target: { value: "BACKEND" } });
+    expect(screen.getByRole("link", { name: /alice\/api/ })).toHaveAttribute(
+      "href",
+      "/projects/prj_2"
+    );
+    expect(screen.queryByRole("link", { name: /alice\/web/ })).not.toBeInTheDocument();
+    fireEvent.change(search, { target: { value: "missing" } });
+    expect(screen.getByText("No matching projects")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Load more projects" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(screen.getByRole("link", { name: /alice\/web/ })).toBeVisible();
+    expect(api.projects).toHaveBeenCalledTimes(1);
+  });
+
+  it("reveals project creation on intent and restores focus when dismissed", async () => {
+    api.projects.mockResolvedValue({
+      items: [{ id: "prj_1", githubRepoId: 201, githubFullName: "alice/web", totals: [] }],
+      nextCursor: null,
+    });
+    render(<LedgerScreen go={vi.fn()} />);
+    const add = await screen.findByRole("button", { name: "Add project" });
+    expect(screen.queryByRole("button", { name: "Create project" })).not.toBeInTheDocument();
+    fireEvent.click(add);
+    expect(screen.getByRole("combobox", { name: "Repository" })).toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("button", { name: "Create project" })).not.toBeInTheDocument();
+    expect(add).toHaveFocus();
+    expect(api.createProject).not.toHaveBeenCalled();
+  });
+
+  it("distinguishes a filtered empty list from a new ledger and clears the filters", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    await screen.findByRole("heading", { name: "Expenses" });
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
+    await screen.findByText("No expenses match these filters");
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    await waitFor(() => expect(screen.getByLabelText("From date")).toHaveValue(""));
+    expect(screen.getByText("No expenses for this target yet.")).toBeVisible();
+  });
+
   it("opens expense entry only on intent and closes it on cancel", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
@@ -112,6 +187,9 @@ describe("ledger screens", () => {
     fireEvent.click(edit);
     expect(screen.getByLabelText("Category")).toHaveValue("cat_1");
     expect(screen.getByLabelText("Note (optional)").closest("details")).toHaveAttribute("open");
+    expect(screen.getByLabelText("Note (optional)")).toHaveValue("Original note");
+    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue draft" }));
     expect(screen.getByLabelText("Note (optional)")).toHaveValue("Original note");
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(edit).toHaveFocus();
@@ -289,6 +367,7 @@ describe("ledger screens", () => {
       nextCursor: null,
     });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add project" }));
     expect(
       await screen.findByText(/These repositories are already in your projects/i)
     ).toBeInTheDocument();
@@ -341,6 +420,7 @@ describe("ledger screens", () => {
     expect(screen.getByText(/History/)).toBeInTheDocument();
     expect(screen.getByText("USD 2.00")).toBeInTheDocument();
     api.createProject.mockResolvedValue({ id: "prj_2" });
+    fireEvent.click(screen.getByRole("button", { name: "Add project" }));
     fireEvent.change(screen.getByLabelText(/Project description/i), {
       target: { value: "New project" },
     });
@@ -448,7 +528,7 @@ describe("ledger screens", () => {
     expect(
       await screen.findByRole("heading", { name: "alice/project", level: 1 })
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Project description"));
+    fireEvent.click(screen.getByRole("tab", { name: "Project settings" }));
     fireEvent.change(screen.getByLabelText("Description"), { target: { value: "My repository" } });
     fireEvent.click(screen.getByRole("button", { name: "Save description" }));
     await waitFor(() =>

@@ -81,8 +81,22 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   not add per-screen section/message/empty classes; extend these instead.
   Ledger split layouts share `.ledger-split`: primary list left, secondary
   creation/entry panel right, on Projects, Categories and the Shared
-  Pool/project detail pages. Detail pages lead with per-currency totals
-  stats and a shared filter bar (filters + CSV export) ahead of the split.
+  Pool/project detail pages. On small screens, `.ledger-entry` places the
+  explicitly opened expense form before the records. Detail totals remain
+  per currency; filters use a native disclosure alongside CSV export.
+- The shared Sidebar separates Ledger from Account & tools. Mobile shows
+  the three Ledger links and a native account/tools selector; keep every
+  destination reachable without a horizontally scrolled navigation rail.
+- Project detail uses the shared `ViewTabs` for Expenses, Reports and Project
+  settings; Shared Pool has Expenses and Reports. Tabs are local views, use
+  arrow/Home/End keyboard activation, and never trigger API refreshes. Keep
+  inactive panels mounted and hidden so drafts survive tab switches. Continue
+  draft returns to the existing form without replacing historical edit state.
+- Projects searches only loaded names/descriptions; keep pagination available
+  for no matches. Existing Projects reveal the creation rail on explicit Add
+  project intent and restore opener focus on dismissal. The first-project
+  flow shows the repository chooser directly with three concise setup steps.
+  Account overview is a native disclosure, expanded on summary errors/filters.
 - Shared Pool/project detail show records first; open the Add/Edit expense
   rail only on explicit intent. Keep required fields visible, optional
   quantity/unit/note in the shared `.disclosure`, and existing optional values
@@ -92,8 +106,16 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   categories, but never enables new expense entry.
 - Keep creation rails hairline-separated on desktop and stacked on mobile.
   Account overview leads with totals before its filters. Project descriptions
-  are low-frequency settings in a native `details.panel`; use shared disclosure
-  styles in `base.css` and retain keyboard/focus behavior.
+  live in the Project settings tab; creation descriptions remain optional
+  native disclosures. `base.css` owns `.view-tabs` and the hidden-panel rule.
+- Shared panel headings use 16px content gaps. Ledger forms use 16px field
+  gaps, desktop split columns use 32px gutters, and section starts use 24px.
+  Keep the Projects list heading at the same height when its creation rail
+  opens; expense entry adds its section gap on the split container. Category
+  creation uses `.ledger-form` so the field and primary button share an edge.
+  On mobile, keep Categories' reload beside its title, preserve the entry-first
+  section spacing, and size sidebar links by their labels rather than equal
+  columns so the Shared Pool label remains readable at 320px.
 - Keep select and controlled textarea labels separate with `htmlFor`/`id`:
   wrapping these controls can make their labels include option/current values.
 - Loading skeletons use the same `.panel` sections as loaded content
@@ -127,6 +149,9 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   replacing obsolete fixtures. Tests must use the current ledger contract.
 - Use a free, strict Vite port for browser checks; synthetic loopback data is
   local UI evidence, not real OAuth/payment/Cloudflare acceptance.
+  For static built-artifact captures, disable the inherited development proxy
+  in a temporary preview config and intercept APIs locally: its `/api` prefix
+  also matches the `/api-keys` document route and otherwise sends it to 8080.
 - All Wrangler/workerd/D1 commands remain paused until explicit user
   authorization. Never enable cron triggers. Remote validation needs reviewed
   row/operation bounds, frequency, pagination/cache policy and cost guard.

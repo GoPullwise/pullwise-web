@@ -1,6 +1,89 @@
 # Current local acceptance
 
-Updated 2026-09-30. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-10-01. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Spacing polish (2026-10-01, local review)
+
+Panel headings and form fields now use consistent 16px gaps; desktop ledger
+columns use 32px gutters and section starts use 24px. Projects no longer adds
+an extra top gap when its creation rail is closed. Category metadata has the
+same hierarchy as expense metadata, and the category field and submit button
+share one aligned column. Mobile Categories keeps Reload beside the title;
+stacked sections avoid accumulating grid gaps with panel padding. Mobile
+sidebar links use their label widths so Shared Pool remains readable at 320px.
+
+This pass changes CSS and presentation classes only. No feature or bug logic
+was added, so no implementation-mirroring tests were introduced. Existing
+`npm run check` passed lint, **34 files / 298 tests**, and the production build;
+`npm run check:workers` and `git diff --check` passed. Final loopback Chrome
+checks covered **22 populated/empty page checks in each of light and dark**
+at 1440/390px, plus **32 checks at 320/360/760/900px**. Reports, entry, project
+creation and settings captures also assert no overflow. No page errors occurred.
+External requests were blocked and APIs used synthetic data.
+
+The screenshot comparison page in the workspace's `artifacts/ui-review/index.html`
+offers current/before views, desktop and mobile captures, and dark originals.
+These are generated review artifacts outside the tracked Web repository.
+GitHub returned no statuses or PR workflow
+runs for the base commit; this unpushed candidate has no remote CI result.
+No deployment or remote provider/database requests were performed.
+
+## Workspace navigation and project views (2026-10-01, local review)
+
+The authenticated shell groups Ledger separately from Account & tools. Mobile
+keeps the three ledger destinations visible and uses a native selector for
+account tools. Projects has searchable, full-row links with aligned currency
+totals; its creation rail opens on explicit intent for existing projects. A
+new account sees the repository chooser directly with three setup steps.
+Account overview uses a disclosure so reports do not compete with project work.
+
+Project detail has Expenses, Reports and Project settings tabs; Shared Pool
+has Expenses and Reports. Tabs support arrows/Home/End and preserve mounted
+drafts without refreshing data. Continue draft resumes both new entries and
+historical edits. Totals stay per currency, filters collapse beside CSV export,
+filtered empty lists explain recovery, and mobile entry appears before records.
+The changes retain the shared flat panels, hard corners, typography, palette,
+and locale catalogs. No Server, payment, money or authorization contract changed.
+
+Design references were [Vercel's navigation redesign](https://vercel.com/changelog/dashboard-navigation-redesign-rollout),
+[Linear's project overview](https://linear.app/docs/project-overview), and
+[Carbon's tabs guidance](https://v10.carbondesignsystem.com/components/tabs/usage/).
+Their navigation grouping, workflow priority and same-context views informed
+the hierarchy; the implementation uses Pullwise's existing visual language.
+
+Five new behavioral regressions failed before implementation and pass now:
+grouped/compact navigation, keyboard tabs with draft retention, project search
+with pagination recovery, project creation intent/focus, and filtered-empty
+recovery. Two enhanced draft tests also failed before Continue draft was added,
+then passed for both ordinary and lost-access historical edits. Visual-only
+layout changes were checked through rendered captures.
+
+Final `npm run check` passed lint, **34 files / 298 tests**, and build.
+`npm run check:workers` passed offline. Loopback Chrome checks with external
+requests blocked covered 1440/900/760/390px during development. The final built
+artifact was captured in Chinese light/dark at 1440px and 390px, including all
+six workspace destinations, project detail, populated/empty ledger pages,
+reports, project settings and creation/entry rails. No page errors or document
+overflow occurred. API data is synthetic and proves local UI behavior only.
+The static preview used a temporary config without the development `/api`
+proxy, which would otherwise misroute the `/api-keys` document to local 8080.
+Both final runs completed **22 page captures** each, plus the view/entry captures.
+
+Follow-up the same day: expense rows were restructured after spacing review —
+amount and row actions now share one top-aligned side group (stacked with
+space-between on small screens), the date/category line is a smaller dimmer
+meta row, and row padding tightened to 16px. The duplicated "Get started"
+ledger phrase was removed so the shared catalog translation keeps the public
+CTA wording in ja/fr/es. ViewTabs key lookup now uses `Object.hasOwn`, and
+project-opener focus refs reset with the rest of the scope state. `npm run
+check` passed again (34 files / 298 tests) and the four-width loopback
+capture run reported no page errors or document overflow.
+
+GitHub's connected read tools returned no statuses or PR workflow runs for the
+current base head. This local candidate has no remote CI result. This
+version is for user screenshot review; it has not been pushed or deployed.
+No Wrangler/workerd, D1, OAuth or payment requests ran. Captures and
+the local browser harness remain in `/tmp`, outside the tracked source.
 
 ## Ledger intent and region hierarchy (2026-09-30)
 
@@ -324,12 +407,12 @@ the /pricing and /login checks stopped without being requested. Exactly two
 site requests ran in this phase. Cumulative recorded remote D1 usage remains
 0 read / 0 written; no D1 monitoring query was used.
 
-The preview vars and service binding were correct, but assets.run_worker_first
-only included /api/*, so static HTML bypassed worker-entry's noindex/security
+The preview vars and service binding were correct, but `assets.run_worker_first`
+only included `/api/*`, so static HTML bypassed worker-entry's noindex/security
 middleware. The config also lacked the ASSETS binding required by worker.js.
 Cloudflare [asset-routing documentation](https://developers.cloudflare.com/workers/static-assets/binding/)
 supports negative selective patterns. Preview now binds ASSETS and uses
-["/*", "!/assets/*"] so HTML/API paths use the Worker while hashed assets
+["/_", "!/assets/\*"] so HTML/API paths use the Worker while hashed assets
 remain served directly. Production configuration was not changed.
 
 Two regression checks failed before the guard repair. `npm run check` passed:
@@ -364,8 +447,7 @@ Offline Worker config passed. GitHub CLI returned no Web CI workflow runs.
 
 Production Web upload: `fae1b441-483a-468e-84f9-c337ac6d8e1c`. Metadata read-back
 confirmed binding to pullwise-server-production. One finite post-fix request to
-`/api/auth/github/authorize` returned exactly **503 D1_ACCESS_PAUSED**, replacing
-521. Server access remains 0; no OAuth/provider action or remote D1 SQL occurred.
+`/api/auth/github/authorize` returned exactly **503 D1_ACCESS_PAUSED**, replacing 521. Server access remains 0; no OAuth/provider action or remote D1 SQL occurred.
 Preview Web is updated to the corresponding binding separately.
 
 This repairs transport, not login activation. The user waived real GitHub

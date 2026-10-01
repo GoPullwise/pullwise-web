@@ -72,44 +72,101 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
 
 export function Sidebar({ go, section = "ledgerProjects" }) {
   useLang();
+  const ledger = [
+    { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
+    { k: "ledgerShared", label: T("Shared pool", "公共支出池"), icon: <I.Package size={15} /> },
+    { k: "ledgerCategories", label: T("Categories", "类别"), icon: <I.Layout size={15} /> },
+  ];
+  const account = [
+    { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },
+    { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} /> },
+    { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
+  ];
   return (
-    <SidebarLinks
-      section={section}
-      go={go}
-      items={[
-        { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
-        { k: "ledgerShared", label: T("Shared pool", "公共支出池"), icon: <I.Package size={15} /> },
-        { k: "ledgerCategories", label: T("Categories", "类别"), icon: <I.Layout size={15} /> },
-        { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },
-        { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} /> },
-        { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
-      ]}
-    />
+    <aside className="side">
+      <nav className="side-nav-landmark" aria-label={T("Navigation", "导航")}>
+        <div className="side-group side-nav" role="group" aria-label={T("Ledger", "账本")}>
+          <div className="side-h">{T("Ledger", "账本")}</div>
+          <SidebarLinks section={section} go={go} items={ledger} />
+        </div>
+        <div
+          className="side-group side-account"
+          role="group"
+          aria-label={T("Account & tools", "账户与工具")}
+        >
+          <div className="side-h">{T("Account & tools", "账户与工具")}</div>
+          <SidebarLinks section={section} go={go} items={account} />
+        </div>
+        <select
+          className="side-compact"
+          aria-label={T("Account & tools", "账户与工具")}
+          value={account.some((item) => item.k === section) ? section : ""}
+          onChange={(event) => {
+            if (event.target.value) go(event.target.value);
+          }}
+        >
+          <option value="">{T("More", "更多")}</option>
+          {account.map((item) => (
+            <option key={item.k} value={item.k}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+      </nav>
+    </aside>
   );
 }
 
 function SidebarLinks({ section, go, items }) {
   return (
-    <aside className="side">
-      <nav className="side-nav-landmark" aria-label={T("Navigation", "Navigation")}>
-        <div className="side-group side-nav" aria-label={T("Navigation", "导航")}>
-          <div className="side-h" style={{ marginTop: 6 }}>
-            {T("Navigation", "导航")}
-          </div>
-          {items.map((item) => (
-            <a
-              key={item.k}
-              className={"side-i" + (section === item.k ? " active" : "")}
-              aria-current={section === item.k ? "page" : undefined}
-              {...screenLinkProps(go, item.k)}
-            >
-              <div className="ic">{item.icon}</div>
-              <span>{item.label}</span>
-              {item.badge != null && <span className="badge">{item.badge}</span>}
-            </a>
-          ))}
-        </div>
-      </nav>
-    </aside>
+    <>
+      {items.map((item) => (
+        <a
+          key={item.k}
+          className={"side-i" + (section === item.k ? " active" : "")}
+          aria-current={section === item.k ? "page" : undefined}
+          {...screenLinkProps(go, item.k)}
+        >
+          <div className="ic">{item.icon}</div>
+          <span>{item.label}</span>
+          {item.badge != null && <span className="badge">{item.badge}</span>}
+        </a>
+      ))}
+    </>
+  );
+}
+
+export function ViewTabs({ id, label, tabs, value, onChange }) {
+  const activate = (event, index) => {
+    const keys = {
+      ArrowRight: (index + 1) % tabs.length,
+      ArrowLeft: (index + tabs.length - 1) % tabs.length,
+      Home: 0,
+      End: tabs.length - 1,
+    };
+    if (!Object.hasOwn(keys, event.key)) return;
+    event.preventDefault();
+    const next = tabs[keys[event.key]];
+    onChange(next.key);
+    document.getElementById(`${id}-tab-${next.key}`)?.focus();
+  };
+  return (
+    <div className="view-tabs" role="tablist" aria-label={label}>
+      {tabs.map((tab, index) => (
+        <button
+          key={tab.key}
+          type="button"
+          role="tab"
+          id={`${id}-tab-${tab.key}`}
+          aria-controls={`${id}-panel-${tab.key}`}
+          aria-selected={value === tab.key}
+          tabIndex={value === tab.key ? 0 : -1}
+          onClick={() => onChange(tab.key)}
+          onKeyDown={(event) => activate(event, index)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -172,6 +172,26 @@ describe("Design token discipline", () => {
 });
 
 describe("Sidebar navigation", () => {
+  it("groups ledger work separately from account tools and provides compact navigation", () => {
+    const go = vi.fn();
+    render(<Sidebar section="billing" go={go} />);
+    const ledger = screen.getByRole("group", { name: "Ledger" });
+    const account = screen.getByRole("group", { name: "Account & tools" });
+    expect(within(ledger).getByRole("link", { name: "Projects" })).toHaveAttribute(
+      "href",
+      "/projects"
+    );
+    expect(within(ledger).queryByRole("link", { name: "Billing" })).not.toBeInTheDocument();
+    expect(within(account).getByRole("link", { name: "Billing" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    const compact = screen.getByRole("combobox", { name: "Account & tools" });
+    expect(compact).toHaveValue("billing");
+    fireEvent.change(compact, { target: { value: "settings" } });
+    expect(go).toHaveBeenCalledWith("settings");
+  });
+
   it("draws the desktop sidebar divider across the full layout height", () => {
     const styles = readFileSync(resolve(process.cwd(), "styles/base.css"), "utf8");
 

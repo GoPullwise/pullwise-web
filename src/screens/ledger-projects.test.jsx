@@ -89,6 +89,7 @@ describe("Projects authorization and creation", () => {
   it("distinguishes already-added repositories from missing GitHub access", async () => {
     api.projects.mockResolvedValue({ items: [{ id: "prj_1", githubRepoId: 202, githubFullName: "alice/project", totals: [] }], nextCursor: null });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add project" }));
     expect(await screen.findByText(/These repositories are already in your projects/i)).toBeInTheDocument();
     expect(screen.queryByText(/Connect GitHub to add a project/i)).not.toBeInTheDocument();
   });

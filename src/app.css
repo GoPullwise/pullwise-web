@@ -532,7 +532,6 @@
 }
 
 @media (max-width: 520px) {
-  .page-h .actions .btn,
   .billing-actions .btn,
   .docs-foot-actions .btn,
   .oauth-actions .btn,
