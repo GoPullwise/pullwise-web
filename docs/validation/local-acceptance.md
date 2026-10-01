@@ -2,6 +2,22 @@
 
 Updated 2026-10-01. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Category guidance spacing (2026-10-01, local review)
+
+Shared Pool and project detail now use the existing `.ledger-help` spacing
+for no-active-category guidance. Manage categories has 16px of space before
+the empty state or records, including when the inline button wraps on mobile.
+The pre-change browser geometry check failed with a 0px gap. The same check
+now passes for both routes at 1440/390/320px in light and dark: **12 checks**,
+each measuring 16px, with no overflow or page errors. Screenshots in the
+workspace review gallery have been updated.
+
+`npm run check` passed lint, **34 files / 298 tests**, and build;
+`npm run check:workers` passed offline. This presentation-only fix uses real
+browser geometry evidence rather than a CSS-class assertion in a unit test.
+GitHub returned no statuses or PR workflow runs for the local base commit;
+remote CI remains unverified. No deployment or remote provider/D1 request ran.
+
 ## Spacing polish (2026-10-01, local review)
 
 Panel headings and form fields now use consistent 16px gaps; desktop ledger

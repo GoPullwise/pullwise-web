@@ -1561,7 +1561,7 @@ export function LedgerScreen({
                       </span>
                     </div>
                     {!showExpenseForm && activeCategories.length === 0 && (
-                      <p>
+                      <p className="ledger-help">
                         {T(
                           "Start by adding a category, such as Hosting or AI tools.",
                           "先添加一个分类，比如「托管」或「AI 工具」。"

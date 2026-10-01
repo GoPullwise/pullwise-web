@@ -116,6 +116,9 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   On mobile, keep Categories' reload beside its title, preserve the entry-first
   section spacing, and size sidebar links by their labels rather than equal
   columns so the Shared Pool label remains readable at 320px.
+- Use `.ledger-help` for the no-active-category guidance in Shared Pool and
+  project detail so Manage categories keeps a 16px gap before empty states
+  or expense records, including when its inline button wraps on narrow screens.
 - Keep select and controlled textarea labels separate with `htmlFor`/`id`:
   wrapping these controls can make their labels include option/current values.
 - Loading skeletons use the same `.panel` sections as loaded content
