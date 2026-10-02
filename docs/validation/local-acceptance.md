@@ -33,6 +33,31 @@ phone touch/coarse state was verified after each capture. Eight final form
 captures passed visual review. This is local evidence; publication and CI
 verification are recorded separately after release.
 
+### Product audit publication (2026-10-02)
+
+Source `1bc0b57ed992602a8c3666670a0b47b7d0e52229` was published to both Web
+environments using the reviewed build. The local checks and 20 synthetic
+browser cases above apply to this source.
+
+| Environment | Worker | Published version |
+| --- | --- | --- |
+| Preview — `preview.pull-wise.com` | `pullwise-web-preview` | `d893c3ec-cb0d-433c-bacb-e9e5e20fd036` |
+| Production — `pull-wise.com` | `pullwise-web` | `ed8d1647-b4cc-462a-84c5-3b329b569d60` |
+
+Exactly **8 bounded static GETs** checked one homepage and three assets on each
+domain: `index-BzdxAS89.js`, `index-ARKSj5jK.css` and `ledger-CkYP8DBE.js`.
+Every request returned 200; both homepages referenced the current entry/style
+assets, and all six asset SHA-256 values matched the local manifest. Preview
+retained `X-Robots-Tag: noindex, nofollow`. There were no redirects, retries,
+page script execution, business API requests, provider calls or D1 operations.
+These checks prove static publication; they do not establish authenticated
+product or provider acceptance.
+
+The exact-SHA GitHub Actions API query was made twice and returned **0 runs**
+both times. Remote Web CI remains **unverified**. This documentation update
+records the release without rebuilding or redeploying application assets; the
+earlier publication record below is retained as history.
+
 ## Global frontend publication (2026-10-02)
 
 The user explicitly requested committing, pushing and deploying all reviewed
