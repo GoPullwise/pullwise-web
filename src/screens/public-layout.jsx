@@ -32,7 +32,14 @@ export function PublicHeader({ go, current, auth }) {
         aria-label={T("Go to Pullwise home", "前往 Pullwise 首页")}
         {...screenLinkProps(go, "landing")}
       >
-        <img className="brand-mark" src="/brand-mark.png" alt="" aria-hidden="true" width="24" height="24" />
+        <img
+          className="brand-mark"
+          src="/brand-mark.png"
+          alt=""
+          aria-hidden="true"
+          width="24"
+          height="24"
+        />
         <span>Pullwise</span>
       </a>
       <nav className="lp-nav">
@@ -84,7 +91,7 @@ export function PublicFooter({ go, current }) {
   return (
     <footer className="lp-foot">
       <div>{T("Copyright 2026 Pullwise", "版权所有 © 2026 Pullwise")}</div>
-      <div style={{ display: "flex", gap: 18 }}>
+      <div className="lp-foot-links">
         {FOOTER_LINKS.map((item) => (
           <a
             key={item.key}

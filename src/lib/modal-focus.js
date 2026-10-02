@@ -62,7 +62,12 @@ export function useModalFocus({ open, dialogRef, initialFocusRef = null, onClose
         window.cancelAnimationFrame(frame);
       }
       document.removeEventListener("keydown", handleKeyDown);
-      if (opener?.isConnected && typeof opener.focus === "function") opener.focus();
+      // Other modal cleanups must release the background's inert state first.
+      queueMicrotask(() => {
+        if (opener?.isConnected && !opener.closest("[inert]") && typeof opener.focus === "function") {
+          opener.focus();
+        }
+      });
     };
   }, [dialogRef, initialFocusRef, open]);
 }

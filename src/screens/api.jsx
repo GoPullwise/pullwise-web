@@ -75,18 +75,13 @@ function ApiKeysSkeleton() {
   return (
     <div className="set-body api-keys-skeleton" aria-busy="true">
       <div className="panel api-key-create">
-        <div className="api-key-create-head">
-          <SkeletonLine className="sk-square sk-size-36" />
-          <div className="skeleton-stack">
-            <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
-            <SkeletonLine className="sk-line sk-w-65" />
-          </div>
+        <div className="panel-h">
+          <SkeletonLine className="sk-square sk-size-16" />
+          <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
         </div>
         <div className="api-key-create-main">
-          <div className="api-key-name-row">
-            <SkeletonLine className="sk-line sk-w-60 sk-h-40" />
-            <SkeletonLine className="sk-line sk-w-22 sk-h-40" />
-          </div>
+          <SkeletonLine className="sk-line sk-w-65" />
+          <SkeletonLine className="sk-line sk-w-60 sk-h-40" />
           <div className="api-scope-panel">
             <div className="api-scope-head">
               <div className="skeleton-stack">
@@ -108,38 +103,56 @@ function ApiKeysSkeleton() {
               ))}
             </div>
           </div>
+          <div className="api-scope-panel">
+            <div className="api-scope-head">
+              <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
+            </div>
+            {Array.from({ length: 2 }, (_, index) => (
+              <div className="api-scope-row" key={`api-target-skeleton-${index}`}>
+                <SkeletonLine className="sk-square sk-size-16" />
+                <SkeletonLine className="sk-line sk-w-65" />
+              </div>
+            ))}
+          </div>
+          <SkeletonLine className="sk-line sk-w-22 sk-h-40" />
         </div>
       </div>
 
-      <div className="key-list">
-        {Array.from({ length: 3 }, (_, index) => (
-          <div className="key-row skeleton-row" key={`api-key-row-skeleton-${index}`}>
-            <SkeletonLine className="sk-line sk-w-12 sk-h-22" />
-            <SkeletonLine className="sk-line sk-w-16" />
-            <div className="key-main">
-              <SkeletonLine className="sk-line sk-w-45 sk-h-16" />
-              <div className="key-meta">
-                <SkeletonLine className="sk-line sk-w-26" />
-                <SkeletonLine className="sk-line sk-w-24" />
-                <SkeletonLine className="sk-line sk-w-18" />
+      <section className="panel">
+        <div className="panel-h">
+          <SkeletonLine className="sk-square sk-size-16" />
+          <SkeletonLine className="sk-line sk-w-30 sk-h-16" />
+        </div>
+        <div className="key-list">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div className="key-row skeleton-row" key={`api-key-row-skeleton-${index}`}>
+              <SkeletonLine className="sk-line sk-w-12 sk-h-22" />
+              <SkeletonLine className="sk-line sk-w-16" />
+              <div className="key-main">
+                <SkeletonLine className="sk-line sk-w-45 sk-h-16" />
+                <div className="key-meta">
+                  <SkeletonLine className="sk-line sk-w-26" />
+                  <SkeletonLine className="sk-line sk-w-24" />
+                  <SkeletonLine className="sk-line sk-w-18" />
+                </div>
               </div>
+              <SkeletonLine className="sk-line sk-w-18 sk-h-28" />
             </div>
-            <SkeletonLine className="sk-line sk-w-18 sk-h-28" />
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
 
 function ApiKeysLoadError({ error, onRetry }) {
   return (
-    <div className="card section api-keys-load-error" role="alert">
-      <I.X size={15} aria-hidden="true" />
-      <div>
-        <b>{T("API keys are unavailable", "API keys are unavailable")}</b>
-        <span>{error || T("Unable to load API keys.", "Unable to load API keys.")}</span>
+    <div className="notice notice-error" role="alert">
+      <div className="panel-h">
+        <I.X size={16} aria-hidden="true" />
+        <h2>{T("API keys are unavailable", "API keys are unavailable")}</h2>
       </div>
+      <p>{error || T("Unable to load API keys.", "Unable to load API keys.")}</p>
       <button type="button" className="btn" onClick={onRetry}>
         <I.Refresh size={13} /> {T("Retry", "Retry")}
       </button>
@@ -297,11 +310,7 @@ export function ApiKeysScreen({ go }) {
   return (
     <div className="app fade-in">
       <div ref={revokeBackgroundRef} className="api-keys-background">
-        <Topbar
-          go={go}
-          breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
-          loading={loading}
-        />
+        <Topbar go={go} breadcrumbs={[{ label: T("API Keys", "API 密钥") }]} loading={loading} />
         <div className="with-side">
           <Sidebar section="apiKeys" go={go} />
           <div className="main wide" role="main">
@@ -365,54 +374,36 @@ export function ApiKeysScreen({ go }) {
               ) : (
                 <div className="set-body">
                   {error && (
-                    <div className="api-keys-inline-error" role="status" aria-live="polite">
-                      <span>{error}</span>
+                    <div className="notice notice-error" role="status" aria-live="polite">
+                      <p>{error}</p>
                       <button type="button" className="btn sm" onClick={load}>
                         <I.Refresh size={12} /> {T("Retry", "Retry")}
                       </button>
                     </div>
                   )}
                   <form className="api-key-create panel" onSubmit={createKey}>
-                    <div className="api-key-create-head">
-                      <div className="api-key-create-icon">
-                        <I.Shield size={16} />
-                      </div>
-                      <div>
-                        <b>{T("Create API key", "创建 API key")}</b>
-                        <span>
-                          {T(
-                            "Name the key, choose scopes, then create the token.",
-                            "为密钥命名，选择权限范围，然后创建令牌。"
-                          )}
-                        </span>
-                      </div>
+                    <div className="panel-h">
+                      <I.Shield size={16} />
+                      <h2>{T("Create API key", "创建 API 密钥")}</h2>
                     </div>
                     <div className="api-key-create-main">
-                      <div className="api-key-name-row">
-                        <label className="auth-field">
-                          <span>{T("Key name", "密钥名称")}</span>
-                          <div className="auth-input">
-                            <I.Code size={14} />
-                            <input
-                              value={name}
-                              onChange={(event) => setName(event.target.value)}
-                              placeholder={T("Automation key", "自动化密钥")}
-                            />
-                          </div>
-                        </label>
-                        <button
-                          className="btn primary"
-                          type="submit"
-                          disabled={pending === "create"}
-                        >
-                          {pending === "create" && (
-                            <span className="spin">
-                              <I.Refresh size={14} />
-                            </span>
-                          )}
-                          <I.Plus size={14} /> {T("Create key", "创建密钥")}
-                        </button>
-                      </div>
+                      <p className="muted">
+                        {T(
+                          "Name the key, choose scopes, then create the token.",
+                          "为密钥命名，选择权限范围，然后创建令牌。"
+                        )}
+                      </p>
+                      <label className="auth-field">
+                        <span>{T("Key name", "密钥名称")}</span>
+                        <div className="auth-input">
+                          <I.Code size={14} />
+                          <input
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            placeholder={T("Automation key", "自动化密钥")}
+                          />
+                        </div>
+                      </label>
                       <fieldset className="api-scope-panel" aria-describedby="api-scope-help">
                         <legend className="api-scope-legend">{T("Scopes", "权限")}</legend>
                         <div className="api-scope-head">
@@ -459,6 +450,11 @@ export function ApiKeysScreen({ go }) {
                         <legend className="api-scope-legend">
                           {T("Ledger targets", "账本目标")}
                         </legend>
+                        <div className="api-scope-head">
+                          <span className="api-scope-kicker">
+                            <I.Layout size={13} /> {T("Ledger targets", "账本目标")}
+                          </span>
+                        </div>
                         <label className="api-scope-row">
                           <input
                             type="checkbox"
@@ -469,12 +465,14 @@ export function ApiKeysScreen({ go }) {
                         </label>
                         {restrictProjects && (
                           <label className="auth-field">
-                            {T("Project IDs (comma separated)", "项目 ID（逗号分隔）")}
-                            <input
-                              value={projectIdsInput}
-                              onChange={(event) => setProjectIdsInput(event.target.value)}
-                              placeholder="prj_..."
-                            />
+                            <span>{T("Project IDs (comma separated)", "项目 ID（逗号分隔）")}</span>
+                            <div className="auth-input">
+                              <input
+                                value={projectIdsInput}
+                                onChange={(event) => setProjectIdsInput(event.target.value)}
+                                placeholder="prj_..."
+                              />
+                            </div>
                           </label>
                         )}
                         <label className="api-scope-row">
@@ -492,46 +490,67 @@ export function ApiKeysScreen({ go }) {
                           )}
                         </p>
                       </fieldset>
+                      <div className="panel-actions">
+                        <button
+                          className="btn primary"
+                          type="submit"
+                          disabled={pending === "create"}
+                        >
+                          {pending === "create" && (
+                            <span className="spin">
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.Plus size={14} /> {T("Create key", "创建密钥")}
+                        </button>
+                      </div>
                     </div>
                   </form>
 
                   <section className="panel">
+                    <div className="panel-h">
+                      <I.Code size={16} />
+                      <h2>{T("Keys", "密钥")}</h2>
+                      <span className="count">{keys.length}</span>
+                    </div>
                     <div className="key-list">
                       {keys.map((key) => (
-                      <div key={key.id || key.prefix || key.name} className="key-row">
-                        <div className="key-sev sev-bg-info">
-                          <I.Code size={12} /> {T("key", "key")}
-                        </div>
-                        <div className="key-id">{key.prefix || key.id || "-"}</div>
-                        <div className="key-main">
-                          <div className="key-t">{key.name}</div>
-                          <div className="key-meta">
-                            <span className="tag">
-                              {T("Created", "已创建")} {formatDate(key.createdAt)}
-                            </span>
-                            <span className="tag">
-                              {T("Last used", "最近使用")} {formatDate(key.lastUsedAt)}
-                            </span>
-                            {key.scopes.map((scope) => (
-                              <span className="tag" key={scope}>
-                                {scope}
-                              </span>
-                            ))}
+                        <div key={key.id || key.prefix || key.name} className="key-row">
+                          <div className="key-sev sev-bg-info">
+                            <I.Code size={12} /> {T("key", "key")}
                           </div>
+                          <div className="key-id">{key.prefix || key.id || "-"}</div>
+                          <div className="key-main">
+                            <div className="key-t">{key.name}</div>
+                            <div className="key-meta">
+                              <span className="tag">
+                                {T("Created", "已创建")} {formatDate(key.createdAt)}
+                              </span>
+                              <span className="tag">
+                                {T("Last used", "最近使用")} {formatDate(key.lastUsedAt)}
+                              </span>
+                              {key.scopes.map((scope) => (
+                                <span className="tag" key={scope}>
+                                  {scope}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            className="btn sm"
+                            disabled={pending === key.id}
+                            onClick={() => requestRevokeKey(key)}
+                          >
+                            <I.X size={13} /> {T("Revoke", "吊销")}
+                          </button>
                         </div>
-                        <button
-                          className="btn sm"
-                          disabled={pending === key.id}
-                          onClick={() => requestRevokeKey(key)}
-                        >
-                          <I.X size={13} /> {T("Revoke", "吊销")}
-                        </button>
-                      </div>
-                    ))}
+                      ))}
                       {!loading && keys.length === 0 && (
                         <div className="empty">
                           <I.Code size={28} />
-                          <h3>{T("No API keys have been created yet.", "尚未创建任何 API key。")}</h3>
+                          <h3>
+                            {T("No API keys have been created yet.", "尚未创建任何 API 密钥。")}
+                          </h3>
                         </div>
                       )}
                     </div>

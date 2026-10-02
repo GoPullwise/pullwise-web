@@ -62,6 +62,7 @@ export function SettingsScreen({ go }) {
   };
 
   const github = integrations?.github;
+  const githubReady = typeof github?.connected === "boolean";
   const user = session?.user;
   const accounts = Array.from(
     new Set(
@@ -89,7 +90,7 @@ export function SettingsScreen({ go }) {
             </button>
           </div>
           {error && (
-            <div className="settings-inline-error" role="alert">
+            <div className="notice notice-error" role="alert">
               {error}
             </div>
           )}
@@ -117,56 +118,74 @@ export function SettingsScreen({ go }) {
           </section>
           <section className="panel" aria-label={T("GitHub access", "GitHub 授权")}>
             <h2>{T("GitHub access", "GitHub 授权")}</h2>
-            <p className="muted">
-              {github?.connected
-                ? T(
-                    `${repositoryCount} repositories authorized${accounts.length ? ` on ${accounts.join(", ")}` : ""}.`,
-                    `已授权 ${repositoryCount} 个仓库${accounts.length ? `（${accounts.join("、")}）` : ""}。`
-                  )
-                : T(
-                    "Connect repositories to create ledger projects.",
-                    "连接仓库，为项目记录支出。"
+            {!githubReady ? (
+              <p className="muted">
+                {loading
+                  ? T("Loading...", "正在加载...")
+                  : T("GitHub access unavailable.", {
+                      zh: "GitHub 授权暂不可用。",
+                      ja: "GitHub のアクセス情報を取得できません。",
+                      ko: "GitHub 접근 정보를 불러올 수 없습니다.",
+                      fr: "Les accès GitHub sont indisponibles.",
+                      es: "El acceso a GitHub no está disponible.",
+                    })}
+              </p>
+            ) : (
+              <>
+                <p className="muted">
+                  {github?.connected
+                    ? T(
+                        `${repositoryCount} repositories authorized${accounts.length ? ` on ${accounts.join(", ")}` : ""}.`,
+                        `已授权 ${repositoryCount} 个仓库${accounts.length ? `（${accounts.join("、")}）` : ""}。`
+                      )
+                    : T(
+                        "Connect repositories to create ledger projects.",
+                        "连接仓库，为项目记录支出。"
+                      )}
+                </p>
+                <p className="github-next-step">
+                  {T(
+                    "After connecting, open Projects and add a repository to start recording expenses.",
+                    "授权后，去项目页面添加一个仓库，就可以开始记账了。"
                   )}
-            </p>
-            <p className="github-next-step">
-              {T(
-                "After connecting, open Projects and add a repository to start recording expenses.",
-                "授权后，去项目页面添加一个仓库，就可以开始记账了。"
-              )}
-            </p>
-            {github?.connected && (
-              <button className="btn primary" onClick={() => go("ledgerProjects")}>
-                {T("Open projects", "打开项目")} <I.ArrowR size={14} />
-              </button>
-            )}
-            <button
-              className="btn sm"
-              onClick={() =>
-                runGitHubAction(() =>
-                  connectGitHubRepositories(github?.connected ? { add: true } : {})
-                )
-              }
-            >
-              {github?.connected
-                ? T("Add account or organization", "添加账户或组织")
-                : T("Connect repositories", "连接仓库")}
-            </button>
-            {github?.connected && (
-              <GitHubInstallationsList
-                installations={github.installations}
-                managingInstallationId={managingInstallationId}
-                onManage={(installation) => {
-                  const installationId = installation?.id || installation?.installationId;
-                  runGitHubAction(
-                    () =>
-                      manageGitHubInstallation(installationId, {
-                        githubIdentityId: installation?.manage?.githubIdentityId || undefined,
-                        redirectTo: window.location.href,
-                      }),
-                    installationId
-                  );
-                }}
-              />
+                </p>
+                <div className="panel-actions">
+                  {github?.connected && (
+                    <button className="btn primary" onClick={() => go("ledgerProjects")}>
+                      {T("Open projects", "打开项目")} <I.ArrowR size={14} />
+                    </button>
+                  )}
+                  <button
+                    className="btn sm"
+                    onClick={() =>
+                      runGitHubAction(() =>
+                        connectGitHubRepositories(github?.connected ? { add: true } : {})
+                      )
+                    }
+                  >
+                    {github?.connected
+                      ? T("Add account or organization", "添加账户或组织")
+                      : T("Connect repositories", "连接仓库")}
+                  </button>
+                </div>
+                {github?.connected && (
+                  <GitHubInstallationsList
+                    installations={github.installations}
+                    managingInstallationId={managingInstallationId}
+                    onManage={(installation) => {
+                      const installationId = installation?.id || installation?.installationId;
+                      runGitHubAction(
+                        () =>
+                          manageGitHubInstallation(installationId, {
+                            githubIdentityId: installation?.manage?.githubIdentityId || undefined,
+                            redirectTo: window.location.href,
+                          }),
+                        installationId
+                      );
+                    }}
+                  />
+                )}
+              </>
             )}
           </section>
         </main>

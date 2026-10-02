@@ -8,7 +8,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
 
   return (
     <header className="topbar">
-      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+      <div className="topbar-location">
         <a
           className="brand topbar-brand-button"
           aria-label={T("Go to Pullwise home", "前往 Pullwise 首页")}
@@ -79,7 +79,7 @@ export function Sidebar({ go, section = "ledgerProjects" }) {
   ];
   const account = [
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },
-    { k: "billing", label: T("Billing", "支付"), icon: <I.Package size={15} /> },
+    { k: "billing", label: T("Billing", "账单"), icon: <I.Package size={15} /> },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
   ];
   return (

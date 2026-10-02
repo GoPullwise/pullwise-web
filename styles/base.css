@@ -24,7 +24,7 @@ input[type="checkbox"] {
   --text: #0d0d0d;
   --text-2: #4a4a4a;
   --text-3: #666666;
-  --text-4: #767676;
+  --text-4: #6b6b6b;
   --accent: #4f46e5;
   --accent-soft: color-mix(in oklch, var(--accent) 10%, transparent);
   --accent-fg: #ffffff;
@@ -84,6 +84,8 @@ input[type="checkbox"] {
   --text-2: #a3a3a3;
   --text-3: #9e9e9e;
   --text-4: #8f8f8f;
+  --accent: #818cf8;
+  --accent-fg: #080808;
   --accent-soft: color-mix(in oklch, var(--accent) 15%, transparent);
   --accent-glow: color-mix(in oklch, var(--accent) 30%, transparent);
 
@@ -254,7 +256,6 @@ select {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
-  border-radius: 50%;
   background: currentColor;
 }
 .sev-info {
@@ -277,7 +278,6 @@ select {
 }
 *::-webkit-scrollbar-thumb {
   background: var(--border-strong);
-  border-radius: 0;
 }
 *::-webkit-scrollbar-thumb:hover {
   background: var(--text-4);
@@ -317,6 +317,11 @@ select {
   gap: 10px;
   font-weight: 600;
   letter-spacing: 0;
+}
+.topbar-location {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 .topbar-brand-button {
   border: 0;
@@ -760,6 +765,19 @@ a.crumb-button:hover {
   margin-bottom: 0;
   line-height: 1.5;
 }
+.notice-error {
+  border-left-color: var(--danger);
+}
+.notice-error .panel-h > svg {
+  color: var(--danger);
+}
+.notice-error > p {
+  color: var(--text-2);
+  font-size: var(--fs-lg);
+}
+.notice-error > p:not(:last-child) {
+  margin-bottom: 16px;
+}
 
 /* Flat workbench page section: hairline-separated, no box chrome. The single
    container language for authenticated pages; boxes stay reserved for
@@ -792,6 +810,12 @@ a.crumb-button:hover {
   margin-left: auto;
   font: var(--fs-sm) var(--font-mono);
   color: var(--text-3);
+}
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 details.panel > summary.panel-h {
   cursor: pointer;
@@ -896,8 +920,11 @@ details.panel[open] > summary.panel-h::after,
   .topbar {
     min-height: 52px;
     height: auto;
-    gap: 12px;
-    padding: 10px 14px;
+    gap: 8px;
+    padding: 4px 12px;
+  }
+  .topbar-location {
+    gap: 8px;
   }
 
   .topbar .brand span {
@@ -999,7 +1026,7 @@ details.panel[open] > summary.panel-h::after,
   }
 
   .view-tabs {
-    gap: 16px;
+    gap: 12px;
   }
 
   .side-i.active {
@@ -1044,10 +1071,32 @@ details.panel[open] > summary.panel-h::after,
 }
 
 @media (pointer: coarse) {
-  .btn.sm,
+  .btn,
   .side-i,
-  .seg-i {
+  .seg-i,
+  .set-side-i,
+  .docs-side-i,
+  .legal-side-i {
+    min-width: 44px;
     min-height: 44px;
+  }
+  details.panel > summary.panel-h,
+  .disclosure > summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .view-tabs [role="tab"] {
+    padding-inline: 8px;
+  }
+  .topbar .brand {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .crumbs a.crumb-button {
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
   }
 
   .topbar .btn.ghost.sm {

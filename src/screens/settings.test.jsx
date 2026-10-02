@@ -4,20 +4,28 @@ import { pullwiseApi } from "../api/pullwise.js";
 import { connectGitHubRepositories, signOut } from "../lib/auth.js";
 import { SettingsScreen } from "./settings.jsx";
 
-vi.mock("../api/pullwise.js", () => ({ pullwiseApi: {
-  auth: { getSession: vi.fn() }, integrations: { list: vi.fn() },
-} }));
+vi.mock("../api/pullwise.js", () => ({
+  pullwiseApi: {
+    auth: { getSession: vi.fn() },
+    integrations: { list: vi.fn() },
+  },
+}));
 vi.mock("../lib/auth.js", () => ({
-  connectGitHubRepositories: vi.fn(), manageGitHubInstallation: vi.fn(), signOut: vi.fn(),
+  connectGitHubRepositories: vi.fn(),
+  manageGitHubInstallation: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 describe("product settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true,
-      user: { name: "Taylor", email: "taylor@example.com" } });
-    pullwiseApi.integrations.list.mockResolvedValue({ github: { connected: false,
-      repositories: [], installations: [] } });
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      authenticated: true,
+      user: { name: "Taylor", email: "taylor@example.com" },
+    });
+    pullwiseApi.integrations.list.mockResolvedValue({
+      github: { connected: false, repositories: [], installations: [] },
+    });
   });
 
   it("shows account and read-only GitHub service onboarding without scan controls", async () => {
@@ -39,5 +47,32 @@ describe("product settings", () => {
     expect(screen.getByText("Account profile unavailable.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /^reload$/i }));
     expect(await screen.findByText("Taylor")).toBeInTheDocument();
+  });
+
+  it("waits for GitHub access before offering connection actions", () => {
+    pullwiseApi.integrations.list.mockReturnValue(new Promise(() => {}));
+    render(<SettingsScreen go={vi.fn()} />);
+    expect(
+      screen.queryByRole("button", { name: /^connect repositories$/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/create ledger projects/i)).not.toBeInTheDocument();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+  });
+
+  it("keeps the profile visible and retries unknown GitHub access without suggesting a new connection", async () => {
+    pullwiseApi.integrations.list.mockRejectedValueOnce(
+      new Error("GitHub temporarily unavailable")
+    );
+    render(<SettingsScreen go={vi.fn()} />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("GitHub temporarily unavailable");
+    expect(screen.getByText("Taylor")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^connect repositories$/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/repositories authorized/i)).not.toBeInTheDocument();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: /^reload$/i }));
+    expect(await screen.findByRole("button", { name: /^connect repositories$/i })).toBeEnabled();
   });
 });

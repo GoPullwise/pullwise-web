@@ -2,6 +2,62 @@
 
 Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Global frontend detail review (2026-10-02, local review)
+
+The review covers public pages and the authenticated workspace. Shared panel
+headings, action gaps and error notices now follow the existing hard-edged
+design. Documentation uses the shared section typography, readable prose width
+and wrapped mobile navigation. Public navigation/footer links wrap without
+hiding destinations. Mobile inputs use 16px text and common actions retain
+44px touch targets; tabs preserve intrinsic word width with padded hit areas.
+Observed workspace typography remains 22px page titles, 18px section headings
+and 15px record titles. Documentation section headings use 22px with 36px
+before and 14px after. Dark accent/foreground now measure 6.71:1; the weakest
+light neutral on the soft background measures 4.68:1.
+
+API key creation proceeds through name, scopes, ledger targets and submit;
+target inputs, helper insets, loading sections and key-list headings share the
+same layout language. Settings keeps profile data when GitHub access cannot be
+loaded, states its unavailability and offers manual reload rather than claiming
+the account is disconnected. Lazy route headings receive focus on navigation,
+while identity-only remounts preserve an active language control. Shared modal
+cleanup releases the inert background before restoring the opener.
+
+Seven behavior regressions failed before their fixes and now pass: three route
+focus cases, API key keyboard submission after the final access choice, two
+Settings loading/error cases and inert-aware modal focus restoration. Real
+Chrome also reproduced the modal failure before the change. Presentation
+checks use browser geometry, contrast and hit testing. `npm run check` passed
+ESLint, **35 files / 314 tests**, and build; `npm run check:workers` and
+`git diff --check` passed.
+
+Final browser evidence includes **102 renders** of 17 routes at 1440/390/320px
+in light/dark; **32 English/French renders** of Docs, API Keys, Settings and
+project detail at 390/320px; **77 light and 33 dark workspace page checks**
+including populated/empty records, entry, filters, optional fields, reports and
+category actions; **18 focused spacing/font/contrast cases**; and **54 operation,
+loading, error and modal captures**. All six locales pass 320/390px navigation
+readability, and the language menu remains usable in a 760x320 viewport. Seven
+workspace routes at four widths pass header hit testing through repeated
+scroll/menu/theme changes. No unresolved overflow, clipped controls or page
+errors remain in these fixtures. Touch media and events are checked after each
+capture; the screenshot harness preserves coarse layout and restores Chrome's
+touch emulation before further interactions.
+
+The [global screenshot gallery](../../../artifacts/ui-review/global-review.html)
+offers **38 views / 228 current images**, light/dark and three widths, with
+**8 desktop comparisons**. Every image, comparison and the gallery's 390/320px
+layout passed local browser verification. Generated artifacts and their JSON
+evidence stay outside the tracked Web repository.
+
+The current local base is `e048dbd7e6745e44c56724f5a6dfa16d05acb9e6`.
+GitHub returned no combined statuses or PR workflow runs for that SHA; the
+workflow connector only reports PR-triggered runs. This uncommitted style
+candidate has no remote CI result and has not been published. All review APIs
+use synthetic loopback data with external requests blocked; no real provider,
+business API or Cloudflare D1 request was executed by this review. The separate
+identity-recovery publication recorded below is preserved.
+
 ## Repository identity recovery (2026-10-02)
 
 The user's existing Network record confirms the preview repository GET failed

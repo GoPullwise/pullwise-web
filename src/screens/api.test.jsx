@@ -1,6 +1,5 @@
 import { fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { NotificationProvider } from "../components/notifications.jsx";
@@ -40,7 +39,9 @@ describe("API screens", () => {
     expect(screen.getByRole("heading", { name: /pullwise ledger rest api/i })).toBeInTheDocument();
     expect(screen.getAllByText("/api/v1/expenses")).toHaveLength(2);
     expect(screen.getByText("/api/v1/reports/summary")).toBeInTheDocument();
-    expect(screen.getByText(/Project allowlists do not grant shared-pool access/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Project allowlists do not grant shared-pool access/i)
+    ).toBeInTheDocument();
     expect(screen.queryByText("/api/v1/items")).not.toBeInTheDocument();
   });
 
@@ -58,7 +59,11 @@ describe("API screens", () => {
       expect(markdown).toContain("### GET /api/v1/expenses");
       expect(markdown).toContain("Idempotency-Key");
     } finally {
-      if (originalClipboard) Object.defineProperty(navigator, "clipboard", { configurable: true, value: originalClipboard });
+      if (originalClipboard)
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: originalClipboard,
+        });
       else delete navigator.clipboard;
     }
   });
@@ -81,8 +86,13 @@ describe("API screens", () => {
   it("links the guide and key management", async () => {
     const go = vi.fn();
     render(<ApiDocsScreen go={go} auth={{ authenticated: true }} />);
-    expect(screen.getByRole("link", { name: /^Guide$/ })).toHaveAttribute("href", "/developers/docs");
-    const keys = within(document.querySelector(".docs-foot-actions")).getByRole("link", { name: /api keys/i });
+    expect(screen.getByRole("link", { name: /^Guide$/ })).toHaveAttribute(
+      "href",
+      "/developers/docs"
+    );
+    const keys = within(document.querySelector(".docs-foot-actions")).getByRole("link", {
+      name: /api keys/i,
+    });
     expect(keys).toHaveAttribute("href", "/api-keys");
     await userEvent.setup().click(keys);
     expect(go).toHaveBeenCalledWith("apiKeys");
@@ -162,7 +172,13 @@ describe("API screens", () => {
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
         name: "Ledger automation",
-        scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "reports:read"],
+        scopes: [
+          "profile:read",
+          "projects:read",
+          "categories:read",
+          "expenses:read",
+          "reports:read",
+        ],
         restrictions: { shared: false },
       });
     });
@@ -176,6 +192,38 @@ describe("API screens", () => {
       expect(screen.queryByText("pwk_live_secret")).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /^copy$/i })).not.toBeInTheDocument();
     });
+  });
+
+  it("lets keyboard users review target access before creating a key", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_keyboard",
+      name: "Account automation",
+      key: "pwk_keyboard_local",
+    });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+
+    const sharedAccess = await screen.findByRole("checkbox", { name: "Allow shared expense pool" });
+    await user.click(sharedAccess);
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Create key" })).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    await waitFor(() =>
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+        name: "Account automation",
+        scopes: [
+          "profile:read",
+          "projects:read",
+          "categories:read",
+          "expenses:read",
+          "reports:read",
+        ],
+        restrictions: { shared: true },
+      })
+    );
+    expect(await screen.findByText("pwk_keyboard_local")).toBeInTheDocument();
   });
 
   it("keeps a newly created token visible when an unrelated key is revoked", async () => {
@@ -305,7 +353,14 @@ describe("API screens", () => {
       id: "key_2",
       name: "Ledger automation",
       prefix: "pwk_new",
-      scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "expenses:write", "reports:read"],
+      scopes: [
+        "profile:read",
+        "projects:read",
+        "categories:read",
+        "expenses:read",
+        "expenses:write",
+        "reports:read",
+      ],
       key: "pwk_live_secret",
     });
     const user = userEvent.setup();
@@ -322,7 +377,14 @@ describe("API screens", () => {
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
         name: "Ledger automation",
-        scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "expenses:write", "reports:read"],
+        scopes: [
+          "profile:read",
+          "projects:read",
+          "categories:read",
+          "expenses:read",
+          "expenses:write",
+          "reports:read",
+        ],
         restrictions: { shared: false },
       });
     });
@@ -331,7 +393,10 @@ describe("API screens", () => {
   it("defaults new API keys to product reads and leaves writes opt-in", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({
-      id: "key_read", name: "Read key", prefix: "pwk_read", key: "pwk_read_secret",
+      id: "key_read",
+      name: "Read key",
+      prefix: "pwk_read",
+      key: "pwk_read_secret",
     });
     const user = userEvent.setup();
     render(<ApiKeysScreen go={vi.fn()} />);
@@ -339,11 +404,19 @@ describe("API screens", () => {
     expect(screen.getByRole("checkbox", { name: /read expenses/i })).toBeChecked();
     expect(screen.queryByRole("checkbox", { name: /sync github facts/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /create key/i }));
-    await waitFor(() => expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-      name: "Account automation",
-      scopes: ["profile:read", "projects:read", "categories:read", "expenses:read", "reports:read"],
-      restrictions: { shared: false },
-    }));
+    await waitFor(() =>
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+        name: "Account automation",
+        scopes: [
+          "profile:read",
+          "projects:read",
+          "categories:read",
+          "expenses:read",
+          "reports:read",
+        ],
+        restrictions: { shared: false },
+      })
+    );
   });
 
   it("uses a streamlined API key creation panel without redundant scope explainer rows", async () => {
@@ -354,7 +427,6 @@ describe("API screens", () => {
     expect(await screen.findByRole("heading", { name: /api keys/i })).toBeInTheDocument();
     const scopes = screen.getByRole("group", { name: /scopes/i });
     const createForm = scopes.closest("form");
-    const styles = readFileSync("styles/screens.css", "utf8");
 
     expect(screen.queryByText("Permission model")).not.toBeInTheDocument();
     expect(screen.queryByText(/^REST scopes$/)).not.toBeInTheDocument();
@@ -364,23 +436,10 @@ describe("API screens", () => {
     expect(
       screen.queryByText(/Choose only the REST scopes each key needs/i)
     ).not.toBeInTheDocument();
-    expect(createForm).toHaveClass("api-key-create");
-    expect(createForm.querySelector(".api-key-create-main")).toBeInTheDocument();
-    expect(createForm.querySelector(".api-key-name-row")).toContainElement(
-      screen.getByRole("button", { name: /create key/i })
-    );
-    expect(scopes).toHaveClass("api-scope-panel");
-    expect(scopes.querySelector(".api-scope-head")).toHaveTextContent(/^Scopes/);
-    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 9 selected");
-    expect(scopes.querySelectorAll(".api-scope-row")).toHaveLength(9);
-    expect(scopes.querySelectorAll(".api-scope-value")).toHaveLength(9);
-    expect(styles).toMatch(
-      /\.api-key-name-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/
-    );
-    expect(styles).toMatch(/\.api-scope-panel\s*{[^}]*border:\s*1px solid var\(--border\);/);
-    expect(styles).toMatch(
-      /\.api-scope-row\s*{[^}]*grid-template-columns:\s*18px minmax\(0,\s*1fr\) auto;/
-    );
+    expect(createForm).toContainElement(screen.getByRole("button", { name: /create key/i }));
+    expect(within(scopes).getByText("5 / 9 selected")).toBeInTheDocument();
+    expect(within(scopes).getAllByRole("checkbox")).toHaveLength(9);
+    expect(within(scopes).getAllByRole("checkbox", { checked: true })).toHaveLength(5);
   });
 
   it("shows feedback when copying a newly created API key fails", async () => {

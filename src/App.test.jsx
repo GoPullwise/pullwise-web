@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App.jsx";
 import { pullwiseApi } from "./api/pullwise.js";
@@ -8,6 +9,7 @@ import { screenFromPath } from "./lib/navigation.js";
 vi.mock("./api/pullwise.js", () => ({
   pullwiseApi: { auth: { getSession: vi.fn() } },
 }));
+vi.mock("./screens/ledger.jsx", () => ({ LedgerScreen: () => <h1>Projects</h1> }));
 
 beforeEach(() => {
   window.history.replaceState({}, "", "/");
@@ -22,6 +24,47 @@ it("retires legacy product routes", () => {
 
 it("shows a not found page for a retired route", async () => {
   window.history.replaceState({}, "", "/dashboard/overview");
-  render(<NotificationProvider><App /></NotificationProvider>);
+  render(
+    <NotificationProvider>
+      <App />
+    </NotificationProvider>
+  );
   expect(await screen.findByText("This page took a wrong turn")).toBeInTheDocument();
+});
+
+it("focuses the page heading after a lazy screen loads", async () => {
+  window.history.replaceState({}, "", "/developers/docs");
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true });
+  render(<App />);
+
+  const heading = await screen.findByRole("heading", { name: "GitHub project expense ledger" });
+  await waitFor(() => expect(heading).toHaveFocus());
+});
+
+it("moves keyboard focus to the destination heading after navigation", async () => {
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true });
+  const user = userEvent.setup();
+  render(<App />);
+
+  screen.getAllByRole("link", { name: "Docs" })[0].focus();
+  await user.keyboard("{Enter}");
+  const heading = await screen.findByRole("heading", { name: "GitHub project expense ledger" });
+  await waitFor(() => expect(heading).toHaveFocus());
+});
+
+it("preserves preference focus while an authenticated workspace loads", async () => {
+  window.history.replaceState({}, "", "/projects");
+  let restoreSession;
+  pullwiseApi.auth.getSession.mockReturnValue(
+    new Promise((resolve) => {
+      restoreSession = resolve;
+    })
+  );
+  render(<App />);
+  const language = screen.getByRole("button", { name: "Select language" });
+  language.focus();
+  restoreSession({ authenticated: true, user: { id: "local-focus" } });
+
+  await screen.findByRole("heading", { name: "Projects" });
+  expect(language).toHaveFocus();
 });

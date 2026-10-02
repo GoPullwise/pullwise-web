@@ -398,16 +398,12 @@ function BillingSkeleton() {
 
 function BillingLoadError({ error, onRetry }) {
   return (
-    <div className="card section billing-load-error" role="alert">
-      <div className="section-h">
-        <div>
-          <h2>{T("Billing is unavailable", "Billing is unavailable")}</h2>
-          <p className="muted">
-            {error || T("Unable to load billing data.", "Unable to load billing data.")}
-          </p>
-        </div>
+    <div className="notice notice-error" role="alert">
+      <div className="panel-h">
         <I.Lightbulb size={16} />
+        <h2>{T("Billing is unavailable", "Billing is unavailable")}</h2>
       </div>
+      <p>{error || T("Unable to load billing data.", "Unable to load billing data.")}</p>
       <button type="button" className="btn" onClick={onRetry}>
         <I.Refresh size={14} /> {T("Retry billing", "Retry billing")}
       </button>
@@ -417,23 +413,20 @@ function BillingLoadError({ error, onRetry }) {
 
 function PricingLoadError({ error, onRetry }) {
   return (
-    <div className="pricing-load-error card section" role="alert">
-      <I.Lightbulb size={18} />
-      <div>
+    <div className="notice notice-error" role="alert">
+      <div className="panel-h">
+        <I.Lightbulb size={18} />
         <h2>{T("Pricing is unavailable", "Pricing is unavailable")}</h2>
-        <p className="muted">{error || T("Unable to load pricing.", "Unable to load pricing.")}</p>
-        <button type="button" className="btn primary" onClick={onRetry}>
-          <I.Refresh size={14} /> {T("Retry pricing", "Retry pricing")}
-        </button>
       </div>
+      <p>{error || T("Unable to load pricing.", "Unable to load pricing.")}</p>
+      <button type="button" className="btn primary" onClick={onRetry}>
+        <I.Refresh size={14} /> {T("Retry pricing", "Retry pricing")}
+      </button>
     </div>
   );
 }
 
-export function BillingScreen({
-  go,
-  navigate = (url) => window.location.assign(url),
-}) {
+export function BillingScreen({ go, navigate = (url) => window.location.assign(url) }) {
   useLang();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState("");
@@ -734,11 +727,7 @@ export function BillingScreen({
   return (
     <div className="app fade-in">
       <div ref={billingBackgroundRef} className="billing-background">
-        <Topbar
-          go={go}
-          breadcrumbs={[{ label: T("Billing", "Billing") }]}
-          loading={loading}
-        />
+        <Topbar go={go} breadcrumbs={[{ label: T("Billing", "Billing") }]} loading={loading} />
         <div className="with-side">
           <Sidebar section="billing" go={go} />
           <div className="main wide" role="main">
@@ -793,76 +782,83 @@ export function BillingScreen({
                           <div className="muted">
                             {accountStatus} -{" "}
                             {activePaid
-                              ? T(`Billed ${subscriptionInterval}`, `按 ${subscriptionInterval} 计费`)
+                              ? T(
+                                  `Billed ${subscriptionInterval}`,
+                                  `按 ${subscriptionInterval} 计费`
+                                )
                               : T("Upgrade from Pricing", "前往价格页升级")}
                           </div>
                         </div>
                       </div>
                       {activePaid && (
                         <div className="billing-actions">
-                        {alternatePaidPlans.map((paidPlan) => (
-                          <button
-                            key={paidPlan.id}
-                            className="btn primary"
-                            disabled={Boolean(pendingAction)}
-                            onClick={() =>
-                              requestSubscriptionChange({
-                                targetPlan: paidPlan.id,
-                                targetInterval: subscriptionInterval,
-                              })
-                            }
-                          >
-                            {pendingAction === `change-${paidPlan.id}-${subscriptionInterval}` && (
-                              <span className="spin">
-                                <I.Refresh size={14} />
-                              </span>
-                            )}
-                            <I.Trend size={14} />{" "}
-                            {T(`Switch to ${planLabel(paidPlan)}`, `切换到 ${planLabel(paidPlan)}`)}
-                          </button>
-                        ))}
-                        {subscriptionInterval === "month" && (
-                          <button
-                            className="btn"
-                            disabled={Boolean(pendingAction)}
-                            onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
-                          >
-                            {pendingAction === `change-${account.plan}-year` && (
-                              <span className="spin">
-                                <I.Refresh size={14} />
-                              </span>
-                            )}
-                            <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
-                          </button>
-                        )}
-                        {cancellationScheduled ? (
-                          <button
-                            className="btn"
-                            disabled={Boolean(pendingAction)}
-                            onClick={resumeSubscription}
-                          >
-                            {pendingAction === "resume" && (
-                              <span className="spin">
-                                <I.Refresh size={14} />
-                              </span>
-                            )}
-                            <I.Refresh size={14} /> {T("Resume renewal", "Resume renewal")}
-                          </button>
-                        ) : (
-                          <button
-                            className="btn"
-                            disabled={Boolean(pendingAction)}
-                            onClick={requestCancelSubscription}
-                            aria-busy={pendingAction === "cancel"}
-                          >
-                            {pendingAction === "cancel" && (
-                              <span className="spin">
-                                <I.Refresh size={14} />
-                              </span>
-                            )}
-                            <I.X size={14} /> {T("Cancel renewal", "取消续订")}
-                          </button>
-                        )}
+                          {alternatePaidPlans.map((paidPlan) => (
+                            <button
+                              key={paidPlan.id}
+                              className="btn primary"
+                              disabled={Boolean(pendingAction)}
+                              onClick={() =>
+                                requestSubscriptionChange({
+                                  targetPlan: paidPlan.id,
+                                  targetInterval: subscriptionInterval,
+                                })
+                              }
+                            >
+                              {pendingAction ===
+                                `change-${paidPlan.id}-${subscriptionInterval}` && (
+                                <span className="spin">
+                                  <I.Refresh size={14} />
+                                </span>
+                              )}
+                              <I.Trend size={14} />{" "}
+                              {T(
+                                `Switch to ${planLabel(paidPlan)}`,
+                                `切换到 ${planLabel(paidPlan)}`
+                              )}
+                            </button>
+                          ))}
+                          {subscriptionInterval === "month" && (
+                            <button
+                              className="btn"
+                              disabled={Boolean(pendingAction)}
+                              onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
+                            >
+                              {pendingAction === `change-${account.plan}-year` && (
+                                <span className="spin">
+                                  <I.Refresh size={14} />
+                                </span>
+                              )}
+                              <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
+                            </button>
+                          )}
+                          {cancellationScheduled ? (
+                            <button
+                              className="btn"
+                              disabled={Boolean(pendingAction)}
+                              onClick={resumeSubscription}
+                            >
+                              {pendingAction === "resume" && (
+                                <span className="spin">
+                                  <I.Refresh size={14} />
+                                </span>
+                              )}
+                              <I.Refresh size={14} /> {T("Resume renewal", "Resume renewal")}
+                            </button>
+                          ) : (
+                            <button
+                              className="btn"
+                              disabled={Boolean(pendingAction)}
+                              onClick={requestCancelSubscription}
+                              aria-busy={pendingAction === "cancel"}
+                            >
+                              {pendingAction === "cancel" && (
+                                <span className="spin">
+                                  <I.Refresh size={14} />
+                                </span>
+                              )}
+                              <I.X size={14} /> {T("Cancel renewal", "取消续订")}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1269,7 +1265,9 @@ export function PricingScreen({
       </section>
 
       {error && !plan ? (
-        <PricingLoadError error={error} onRetry={loadPricingPlan} />
+        <section className="pricing-tiers">
+          <PricingLoadError error={error} onRetry={loadPricingPlan} />
+        </section>
       ) : (
         <section className="pricing-tiers">
           <PlanCard
@@ -1356,11 +1354,19 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
   const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
   const limits = plan?.entitlements?.limits;
   const jev = plan?.entitlements?.jev;
-  const projects = Number.isSafeInteger(limits?.projects) && limits.projects > 0 ? limits.projects : null;
-  const records = Number.isSafeInteger(limits?.expenseRecords) && limits.expenseRecords > 0 ? limits.expenseRecords : null;
-  const jevBudget = plan?.id === "max" && jev?.eligible === true &&
-    typeof jev.monthlyBudgetUsd === "string" && /^\d+(?:\.\d{1,6})?$/.test(jev.monthlyBudgetUsd)
-    ? jev.monthlyBudgetUsd : null;
+  const projects =
+    Number.isSafeInteger(limits?.projects) && limits.projects > 0 ? limits.projects : null;
+  const records =
+    Number.isSafeInteger(limits?.expenseRecords) && limits.expenseRecords > 0
+      ? limits.expenseRecords
+      : null;
+  const jevBudget =
+    plan?.id === "max" &&
+    jev?.eligible === true &&
+    typeof jev.monthlyBudgetUsd === "string" &&
+    /^\d+(?:\.\d{1,6})?$/.test(jev.monthlyBudgetUsd)
+      ? jev.monthlyBudgetUsd
+      : null;
   return (
     <div className={"pricing-card" + (featured ? " featured" : "")}>
       {featured && <div className="pricing-badge">{planLabel(plan)}</div>}
@@ -1397,20 +1403,32 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
       </div>
       <ul className="pricing-feats">
         {!loading && projects !== null && (
-          <li><I.Check size={13} /> {T("Projects", "项目")}: {projects.toLocaleString("en-US")}</li>
+          <li>
+            <I.Check size={13} /> {T("Projects", "项目")}: {projects.toLocaleString("en-US")}
+          </li>
         )}
         {!loading && records !== null && (
-          <li><I.Check size={13} /> {T("Expense records", "支出记录")}: {records.toLocaleString("en-US")}</li>
+          <li>
+            <I.Check size={13} /> {T("Expense records", "支出记录")}:{" "}
+            {records.toLocaleString("en-US")}
+          </li>
         )}
         {!loading && jev?.eligible === false && (
-          <li><I.Check size={13} /> {T("Jev: not included", "不含 Jev")}</li>
+          <li>
+            <I.Check size={13} /> {T("Jev: not included", "不含 Jev")}
+          </li>
         )}
         {!loading && jevBudget !== null && (
           <>
-            <li><I.Check size={13} /> {T("Jev budget", "Jev 预算")}: ${jevBudget} / {T("month", "月")}</li>
-            <li><I.Check size={13} /> {jev.available === true
-              ? T("Monthly budget · no rollover", "月度预算 · 不结转")
-              : T("Activation pending · no rollover", "待启用 · 不结转")}</li>
+            <li>
+              <I.Check size={13} /> {T("Jev budget", "Jev 预算")}: ${jevBudget} / {T("month", "月")}
+            </li>
+            <li>
+              <I.Check size={13} />{" "}
+              {jev.available === true
+                ? T("Monthly budget · no rollover", "月度预算 · 不结转")
+                : T("Activation pending · no rollover", "待启用 · 不结转")}
+            </li>
           </>
         )}
         <li>

@@ -121,30 +121,48 @@ export function App() {
   const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const screenKey = PUBLIC_SCREENS.has(screen)
+    ? screen
+    : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}:${routeVersion}`;
+  const navigationKey = `${screen}:${routeVersion}`;
+  const focusedNavigation = useRef(null);
   const continuedRepositoryAuthorization = useRef(false);
   const languageMenuRef = useRef(null);
   const screenRootRef = useRef(null);
 
   useEffect(() => {
-    const focusScreen = () => {
-      const root = screenRootRef.current;
-      if (!root) return;
+    const root = screenRootRef.current;
+    if (!root) return;
+    const navigating = focusedNavigation.current !== navigationKey;
+    focusedNavigation.current = navigationKey;
+    if (
+      !navigating &&
+      document.activeElement !== document.body &&
+      !root.contains(document.activeElement)
+    ) {
+      return;
+    }
+    const focusHeading = () => {
       const heading = root.querySelector("h1, [role='heading']");
-      const target = heading || root;
-      target.focus({ preventScroll: true });
+      if (!heading) return false;
+      heading.tabIndex = -1;
+      heading.classList.add("screen-heading");
+      heading.focus({ preventScroll: true });
+      return true;
     };
-    const frame =
-      typeof window.requestAnimationFrame === "function"
-        ? window.requestAnimationFrame(focusScreen)
-        : 0;
-    const timeout = window.setTimeout(focusScreen, 0);
-    return () => {
-      if (frame && typeof window.cancelAnimationFrame === "function") {
-        window.cancelAnimationFrame(frame);
+    if (focusHeading()) return;
+    root.focus({ preventScroll: true });
+    // Lazy screens and session restoration can render the heading later.
+    const observer = new MutationObserver(() => {
+      if (document.activeElement !== root && document.activeElement !== document.body) {
+        observer.disconnect();
+        return;
       }
-      window.clearTimeout(timeout);
-    };
-  }, [screen]);
+      if (focusHeading()) observer.disconnect();
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [navigationKey, screenKey]);
 
   const go = (nextScreen, params = {}) => {
     const path = pathFromScreen(nextScreen, params);
@@ -499,14 +517,11 @@ export function App() {
   return (
     <NotificationProvider>
       <div
+        className="screen-root"
         ref={screenRootRef}
         tabIndex={-1}
         data-screen-label={screen}
-        key={
-          PUBLIC_SCREENS.has(screen)
-            ? screen
-            : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}:${routeVersion}`
-        }
+        key={screenKey}
       >
         <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
       </div>

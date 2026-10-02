@@ -74,6 +74,8 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - Preserve the hard-edged design, square overlays, restrained monochrome
   palette, indigo accent, `--fs-*` typography and `--cat-*` chart tokens.
   Keep explicit CJK font fallbacks and accent foreground `--accent-fg`.
+  Change accent and foreground together for each theme, and measure contrast
+  on the actual page/control background before changing muted text tokens.
 - Hard edge is owned by the global reset (`border-radius: 0` on `*`) and no
   shadows exist anywhere: do not add `border-radius`/`box-shadow`
   declarations or radius/shadow tokens. Only the z tokens in `base.css` are
@@ -90,6 +92,13 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   Pool/project detail pages. On small screens, `.ledger-entry` places the
   explicitly opened expense form before the records. Detail totals remain
   per currency; filters use a native disclosure alongside CSV export.
+  Use `.panel-actions` for wrapping parallel actions and `.notice-error` for
+  recoverable errors, preserving the public frame gutters on Pricing.
+- Docs use shared `.docs-h2` headings with anchor IDs on the headings; keep
+  mobile section links visible in wrapped rows. API key creation follows name,
+  scopes, targets, then submit; target inputs use the shared `.auth-input`.
+  Unknown/loading GitHub access in Settings must not show disconnected-account
+  guidance or a successful repository count. Keep profile data and manual retry.
 - The shared Sidebar separates Ledger from Account & tools. Mobile shows
   the three Ledger links and a native account/tools selector; keep every
   destination reachable without a horizontally scrolled navigation rail.
@@ -102,6 +111,8 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   draft returns to the existing form without replacing historical edit state.
   Tabs shrink and wrap long labels inside their available width rather than
   hiding the last view in a horizontal scroll area.
+  Preserve their `min-content` width on touch devices; horizontal padding and
+  the mobile gutter provide hit area without clipping short localized words.
 - Projects searches only loaded names/descriptions; keep pagination available
   for no matches. Existing Projects reveal the creation rail on explicit Add
   project intent and restore opener focus on dismissal. The first-project
@@ -139,7 +150,7 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   wrapping these controls can make their labels include option/current values.
 - Loading skeletons use the same `.panel` sections as loaded content
   (Ledger included); the removed `.bill-card` family must not remain in
-  loading-only branches.
+  loading-only branches. API key skeletons retain target and key-list sections.
 - `app.css` is the last cascade layer, not a patch layer. To change an
   existing rule, edit the owning file (`base.css`/`screens.css`) in place;
   never re-declare the same property downstream. Keep `app.css` for
@@ -158,6 +169,9 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   occupy the topbar with reserved space beside account actions. Keep their
   dropdown below the header and bounded by viewport height; floating controls
   must not obscure fields or record actions. Public pages retain bottom controls.
+  Restore modal focus after all cleanups release the background's inert state.
+  Route focus waits for lazy headings; identity-only workspace remounts preserve
+  a language/theme control that the user is already operating.
 - `i18n.jsx` lazy-loads shared locale catalogs and `ledger*.js`. Keep only copy
   used by current pages. Dynamic rules cover current interpolated phrases.
   Provider/user text is displayed verbatim; preserve English fallback for it.
@@ -177,6 +191,11 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   also matches the `/api-keys` document route and otherwise sends it to 8080.
   Finish builds before browser capture runs; rebuilding replaces `dist` and
   can cause transient navigation failures during a concurrent screenshot run.
+  Assert coarse-pointer media and `navigator.maxTouchPoints` for every mobile
+  case, including after screenshots: the installed Chrome capture command
+  clears touch emulation. Keep coarse media stable during the capture and
+  restore touch events before continuing interactions; viewport width alone
+  does not prove a touch layout.
 - All Wrangler/workerd/D1 commands remain paused until explicit user
   authorization. Never enable cron triggers. Remote validation needs reviewed
   row/operation bounds, frequency, pagination/cache policy and cost guard.

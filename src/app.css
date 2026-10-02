@@ -10,7 +10,10 @@
   height: 9px;
   background: var(--text-4);
   flex: 0 0 auto;
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 12%, transparent);
+}
+.screen-root:focus,
+.screen-heading:focus {
+  outline: none;
 }
 
 .lang-toggle {
@@ -326,6 +329,12 @@ body:has(.with-side) .lang-menu {
   .lang-menu-i {
     min-height: 44px;
   }
+  .lp-foot .legal-foot-l,
+  .lp-top .brand,
+  .auth-back-home {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 .notfound-suggest-t,
@@ -433,31 +442,6 @@ body:has(.with-side) .lang-menu {
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 820px) {
-  .product-api-docs .docs-side {
-    position: static;
-    display: block;
-    min-width: 0;
-    max-height: none;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  .product-api-docs .docs-side-g {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 4px;
-    width: max-content;
-  }
-
-  .product-api-docs .docs-side-h,
-  .product-api-docs .docs-side-i {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-}
-
 .gh-install-meta {
   display: flex;
   flex-wrap: wrap;
@@ -486,10 +470,7 @@ body:has(.with-side) .lang-menu {
 .set-row > div:last-child,
 .billing-summary-main > div,
 .api-key-create,
-.api-key-create-head > div:last-child,
 .api-key-create-main,
-.api-key-name-row,
-.api-key-name-row .auth-field,
 .api-scope-panel,
 .api-scope-head > div:first-child,
 .api-scope-row,
@@ -897,6 +878,15 @@ body:has(.with-side) .lang-menu {
   border-top: 1px solid var(--border);
   font-size: var(--fs-sm);
   color: var(--text-3);
+}
+.lp-foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.lp-foot .legal-foot-l {
+  display: inline-flex;
+  align-items: center;
 }
 .lp-hero {
   display: grid;
@@ -1432,45 +1422,6 @@ body:has(.with-side) .lang-menu {
   .status-section {
     padding-left: 16px;
     padding-right: 16px;
-  }
-}
-.settings-inline-error {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--border-strong);
-  border-left: 3px solid var(--sev-high);
-  background: var(--bg-elev);
-  color: var(--text-2);
-  font-size: var(--fs-sm);
-  line-height: 1.5;
-}
-
-.settings-inline-error > div {
-  min-width: 0;
-}
-
-.settings-inline-error b {
-  display: block;
-  margin-bottom: 3px;
-  color: var(--text);
-  font-size: var(--fs-md);
-}
-
-.settings-inline-error .btn {
-  flex: 0 0 auto;
-}
-
-@media (max-width: 520px) {
-  .settings-inline-error {
-    flex-direction: column;
-  }
-
-  .settings-inline-error .btn {
-    width: 100%;
   }
 }
 .settings-screen .github-next-step {

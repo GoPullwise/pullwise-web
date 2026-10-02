@@ -384,6 +384,11 @@
   }
 }
 @media (max-width: 760px) {
+  .ledger-screen input:not([type="checkbox"]),
+  .ledger-screen select,
+  .ledger-screen textarea {
+    font-size: var(--fs-2xl);
+  }
   .ledger-screen .ledger-categories .page-h {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -463,6 +468,9 @@
   }
 }
 @media (pointer: coarse) {
+  .ledger-screen .disclosure > summary {
+    min-height: 44px;
+  }
   .ledger-screen input,
   .ledger-screen select,
   .ledger-screen .btn {
