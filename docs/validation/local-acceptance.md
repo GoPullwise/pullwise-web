@@ -30,7 +30,11 @@ Source commit `28dfea078d528954be491c7fe79b44ae5f315cbf` was pushed to main.
 GitHub's combined statuses and exact-SHA push workflow query returned no Web CI
 runs; remote Web CI remains unverified. Server source `04c8797` passed push CI
 [36961634876](https://github.com/GoPullwise/pullwise-server/actions/runs/36961634876).
-Preview backend deployment still requires separate authorization and was not run.
+The user separately authorized preview backend publication. Server source
+`04c8797` is now deployed as `ca964508-e9b5-45d6-8c5c-a373d3be8bdd` at 100%.
+Management read-back confirms the original preview DB/budget namespace, complete
+bindings and environment variables; production Server D1 access remains 0.
+No runtime identity/provider or D1 acceptance request was executed.
 
 The existing frontend deployment authorization was used for this checked snapshot
 only, excluding all concurrent worktree changes. Wrangler 4.146.0 published
