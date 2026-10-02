@@ -58,6 +58,11 @@ describe("API screens", () => {
       expect(markdown).toContain("# Pullwise ledger REST API");
       expect(markdown).toContain("### GET /api/v1/expenses");
       expect(markdown).toContain("Idempotency-Key");
+      expect(markdown).toContain("Automatic Max assistance");
+      expect(markdown).toContain("CATEGORY_REQUIRED");
+      expect(markdown).toContain("categorySource");
+      expect(markdown).toContain('-H "Authorization: Bearer $PULLWISE_API_KEY"');
+      expect(markdown).not.toContain("-H 'Authorization: Bearer $PULLWISE_API_KEY'");
     } finally {
       if (originalClipboard)
         Object.defineProperty(navigator, "clipboard", {
@@ -68,7 +73,7 @@ describe("API screens", () => {
     }
   });
 
-  it("resolves same-origin API base URLs without doubling /api", async () => {
+  it("preserves the Web proxy prefix before the Server API path in same-origin examples", async () => {
     const originalApiBase = env.VITE_API_BASE_URL;
     const originalPublicApiBase = env.VITE_PUBLIC_API_BASE_URL;
     env.VITE_API_BASE_URL = "/api";
@@ -76,7 +81,9 @@ describe("API screens", () => {
     try {
       render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
-      expect(screen.getByText(/curl.*api\/v1\/expenses/)).toBeInTheDocument();
+      const examples = screen.getAllByText(/curl.*api\/v1\/expenses/);
+      expect(examples).toHaveLength(2);
+      for (const example of examples) expect(example).toHaveTextContent(`${window.location.origin}/api/api/v1/expenses`);
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
       env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
@@ -96,6 +103,15 @@ describe("API screens", () => {
     expect(keys).toHaveAttribute("href", "/api-keys");
     await userEvent.setup().click(keys);
     expect(go).toHaveBeenCalledWith("apiKeys");
+  });
+
+  it("documents automatic assistance on regular expense writes with no extra scope", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+    expect(screen.getByRole("heading", { name: "Automatic Max assistance" })).toBeInTheDocument();
+    expect(screen.getByText(/No separate suggestion request or suggestions:use scope/i)).toBeInTheDocument();
+    expect(screen.getByText(/CATEGORY_REQUIRED/)).toBeInTheDocument();
+    expect(screen.getByText(/categorySource/)).toBeInTheDocument();
+    expect(screen.getByText(/curl.*POST/)).toHaveTextContent("Idempotency-Key");
   });
 
   it("exposes API key management docs navigation as real screen links", async () => {

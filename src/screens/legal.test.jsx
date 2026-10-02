@@ -51,7 +51,7 @@ describe("legal pages", () => {
   it("shows the current legal document update date", () => {
     render(<PrivacyScreen go={vi.fn()} />);
 
-    expect(screen.getByText("2026-09-27")).toBeInTheDocument();
+    expect(screen.getByText("2026-10-02")).toBeInTheDocument();
   });
 
   it("keeps billing terms aligned with implemented renewal controls", () => {
@@ -59,6 +59,7 @@ describe("legal pages", () => {
 
     expect(screen.getByText(/cancel renewal for an active subscription/i)).toBeInTheDocument();
     expect(screen.getByText(/resume renewal from Pullwise Billing/i)).toBeInTheDocument();
+    expect(screen.getByText(/Upgrades update your plan after payment confirmation/i)).toBeInTheDocument();
     expect(
       screen.getByText(/lower-tier changes or yearly-to-monthly changes/i)
     ).toBeInTheDocument();
@@ -73,6 +74,19 @@ describe("legal pages", () => {
     render(<TermsScreen go={vi.fn()} />);
     expect(screen.getAllByText(/platform subscription/i)[0]).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/queue and cancel scans|deterministic fixes|public scan creation|scans:write/i);
+  });
+
+  it("discloses Max model processing during ordinary saving and preserves user control", () => {
+    const { unmount } = render(<PrivacyScreen go={vi.fn()} />);
+    expect(screen.getByText(/Max automatically uses Jev/i)).toHaveTextContent("submitted purpose and note");
+    expect(screen.getByText(/Max automatically uses Jev/i)).toHaveTextContent("allowed category names");
+    expect(screen.getByText(/Max automatically uses Jev/i)).toHaveTextContent("Pullwise checks possible duplicates in its own service");
+    expect(screen.getByText(/Max automatically uses Jev/i)).toHaveTextContent("Repository code is not sent");
+    expect(document.body.textContent).not.toContain("bounded authorized expense context");
+    expect(screen.queryByText(/Optional Jev suggestions/i)).not.toBeInTheDocument();
+    unmount();
+    render(<TermsScreen go={vi.fn()} />);
+    expect(screen.getByText(/Automatic Max assistance runs/i)).toHaveTextContent("expense write");
   });
 
 });

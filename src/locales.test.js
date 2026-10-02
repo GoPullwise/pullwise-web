@@ -7,7 +7,12 @@ import { LEDGER_SCREEN_PHRASES } from "./locales/ledger-screen.js";
 
 const LEDGER_COPY = [
   "Projects", "Shared expense pool", "Account overview", "Totals by currency",
-  "From date", "Export CSV", "Request suggestion", "Save expense",
+  "From date", "Export CSV", "Automatic", "Save expense", "Automatic Max assistance",
+  "Jev categorized this expense", "This expense may duplicate an existing entry. Review your records.",
+  "Choose a category to finish saving. Your draft is still here.",
+  "Automatic Jev assistance when saving expenses", "Missing category classification and review advice · Web + REST API",
+  "Annual subscriptions keep the same monthly Jev budget", "Monthly UTC budget · no rollover",
+  "Awaiting payment confirmation", "Subscription confirmed", "Refresh billing", "less per year",
   "Track expenses for each GitHub repository.",
   "Your recorded expenses remain available when GitHub access changes.",
   "Project expenses for GitHub teams", "Record project and shared expenses.",
@@ -19,7 +24,7 @@ const LEDGER_LONG_COPY = [
   "Expense lists and reports share target, projectId, categoryId, from (inclusive), to (exclusive) and currency filters. Lists also use limit and cursor. Amounts are decimal strings on writes and minor units in totals. Currencies are never combined.",
   "Pullwise provides a GitHub-connected project expense ledger through the web app and REST API. This policy also covers account, billing and support interactions.",
   "Ledger history remains with your account when GitHub access changes. Removed expenses and suggestion decisions may be retained in audit records. Account, API key, payment and operational records are kept as needed for service, security, tax, audit or legal purposes. Contact us to ask about deletion.",
-  "You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Supported upgrades take effect immediately; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
+  "You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Upgrades update your plan after payment confirmation; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
 ];
 
 describe("ledger locale copy", () => {

@@ -73,6 +73,98 @@ describe("BillingScreen", () => {
     vi.clearAllMocks();
   });
 
+  it("does not invent paid prices or enable missing yearly products", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        billingCatalog.plans[0],
+        {
+          ...billingCatalog.plans[1],
+          prices: { month: billingCatalog.plans[1].prices.month },
+        },
+      ],
+      account: { status: "none", plan: "free" },
+    });
+    const user = userEvent.setup();
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: /yearly/i }));
+    expect(screen.getByRole("button", { name: /start pro/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /start max/i })).toBeDisabled();
+    expect(document.body).not.toHaveTextContent("$290");
+    expect(document.body).not.toHaveTextContent("2 months free");
+    expect(document.querySelectorAll(".pricing-card")[2]).not.toHaveTextContent("$0");
+  });
+
+  it("derives yearly savings from verified matching currency prices", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        billingCatalog.plans[0],
+        {
+          ...billingCatalog.plans[1],
+          prices: {
+            month: billingCatalog.plans[1].prices.month,
+            year: { amount: "360", currency: "USD", interval: "year", configured: true },
+          },
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: /yearly/i }));
+    expect(document.body).not.toHaveTextContent("2 months free");
+  });
+
+  it("accepts the exact preview checkout host and returns purchases to Billing", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({ ...billingCatalog, account: { plan: "free" } });
+    pullwiseApi.billing.createCheckoutSession.mockResolvedValue({
+      url: "https://test-checkout.creem.io/ch_test",
+    });
+    const user = userEvent.setup();
+    const navigate = vi.fn();
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+    await user.click(await screen.findByRole("button", { name: /start pro/i }));
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith("https://test-checkout.creem.io/ch_test")
+    );
+    const payload = pullwiseApi.billing.createCheckoutSession.mock.calls[0][0];
+    expect(new URL(payload.successUrl).pathname).toBe("/billing");
+  });
+
+  it("keeps Pro visible while an upgrade awaits signed payment confirmation", async () => {
+    const pendingAccount = {
+      status: "active",
+      plan: "pro",
+      interval: "month",
+      pendingChange: { plan: "max", interval: "month" },
+    };
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: { status: "active", plan: "pro", interval: "month" },
+      })
+      .mockResolvedValue({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: pendingAccount,
+      });
+    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
+      plan: "max",
+      interval: "month",
+      pending: true,
+    });
+    const user = userEvent.setup();
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: /switch to max/i }));
+    await user.click(await screen.findByRole("button", { name: /confirm change/i }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(document.querySelector(".billing-summary-main")).toHaveTextContent("Pullwise Pro");
+    expect(screen.getByText(/awaiting payment confirmation/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /switch to max/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /refresh billing/i })).toBeEnabled();
+  });
+
   it("shows subscriptions without the retired processing usage panel", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -750,8 +842,16 @@ describe("BillingScreen", () => {
       plans: [...billingCatalog.plans, maxPlan].map((plan) => ({
         ...plan,
         entitlements: {
-          limits: { projects: plan.id === "free" ? 3 : 100, expenseRecords: plan.id === "free" ? 500 : 20000 },
-          jev: { eligible: plan.id === "max", available: false, monthlyBudgetUsd: plan.id === "max" ? "5.00" : "0.00", rollover: false },
+          limits: {
+            projects: plan.id === "free" ? 3 : 100,
+            expenseRecords: plan.id === "free" ? 500 : 20000,
+          },
+          jev: {
+            eligible: plan.id === "max",
+            available: false,
+            monthlyBudgetUsd: plan.id === "max" ? "5.00" : "0.00",
+            rollover: false,
+          },
         },
       })),
     });
@@ -791,7 +891,7 @@ describe("BillingScreen", () => {
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
-    expect(await screen.findAllByText("Configured in provider")).toHaveLength(2);
+    expect(await screen.findAllByText("Configured in provider")).toHaveLength(3);
     expect(document.body).not.toHaveTextContent("$-5");
     expect(document.body).not.toHaveTextContent("$not-a-number");
   });
@@ -1240,7 +1340,7 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
 
     expect(await screen.findByRole("button", { name: /resume renewal/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /switch to yearly/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /switch to yearly/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /cancel renewal/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /resume renewal/i }));
@@ -1306,50 +1406,17 @@ describe("BillingScreen", () => {
     expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(1);
   });
 
-  it("lets subscribers upgrade while cancellation is scheduled", async () => {
-    pullwiseApi.billing.getPlan
-      .mockResolvedValueOnce({
-        ...billingCatalog,
-        account: {
-          status: "canceling",
-          plan: "pro",
-          interval: "month",
-          cancelAtPeriodEnd: true,
-        },
-      })
-      .mockResolvedValueOnce({
-        ...billingCatalog,
-        account: {
-          status: "active",
-          plan: "pro",
-          interval: "year",
-          cancelAtPeriodEnd: false,
-          canceledAt: null,
-        },
-      });
-    pullwiseApi.billing.changeSubscriptionInterval.mockResolvedValue({
-      provider: "creem",
-      plan: "pro",
-      interval: "year",
-      status: "active",
-      cancelAtPeriodEnd: false,
-      canceledAt: null,
+  it("requires resuming renewal before offering an upgrade", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [...billingCatalog.plans, maxPlan],
+      account: { status: "canceling", plan: "pro", interval: "month", cancelAtPeriodEnd: true },
     });
-    const user = userEvent.setup();
-
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
-
-    await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
-    await user.click(await screen.findByRole("button", { name: /confirm change/i }));
-
-    await waitFor(() => {
-      expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledWith(
-        expect.objectContaining({
-          interval: "year",
-        })
-      );
-    });
-    expect(screen.queryByRole("button", { name: /resume renewal/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /resume renewal/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /switch to yearly/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /switch to max/i })).not.toBeInTheDocument();
+    expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
   });
 
   it("shows the user's subscription activity on Billing", async () => {

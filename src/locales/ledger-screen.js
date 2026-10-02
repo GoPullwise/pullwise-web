@@ -1,4 +1,7 @@
 const rows = [
+  ["Updating results… Previous results remain visible.", "正在更新结果，当前仍显示此前的数据。", "結果を更新中です。前の結果を表示しています。", "결과를 업데이트 중입니다. 이전 결과가 계속 표시됩니다.", "Mise à jour des résultats… Les précédents restent visibles.", "Actualizando resultados… Los anteriores siguen visibles."],
+  ["This expense may belong in the shared pool. Review its destination.", "这笔支出可能更适合公共池，请核对归属。", "この支出は共通費に属する可能性があります。対象を確認してください。", "이 지출은 공동 비용에 해당할 수 있습니다. 대상을 확인하세요.", "Cette dépense peut relever du fonds partagé. Vérifiez son affectation.", "Este gasto puede pertenecer al fondo compartido. Revisa su destino."],
+  ["This expense may be project-specific. Review its destination.", "这笔支出可能仅属于某个项目，请核对归属。", "この支出は特定のプロジェクトに属する可能性があります。対象を確認してください。", "이 지출은 특정 프로젝트에 해당할 수 있습니다. 대상을 확인하세요.", "Cette dépense peut être propre à un projet. Vérifiez son affectation.", "Este gasto puede corresponder a un proyecto concreto. Revisa su destino."],
   ["Continue draft", "继续填写", "入力を続ける", "작성 계속", "Continuer le brouillon", "Continuar borrador"],
   ["Filters", "筛选", "フィルター", "필터", "Filtres", "Filtros"],
   ["Ledger", "账本", "台帳", "장부", "Registre", "Libro"],
@@ -123,6 +126,13 @@ const rows = [
   ["Confirm removal", "确认移除", "削除を確定", "삭제 확인", "Confirmer le retrait", "Confirmar eliminación"],
   ["Remove", "移除", "削除", "삭제", "Retirer", "Eliminar"],
   ["Load more expenses", "加载更多支出", "支出をさらに読み込む", "지출 더 불러오기", "Charger plus de dépenses", "Cargar más gastos"],
+  ["Automatic", "自动分类", "自動", "자동", "Automatique", "Automática"],
+  ["Jev will select a category when you save, or choose one yourself.", "保存时 Jev 会自动分类，你也可以自行选择。", "保存時に Jev がカテゴリを選びます。自分で選ぶこともできます。", "저장할 때 Jev가 카테고리를 선택합니다. 직접 선택할 수도 있습니다.", "Jev choisira une catégorie à l’enregistrement, ou vous pouvez la choisir.", "Jev elegirá una categoría al guardar, o puedes elegirla tú."],
+  ["Choose a category to finish saving. Your draft is still here.", "请选择类别后保存，已填写的内容已保留。", "保存するにはカテゴリを選んでください。入力内容は保持されています。", "저장을 완료하려면 카테고리를 선택하세요. 입력한 내용은 유지됩니다.", "Choisissez une catégorie pour enregistrer. Votre brouillon est conservé.", "Elige una categoría para guardar. Tu borrador se conserva."],
+  ["Jev categorized this expense", "Jev 已自动为这笔支出分类", "Jev がこの支出を分類しました", "Jev가 이 지출을 분류했습니다", "Jev a classé cette dépense", "Jev ha clasificado este gasto"],
+  ["This expense may duplicate an existing entry. Review your records.", "这笔支出可能与已有记录重复，请核对账目。", "この支出は既存の記録と重複する可能性があります。記録を確認してください。", "이 지출은 기존 기록과 중복될 수 있습니다. 기록을 확인하세요.", "Cette dépense peut faire doublon avec une écriture existante. Vérifiez vos dépenses.", "Este gasto puede duplicar un registro existente. Revisa tus registros."],
+  ["This report is unavailable. Reload to try again.", "此报表暂不可用，重新加载后可再试。", "このレポートは利用できません。再読み込みしてください。", "이 보고서는 사용할 수 없습니다. 다시 불러오세요.", "Ce rapport est indisponible. Rechargez pour réessayer.", "Este informe no está disponible. Vuelve a cargarlo."],
+  ["Spending summary is unavailable. Reload to try again.", "支出汇总暂不可用，重新加载后可再试。", "支出の集計は利用できません。再読み込みしてください。", "지출 요약을 사용할 수 없습니다. 다시 불러오세요.", "Le récapitulatif des dépenses est indisponible. Rechargez pour réessayer.", "El resumen de gastos no está disponible. Vuelve a cargarlo."],
 ];
 export const LEDGER_SCREEN_PHRASES = Object.fromEntries(
   ["zh", "ja", "ko", "fr", "es"].map((code, index) =>

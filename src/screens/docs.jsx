@@ -29,6 +29,14 @@ const SECTIONS = [
     ],
   },
   {
+    id: "max-assistance",
+    title: ["Automatic Max assistance", "Max 自动辅助"],
+    text: [
+      "With Max, Jev automatically assists when you save an expense in the web app or REST API, while the model is available and within your monthly allowance. You can leave the category blank for reliable automatic categorization or choose one yourself. Your chosen category, project, amount and currency stay unchanged. If categorization is uncertain, choose a category to finish saving. Possible duplicates appear as advice after saving.",
+      "Max 在模型可用且月度额度内，会在 Web 应用或 REST API 保存支出时自动启用 Jev 辅助。分类可留空交由可靠的自动分类，也可自行选择。你明确选择的分类、项目、金额和币种会保持不变。无法可靠分类时，选择分类后即可保存；疑似重复记录会在保存后以提示呈现。",
+    ],
+  },
+  {
     id: "reports",
     title: ["Review reports", "查看报表"],
     text: [

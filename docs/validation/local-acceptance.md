@@ -2,6 +2,37 @@
 
 Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Product audit and automatic Max assistance (2026-10-02)
+
+Normal expense saves now use the shared Server automatic-assistance contract.
+The separate model trigger is removed. Eligible/available Max creates can
+omit category; uncertain classification keeps the draft, shows one inline
+notice and focuses the enabled native category control. Changed retries receive
+a fresh idempotency key. Post-save category, duplicate and target advice is
+nonblocking. Explicit category/target/money stay unchanged.
+
+Report outages preserve expense history/editing, pending filter refreshes label
+retained data and drafts stay intact. Amount totals use exact BigInt arithmetic,
+and report bars have a separate scale for each currency. Pricing no longer
+invents paid prices or annual products/savings; subscription upgrades wait for
+verified payment confirmation and unknown outcomes cannot trigger another charge.
+Public Docs/API/Privacy/Terms and five translated catalogs reflect the contract,
+actual model payload and shell-expanded Bearer examples behind the Web proxy.
+
+Behavior regressions failed before their fixes. Actual Chrome also reproduced
+disabled-control focus and uneven field heights before their repairs. Final
+`npm run check` passed ESLint, **35 files / 334 tests**, and production build;
+`npm run check:workers` and `git diff --check` passed. The final built-artifact
+browser run passed **20 cases**: four en/zh expense flows at 1440/390px and 16
+Docs/API/Privacy/Terms renders. It checked normal saves, category omission,
+native focus/draft recovery, fresh retries, advice, filter pending state,
+report outage recovery, exact huge totals, per-currency bars and model input
+copy. Twelve writes used synthetic loopback fixtures; no external provider,
+remote D1 or business request ran. Zero overflow/page errors remained, and
+phone touch/coarse state was verified after each capture. Eight final form
+captures passed visual review. This is local evidence; publication and CI
+verification are recorded separately after release.
+
 ## Global frontend publication (2026-10-02)
 
 The user explicitly requested committing, pushing and deploying all reviewed

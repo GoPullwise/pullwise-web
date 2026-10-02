@@ -8,7 +8,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const CONTACT_EMAIL = "contact@pull-wise.com";
 const SECURITY_EMAIL = CONTACT_EMAIL;
-const LAST_UPDATED = "2026-09-27";
+const LAST_UPDATED = "2026-10-02";
 const STATUS_REFRESH_MS = 30_000;
 
 function LegalChrome({ go, current, children, auth }) {
@@ -107,11 +107,11 @@ export function PrivacyScreen({ go, auth }) {
     <Section id="use" title={sections[2].title}><p>{T(
       "We use this data to authenticate users, check GitHub authorization, store and report expenses, manage API keys and subscriptions, prevent abuse and answer support requests. Platform charges are kept separate from user-entered expenses.",
       "我们用这些数据认证用户、检查 GitHub 授权、保存和汇总支出、管理 API 密钥与订阅、防止滥用并处理支持请求。平台收费与用户录入的支出分开保存。")}</p>
-      <p>{T("Optional Jev suggestions, when enabled, use the submitted expense text and allowed category names. Suggestions do not create or change ledger entries and require your confirmation.",
-        "启用可选的 Jev 建议时，系统会使用提交的支出文字和可用类别名称。建议不会创建或修改账目，需要你确认。")}</p></Section>
+      <p>{T("Max automatically uses Jev during expense saves, when available within the plan allowance, for categorization and advice on project or shared expenses. The model receives only the submitted purpose and note and allowed category names. Pullwise checks possible duplicates in its own service using a bounded authorized expense lookup; historical expense text is not sent to the model. Repository code is not sent, and stored GitHub tokens and API key tokens are excluded from model input. Explicit amounts, currencies, targets and categories are preserved; uncertain categorization requires you to choose a category.",
+        "Max 在模型可用且套餐额度内，会在保存支出时自动使用 Jev 分类，并提供项目或公共池归属建议。模型只接收本次提交的用途、备注及可用类别名称。Pullwise 在自身服务内通过有限的已授权支出查询检查疑似重复记录，不向模型发送历史支出文字。仓库代码不会发送，已保存的 GitHub 令牌及 API 密钥令牌也不纳入模型输入。明确填写的金额、币种、目标和类别会保留；无法可靠分类时需要你选择类别。")}</p></Section>
     <Section id="sharing" title={sections[3].title}><p>{T(
-      "GitHub supplies repository authorization, Creem processes platform payments, and the configured model provider processes optional suggestions when enabled. We do not sell your personal data or repository code.",
-      "GitHub 提供仓库授权，Creem 处理平台支付；启用可选建议时，配置的模型提供方会处理建议请求。我们不出售个人数据或仓库代码。")}</p></Section>
+      "GitHub supplies repository authorization, Creem processes platform payments, and the configured model provider processes Max expense assistance when available. We do not sell your personal data or repository code.",
+      "GitHub 提供仓库授权，Creem 处理平台支付；配置的模型提供方在可用时处理 Max 支出辅助。我们不出售个人数据或仓库代码。")}</p></Section>
     <Section id="retention" title={sections[4].title}><p>{T(
       "Ledger history remains with your account when GitHub access changes. Removed expenses and suggestion decisions may be retained in audit records. Account, API key, payment and operational records are kept as needed for service, security, tax, audit or legal purposes. Contact us to ask about deletion.",
       "GitHub 权限变化后，账目历史仍归你的账户。移除的支出及建议决定可能保留在审计记录中。账户、API 密钥、支付和运营记录会按服务、安全、税务、审计或法律需要保留。可联系我们询问删除事宜。")}</p></Section>
@@ -141,8 +141,8 @@ export function TermsScreen({ go, auth }) {
     subtitle={T("These terms cover the Pullwise project expense ledger, API keys and platform subscription.",
       "本条款适用于 Pullwise 项目支出账本、API 密钥和平台订阅。")}>
     <Section id="service" title={sections[0].title}><p>{T(
-      "Pullwise lets you record costs for GitHub projects and a shared expense pool. Entries, reports and optional suggestions are information supplied or confirmed by you; check amounts, categories and tax treatment yourself. No exchange rate is inferred.",
-      "Pullwise 允许你记录 GitHub 项目和公共池的支出。账目、报表和可选建议基于你提供或确认的信息；请自行核对金额、类别及税务处理。系统不会推断汇率。")}</p></Section>
+      "Pullwise lets you record costs for GitHub projects and a shared expense pool. Max includes automatic expense assistance when available within the plan allowance. Review your saved amounts, categories and tax treatment. No exchange rate is inferred.",
+      "Pullwise 允许你记录 GitHub 项目和公共池的支出。Max 在模型可用且套餐额度内包含自动支出辅助。请核对保存的金额、类别及税务处理。系统不会推断汇率。")}</p></Section>
     <Section id="account" title={sections[1].title}><p>{T(
       "Only connect repositories you are authorized to access. GitHub OAuth and App authorization control new repository binding. Your existing account ledger remains available if GitHub access later changes.",
       "只能连接你有权访问的仓库。GitHub OAuth 和 App 授权控制新仓库绑定。之后即使 GitHub 权限变化，已有账户账本仍可访问。")}</p></Section>
@@ -152,11 +152,11 @@ export function TermsScreen({ go, auth }) {
     <Section id="billing" title={sections[3].title}><p>{T(
       "Pullwise platform subscriptions are billed through Creem. Subscription charges and payment history are separate from expenses you record in your ledger. Review the displayed price, tax and renewal terms before purchase.",
       "Pullwise 平台订阅通过 Creem 收费。订阅费用和支付历史与账本中你录入的支出分开。购买前请核对显示的价格、税费和续订条款。")}</p>
-      <p>{T("You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Supported upgrades take effect immediately; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
-        "你可以在 Pullwise 账单页取消有效订阅的续订，取消会在当前已付周期结束时生效。在此之前可从账单页恢复续订。支持的升级立即生效，差额由 Creem 计算。产品内不支持降级或年付改月付。")}</p></Section>
+      <p>{T("You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Upgrades update your plan after payment confirmation; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
+        "你可以在 Pullwise 账单页取消有效订阅的续订，取消会在当前已付周期结束时生效。在此之前可从账单页恢复续订。升级在支付确认后更新套餐，差额由 Creem 计算。产品内不支持降级或年付改月付。")}</p></Section>
     <Section id="content" title={sections[4].title}><p>{T(
-      "You retain your ledger entries and other customer content. You allow Pullwise to store and process them to provide and secure the service. Optional suggestions cannot create expenses without your action.",
-      "你保留账目和其他客户内容。你允许 Pullwise 为提供和保护服务而存储及处理这些内容。可选建议未经你操作不能创建支出。")}</p></Section>
+      "You retain your ledger entries and other customer content. You allow Pullwise to store and process them to provide and secure the service. Automatic Max assistance runs as part of your expense write; it does not create expenses during reads or change explicit choices.",
+      "你保留账目和其他客户内容。你允许 Pullwise 为提供和保护服务而存储及处理这些内容。Max 自动辅助仅随你的支出写入运行，不会在读取时新增支出或改动明确选择。")}</p></Section>
     <Section id="contact" title={sections[5].title}><p>{T(`For questions, contact ${CONTACT_EMAIL}.`, `如有问题，请联系 ${CONTACT_EMAIL}。`)}</p></Section>
   </LegalDocLayout>;
 }

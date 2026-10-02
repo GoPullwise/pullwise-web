@@ -34,6 +34,7 @@ beforeEach(() => {
   api.projects.mockResolvedValue({ items: [], nextCursor: null });
   api.categories.mockResolvedValue([]);
   api.expenses.mockResolvedValue({ items: [], nextCursor: null });
+  api.createExpense.mockResolvedValue({ id: "exp_saved", categoryId: "cat_1" });
   api.reportSummary.mockResolvedValue({ groups: [] });
   api.reportTimeseries.mockResolvedValue({ groups: [] });
   api.reportCategories.mockResolvedValue({ groups: [] });
@@ -52,6 +53,46 @@ beforeEach(() => {
 });
 
 describe("ledger screens", () => {
+  it("labels retained filter results as updating while preserving the open expense draft", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    const previous = { id: "exp_1", target: { kind: "shared" }, occurredOn: "2026-09-27",
+      amount: "12.00", amountMinor: 1200, currency: "USD", categoryId: "cat_1", purpose: "Existing hosting", revision: 1 };
+    api.expenses.mockResolvedValue({ items: [previous], nextCursor: null });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Unsaved draft" } });
+    let finish;
+    api.expenses.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
+    expect(await screen.findByText("Updating results… Previous results remain visible.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Edit Existing hosting" })).toBeInTheDocument();
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Unsaved draft");
+    expect(screen.getByRole("tabpanel", { name: "Expenses" })).toHaveAttribute("aria-busy", "true");
+    const totals = screen.getByRole("heading", { name: "Totals by currency" }).closest("section");
+    expect(totals).toHaveAttribute("aria-busy", "true");
+    finish({ items: [previous], nextCursor: null });
+    await waitFor(() => expect(screen.queryByText("Updating results… Previous results remain visible.")).not.toBeInTheDocument());
+    expect(screen.getByRole("tabpanel", { name: "Expenses" })).toHaveAttribute("aria-busy", "false");
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Unsaved draft");
+  });
+  it("retains expense history and editing when reports fail independently", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({ items: [{ id: "exp_1", target: { kind: "shared" },
+      occurredOn: "2026-09-27", amount: "12.00", amountMinor: 1200, currency: "USD",
+      categoryId: "cat_1", purpose: "Existing hosting", revision: 1 }], nextCursor: null });
+    api.reportSummary.mockRejectedValue(new Error("Summary offline"));
+    api.reportTimeseries.mockRejectedValue(new Error("Chart offline"));
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    const edit = await screen.findByRole("button", { name: "Edit Existing hosting" });
+    expect(screen.getByText(/Spending summary is unavailable/i)).toBeInTheDocument();
+    fireEvent.click(edit);
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Existing hosting");
+    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+    expect(screen.getByText(/This report is unavailable/i)).toBeVisible();
+    const chart = screen.getByRole("heading", { name: "Expenses over time" }).closest("section");
+    expect(within(chart).queryByText("No expenses in this range.")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Expenses by category" })).toBeVisible();
+  });
   it("keeps history editable during an unknown GitHub outage without claiming access was lost", async () => {
     api.project.mockResolvedValueOnce({ id: "prj_1", githubRepoId: 202, githubFullName: null,
       description: "", status: "active", githubAccess: "unavailable", revision: 1, totals: [] });
@@ -629,70 +670,215 @@ describe("ledger screens", () => {
     expect(screen.getByText("USD 5.00")).toBeInTheDocument();
   });
 
-  it("requires confirmation before applying suggestions and keeps manual entry on failure", async () => {
+  it("renders large exact integer-string totals and chart proportions without rounding money", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
-    api.suggestExpense.mockResolvedValueOnce({
-      status: "available",
-      suggestionId: "sg_123",
-      suggestions: { categoryId: "cat_1", targetKind: "shared", duplicateExpenseId: "exp_1" },
-    });
+    api.reportSummary.mockResolvedValue({ groups: [{ target: "shared", projectId: null,
+      currency: "USD", amountMinor: "18014398509481982" }] });
+    api.reportTimeseries.mockResolvedValue({ groups: [
+      { bucket: "2026-09-01", currency: "USD", amountMinor: "18014398509481982" },
+      { bucket: "2026-09-02", currency: "USD", amountMinor: 9007199254740991 },
+      { bucket: "2026-09-03", currency: "USD", amountMinor: 0 },
+    ] });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
-    await screen.findByText(/No expenses for this target yet/i);
-    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
-      target: { value: "Hosting" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
-    expect(await screen.findByText(/^Possible duplicate:/i)).toBeInTheDocument();
-    expect(screen.getByLabelText("Category")).toHaveValue("");
-    fireEvent.click(screen.getByLabelText(/I reviewed the possible duplicate/i));
-    fireEvent.click(screen.getByRole("button", { name: /use suggestion/i }));
-    expect(screen.getByLabelText("Category")).toHaveValue("cat_1");
-    expect(api.createExpense).not.toHaveBeenCalled();
-    expect(api.suggestDecision).toHaveBeenCalled();
-    api.suggestExpense.mockRejectedValueOnce(new Error("offline"));
-    fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
-    expect(await screen.findByText(/Suggestion unavailable/i)).toBeInTheDocument();
-    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Hosting");
+    const totals = (await screen.findByRole("heading", { name: "Totals by currency" })).closest("section");
+    expect(within(totals).getByText("USD 180,143,985,094,819.82")).toBeVisible();
+    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+    const chart = screen.getByRole("heading", { name: "Expenses over time" }).closest("section");
+    expect(within(chart).getByText("USD 180,143,985,094,819.82")).toBeVisible();
+    const bars = chart.querySelectorAll(".ledger-chart-track > span");
+    expect([...bars].map((bar) => bar.style.width)).toEqual(["100%", "50%", "0%"]);
   });
 
-  it("does not request Jev for Free or Pro and keeps the manual draft", async () => {
-    api.me.mockResolvedValue({ entitlements: { jev: { eligible: false, available: false } } });
-    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+  it("scales report bars within each currency while retaining exact integer totals", async () => {
+    api.reportTimeseries.mockResolvedValue({ groups: [
+      { bucket: "2026-09-01", currency: "USD", amountMinor: "18014398509481982" },
+      { bucket: "2026-09-02", currency: "USD", amountMinor: 9007199254740991 },
+      { bucket: "2026-09-01", currency: "JPY", amountMinor: 200 },
+      { bucket: "2026-09-02", currency: "JPY", amountMinor: 100 },
+      { bucket: "2026-09-01", currency: "KRW", amountMinor: 0 },
+    ] });
+    api.reportCategories.mockResolvedValue({ groups: [
+      { categoryId: "cat_1", currency: "USD", amountMinor: 10000 },
+      { categoryId: "cat_2", currency: "USD", amountMinor: 2500 },
+      { categoryId: "cat_1", currency: "JPY", amountMinor: 120 },
+      { categoryId: "cat_2", currency: "JPY", amountMinor: 30 },
+    ] });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
-    await screen.findByText(/No expenses for this target yet/i);
-    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
-      target: { value: "Hosting" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /request suggestion/i }));
-    expect(await screen.findByText("Jev suggestions require Max.")).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("tab", { name: "Reports" }));
+    const timeseries = screen.getByRole("heading", { name: "Expenses over time" }).closest("section");
+    const categories = screen.getByRole("heading", { name: "Expenses by category" }).closest("section");
+    expect(within(timeseries).getByText("Bars are scaled separately for each currency.")).toBeVisible();
+    expect(within(categories).getByText("Bars are scaled separately for each currency.")).toBeVisible();
+    expect([...timeseries.querySelectorAll(".ledger-chart-track > span")].map((bar) => bar.style.width))
+      .toEqual(["100%", "50%", "100%", "50%", "0%"]);
+    expect([...categories.querySelectorAll(".ledger-chart-track > span")].map((bar) => bar.style.width))
+      .toEqual(["100%", "25%", "100%", "25%"]);
+  });
+
+  it("uses Max automatic categorization through ordinary saving without a suggestion action", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.createExpense.mockResolvedValueOnce({ id: "exp_saved", categoryId: "cat_1", assistance: {
+      status: "available", categorySource: "jev", suggestions: { categoryId: "cat_1" },
+    } });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    await waitFor(() => expect(screen.getByLabelText("Category")).not.toBeRequired());
+    expect(screen.queryByRole("button", { name: /suggestion/i })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    await waitFor(() => expect(api.createExpense).toHaveBeenCalledTimes(1));
+    expect(api.createExpense.mock.calls[0][0]).not.toHaveProperty("categoryId");
+    expect(api.createExpense.mock.calls[0][0]).toMatchObject({ purpose: "Hosting", amount: "12.00", target: { kind: "shared" } });
+    expect(await screen.findByText(/Jev categorized this expense/i)).toHaveTextContent("Tools");
     expect(api.suggestExpense).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Hosting");
+    expect(api.suggestDecision).not.toHaveBeenCalled();
+    expect(api.me).toHaveBeenCalledTimes(1);
   });
 
-  it("does not launch Jev after the entitlement check finishes on an unmounted draft", async () => {
-    let resolveProfile;
-    api.me.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveProfile = resolve;
-        })
-    );
+  it("preserves manual choices and shows duplicate advice only after a successful ordinary save", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
-    const view = render(<LedgerScreen go={vi.fn()} mode="shared" />);
-    await screen.findByText(/No expenses for this target yet/i);
-    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
-      target: { value: "Hosting" },
-    });
-    const button = screen.getByRole("button", { name: /request suggestion/i });
-    fireEvent.click(button);
-    fireEvent.click(button);
-    expect(api.me).toHaveBeenCalledTimes(1);
-    view.unmount();
+    api.createExpense.mockResolvedValueOnce({ id: "exp_saved", categoryId: "cat_1", assistance: {
+      status: "available", categorySource: "user", suggestions: { categoryId: "cat_other", duplicateExpenseId: "exp_1" },
+    } });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Hosting" } });
+    expect(screen.queryByRole("checkbox", { name: /duplicate/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    expect(await screen.findByText(/This expense may duplicate an existing entry/i)).toBeInTheDocument();
+    expect(api.createExpense.mock.calls[0][0].categoryId).toBe("cat_1");
+    expect(screen.queryByText(/Jev categorized this expense/i)).not.toBeInTheDocument();
+  });
+
+  it("retains the draft and focuses category when automatic categorization needs manual input", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.createExpense.mockRejectedValueOnce({ status: 422, payload: {
+      error: { code: "CATEGORY_REQUIRED" }, assistance: { status: "uncertain", suggestions: {} },
+    } });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    await waitFor(() => expect(screen.getByLabelText("Category")).not.toBeRequired());
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    await waitFor(() => expect(screen.getByLabelText("Category")).toHaveFocus());
+    expect(screen.getByLabelText("Category")).toBeRequired();
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Hosting");
+    expect(screen.getByLabelText("Amount")).toHaveValue("12.00");
+    expect(screen.getAllByText(/Choose a category to finish saving/i)).toHaveLength(1);
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    await waitFor(() => expect(api.createExpense).toHaveBeenCalledTimes(2));
+    expect(api.createExpense.mock.calls[1][0].categoryId).toBe("cat_1");
+    expect(api.createExpense.mock.calls[1][1]).not.toBe(api.createExpense.mock.calls[0][1]);
+  });
+
+  it.each([
+    { mode: "project", suggested: "shared", notice: "This expense may belong in the shared pool. Review its destination." },
+    { mode: "shared", suggested: "project", notice: "This expense may be project-specific. Review its destination." },
+  ])("shows destination advice after saving without changing the chosen $mode target", async ({ mode, suggested, notice }) => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.createExpense.mockResolvedValueOnce({ id: "exp_saved", categoryId: "cat_1", assistance: {
+      status: "available", categorySource: "user", suggestions: { targetKind: suggested },
+    } });
+    render(<LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    expect(await screen.findByText(notice)).toBeInTheDocument();
+    expect(api.createExpense.mock.calls[0][0].target).toEqual(mode === "project" ? { kind: "project", projectId: "prj_1" } : { kind: "shared" });
+  });
+
+  it("keeps matching destination advice quiet after a manual-category save", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.createExpense.mockResolvedValueOnce({ id: "exp_saved", categoryId: "cat_1", assistance: {
+      status: "available", categorySource: "user", suggestions: { targetKind: "shared" },
+    } });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    await waitFor(() => expect(screen.queryByLabelText("Amount")).not.toBeInTheDocument());
+    expect(screen.queryByText(/Review its destination/)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { eligible: false, available: false },
+    { eligible: true, available: false },
+  ])("keeps manual categorization when automatic assistance is unavailable: %j", async (jev) => {
+    api.me.mockResolvedValue({ entitlements: { jev } });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    await waitFor(() => expect(api.me).toHaveBeenCalledTimes(1));
+    expect(screen.getByLabelText("Category")).toBeRequired();
+    expect(screen.queryByRole("button", { name: /suggestion/i })).not.toBeInTheDocument();
+    expect(api.suggestExpense).not.toHaveBeenCalled();
+  });
+
+  it("keeps category required when the entitlement read fails", async () => {
+    api.me.mockRejectedValueOnce(new Error("Profile offline"));
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    await waitFor(() => expect(api.me).toHaveBeenCalledTimes(1));
+    expect(screen.getByLabelText("Category")).toBeRequired();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("aborts the one-time entitlement read when its draft is closed", async () => {
+    let resolveProfile;
+    api.me.mockImplementationOnce(() => new Promise((resolve) => { resolveProfile = resolve; }));
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    const signal = api.me.mock.calls[0][0].signal;
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(signal.aborted).toBe(true);
     resolveProfile({ entitlements: { jev: { eligible: true, available: true } } });
     await Promise.resolve();
+    expect(screen.queryByLabelText("Amount")).not.toBeInTheDocument();
     expect(api.suggestExpense).not.toHaveBeenCalled();
+    expect(api.createExpense).not.toHaveBeenCalled();
+  });
+
+  it("does not let automatic assistance omit the category when editing history", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({ items: [{ id: "exp_1", target: { kind: "shared" },
+      occurredOn: "2026-09-27", amount: "12.00", currency: "USD", categoryId: "cat_1", purpose: "Hosting", revision: 1 }], nextCursor: null });
+    render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit Hosting" }));
+    expect(screen.getByLabelText("Category")).toBeRequired();
+    expect(api.me).not.toHaveBeenCalled();
+  });
+
+  it("clears saved assistance when the ledger scope changes", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.createExpense.mockResolvedValueOnce({ id: "exp_saved", categoryId: "cat_1", assistance: {
+      status: "available", categorySource: "jev", suggestions: { categoryId: "cat_1" },
+    } });
+    const view = render(<LedgerScreen go={vi.fn()} mode="shared" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Hosting" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    await screen.findByText(/Jev categorized this expense/i);
+    view.rerender(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    await screen.findByRole("heading", { name: "alice/project", level: 1 });
+    expect(screen.queryByText(/Jev categorized this expense/i)).not.toBeInTheDocument();
   });
 });

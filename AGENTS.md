@@ -35,12 +35,29 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   loops with recoverable guidance. Preserve lost-access historical expenses.
 - Expense creation uses fresh Idempotency-Key; changes/removal use If-Match.
   Conflicts require explicit reload. Reports/list/export share filters; totals
-  stay per currency. Suggestions only populate drafts after user confirmation.
+  stay per currency. Parse aggregate amountMinor (safe number or decimal integer
+  string) with BigInt and form chart ratios only after exact integer arithmetic.
+  Report outages cannot erase loaded expenses or imply successful zero totals.
+  Report bars use a separate exact maximum for each currency and explain that
+  scale; never compare USD/JPY/KRW minor units on one shared numeric scale.
+  Label retained filter results as Updating results and mark their regions
+  aria-busy while refreshing; preserve open drafts. Native controls ignore
+  focus while disabled, so focus category fallbacks after the write settles
+  and the control renders enabled. Keep category help outside the input grid
+  so adjacent field heights remain aligned.
 - Billing shows subscriptions and payment history separately from expenses.
   Preserve checkout, upgrade, cancellation, resume, trusted redirects and
   webhook-driven entitlement. Do not display retired processing usage or
   invent unconfigured prices/allowances. Mutation completion after unmount
   must not navigate or update state. Keep one-time tokens tied to their key.
+- Prices and subscription actions use the exact configured month/year price;
+  never infer a missing annual product, invent fallback paid prices, coerce
+  null amounts to zero, or hardcode annual savings. Checkout success returns
+  to Billing. A pending upgrade preserves the current plan and offers manual
+  refresh until the signed payment update confirms it; never optimistically
+  grant Max or automatically repeat a potentially charged change. Resume
+  scheduled renewal before upgrading. Trust only exact Creem checkout hosts,
+  including test-checkout.creem.io for preview.
 
 ## Visual and localization rules
 
@@ -232,9 +249,20 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   Do not confuse an enabled path with completed real login/payment acceptance;
   a budget stop must stay an error and never trigger automated retries/resets.
 - Pricing displays Server-provided allowances/Max Jev budget. Eligibility is
-  separate from availability. An explicit suggestion click checks /me once;
-  abort on draft change/unmount and never poll or dispatch after a stale check.
+  separate from availability. Max assistance runs in normal expense saves,
+  without a model trigger button, draft request or polling. New forms fetch
+  /me once with an abortable lifecycle; only eligible/available Max creates
+  offer automatic category omission, while edits require explicit categories.
+  CATEGORY_REQUIRED preserves the draft, focuses the category and requires
+  manual selection. Render that notice only inside the form; other action
+  failures retain the shared action notice. Changes get a fresh idempotency key. Post-save automatic
+  classification, duplicate and mismatched-target advice is nonblocking;
+  never change the explicit target or money. Public API examples preserve
+  Web's outer /api prefix plus Server's /api/v1 path and shell-expand key vars.
   Annual pricing never changes the monthly Jev budget or enables rollover.
+  Privacy describes model input as submitted purpose/note and allowed category
+  names only. Duplicate comparison is local Server logic; historical expense
+  text, repository code and stored credential tokens are not model inputs.
 - Web `wrangler.jsonc` targets production domains. Preview routing/config,
   Server domain, Cookie SameSite/domain and provider callbacks require review
   before any deployment. Local checks are not publication approval.

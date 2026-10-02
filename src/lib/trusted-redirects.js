@@ -4,13 +4,15 @@ const TRUSTED_GITHUB_HOST = "github.com";
 const TRUSTED_GITHUB_OAUTH_AUTHORIZE_PATH = "/login/oauth/authorize";
 const TRUSTED_GITHUB_API_ORIGINS = new Set(["https://api.pull-wise.com"]);
 const GITHUB_AUTH_PATHS = new Set(["/auth/github/authorize", "/api/auth/github/authorize"]);
-const LOCAL_GITHUB_CALLBACK_PATHS = new Set([
-  "/auth/github/callback",
-  "/api/auth/github/callback",
-]);
+const LOCAL_GITHUB_CALLBACK_PATHS = new Set(["/auth/github/callback", "/api/auth/github/callback"]);
 const GITHUB_INTEGRATION_PATH_PREFIXES = ["/integrations/github/", "/api/integrations/github/"];
 
-const TRUSTED_BILLING_PROVIDER_HOSTS = new Set(["checkout.creem.io", "creem.io", "www.creem.io"]);
+const TRUSTED_BILLING_PROVIDER_HOSTS = new Set([
+  "checkout.creem.io",
+  "test-checkout.creem.io",
+  "creem.io",
+  "www.creem.io",
+]);
 const TRUSTED_BILLING_FIRST_PARTY_HOSTS = new Set(["pull-wise.com", "app.pullwise.dev"]);
 
 function currentOrigin() {

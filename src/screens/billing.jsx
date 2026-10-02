@@ -5,7 +5,7 @@ import { SkeletonLine } from "../components/skeleton.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { screenLinkProps } from "../lib/navigation.js";
+import { pathFromScreen, screenLinkProps } from "../lib/navigation.js";
 import { formatBillingTimestamp } from "../lib/billing-date.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { useModalFocus } from "../lib/modal-focus.js";
@@ -15,7 +15,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 const CHECKOUT_PENDING_TIMEOUT_MS = 15 * 1000;
 
 function billingReturnUrl(kind, screen = "billing") {
-  const url = new URL(window.location.href);
+  const url = new URL(pathFromScreen(screen), window.location.origin);
   url.searchParams.set("screen", screen);
   url.searchParams.set("billing", kind);
   return url.toString();
@@ -26,7 +26,7 @@ function planById(payload, id) {
 }
 
 function priceFor(plan, interval) {
-  return plan?.prices?.[interval] || plan?.prices?.month || null;
+  return plan?.prices?.[interval] || null;
 }
 
 function priceLabel(price) {
@@ -50,6 +50,11 @@ function currencySymbol(currency) {
 }
 
 function priceAmount(value) {
+  if (
+    (typeof value !== "string" && typeof value !== "number") ||
+    (typeof value === "string" && !/^\d+(?:\.\d+)?$/.test(value))
+  )
+    return null;
   const amount = Number(value);
   if (!Number.isFinite(amount) || amount < 0) return null;
   return amount;
@@ -70,6 +75,26 @@ function moneyLabel(value, currency) {
 
 function annualizedPriceAmount(amount, interval) {
   return interval === "year" ? amount : amount * 12;
+}
+
+function yearlySavingsLabel(plan) {
+  const month = priceFor(plan, "month");
+  const year = priceFor(plan, "year");
+  const monthly = priceAmount(month?.amount);
+  const yearly = priceAmount(year?.amount);
+  if (
+    !month?.configured ||
+    !year?.configured ||
+    monthly == null ||
+    monthly <= 0 ||
+    yearly == null ||
+    normalizedCurrency(month) !== normalizedCurrency(year)
+  )
+    return "";
+  const saving = monthly * 12 - yearly;
+  if (saving <= 0) return "";
+  if (Math.abs(saving - monthly * 2) < 0.000001) return T("2 months free", "免费 2 个月");
+  return `${moneyLabel(saving, year.currency)} ${T("less per year", "每年节省")}`;
 }
 
 function billingChangeDeltaText(currentPlan, currentInterval, targetPlan, targetInterval) {
@@ -138,8 +163,8 @@ function subscriptionChangeIsUpgrade(currentPlan, currentInterval, targetPlan, t
 
 function billingChangeImpactText() {
   return T(
-    "Your plan changes now. Creem may charge the prorated difference immediately. Final tax and proration are calculated by Creem.",
-    "Your plan changes now. Creem may charge the prorated difference immediately. Final tax and proration are calculated by Creem."
+    "Creem may charge the prorated difference immediately. Your plan updates after payment confirmation. Final tax and proration are calculated by Creem.",
+    "Creem 可能立即收取按比例计算的差额。支付确认后，套餐才会更新。最终税费与差额由 Creem 计算。"
   );
 }
 
@@ -167,8 +192,8 @@ function chargeCallout(deltaText) {
       icon: I.Lightbulb,
       title: T("Final amount is calculated by Creem", "最终金额由 Creem 计算"),
       body: T(
-        "Listed prices and tax are shown by Pullwise. The exact charge for this change is calculated by Creem at confirmation.",
-        "标价和税费由 Pullwise 显示。本次变更的最终扣款金额在确认时由 Creem 计算。"
+        "Creem calculates the final charge and tax. Your plan updates after payment confirmation.",
+        "Creem 计算最终扣款与税费。套餐在支付确认后更新。"
       ),
       deltaText,
       showDelta: false,
@@ -179,8 +204,8 @@ function chargeCallout(deltaText) {
     icon: I.Trend,
     title: T("Prorated charge today", "今天按比例扣款"),
     body: T(
-      "The new plan is effective now. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date.",
-      "新套餐立即生效。Creem 会按当前周期剩余时间收取差额，并在下个续费日按新价格计费。"
+      "Creem charges the prorated difference immediately and may start a new billing cycle. Your plan updates after payment confirmation.",
+      "Creem 会立即按比例收取差额，并可能开始新的计费周期。支付确认后套餐才会更新。"
     ),
     deltaText,
     showDelta: true,
@@ -306,16 +331,16 @@ function fallbackPaidPlan(id, payload, loading = false) {
     loading,
     prices: {
       month: {
-        amount: max ? null : payload?.amount || "29",
+        amount: null,
         currency: payload?.currency || "USD",
         interval: "month",
-        configured: !loading && Boolean(payload?.enabled) && !max,
+        configured: false,
       },
       year: {
-        amount: max ? null : "290",
+        amount: null,
         currency: payload?.currency || "USD",
         interval: "year",
-        configured: !loading && Boolean(payload?.enabled) && !max,
+        configured: false,
       },
     },
   };
@@ -491,12 +516,16 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   const active = isActiveStatus(accountStatus);
   const activePaid = active && account.plan && account.plan !== "free";
   const cancellationScheduled = String(accountStatus).toLowerCase() === "canceling";
+  const paymentPending = Boolean(account.pendingChange);
   const subscriptionInterval = account.interval || "month";
   const currentPlan = activePaid ? paidPlanById[account.plan] || proPlan : freePlan;
   const subscriptions = subscriptionRecords(account);
   const billingEnabled = Boolean(plan?.enabled);
-  const alternatePaidPlans = paidPlans.filter((paidPlan) =>
-    subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, paidPlan, subscriptionInterval)
+  const alternatePaidPlans = paidPlans.filter(
+    (paidPlan) =>
+      !cancellationScheduled &&
+      priceFor(paidPlan, subscriptionInterval)?.configured &&
+      subscriptionChangeIsUpgrade(currentPlan, subscriptionInterval, paidPlan, subscriptionInterval)
   );
   const changeDetails = useMemo(() => {
     if (!changeDraft) return null;
@@ -561,31 +590,15 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
         navigate(safeBillingRedirectUrl(result.url, "billing interval URL"));
         return;
       }
-      const nextPlan = result?.plan || targetPlan;
-      const nextInterval = result?.interval || targetInterval;
-      const nextStatus = result?.status || accountStatus;
-      const restoredSubscription = isRestoredSubscriptionStatus(nextStatus);
-      setPlan((current) => ({
-        ...current,
-        account: {
-          ...(billingAccount(current) || {}),
-          plan: nextPlan,
-          interval: nextInterval,
-          status: nextStatus,
-          cancelAtPeriodEnd:
-            typeof result?.cancelAtPeriodEnd === "boolean"
-              ? result.cancelAtPeriodEnd
-              : restoredSubscription
-                ? false
-                : billingAccount(current)?.cancelAtPeriodEnd,
-          canceledAt:
-            result && Object.prototype.hasOwnProperty.call(result, "canceledAt")
-              ? result.canceledAt
-              : restoredSubscription
-                ? null
-                : billingAccount(current)?.canceledAt,
-        },
-      }));
+      if (result?.pending)
+        setPlan((current) => ({
+          ...current,
+          account: {
+            ...billingAccount(current),
+            pendingChange: { plan: targetPlan, interval: targetInterval },
+          },
+        }));
+      setChangeDraft(null);
       await refreshBillingPlan();
       if (!mountedRef.current) return;
       setChangeDraft(null);
@@ -796,7 +809,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                             <button
                               key={paidPlan.id}
                               className="btn primary"
-                              disabled={Boolean(pendingAction)}
+                              disabled={!billingEnabled || paymentPending || Boolean(pendingAction)}
                               onClick={() =>
                                 requestSubscriptionChange({
                                   targetPlan: paidPlan.id,
@@ -817,24 +830,30 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                               )}
                             </button>
                           ))}
-                          {subscriptionInterval === "month" && (
-                            <button
-                              className="btn"
-                              disabled={Boolean(pendingAction)}
-                              onClick={() => requestSubscriptionChange({ targetInterval: "year" })}
-                            >
-                              {pendingAction === `change-${account.plan}-year` && (
-                                <span className="spin">
-                                  <I.Refresh size={14} />
-                                </span>
-                              )}
-                              <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
-                            </button>
-                          )}
+                          {subscriptionInterval === "month" &&
+                            !cancellationScheduled &&
+                            priceFor(currentPlan, "year")?.configured && (
+                              <button
+                                className="btn"
+                                disabled={
+                                  !billingEnabled || paymentPending || Boolean(pendingAction)
+                                }
+                                onClick={() =>
+                                  requestSubscriptionChange({ targetInterval: "year" })
+                                }
+                              >
+                                {pendingAction === `change-${account.plan}-year` && (
+                                  <span className="spin">
+                                    <I.Refresh size={14} />
+                                  </span>
+                                )}
+                                <I.Package size={14} /> {T("Switch to yearly", "切换为按年")}
+                              </button>
+                            )}
                           {cancellationScheduled ? (
                             <button
                               className="btn"
-                              disabled={Boolean(pendingAction)}
+                              disabled={!billingEnabled || paymentPending || Boolean(pendingAction)}
                               onClick={resumeSubscription}
                             >
                               {pendingAction === "resume" && (
@@ -847,7 +866,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                           ) : (
                             <button
                               className="btn"
-                              disabled={Boolean(pendingAction)}
+                              disabled={!billingEnabled || paymentPending || Boolean(pendingAction)}
                               onClick={requestCancelSubscription}
                               aria-busy={pendingAction === "cancel"}
                             >
@@ -863,6 +882,32 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                       )}
                     </div>
                   </section>
+
+                  {(paymentPending ||
+                    new URLSearchParams(window.location.search).get("billing") === "success") && (
+                    <div className="notice" role="status">
+                      <div>
+                        <b>
+                          {paymentPending || !activePaid
+                            ? T("Awaiting payment confirmation", "正在等待支付确认")
+                            : T("Subscription confirmed", "订阅已确认")}
+                        </b>
+                        <p>
+                          {T(
+                            "Your plan follows verified payment updates. Refresh billing to check the latest status.",
+                            "套餐以验证后的支付更新为准。刷新账单以查看最新状态。"
+                          )}
+                        </p>
+                        <button
+                          className="btn"
+                          disabled={loading || Boolean(pendingAction)}
+                          onClick={loadBillingPlan}
+                        >
+                          <I.Refresh size={14} /> {T("Refresh billing", "刷新账单")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {subscriptions.length > 0 && (
                     <section className="panel">
@@ -1205,7 +1250,7 @@ export function PricingScreen({
         {
           plan: targetPlan.id,
           interval,
-          successUrl: billingReturnUrl("success", "pricing"),
+          successUrl: billingReturnUrl("success", "billing"),
           cancelUrl: billingReturnUrl("cancel", "pricing"),
         },
         { signal: checkoutController.signal }
@@ -1259,7 +1304,6 @@ export function PricingScreen({
             onClick={() => setInterval("year")}
           >
             <I.Package size={13} /> {T("Yearly", "按年")}{" "}
-            <span className="pricing-save">{T("save", "节省")}</span>
           </button>
         </div>
       </section>
@@ -1351,7 +1395,7 @@ function PricingSkeletonLine({ className = "" }) {
 
 function PlanCard({ plan, price, interval, active, featured, cta }) {
   const loading = Boolean(plan?.loading);
-  const yearlySavings = (plan?.id === "pro" || plan?.id === "max") && interval === "year";
+  const yearlySavings = interval === "year" ? yearlySavingsLabel(plan) : "";
   const limits = plan?.entitlements?.limits;
   const jev = plan?.entitlements?.jev;
   const projects =
@@ -1394,9 +1438,7 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
             </>
           )}
         </div>
-        {!loading && yearlySavings && (
-          <div className="pricing-billed">{T("2 months free", "免费 2 个月")}</div>
-        )}
+        {!loading && yearlySavings && <div className="pricing-billed">{yearlySavings}</div>}
         {active && (
           <div className="pricing-billed">{T("Current account plan", "当前账户套餐")}</div>
         )}
@@ -1421,13 +1463,31 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
         {!loading && jevBudget !== null && (
           <>
             <li>
+              <I.Check size={13} />{" "}
+              {T("Automatic Jev assistance when saving expenses", "保存支出时自动享受 Jev 加持")}
+            </li>
+            <li>
+              <I.Check size={13} />{" "}
+              {T(
+                "Missing category classification and review advice · Web + REST API",
+                "缺失类别自动分类与核对建议 · 网页及 REST API"
+              )}
+            </li>
+            <li>
               <I.Check size={13} /> {T("Jev budget", "Jev 预算")}: ${jevBudget} / {T("month", "月")}
             </li>
             <li>
               <I.Check size={13} />{" "}
               {jev.available === true
-                ? T("Monthly budget · no rollover", "月度预算 · 不结转")
+                ? T("Monthly UTC budget · no rollover", "UTC 自然月预算 · 不结转")
                 : T("Activation pending · no rollover", "待启用 · 不结转")}
+            </li>
+            <li>
+              <I.Check size={13} />{" "}
+              {T(
+                "Annual subscriptions keep the same monthly Jev budget",
+                "年订阅也按同样的月度 Jev 预算计算"
+              )}
             </li>
           </>
         )}

@@ -51,6 +51,15 @@ const rows = [
   ["Revoke API key?", "撤销 API 密钥？", "API キーを失効させますか？", "API 키를 폐기할까요?", "Révoquer la clé API ?", "¿Revocar la clave API?"],
   ["This permanently invalidates the selected API key. Any client using it will stop working.", "这将永久使所选 API 密钥失效。使用它的客户端将停止工作。", "選択した API キーは完全に無効になります。使用中のクライアントは動作しなくなります。", "선택한 API 키가 영구적으로 무효화됩니다. 이 키를 사용하는 클라이언트가 작동하지 않습니다.", "Cela invalide définitivement la clé API choisie. Les clients qui l'utilisent cesseront de fonctionner.", "Esto invalida definitivamente la clave API seleccionada. Los clientes que la usen dejarán de funcionar."],
   ["Confirm revoke", "确认撤销", "失効を確定", "폐기 확인", "Confirmer la révocation", "Confirmar revocación"],
+  ["Automatic Jev assistance when saving expenses", "保存支出时自动享受 Jev 辅助", "支出保存時に Jev が自動アシスト", "지출 저장 시 자동 Jev 지원", "Assistance Jev automatique à l’enregistrement des dépenses", "Asistencia automática de Jev al guardar gastos"],
+  ["Missing category classification and review advice · Web + REST API", "缺失分类自动补全与核对建议 · Web + REST API", "未入力カテゴリの分類と確認の助言 · Web + REST API", "생략된 카테고리 분류 및 검토 안내 · Web + REST API", "Classement des catégories omises et conseils de vérification · Web + API REST", "Clasificación de categorías omitidas y consejos de revisión · Web + API REST"],
+  ["Annual subscriptions keep the same monthly Jev budget", "年付订阅保持相同的月度 Jev 预算", "年払いでも Jev の月間予算は同じ", "연간 구독도 월 Jev 예산은 동일", "Les abonnements annuels conservent le même budget Jev mensuel", "Las suscripciones anuales mantienen el mismo presupuesto mensual de Jev"],
+  ["Monthly UTC budget · no rollover", "按 UTC 月度重置预算 · 不结转", "UTC の月間予算 · 繰り越しなし", "UTC 월 예산 · 이월 없음", "Budget mensuel UTC · sans report", "Presupuesto mensual UTC · sin acumulación"],
+  ["Awaiting payment confirmation", "正在等待支付确认", "支払い確認待ち", "결제 확인 대기 중", "En attente de confirmation du paiement", "Esperando confirmación del pago"],
+  ["Subscription confirmed", "订阅已确认", "契約を確認しました", "구독 확인됨", "Abonnement confirmé", "Suscripción confirmada"],
+  ["Refresh billing", "刷新账单", "請求情報を再読み込み", "결제 정보 새로고침", "Actualiser la facturation", "Actualizar facturación"],
+  ["less per year", "每年节省", "年間の節約額", "연간 절약", "d’économies par an", "de ahorro al año"],
+  ["Bars are scaled separately for each currency.", "条形比例按各币种分别计算。", "棒の比率は通貨ごとに計算されます。", "막대 비율은 통화별로 계산합니다.", "Les barres sont mises à l’échelle séparément pour chaque devise.", "Las barras se escalan por separado para cada moneda."],
 ];
 export const LEDGER_UI_PHRASES = Object.fromEntries(
   ["zh", "ja", "ko", "fr", "es"].map((code, index) =>

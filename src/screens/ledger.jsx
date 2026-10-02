@@ -73,6 +73,7 @@ function errorText(error) {
       "本月 Jev 预算已用完，请继续手工记账。"
     ),
     MAX_REQUIRED: T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"),
+    CATEGORY_REQUIRED: T("Choose a category to finish saving. Your draft is still here.", "请选择类别后保存，已填写的内容已保留。"),
   };
   if (allowanceErrors[code]) return allowanceErrors[code];
   if (error?.status === 412) return T("Save conflict. Reload the latest record before retrying.");
@@ -87,9 +88,15 @@ function requestKey() {
   return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
+function minorAmount(value) {
+  if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) return BigInt(value);
+  if (typeof value === "string" && /^(0|[1-9][0-9]*)$/.test(value)) return BigInt(value);
+  return null;
+}
+
 function formatTotal({ currency, amountMinor }) {
-  if (!Number.isSafeInteger(amountMinor) || amountMinor < 0 || typeof currency !== "string")
-    return T("Unavailable");
+  const minor = minorAmount(amountMinor);
+  if (minor === null || typeof currency !== "string") return T("Unavailable");
   let exponent = 2;
   try {
     exponent = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions()
@@ -98,7 +105,6 @@ function formatTotal({ currency, amountMinor }) {
     /* Keep a readable fallback for an older browser currency table. */
   }
   const scale = 10n ** BigInt(exponent);
-  const minor = BigInt(amountMinor);
   const whole = (minor / scale).toLocaleString("en");
   const fraction = exponent ? `.${(minor % scale).toString().padStart(exponent, "0")}` : "";
   return `${currency} ${whole}${fraction}`;
@@ -145,9 +151,14 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
   );
 }
 
-function ReportGroups({ title, groups, categories = [], dimension, icon: IconComponent }) {
+function ReportGroups({ title, groups, error, categories = [], dimension, icon: IconComponent }) {
   const rows = groups || [];
-  const largest = Math.max(1, ...rows.map((row) => row.amountMinor || 0));
+  const largestByCurrency = rows.reduce((totals, row) => {
+    const amount = minorAmount(row.amountMinor);
+    const largest = totals.get(row.currency) ?? 1n;
+    if (amount !== null && amount > largest) totals.set(row.currency, amount);
+    return totals;
+  }, new Map());
   return (
     <section className="panel">
       {IconComponent ? (
@@ -158,9 +169,13 @@ function ReportGroups({ title, groups, categories = [], dimension, icon: IconCom
       ) : (
         <h2>{title}</h2>
       )}
-      {rows.length === 0 ? (
+      {error ? (
+        <p role="status">{T("This report is unavailable. Reload to try again.", "此报表暂不可用，重新加载后可再试。")}</p>
+      ) : rows.length === 0 ? (
         <p>{T("No expenses in this range.")}</p>
       ) : (
+        <>
+        <p className="ledger-help">{T("Bars are scaled separately for each currency.", "条形比例按各币种分别计算。")}</p>
         <div className="ledger-chart">
           {rows.map((row) => (
             <div
@@ -175,12 +190,13 @@ function ReportGroups({ title, groups, categories = [], dimension, icon: IconCom
                 · {row.currency}
               </span>
               <span className="ledger-chart-track">
-                <span style={{ width: `${Math.max(1, (row.amountMinor / largest) * 100)}%` }} />
+                <span style={{ width: `${Number(((minorAmount(row.amountMinor) ?? 0n) * 10000n) / (largestByCurrency.get(row.currency) ?? 1n)) / 100}%` }} />
               </span>
               <strong>{formatTotal(row)}</strong>
             </div>
           ))}
         </div>
+        </>
       )}
     </section>
   );
@@ -282,90 +298,34 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   );
   const [validation, setValidation] = useState("");
   const [selectedTarget, setSelectedTarget] = useState(value?.target || target);
-  const [suggestion, setSuggestion] = useState(null);
-  const [suggestionError, setSuggestionError] = useState("");
-  const [suggesting, setSuggesting] = useState(false);
-  const [duplicateReviewed, setDuplicateReviewed] = useState(false);
+  const [automaticCategory, setAutomaticCategory] = useState(false);
+  const [requiresCategory, setRequiresCategory] = useState(false);
+  const categoryRef = useRef(null);
+  const mounted = useRef(false);
   const createKey = useRef(requestKey());
-  const suggestionController = useRef(null);
-  useEffect(() => () => suggestionController.current?.abort(), []);
-  const update = (name, next) => {
-    suggestionController.current?.abort();
-    suggestionController.current = null;
-    setSuggesting(false);
-    createKey.current = requestKey();
-    setSuggestion(null);
-    setSuggestionError("");
-    setDuplicateReviewed(false);
-    setDraft((old) => ({ ...old, [name]: next }));
-  };
-  const requestSuggestion = async () => {
-    if (suggestionController.current) return;
+  useEffect(() => {
+    mounted.current = true;
     const controller = new AbortController();
-    suggestionController.current = controller;
-    setSuggesting(true);
-    setSuggestionError("");
-    setSuggestion(null);
-    try {
-      // Check only after an explicit user click, without a refresh/poll loop.
-      const profile = await ledgerApi.me({ signal: controller.signal });
-      if (controller.signal.aborted) return;
-      if (profile?.entitlements?.jev?.eligible !== true) {
-        setSuggestionError(T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"));
-        return;
-      }
-      if (profile.entitlements.jev.available !== true) {
-        setSuggestionError(T("Suggestion unavailable. Continue manually."));
-        return;
-      }
-      const result = await ledgerApi.suggestExpense(
-        {
-          purpose: draft.purpose.trim(),
-          note: draft.note,
-          target: selectedTarget,
-          occurredOn: draft.occurredOn || undefined,
-          amount: draft.amount || undefined,
-          currency: draft.currency?.toUpperCase() || undefined,
-        },
-        { signal: controller.signal }
-      );
-      if (controller.signal.aborted) return;
-      if (result?.status === "available" || result?.status === "uncertain") {
-        setSuggestion(result);
-        setDuplicateReviewed(false);
-      } else setSuggestionError(T("Suggestion unavailable. Continue manually."));
-    } catch {
-      if (!controller.signal.aborted)
-        setSuggestionError(T("Suggestion unavailable. Continue manually."));
-    } finally {
-      if (suggestionController.current === controller) {
-        suggestionController.current = null;
-        if (!controller.signal.aborted) setSuggesting(false);
-      }
-    }
-  };
-  const decideSuggestion = async (useIt) => {
-    const suggestions = suggestion?.suggestions || {};
-    const nextCategory =
-      useIt && suggestions.categoryId ? suggestions.categoryId : draft.categoryId;
-    const nextTarget =
-      useIt && suggestions.targetKind === "shared" ? { kind: "shared" } : selectedTarget;
-    if (useIt) {
-      if (suggestions.categoryId) update("categoryId", suggestions.categoryId);
-      if (suggestions.targetKind === "shared") setSelectedTarget({ kind: "shared" });
-    }
-    setSuggestion(null);
-    if (suggestion?.suggestionId && nextCategory) {
-      try {
-        await ledgerApi.suggestDecision(
-          suggestion.suggestionId,
-          { target: nextTarget, categoryId: nextCategory },
-          {}
+    if (!value) {
+      ledgerApi.me({ signal: controller.signal }).then((profile) => {
+        if (!controller.signal.aborted) setAutomaticCategory(
+          profile?.entitlements?.jev?.eligible === true && profile.entitlements.jev.available === true
         );
-      } catch {
-        /* Feedback does not block manual entry. */
-      }
+      }).catch(() => {
+        /* A profile outage leaves ordinary manual entry available. */
+      });
     }
+    return () => { mounted.current = false; controller.abort(); };
+  }, [value]);
+  const categoryRequired = Boolean(value || !automaticCategory || requiresCategory);
+  useEffect(() => {
+    // Chrome ignores focus while a pending write still disables the select.
+    if (requiresCategory && !busy && !draft.categoryId) categoryRef.current?.focus();
+  }, [requiresCategory, busy, draft.categoryId]);
+  const update = (name, next) => {
+    createKey.current = requestKey();
+    setValidation("");
+    setDraft((old) => ({ ...old, [name]: next }));
   };
   const field = (name, label, extra = {}) => (
     <label key={name}>
@@ -378,26 +338,26 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       />
     </label>
   );
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
     if (
       !draft.occurredOn ||
       !draft.amount ||
       !draft.currency ||
-      !draft.categoryId ||
+      (categoryRequired && !draft.categoryId) ||
       !draft.purpose.trim()
     ) {
       setValidation(T("Date, amount, currency, category and purpose are required."));
       return;
     }
     setValidation("");
-    onSubmit(
+    const result = await onSubmit(
       {
         target: selectedTarget,
         occurredOn: draft.occurredOn,
         amount: draft.amount,
         currency: draft.currency.toUpperCase(),
-        categoryId: draft.categoryId,
+        ...(draft.categoryId ? { categoryId: draft.categoryId } : {}),
         purpose: draft.purpose.trim(),
         note: draft.note || null,
         quantity: draft.quantity || null,
@@ -405,6 +365,10 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       },
       createKey.current
     );
+    if (mounted.current && result?.error?.payload?.error?.code === "CATEGORY_REQUIRED") {
+      setRequiresCategory(true);
+      setValidation(T("Choose a category to finish saving. Your draft is still here.", "请选择类别后保存，已填写的内容已保留。"));
+    }
   };
   return (
     <form className="ledger-form" onSubmit={submit}>
@@ -416,8 +380,7 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
           disabled={busy}
           onChange={(event) => {
             createKey.current = requestKey();
-            setSuggestion(null);
-            setSuggestionError("");
+            setValidation("");
             setSelectedTarget(
               event.target.value === "shared"
                 ? { kind: "shared" }
@@ -445,12 +408,13 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
           <label htmlFor={categoryFieldId}>{T("Category")}</label>
           <select
             id={categoryFieldId}
+            ref={categoryRef}
             value={draft.categoryId}
-            required
+            required={categoryRequired}
             disabled={busy}
             onChange={(event) => update("categoryId", event.target.value)}
           >
-            <option value="">{T("Select category")}</option>
+            <option value="">{categoryRequired ? T("Select category") : T("Automatic", "自动分类")}</option>
             {categories
               .filter((category) => !category.archivedAt || category.id === value?.categoryId)
               .map((category) => (
@@ -461,6 +425,7 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
           </select>
         </div>
       </div>
+      {!categoryRequired && <p className="ledger-help">{T("Jev will select a category when you save, or choose one yourself.", "保存时 Jev 会自动分类，你也可以自行选择。")}</p>}
       {field("purpose", T("What did you pay for?", "这笔钱花在哪儿了？"), {
         maxLength: 500,
         required: true,
@@ -492,78 +457,9 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       {validation && <p role="alert">{validation}</p>}
       <div className="ledger-actions">
         <button
-          className="btn"
-          type="button"
-          disabled={busy || suggesting || !draft.purpose.trim()}
-          onClick={requestSuggestion}
-        >
-          {suggesting ? T("Checking…") : T("Request suggestion")}
-        </button>
-      </div>
-      {suggestionError && <p role="status">{suggestionError}</p>}
-      {suggestion && (
-        <div className="notice notice-grid" role="status">
-          <h3>{T("Review suggestion")}</h3>
-          {suggestion.suggestions?.categoryId && (
-            <p>
-              {T("Category")}:{" "}
-              {categories.find((item) => item.id === suggestion.suggestions.categoryId)?.name ||
-                T("Unknown")}
-            </p>
-          )}
-          {suggestion.suggestions?.targetKind && (
-            <p>
-              {T("Target")}:{" "}
-              {suggestion.suggestions.targetKind === "shared"
-                ? T("Shared expense pool")
-                : T("Project — select the intended project in the form before saving")}
-            </p>
-          )}
-          {suggestion.suggestions?.duplicateExpenseId && (
-            <p>
-              {T("Possible duplicate")}: {suggestion.suggestions.duplicateExpenseId}.{" "}
-              {T("Check existing expenses before saving.")}
-            </p>
-          )}
-          {!suggestion.suggestions?.categoryId &&
-            !suggestion.suggestions?.targetKind &&
-            !suggestion.suggestions?.duplicateExpenseId && (
-              <p>{T("No confident suggestion. Your manual choices remain available.")}</p>
-            )}
-          {suggestion.suggestions?.duplicateExpenseId && (
-            <label>
-              <input
-                type="checkbox"
-                checked={duplicateReviewed}
-                onChange={(event) => setDuplicateReviewed(event.target.checked)}
-              />{" "}
-              {T("I reviewed the possible duplicate")}
-            </label>
-          )}
-          <div className="ledger-actions">
-            <button
-              className="btn"
-              type="button"
-              disabled={Boolean(suggestion.suggestions?.duplicateExpenseId) && !duplicateReviewed}
-              onClick={() => decideSuggestion(true)}
-            >
-              {T("Use suggestion")}
-            </button>
-            <button className="btn" type="button" onClick={() => decideSuggestion(false)}>
-              {T("Keep my choices")}
-            </button>
-          </div>
-        </div>
-      )}
-      <div className="ledger-actions">
-        <button
           className="btn primary"
           type="submit"
-          disabled={
-            busy ||
-            suggesting ||
-            (Boolean(suggestion?.suggestions?.duplicateExpenseId) && !duplicateReviewed)
-          }
+          disabled={busy}
         >
           {T("Save expense")}
         </button>
@@ -587,6 +483,7 @@ export function LedgerScreen({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [savedAssistance, setSavedAssistance] = useState(null);
   const [revision, setRevision] = useState(0);
   const [filters, setFilters] = useState({ from: "", to: "", categoryId: "" });
   const [busy, setBusy] = useState(false);
@@ -668,6 +565,7 @@ export function LedgerScreen({
     const scope = `${mode}:${projectId}:${authorizationRevision}`;
     if (loadedScope.current !== scope) {
       setData(null);
+      setSavedAssistance(null);
       setEditing(null);
       setCreatingExpense(false);
       setView("expenses");
@@ -712,17 +610,28 @@ export function LedgerScreen({
         };
       }
       if (mode === "categories") return { categories: await ledgerApi.categories(options) };
+      const optionalReport = (promise) => promise.then(
+        (value) => ({ value }),
+        (failure) => {
+          if (failure?.status === 401 || failure?.status === 403) throw failure;
+          return { failure };
+        }
+      );
       const [categories, expenses, project, projects, summary, timeseries, categoryReport] =
         await Promise.all([
           ledgerApi.categories(options),
           ledgerApi.expenses(detailQuery, options),
           mode === "project" ? ledgerApi.project(projectId, options) : Promise.resolve(null),
           ledgerApi.projects({}, options),
-          ledgerApi.reportSummary(detailQuery, options),
-          ledgerApi.reportTimeseries(detailQuery, options),
-          ledgerApi.reportCategories(detailQuery, options),
+          optionalReport(ledgerApi.reportSummary(detailQuery, options)),
+          optionalReport(ledgerApi.reportTimeseries(detailQuery, options)),
+          optionalReport(ledgerApi.reportCategories(detailQuery, options)),
         ]);
-      return { categories, expenses, project, projects, summary, timeseries, categoryReport };
+      return { categories, expenses, project, projects,
+        summary: summary.value, summaryError: summary.failure ? errorText(summary.failure) : "",
+        timeseries: timeseries.value, timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
+        categoryReport: categoryReport.value, categoryReportError: categoryReport.failure ? errorText(categoryReport.failure) : "",
+      };
     };
     load()
       .then((result) => {
@@ -809,7 +718,9 @@ export function LedgerScreen({
       reload();
       return true;
     } catch (failure) {
-      if (request === requestId.current) setActionError(errorText(failure));
+      // The expense form shows category fallback beside its picker and focuses it.
+      if (request === requestId.current)
+        setActionError(failure?.payload?.error?.code === "CATEGORY_REQUIRED" ? "" : errorText(failure));
       return false;
     } finally {
       inFlight.current = false;
@@ -863,16 +774,24 @@ export function LedgerScreen({
 
   const saveExpense = async (fields, idempotencyKey) => {
     const current = editing;
-    const ok = await action(() =>
-      current
-        ? ledgerApi.updateExpense(current.id, current.revision, fields, {})
-        : ledgerApi.createExpense(fields, idempotencyKey, {})
-    );
+    let result;
+    let failure;
+    setSavedAssistance(null);
+    const ok = await action(async () => {
+      try {
+        result = await (current
+          ? ledgerApi.updateExpense(current.id, current.revision, fields, {})
+          : ledgerApi.createExpense(fields, idempotencyKey, {}));
+      } catch (error) { failure = error; throw error; }
+    });
     if (ok) {
+      setSavedAssistance(result?.assistance ? { ...result.assistance,
+        savedTargetKind: result.target?.kind || fields.target?.kind } : null);
       setEditing(null);
       setCreatingExpense(false);
       restoreExpenseFocus.current = true;
     }
+    return { error: failure };
   };
   const removeExpense = async (expense) => {
     const ok = await action(() => ledgerApi.removeExpense(expense.id, expense.revision, {}));
@@ -889,6 +808,14 @@ export function LedgerScreen({
           : data?.project?.githubFullName || T("Project history");
   const target = mode === "shared" ? { kind: "shared" } : { kind: "project", projectId };
   const expenses = data?.expenses?.items || [];
+  const suggestedTargetKind = savedAssistance?.suggestions?.targetKind;
+  const targetAdvice = ["shared", "project"].includes(suggestedTargetKind) &&
+    ["shared", "project"].includes(savedAssistance?.savedTargetKind) &&
+    suggestedTargetKind !== savedAssistance.savedTargetKind
+      ? suggestedTargetKind === "shared"
+        ? T("This expense may belong in the shared pool. Review its destination.", "这笔支出可能更适合公共池，请核对归属。")
+        : T("This expense may be project-specific. Review its destination.", "这笔支出可能仅属于某个项目，请核对归属。")
+      : "";
   const activeCategories = data?.categories?.filter((category) => !category.archivedAt) || [];
   const canAddExpense = Boolean(
     activeCategories.length > 0 &&
@@ -1068,6 +995,17 @@ export function LedgerScreen({
             <p role="alert" className="notice">
               {actionError}
             </p>
+          )}
+          {savedAssistance && (savedAssistance.categorySource === "jev" || savedAssistance.suggestions?.duplicateExpenseId || targetAdvice) && (
+            <div className="notice" role="status">
+              {savedAssistance.categorySource === "jev" && <p>
+                {T("Jev categorized this expense", "Jev 已自动为这笔支出分类")}: {data?.categories?.find((item) => item.id === savedAssistance.suggestions?.categoryId)?.name || T("Saved", "已保存")}.
+              </p>}
+              {savedAssistance.suggestions?.duplicateExpenseId && <p>
+                {T("This expense may duplicate an existing entry. Review your records.", "这笔支出可能与已有记录重复，请核对账目。")}
+              </p>}
+              {targetAdvice && <p>{targetAdvice}</p>}
+            </div>
           )}
           {data && mode === "projects" && data.repositoryError && (
             <div role="alert" className="notice">
@@ -1594,6 +1532,9 @@ export function LedgerScreen({
           )}
           {data && (mode === "shared" || mode === "project") && (
             <>
+              {loading && <p className="ledger-help" role="status">
+                {T("Updating results… Previous results remain visible.", "正在更新结果，当前仍显示此前的数据。")}
+              </p>}
               <ViewTabs
                 id={viewId}
                 label={T("Ledger views", "账本视图")}
@@ -1622,7 +1563,7 @@ export function LedgerScreen({
                   )}
                 </div>
               )}
-              <section className="panel" hidden={view === "settings"}>
+              <section className="panel" hidden={view === "settings"} aria-busy={loading}>
                 <div className="panel-h">
                   <I.Trend size={20} />
                   <h2>{T("Totals by currency")}</h2>
@@ -1632,7 +1573,10 @@ export function LedgerScreen({
                       : T("All time", "全部时间")}
                   </span>
                 </div>
-                {data.summary.groups.length === 0 && (
+                {data.summaryError && (
+                  <p role="status">{T("Spending summary is unavailable. Reload to try again.", "支出汇总暂不可用，重新加载后可再试。")}</p>
+                )}
+                {data.summary?.groups.length === 0 && (
                   <p className="ledger-help">
                     {T(
                       "Your spending totals will appear after you record an expense.",
@@ -1641,7 +1585,7 @@ export function LedgerScreen({
                   </p>
                 )}
                 <div className="ledger-stats">
-                  {data.summary.groups
+                  {data.summary?.groups
                     .filter(
                       (group) =>
                         group.target === mode &&
@@ -1687,6 +1631,7 @@ export function LedgerScreen({
                 role="tabpanel"
                 id={`${viewId}-panel-expenses`}
                 aria-labelledby={`${viewId}-tab-expenses`}
+                aria-busy={loading}
                 tabIndex={0}
                 hidden={view !== "expenses"}
               >
@@ -1866,19 +1811,22 @@ export function LedgerScreen({
                 role="tabpanel"
                 id={`${viewId}-panel-reports`}
                 aria-labelledby={`${viewId}-tab-reports`}
+                aria-busy={loading}
                 tabIndex={0}
                 hidden={view !== "reports"}
               >
                 <div className="ledger-reports">
                   <ReportGroups
                     title={T("Expenses over time")}
-                    groups={data.timeseries.groups}
+                    groups={data.timeseries?.groups}
+                    error={data.timeseriesError}
                     dimension="bucket"
                     icon={I.Clock}
                   />
                   <ReportGroups
                     title={T("Expenses by category")}
-                    groups={data.categoryReport.groups}
+                    groups={data.categoryReport?.groups}
+                    error={data.categoryReportError}
                     categories={data.categories}
                     dimension="category"
                     icon={I.Layers}

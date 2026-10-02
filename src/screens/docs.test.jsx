@@ -20,4 +20,11 @@ describe("product Docs", () => {
     expect(screen.getByRole("link", { name: /open projects/i })).toHaveAttribute("href", "/projects");
     expect(screen.getByRole("link", { name: /API contract/i })).toHaveAttribute("href", "/developers/api");
   });
+
+  it("explains automatic Max assistance as part of ordinary expense entry and REST writes", () => {
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+    expect(screen.getByRole("heading", { name: "Automatic Max assistance" })).toBeInTheDocument();
+    expect(screen.getByText(/Jev automatically assists when you save an expense/i)).toHaveTextContent("REST API");
+    expect(screen.getByText(/leave the category blank/i)).toBeInTheDocument();
+  });
 });
