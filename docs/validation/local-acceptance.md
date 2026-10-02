@@ -26,9 +26,24 @@ business APIs, login, logout, provider calls or Cloudflare D1 operations were ru
 Local tests are synthetic UI evidence, not real preview acceptance.
 
 The companion Server fix, source mirror and contract are locally validated.
-Preview backend deployment requires separate authorization. Commit CI and any
-frontend publication status will be recorded after they are reviewed; neither
-has yet verified the real preview identity chain.
+Source commit `28dfea078d528954be491c7fe79b44ae5f315cbf` was pushed to main.
+GitHub's combined statuses and exact-SHA push workflow query returned no Web CI
+runs; remote Web CI remains unverified. Server source `04c8797` passed push CI
+[36961634876](https://github.com/GoPullwise/pullwise-server/actions/runs/36961634876).
+Preview backend deployment still requires separate authorization and was not run.
+
+The existing frontend deployment authorization was used for this checked snapshot
+only, excluding all concurrent worktree changes. Wrangler 4.146.0 published
+preview version `3f44d1de-4458-4e93-97aa-0ad913af8cc7` and production version
+`2301ffb8-63cd-4f58-b932-6a1474bb937e`. The initial preview upload failed before
+asset transfer because of the local proxy; one direct attempt succeeded, and
+production then used the same direct configuration. Each domain passed one
+homepage and three exact hashed asset GETs (entry JS, app CSS, modified ledger
+JS), exactly **8 GETs**, all 200 and matching the build's SHA-256. Preview retained
+noindex. No redirects, retries or script execution occurred during static checks.
+No Cloudflare D1 operation or business request was executed. Production Server
+settings still read back D1 access 0. These results prove static Web publication,
+not real preview identity/provider acceptance or a confirmed expired token.
 
 ## Cloudflare frontend publication (2026-10-02)
 
