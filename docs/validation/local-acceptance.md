@@ -2,6 +2,32 @@
 
 Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Cloudflare frontend publication (2026-10-02)
+
+The user explicitly authorized publishing both Web environments while excluding
+D1 Rows Written. The build from `e65e7443f5f2bc4889f91d03ff42e1620ee3875e`
+was already present on GitHub `main` and passed the local checks below. Wrangler
+4.146.0 dry runs confirmed the two service bindings before publication. Device
+authorization used frontend deployment scopes without `d1:write`.
+
+| Environment                                       | Worker                 | Published version                      |
+| ------------------------------------------------- | ---------------------- | -------------------------------------- |
+| Preview — `preview.pull-wise.com`                 | `pullwise-web-preview` | `b66bdf68-52f2-4fec-8aa1-482b28f62396` |
+| Production — `pull-wise.com`, `www.pull-wise.com` | `pullwise-web`         | `b1803869-507a-47e0-9ebf-73e2c6de6012` |
+
+Preview and the primary production domain each passed exactly one homepage GET
+and three hashed asset GETs: entry JS, app CSS and ledger CSS. All **8 requests**
+returned HTTP 200; HTML referenced the current entry/style hashes and every
+asset's SHA-256 matched the local build. Preview HTML retained
+`X-Robots-Tag: noindex, nofollow`. No redirects, retries, page script execution,
+business API requests, database queries, migrations or D1 operations ran.
+The `www` custom domain was published by Wrangler but was not separately probed.
+This proves static publication, not authenticated product/provider acceptance.
+
+GitHub returned no commit statuses or PR workflow runs for the deployed source;
+remote CI remains unverified. This documentation follow-up records the release
+without changing or redeploying the application build.
+
 ## Workspace detail review (2026-10-02, local review)
 
 Project rows now respond to their list container width, placing currency totals

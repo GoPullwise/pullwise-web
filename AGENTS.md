@@ -174,6 +174,12 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - All Wrangler/workerd/D1 commands remain paused until explicit user
   authorization. Never enable cron triggers. Remote validation needs reviewed
   row/operation bounds, frequency, pagination/cache policy and cost guard.
+  A frontend deployment approval does not authorize Server/D1 operations.
+  When D1 access is excluded, publish only the Web Worker/assets and verify
+  each environment with one homepage GET and three exact hashed asset GETs.
+  Do not execute page JavaScript, follow redirects, retry, or call business
+  APIs during this static check. Worker deployment OAuth needs account/user
+  read, Workers/script/routes write and zone read; D1 write is unnecessary.
 - Follow the workspace `D1 Rows Written budget guard` for S17/S18: cap browser
   requests/retries and include upstream Server write effects in the finite
   validation budget. No automatic polling, refresh loops or remote load tests.
