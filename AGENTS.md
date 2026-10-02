@@ -60,6 +60,12 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - A failed spending summary must not hide otherwise loaded project/repository
   controls or render successful zero totals. Distinguish missing repositories
   from repositories that already have projects; preserve independent cursors.
+- A repository provider/config failure must retain successfully authorized
+  project history and hide creation candidates; Pullwise 401/403 stays fatal.
+  `reauthorization_required` offers explicit guarded `startGitHubLogin`, without
+  sign-out or automatic OAuth/reload. Manual repository recovery fetches only
+  repositories and ignores aborted/obsolete responses. `unavailable` grants
+  never claim revocation or permit new expenses; historical edits stay usable.
 - Use `public/brand-mark.png` for inline brand images; the ICO is for browser
   favicons. The PNG preserves the existing mark and decodes in inline images.
 - Ledger onboarding copy explains the next action with concrete expense

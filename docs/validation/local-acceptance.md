@@ -2,6 +2,34 @@
 
 Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Repository identity recovery (2026-10-02)
+
+The user's existing Network record confirms the preview repository GET failed
+with 503. The Server's generic `IDENTITY_UNAVAILABLE` masks its cause; token
+expiration remains unproven. Web now isolates repository failures from loaded
+project history/totals, removes creation candidates and explains the failure.
+Pullwise identity/scope 401/403 remains fatal. Provider outages are never shown
+as successful empty lists or proven revocation. Known credential rejection
+offers an explicit guarded Reconnect GitHub login, without sign-out, automatic
+OAuth or reload after initiating navigation. Manual recovery makes one repository
+request and ignores obsolete responses. Project history remains editable when
+GitHub grant verification is unavailable; new expenses remain blocked.
+
+Five initial recovery regressions failed before the change; the history notice
+regression also failed before implementation. A clean `main` snapshot with only
+this task's three ledger files passed `npm run check`: ESLint, **34 files / 307
+tests**, and build; `npm run check:workers` passed. The shared working tree gained
+concurrent App, API Keys, Settings and styling edits during verification, and its
+new API Keys keyboard test failed while those edits were in progress. They were
+preserved and excluded from this task's snapshot/commit. No remote page scripts,
+business APIs, login, logout, provider calls or Cloudflare D1 operations were run.
+Local tests are synthetic UI evidence, not real preview acceptance.
+
+The companion Server fix, source mirror and contract are locally validated.
+Preview backend deployment requires separate authorization. Commit CI and any
+frontend publication status will be recorded after they are reviewed; neither
+has yet verified the real preview identity chain.
+
 ## Cloudflare frontend publication (2026-10-02)
 
 The user explicitly authorized publishing both Web environments while excluding

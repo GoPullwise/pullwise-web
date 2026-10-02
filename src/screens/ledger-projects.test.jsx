@@ -6,9 +6,9 @@ const api = vi.hoisted(() => ({
   repositories: vi.fn(), projects: vi.fn(), categories: vi.fn(),
   reportSummary: vi.fn(), createProject: vi.fn(),
 }));
-const github = vi.hoisted(() => ({ connect: vi.fn() }));
+const github = vi.hoisted(() => ({ connect: vi.fn(), login: vi.fn() }));
 vi.mock("../api/ledger.js", () => ({ ledgerApi: api }));
-vi.mock("../lib/auth.js", () => ({ connectGitHubRepositories: github.connect }));
+vi.mock("../lib/auth.js", () => ({ connectGitHubRepositories: github.connect, startGitHubLogin: github.login }));
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -111,6 +111,82 @@ describe("Projects authorization and creation", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Repository list unavailable");
     expect(screen.queryByRole("button", { name: /Create project/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/No projects yet|Your first project starts here/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps project history visible on repository failure without automatic retries", async () => {
+    api.projects.mockResolvedValue({ items: [{ id: "prj_history", githubRepoId: 202, githubFullName: null,
+      description: "Historical hosting", githubAccess: "unavailable", totals: [{ currency: "USD", amountMinor: 1230 }] }], nextCursor: null });
+    api.repositories.mockRejectedValue(Object.assign(new Error("IDENTITY_UNAVAILABLE"), {
+      status: 503, payload: { error: { code: "IDENTITY_UNAVAILABLE" } },
+    }));
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    expect(await screen.findByRole("link", { name: /Historical hosting/ })).toHaveAttribute("href", "/projects/prj_history");
+    expect(screen.getByText("USD 12.30")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/Repository access could not be checked/i);
+    expect(screen.queryByText(/No repositories are available yet|GitHub access lost/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Create project/i })).not.toBeInTheDocument();
+    expect(api.repositories).toHaveBeenCalledTimes(1);
+    expect(github.connect).not.toHaveBeenCalled();
+    expect(github.login).not.toHaveBeenCalled();
+  });
+
+  it("offers guarded credential renewal only after an explicit click", async () => {
+    api.repositories.mockResolvedValue({ items: [], nextCursor: null, githubAccess: "reauthorization_required" });
+    let finish;
+    github.login.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    const reconnect = await screen.findByRole("button", { name: "Reconnect GitHub" });
+    expect(screen.getByRole("alert")).toHaveTextContent(/may have expired or been revoked/i);
+    expect(github.login).not.toHaveBeenCalled();
+    fireEvent.click(reconnect);
+    fireEvent.click(reconnect);
+    expect(github.login).toHaveBeenCalledTimes(1);
+    expect(github.connect).not.toHaveBeenCalled();
+    finish();
+    await waitFor(() => expect(reconnect).toBeEnabled());
+    expect(api.repositories).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["GITHUB_RATE_LIMITED", /GitHub is limiting requests/i],
+    ["GITHUB_UNAVAILABLE", /GitHub is temporarily unavailable/i],
+    ["GITHUB_TOKEN_UNREADABLE", /stored GitHub credential could not be read/i],
+  ])("explains %s without requesting login", async (code, message) => {
+    api.repositories.mockRejectedValue({ status: 503, payload: { error: { code } } });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(screen.queryByRole("button", { name: "Reconnect GitHub" })).not.toBeInTheDocument();
+    expect(github.login).not.toHaveBeenCalled();
+    expect(api.repositories).toHaveBeenCalledTimes(1);
+  });
+
+  it("checks repositories once on manual recovery and ignores an obsolete response", async () => {
+    api.repositories.mockRejectedValueOnce(new Error("Repository list unavailable"));
+    const view = render(<LedgerScreen go={vi.fn()} mode="projects" authorizationRevision={0} />);
+    const retry = await screen.findByRole("button", { name: "Check repository access" });
+    let finish;
+    api.repositories.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    fireEvent.click(retry);
+    fireEvent.click(retry);
+    expect(api.repositories).toHaveBeenCalledTimes(2);
+    expect(api.projects).toHaveBeenCalledTimes(1);
+    expect(api.reportSummary).toHaveBeenCalledTimes(1);
+    view.rerender(<LedgerScreen go={vi.fn()} mode="projects" authorizationRevision={1} />);
+    expect(await screen.findByRole("option", { name: "alice/project" })).toBeInTheDocument();
+    finish({ items: [{ githubRepoId: 303, fullName: "alice/obsolete" }], nextCursor: null });
+    await Promise.resolve();
+    expect(screen.queryByRole("option", { name: "alice/obsolete" })).not.toBeInTheDocument();
+  });
+
+  it.each([401, 403])("does not degrade a Pullwise identity/permission denial (%s) into history access", async status => {
+    api.projects.mockResolvedValue({ items: [{ id: "prj_history", githubRepoId: 202,
+      description: "Protected history", totals: [] }], nextCursor: null });
+    api.repositories.mockRejectedValue({ status, payload: { error: { code: status === 401 ? "UNAUTHENTICATED" : "SCOPE_FORBIDDEN" } } });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    await screen.findByRole("alert");
+    expect(screen.queryByText("Protected history")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Check repository access" })).not.toBeInTheDocument();
+    expect(github.login).not.toHaveBeenCalled();
   });
 
   it("clears repositories when authorization changes and ignores the previous response", async () => {

@@ -4,7 +4,7 @@ import { SkeletonLine } from "../components/skeleton.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
-import { connectGitHubRepositories } from "../lib/auth.js";
+import { connectGitHubRepositories, startGitHubLogin } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
 import { Topbar, Sidebar, ViewTabs } from "../shell.jsx";
 import "./ledger.css";
@@ -23,6 +23,38 @@ const emptyExpense = () => ({
 function errorText(error) {
   const code = error?.payload?.error?.code;
   const allowanceErrors = {
+    IDENTITY_UNAVAILABLE: T(
+      "Repository access could not be checked. Your loaded project history remains available.",
+      "暂时无法检查仓库授权，已加载的项目历史仍可访问。"
+    ),
+    GITHUB_REAUTHORIZATION_REQUIRED: T(
+      "GitHub rejected your credential. It may have expired or been revoked. Reconnect GitHub to renew access.",
+      "GitHub 拒绝了当前凭据，它可能已过期或被撤销。请重新连接 GitHub 恢复授权。"
+    ),
+    GITHUB_PERMISSION_DENIED: T(
+      "GitHub denied repository access. Review the App installation and repository permissions.",
+      "GitHub 拒绝了仓库访问，请检查 App 安装和仓库权限。"
+    ),
+    GITHUB_RATE_LIMITED: T(
+      "GitHub is limiting requests. Wait before checking repository access again.",
+      "GitHub 请求受到限流，请等待后再检查仓库授权。"
+    ),
+    GITHUB_UNAVAILABLE: T(
+      "GitHub is temporarily unavailable. Your loaded project history remains available.",
+      "GitHub 暂时不可用，已加载的项目历史仍可访问。"
+    ),
+    GITHUB_RESPONSE_INVALID: T(
+      "GitHub returned an unexpected response. Repository access could not be checked.",
+      "GitHub 返回了异常响应，暂时无法检查仓库授权。"
+    ),
+    GITHUB_CONFIGURATION_ERROR: T(
+      "GitHub connection configuration needs attention. Contact support before reconnecting.",
+      "GitHub 连接配置需要检查，请先联系支持。"
+    ),
+    GITHUB_TOKEN_UNREADABLE: T(
+      "The stored GitHub credential could not be read. Contact support to check the connection configuration.",
+      "无法读取已保存的 GitHub 凭据，请联系支持检查连接配置。"
+    ),
     PROJECT_LIMIT: T(
       "Project allowance reached. Existing history remains available.",
       "项目额度已用完，已有历史仍可访问。"
@@ -578,6 +610,7 @@ export function LedgerScreen({
   const inFlight = useRef(false);
   const requestId = useRef(0);
   const moreController = useRef(null);
+  const loginController = useRef(null);
   const loadedScope = useRef(null);
   const mounted = useRef(false);
   const addProjectPanelRef = useRef(null);
@@ -655,7 +688,14 @@ export function LedgerScreen({
       if (mode === "projects") {
         const [projects, repositories, categories, summary] = await Promise.all([
           ledgerApi.projects({}, options),
-          ledgerApi.repositories({}, options),
+          ledgerApi.repositories({}, options).then(
+            (value) => ({ value }),
+            (failure) => {
+              if (failure?.status === 401 || (failure?.status === 403 &&
+                  !failure?.payload?.error?.code?.startsWith("GITHUB_"))) throw failure;
+              return { failure };
+            }
+          ),
           ledgerApi.categories(options),
           ledgerApi.reportSummary(filtered, options).then(
             (value) => ({ value }),
@@ -664,7 +704,8 @@ export function LedgerScreen({
         ]);
         return {
           projects,
-          repositories,
+          repositories: repositories.value || null,
+          repositoryError: repositories.failure || null,
           categories,
           summary: summary.value,
           summaryError: summary.failure ? errorText(summary.failure) : "",
@@ -691,14 +732,17 @@ export function LedgerScreen({
         }
       })
       .catch((failure) => {
-        if (!controller.signal.aborted && request === requestId.current)
+        if (!controller.signal.aborted && request === requestId.current) {
+          setData(null);
           setError(errorText(failure));
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted && request === requestId.current) setLoading(false);
       });
     return () => {
       controller.abort();
+      loginController.current?.abort();
       moreController.current?.abort();
       if (request === requestId.current) requestId.current += 1;
     };
@@ -773,6 +817,50 @@ export function LedgerScreen({
     }
   };
 
+  const reconnectGitHub = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setActionError("");
+    const request = requestId.current;
+    const controller = new AbortController();
+    loginController.current = controller;
+    try {
+      await startGitHubLogin({ signal: controller.signal });
+    } catch (failure) {
+      if (!controller.signal.aborted && request === requestId.current)
+        setActionError(errorText(failure));
+    } finally {
+      inFlight.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  };
+
+  const retryRepositories = async () => {
+    if (inFlight.current || loading) return;
+    inFlight.current = true;
+    setBusy(true);
+    const request = requestId.current;
+    const controller = new AbortController();
+    moreController.current = controller;
+    try {
+      const repositories = await ledgerApi.repositories({}, { signal: controller.signal });
+      if (!controller.signal.aborted && request === requestId.current)
+        setData((old) => old && ({ ...old, repositories, repositoryError: null }));
+    } catch (failure) {
+      if (!controller.signal.aborted && request === requestId.current) {
+        if (failure?.status === 401 || (failure?.status === 403 &&
+            !failure?.payload?.error?.code?.startsWith("GITHUB_"))) {
+          setData(null);
+          setError(errorText(failure));
+        } else setData((old) => old && ({ ...old, repositories: null, repositoryError: failure }));
+      }
+    } finally {
+      inFlight.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  };
+
   const saveExpense = async (fields, idempotencyKey) => {
     const current = editing;
     const ok = await action(() =>
@@ -819,7 +907,10 @@ export function LedgerScreen({
     ) || [];
   const selectedRepository =
     availableRepos.find((repo) => String(repo.githubRepoId) === selectedRepo) || availableRepos[0];
-  const showProjectForm = Boolean(data && (addingProject || data.projects?.items.length === 0));
+  const needsGitHubReconnect = data?.repositories?.githubAccess === "reauthorization_required" ||
+    data?.project?.githubAccess === "reauthorization_required";
+  const showProjectForm = Boolean(data?.repositories && !needsGitHubReconnect &&
+    (addingProject || data.projects?.items.length === 0));
   const matchingProjects =
     data?.projects?.items.filter((project) =>
       `${project.githubFullName || ""} ${project.description || ""}`
@@ -839,6 +930,7 @@ export function LedgerScreen({
   }, [addingProject, showProjectForm]);
   const startAddingRepository = () => {
     if (busy || loading || loadingMore) return;
+    if (!data?.repositories || needsGitHubReconnect) return;
     setAddingProject(true);
     const panel = addProjectPanelRef.current;
     const picker = panel?.querySelector("select");
@@ -911,7 +1003,7 @@ export function LedgerScreen({
               {mode === "projects" && data?.projects.items.length > 0 && (
                 <button
                   className="btn primary"
-                  disabled={busy || loading || addingProject}
+                  disabled={busy || loading || addingProject || !data.repositories || needsGitHubReconnect}
                   aria-expanded={showProjectForm}
                   aria-controls="add-repository"
                   onClick={(event) => {
@@ -977,10 +1069,26 @@ export function LedgerScreen({
               {actionError}
             </p>
           )}
+          {data && mode === "projects" && data.repositoryError && (
+            <div role="alert" className="notice">
+              <p>{errorText(data.repositoryError)}</p>
+              <button className="btn" disabled={busy || loading} onClick={retryRepositories}>
+                {T("Check repository access", "检查仓库授权")}
+              </button>
+            </div>
+          )}
+          {needsGitHubReconnect && (
+            <div role="alert" className="notice">
+              <p>{errorText({ payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } } })}</p>
+              <button className="btn primary" disabled={busy || loading} onClick={reconnectGitHub}>
+                {T("Reconnect GitHub", "重新连接 GitHub")}
+              </button>
+            </div>
+          )}
           {loading && !data && <LedgerSkeleton mode={mode} />}
           {data && mode === "projects" && (
             <>
-              {data.projects.items.length === 0 && (
+              {data.projects.items.length === 0 && data.repositories && !needsGitHubReconnect && (
                 <section className="panel" aria-label={T("Get started", "开始使用")}>
                   <div className="panel-h">
                     <h2>{T("A clear path to your first expense", "三步，记下第一笔支出")}</h2>
@@ -1103,6 +1211,9 @@ export function LedgerScreen({
                               <p className="ledger-access-lost">
                                 {T("GitHub access lost", "GitHub 授权已失效")}
                               </p>
+                            )}
+                            {project.githubAccess === "unavailable" && (
+                              <p>{T("GitHub access could not be verified", "暂时无法验证 GitHub 授权")}</p>
                             )}
                           </div>
                           <span className="ledger-project-total">
@@ -1500,6 +1611,14 @@ export function LedgerScreen({
                 <div className="notice" role="status">
                   {T(
                     "GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses."
+                  )}
+                </div>
+              )}
+              {data.project?.githubAccess === "unavailable" && (
+                <div className="notice" role="status">
+                  {T(
+                    "GitHub access could not be verified. You can review, edit and remove historical expenses; adding new expenses is paused.",
+                    "暂时无法验证 GitHub 授权。你仍可查看、编辑和删除历史支出，新增支出暂时不可用。"
                   )}
                 </div>
               )}

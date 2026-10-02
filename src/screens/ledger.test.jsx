@@ -24,8 +24,8 @@ const api = vi.hoisted(() => ({
   suggestDecision: vi.fn(),
 }));
 vi.mock("../api/ledger.js", () => ({ ledgerApi: api }));
-const github = vi.hoisted(() => ({ connect: vi.fn() }));
-vi.mock("../lib/auth.js", () => ({ connectGitHubRepositories: github.connect }));
+const github = vi.hoisted(() => ({ connect: vi.fn(), login: vi.fn() }));
+vi.mock("../lib/auth.js", () => ({ connectGitHubRepositories: github.connect, startGitHubLogin: github.login }));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -52,6 +52,22 @@ beforeEach(() => {
 });
 
 describe("ledger screens", () => {
+  it("keeps history editable during an unknown GitHub outage without claiming access was lost", async () => {
+    api.project.mockResolvedValueOnce({ id: "prj_1", githubRepoId: 202, githubFullName: null,
+      description: "", status: "active", githubAccess: "unavailable", revision: 1, totals: [] });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({ items: [{ id: "exp_1", target: { kind: "project", projectId: "prj_1" },
+      occurredOn: "2026-09-27", amount: "1.00", amountMinor: 100, currency: "USD",
+      categoryId: "cat_1", purpose: "Historic hosting", revision: 1 }], nextCursor: null });
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    expect(await screen.findByText(/GitHub access could not be verified/i)).toBeInTheDocument();
+    expect(screen.queryByText(/GitHub access lost/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add expense" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Edit Historic hosting" }));
+    expect(await screen.findByLabelText("What did you pay for?")).toHaveValue("Historic hosting");
+    expect(github.login).not.toHaveBeenCalled();
+  });
+
   it("separates project views, supports keyboard tabs, and preserves an expense draft", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
