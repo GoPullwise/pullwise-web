@@ -87,16 +87,23 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - The shared Sidebar separates Ledger from Account & tools. Mobile shows
   the three Ledger links and a native account/tools selector; keep every
   destination reachable without a horizontally scrolled navigation rail.
+  Let long localized Ledger labels wrap and move the account selector to a
+  second row when needed; do not truncate the three primary destinations.
 - Project detail uses the shared `ViewTabs` for Expenses, Reports and Project
   settings; Shared Pool has Expenses and Reports. Tabs are local views, use
   arrow/Home/End keyboard activation, and never trigger API refreshes. Keep
   inactive panels mounted and hidden so drafts survive tab switches. Continue
   draft returns to the existing form without replacing historical edit state.
+  Tabs shrink and wrap long labels inside their available width rather than
+  hiding the last view in a horizontal scroll area.
 - Projects searches only loaded names/descriptions; keep pagination available
   for no matches. Existing Projects reveal the creation rail on explicit Add
   project intent and restore opener focus on dismissal. The first-project
   flow shows the repository chooser directly with three concise setup steps.
   Account overview is a native disclosure, expanded on summary errors/filters.
+  Project rows adapt to the actual list container width: place totals below
+  the name when that container is at most 560px, including desktop creation
+  rails, so amounts cannot squeeze names into single-character lines.
 - Shared Pool/project detail show records first; open the Add/Edit expense
   rail only on explicit intent. Keep required fields visible, optional
   quantity/unit/note in the shared `.disclosure`, and existing optional values
@@ -104,6 +111,9 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   opener after cancel/save; clear entry state when route/project/access scope
   changes. Lost GitHub access still permits historical edits with archived
   categories, but never enables new expense entry.
+  Category rename focuses its input on open and returns focus to the same
+  row's Rename action after cancel/save. Clear its editor and focus refs when
+  route/project/access scope changes.
 - Keep creation rails hairline-separated on desktop and stacked on mobile.
   Account overview leads with totals before its filters. Project descriptions
   live in the Project settings tab; creation descriptions remain optional
@@ -138,6 +148,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   background. Use the shared scrim rgba(8, 12, 20, 0.52). Floating controls stay
   below modal backdrops. Small-screen notifications sit above the pickers;
   coarse-pointer targets are at least 44px. Verify 390px document overflow.
+  In authenticated `.with-side` workspaces, language/theme/back-to-top controls
+  occupy the topbar with reserved space beside account actions. Keep their
+  dropdown below the header and bounded by viewport height; floating controls
+  must not obscure fields or record actions. Public pages retain bottom controls.
 - `i18n.jsx` lazy-loads shared locale catalogs and `ledger*.js`. Keep only copy
   used by current pages. Dynamic rules cover current interpolated phrases.
   Provider/user text is displayed verbatim; preserve English fallback for it.
@@ -155,6 +169,8 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   For static built-artifact captures, disable the inherited development proxy
   in a temporary preview config and intercept APIs locally: its `/api` prefix
   also matches the `/api-keys` document route and otherwise sends it to 8080.
+  Finish builds before browser capture runs; rebuilding replaces `dist` and
+  can cause transient navigation failures during a concurrent screenshot run.
 - All Wrangler/workerd/D1 commands remain paused until explicit user
   authorization. Never enable cron triggers. Remote validation needs reviewed
   row/operation bounds, frequency, pagination/cache policy and cost guard.

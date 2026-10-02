@@ -584,6 +584,8 @@ export function LedgerScreen({
   const expenseFormPanelRef = useRef(null);
   const expenseOpenerRef = useRef(null);
   const restoreExpenseFocus = useRef(false);
+  const categoryEditorRowRef = useRef(null);
+  const restoreCategoryFocus = useRef(false);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -598,6 +600,12 @@ export function LedgerScreen({
       picker?.focus({ preventScroll: true });
     }
   }, [editing, creatingExpense]);
+  useEffect(() => {
+    if (!categoryEdit && restoreCategoryFocus.current) {
+      categoryEditorRowRef.current?.querySelector("button")?.focus({ preventScroll: true });
+      restoreCategoryFocus.current = false;
+    }
+  }, [categoryEdit]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -636,6 +644,10 @@ export function LedgerScreen({
       restoreExpenseFocus.current = false;
       projectOpenerRef.current = null;
       restoreProjectFocus.current = false;
+      setCategoryEdit(null);
+      setConfirmCategoryId("");
+      categoryEditorRowRef.current = null;
+      restoreCategoryFocus.current = false;
     }
     loadedScope.current = scope;
     const options = { signal: controller.signal };
@@ -1342,13 +1354,17 @@ export function LedgerScreen({
                                 {}
                               )
                             ).then((ok) => {
-                              if (ok) setCategoryEdit(null);
+                              if (ok) {
+                                restoreCategoryFocus.current = true;
+                                setCategoryEdit(null);
+                              }
                             });
                           }}
                         >
                           <label>
                             {T("New category name")}
                             <input
+                              autoFocus
                               value={categoryEdit.name}
                               required
                               maxLength={80}
@@ -1363,7 +1379,10 @@ export function LedgerScreen({
                           <button
                             className="btn ghost sm"
                             type="button"
-                            onClick={() => setCategoryEdit(null)}
+                            onClick={() => {
+                              restoreCategoryFocus.current = true;
+                              setCategoryEdit(null);
+                            }}
                           >
                             {T("Cancel")}
                           </button>
@@ -1375,9 +1394,11 @@ export function LedgerScreen({
                             <button
                               className="btn ghost sm"
                               disabled={busy}
-                              onClick={() =>
-                                setCategoryEdit({ id: category.id, name: category.name })
-                              }
+                              onClick={(event) => {
+                                categoryEditorRowRef.current =
+                                  event.currentTarget.closest("article");
+                                setCategoryEdit({ id: category.id, name: category.name });
+                              }}
                             >
                               {T("Rename")}
                             </button>

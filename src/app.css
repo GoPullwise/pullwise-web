@@ -1,6 +1,6 @@
 .lang-picker {
   position: fixed;
-  right: 66px;
+  right: 70px;
   bottom: 18px;
   z-index: var(--z-float);
 }
@@ -106,7 +106,7 @@
 
 .back-to-top {
   position: fixed;
-  right: 114px;
+  right: 122px;
   bottom: 18px;
   z-index: var(--z-float);
   width: 42px;
@@ -277,10 +277,6 @@
 }
 
 @media (max-width: 420px) {
-  .lang-picker {
-    right: 62px;
-  }
-
   .lang-menu {
     width: min(168px, calc(100vw - 88px));
   }
@@ -292,6 +288,44 @@
 .docs-foot-actions,
 .billing-actions {
   flex: 0 0 auto;
+}
+
+/* Keep workspace preferences in the header, clear of records and forms. */
+body:has(.with-side) .lang-picker,
+body:has(.with-side) .theme-toggle,
+body:has(.with-side) .back-to-top {
+  top: 6px;
+  bottom: auto;
+}
+body:has(.with-side) .topbar > div:last-child {
+  padding-right: 100px;
+}
+body:has(.with-side):has(.back-to-top.visible) .topbar > div:last-child {
+  padding-right: 148px;
+}
+body:has(.with-side) .lang-menu {
+  top: 52px;
+  bottom: auto;
+  max-height: calc(100dvh - 84px);
+  overflow-y: auto;
+}
+@media (max-width: 760px) {
+  body:has(.with-side) .lang-picker,
+  body:has(.with-side) .theme-toggle,
+  body:has(.with-side) .back-to-top {
+    top: 4px;
+  }
+}
+@media (pointer: coarse) {
+  .lang-toggle,
+  .theme-toggle,
+  .back-to-top {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .lang-menu-i {
+    min-height: 44px;
+  }
 }
 
 .notfound-suggest-t,

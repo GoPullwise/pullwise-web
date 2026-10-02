@@ -1,6 +1,45 @@
 # Current local acceptance
 
-Updated 2026-10-01. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Workspace detail review (2026-10-02, local review)
+
+Project rows now respond to their list container width, placing currency totals
+below names at 560px or less. This keeps names readable when the desktop Add
+project rail opens at 900/1024px. Workspace language/theme/back-to-top controls
+occupy reserved header space instead of covering fields and record actions;
+their touch targets and language items are at least 44px, and the menu stays
+within short viewports. Category rename focuses its input, restores the same
+row's Rename action after cancel/save, and clears editor/focus state on scope
+changes. Long localized mobile navigation labels wrap, moving the account
+selector below when necessary; tabs keep every view visible and wrap at words.
+The approved 16px Manage categories gap is retained.
+
+Two enhanced category-focus tests failed before the fix and pass afterward.
+Pre-fix browser checks exposed project name columns of 0–74px, preferences
+covering form/row controls, and missing rename focus. A separate French 320px
+check failed for all three navigation labels and Project settings; the same
+readability check passes after the label changes. Visual regressions use browser
+geometry and hit testing rather than CSS-class assertions in unit tests.
+
+`npm run check` passed lint, **34 files / 298 tests**, and build;
+`npm run check:workers` passed offline. Browser review covered **88 populated/
+empty page checks** across 1440/1024/900/899/761/760/390/320px in light and
+**44 checks** at 1440/900/390/320px in dark, including expanded filters,
+optional fields, category rename/archive, entry, reports and project settings.
+Additional checks covered **22 long-content French pages**, **27 loading/error/
+lost-access history pages**, all six languages at 320/390px, and short-landscape
+language selection. Seven workspace routes at four widths kept header controls
+clickable through repeated scroll/menu/theme changes. No unresolved clipping,
+control obstruction, document overflow or page errors remained.
+
+The local screenshot gallery at `artifacts/ui-review/index.html` now offers
+20 views, desktop/mobile captures and dark originals. All gallery images,
+available comparisons and narrow-screen layout were checked. Artifacts remain
+outside the tracked Web repository. Browser APIs used synthetic loopback data;
+external requests were blocked. GitHub returned no statuses or PR workflow runs
+for the local base commit, so remote CI remains unverified. No deployment or
+remote provider/database requests ran.
 
 ## Category guidance spacing (2026-10-01, local review)
 

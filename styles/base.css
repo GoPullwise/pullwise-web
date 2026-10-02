@@ -543,11 +543,11 @@ a.crumb-button:hover {
   display: flex;
   gap: 24px;
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
   margin-bottom: 4px;
 }
 .view-tabs [role="tab"] {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: min-content;
   min-height: 44px;
   padding: 0 0 12px;
   border: 0;
@@ -946,13 +946,15 @@ details.panel[open] > summary.panel-h::after,
 
   .side-nav {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0;
     min-width: 0;
+    flex: 1 1 max-content;
   }
 
   .side-nav-landmark {
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     width: 100%;
     align-items: center;
@@ -964,6 +966,8 @@ details.panel[open] > summary.panel-h::after,
 
   .side-compact {
     display: block;
+    flex: 0 0 90px;
+    margin-left: auto;
     width: 90px;
     min-height: 44px;
     border: 1px solid var(--border);
@@ -977,12 +981,25 @@ details.panel[open] > summary.panel-h::after,
 
   .side-i {
     flex: 1 1 auto;
-    height: 44px;
+    height: auto;
+    min-height: 44px;
     padding: 0 6px;
     justify-content: center;
     border-left: 0;
     border-bottom: 2px solid transparent;
     font-size: var(--fs-sm);
+  }
+
+  .side-i > span {
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .view-tabs {
+    gap: 16px;
   }
 
   .side-i.active {

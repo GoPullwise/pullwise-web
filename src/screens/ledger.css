@@ -11,6 +11,7 @@
 }
 .ledger-screen .panel.ledger-your-projects {
   padding-top: 0;
+  container-type: inline-size;
 }
 .setup-steps {
   display: grid;
@@ -89,6 +90,21 @@
   text-align: right;
   font: 500 var(--fs-lg)/1.7 var(--font-mono);
   overflow-wrap: anywhere;
+}
+@container (max-width: 560px) {
+  .ledger-project-row {
+    grid-template-columns: 36px minmax(0, 1fr) 16px;
+    gap: 8px 16px;
+  }
+  .ledger-project-total {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: left;
+  }
+  .ledger-project-row > svg {
+    grid-column: 3;
+    grid-row: 1;
+  }
 }
 .ledger-screen .ledger-list .ledger-access-lost {
   color: var(--warn);

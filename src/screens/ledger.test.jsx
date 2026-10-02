@@ -503,6 +503,7 @@ describe("ledger screens", () => {
         expect.anything()
       )
     );
+    await waitFor(() => expect(screen.getByRole("button", { name: "Rename" })).toHaveFocus());
     fireEvent.click(screen.getByRole("button", { name: "Archive" }));
     expect(api.archiveCategory).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Confirm archive" }));
@@ -513,9 +514,11 @@ describe("ledger screens", () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="categories" />);
     fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    expect(screen.getByLabelText("New category name")).toHaveFocus();
     expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("button", { name: "Rename" })).toHaveFocus();
     fireEvent.click(screen.getByRole("button", { name: "Archive" }));
     expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Confirm archive" })).toBeInTheDocument();
