@@ -2,6 +2,35 @@
 
 Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Global frontend publication (2026-10-02)
+
+The user explicitly requested committing, pushing and deploying all reviewed
+frontend changes to both production and preview. Source
+`9d03385d332c6c2e566a91bab98a0594423c2fe5` was committed and pushed to GitHub
+`main`. The exact source passed `npm run check`: ESLint, **35 files / 314 tests**
+and production build; `npm run check:workers`, both Worker syntax checks and
+`git diff --check` passed. Wrangler 4.146.0 dry runs confirmed the matching
+production/preview Server service bindings before publishing the same build.
+
+| Environment | Worker | Published version |
+| --- | --- | --- |
+| Preview — `preview.pull-wise.com` | `pullwise-web-preview` | `a1472817-48b4-41c5-acff-f8969dd7d2d7` |
+| Production — `pull-wise.com`, `www.pull-wise.com` | `pullwise-web` | `02cd03a3-f11b-42bf-9319-6e81cef92563` |
+
+Preview and the primary production domain each passed exactly one homepage GET
+and three exact hashed asset GETs: entry JS, app CSS and API Keys JS. All **8
+requests** returned 200. Both homepages referenced the current entry/style
+hashes, and each asset's SHA-256 matched the local build. Preview retained
+`X-Robots-Tag: noindex, nofollow`. No redirects, retries, page script execution,
+business API calls, provider calls or D1 operations ran. Wrangler published the
+`www` custom domain, which was not separately probed. This proves static Web
+publication; the local UI review below remains synthetic product evidence.
+
+GitHub returned no combined statuses or exact-SHA push workflow runs for
+`9d03385`; remote CI remains unverified. This documentation follow-up records
+the deployment without changing or redeploying application assets. The local
+screenshot gallery now labels the reviewed style as published.
+
 ## Global frontend detail review (2026-10-02, local review)
 
 The review covers public pages and the authenticated workspace. Shared panel
@@ -50,10 +79,12 @@ offers **38 views / 228 current images**, light/dark and three widths, with
 layout passed local browser verification. Generated artifacts and their JSON
 evidence stay outside the tracked Web repository.
 
-The current local base is `e048dbd7e6745e44c56724f5a6dfa16d05acb9e6`.
+At the review cutoff, the local base was
+`e048dbd7e6745e44c56724f5a6dfa16d05acb9e6`.
 GitHub returned no combined statuses or PR workflow runs for that SHA; the
-workflow connector only reports PR-triggered runs. This uncommitted style
-candidate has no remote CI result and has not been published. All review APIs
+workflow connector only reports PR-triggered runs. The style candidate was
+then uncommitted and unpublished; the publication above supersedes that state.
+All review APIs
 use synthetic loopback data with external requests blocked; no real provider,
 business API or Cloudflare D1 request was executed by this review. The separate
 identity-recovery publication recorded below is preserved.
