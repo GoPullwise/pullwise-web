@@ -145,6 +145,34 @@ build contains `index-DYpTVxXP.js`, `index-CX8wIgR0.css` and the unchanged
 `ledger-DH0H9eII.js`. Publication of this repair is recorded separately after
 completion; these local captures do not establish remote acceptance.
 
+### Mobile Home repair publication and preview follow-up
+
+Source `ceb4424977193f6783a70e3e3cc5251100957e55` was pushed to `main` and
+published **only to preview**, version
+`d3b560ec-ba80-4bea-a428-3ad137cad571`. Production was not changed for this
+repair.
+
+One new-release Chromium Home capture ran at 390px touch, with separate ceilings
+of 40 forwarded HTTP requests including redirects and two session GETs. The old
+128/19 batch stayed closed. This new batch made exactly **13 forwarded requests,
+including two real initial session GETs and zero redirects**; all 13 responses
+were 200. Optional font CSS and Cloudflare analytics were aborted. No other
+business API, provider, OAuth, credential or payment action ran. Both session
+responses reported signed out.
+
+The real page loaded `index-CX8wIgR0.css`, hid the demo sidebar, rendered its
+purpose at 288px wide and 36px high (two lines), and kept the card at 386px high.
+Document width remained 390px with zero page errors. The screenshot was visually
+reviewed and confirms the formerly vertical purpose is readable. Coarse pointer
+and one touch point were true before capture and after the verified CDP touch
+restoration. Chromium cleared them to false/zero during capture; an extra strict
+raw-capture assertion therefore made the script exit unsuccessfully. That
+retained harness limitation does not negate the recorded online CSS geometry or
+successful touch restoration, and it does not prove touch media stayed enabled
+during the capture itself. No request or OAuth action was repeated to correct the
+assertion. The browser was closed; this evidence does not add authenticated
+acceptance.
+
 ## Product audit and automatic Max assistance (2026-10-02)
 
 Normal expense saves now use the shared Server automatic-assistance contract.
