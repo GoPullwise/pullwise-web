@@ -2,6 +2,43 @@
 
 Updated 2026-10-06. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+The [first two-real-user run](../../../pullwise-server/docs/validation/projects-two-real-users-baseline-2026-10-06.json)
+passed Projects, reports/CSV, invitation acceptance and Viewer checks, then
+stopped before Editor update on a stale Owner Members view in the runner.
+Its failed result and completed QA cleanup are preserved. Server account
+storage is now published as preview `ab500595-328d-4fc2-b897-7c6137659c92`;
+893 Server tests, native capacity/migration and actual one-shot cutover pass.
+The Web runtime remains unchanged. The [subsequent focused real-account run](../../../pullwise-server/docs/validation/projects-two-real-users-focused-2026-10-06.json)
+passed all six checks: actual invitation/Editor expense UI workflows, followed
+by Admin project reads, stale key invalidation and removed-member isolation
+through actual REST requests. It used 89 business HTTP requests, 150 total
+network requests and 12 paced mutation attempts/confirmed writes, no retries,
+real payment, model calls or credential persistence. New QA fixtures were
+cleaned up, and the [temporary session helper was removed](../../../pullwise-server/docs/validation/real-account-helper-cleanup-2026-10-06.json).
+See [publication proof](../../../pullwise-server/docs/validation/state-records-preview-release-2026-10-06.json).
+
+## Projects and cost follow-up (2026-10-06)
+
+Web `4e72574c19daec85ba713dd2d14a40034f7c03e7` is on main and
+preview version `ea62c7a0-37e4-4693-b78a-bbb3c96c53b6` serves 100% traffic.
+Final full checks pass 434 tests, lint/build and Worker configuration checks.
+Project archive/reactivation, revision-safe settings drafts, completed-invite
+recovery and stricter billing redirects have local/native evidence in
+[Projects and Members](projects-members-local-2026-10-06.md).
+Status no longer polls health in the background; its initial/manual requests
+have in-flight and unmount protection. Service binding preserves only the
+Cloudflare Edge's original client IP for per-visitor abuse controls; external
+proxy requests keep stripping forwarding headers and never retry a failed binding.
+
+The [actual public release check](../../../pullwise-server/docs/validation/preview-public-release-2026-10-06.json)
+matched 12 deployed resource hashes, verified healthy initial/manual status
+checks and 390px mobile layout without page errors. Its global write-delta
+assertion was not passed because concurrent OAuth activity overlapped it;
+the source audit found no writes in the public read paths. This does not
+establish the separate two-real-account collaboration acceptance.
+See the [Cloudflare cost plan](../../../pullwise-server/docs/validation/cloudflare-cost-plan-2026-10-06.md)
+for the USD 200/month target, cost assumptions and measured DO accounting.
+
 ## Shared-ledger release (2026-10-06, final)
 
 The new version was pushed as `775fabdc441abb8c79868497017fb8497872e0c3`
