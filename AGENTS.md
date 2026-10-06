@@ -1,5 +1,24 @@
 # Pullwise Web
 
+## Latest follow-up authority (2026-10-06)
+
+The user requests full Projects and two-real-account (DFerryman/SanChai20)
+preview acceptance, subscription success/failure checks without real payment,
+repairs, main pushes and preview publication. Current Server preview product
+operation policy removes lifetime test request/read/write ceilings while keeping
+the existing journal, accounting, bounded operations and commercial/role guards.
+Historical numeric lifetime test ceilings below must not be reintroduced for
+ordinary preview traffic. Production D1 stays paused and provider credentials
+or real payment facts are never synthesized for remote acceptance. Distinguish
+local/native fixtures from actual logged-in preview user/browser evidence.
+
+The latest cost target is at most USD 200/month across Cloudflare services,
+using reasonable implementation and abuse rate limits rather than a hard
+monthly/day cutoff. Avoid automatic API polling and high-frequency remote
+tests; allow ordinary use within the account and commercial plan limits.
+The user explicitly approved the temporary memory-only, 30-minute preview
+session handoff for these two accounts after each account confirms consent.
+
 ## Current task authority (2026-10-06)
 
 Latest scope: the multi-repository/Organization/shared-ledger version is

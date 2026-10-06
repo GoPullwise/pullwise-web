@@ -398,6 +398,78 @@ describe("ledger screens", () => {
     expect(github.connect).not.toHaveBeenCalled();
   });
 
+  it("archives and reactivates a project while retaining historical expenses and its repository association", async () => {
+    const project = {
+      id: "prj_1",
+      name: "Platform",
+      githubRepoIds: [202],
+      repositories: [{ githubRepoId: 202, githubFullName: "team/web", githubAccess: "authorized" }],
+      status: "active",
+      githubAccess: "authorized",
+      canCreateExpense: true,
+      description: "",
+      revision: 8,
+      totals: [],
+    };
+    api.project.mockResolvedValue(project);
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({
+      items: [{ id: "exp_1", purpose: "Historical hosting", categoryId: "cat_1", amount: "12.00", currency: "USD", revision: 1 }],
+      nextCursor: null,
+    });
+    api.updateProject.mockImplementation(async (_id, revision, fields) => {
+      Object.assign(project, fields, { revision: revision + 1, canCreateExpense: fields.status === "active" });
+      return project;
+    });
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    fireEvent.click(await screen.findByRole("tab", { name: "Project settings" }));
+    fireEvent.change(screen.getByLabelText("Project status"), { target: { value: "archived" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save project" }));
+    await screen.findByText(/This project is archived/);
+    expect(api.updateProject).toHaveBeenCalledWith("prj_1", 8, { description: "", status: "archived" }, {});
+    expect(screen.getByLabelText("Project status")).toHaveValue("archived");
+    fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+    expect(screen.getByText("Historical hosting")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Edit Historical hosting" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Export CSV" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Add expense" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Project settings" }));
+    fireEvent.change(screen.getByLabelText("Project status"), { target: { value: "active" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save project" }));
+    await waitFor(() => expect(screen.queryByText(/This project is archived/)).not.toBeInTheDocument());
+    expect(api.updateProject).toHaveBeenLastCalledWith("prj_1", 9, { description: "", status: "active" }, {});
+    expect(screen.getByRole("button", { name: "Add expense" })).toBeEnabled();
+    expect(github.connect).not.toHaveBeenCalled();
+  });
+
+  it("retains an unsaved project-settings draft and its revision across filtered reads until explicit reload", async () => {
+    const original = {
+      id: "prj_1", name: "Original", githubRepoIds: [202], description: "Original description",
+      status: "active", githubAccess: "authorized", revision: 7, totals: [],
+    };
+    api.project.mockResolvedValueOnce(original).mockResolvedValue({
+      ...original, name: "Another member's name", description: "Another member's description", revision: 8,
+    });
+    api.updateProject.mockRejectedValueOnce({ status: 412 });
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    fireEvent.click(await screen.findByRole("tab", { name: "Project settings" }));
+    fireEvent.change(screen.getByLabelText("Project name (optional)"), { target: { value: "Unsaved name" } });
+    fireEvent.change(screen.getByLabelText("Description"), { target: { value: "Unsaved description" } });
+    fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-10-01" } });
+    await waitFor(() => expect(api.project).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("tab", { name: "Project settings" }));
+    expect(screen.getByLabelText("Project name (optional)")).toHaveValue("Unsaved name");
+    expect(screen.getByLabelText("Description")).toHaveValue("Unsaved description");
+    fireEvent.click(screen.getByRole("button", { name: "Save project" }));
+    await screen.findByText(/Save conflict/);
+    expect(api.updateProject).toHaveBeenCalledWith("prj_1", 7, { name: "Unsaved name", description: "Unsaved description" }, {});
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    await waitFor(() => expect(screen.getByLabelText("Project name (optional)")).toHaveValue("Another member's name"));
+    expect(screen.getByLabelText("Description")).toHaveValue("Another member's description");
+  });
+
   it("labels retained filter results as updating while preserving the open expense draft", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     const previous = {

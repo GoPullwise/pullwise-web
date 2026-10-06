@@ -581,6 +581,7 @@ function ScopedLedgerScreen({
   const [loadingMore, setLoadingMore] = useState(false);
   const [description, setDescription] = useState("");
   const [projectName, setProjectName] = useState("");
+  const [projectStatus, setProjectStatus] = useState("active");
   const [selectedRepo, setSelectedRepo] = useState("");
   const [additionalRepoIds, setAdditionalRepoIds] = useState([]);
   const [organizationId, setOrganizationId] = useState("");
@@ -599,6 +600,9 @@ function ScopedLedgerScreen({
   const projectNameId = useId();
   const organizationFieldId = useId();
   const projectDescriptionId = useId();
+  const projectStatusId = useId();
+  const projectSettingsBase = useRef(null);
+  const projectSettingsDirty = useRef(false);
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
   const inFlight = useRef(false);
@@ -672,6 +676,9 @@ function ScopedLedgerScreen({
       setAddingProject(false);
       setProjectSearch("");
       setProjectName("");
+      setProjectStatus("active");
+      projectSettingsBase.current = null;
+      projectSettingsDirty.current = false;
       setSelectedRepo("");
       setAdditionalRepoIds([]);
       setOrganizationId("");
@@ -773,9 +780,17 @@ function ScopedLedgerScreen({
       .then((result) => {
         if (!controller.signal.aborted && request === requestId.current) {
           setData(result);
-          if (mode === "project") {
+          if (mode === "project" && (!projectSettingsBase.current || !projectSettingsDirty.current)) {
+            projectSettingsBase.current = {
+              revision: result.project.revision,
+              name: result.project.name || "",
+              githubRepoIds: boundRepositoryIds(result.project),
+              githubOrganizationId: String(result.project.githubOrganizationId || ""),
+              status: result.project.status || "active",
+            };
             setDescription(result.project?.description || "");
             setProjectName(result.project?.name || "");
+            setProjectStatus(result.project?.status || "active");
             setProjectRepoIds(boundRepositoryIds(result.project));
             setOrganizationId(String(result.project?.githubOrganizationId || ""));
           }
@@ -1015,6 +1030,7 @@ function ScopedLedgerScreen({
     activeCategories.length > 0 &&
     (mode === "shared" ||
       (mode === "project" &&
+        data?.project?.status !== "archived" &&
         (typeof data?.project?.canCreateExpense === "boolean"
           ? data.project.canCreateExpense
           : data?.project?.githubAccess === "authorized")))
@@ -1198,8 +1214,12 @@ function ScopedLedgerScreen({
               )}
               <button
                 className="btn ghost"
-                onClick={reload}
-                disabled={loading}
+                onClick={() => {
+                  projectSettingsBase.current = null;
+                  projectSettingsDirty.current = false;
+                  reload();
+                }}
+                disabled={loading || busy}
                 aria-label={T("Reload")}
                 title={T("Reload")}
               >
@@ -1396,6 +1416,9 @@ function ScopedLedgerScreen({
                           </span>
                           <div className="ledger-row-main">
                             <h3>{projectLabel(project)}</h3>
+                            {project.status === "archived" && (
+                              <p className="ledger-meta">{T("Archived project", "已归档项目")}</p>
+                            )}
                             {project.description &&
                               projectLabel(project) !== project.description && (
                                 <p>{project.description}</p>
@@ -1910,6 +1933,19 @@ function ScopedLedgerScreen({
                 value={view}
                 onChange={setView}
               />
+              {data.project?.status === "archived" && (
+                <div className="notice" role="status">
+                  {canManageProjects
+                    ? T(
+                        "This project is archived. Its expenses, reports and exports remain available. Reactivate it in Project settings to add expenses.",
+                        "此项目已归档，历史支出、报表和导出仍可使用。若要新增支出，请在项目设置中重新启用。"
+                      )
+                    : T(
+                        "This project is archived. Its expenses, reports and exports remain available. An Owner or Admin can reactivate it to add expenses.",
+                        "此项目已归档，历史支出、报表和导出仍可使用。所有者或管理员可以重新启用此项目，以便新增支出。"
+                      )}
+                </div>
+              )}
               {data.project?.githubAccess === "lost" && canWriteExpenses && (
                 <div className="notice" role="status">
                   {T(
@@ -2239,24 +2275,29 @@ function ScopedLedgerScreen({
                         event.preventDefault();
                         if (
                           !canManageProjects ||
+                          loading ||
                           projectRepoIds.length < 1 ||
                           projectRepoIds.length > 30
                         )
                           return;
+                        const base = projectSettingsBase.current;
+                        if (!base) return;
                         const changedRepositories =
                           JSON.stringify([...projectRepoIds].sort()) !==
-                          JSON.stringify([...boundRepositoryIds(data.project)].sort());
+                          JSON.stringify([...base.githubRepoIds].sort());
                         const changedOrganization =
-                          String(data.project.githubOrganizationId || "") !== organizationId;
-                        action(() =>
-                          api.updateProject(
+                          base.githubOrganizationId !== organizationId;
+                        const request = requestId.current;
+                        action(async () => {
+                          await api.updateProject(
                             projectId,
-                            data.project.revision,
+                            base.revision,
                             {
                               description,
-                              ...(projectName.trim() !== (data.project.name || "")
+                              ...(projectName.trim() !== base.name
                                 ? { name: projectName.trim() }
                                 : {}),
+                              ...(projectStatus !== base.status ? { status: projectStatus } : {}),
                               ...(changedRepositories ? { githubRepoIds: projectRepoIds } : {}),
                               ...(changedOrganization
                                 ? {
@@ -2267,8 +2308,12 @@ function ScopedLedgerScreen({
                                 : {}),
                             },
                             {}
-                          )
-                        );
+                          );
+                          if (request === requestId.current) {
+                            projectSettingsBase.current = null;
+                            projectSettingsDirty.current = false;
+                          }
+                        });
                       }}
                     >
                       <div className="ledger-field">
@@ -2279,9 +2324,33 @@ function ScopedLedgerScreen({
                           id={projectNameId}
                           value={projectName}
                           maxLength={120}
-                          disabled={busy}
-                          onChange={(event) => setProjectName(event.target.value)}
+                          disabled={busy || loading}
+                          onChange={(event) => {
+                            projectSettingsDirty.current = true;
+                            setProjectName(event.target.value);
+                          }}
                         />
+                      </div>
+                      <div className="ledger-field">
+                        <label htmlFor={projectStatusId}>{T("Project status", "项目状态")}</label>
+                        <select
+                          id={projectStatusId}
+                          value={projectStatus}
+                          disabled={busy || loading}
+                          onChange={(event) => {
+                            projectSettingsDirty.current = true;
+                            setProjectStatus(event.target.value);
+                          }}
+                        >
+                          <option value="active">{T("Active project", "启用中项目")}</option>
+                          <option value="archived">{T("Archived", "已归档")}</option>
+                        </select>
+                        <p className="ledger-help">
+                          {T(
+                            "Archiving pauses new expenses and keeps project history and repository associations. You can reactivate this project anytime.",
+                            "归档后暂停新增支出，保留历史账目和仓库关联。你随时可以重新启用此项目。"
+                          )}
+                        </p>
                       </div>
                       {(organizations.length > 0 || data.project.githubOrganizationId) && (
                         <div className="ledger-field">
@@ -2291,8 +2360,9 @@ function ScopedLedgerScreen({
                           <select
                             id={organizationFieldId}
                             value={organizationId}
-                            disabled={busy}
+                            disabled={busy || loading}
                             onChange={(event) => {
+                              projectSettingsDirty.current = true;
                               setOrganizationId(event.target.value);
                               if (event.target.value) setProjectRepoIds([]);
                             }}
@@ -2357,17 +2427,19 @@ function ScopedLedgerScreen({
                               checked={projectRepoIds.includes(repo.githubRepoId)}
                               disabled={
                                 busy ||
+                                loading ||
                                 !data.repositories ||
                                 (projectRepoIds.length >= 30 &&
                                   !projectRepoIds.includes(repo.githubRepoId))
                               }
-                              onChange={(event) =>
+                              onChange={(event) => {
+                                projectSettingsDirty.current = true;
                                 setProjectRepoIds((old) =>
                                   event.target.checked
                                     ? [...old, repo.githubRepoId]
                                     : old.filter((id) => id !== repo.githubRepoId)
-                                )
-                              }
+                                );
+                              }}
                             />
                             <span className="api-scope-copy">
                               <span>
@@ -2410,14 +2482,20 @@ function ScopedLedgerScreen({
                           id={projectDescriptionId}
                           value={description}
                           maxLength={2000}
-                          onChange={(event) => setDescription(event.target.value)}
+                          disabled={busy || loading}
+                          onChange={(event) => {
+                            projectSettingsDirty.current = true;
+                            setDescription(event.target.value);
+                          }}
                         />
                       </div>
                       <div className="ledger-actions">
                         <button
                           className="btn primary"
                           type="submit"
-                          disabled={busy || projectRepoIds.length < 1 || projectRepoIds.length > 30}
+                          disabled={
+                            busy || loading || projectRepoIds.length < 1 || projectRepoIds.length > 30
+                          }
                         >
                           {T("Save project", "保存项目")}
                         </button>

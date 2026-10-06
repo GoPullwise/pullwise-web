@@ -427,6 +427,54 @@ describe("Members screen", () => {
     expect(window.location.hash).toBe("");
   });
 
+  it("checks a failed acceptance explicitly before offering another attempt and never retries the write automatically", async () => {
+    window.history.replaceState(null, "", "/members#invite=incoming-token");
+    api.acceptInvitation.mockRejectedValueOnce(new Error("Connection lost"));
+    const pending = deferred();
+    api.previewInvitation.mockResolvedValueOnce(preview).mockReturnValueOnce(pending.promise);
+    show({ workspace: null });
+    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    await screen.findByText("Connection lost");
+    expect(screen.getByRole("button", { name: "Accept invitation" })).toBeDisabled();
+    expect(api.previewInvitation).toHaveBeenCalledTimes(1);
+    expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Check invitation again" }));
+    expect(screen.queryByRole("button", { name: "Accept invitation" })).not.toBeInTheDocument();
+    await waitFor(() => expect(api.previewInvitation).toHaveBeenCalledTimes(2));
+    expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
+    await act(async () => pending.resolve(preview));
+    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    await waitFor(() => expect(api.acceptInvitation).toHaveBeenCalledTimes(2));
+    expect(window.location.hash).toBe("");
+  });
+
+  it("recovers a confirmed acceptance through a read-only preview without replaying the acceptance write", async () => {
+    window.history.replaceState(null, "", "/members#invite=incoming-token");
+    api.acceptInvitation.mockRejectedValueOnce(new Error("Connection lost"));
+    api.previewInvitation.mockResolvedValueOnce(preview).mockResolvedValueOnce({ ...preview, status: "accepted" });
+    const changed = vi.fn();
+    show({ workspace: null, onMembershipChanged: changed });
+    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    await screen.findByText("Connection lost");
+    expect(screen.getByRole("button", { name: "Reload ledgers" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Check invitation again" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open shared ledger" }));
+    expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
+    expect(changed).toHaveBeenCalledWith("ws_alice");
+    expect(window.location.hash).toBe("");
+  });
+
+  it("keeps a revoked invitation unavailable after a manual check instead of offering acceptance", async () => {
+    window.history.replaceState(null, "", "/members#invite=revoked-token");
+    api.previewInvitation.mockRejectedValue(error(410, "INVITATION_REVOKED"));
+    show({ workspace: null });
+    await screen.findByText("This invitation was revoked. Ask the ledger owner for a new link.");
+    fireEvent.click(screen.getByRole("button", { name: "Check invitation again" }));
+    await waitFor(() => expect(api.previewInvitation).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole("button", { name: "Accept invitation" })).not.toBeInTheDocument();
+    expect(api.acceptInvitation).not.toHaveBeenCalled();
+  });
+
   it("fences invitation previews to their token and aborts the old request on hash changes", async () => {
     window.history.replaceState(null, "", "/members#invite=old-token");
     const old = deferred();

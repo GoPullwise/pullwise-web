@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
@@ -9,7 +9,6 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 const CONTACT_EMAIL = "contact@pull-wise.com";
 const SECURITY_EMAIL = CONTACT_EMAIL;
 const LAST_UPDATED = "2026-10-02";
-const STATUS_REFRESH_MS = 30_000;
 
 function LegalChrome({ go, current, children, auth }) {
   useLang();
@@ -314,6 +313,9 @@ export function StatusScreen({ go, auth }) {
   const [now, setNow] = useState(() => new Date());
   const [health, setHealth] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [requestRevision, setRequestRevision] = useState(0);
+  const requestPending = useRef(false);
   useErrorNotification(error, {
     title: T("Status error", "Status error"),
     key: `status:${error}`,
@@ -321,70 +323,43 @@ export function StatusScreen({ go, auth }) {
 
   useEffect(() => {
     let cancelled = false;
-    let intervalId = null;
-    let requestId = 0;
-    let activeController = null;
-
-    function abortActiveRequest() {
-      requestId += 1;
-      if (activeController) {
-        activeController.abort();
-        activeController = null;
-      }
-    }
+    const controller = new AbortController();
+    requestPending.current = true;
+    setLoading(true);
 
     async function loadHealth() {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
-        abortActiveRequest();
-        return;
-      }
-      abortActiveRequest();
-      const currentRequestId = requestId;
-      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-      activeController = controller;
-      const requestOptions = controller ? { signal: controller.signal } : {};
-      const isCurrentRequest = () =>
-        !cancelled && requestId === currentRequestId && (!controller || !controller.signal.aborted);
-      setNow(new Date());
+      // StrictMode cancels its first setup before dispatch. Further checks
+      // require explicit user intent; visibility changes never read the API.
+      await Promise.resolve();
+      if (cancelled || controller.signal.aborted) return;
+      const isCurrentRequest = () => !cancelled && !controller.signal.aborted;
       try {
-        const payload = await pullwiseApi.system.health(requestOptions);
+        const payload = await pullwiseApi.system.health({ signal: controller.signal });
         if (isCurrentRequest()) {
           setHealth(payload);
           setError("");
+          setNow(new Date());
         }
       } catch (healthError) {
         if (isCurrentRequest()) {
           setHealth(null);
           setError(healthError?.message || "Unable to reach the Pullwise API.");
+          setNow(new Date());
         }
       } finally {
-        if (activeController === controller) {
-          activeController = null;
+        if (isCurrentRequest()) {
+          requestPending.current = false;
+          setLoading(false);
         }
       }
     }
 
-    loadHealth();
-    intervalId = setInterval(loadHealth, STATUS_REFRESH_MS);
-    const handleVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        abortActiveRequest();
-      } else {
-        void loadHealth();
-      }
-    };
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", handleVisibility);
-    }
+    void loadHealth();
     return () => {
       cancelled = true;
-      abortActiveRequest();
-      clearInterval(intervalId);
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", handleVisibility);
-      }
+      controller.abort();
     };
-  }, []);
+  }, [requestRevision]);
 
   const apiStatus = statusClass(Boolean(health?.ok), error);
   const title = health?.ok
@@ -438,8 +413,21 @@ export function StatusScreen({ go, auth }) {
         </div>
         <p className="status-sub">
           {T("Last checked", "最近检查")} {now.toLocaleTimeString()} ·{" "}
-          {T("Reads live /health data every 30s", "每 30 秒读取实时 /health 数据")}
+          {T("Initial check, then refresh manually", "首次检查后，请手动刷新")}
         </p>
+        <button
+          className="btn"
+          disabled={loading}
+          aria-busy={loading}
+          onClick={() => {
+            if (requestPending.current) return;
+            requestPending.current = true;
+            setLoading(true);
+            setRequestRevision((value) => value + 1);
+          }}
+        >
+          <I.Refresh size={14} /> {T("Refresh status", "刷新状态")}
+        </button>
       </section>
 
       <section className="status-section">

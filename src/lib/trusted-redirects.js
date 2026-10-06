@@ -120,13 +120,23 @@ export function safeGitHubInstallationUrl(value, label) {
 }
 
 export function safeBillingRedirectUrl(value, label) {
+  if (typeof value === "string" && hasControlCharacter(value)) {
+    throw new Error(`A safe ${label} is required.`);
+  }
   const url = safeHttpUrl(value, label);
   const parsed = new URL(url);
   const hostname = parsed.hostname.toLowerCase();
 
-  if (parsed.protocol === "https:" && TRUSTED_BILLING_PROVIDER_HOSTS.has(hostname)) return url;
+  if (parsed.username || parsed.password) throw new Error(`A safe ${label} is required.`);
+  if (parsed.protocol === "https:" && !parsed.port && TRUSTED_BILLING_PROVIDER_HOSTS.has(hostname))
+    return url;
   if (isSameOrigin(parsed)) return url;
-  if (parsed.protocol === "https:" && TRUSTED_BILLING_FIRST_PARTY_HOSTS.has(hostname)) return url;
+  if (
+    parsed.protocol === "https:" &&
+    !parsed.port &&
+    TRUSTED_BILLING_FIRST_PARTY_HOSTS.has(hostname)
+  )
+    return url;
 
   throw new Error(`A safe ${label} is required.`);
 }

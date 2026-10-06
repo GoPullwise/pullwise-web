@@ -48,6 +48,16 @@ function failureMessage(failure) {
       "The inviter no longer has permission. Ask the ledger owner for a new link.",
       "邀请人已失去邀请权限，请向账本所有者索取新链接。"
     );
+  if (failure?.code === "INVITATION_ACCEPTED")
+    return T(
+      "This invitation has already been accepted. Reload your ledgers to check current access.",
+      "此邀请已被接受，请重新加载账本以查看当前权限。"
+    );
+  if (failure?.code === "INVITATION_REVOKED")
+    return T(
+      "This invitation was revoked. Ask the ledger owner for a new link.",
+      "此邀请已撤销，请向账本所有者索取新链接。"
+    );
   if (failure?.code === "INVITATION_EXPIRED" || failure?.status === 410)
     return T(
       "This invitation has expired. Ask the ledger owner for a new link.",
@@ -157,6 +167,8 @@ function MembersContent({
   const lifecycle = useRef(0);
   const loadId = useRef(0);
   const loadController = useRef(null);
+  const previewController = useRef(null);
+  const previewId = useRef(0);
   const actionPending = useRef(false);
   const copyPending = useRef(false);
   const inviteVersion = useRef(0);
@@ -229,41 +241,62 @@ function MembersContent({
     }
   }, [api, workspaceId, canManage, current, failed]);
 
+  const loadInvitation = useCallback(async () => {
+    if (
+      !token ||
+      !mounted.current ||
+      actionPending.current ||
+      (previewController.current && !previewController.current.signal.aborted)
+    )
+      return;
+    const ticket = lifecycle.current;
+    const requestId = ++previewId.current;
+    const controller = new AbortController();
+    previewController.current = controller;
+    setPreviewLoading(true);
+    setPreview(null);
+    setInvitationError("");
+    // Confirm the single-use token is still pending before allowing another
+    // explicit acceptance. A failed mutation is never retried automatically.
+    await Promise.resolve();
+    if (!current(ticket) || controller.signal.aborted) return;
+    try {
+      const result = await api.previewInvitation({ token }, { signal: controller.signal });
+      if (!current(ticket) || controller.signal.aborted || requestId !== previewId.current) return;
+      if (
+        !result?.recipient?.login ||
+        !EDITABLE_ROLES.includes(result.role) ||
+        !result.expiresAt ||
+        (result.status === "accepted" && !result.workspace?.id)
+      ) {
+        throw new Error(T("Invitation data unavailable.", "邀请数据暂不可用。"));
+      }
+      setPreview(result);
+      setAcceptAttempted(false);
+    } catch (failure) {
+      if (current(ticket) && !controller.signal.aborted && requestId === previewId.current)
+        failed(failure, true);
+    } finally {
+      if (previewController.current === controller) previewController.current = null;
+      if (current(ticket) && !controller.signal.aborted && requestId === previewId.current)
+        setPreviewLoading(false);
+    }
+  }, [api, token, current, failed]);
+
   useEffect(() => {
     mounted.current = true;
-    const ticket = ++lifecycle.current;
+    lifecycle.current += 1;
     load();
-    const controller = new AbortController();
-    if (token) {
-      setPreviewLoading(true);
-      Promise.resolve().then(async () => {
-        if (!current(ticket) || controller.signal.aborted) return;
-        try {
-          const result = await api.previewInvitation({ token }, { signal: controller.signal });
-          if (!current(ticket) || controller.signal.aborted) return;
-          if (
-            !result?.recipient?.login ||
-            !EDITABLE_ROLES.includes(result.role) ||
-            !result.expiresAt
-          ) {
-            throw new Error(T("Invitation data unavailable.", "邀请数据暂不可用。"));
-          }
-          setPreview(result);
-        } catch (failure) {
-          if (current(ticket) && !controller.signal.aborted) failed(failure, true);
-        } finally {
-          if (current(ticket) && !controller.signal.aborted) setPreviewLoading(false);
-        }
-      });
-    }
+    loadInvitation();
     return () => {
       mounted.current = false;
       lifecycle.current += 1;
       loadId.current += 1;
+      previewId.current += 1;
       loadController.current?.abort();
-      controller.abort();
+      previewController.current?.abort();
     };
-  }, [api, token, load, current, failed]);
+  }, [load, loadInvitation]);
 
   const runAction = async (operation, success, invitation = false) => {
     const ticket = lifecycle.current;
@@ -397,9 +430,35 @@ function MembersContent({
               <h2>{T("Ledger invitation", "账本邀请")}</h2>
               {previewLoading && <p role="status">{T("Checking invitation…", "正在检查邀请…")}</p>}
               {invitationError && (
-                <p className="notice notice-error" role="alert">
-                  {invitationError}
-                </p>
+                <div className="notice notice-error" role="alert">
+                  <p>{invitationError}</p>
+                  {acceptAttempted && (
+                    <p>
+                      {T(
+                        "Check the invitation before trying again. If acceptance succeeded, reload your ledgers and choose the shared ledger.",
+                        "请先检查邀请再重试。如果已经成功加入，请重新加载账本并选择共享账本。"
+                      )}
+                    </p>
+                  )}
+                  <div className="panel-actions">
+                    <button
+                      className="btn"
+                      disabled={busy || previewLoading}
+                      onClick={loadInvitation}
+                    >
+                      {T("Check invitation again", "重新检查邀请")}
+                    </button>
+                    {acceptAttempted && onMembershipChanged && (
+                      <button
+                        className="btn ghost"
+                        disabled={busy || previewLoading}
+                        onClick={() => callbacks.current.onMembershipChanged?.()}
+                      >
+                        {T("Reload ledgers", "重新加载账本")}
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
               {preview && (
                 <>
@@ -408,24 +467,49 @@ function MembersContent({
                     {T("GitHub account", "GitHub 账户")}: {preview.recipient.login}
                   </p>
                   <p>
-                    {T("Role", "角色")}: {roleName(preview.role)}
+                    {T("Role", "角色")}: {roleName(
+                      preview.status === "accepted" ? preview.workspace.role || preview.role : preview.role
+                    )}
                   </p>
-                  <p>
-                    {T("Expires", "有效期至")}: {preview.expiresAt}
-                  </p>
+                  {preview.status === "accepted" ? (
+                    <p role="status">
+                      {T(
+                        "You have already joined this ledger. Open it to continue.",
+                        "你已经加入此账本，打开账本即可继续使用。"
+                      )}
+                    </p>
+                  ) : (
+                    <p>
+                      {T("Expires", "有效期至")}: {preview.expiresAt}
+                    </p>
+                  )}
                   <p className="notice">
                     {T(
                       "Accepting gives you access to all existing and future ledger data, including projects, categories, shared expenses and reports.",
                       "接受邀请后，你将能按所授角色访问此账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
                     )}
                   </p>
-                  <button
-                    className="btn primary"
-                    onClick={accept}
-                    disabled={busy || acceptAttempted}
-                  >
-                    {T("Accept invitation", "接受邀请")}
-                  </button>
+                  {preview.status === "accepted" ? (
+                    <button
+                      className="btn primary"
+                      disabled={busy}
+                      onClick={() => {
+                        if (!current(lifecycle.current)) return;
+                        callbacks.current.clearInvitation();
+                        callbacks.current.onMembershipChanged?.(preview.workspace.id);
+                      }}
+                    >
+                      {T("Open shared ledger", "打开共享账本")}
+                    </button>
+                  ) : (
+                    <button
+                      className="btn primary"
+                      onClick={accept}
+                      disabled={busy || acceptAttempted}
+                    >
+                      {T("Accept invitation", "接受邀请")}
+                    </button>
+                  )}
                 </>
               )}
             </section>

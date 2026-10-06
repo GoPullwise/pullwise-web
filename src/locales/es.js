@@ -121,7 +121,8 @@ export const PHRASES = {
   "API use": "Uso de API",
   "configured backend": "backend configurado",
   "Last checked": "Última comprobación",
-  "Reads live /health data every 30s": "Lee datos /health en vivo cada 30 s",
+  "Initial check, then refresh manually": "Comprobación inicial, luego actualización manual",
+  "Refresh status": "Actualizar estado",
   "No generated uptime or incident history":
     "Sin historial generado de disponibilidad o incidentes",
   English: "Inglés",

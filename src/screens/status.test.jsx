@@ -1,4 +1,5 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { setLang } from "../i18n.jsx";
@@ -39,9 +40,10 @@ describe("StatusScreen", () => {
       },
     });
 
-    render(<StatusScreen go={vi.fn()} />);
+    render(<StrictMode><StatusScreen go={vi.fn()} /></StrictMode>);
 
     expect(await screen.findByText("API reachable")).toBeInTheDocument();
+    expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("Scan system")).not.toBeInTheDocument();
     expect(pullwiseApi.system.status).toBeUndefined();
     expect(screen.getByText(/d1: configured backend/i)).toBeInTheDocument();
@@ -73,38 +75,44 @@ describe("StatusScreen", () => {
     expect(screen.queryByText(/\/private\/ledger\.db/i)).not.toBeInTheDocument();
   });
 
-  it("ignores stale health responses after a newer check fails", async () => {
-    const staleHealth = deferred();
+  it("allows an explicit refresh to fail and recover without repeating the request automatically", async () => {
+    const freshHealth = deferred();
     pullwiseApi.system.health
-      .mockReturnValueOnce(staleHealth.promise)
-      .mockRejectedValueOnce(new Error("Newer health check failed"));
+      .mockResolvedValueOnce({ ok: true, service: "pullwise-server" })
+      .mockRejectedValueOnce(new Error("Newer health check failed"))
+      .mockReturnValueOnce(freshHealth.promise);
 
     render(<StatusScreen go={vi.fn()} />);
 
-    expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      document.dispatchEvent(new Event("visibilitychange"));
-    });
+    expect(await screen.findByText("API reachable")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Refresh status" }));
 
     await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("API unreachable")).toBeInTheDocument();
+    expect(screen.getByText("Newer health check failed")).toBeInTheDocument();
+    expect(pullwiseApi.system.health).toHaveBeenCalledTimes(2);
+    const refresh = screen.getByRole("button", { name: "Refresh status" });
+    fireEvent.click(refresh);
+    fireEvent.click(refresh);
+    await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(3));
+    expect(refresh).toBeDisabled();
 
     await act(async () => {
-      staleHealth.resolve({
+      freshHealth.resolve({
         ok: true,
         service: "pullwise-server",
         mode: "production",
         database: { type: "d1", path: "/private/ledger.db" },
       });
-      await staleHealth.promise;
+      await freshHealth.promise;
     });
 
-    expect(screen.getByText("API unreachable")).toBeInTheDocument();
-    expect(screen.queryByText("API reachable")).not.toBeInTheDocument();
+    expect(screen.getByText("API reachable")).toBeInTheDocument();
+    expect(screen.queryByText("API unreachable")).not.toBeInTheDocument();
+    expect(refresh).toBeEnabled();
   });
 
-  it("waits for visibility and aborts health requests when hidden or unmounted", async () => {
+  it("never polls or repeats health reads on visibility changes and aborts the initial request when unmounted", async () => {
     const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
     const healthSignals = [];
     pullwiseApi.system.health.mockImplementation(({ signal } = {}) => {
@@ -120,25 +128,28 @@ describe("StatusScreen", () => {
     const { unmount } = render(<StatusScreen go={vi.fn()} />);
 
     try {
-      expect(pullwiseApi.system.health).not.toHaveBeenCalled();
+      await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1));
+      vi.useFakeTimers();
+      await act(async () => vi.advanceTimersByTime(120_000));
+      expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
 
       visibility.mockReturnValue("visible");
       act(() => document.dispatchEvent(new Event("visibilitychange")));
-      await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1));
+      expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
       expect(healthSignals[0].aborted).toBe(false);
 
       visibility.mockReturnValue("hidden");
       act(() => document.dispatchEvent(new Event("visibilitychange")));
-      expect(healthSignals[0].aborted).toBe(true);
+      expect(healthSignals[0].aborted).toBe(false);
 
       visibility.mockReturnValue("visible");
       act(() => document.dispatchEvent(new Event("visibilitychange")));
-      await waitFor(() => expect(pullwiseApi.system.health).toHaveBeenCalledTimes(2));
-      expect(healthSignals[1].aborted).toBe(false);
+      expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
 
       unmount();
-      expect(healthSignals[1].aborted).toBe(true);
+      expect(healthSignals[0].aborted).toBe(true);
     } finally {
+      vi.useRealTimers();
       visibility.mockRestore();
     }
   });
