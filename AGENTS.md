@@ -1,5 +1,18 @@
 # Pullwise Web
 
+## Current task authority (2026-10-06)
+
+The user explicitly authorized the resumed Server/Web audit, repairs, local
+verification, main pushes, Cloudflare publication and finite preview user/model
+acceptance. This supersedes historical blanket test/Wrangler pauses below.
+Preserve the Server's existing preview journal, cumulative 100,000-read /
+1,000-written-row ceilings, environment isolation and no reset/retry/cron policy.
+Production database activation and authenticated/provider acceptance remain
+separate gates; local mocks and static publication do not establish them.
+Use `docs/validation/local-acceptance.md` for current release evidence.
+The user's later 2026-10-06 scope is preview-only testing/verification. Do not
+continue production repair, activation, deployment or validation for this task.
+
 ## Product and contract
 
 Use `main` for all work unless the user explicitly requests another branch.

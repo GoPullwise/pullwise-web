@@ -1798,24 +1798,6 @@
     flex: 1 1 150px;
   }
 
-  .lp-preview-body {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
-  }
-
-  .lp-preview-side {
-    display: none;
-  }
-
-  .lp-preview-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .lp-preview-expense {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-  }
-
   .lp-cta-band,
   .status-hero,
   .status-section {
@@ -1947,10 +1929,6 @@
 }
 
 @media (max-width: 520px) {
-  .lp-preview-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .status-overall {
     flex-wrap: wrap;
   }

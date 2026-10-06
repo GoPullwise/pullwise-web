@@ -48,6 +48,103 @@ No provider, remote business API or D1 request ran. The harness capped each
 case at 100 requests; the maximum observed was 39 local/intercepted requests.
 Generated scripts, screenshots and run output remain outside the repository.
 
+## Preview public-browser acceptance (2026-10-06)
+
+The current remote scope is **preview only**. Web source `0ff502c` was published
+as preview version `ef9edfbe-f881-4f7a-982a-8fc1d75ace71`. The earlier authorized
+static publication check made eight GETs across the two Web domains: all were
+200, and the three asset SHA-256 values matched the local build on each domain.
+That earlier production check is historical evidence, not an extension of the
+current preview scope.
+
+Actual Chromium loaded the published preview with real Server responses and
+completed **eight public-page functional cases**: Home, Pricing, Docs and Login
+at 1440px desktop and 390px touch. Navigation, monthly/yearly pricing controls,
+the Docs Max-assistance anchor and the normal login entry worked. Each completed
+case had zero document overflow and page errors. Mobile cases confirmed coarse
+pointer media and one touch point before and after captures. Pricing returned
+the real Free, Pullwise Pro and Pullwise Max plans; Max displayed activation
+pending and no rollover. Every received product document/API response was 200;
+no received provider response was 4xx/5xx.
+
+Screenshot review found a **real mobile Home visual failure** despite its
+functional and overflow checks passing: the preview card retained its desktop
+sidebar, squeezing the expense purpose into individual-character lines. Pricing,
+Docs and Login screenshots were usable. The Home repair and its separate local
+evidence are recorded below; the original remote capture does not prove the
+repair was published or remotely accepted.
+
+Exactly **one** real Continue with GitHub action ran. The authorize API returned
+200, followed by actual GitHub document responses at `/login/oauth/authorize`
+(302) and `/login` (200). The harness then tried to read the authorize response
+body after navigation had discarded it, and stopped on a browser response-body
+capture race. It therefore did **not** complete the planned credential-form or
+response callback-parameter assertions. No credentials, consent, payment or
+account-change action was submitted, and OAuth was not repeated.
+
+The isolated browser's 13 decoded session responses all reported signed out.
+The user's successful login in their own ordinary browser is user-reported
+evidence; this tool browser did not receive that session. Authenticated ledger,
+payment and model/provider acceptance remain unverified by this run.
+
+The request journal was cumulative across harness continuations, without resets,
+business retries or polling. The initial browser ceilings of 90 routed forwards /
+12 Server API requests were explicitly raised to 99/15, then 130/20. The fixed
+Server preview journal ceilings remained 100,000 rows read / 1,000 rows written.
+Final harness counters were **128 routed forwards / 19 Server API requests /
+one OAuth initiation**. GitHub's observed redirect continuation is additional to
+the route-admission counter: two provider document responses were received,
+within the four-document boundary. The recorded route counter is not an exact
+count of every redirect-follow-up HTTP request. The batch is closed.
+
+Earlier incomplete stages are retained as harness evidence, not product defects:
+
+| Aggregate routed forwards / API | Stage and outcome |
+| --- | --- |
+| 21 / 3 | Bootstrap expected literal `Max`; the real plan was `Pullwise Max`. Corrected the selector. |
+| 59 / 8 | Four desktop pages passed. Mobile hid the secondary Sign in link; its primary Get started entry remained available. |
+| 60 / 8 | Chromium reported `ERR_CERT_VERIFIER_CHANGED` before an HTTP response. Diagnosed proxy/NSS trust and added an internal startup document. |
+| 76 / 10 | A default five-second expectation expired during signed-out startup. Set explicit 30-second readiness and lazy-heading waits. |
+| 89 / 12 | Capture cleared touch emulation. Stopped the mobile assertion and verified capture/touch restoration with network-free local HTML. |
+| 107 / 15 | Mobile Home passed. Mouse-to-touch conversion prevented the next interaction from settling; replaced it with locally verified trusted native touch events. |
+| 128 / 19 | Remaining mobile Pricing, Docs and Login passed; the single OAuth navigation reached GitHub. The post-navigation response-body capture race prevented the remaining provider assertions. |
+
+All remote traffic used the configured environment proxy. Chromium used an
+exception pinned to the configured proxy CA's exact SPKI; global certificate
+error bypass and `ignore_https_errors` remained disabled. Cloudflare analytics
+and GitHub subresources were deliberately aborted; the final mobile continuation
+also aborted optional Google fonts to conserve its remaining allowance, so its
+captures use the declared font fallbacks. These intentional aborts are distinct
+from provider failures. No remote business data was mocked. Logs omit URL queries,
+OAuth state, cookies and credentials; generated evidence remains under `/tmp`.
+Browsers and the local static preview server were stopped after validation.
+
+### Mobile Home visual repair and local verification
+
+The earlier mobile rules in `styles/screens.css` were overwritten by desktop
+defaults in the later-loaded `src/app.css`. The existing one-column preview
+body/expense and hidden-sidebar rules now live in the owning landing section's
+760px media block. Removed stale stat-row rules already had no effect; the
+effective two-column mobile stats, four-column desktop stats and 760/761 boundary
+remain unchanged.
+
+Network-free actual Chromium reproduced the defect with the original CSS at
+390px and 320px: purpose width 0px, height 846px and card height 1146px. The
+repaired CSS gives purpose widths 288px/218px and two 18px lines. A fresh built
+artifact then passed five local Home captures at 390/320/760px touch and
+761/1440px desktop: zero overflow/page errors, correct sidebar visibility and
+touch/coarse state before and after screenshots. The native phone cards were
+386px high with legible two-line purposes; desktop remained 404px high. The
+390px, 320px and 1440px captures were visually reviewed. This used 70 bounded
+local/intercepted requests, including ten synthetic signed-out session GETs;
+no remote or provider request ran.
+
+After this CSS repair, `npm run check` again passed ESLint, **35 files / 339
+tests** and the production build; `npm run check:workers` passed. The checked
+build contains `index-DYpTVxXP.js`, `index-CX8wIgR0.css` and the unchanged
+`ledger-DH0H9eII.js`. Publication of this repair is recorded separately after
+completion; these local captures do not establish remote acceptance.
+
 ## Product audit and automatic Max assistance (2026-10-02)
 
 Normal expense saves now use the shared Server automatic-assistance contract.
