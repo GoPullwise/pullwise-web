@@ -19,9 +19,10 @@ function headerLinesFor(route) {
 }
 
 describe("web Worker deployment", () => {
-  it("routes API requests through the Worker before the SPA assets fallback", () => {
-    expect(Array.isArray(wrangler.assets?.run_worker_first)).toBe(true);
-    expect(wrangler.assets?.run_worker_first).toContain("/api/*");
+  it("runs API and HTML through middleware while serving hashed assets directly", () => {
+    expect(wrangler.assets?.binding).toBe("ASSETS");
+    expect(wrangler.assets?.run_worker_first).toEqual(["/*", "!/assets/*"]);
+    expect(wrangler.vars?.PULLWISE_MODE).toBe("production");
   });
 
   it("sets explicit SPA shell revalidation and anti-framing headers", () => {

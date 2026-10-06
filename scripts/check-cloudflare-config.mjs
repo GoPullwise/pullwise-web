@@ -19,12 +19,17 @@ export function validateWorkerConfig(config, productionEnv, environment = "produ
       routes.length !== 1 || routes[0].pattern !== "preview.pull-wise.com")) {
     errors.push("preview must use isolated reviewed hosts without public Worker URLs");
   }
+  if (environment === "production" && config.vars?.PULLWISE_MODE !== "production") {
+    errors.push("production must use production mode to preserve public indexing");
+  }
   if (config.triggers?.crons?.length) errors.push("cron is forbidden");
   const workerFirst = config.assets?.run_worker_first;
-  if (environment === "preview" && (config.assets?.binding !== "ASSETS" ||
+  if (config.assets?.binding !== "ASSETS" ||
       !Array.isArray(workerFirst) || workerFirst.length !== 2 ||
-      !workerFirst.includes("/*") || !workerFirst.includes("!/assets/*"))) {
-    errors.push("preview HTML must run noindex middleware with an ASSETS binding and asset exclusion");
+      !workerFirst.includes("/*") || !workerFirst.includes("!/assets/*")) {
+    errors.push(environment === "preview"
+      ? "preview HTML must run noindex middleware with an ASSETS binding and asset exclusion"
+      : "production HTML must run SEO middleware with an ASSETS binding and asset exclusion");
   }
   if (!routes.length || routes.some((route) => !route.custom_domain || !route.pattern)) {
     errors.push("Web custom domains are missing");
