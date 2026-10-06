@@ -559,6 +559,8 @@ export function LedgerScreen({
   useEffect(() => {
     const controller = new AbortController();
     moreController.current?.abort();
+    moreController.current = null;
+    setLoadingMore(false);
     const request = ++requestId.current;
     setLoading(true);
     setError("");
@@ -659,7 +661,8 @@ export function LedgerScreen({
 
   const loadMore = async (kind) => {
     const cursor = data?.[kind]?.nextCursor;
-    if (!cursor || loadingMore) return;
+    if (!cursor || loading || loadingMore ||
+        (moreController.current && !moreController.current.signal.aborted)) return;
     const request = requestId.current;
     const controller = new AbortController();
     moreController.current = controller;
@@ -702,6 +705,7 @@ export function LedgerScreen({
     } catch (failure) {
       if (!controller.signal.aborted) setActionError(errorText(failure));
     } finally {
+      if (moreController.current === controller) moreController.current = null;
       if (request === requestId.current) setLoadingMore(false);
     }
   };
@@ -767,6 +771,7 @@ export function LedgerScreen({
         } else setData((old) => old && ({ ...old, repositories: null, repositoryError: failure }));
       }
     } finally {
+      if (moreController.current === controller) moreController.current = null;
       inFlight.current = false;
       if (mounted.current) setBusy(false);
     }

@@ -6,10 +6,12 @@ afterEach(() => {
   cleanup();
 });
 
-Object.defineProperty(window, "scrollTo", {
-  value: () => {},
-  writable: true,
-});
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "scrollTo", {
+    value: () => {},
+    writable: true,
+  });
+}
 
 if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = class ResizeObserver {

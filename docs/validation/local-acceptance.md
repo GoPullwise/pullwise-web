@@ -1,6 +1,52 @@
 # Current local acceptance
 
-Updated 2026-10-02. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-10-06. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Frontend continuation audit (2026-10-06)
+
+The current objective resumes audit, repair and verification. The earlier
+pause statements below describe historical runs rather than the current task.
+
+Reloading or changing ledger scope while a page was pending could leave all
+pagination controls disabled permanently. A failing regression reproduced it;
+the read lifecycle now clears canceled pagination state and guards overlapping
+page reads synchronously. Completed manual repository recovery releases its
+controller so repository pagination stays usable. Obsolete responses remain
+ignored.
+
+Finishing GitHub authorization after leaving Settings previously started new
+profile and integration reads. Settings now skips that follow-up after unmount,
+aborts in-flight account reads and ignores obsolete action completion. New
+regressions reproduced the extra reads and missing cancellation before repair.
+
+The fetch transport tests use the Node environment to keep Response and Blob
+from the same runtime; Node 24 combined with jsdom's Blob had failed the binary
+download assertion. DOM tests retain jsdom.
+
+`npm run check` passed ESLint, **35 test files / 339 tests**, and the production
+build. `npm run check:workers` and `git diff --check` passed. These checks used
+local mocked responses; this entry makes no remote OAuth, payment, Jev or D1
+acceptance claim. Remote publication and preview user validation are recorded
+separately when completed.
+
+Actual headless Chromium also passed **8 built-artifact cases**, covering
+pagination cancellation/late-response recovery, manual repository recovery,
+Settings popup completion after navigating away, and account-read cancellation
+at 1440px desktop and 390px touch. The static preview used a free strict
+loopback port and an explicit empty Vite proxy; all API responses were local
+fixtures. Across the eight cases, 68 fixture API requests included two simulated
+repository-sync POSTs. Six canceled reads reported `net::ERR_ABORTED`; no late
+record or extra Settings integration read appeared. Every case checked zero
+document overflow and page errors. Phone cases confirmed coarse-pointer media
+and `navigator.maxTouchPoints` before and after screenshots. Four screenshots
+were visually reviewed with no clipped controls or records.
+
+The intercepted GitHub popup used offline HTML and a renderer-initiated local
+callback; it does not establish real GitHub authorization. External font CSS
+was intercepted with an empty local response, using the declared font fallbacks.
+No provider, remote business API or D1 request ran. The harness capped each
+case at 100 requests; the maximum observed was 39 local/intercepted requests.
+Generated scripts, screenshots and run output remain outside the repository.
 
 ## Product audit and automatic Max assistance (2026-10-02)
 

@@ -105,6 +105,31 @@ describe("Projects authorization and creation", () => {
     await waitFor(() => expect(api.createProject).toHaveBeenCalledWith({ githubRepoId: 202, description: "" }, {}));
   });
 
+  it("allows pagination again after reload cancels a pending page and ignores its late response", async () => {
+    const firstPage = { items: [{ id: "prj_1", githubRepoId: 202, githubFullName: "alice/project", totals: [] }], nextCursor: "next" };
+    api.projects.mockResolvedValue(firstPage);
+    let finish;
+    let pendingSignal;
+    api.projects.mockImplementationOnce(() => Promise.resolve(firstPage));
+    api.projects.mockImplementationOnce((params, options) => {
+      pendingSignal = options.signal;
+      return new Promise(resolve => { finish = resolve; });
+    });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Load more projects" }));
+    expect(screen.getByRole("button", { name: "Load more projects" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    await waitFor(() => expect(api.projects).toHaveBeenCalledTimes(3));
+    expect(pendingSignal.aborted).toBe(true);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Load more projects" })).toBeEnabled());
+    finish({ items: [{ id: "prj_stale", githubFullName: "alice/stale", totals: [] }], nextCursor: null });
+    await Promise.resolve();
+    expect(screen.queryByRole("link", { name: /alice\/stale/ })).not.toBeInTheDocument();
+    api.projects.mockResolvedValueOnce({ items: [{ id: "prj_2", githubFullName: "alice/current", totals: [] }], nextCursor: null });
+    fireEvent.click(screen.getByRole("button", { name: "Load more projects" }));
+    expect(await screen.findByRole("link", { name: /alice\/current/ })).toBeInTheDocument();
+  });
+
   it("shows repository load failure instead of a successful empty state", async () => {
     api.repositories.mockRejectedValueOnce(new Error("Repository list unavailable"));
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
@@ -176,6 +201,17 @@ describe("Projects authorization and creation", () => {
     finish({ items: [{ githubRepoId: 303, fullName: "alice/obsolete" }], nextCursor: null });
     await Promise.resolve();
     expect(screen.queryByRole("option", { name: "alice/obsolete" })).not.toBeInTheDocument();
+  });
+
+  it("allows the next repository page after a completed manual access recovery", async () => {
+    api.repositories.mockRejectedValueOnce(new Error("Repository list unavailable"));
+    api.repositories.mockResolvedValueOnce({ items: [{ githubRepoId: 202, fullName: "alice/project" }], nextCursor: "next" });
+    api.repositories.mockResolvedValueOnce({ items: [{ githubRepoId: 303, fullName: "alice/second" }], nextCursor: null });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Check repository access" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Load more repositories" }));
+    expect(await screen.findByRole("option", { name: "alice/second" })).toBeInTheDocument();
+    expect(api.repositories).toHaveBeenCalledTimes(3);
   });
 
   it.each([401, 403])("does not degrade a Pullwise identity/permission denial (%s) into history access", async status => {

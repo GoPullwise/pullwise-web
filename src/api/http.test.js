@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { ApiError, SERVER_REQUEST_TIMEOUT_MS, http, request } from "./http.js";
 
@@ -124,8 +125,7 @@ describe("fetch transport", () => {
       })
     );
 
-    // jsdom's Blob global and undici's Response.blob() are different realms,
-    // so assert on shape and content rather than instanceof.
+    // Exercise downloads with the runtime's own fetch and Blob implementations.
     const result = await request("/api/v1/expenses/export", { responseType: "blob" });
     expect(typeof result.arrayBuffer).toBe("function");
     await expect(result.text()).resolves.toBe("csv-bytes");

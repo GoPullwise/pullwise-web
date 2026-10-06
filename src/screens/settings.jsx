@@ -15,16 +15,23 @@ export function SettingsScreen({ go }) {
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const requestRef = useRef(0);
   const actionRef = useRef(false);
+  const mountedRef = useRef(false);
+  const loadControllerRef = useRef(null);
 
   const load = useCallback(async () => {
+    if (!mountedRef.current) return;
+    loadControllerRef.current?.abort();
+    const controller = new AbortController();
+    loadControllerRef.current = controller;
     const requestId = ++requestRef.current;
     setLoading(true);
     setError("");
     const [sessionResult, integrationsResult] = await Promise.allSettled([
-      pullwiseApi.auth.getSession(),
-      pullwiseApi.integrations.list(),
+      pullwiseApi.auth.getSession({ signal: controller.signal }),
+      pullwiseApi.integrations.list({ signal: controller.signal }),
     ]);
-    if (requestId !== requestRef.current) return;
+    if (controller.signal.aborted || requestId !== requestRef.current) return;
+    if (loadControllerRef.current === controller) loadControllerRef.current = null;
     setSession(sessionResult.status === "fulfilled" ? sessionResult.value : null);
     setIntegrations(integrationsResult.status === "fulfilled" ? integrationsResult.value : null);
     setError(
@@ -39,9 +46,12 @@ export function SettingsScreen({ go }) {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     load();
     return () => {
+      mountedRef.current = false;
       requestRef.current += 1;
+      loadControllerRef.current?.abort();
     };
   }, [load]);
 
@@ -52,12 +62,13 @@ export function SettingsScreen({ go }) {
     setError("");
     try {
       await action();
-      await load();
+      if (mountedRef.current) await load();
     } catch (failure) {
-      setError(failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。"));
+      if (mountedRef.current)
+        setError(failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。"));
     } finally {
       actionRef.current = false;
-      setManagingInstallationId("");
+      if (mountedRef.current) setManagingInstallationId("");
     }
   };
 

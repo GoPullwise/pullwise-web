@@ -75,4 +75,27 @@ describe("product settings", () => {
     fireEvent.click(screen.getByRole("button", { name: /^reload$/i }));
     expect(await screen.findByRole("button", { name: /^connect repositories$/i })).toBeEnabled();
   });
+
+  it("does not reload account data when GitHub authorization finishes after leaving Settings", async () => {
+    let finish;
+    connectGitHubRepositories.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const view = render(<SettingsScreen go={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: /^connect repositories$/i }));
+    view.unmount();
+    finish();
+    await Promise.resolve();
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts in-flight account reads when leaving Settings", async () => {
+    pullwiseApi.integrations.list.mockImplementationOnce(() => new Promise(() => {}));
+    const view = render(<SettingsScreen go={vi.fn()} />);
+    const sessionSignal = pullwiseApi.auth.getSession.mock.calls[0][0]?.signal;
+    const integrationsSignal = pullwiseApi.integrations.list.mock.calls[0][0]?.signal;
+    expect(sessionSignal).toBeDefined();
+    expect(integrationsSignal).toBe(sessionSignal);
+    view.unmount();
+    expect(sessionSignal.aborted).toBe(true);
+  });
 });

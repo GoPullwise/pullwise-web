@@ -63,6 +63,13 @@ describe("pullwiseApi current product endpoints", () => {
     });
   });
 
+  it("forwards the Settings lifecycle signal to integration reads", async () => {
+    request.mockResolvedValue({});
+    const controller = new AbortController();
+    await pullwiseApi.integrations.list({ signal: controller.signal });
+    expect(request).toHaveBeenCalledWith("/integrations", { signal: controller.signal });
+  });
+
   it("rejects empty dynamic account path segments", () => {
     expect(() => pullwiseApi.integrations.disconnect("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(/path segment/i);

@@ -37,7 +37,7 @@ export const pullwiseApi = {
   },
 
   integrations: {
-    list: () => request("/integrations"),
+    list: (options = {}) => getRequest("/integrations", options),
     getGitHubAuthorizeUrl: (params = {}, options = {}) =>
       request(withSearchParams("/integrations/github/authorize", params), {
         signal: options.signal,
