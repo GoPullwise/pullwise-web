@@ -6,8 +6,9 @@ per-currency reports, CSV exports and optional suggestions. `pullwise.js`
 implements sessions, GitHub authorization, settings, API-key management,
 subscriptions and public health reads.
 
-The workspace/team and multi-repository version is implemented locally as of
-2026-10-06 and awaits release verification.
+The workspace/team and multi-repository version is implemented and released to
+preview as of 2026-10-06. Local role/browser checks and remote publication
+evidence are recorded in [latest acceptance](../../docs/validation/local-acceptance.md).
 
 `http.js` joins each route to the configured base. With browser base `/api`,
 ledger `/api/v1/*` becomes `/api/api/v1/*`; `worker.js` strips exactly the outer

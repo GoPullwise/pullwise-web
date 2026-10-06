@@ -3,7 +3,7 @@
 ## Current task authority (2026-10-06)
 
 Latest scope: the multi-repository/Organization/shared-ledger version is
-implemented locally and awaits final verification and preview release. Use
+implemented, verified and released to preview with its own dated evidence. Use
 `../pullwise-server/docs/planning/project-repositories.md` for current roles,
 invitation, workspace and repository rules. Preserve role checks on Server,
 workspace/revision isolation in Web, actual-actor GitHub authorization and the

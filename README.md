@@ -2,7 +2,7 @@
 
 Pullwise Web is the browser client for the [GitHub project expense ledger](../pullwise-server/docs/design/github-project-ledger/README.md). It uses GitHub for sign-in and repository authorization, then lets members record project or shared expenses, manage categories, and review per-currency reports in the selected ledger. API keys and platform subscription billing are separate from user-entered expenses.
 
-As of 2026-10-06, the new workspace/team and multi-repository version is implemented locally and awaiting release verification. Earlier publication and validation evidence below does not establish release verification for this version.
+As of 2026-10-06, the new workspace/team and multi-repository version is implemented, verified and released to preview. Its separate local native/UI evidence and actual remote publication checks are in the latest acceptance record; the original release history remains separately dated.
 
 ## Workspaces and projects
 

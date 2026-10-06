@@ -2,6 +2,42 @@
 
 Updated 2026-10-06. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Shared-ledger release (2026-10-06, final)
+
+The new version was pushed as `775fabdc441abb8c79868497017fb8497872e0c3`
+to Web main and explicitly deployed to preview as
+`926cf9ce-9beb-4cec-80eb-02d233e16a6e` at 100%. Management read-back confirmed
+ASSETS and the `pullwise-server-preview` service binding. Full checks passed
+**418 tests**, ESLint/build/config checks; after the browser-found layout fixes,
+**159** relevant UI tests and the final build passed. The versioned Server
+schema upgraded to v5 under the original journal; production D1 remains paused.
+
+Built Chromium initially passed 12 functional flows but uncovered two 414px
+phone layout failures. The repaired final artifact passed six native 390px
+phone flows and one desktop smoke case, with measured sticky Header/Sidebar,
+actual picker/selector hit tests and no overflow/page errors. The fixtures were
+fully intercepted local accounts, **93** simulated API requests and zero remote
+forwards. [Detailed browser record](workspace-ui-local.md) preserves failures,
+repairs and the 27px API Keys picker boundary; [final structured evidence](workspaces-ui-final-2026-10-06.json)
+contains the actual viewport measurements and asset hashes.
+
+Actual deployed preview loaded `index-D2iP-fc1.js`. An anonymous desktop home
+check verified the new source/layout/heading before stopping only on a known
+blocked Cloudflare analytics asset; that result was retained without replay.
+The remaining actual 390px Members→Login case passed with the same external
+asset intentionally blocked, HTTP 200 and no page errors. No OAuth button or
+provider call was made. These guest checks do not replace new-role tests with
+local accounts or claim a new two-real-user preview invitation test. The earlier
+consented authenticated preview lifecycle belongs to the original release.
+
+Server source `a799232f` passed GitHub CI and serves preview version
+`6a69026a-993e-4afd-849b-671804288211` at 100%. The final numeric journal is
+schemaVersion 5, ready and unstopped, reserved 33,358/719 and observed
+21,716/359 under the unchanged 100,000/1,000 ceilings. Production D1/Jev remain
+0; main Builds may publish paused code. Complete publication evidence is in the
+[Server release record](../../../pullwise-server/docs/validation/workspaces-preview-release-2026-10-06.json).
+
+
 ## Frontend continuation audit (2026-10-06)
 
 The current objective resumes audit, repair and verification. The earlier
