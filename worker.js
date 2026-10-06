@@ -57,6 +57,11 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
   if (env.PULLWISE_SERVER) {
     // Route-backed Workers cannot be reached by same-zone external fetch().
     // Service bindings retain the HTTP contract without touching DNS/origin.
+    // Cloudflare supplies the inbound visitor IP at the Edge. Preserve only
+    // that value across this trusted binding so Server can rate-limit visitors
+    // independently; client forwarding headers stay stripped on both paths.
+    const edgeClientIp = request.headers.get("CF-Connecting-IP");
+    if (edgeClientIp) headers.set("CF-Connecting-IP", edgeClientIp);
     try {
       return proxyResponse(await env.PULLWISE_SERVER.fetch(new Request(targetUrl, init)));
     } catch {

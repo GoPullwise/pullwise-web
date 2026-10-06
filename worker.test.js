@@ -35,6 +35,33 @@ describe("Cloudflare Worker API proxy", () => {
     expect(network).not.toHaveBeenCalled();
   });
 
+  it("keeps each Edge visitor IP over the service binding without trusting client forwarding headers", async () => {
+    const network = vi.fn();
+    globalThis.fetch = network;
+    const service = { fetch: vi.fn(async () => new Response("{}")) };
+    for (const ip of ["198.51.100.1", "2001:db8::2"]) {
+      await worker.fetch(new Request("https://preview.pull-wise.com/api/auth/session", {
+        headers: {
+          "CF-Connecting-IP": ip,
+          "X-Forwarded-For": "127.0.0.1",
+          "X-Real-IP": "127.0.0.1",
+          "True-Client-IP": "127.0.0.1",
+          "CF-Connecting-IPv6": "::1",
+          Forwarded: "for=127.0.0.1",
+        },
+      }), { PULLWISE_API_ORIGIN: "https://preview-api.pull-wise.com", PULLWISE_SERVER: service });
+    }
+    const forwarded = service.fetch.mock.calls.map(([request]) => request.headers);
+    expect(forwarded.map((headers) => headers.get("CF-Connecting-IP"))).toEqual([
+      "198.51.100.1", "2001:db8::2",
+    ]);
+    for (const headers of forwarded) {
+      for (const name of ["X-Forwarded-For", "X-Real-IP", "True-Client-IP", "CF-Connecting-IPv6", "Forwarded"])
+        expect(headers.get(name)).toBeNull();
+    }
+    expect(network).not.toHaveBeenCalled();
+  });
+
   it("preserves body, trusted Origin, redirect and cookies over the service binding", async () => {
     const service = { fetch: vi.fn(async (forwarded) => {
       expect(forwarded.method).toBe("POST");
