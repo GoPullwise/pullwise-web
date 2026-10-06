@@ -90,8 +90,14 @@ function needsGitHubIdentity(error) {
 export async function startGitHubLogin({ redirectTo, signal } = {}) {
   if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
 
+  const invite = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)
+    ? window.location.hash
+    : "";
+  const invitationReturn = invite
+    ? new URL(`/members${invite}`, window.location.origin).toString()
+    : "";
   const result = await pullwiseApi.auth.getGitHubAuthorizeUrl(
-    { redirectTo: redirectTo || getScreenRedirectUrl("ledgerProjects") },
+    { redirectTo: redirectTo || invitationReturn || getScreenRedirectUrl("ledgerProjects") },
     { signal }
   );
 

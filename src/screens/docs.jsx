@@ -8,16 +8,16 @@ const SECTIONS = [
     id: "connect",
     title: ["Connect a repository", "连接仓库"],
     text: [
-      "Sign in with GitHub, grant access to a repository, and create a project for it. A project belongs to your Pullwise account and follows the repository ID through renames.",
-      "通过 GitHub 登录并授权仓库，再为其创建项目。项目属于你的 Pullwise 账户，仓库更名后仍按仓库 ID 关联。",
+      "Sign in with GitHub and explicitly select up to 30 authorized repositories for a ledger project, with an optional project name. You can associate a GitHub Organization and later change the selected repositories without copying expenses or changing the project ID. GitHub access is checked for the acting member.",
+      "通过 GitHub 登录，为有名称的账本项目明确选择最多 30 个已授权仓库，也可关联 GitHub Organization。之后更改仓库关联时不会复制支出，也不会改变项目 ID。GitHub 授权按当前操作成员检查。",
     ],
   },
   {
     id: "categories",
     title: ["Create categories", "创建类别"],
     text: [
-      "Categories belong to your account and can be used for project or shared expenses. Archived categories remain on historical entries.",
-      "类别属于你的账户，可用于项目或公共池支出。归档类别仍保留在历史记录中。",
+      "Categories belong to the selected ledger and can be used for project or shared expenses. Owners and Admins manage categories; archived categories remain on historical entries.",
+      "类别属于当前账本，可用于项目或公共池支出。Owner 和 Admin 可以管理类别，归档类别仍保留在历史记录中。",
     ],
   },
   {
@@ -40,16 +40,24 @@ const SECTIONS = [
     id: "reports",
     title: ["Review reports", "查看报表"],
     text: [
-      "Filter detail and charts by date and category. Totals stay separate by currency; Pullwise does not infer exchange rates. You can edit, remove and export your own historical entries.",
-      "按日期和类别筛选明细及图表。总额按币种分开，Pullwise 不推断汇率。你可以修改、移除和导出自己的历史记录。",
+      "Filter detail and charts by date and category. Totals stay separate by currency; Pullwise does not infer exchange rates. All ledger members can read reports and export its history; Owner, Admin and Editor can edit and remove entries.",
+      "按日期和类别筛选明细及图表。总额按币种分开，Pullwise 不推断汇率。账本成员可以查看报表和导出历史记录；Owner、Admin 和 Editor 可以修改和移除记录。",
     ],
   },
   {
     id: "keys",
     title: ["Use API keys", "使用 API 密钥"],
     text: [
-      "Create a key with only the ledger scopes you need. Restrict it to selected projects and explicitly allow the shared pool when required. Revoking a key stops its access.",
-      "只授予 API 密钥所需的记账权限，并限制到指定项目；需要公共池时应显式允许。撤销密钥后将无法继续访问。",
+      "Create a key for the selected ledger with only the scopes you need. Restrict it to selected projects and explicitly allow the shared pool when required. Team keys cannot exceed your role and stop working when your membership revision changes. Revoking a key stops its access.",
+      "为当前账本创建 API 密钥，只授予所需权限并限制到指定项目；需要公共池时应显式允许。团队密钥不能超出你的角色权限，成员权限版本变化后会失效。撤销密钥后将无法继续访问。",
+    ],
+  },
+  {
+    id: "members",
+    title: ["Share a ledger", "共享账本"],
+    text: [
+      "Use Members to invite a GitHub user to your existing ledger, including its history and future entries. Invitations expire after 24 hours and require the intended GitHub account to accept. Owner manages Admins; Admin manages Editors and Viewers. Editors record expenses; Viewers read reports and export CSV. Use the header picker to switch ledgers. All members share the Owner's plan and allowances. Joining a ledger never grants GitHub organization or repository access.",
+      "在成员页面邀请 GitHub 用户，共享现有账本的历史和后续记录。邀请 24 小时后失效，须由指定 GitHub 账户接受。Owner 管理 Admin，Admin 管理 Editor 和 Viewer。Editor 可以记账，Viewer 可以查看报表和导出 CSV。通过顶部选择器切换账本；所有成员共同使用 Owner 的套餐和额度。加入账本不会授予 GitHub 组织或仓库访问权。",
     ],
   },
 ];
@@ -91,8 +99,8 @@ export function DocsScreen({ go, auth }) {
               <b>{T("Your ledger", "你的账本")}</b>
               <p>
                 {T(
-                  "GitHub access controls new repository bindings. Your existing ledger history stays with your account if repository access changes.",
-                  "GitHub 授权控制新仓库绑定；仓库权限变化后，已有账目历史仍归你的账户。"
+                  "GitHub access controls new repository bindings. Existing history stays in the original ledger when repository access changes, with access governed by member roles.",
+                  "GitHub 授权控制新仓库绑定；仓库权限变化后，已有账目历史仍保留在原账本，按成员角色开放访问。"
                 )}
               </p>
             </div>

@@ -91,39 +91,114 @@ export function PrivacyScreen({ go, auth }) {
     { id: "security", title: T("Security", "安全") },
     { id: "contact", title: T("Contact", "联系方式") },
   ];
-  return <LegalDocLayout go={go} auth={auth} current="privacy" sections={sections}
-    title={T("Privacy Policy", "隐私政策")}
-    subtitle={T("This policy describes how Pullwise handles account, GitHub, expense ledger, API key and platform billing data.",
-      "本政策说明 Pullwise 如何处理账户、GitHub、支出账本、API 密钥及平台账单数据。")}>
-    <Section id="scope" title={sections[0].title}><p>{T(
-      "Pullwise provides a GitHub-connected project expense ledger through the web app and REST API. This policy also covers account, billing and support interactions.",
-      "Pullwise 通过 Web 应用和 REST API 提供连接 GitHub 的项目支出账本。本政策也适用于账户、账单和支持沟通。")}</p></Section>
-    <Section id="data" title={sections[1].title}><LegalList items={[
-      T("Account and GitHub data: identity, session, authorized repository and installation metadata.", "账户与 GitHub 数据：身份、会话、已授权仓库和安装元数据。"),
-      T("Ledger data: project descriptions, categories, expense dates, amounts, currencies, purpose, notes, quantity and audit history.", "账本数据：项目描述、类别、支出日期、金额、币种、用途、备注、数量和审计历史。"),
-      T("API key data: name, prefix, hashed token, scopes, target restrictions and usage metadata. The full token is displayed once.", "API 密钥数据：名称、前缀、令牌哈希、权限、目标限制和使用元数据。完整令牌仅显示一次。"),
-      T("Platform billing data: subscription, checkout and payment event identifiers; operational logs needed to run and secure the service.", "平台账单数据：订阅、结账和支付事件标识；运营与安全所需日志。"),
-    ]} /></Section>
-    <Section id="use" title={sections[2].title}><p>{T(
-      "We use this data to authenticate users, check GitHub authorization, store and report expenses, manage API keys and subscriptions, prevent abuse and answer support requests. Platform charges are kept separate from user-entered expenses.",
-      "我们用这些数据认证用户、检查 GitHub 授权、保存和汇总支出、管理 API 密钥与订阅、防止滥用并处理支持请求。平台收费与用户录入的支出分开保存。")}</p>
-      <p>{T("Max automatically uses Jev during expense saves, when available within the plan allowance, for categorization and advice on project or shared expenses. The model receives only the submitted purpose and note and allowed category names. Pullwise checks possible duplicates in its own service using a bounded authorized expense lookup; historical expense text is not sent to the model. Repository code is not sent, and stored GitHub tokens and API key tokens are excluded from model input. Explicit amounts, currencies, targets and categories are preserved; uncertain categorization requires you to choose a category.",
-        "Max 在模型可用且套餐额度内，会在保存支出时自动使用 Jev 分类，并提供项目或公共池归属建议。模型只接收本次提交的用途、备注及可用类别名称。Pullwise 在自身服务内通过有限的已授权支出查询检查疑似重复记录，不向模型发送历史支出文字。仓库代码不会发送，已保存的 GitHub 令牌及 API 密钥令牌也不纳入模型输入。明确填写的金额、币种、目标和类别会保留；无法可靠分类时需要你选择类别。")}</p></Section>
-    <Section id="sharing" title={sections[3].title}><p>{T(
-      "GitHub supplies repository authorization, Creem processes platform payments, and the configured model provider processes Max expense assistance when available. We do not sell your personal data or repository code.",
-      "GitHub 提供仓库授权，Creem 处理平台支付；配置的模型提供方在可用时处理 Max 支出辅助。我们不出售个人数据或仓库代码。")}</p></Section>
-    <Section id="retention" title={sections[4].title}><p>{T(
-      "Ledger history remains with your account when GitHub access changes. Removed expenses and suggestion decisions may be retained in audit records. Account, API key, payment and operational records are kept as needed for service, security, tax, audit or legal purposes. Contact us to ask about deletion.",
-      "GitHub 权限变化后，账目历史仍归你的账户。移除的支出及建议决定可能保留在审计记录中。账户、API 密钥、支付和运营记录会按服务、安全、税务、审计或法律需要保留。可联系我们询问删除事宜。")}</p></Section>
-    <Section id="rights" title={sections[5].title}><p>{T(
-      `Contact ${CONTACT_EMAIL} to request access, export, correction or deletion of account data. You can manage GitHub access and revoke API keys in the product.`,
-      `请联系 ${CONTACT_EMAIL} 请求访问、导出、更正或删除账户数据。你也可以在产品中管理 GitHub 授权和撤销 API 密钥。`)}</p></Section>
-    <Section id="security" title={sections[6].title}><p>{T(
-      "Pullwise uses scoped API keys, account ownership checks, GitHub authorization checks and backend-held secrets. Protect your sessions and API keys.",
-      "Pullwise 使用有范围的 API 密钥、账户所有权检查、GitHub 授权检查以及后端保存的密钥。请保护你的会话和 API 密钥。")}</p></Section>
-    <Section id="contact" title={sections[7].title}><p>{T(`Contact ${SECURITY_EMAIL} with privacy or security questions.`,
-      `隐私或安全问题请联系 ${SECURITY_EMAIL}。`)}</p></Section>
-  </LegalDocLayout>;
+  return (
+    <LegalDocLayout
+      go={go}
+      auth={auth}
+      current="privacy"
+      sections={sections}
+      title={T("Privacy Policy", "隐私政策")}
+      subtitle={T(
+        "This policy describes how Pullwise handles account, GitHub, expense ledger, API key and platform billing data.",
+        "本政策说明 Pullwise 如何处理账户、GitHub、支出账本、API 密钥及平台账单数据。"
+      )}
+    >
+      <Section id="scope" title={sections[0].title}>
+        <p>
+          {T(
+            "Pullwise provides a GitHub-connected project expense ledger through the web app and REST API. This policy also covers account, billing and support interactions.",
+            "Pullwise 通过 Web 应用和 REST API 提供连接 GitHub 的项目支出账本。本政策也适用于账户、账单和支持沟通。"
+          )}
+        </p>
+      </Section>
+      <Section id="data" title={sections[1].title}>
+        <LegalList
+          items={[
+            T(
+              "Account and GitHub data: identity, session, authorized repository and installation metadata.",
+              "账户与 GitHub 数据：身份、会话、已授权仓库和安装元数据。"
+            ),
+            T(
+              "Ledger data: project descriptions, categories, expense dates, amounts, currencies, purpose, notes, quantity and audit history.",
+              "账本数据：项目描述、类别、支出日期、金额、币种、用途、备注、数量和审计历史。"
+            ),
+            T(
+              "API key data: name, prefix, hashed token, scopes, target restrictions and usage metadata. The full token is displayed once.",
+              "API 密钥数据：名称、前缀、令牌哈希、权限、目标限制和使用元数据。完整令牌仅显示一次。"
+            ),
+            T(
+              "Team ledger data: workspace membership, roles, stable GitHub invitation recipient IDs, hashed invitation tokens and the actual actor's audit history.",
+              "团队账本数据：成员关系、角色、邀请对象的稳定 GitHub ID、邀请令牌哈希及实际操作成员的审计历史。"
+            ),
+            T(
+              "Platform billing data: subscription, checkout and payment event identifiers; operational logs needed to run and secure the service.",
+              "平台账单数据：订阅、结账和支付事件标识；运营与安全所需日志。"
+            ),
+          ]}
+        />
+      </Section>
+      <Section id="use" title={sections[2].title}>
+        <p>
+          {T(
+            "We use this data to authenticate users, check GitHub authorization, store and report expenses, manage API keys and subscriptions, prevent abuse and answer support requests. Platform charges are kept separate from user-entered expenses.",
+            "我们用这些数据认证用户、检查 GitHub 授权、保存和汇总支出、管理 API 密钥与订阅、防止滥用并处理支持请求。平台收费与用户录入的支出分开保存。"
+          )}
+        </p>
+        <p>
+          {T(
+            "Max automatically uses Jev during expense saves, when available within the plan allowance, for categorization and advice on project or shared expenses. The model receives only the submitted purpose and note and allowed category names. Pullwise checks possible duplicates in its own service using a bounded authorized expense lookup; historical expense text is not sent to the model. Repository code is not sent, and stored GitHub tokens and API key tokens are excluded from model input. Explicit amounts, currencies, targets and categories are preserved; uncertain categorization requires you to choose a category.",
+            "Max 在模型可用且套餐额度内，会在保存支出时自动使用 Jev 分类，并提供项目或公共池归属建议。模型只接收本次提交的用途、备注及可用类别名称。Pullwise 在自身服务内通过有限的已授权支出查询检查疑似重复记录，不向模型发送历史支出文字。仓库代码不会发送，已保存的 GitHub 令牌及 API 密钥令牌也不纳入模型输入。明确填写的金额、币种、目标和类别会保留；无法可靠分类时需要你选择类别。"
+          )}
+        </p>
+      </Section>
+      <Section id="sharing" title={sections[3].title}>
+        <p>
+          {T(
+            "GitHub supplies repository authorization, Creem processes platform payments, and the configured model provider processes Max expense assistance when available. We do not sell your personal data or repository code.",
+            "GitHub 提供仓库授权，Creem 处理平台支付；配置的模型提供方在可用时处理 Max 支出辅助。我们不出售个人数据或仓库代码。"
+          )}
+        </p>
+        <p>
+          {T(
+            "Inviting a member shares your existing ledger history and future entries according to their role. Membership does not share GitHub credentials or grant access to repository code. Remove members or change roles in Members to restrict subsequent access.",
+            "邀请成员会按其角色共享现有账本历史和后续记录。成员资格不会共享 GitHub 凭据，也不会授予仓库代码访问权。可在成员页面移除成员或更改角色，限制后续访问。"
+          )}
+        </p>
+      </Section>
+      <Section id="retention" title={sections[4].title}>
+        <p>
+          {T(
+            "Ledger history remains with your account when GitHub access changes. Removed expenses and suggestion decisions may be retained in audit records. Account, API key, payment and operational records are kept as needed for service, security, tax, audit or legal purposes. Contact us to ask about deletion.",
+            "GitHub 权限变化后，账目历史仍归你的账户。移除的支出及建议决定可能保留在审计记录中。账户、API 密钥、支付和运营记录会按服务、安全、税务、审计或法律需要保留。可联系我们询问删除事宜。"
+          )}
+        </p>
+      </Section>
+      <Section id="rights" title={sections[5].title}>
+        <p>
+          {T(
+            `Contact ${CONTACT_EMAIL} to request access, export, correction or deletion of account data. You can manage GitHub access and revoke API keys in the product.`,
+            `请联系 ${CONTACT_EMAIL} 请求访问、导出、更正或删除账户数据。你也可以在产品中管理 GitHub 授权和撤销 API 密钥。`
+          )}
+        </p>
+      </Section>
+      <Section id="security" title={sections[6].title}>
+        <p>
+          {T(
+            "Pullwise uses scoped API keys, account ownership checks, GitHub authorization checks and backend-held secrets. Protect your sessions and API keys.",
+            "Pullwise 使用有范围的 API 密钥、账户所有权检查、GitHub 授权检查以及后端保存的密钥。请保护你的会话和 API 密钥。"
+          )}
+        </p>
+      </Section>
+      <Section id="contact" title={sections[7].title}>
+        <p>
+          {T(
+            `Contact ${SECURITY_EMAIL} with privacy or security questions.`,
+            `隐私或安全问题请联系 ${SECURITY_EMAIL}。`
+          )}
+        </p>
+      </Section>
+    </LegalDocLayout>
+  );
 }
 
 export function TermsScreen({ go, auth }) {
@@ -136,29 +211,71 @@ export function TermsScreen({ go, auth }) {
     { id: "content", title: T("Your content", "你的内容") },
     { id: "contact", title: T("Contact", "联系方式") },
   ];
-  return <LegalDocLayout go={go} auth={auth} current="terms" sections={sections}
-    title={T("Terms of Service", "服务条款")}
-    subtitle={T("These terms cover the Pullwise project expense ledger, API keys and platform subscription.",
-      "本条款适用于 Pullwise 项目支出账本、API 密钥和平台订阅。")}>
-    <Section id="service" title={sections[0].title}><p>{T(
-      "Pullwise lets you record costs for GitHub projects and a shared expense pool. Max includes automatic expense assistance when available within the plan allowance. Review your saved amounts, categories and tax treatment. No exchange rate is inferred.",
-      "Pullwise 允许你记录 GitHub 项目和公共池的支出。Max 在模型可用且套餐额度内包含自动支出辅助。请核对保存的金额、类别及税务处理。系统不会推断汇率。")}</p></Section>
-    <Section id="account" title={sections[1].title}><p>{T(
-      "Only connect repositories you are authorized to access. GitHub OAuth and App authorization control new repository binding. Your existing account ledger remains available if GitHub access later changes.",
-      "只能连接你有权访问的仓库。GitHub OAuth 和 App 授权控制新仓库绑定。之后即使 GitHub 权限变化，已有账户账本仍可访问。")}</p></Section>
-    <Section id="api" title={sections[2].title}><p>{T(
-      "API keys are account credentials limited by selected scopes and project or shared-pool restrictions. Keep tokens private, revoke unused keys and do not bypass rate or authorization limits.",
-      "API 密钥是账户凭据，受所选权限和项目或公共池限制。请保密令牌，撤销不再使用的密钥，不要绕过限流或授权限制。")}</p></Section>
-    <Section id="billing" title={sections[3].title}><p>{T(
-      "Pullwise platform subscriptions are billed through Creem. Subscription charges and payment history are separate from expenses you record in your ledger. Review the displayed price, tax and renewal terms before purchase.",
-      "Pullwise 平台订阅通过 Creem 收费。订阅费用和支付历史与账本中你录入的支出分开。购买前请核对显示的价格、税费和续订条款。")}</p>
-      <p>{T("You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Upgrades update your plan after payment confirmation; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
-        "你可以在 Pullwise 账单页取消有效订阅的续订，取消会在当前已付周期结束时生效。在此之前可从账单页恢复续订。升级在支付确认后更新套餐，差额由 Creem 计算。产品内不支持降级或年付改月付。")}</p></Section>
-    <Section id="content" title={sections[4].title}><p>{T(
-      "You retain your ledger entries and other customer content. You allow Pullwise to store and process them to provide and secure the service. Automatic Max assistance runs as part of your expense write; it does not create expenses during reads or change explicit choices.",
-      "你保留账目和其他客户内容。你允许 Pullwise 为提供和保护服务而存储及处理这些内容。Max 自动辅助仅随你的支出写入运行，不会在读取时新增支出或改动明确选择。")}</p></Section>
-    <Section id="contact" title={sections[5].title}><p>{T(`For questions, contact ${CONTACT_EMAIL}.`, `如有问题，请联系 ${CONTACT_EMAIL}。`)}</p></Section>
-  </LegalDocLayout>;
+  return (
+    <LegalDocLayout
+      go={go}
+      auth={auth}
+      current="terms"
+      sections={sections}
+      title={T("Terms of Service", "服务条款")}
+      subtitle={T(
+        "These terms cover the Pullwise project expense ledger, API keys and platform subscription.",
+        "本条款适用于 Pullwise 项目支出账本、API 密钥和平台订阅。"
+      )}
+    >
+      <Section id="service" title={sections[0].title}>
+        <p>
+          {T(
+            "Pullwise lets you record costs for GitHub projects and a shared expense pool. Max includes automatic expense assistance when available within the plan allowance. Review your saved amounts, categories and tax treatment. No exchange rate is inferred.",
+            "Pullwise 允许你记录 GitHub 项目和公共池的支出。Max 在模型可用且套餐额度内包含自动支出辅助。请核对保存的金额、类别及税务处理。系统不会推断汇率。"
+          )}
+        </p>
+      </Section>
+      <Section id="account" title={sections[1].title}>
+        <p>
+          {T(
+            "Only connect repositories you are authorized to access. GitHub OAuth and App authorization control new repository binding. Your existing account ledger remains available if GitHub access later changes.",
+            "只能连接你有权访问的仓库。GitHub OAuth 和 App 授权控制新仓库绑定。之后即使 GitHub 权限变化，已有账户账本仍可访问。"
+          )}
+        </p>
+      </Section>
+      <Section id="api" title={sections[2].title}>
+        <p>
+          {T(
+            "API keys are account credentials limited by selected scopes and project or shared-pool restrictions. Keep tokens private, revoke unused keys and do not bypass rate or authorization limits.",
+            "API 密钥是账户凭据，受所选权限和项目或公共池限制。请保密令牌，撤销不再使用的密钥，不要绕过限流或授权限制。"
+          )}
+        </p>
+      </Section>
+      <Section id="billing" title={sections[3].title}>
+        <p>
+          {T(
+            "Pullwise platform subscriptions are billed through Creem. Subscription charges and payment history are separate from expenses you record in your ledger. Review the displayed price, tax and renewal terms before purchase.",
+            "Pullwise 平台订阅通过 Creem 收费。订阅费用和支付历史与账本中你录入的支出分开。购买前请核对显示的价格、税费和续订条款。"
+          )}
+        </p>
+        <p>
+          {T(
+            "You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Upgrades update your plan after payment confirmation; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
+            "你可以在 Pullwise 账单页取消有效订阅的续订，取消会在当前已付周期结束时生效。在此之前可从账单页恢复续订。升级在支付确认后更新套餐，差额由 Creem 计算。产品内不支持降级或年付改月付。"
+          )}
+        </p>
+      </Section>
+      <Section id="content" title={sections[4].title}>
+        <p>
+          {T(
+            "You retain your ledger entries and other customer content. You allow Pullwise to store and process them to provide and secure the service. Automatic Max assistance runs as part of your expense write; it does not create expenses during reads or change explicit choices.",
+            "你保留账目和其他客户内容。你允许 Pullwise 为提供和保护服务而存储及处理这些内容。Max 自动辅助仅随你的支出写入运行，不会在读取时新增支出或改动明确选择。"
+          )}
+        </p>
+      </Section>
+      <Section id="contact" title={sections[5].title}>
+        <p>
+          {T(`For questions, contact ${CONTACT_EMAIL}.`, `如有问题，请联系 ${CONTACT_EMAIL}。`)}
+        </p>
+      </Section>
+    </LegalDocLayout>
+  );
 }
 
 function statusClass(ok, error) {
@@ -227,9 +344,7 @@ export function StatusScreen({ go, auth }) {
       activeController = controller;
       const requestOptions = controller ? { signal: controller.signal } : {};
       const isCurrentRequest = () =>
-        !cancelled &&
-        requestId === currentRequestId &&
-        (!controller || !controller.signal.aborted);
+        !cancelled && requestId === currentRequestId && (!controller || !controller.signal.aborted);
       setNow(new Date());
       try {
         const payload = await pullwiseApi.system.health(requestOptions);
@@ -287,10 +402,24 @@ export function StatusScreen({ go, auth }) {
   );
   const githubDetail = github
     ? [
-        configuredLabel(github.oauthConfigured, T("OAuth configured", "OAuth 已配置"), T("OAuth missing", "OAuth 缺失")),
-        configuredLabel(github.appInstallConfigured, T("App install configured", "App 安装已配置"), T("App install missing", "App 安装缺失")),
-        configuredLabel(github.appApiConfigured, T("App API configured", "App API 已配置"), T("App API missing", "App API 缺失")),
-        github.appVisibilityCheck ? T("Visibility check on", "可见性检查开启") : T("Visibility check off", "可见性检查关闭"),
+        configuredLabel(
+          github.oauthConfigured,
+          T("OAuth configured", "OAuth 已配置"),
+          T("OAuth missing", "OAuth 缺失")
+        ),
+        configuredLabel(
+          github.appInstallConfigured,
+          T("App install configured", "App 安装已配置"),
+          T("App install missing", "App 安装缺失")
+        ),
+        configuredLabel(
+          github.appApiConfigured,
+          T("App API configured", "App API 已配置"),
+          T("App API missing", "App API 缺失")
+        ),
+        github.appVisibilityCheck
+          ? T("Visibility check on", "可见性检查开启")
+          : T("Visibility check off", "可见性检查关闭"),
       ].join(" / ")
     : "";
   const billingDetail = billing

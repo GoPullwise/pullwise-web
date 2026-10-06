@@ -285,7 +285,9 @@
   }
 }
 
-.topbar > div:last-child,
+.topbar > div:last-child {
+  flex: 0 1 auto;
+}
 .page-h .actions,
 .modal-foot,
 .docs-foot-actions,

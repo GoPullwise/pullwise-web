@@ -2,6 +2,15 @@
 
 ## Current task authority (2026-10-06)
 
+Latest scope: the multi-repository/Organization/shared-ledger version is
+implemented locally and awaits final verification and preview release. Use
+`../pullwise-server/docs/planning/project-repositories.md` for current roles,
+invitation, workspace and repository rules. Preserve role checks on Server,
+workspace/revision isolation in Web, actual-actor GitHub authorization and the
+warning that invitations share all current and future ledger data. Historical
+original-version acceptance does not establish this version's release. Keep
+remote verification preview-only and production D1 paused.
+
 The user explicitly authorized the resumed Server/Web audit, repairs, local
 verification, main pushes, Cloudflare publication and finite preview user/model
 acceptance. This supersedes historical blanket test/Wrangler pauses below.

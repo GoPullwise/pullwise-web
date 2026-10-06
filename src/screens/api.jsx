@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
@@ -68,6 +68,22 @@ function createdApiKeyToken(payload) {
     payload?.apiKey?.key,
     typeof payload?.key === "string" ? payload.key : payload?.key?.token,
     payload?.key?.key
+  );
+}
+
+function workspaceScopeValues(workspace) {
+  if (!workspace) return API_KEY_SCOPE_VALUES;
+  const permissions = workspace.permissions || {};
+  const requiredPermission = {
+    "projects:write": "manageProjects",
+    "categories:write": "manageCategories",
+    "expenses:write": "writeExpenses",
+    "suggestions:use": "writeExpenses",
+  };
+  return API_KEY_SCOPE_VALUES.filter(
+    (scope) =>
+      (!requiredPermission[scope] || permissions[requiredPermission[scope]] === true) &&
+      (!Array.isArray(workspace.scopes) || workspace.scopes.includes(scope))
   );
 }
 
@@ -160,63 +176,142 @@ function ApiKeysLoadError({ error, onRetry }) {
   );
 }
 
-export function ApiKeysScreen({ go }) {
+export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   useLang();
+  const allowedScopeValues = workspaceScopeValues(workspace);
+  const workspaceId = workspace?.id;
+  const memberRevision = workspace?.memberRevision ?? workspace?.revision;
+  const scopeKey = JSON.stringify([
+    workspaceId || "personal",
+    workspace?.revision,
+    memberRevision,
+    allowedScopeValues,
+  ]);
+  const scopeValuesKey = allowedScopeValues.join(",");
+  const defaultScopes = useMemo(
+    () => DEFAULT_SCOPE_VALUES.filter((scope) => scopeValuesKey.split(",").includes(scope)),
+    [scopeValuesKey]
+  );
   const [keys, setKeys] = useState([]);
   const [name, setName] = useState(T("Account automation", "账户自动化"));
-  const [selectedScopes, setSelectedScopes] = useState(DEFAULT_SCOPE_VALUES);
+  const [selectedScopes, setSelectedScopes] = useState(defaultScopes);
   const [restrictProjects, setRestrictProjects] = useState(false);
   const [projectIdsInput, setProjectIdsInput] = useState("");
   const [allowShared, setAllowShared] = useState(false);
   const [createdCredential, setCreatedCredential] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadedOnce, setLoadedOnce] = useState(false);
+  const [renderedScope, setRenderedScope] = useState(scopeKey);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
   const [revokeTarget, setRevokeTarget] = useState(null);
-  const mutationInFlightRef = useRef(false);
+  const mutationInFlightRef = useRef(null);
+  const mountedRef = useRef(false);
+  const activeScopeRef = useRef(scopeKey);
+  const readControllerRef = useRef(null);
+  const readRequestRef = useRef(0);
+  const accessChangedRef = useRef(onAccessChanged);
   const revokeBackgroundRef = useRef(null);
-  useErrorNotification(error, {
+  activeScopeRef.current = scopeKey;
+  accessChangedRef.current = onAccessChanged;
+  const currentScope = renderedScope === scopeKey;
+  useErrorNotification(currentScope ? error : "", {
     title: T("API key error", "API key error"),
-    key: `api-keys:${error}`,
+    key: `api-keys:${scopeKey}:${error}`,
   });
 
-  const load = async () => {
+  const handleAccessFailure = useCallback((failure) => {
+    if (failure?.status !== 403 && failure?.status !== 404) return;
+    setKeys([]);
+    setCreatedCredential(null);
+    setRevokeTarget(null);
+    setLoadedOnce(false);
+    accessChangedRef.current?.(failure);
+  }, []);
+
+  const load = useCallback(async () => {
+    if (!mountedRef.current || activeScopeRef.current !== scopeKey) return;
+    readControllerRef.current?.abort();
+    const controller = new AbortController();
+    readControllerRef.current = controller;
+    const request = ++readRequestRef.current;
+    const current = () =>
+      mountedRef.current &&
+      !controller.signal.aborted &&
+      activeScopeRef.current === scopeKey &&
+      request === readRequestRef.current;
     setLoading(true);
     setError("");
     try {
-      const payload = await pullwiseApi.apiKeys.list();
+      const payload = await pullwiseApi.apiKeys.list(workspaceId ? { workspaceId } : {}, {
+        signal: controller.signal,
+      });
+      if (!current()) return;
       setKeys(itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey).filter(Boolean));
       setLoadedOnce(true);
     } catch (err) {
+      if (!current()) return;
+      handleAccessFailure(err);
       setError(err?.message || T("Unable to load API keys.", "无法加载 API key。"));
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
-  };
+  }, [scopeKey, workspaceId, handleAccessFailure]);
 
   useEffect(() => {
+    mountedRef.current = true;
+    mutationInFlightRef.current = null;
+    setRenderedScope(scopeKey);
+    setKeys([]);
+    setCreatedCredential(null);
+    setRevokeTarget(null);
+    setLoadedOnce(false);
+    setPending("");
+    setName(T("Account automation", "账户自动化"));
+    setSelectedScopes(defaultScopes);
+    setRestrictProjects(false);
+    setProjectIdsInput("");
+    setAllowShared(false);
     load();
-  }, []);
+    return () => {
+      mountedRef.current = false;
+      readRequestRef.current += 1;
+      readControllerRef.current?.abort();
+      mutationInFlightRef.current = null;
+    };
+  }, [scopeKey, load, defaultScopes]);
 
   const toggleScope = (scopeValue) => {
+    if (!allowedScopeValues.includes(scopeValue)) return;
     setSelectedScopes((current) => {
       const next = current.includes(scopeValue)
         ? current.filter((scope) => scope !== scopeValue)
         : [...current, scopeValue];
-      return API_KEY_SCOPE_VALUES.filter((scope) => next.includes(scope));
+      return allowedScopeValues.filter((scope) => next.includes(scope));
     });
   };
 
   const createKey = async (event) => {
     event.preventDefault();
-    if (mutationInFlightRef.current) return;
-    mutationInFlightRef.current = true;
+    if (
+      !currentScope ||
+      mutationInFlightRef.current ||
+      loading ||
+      !loadedOnce ||
+      !allowedScopeValues.length
+    )
+      return;
+    const mutation = {};
+    mutationInFlightRef.current = mutation;
+    const current = () =>
+      mountedRef.current &&
+      activeScopeRef.current === scopeKey &&
+      mutationInFlightRef.current === mutation;
     setPending("create");
     setError("");
     setCreatedCredential(null);
     try {
-      const scopes = API_KEY_SCOPE_VALUES.filter((scope) => selectedScopes.includes(scope));
+      const scopes = allowedScopeValues.filter((scope) => selectedScopes.includes(scope));
       const projectIds = projectIdsInput.split(/[\s,]+/).filter(Boolean);
       if (
         restrictProjects &&
@@ -231,9 +326,11 @@ export function ApiKeysScreen({ go }) {
         scopes,
         restrictions: {
           shared: allowShared,
+          ...(workspaceId ? { workspaceId, workspaceMemberRevision: memberRevision } : {}),
           ...(restrictProjects ? { projectIds: [...new Set(projectIds)] } : {}),
         },
       });
+      if (!current()) return;
       const key = normalizeApiKey(createdApiKeyRecord(payload));
       const token = createdApiKeyToken(payload);
       if (!key) throw new Error(T("API key response was malformed.", "API key 响应格式错误。"));
@@ -248,43 +345,59 @@ export function ApiKeysScreen({ go }) {
       }
       setCreatedCredential({ keyId: key.id, token });
       setName(T("Account automation", "账户自动化"));
-      setSelectedScopes(DEFAULT_SCOPE_VALUES);
+      setSelectedScopes(defaultScopes);
       setRestrictProjects(false);
       setProjectIdsInput("");
       setAllowShared(false);
     } catch (err) {
+      if (!current()) return;
+      handleAccessFailure(err);
       setError(err?.message || T("Unable to create API key.", "无法创建 API key。"));
     } finally {
-      mutationInFlightRef.current = false;
-      setPending("");
+      if (current()) {
+        mutationInFlightRef.current = null;
+        setPending("");
+      }
     }
   };
 
   const revokeKey = async (keyId) => {
-    if (!keyId || mutationInFlightRef.current) return;
-    mutationInFlightRef.current = true;
+    if (!currentScope || !keyId || mutationInFlightRef.current) return;
+    const mutation = {};
+    mutationInFlightRef.current = mutation;
+    const current = () =>
+      mountedRef.current &&
+      activeScopeRef.current === scopeKey &&
+      mutationInFlightRef.current === mutation;
     setPending(keyId);
     setError("");
     try {
       await pullwiseApi.apiKeys.revoke(keyId);
+      if (!current()) return;
       setKeys((current) => current.filter((key) => key.id !== keyId));
       setCreatedCredential((current) => (current?.keyId === keyId ? null : current));
     } catch (err) {
+      if (!current()) return;
+      handleAccessFailure(err);
       setError(err?.message || T("Unable to revoke API key.", "无法吊销 API key。"));
     } finally {
-      mutationInFlightRef.current = false;
-      setPending("");
-      setRevokeTarget(null);
+      if (current()) {
+        mutationInFlightRef.current = null;
+        setPending("");
+        setRevokeTarget(null);
+      }
     }
   };
 
   const requestRevokeKey = (key) => {
-    if (!key?.id || mutationInFlightRef.current || pending) return;
+    if (!currentScope || !key?.id || mutationInFlightRef.current || pending) return;
     setRevokeTarget(key);
   };
 
   const copyToken = async () => {
-    if (!createdCredential?.token) return;
+    if (!currentScope || !createdCredential?.token) return;
+    const credential = createdCredential;
+    const current = () => mountedRef.current && activeScopeRef.current === scopeKey;
     setError("");
     if (!navigator.clipboard) {
       setError(
@@ -296,8 +409,9 @@ export function ApiKeysScreen({ go }) {
       return;
     }
     try {
-      await navigator.clipboard.writeText(createdCredential.token);
+      await navigator.clipboard.writeText(credential.token);
     } catch {
+      if (!current()) return;
       setError(
         T(
           "Unable to copy API key. Select and copy the token manually.",
@@ -310,7 +424,11 @@ export function ApiKeysScreen({ go }) {
   return (
     <div className="app fade-in">
       <div ref={revokeBackgroundRef} className="api-keys-background">
-        <Topbar go={go} breadcrumbs={[{ label: T("API Keys", "API 密钥") }]} loading={loading} />
+        <Topbar
+          go={go}
+          breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
+          loading={loading || !currentScope}
+        />
         <div className="with-side">
           <Sidebar section="apiKeys" go={go} />
           <div className="main wide" role="main">
@@ -331,7 +449,7 @@ export function ApiKeysScreen({ go }) {
               </div>
             </div>
 
-            {createdCredential?.token && (
+            {currentScope && createdCredential?.token && (
               <div className="auth-success" role="status" style={{ marginBottom: 12 }}>
                 <I.Check size={14} />
                 <div>
@@ -367,7 +485,7 @@ export function ApiKeysScreen({ go }) {
                 </a>
               </aside>
 
-              {loading ? (
+              {loading || !currentScope ? (
                 <ApiKeysSkeleton />
               ) : error && !loadedOnce ? (
                 <ApiKeysLoadError error={error} onRetry={load} />
@@ -419,12 +537,17 @@ export function ApiKeysScreen({ go }) {
                             </span>
                           </div>
                           <span className="tag api-scope-count">
-                            {selectedScopes.length} / {API_KEY_SCOPES.length}{" "}
-                            {T("selected", "已选择")}
+                            {
+                              selectedScopes.filter((scope) => allowedScopeValues.includes(scope))
+                                .length
+                            }{" "}
+                            / {allowedScopeValues.length} {T("selected", "已选择")}
                           </span>
                         </div>
                         <div className="api-scope-list">
-                          {API_KEY_SCOPES.map((scope) => {
+                          {API_KEY_SCOPES.filter((scope) =>
+                            allowedScopeValues.includes(scope.value)
+                          ).map((scope) => {
                             const checked = selectedScopes.includes(scope.value);
                             return (
                               <label
@@ -494,7 +617,7 @@ export function ApiKeysScreen({ go }) {
                         <button
                           className="btn primary"
                           type="submit"
-                          disabled={pending === "create"}
+                          disabled={Boolean(pending) || !allowedScopeValues.length}
                         >
                           {pending === "create" && (
                             <span className="spin">
@@ -538,7 +661,7 @@ export function ApiKeysScreen({ go }) {
                           </div>
                           <button
                             className="btn sm"
-                            disabled={pending === key.id}
+                            disabled={Boolean(pending)}
                             onClick={() => requestRevokeKey(key)}
                           >
                             <I.X size={13} /> {T("Revoke", "吊销")}
@@ -562,7 +685,7 @@ export function ApiKeysScreen({ go }) {
         </div>
       </div>
       <ConfirmDialog
-        open={Boolean(revokeTarget)}
+        open={currentScope && Boolean(revokeTarget)}
         title={T("Revoke API key?", "Revoke API key?")}
         description={T(
           "This permanently invalidates the selected API key. Any client using it will stop working.",

@@ -5,6 +5,7 @@ const SCREEN_TO_PATH = {
   ledgerProjects: "/projects",
   ledgerCategories: "/categories",
   ledgerShared: "/shared",
+  ledgerMembers: "/members",
   apiKeys: "/api-keys",
   settings: "/settings",
   billing: "/billing",

@@ -1,4 +1,11 @@
-import { fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -23,15 +30,34 @@ function render(ui, options) {
 
 function deferredPromise() {
   let resolve;
-  const promise = new Promise((next) => {
+  let reject;
+  const promise = new Promise((next, fail) => {
     resolve = next;
+    reject = fail;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 }
+
+const readScopes = [
+  "profile:read",
+  "projects:read",
+  "categories:read",
+  "expenses:read",
+  "reports:read",
+];
+const workspaceFixture = (id, overrides = {}) => ({
+  id,
+  name: id,
+  role: "viewer",
+  revision: 3,
+  permissions: { manageProjects: false, manageCategories: false, writeExpenses: false },
+  scopes: readScopes,
+  ...overrides,
+});
 
 describe("API screens", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("documents the ledger contract and target restrictions", () => {
@@ -83,7 +109,8 @@ describe("API screens", () => {
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
       const examples = screen.getAllByText(/curl.*api\/v1\/expenses/);
       expect(examples).toHaveLength(2);
-      for (const example of examples) expect(example).toHaveTextContent(`${window.location.origin}/api/api/v1/expenses`);
+      for (const example of examples)
+        expect(example).toHaveTextContent(`${window.location.origin}/api/api/v1/expenses`);
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
       env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
@@ -108,7 +135,9 @@ describe("API screens", () => {
   it("documents automatic assistance on regular expense writes with no extra scope", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
     expect(screen.getByRole("heading", { name: "Automatic Max assistance" })).toBeInTheDocument();
-    expect(screen.getByText(/No separate suggestion request or suggestions:use scope/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No separate suggestion request or suggestions:use scope/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/CATEGORY_REQUIRED/)).toBeInTheDocument();
     expect(screen.getByText(/categorySource/)).toBeInTheDocument();
     expect(screen.getByText(/curl.*POST/)).toHaveTextContent("Idempotency-Key");
@@ -514,5 +543,301 @@ describe("API screens", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/api key response was malformed/i);
     expect(screen.queryByText("New key created")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /revoke/i })).not.toBeInTheDocument();
+  });
+
+  it("creates a Viewer key bound to the selected workspace with only effective read scopes", async () => {
+    const workspace = workspaceFixture("wsp_team", { scopes: ["expenses:read", "reports:read"] });
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_view", token: "pwk_view_local" });
+    render(<ApiKeysScreen go={vi.fn()} workspace={workspace} />);
+
+    await screen.findByRole("button", { name: "Create key" });
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledWith(
+      { workspaceId: "wsp_team" },
+      { signal: expect.any(AbortSignal) }
+    );
+    const scopes = screen.getByRole("group", { name: "Scopes" });
+    expect(within(scopes).getAllByRole("checkbox")).toHaveLength(2);
+    expect(
+      screen.queryByRole("checkbox", { name: /manage|request suggestions/i })
+    ).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+      name: "Account automation",
+      scopes: ["expenses:read", "reports:read"],
+      restrictions: { shared: false, workspaceId: "wsp_team", workspaceMemberRevision: 3 },
+    });
+    expect(await screen.findByText("pwk_view_local")).toBeInTheDocument();
+  });
+
+  it("intersects workspace capabilities with effective scopes rather than trusting its role label", async () => {
+    const workspace = workspaceFixture("wsp_editor", {
+      role: "owner",
+      permissions: { manageProjects: false, manageCategories: false, writeExpenses: true },
+      scopes: [...readScopes, "projects:write", "categories:write", "expenses:write"],
+      memberRevision: 7,
+    });
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_edit", token: "pwk_edit_local" });
+    render(<ApiKeysScreen go={vi.fn()} workspace={workspace} />);
+    const writes = await screen.findByRole("checkbox", { name: /manage expenses/i });
+    expect(writes).not.toBeChecked();
+    expect(
+      screen.queryByRole("checkbox", {
+        name: /manage projects|manage categories|request suggestions/i,
+      })
+    ).not.toBeInTheDocument();
+    await userEvent.setup().click(writes);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scopes: [
+          "profile:read",
+          "projects:read",
+          "categories:read",
+          "expenses:read",
+          "expenses:write",
+          "reports:read",
+        ],
+        restrictions: { shared: false, workspaceId: "wsp_editor", workspaceMemberRevision: 7 },
+      })
+    );
+  });
+
+  it("aborts the old workspace list and ignores its late protected rows", async () => {
+    const first = deferredPromise();
+    const second = deferredPromise();
+    pullwiseApi.apiKeys.list.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_a")} />);
+    const signal = pullwiseApi.apiKeys.list.mock.calls[0][1]?.signal;
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_b")} />
+      </NotificationProvider>
+    );
+    expect(signal?.aborted).toBe(true);
+    await act(async () => second.resolve({ apiKeys: [{ id: "key_b", name: "Workspace B key" }] }));
+    expect(await screen.findByText("Workspace B key")).toBeInTheDocument();
+    await act(async () =>
+      first.resolve({ apiKeys: [{ id: "key_a", name: "Workspace A secret" }] })
+    );
+    expect(screen.queryByText("Workspace A secret")).not.toBeInTheDocument();
+    expect(screen.getByText("Workspace B key")).toBeInTheDocument();
+  });
+
+  it("does not restore an old workspace token or release the new workspace mutation guard", async () => {
+    const first = deferredPromise();
+    const second = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_a")} />);
+    fireEvent.submit((await screen.findByRole("button", { name: "Create key" })).closest("form"));
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_b")} />
+      </NotificationProvider>
+    );
+    const secondForm = (await screen.findByRole("button", { name: "Create key" })).closest("form");
+    fireEvent.submit(secondForm);
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(2);
+    await act(async () =>
+      first.resolve({ id: "key_a", name: "Workspace A key", token: "pwk_stale_a" })
+    );
+    expect(screen.queryByText("pwk_stale_a")).not.toBeInTheDocument();
+    expect(screen.queryByText("Workspace A key")).not.toBeInTheDocument();
+    fireEvent.submit(secondForm);
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(2);
+    await act(async () =>
+      second.resolve({ id: "key_b", name: "Workspace B key", token: "pwk_current_b" })
+    );
+    expect(await screen.findByText("pwk_current_b")).toBeInTheDocument();
+  });
+
+  it("clears an exposed token, confirmation and write selections when membership revision changes", async () => {
+    const workspace = workspaceFixture("wsp_team", {
+      permissions: { manageProjects: true, manageCategories: true, writeExpenses: true },
+      scopes: [
+        ...readScopes,
+        "projects:write",
+        "categories:write",
+        "expenses:write",
+        "suggestions:use",
+      ],
+    });
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_team", token: "pwk_once_local" });
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspace} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("checkbox", { name: /manage expenses/i }));
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    expect(await screen.findByText("pwk_once_local")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Revoke" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_team", { revision: 4 })} />
+      </NotificationProvider>
+    );
+    await screen.findByRole("button", { name: "Create key" });
+    expect(screen.queryByText("pwk_once_local")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /manage expenses/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /read expenses/i })).toBeChecked();
+  });
+
+  it("refreshes access once on a current forbidden request and never retries automatically", async () => {
+    const onAccessChanged = vi.fn();
+    const failure = {
+      status: 403,
+      code: "WORKSPACE_MEMBERSHIP_CHANGED",
+      message: "Membership changed",
+    };
+    pullwiseApi.apiKeys.list.mockRejectedValue(failure);
+    render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onAccessChanged={onAccessChanged}
+      />
+    );
+    expect(
+      await screen.findByRole("heading", { name: "API keys are unavailable" })
+    ).toBeInTheDocument();
+    expect(onAccessChanged).toHaveBeenCalledTimes(1);
+    expect(onAccessChanged).toHaveBeenCalledWith(failure);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh current access for an obsolete mutation rejection", async () => {
+    const pending = deferredPromise();
+    const onAccessChanged = vi.fn();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockReturnValue(pending.promise);
+    const view = render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_a")}
+        onAccessChanged={onAccessChanged}
+      />
+    );
+    fireEvent.submit((await screen.findByRole("button", { name: "Create key" })).closest("form"));
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen
+          go={vi.fn()}
+          workspace={workspaceFixture("wsp_b")}
+          onAccessChanged={onAccessChanged}
+        />
+      </NotificationProvider>
+    );
+    await screen.findByRole("button", { name: "Create key" });
+    await act(async () => pending.reject({ status: 404, message: "Old workspace removed" }));
+    expect(onAccessChanged).not.toHaveBeenCalled();
+    expect(screen.queryByText("Old workspace removed")).not.toBeInTheDocument();
+  });
+
+  it("aborts account key reads on unmount and ignores a late failed creation", async () => {
+    const pending = deferredPromise();
+    const onAccessChanged = vi.fn();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockReturnValue(pending.promise);
+    const view = render(<ApiKeysScreen go={vi.fn()} onAccessChanged={onAccessChanged} />);
+    fireEvent.submit((await screen.findByRole("button", { name: "Create key" })).closest("form"));
+    const readSignal = pullwiseApi.apiKeys.list.mock.calls[0][1]?.signal;
+    view.unmount();
+    expect(readSignal?.aborted).toBe(true);
+    await act(async () => pending.reject({ status: 403, message: "Late denial" }));
+    expect(onAccessChanged).not.toHaveBeenCalled();
+  });
+
+  it("removes exposed credentials and refreshes access when a current revocation is denied", async () => {
+    const onAccessChanged = vi.fn();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_team", token: "pwk_revoked_scope" });
+    pullwiseApi.apiKeys.revoke.mockRejectedValue({
+      status: 404,
+      message: "Workspace access removed",
+    });
+    render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onAccessChanged={onAccessChanged}
+      />
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Create key" }));
+    expect(await screen.findByText("pwk_revoked_scope")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Revoke" }));
+    await user.click(await screen.findByRole("button", { name: "Confirm revoke" }));
+    expect(
+      await screen.findByRole("heading", { name: "API keys are unavailable" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("pwk_revoked_scope")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(onAccessChanged).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a late revocation after selecting another workspace", async () => {
+    const pending = deferredPromise();
+    const onAccessChanged = vi.fn();
+    pullwiseApi.apiKeys.list
+      .mockResolvedValueOnce({ apiKeys: [{ id: "key_a", name: "Workspace A key" }] })
+      .mockResolvedValueOnce({ apiKeys: [{ id: "key_b", name: "Workspace B key" }] });
+    pullwiseApi.apiKeys.revoke.mockReturnValue(pending.promise);
+    const view = render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_a")}
+        onAccessChanged={onAccessChanged}
+      />
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Revoke" }));
+    await user.click(await screen.findByRole("button", { name: "Confirm revoke" }));
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen
+          go={vi.fn()}
+          workspace={workspaceFixture("wsp_b")}
+          onAccessChanged={onAccessChanged}
+        />
+      </NotificationProvider>
+    );
+    expect(await screen.findByText("Workspace B key")).toBeInTheDocument();
+    await act(async () => pending.reject({ status: 403, message: "Old workspace lost" }));
+    expect(screen.getByText("Workspace B key")).toBeInTheDocument();
+    expect(screen.queryByText("Workspace A key")).not.toBeInTheDocument();
+    expect(screen.queryByText("Old workspace lost")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
+    expect(onAccessChanged).not.toHaveBeenCalled();
+  });
+
+  it("disallows writes when workspace capabilities are missing and disables empty effective access", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    const view = render(
+      <ApiKeysScreen go={vi.fn()} workspace={{ id: "wsp_unknown", revision: 1, role: "owner" }} />
+    );
+    await screen.findByRole("button", { name: "Create key" });
+    expect(screen.queryAllByRole("checkbox", { name: /manage|request suggestions/i })).toHaveLength(
+      0
+    );
+    expect(
+      within(screen.getByRole("group", { name: "Scopes" })).getAllByRole("checkbox", {
+        checked: true,
+      })
+    ).toHaveLength(5);
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_unknown", { scopes: [] })} />
+      </NotificationProvider>
+    );
+    const create = await screen.findByRole("button", { name: "Create key" });
+    expect(create).toBeDisabled();
+    fireEvent.submit(create.closest("form"));
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
   });
 });

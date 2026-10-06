@@ -2,12 +2,34 @@ import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
+import { useWorkspace } from "./components/workspace-context.jsx";
 
 export function Topbar({ go, breadcrumbs, loading = false }) {
   useLang();
+  const ledgers = useWorkspace();
+  const headerRef = React.useRef(null);
+
+  React.useLayoutEffect(() => {
+    const header = headerRef.current;
+    const app = header?.closest(".app");
+    if (!app) return;
+    const measure = () => {
+      const height = Math.ceil(header.getBoundingClientRect().height);
+      if (height > 0) app.style.setProperty("--workspace-header-height", `${height}px`);
+    };
+    measure();
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(header);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+      app.style.removeProperty("--workspace-header-height");
+    };
+  }, []);
 
   return (
-    <header className="topbar">
+    <header className="topbar" ref={headerRef}>
       <div className="topbar-location">
         <a
           className="brand topbar-brand-button"
@@ -48,6 +70,22 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
         )}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {ledgers?.workspace && (
+          <label className="workspace-picker">
+            <span>{T("Ledger", "账本")}</span>
+            <select
+              aria-label={T("Select ledger", "选择账本")}
+              value={ledgers.workspace.id}
+              onChange={(event) => ledgers.onSelect(event.target.value)}
+            >
+              {ledgers.items.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {loading && (
           <span
             className="topbar-loading spin"
@@ -79,6 +117,7 @@ export function Sidebar({ go, section = "ledgerProjects" }) {
   ];
   const account = [
     { k: "apiKeys", label: T("API Keys", "API Keys"), icon: <I.Code size={15} /> },
+    { k: "ledgerMembers", label: T("Members", "成员"), icon: <I.User size={15} /> },
     { k: "billing", label: T("Billing", "账单"), icon: <I.Package size={15} /> },
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
   ];

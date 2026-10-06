@@ -1,5 +1,7 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
+import { createLedgerApi, ledgerApi } from "./api/ledger.js";
+import { WorkspaceContext } from "./components/workspace-context.jsx";
 import { NotificationProvider } from "./components/notifications.jsx";
 import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
@@ -22,6 +24,7 @@ const ApiDocsScreen = lazyScreen(() => import("./screens/api-docs.jsx"), "ApiDoc
 const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "BillingScreen");
 const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
 const LedgerScreen = lazyScreen(() => import("./screens/ledger.jsx"), "LedgerScreen");
+const MembersScreen = lazyScreen(() => import("./screens/members.jsx"), "MembersScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/settings.jsx"), "SettingsScreen");
 const PrivacyScreen = lazyScreen(() => import("./screens/legal.jsx"), "PrivacyScreen");
@@ -69,8 +72,15 @@ function clearRepositoryAuthorizationRequest() {
 
 function replaceAutomaticScreenPath(screen) {
   const path = pathFromScreen(screen);
+  const invite = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)
+    ? window.location.hash
+    : "";
   if (window.location.pathname === path) return;
-  window.history.replaceState({ screen }, "", path);
+  window.history.replaceState(
+    { screen },
+    "",
+    path + (screen === "login" || screen === "ledgerMembers" ? invite : "")
+  );
 }
 
 function shouldShowSessionCheck(screen) {
@@ -121,9 +131,151 @@ export function App() {
   const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const [workspaceState, setWorkspaceState] = useState({
+    identity: "",
+    status: "idle",
+    items: [],
+    selectedId: "",
+    error: "",
+  });
+  const [workspaceRefresh, setWorkspaceRefresh] = useState(0);
+  const scopedScreen = [
+    "ledgerProjects",
+    "ledgerCategories",
+    "ledgerShared",
+    "ledgerProject",
+    "ledgerMembers",
+    "apiKeys",
+  ].includes(screen);
+  const identity = sessionIdentity(auth.authenticated, auth.session);
+  const workspace =
+    workspaceState.identity === identity && workspaceState.status === "ready"
+      ? workspaceState.items.find((item) => item.id === workspaceState.selectedId)
+      : null;
+  const selectedWorkspaceRef = useRef("");
+  const workspaceIdentityRef = useRef("");
+  const workspaceReloading = useRef(false);
+  const softWorkspaceRefresh = useRef(false);
+  const workspaceContext = JSON.stringify([
+    identity,
+    auth.status,
+    screen,
+    routeVersion,
+    scopedScreen ? workspace?.id || "" : "",
+    scopedScreen ? workspace?.revision || 0 : 0,
+  ]);
+  const workspaceGeneration = useRef({ context: "", value: 0 });
+  if (workspaceGeneration.current.context !== workspaceContext) {
+    workspaceGeneration.current = {
+      context: workspaceContext,
+      value: workspaceGeneration.current.value + 1,
+    };
+  }
+  const workspaceScope = `${workspaceContext}:${workspaceGeneration.current.value}`;
+  const currentWorkspaceScope = useRef(workspaceScope);
+  currentWorkspaceScope.current = workspaceScope;
+  const reloadWorkspaceAccess = useCallback(() => {
+    if (workspaceReloading.current) return;
+    workspaceReloading.current = true;
+    softWorkspaceRefresh.current = false;
+    setWorkspaceState((old) => ({ ...old, status: "loading", items: [] }));
+    setWorkspaceRefresh((value) => value + 1);
+  }, []);
+  const onAccessChanged = useCallback(
+    (error) => {
+      // An old request can finish after a ledger, role, account or route change.
+      // Its response must never invalidate the currently selected ledger.
+      if (currentWorkspaceScope.current !== workspaceScope) return;
+      const code = error?.code || error?.payload?.error?.code;
+      if (
+        error &&
+        ![
+          "ROLE_FORBIDDEN",
+          "AUTHORIZATION_CHANGED",
+          "WORKSPACE_MEMBERSHIP_CHANGED",
+          "WORKSPACE_NOT_FOUND",
+          "WORKSPACE_FORBIDDEN",
+        ].includes(code)
+      )
+        return;
+      reloadWorkspaceAccess();
+    },
+    [workspaceScope, reloadWorkspaceAccess]
+  );
+  const onMembershipChanged = useCallback(
+    (selectedId) => {
+      if (currentWorkspaceScope.current !== workspaceScope) return;
+      if (typeof selectedId === "string" && selectedId) selectedWorkspaceRef.current = selectedId;
+      softWorkspaceRefresh.current = true;
+      setWorkspaceRefresh((value) => value + 1);
+    },
+    [workspaceScope]
+  );
+  const api = useMemo(
+    () => createLedgerApi(workspace?.id, onAccessChanged),
+    [workspace?.id, onAccessChanged]
+  );
+  const selectWorkspace = useCallback((selectedId) => {
+    selectedWorkspaceRef.current = selectedId;
+    setWorkspaceState((old) => ({ ...old, selectedId }));
+  }, []);
+  useEffect(() => {
+    if (auth.status !== "ready" || !auth.authenticated || !scopedScreen) return;
+    if (workspaceIdentityRef.current !== identity) {
+      selectedWorkspaceRef.current = "";
+      workspaceIdentityRef.current = identity;
+    }
+    const controller = new AbortController();
+    const soft = softWorkspaceRefresh.current;
+    softWorkspaceRefresh.current = false;
+    setWorkspaceState((old) =>
+      soft && old.identity === identity && old.status === "ready"
+        ? old
+        : {
+            identity,
+            status: "loading",
+            items: [],
+            selectedId: old.identity === identity ? old.selectedId : "",
+            error: "",
+          }
+    );
+    ledgerApi
+      .workspaces({ signal: controller.signal })
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        const items = result?.items;
+        if (
+          !Array.isArray(items) ||
+          !items.length ||
+          items.some((item) => !item?.id || !item?.role)
+        )
+          throw new Error("Ledger access could not be loaded.");
+        setWorkspaceState((old) => {
+          const wanted =
+            old.identity === identity ? selectedWorkspaceRef.current || old.selectedId : "";
+          const selectedId = items.some((item) => item.id === wanted) ? wanted : items[0].id;
+          selectedWorkspaceRef.current = selectedId;
+          return { identity, status: "ready", items, selectedId, error: "" };
+        });
+        workspaceReloading.current = false;
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          workspaceReloading.current = false;
+          setWorkspaceState({
+            identity,
+            status: "error",
+            items: [],
+            selectedId: "",
+            error: error?.message || "Ledger access could not be loaded.",
+          });
+        }
+      });
+    return () => controller.abort();
+  }, [auth.status, auth.authenticated, identity, scopedScreen, workspaceRefresh]);
   const screenKey = PUBLIC_SCREENS.has(screen)
     ? screen
-    : `${screen}:${sessionIdentity(auth.authenticated, auth.session)}:${routeVersion}`;
+    : `${screen}:${identity}:${routeVersion}:${scopedScreen ? `${workspace?.id || "unloaded"}:${workspace?.revision || 0}` : "account"}`;
   const navigationKey = `${screen}:${routeVersion}`;
   const focusedNavigation = useRef(null);
   const continuedRepositoryAuthorization = useRef(false);
@@ -279,8 +431,11 @@ export function App() {
         setAuthState({ status: "ready", authenticated, session: payload || null });
         setScreen((current) => {
           if (authenticated && current === "login") {
-            replaceAutomaticScreenPath("landing");
-            return "landing";
+            const destination = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)
+              ? "ledgerMembers"
+              : "landing";
+            replaceAutomaticScreenPath(destination);
+            return destination;
           }
           if (!authenticated && !PUBLIC_SCREENS.has(current)) {
             replaceAutomaticScreenPath("login");
@@ -459,16 +614,35 @@ export function App() {
           <LedgerScreen
             go={go}
             mode="projects"
+            api={api}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
             authorizationError={repositoryAuthorizationError}
             authorizationRevision={repositoryAuthorizationRevision}
           />
         );
         break;
       case "ledgerCategories":
-        body = <LedgerScreen go={go} mode="categories" />;
+        body = (
+          <LedgerScreen
+            go={go}
+            mode="categories"
+            api={api}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
+          />
+        );
         break;
       case "ledgerShared":
-        body = <LedgerScreen go={go} mode="shared" />;
+        body = (
+          <LedgerScreen
+            go={go}
+            mode="shared"
+            api={api}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
+          />
+        );
         break;
       case "ledgerProject":
         body = (
@@ -476,12 +650,26 @@ export function App() {
             key={window.location.pathname}
             go={go}
             mode="project"
+            api={api}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
             projectId={window.location.pathname.slice("/projects/".length)}
           />
         );
         break;
       case "apiKeys":
-        body = <ApiKeysScreen go={go} />;
+        body = <ApiKeysScreen go={go} workspace={workspace} onAccessChanged={onAccessChanged} />;
+        break;
+      case "ledgerMembers":
+        body = (
+          <MembersScreen
+            go={go}
+            api={api}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
+            onMembershipChanged={onMembershipChanged}
+          />
+        );
         break;
       case "settings":
         body = <SettingsScreen go={go} />;
@@ -514,71 +702,106 @@ export function App() {
         body = <NotFoundScreen go={go} requested={getRequestedScreenParam()} auth={auth} />;
     }
 
+  if (auth.status === "ready" && auth.authenticated && scopedScreen && !workspace) {
+    body = (
+      <div className="auth-wrap fade-in">
+        <div className="auth-card">
+          <h1>
+            {workspaceState.status === "error"
+              ? T("Ledger access unavailable", "暂时无法加载账本")
+              : T("Loading ledger", "正在加载账本")}
+          </h1>
+          {workspaceState.status === "error" ? (
+            <>
+              <p role="alert">{workspaceState.error}</p>
+              <button className="btn" onClick={reloadWorkspaceAccess}>
+                {T("Retry", "重试")}
+              </button>
+            </>
+          ) : (
+            <p role="status">
+              {T("Checking your current ledger membership.", "正在检查当前账本成员权限。")}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
   return (
     <NotificationProvider>
-      <div
-        className="screen-root"
-        ref={screenRootRef}
-        tabIndex={-1}
-        data-screen-label={screen}
-        key={screenKey}
+      <WorkspaceContext.Provider
+        value={
+          scopedScreen && workspace
+            ? { items: workspaceState.items, workspace, onSelect: selectWorkspace }
+            : null
+        }
       >
-        <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
-      </div>
+        <div
+          className="screen-root"
+          ref={screenRootRef}
+          tabIndex={-1}
+          data-screen-label={screen}
+          key={screenKey}
+        >
+          <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
+        </div>
 
-      <button
-        type="button"
-        className={"back-to-top" + (showBackToTop ? " visible" : "")}
-        onClick={scrollToTop}
-        title={T("Back to top", "回到顶部")}
-        aria-label={T("Back to top", "回到顶部")}
-        tabIndex={showBackToTop ? 0 : -1}
-      >
-        <I.ArrowUp size={16} />
-      </button>
-      <div className="lang-picker" ref={languageMenuRef}>
-        {languageMenuOpen && (
-          <div className="lang-menu" role="menu" aria-label={T("Select language", "选择语言")}>
-            {LANGUAGES.map((language) => (
-              <button
-                key={language.code}
-                type="button"
-                className={"lang-menu-i" + (lang === language.code ? " active" : "")}
-                role="menuitemradio"
-                aria-checked={lang === language.code}
-                onClick={() => {
-                  setLang(language.code);
-                  setLanguageMenuOpen(false);
-                }}
-              >
-                <span className="lang-menu-code">{language.shortLabel}</span>
-                <span>{language.nativeLabel}</span>
-              </button>
-            ))}
-          </div>
-        )}
         <button
           type="button"
-          className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
-          onClick={() => setLanguageMenuOpen((open) => !open)}
-          title={T("Select language", "选择语言")}
-          aria-label={T("Select language", "选择语言")}
-          aria-haspopup="menu"
-          aria-expanded={languageMenuOpen}
+          className={"back-to-top" + (showBackToTop ? " visible" : "")}
+          onClick={scrollToTop}
+          title={T("Back to top", "回到顶部")}
+          aria-label={T("Back to top", "回到顶部")}
+          tabIndex={showBackToTop ? 0 : -1}
         >
-          {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+          <I.ArrowUp size={16} />
         </button>
-      </div>
-      <button
-        className="theme-toggle"
-        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        title={
-          theme === "light" ? T("Switch to dark", "切换到暗色") : T("Switch to light", "切换到亮色")
-        }
-        aria-label={T("Toggle theme", "切换主题")}
-      >
-        {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
-      </button>
+        <div className="lang-picker" ref={languageMenuRef}>
+          {languageMenuOpen && (
+            <div className="lang-menu" role="menu" aria-label={T("Select language", "选择语言")}>
+              {LANGUAGES.map((language) => (
+                <button
+                  key={language.code}
+                  type="button"
+                  className={"lang-menu-i" + (lang === language.code ? " active" : "")}
+                  role="menuitemradio"
+                  aria-checked={lang === language.code}
+                  onClick={() => {
+                    setLang(language.code);
+                    setLanguageMenuOpen(false);
+                  }}
+                >
+                  <span className="lang-menu-code">{language.shortLabel}</span>
+                  <span>{language.nativeLabel}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
+            onClick={() => setLanguageMenuOpen((open) => !open)}
+            title={T("Select language", "选择语言")}
+            aria-label={T("Select language", "选择语言")}
+            aria-haspopup="menu"
+            aria-expanded={languageMenuOpen}
+          >
+            {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+          </button>
+        </div>
+        <button
+          className="theme-toggle"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          title={
+            theme === "light"
+              ? T("Switch to dark", "切换到暗色")
+              : T("Switch to light", "切换到亮色")
+          }
+          aria-label={T("Toggle theme", "切换主题")}
+        >
+          {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
+        </button>
+      </WorkspaceContext.Provider>
     </NotificationProvider>
   );
 }

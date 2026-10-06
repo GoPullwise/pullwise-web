@@ -69,9 +69,11 @@ export const pullwiseApi = {
   },
 
   apiKeys: {
-    list: (params = {}) => request(withSearchParams("/api-keys", params)),
-    create: (payload = {}) => request("/api-keys", { method: "POST", body: payload }),
-    revoke: (keyId) => request(`/api-keys/${pathSegment(keyId)}`, { method: "DELETE" }),
+    list: (params = {}, options = {}) => getRequest(withSearchParams("/api-keys", params), options),
+    create: (payload = {}, options = {}) =>
+      request("/api-keys", { method: "POST", body: payload, signal: options.signal }),
+    revoke: (keyId, options = {}) =>
+      request(`/api-keys/${pathSegment(keyId)}`, { method: "DELETE", signal: options.signal }),
   },
 
   system: {

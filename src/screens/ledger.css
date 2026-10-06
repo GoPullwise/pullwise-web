@@ -220,19 +220,19 @@
 .ledger-screen .disclosure .ledger-fields {
   margin-bottom: 16px;
 }
-.ledger-screen .ledger-field,
-.ledger-screen label {
+.ledger-screen .main .ledger-field,
+.ledger-screen .main label {
   display: grid;
   gap: 8px;
   min-width: 0;
 }
-.ledger-screen label {
+.ledger-screen .main label {
   font-size: var(--fs-md);
   color: var(--text-2);
 }
-.ledger-screen input,
-.ledger-screen select,
-.ledger-screen textarea {
+.ledger-screen .main input:not([type="checkbox"]),
+.ledger-screen .main select,
+.ledger-screen .main textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--border-strong);

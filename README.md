@@ -1,6 +1,16 @@
 # Pullwise Web
 
-Pullwise Web is the browser client for the [GitHub project expense ledger](../pullwise-server/docs/design/github-project-ledger/README.md). It uses GitHub for sign-in and repository authorization, then lets an account record project or shared expenses, manage categories, and review per-currency reports. API keys and platform subscription billing are separate from user-entered expenses.
+Pullwise Web is the browser client for the [GitHub project expense ledger](../pullwise-server/docs/design/github-project-ledger/README.md). It uses GitHub for sign-in and repository authorization, then lets members record project or shared expenses, manage categories, and review per-currency reports in the selected ledger. API keys and platform subscription billing are separate from user-entered expenses.
+
+As of 2026-10-06, the new workspace/team and multi-repository version is implemented locally and awaiting release verification. Earlier publication and validation evidence below does not establish release verification for this version.
+
+## Workspaces and projects
+
+An existing owner's ledger becomes a workspace identified by that owner's ID; personal ownership remains an implicit Owner. The header picker switches between the personal ledger and ledgers joined by invitation. Protected views clear their data, drafts and one-time credentials when the workspace or access scope changes, abort obsolete reads and ignore late results.
+
+Members supports invitations, acceptance, role changes, removal and invitation revocation. An invitation entered by GitHub username is bound to the recipient's stable GitHub ID. Owner manages Admins; Admin manages Editors and Viewers. Editors record expenses; Viewers can read reports and export CSV. Invitation creation and acceptance warn that membership shares all current and future ledger data. Membership does not grant GitHub access. Team usage pools the owner's ledger quotas, plan and model allowance; billing stays with the owner, and each member's personal ledger remains separate.
+
+Projects explicitly link 1–30 distinct stable GitHub repository IDs, with an optional project name, description and GitHub Organization. The chooser uses the acting member's current GitHub authorization, filters by the selected organization and revalidates selections after access changes. Project settings can change these associations while preserving the project ID and expense history. A new project expense requires at least one linked repository authorized for the acting member; unavailable protected repository metadata stays hidden while permitted financial history remains accessible.
 
 The Cloudflare static-asset Worker in `worker-entry.js` proxies `/api/*` to the Server Worker and streams its response body. The browser API helper uses `/api/v1/*` behind the configurable base URL; on the production domain the base URL is `/api`, so the proxy receives `/api/api/v1/*` and strips the first `/api`.
 

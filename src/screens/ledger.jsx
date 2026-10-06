@@ -20,6 +20,11 @@ const emptyExpense = () => ({
   unit: "",
 });
 
+function isLedgerAccessFailure(failure) {
+  const code = failure?.code || failure?.payload?.error?.code;
+  return [403, 404].includes(failure?.status) && !code?.startsWith("GITHUB_");
+}
+
 function errorText(error) {
   const code = error?.payload?.error?.code;
   const allowanceErrors = {
@@ -34,6 +39,18 @@ function errorText(error) {
     GITHUB_PERMISSION_DENIED: T(
       "GitHub denied repository access. Review the App installation and repository permissions.",
       "GitHub 拒绝了仓库访问，请检查 App 安装和仓库权限。"
+    ),
+    GITHUB_ACCESS_REQUIRED: T(
+      "Repository access changed. Reload repositories and choose ones you can access.",
+      "仓库授权已变化。请重新加载仓库，并选择你有权访问的仓库。"
+    ),
+    GITHUB_ORGANIZATION_ACCESS_REQUIRED: T(
+      "Organization access changed. Reload your GitHub repositories before changing this project.",
+      "组织授权已变化。修改项目之前请重新加载 GitHub 仓库。"
+    ),
+    PROJECT_CONFLICT: T(
+      "A selected repository already belongs to another project. Reload projects and choose another repository.",
+      "所选仓库已属于另一个项目。请重新加载项目，并选择其他仓库。"
     ),
     GITHUB_RATE_LIMITED: T(
       "GitHub is limiting requests. Wait before checking repository access again.",
@@ -73,7 +90,10 @@ function errorText(error) {
       "本月 Jev 预算已用完，请继续手工记账。"
     ),
     MAX_REQUIRED: T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"),
-    CATEGORY_REQUIRED: T("Choose a category to finish saving. Your draft is still here.", "请选择类别后保存，已填写的内容已保留。"),
+    CATEGORY_REQUIRED: T(
+      "Choose a category to finish saving. Your draft is still here.",
+      "请选择类别后保存，已填写的内容已保留。"
+    ),
   };
   if (allowanceErrors[code]) return allowanceErrors[code];
   if (error?.status === 412) return T("Save conflict. Reload the latest record before retrying.");
@@ -170,32 +190,43 @@ function ReportGroups({ title, groups, error, categories = [], dimension, icon: 
         <h2>{title}</h2>
       )}
       {error ? (
-        <p role="status">{T("This report is unavailable. Reload to try again.", "此报表暂不可用，重新加载后可再试。")}</p>
+        <p role="status">
+          {T(
+            "This report is unavailable. Reload to try again.",
+            "此报表暂不可用，重新加载后可再试。"
+          )}
+        </p>
       ) : rows.length === 0 ? (
         <p>{T("No expenses in this range.")}</p>
       ) : (
         <>
-        <p className="ledger-help">{T("Bars are scaled separately for each currency.", "条形比例按各币种分别计算。")}</p>
-        <div className="ledger-chart">
-          {rows.map((row) => (
-            <div
-              className="ledger-chart-row"
-              key={`${row.target}:${row.projectId}:${row.categoryId}:${row.bucket}:${row.currency}`}
-            >
-              <span>
-                {dimension === "bucket"
-                  ? row.bucket
-                  : categories.find((category) => category.id === row.categoryId)?.name ||
-                    T("Archived category")}{" "}
-                · {row.currency}
-              </span>
-              <span className="ledger-chart-track">
-                <span style={{ width: `${Number(((minorAmount(row.amountMinor) ?? 0n) * 10000n) / (largestByCurrency.get(row.currency) ?? 1n)) / 100}%` }} />
-              </span>
-              <strong>{formatTotal(row)}</strong>
-            </div>
-          ))}
-        </div>
+          <p className="ledger-help">
+            {T("Bars are scaled separately for each currency.", "条形比例按各币种分别计算。")}
+          </p>
+          <div className="ledger-chart">
+            {rows.map((row) => (
+              <div
+                className="ledger-chart-row"
+                key={`${row.target}:${row.projectId}:${row.categoryId}:${row.bucket}:${row.currency}`}
+              >
+                <span>
+                  {dimension === "bucket"
+                    ? row.bucket
+                    : categories.find((category) => category.id === row.categoryId)?.name ||
+                      T("Archived category")}{" "}
+                  · {row.currency}
+                </span>
+                <span className="ledger-chart-track">
+                  <span
+                    style={{
+                      width: `${Number(((minorAmount(row.amountMinor) ?? 0n) * 10000n) / (largestByCurrency.get(row.currency) ?? 1n)) / 100}%`,
+                    }}
+                  />
+                </span>
+                <strong>{formatTotal(row)}</strong>
+              </div>
+            ))}
+          </div>
         </>
       )}
     </section>
@@ -278,7 +309,29 @@ function LedgerSkeleton({ mode }) {
   );
 }
 
-function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCancel }) {
+const boundRepositoryIds = (project) =>
+  project?.githubRepoIds ||
+  project?.repositories?.map((repo) => repo.githubRepoId) ||
+  [project?.githubRepoId].filter(Boolean);
+const projectLabel = (project) =>
+  project.name ||
+  project.repositories?.find((repo) => repo.githubAccess === "authorized" && repo.githubFullName)
+    ?.githubFullName ||
+  (!["lost", "unavailable", "reauthorization_required"].includes(project.githubAccess) &&
+    project.githubFullName) ||
+  project.description ||
+  T("Project history");
+
+function ExpenseForm({
+  value,
+  categories,
+  projects,
+  target,
+  busy,
+  onSubmit,
+  onCancel,
+  api = ledgerApi,
+}) {
   const noteId = useId();
   const targetFieldId = useId();
   const categoryFieldId = useId();
@@ -307,16 +360,24 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
     mounted.current = true;
     const controller = new AbortController();
     if (!value) {
-      ledgerApi.me({ signal: controller.signal }).then((profile) => {
-        if (!controller.signal.aborted) setAutomaticCategory(
-          profile?.entitlements?.jev?.eligible === true && profile.entitlements.jev.available === true
-        );
-      }).catch(() => {
-        /* A profile outage leaves ordinary manual entry available. */
-      });
+      api
+        .me({ signal: controller.signal })
+        .then((profile) => {
+          if (!controller.signal.aborted)
+            setAutomaticCategory(
+              profile?.entitlements?.jev?.eligible === true &&
+                profile.entitlements.jev.available === true
+            );
+        })
+        .catch(() => {
+          /* A profile outage leaves ordinary manual entry available. */
+        });
     }
-    return () => { mounted.current = false; controller.abort(); };
-  }, [value]);
+    return () => {
+      mounted.current = false;
+      controller.abort();
+    };
+  }, [value, api]);
   const categoryRequired = Boolean(value || !automaticCategory || requiresCategory);
   useEffect(() => {
     // Chrome ignores focus while a pending write still disables the select.
@@ -367,7 +428,12 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
     );
     if (mounted.current && result?.error?.payload?.error?.code === "CATEGORY_REQUIRED") {
       setRequiresCategory(true);
-      setValidation(T("Choose a category to finish saving. Your draft is still here.", "请选择类别后保存，已填写的内容已保留。"));
+      setValidation(
+        T(
+          "Choose a category to finish saving. Your draft is still here.",
+          "请选择类别后保存，已填写的内容已保留。"
+        )
+      );
     }
   };
   return (
@@ -390,8 +456,12 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
         >
           <option value="shared">{T("Shared expense pool")}</option>
           {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.githubFullName || project.description || T("Project history")}
+            <option
+              key={project.id}
+              value={project.id}
+              disabled={!value && project.canCreateExpense === false}
+            >
+              {projectLabel(project)}
             </option>
           ))}
         </select>
@@ -414,7 +484,9 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
             disabled={busy}
             onChange={(event) => update("categoryId", event.target.value)}
           >
-            <option value="">{categoryRequired ? T("Select category") : T("Automatic", "自动分类")}</option>
+            <option value="">
+              {categoryRequired ? T("Select category") : T("Automatic", "自动分类")}
+            </option>
             {categories
               .filter((category) => !category.archivedAt || category.id === value?.categoryId)
               .map((category) => (
@@ -425,7 +497,14 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
           </select>
         </div>
       </div>
-      {!categoryRequired && <p className="ledger-help">{T("Jev will select a category when you save, or choose one yourself.", "保存时 Jev 会自动分类，你也可以自行选择。")}</p>}
+      {!categoryRequired && (
+        <p className="ledger-help">
+          {T(
+            "Jev will select a category when you save, or choose one yourself.",
+            "保存时 Jev 会自动分类，你也可以自行选择。"
+          )}
+        </p>
+      )}
       {field("purpose", T("What did you pay for?", "这笔钱花在哪儿了？"), {
         maxLength: 500,
         required: true,
@@ -456,11 +535,7 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
       </details>
       {validation && <p role="alert">{validation}</p>}
       <div className="ledger-actions">
-        <button
-          className="btn primary"
-          type="submit"
-          disabled={busy}
-        >
+        <button className="btn primary" type="submit" disabled={busy}>
           {T("Save expense")}
         </button>
         <button className="btn" type="button" disabled={busy} onClick={onCancel}>
@@ -471,14 +546,30 @@ function ExpenseForm({ value, categories, projects, target, busy, onSubmit, onCa
   );
 }
 
-export function LedgerScreen({
+export function LedgerScreen(props) {
+  const workspace = props.workspace;
+  const identity = workspace
+    ? `${workspace.id}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(workspace.permissions)}`
+    : "personal";
+  const scope = `${identity}:${props.mode || "projects"}:${props.projectId || ""}:${props.authorizationRevision || 0}`;
+  return <ScopedLedgerScreen key={scope} {...props} />;
+}
+
+function ScopedLedgerScreen({
   go,
   mode = "projects",
   projectId = "",
   authorizationError = "",
   authorizationRevision = 0,
+  api = ledgerApi,
+  workspace = null,
+  onAccessChanged,
 }) {
   useLang();
+  const canManageProjects = workspace ? workspace.permissions?.manageProjects === true : true;
+  const canManageCategories = workspace ? workspace.permissions?.manageCategories === true : true;
+  const canWriteExpenses = workspace ? workspace.permissions?.writeExpenses === true : true;
+  const workspaceScope = `${workspace?.id || "personal"}:${workspace?.revision || 0}:${canManageProjects}:${canManageCategories}:${canWriteExpenses}`;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -489,7 +580,11 @@ export function LedgerScreen({
   const [busy, setBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [description, setDescription] = useState("");
+  const [projectName, setProjectName] = useState("");
   const [selectedRepo, setSelectedRepo] = useState("");
+  const [additionalRepoIds, setAdditionalRepoIds] = useState([]);
+  const [organizationId, setOrganizationId] = useState("");
+  const [projectRepoIds, setProjectRepoIds] = useState([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryEdit, setCategoryEdit] = useState(null);
   const [confirmCategoryId, setConfirmCategoryId] = useState("");
@@ -501,6 +596,8 @@ export function LedgerScreen({
   const [addingProject, setAddingProject] = useState(false);
   const viewId = useId();
   const repositoryFieldId = useId();
+  const projectNameId = useId();
+  const organizationFieldId = useId();
   const projectDescriptionId = useId();
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
@@ -551,10 +648,11 @@ export function LedgerScreen({
   );
   const exportHref = useMemo(
     () =>
-      `${env.VITE_API_BASE_URL || ""}/api/v1/expenses/export?${new URLSearchParams(
-        detailQuery
-      ).toString()}`,
-    [detailQuery]
+      `${env.VITE_API_BASE_URL || ""}/api/v1/expenses/export?${new URLSearchParams({
+        ...detailQuery,
+        ...(workspace?.id ? { workspaceId: workspace.id } : {}),
+      }).toString()}`,
+    [detailQuery, workspace?.id]
   );
   useEffect(() => {
     const controller = new AbortController();
@@ -564,7 +662,7 @@ export function LedgerScreen({
     const request = ++requestId.current;
     setLoading(true);
     setError("");
-    const scope = `${mode}:${projectId}:${authorizationRevision}`;
+    const scope = `${workspaceScope}:${mode}:${projectId}:${authorizationRevision}`;
     if (loadedScope.current !== scope) {
       setData(null);
       setSavedAssistance(null);
@@ -573,6 +671,13 @@ export function LedgerScreen({
       setView("expenses");
       setAddingProject(false);
       setProjectSearch("");
+      setProjectName("");
+      setSelectedRepo("");
+      setAdditionalRepoIds([]);
+      setOrganizationId("");
+      setProjectRepoIds([]);
+      setConfirmId("");
+      setActionError("");
       expenseOpenerRef.current = null;
       restoreExpenseFocus.current = false;
       projectOpenerRef.current = null;
@@ -587,17 +692,19 @@ export function LedgerScreen({
     const load = async () => {
       if (mode === "projects") {
         const [projects, repositories, categories, summary] = await Promise.all([
-          ledgerApi.projects({}, options),
-          ledgerApi.repositories({}, options).then(
+          api.projects({}, options),
+          (canManageProjects
+            ? api.repositories({}, options)
+            : Promise.resolve({ items: [], nextCursor: null })
+          ).then(
             (value) => ({ value }),
             (failure) => {
-              if (failure?.status === 401 || (failure?.status === 403 &&
-                  !failure?.payload?.error?.code?.startsWith("GITHUB_"))) throw failure;
+              if (failure?.status === 401 || isLedgerAccessFailure(failure)) throw failure;
               return { failure };
             }
           ),
-          ledgerApi.categories(options),
-          ledgerApi.reportSummary(filtered, options).then(
+          api.categories(options),
+          api.reportSummary(filtered, options).then(
             (value) => ({ value }),
             (failure) => ({ failure })
           ),
@@ -611,41 +718,74 @@ export function LedgerScreen({
           summaryError: summary.failure ? errorText(summary.failure) : "",
         };
       }
-      if (mode === "categories") return { categories: await ledgerApi.categories(options) };
-      const optionalReport = (promise) => promise.then(
-        (value) => ({ value }),
-        (failure) => {
-          if (failure?.status === 401 || failure?.status === 403) throw failure;
-          return { failure };
-        }
-      );
-      const [categories, expenses, project, projects, summary, timeseries, categoryReport] =
-        await Promise.all([
-          ledgerApi.categories(options),
-          ledgerApi.expenses(detailQuery, options),
-          mode === "project" ? ledgerApi.project(projectId, options) : Promise.resolve(null),
-          ledgerApi.projects({}, options),
-          optionalReport(ledgerApi.reportSummary(detailQuery, options)),
-          optionalReport(ledgerApi.reportTimeseries(detailQuery, options)),
-          optionalReport(ledgerApi.reportCategories(detailQuery, options)),
-        ]);
-      return { categories, expenses, project, projects,
-        summary: summary.value, summaryError: summary.failure ? errorText(summary.failure) : "",
-        timeseries: timeseries.value, timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
-        categoryReport: categoryReport.value, categoryReportError: categoryReport.failure ? errorText(categoryReport.failure) : "",
+      if (mode === "categories") return { categories: await api.categories(options) };
+      const optionalReport = (promise) =>
+        promise.then(
+          (value) => ({ value }),
+          (failure) => {
+            if (failure?.status === 401 || failure?.status === 403) throw failure;
+            return { failure };
+          }
+        );
+      const [
+        categories,
+        expenses,
+        project,
+        projects,
+        summary,
+        timeseries,
+        categoryReport,
+        repositories,
+      ] = await Promise.all([
+        api.categories(options),
+        api.expenses(detailQuery, options),
+        mode === "project" ? api.project(projectId, options) : Promise.resolve(null),
+        api.projects({}, options),
+        optionalReport(api.reportSummary(detailQuery, options)),
+        optionalReport(api.reportTimeseries(detailQuery, options)),
+        optionalReport(api.reportCategories(detailQuery, options)),
+        mode === "project" && canManageProjects
+          ? api.repositories({}, options).then(
+              (value) => ({ value }),
+              (failure) => {
+                if (failure?.status === 401 || isLedgerAccessFailure(failure)) throw failure;
+                return { failure };
+              }
+            )
+          : Promise.resolve({ value: { items: [], nextCursor: null } }),
+      ]);
+      return {
+        categories,
+        expenses,
+        project,
+        projects,
+        repositories: repositories.value || null,
+        repositoryError: repositories.failure || null,
+        summary: summary.value,
+        summaryError: summary.failure ? errorText(summary.failure) : "",
+        timeseries: timeseries.value,
+        timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
+        categoryReport: categoryReport.value,
+        categoryReportError: categoryReport.failure ? errorText(categoryReport.failure) : "",
       };
     };
     load()
       .then((result) => {
         if (!controller.signal.aborted && request === requestId.current) {
           setData(result);
-          if (mode === "project") setDescription(result.project?.description || "");
+          if (mode === "project") {
+            setDescription(result.project?.description || "");
+            setProjectName(result.project?.name || "");
+            setProjectRepoIds(boundRepositoryIds(result.project));
+            setOrganizationId(String(result.project?.githubOrganizationId || ""));
+          }
         }
       })
       .catch((failure) => {
         if (!controller.signal.aborted && request === requestId.current) {
           setData(null);
           setError(errorText(failure));
+          if (isLedgerAccessFailure(failure)) onAccessChanged?.(failure);
         }
       })
       .finally(() => {
@@ -657,12 +797,28 @@ export function LedgerScreen({
       moreController.current?.abort();
       if (request === requestId.current) requestId.current += 1;
     };
-  }, [mode, projectId, revision, filtered, detailQuery, authorizationRevision]);
+  }, [
+    mode,
+    projectId,
+    revision,
+    filtered,
+    detailQuery,
+    authorizationRevision,
+    workspaceScope,
+    api,
+    canManageProjects,
+    onAccessChanged,
+  ]);
 
   const loadMore = async (kind) => {
     const cursor = data?.[kind]?.nextCursor;
-    if (!cursor || loading || loadingMore ||
-        (moreController.current && !moreController.current.signal.aborted)) return;
+    if (
+      !cursor ||
+      loading ||
+      loadingMore ||
+      (moreController.current && !moreController.current.signal.aborted)
+    )
+      return;
     const request = requestId.current;
     const controller = new AbortController();
     moreController.current = controller;
@@ -671,10 +827,10 @@ export function LedgerScreen({
     try {
       const next =
         kind === "projects"
-          ? await ledgerApi.projects({ cursor }, { signal: controller.signal })
+          ? await api.projects({ cursor }, { signal: controller.signal })
           : kind === "repositories"
-            ? await ledgerApi.repositories({ cursor }, { signal: controller.signal })
-            : await ledgerApi.expenses({ ...detailQuery, cursor }, { signal: controller.signal });
+            ? await api.repositories({ cursor }, { signal: controller.signal })
+            : await api.expenses({ ...detailQuery, cursor }, { signal: controller.signal });
       if (controller.signal.aborted || request !== requestId.current) return;
       if (next.nextCursor === cursor || (next.items.length === 0 && next.nextCursor)) {
         setActionError(T("Pagination did not advance. Reload to retry."));
@@ -703,7 +859,13 @@ export function LedgerScreen({
         };
       });
     } catch (failure) {
-      if (!controller.signal.aborted) setActionError(errorText(failure));
+      if (!controller.signal.aborted && request === requestId.current) {
+        setActionError(errorText(failure));
+        if (isLedgerAccessFailure(failure)) {
+          setData(null);
+          onAccessChanged?.(failure);
+        }
+      }
     } finally {
       if (moreController.current === controller) moreController.current = null;
       if (request === requestId.current) setLoadingMore(false);
@@ -723,8 +885,19 @@ export function LedgerScreen({
       return true;
     } catch (failure) {
       // The expense form shows category fallback beside its picker and focuses it.
-      if (request === requestId.current)
-        setActionError(failure?.payload?.error?.code === "CATEGORY_REQUIRED" ? "" : errorText(failure));
+      if (request === requestId.current) {
+        setActionError(
+          failure?.payload?.error?.code === "CATEGORY_REQUIRED" ? "" : errorText(failure)
+        );
+        if (isLedgerAccessFailure(failure)) {
+          setData(null);
+          setEditing(null);
+          setCreatingExpense(false);
+          setCategoryEdit(null);
+          setConfirmId("");
+          onAccessChanged?.(failure);
+        }
+      }
       return false;
     } finally {
       inFlight.current = false;
@@ -759,16 +932,16 @@ export function LedgerScreen({
     const controller = new AbortController();
     moreController.current = controller;
     try {
-      const repositories = await ledgerApi.repositories({}, { signal: controller.signal });
+      const repositories = await api.repositories({}, { signal: controller.signal });
       if (!controller.signal.aborted && request === requestId.current)
-        setData((old) => old && ({ ...old, repositories, repositoryError: null }));
+        setData((old) => old && { ...old, repositories, repositoryError: null });
     } catch (failure) {
       if (!controller.signal.aborted && request === requestId.current) {
-        if (failure?.status === 401 || (failure?.status === 403 &&
-            !failure?.payload?.error?.code?.startsWith("GITHUB_"))) {
+        if (failure?.status === 401 || isLedgerAccessFailure(failure)) {
           setData(null);
           setError(errorText(failure));
-        } else setData((old) => old && ({ ...old, repositories: null, repositoryError: failure }));
+          if (isLedgerAccessFailure(failure)) onAccessChanged?.(failure);
+        } else setData((old) => old && { ...old, repositories: null, repositoryError: failure });
       }
     } finally {
       if (moreController.current === controller) moreController.current = null;
@@ -785,13 +958,19 @@ export function LedgerScreen({
     const ok = await action(async () => {
       try {
         result = await (current
-          ? ledgerApi.updateExpense(current.id, current.revision, fields, {})
-          : ledgerApi.createExpense(fields, idempotencyKey, {}));
-      } catch (error) { failure = error; throw error; }
+          ? api.updateExpense(current.id, current.revision, fields, {})
+          : api.createExpense(fields, idempotencyKey, {}));
+      } catch (error) {
+        failure = error;
+        throw error;
+      }
     });
     if (ok) {
-      setSavedAssistance(result?.assistance ? { ...result.assistance,
-        savedTargetKind: result.target?.kind || fields.target?.kind } : null);
+      setSavedAssistance(
+        result?.assistance
+          ? { ...result.assistance, savedTargetKind: result.target?.kind || fields.target?.kind }
+          : null
+      );
       setEditing(null);
       setCreatingExpense(false);
       restoreExpenseFocus.current = true;
@@ -799,7 +978,7 @@ export function LedgerScreen({
     return { error: failure };
   };
   const removeExpense = async (expense) => {
-    const ok = await action(() => ledgerApi.removeExpense(expense.id, expense.revision, {}));
+    const ok = await action(() => api.removeExpense(expense.id, expense.revision, {}));
     if (ok) setConfirmId("");
   };
 
@@ -810,23 +989,39 @@ export function LedgerScreen({
         ? T("Categories")
         : mode === "shared"
           ? T("Shared expense pool")
-          : data?.project?.githubFullName || T("Project history");
+          : data?.project
+            ? projectLabel(data.project)
+            : T("Project history");
   const target = mode === "shared" ? { kind: "shared" } : { kind: "project", projectId };
   const expenses = data?.expenses?.items || [];
   const suggestedTargetKind = savedAssistance?.suggestions?.targetKind;
-  const targetAdvice = ["shared", "project"].includes(suggestedTargetKind) &&
+  const targetAdvice =
+    ["shared", "project"].includes(suggestedTargetKind) &&
     ["shared", "project"].includes(savedAssistance?.savedTargetKind) &&
     suggestedTargetKind !== savedAssistance.savedTargetKind
       ? suggestedTargetKind === "shared"
-        ? T("This expense may belong in the shared pool. Review its destination.", "这笔支出可能更适合公共池，请核对归属。")
-        : T("This expense may be project-specific. Review its destination.", "这笔支出可能仅属于某个项目，请核对归属。")
+        ? T(
+            "This expense may belong in the shared pool. Review its destination.",
+            "这笔支出可能更适合公共池，请核对归属。"
+          )
+        : T(
+            "This expense may be project-specific. Review its destination.",
+            "这笔支出可能仅属于某个项目，请核对归属。"
+          )
       : "";
   const activeCategories = data?.categories?.filter((category) => !category.archivedAt) || [];
   const canAddExpense = Boolean(
+    canWriteExpenses &&
     activeCategories.length > 0 &&
-    (mode === "shared" || (mode === "project" && data?.project?.githubAccess === "authorized"))
+    (mode === "shared" ||
+      (mode === "project" &&
+        (typeof data?.project?.canCreateExpense === "boolean"
+          ? data.project.canCreateExpense
+          : data?.project?.githubAccess === "authorized")))
   );
-  const showExpenseForm = Boolean(editing || (canAddExpense && creatingExpense));
+  const showExpenseForm = Boolean(
+    canWriteExpenses && (editing || (canAddExpense && creatingExpense))
+  );
   useEffect(() => {
     if (!showExpenseForm && !loading && !busy && restoreExpenseFocus.current) {
       restoreExpenseFocus.current = false;
@@ -835,17 +1030,44 @@ export function LedgerScreen({
   }, [showExpenseForm, loading, busy]);
   const availableRepos =
     data?.repositories?.items?.filter(
-      (repo) => !data.projects.items.some((project) => project.githubRepoId === repo.githubRepoId)
+      (repo) =>
+        (repo.isBound !== true || boundRepositoryIds(data?.project).includes(repo.githubRepoId)) &&
+        !data.projects.items.some(
+          (project) =>
+            project.id !== projectId && boundRepositoryIds(project).includes(repo.githubRepoId)
+        ) &&
+        (!organizationId || String(repo.account?.id) === organizationId)
     ) || [];
   const selectedRepository =
     availableRepos.find((repo) => String(repo.githubRepoId) === selectedRepo) || availableRepos[0];
-  const needsGitHubReconnect = data?.repositories?.githubAccess === "reauthorization_required" ||
+  const selectedCreateIds = selectedRepository
+    ? [
+        selectedRepository.githubRepoId,
+        ...additionalRepoIds.filter(
+          (id) =>
+            id !== selectedRepository.githubRepoId &&
+            availableRepos.some((repo) => repo.githubRepoId === id)
+        ),
+      ]
+    : [];
+  const organizations = data?.repositories?.organizations || [];
+  const needsGitHubReconnect =
+    data?.repositories?.githubAccess === "reauthorization_required" ||
     data?.project?.githubAccess === "reauthorization_required";
-  const showProjectForm = Boolean(data?.repositories && !needsGitHubReconnect &&
-    (addingProject || data.projects?.items.length === 0));
+  const showProjectForm = Boolean(
+    canManageProjects &&
+    data?.repositories &&
+    !needsGitHubReconnect &&
+    (addingProject || data.projects?.items.length === 0)
+  );
   const matchingProjects =
     data?.projects?.items.filter((project) =>
-      `${project.githubFullName || ""} ${project.description || ""}`
+      `${projectLabel(project)} ${project.description || ""} ${
+        project.repositories
+          ?.filter((repo) => repo.githubAccess === "authorized")
+          .map((repo) => repo.githubFullName)
+          .join(" ") || ""
+      }`
         .toLowerCase()
         .includes(projectSearch.trim().toLowerCase())
     ) || [];
@@ -932,10 +1154,12 @@ export function LedgerScreen({
               </p>
             </div>
             <div className="actions">
-              {mode === "projects" && data?.projects.items.length > 0 && (
+              {canManageProjects && mode === "projects" && data?.projects.items.length > 0 && (
                 <button
                   className="btn primary"
-                  disabled={busy || loading || addingProject || !data.repositories || needsGitHubReconnect}
+                  disabled={
+                    busy || loading || addingProject || !data.repositories || needsGitHubReconnect
+                  }
                   aria-expanded={showProjectForm}
                   aria-controls="add-repository"
                   onClick={(event) => {
@@ -1001,16 +1225,38 @@ export function LedgerScreen({
               {actionError}
             </p>
           )}
-          {savedAssistance && (savedAssistance.categorySource === "jev" || savedAssistance.suggestions?.duplicateExpenseId || targetAdvice) && (
-            <div className="notice" role="status">
-              {savedAssistance.categorySource === "jev" && <p>
-                {T("Jev categorized this expense", "Jev 已自动为这笔支出分类")}: {data?.categories?.find((item) => item.id === savedAssistance.suggestions?.categoryId)?.name || T("Saved", "已保存")}.
-              </p>}
-              {savedAssistance.suggestions?.duplicateExpenseId && <p>
-                {T("This expense may duplicate an existing entry. Review your records.", "这笔支出可能与已有记录重复，请核对账目。")}
-              </p>}
-              {targetAdvice && <p>{targetAdvice}</p>}
-            </div>
+          {savedAssistance &&
+            (savedAssistance.categorySource === "jev" ||
+              savedAssistance.suggestions?.duplicateExpenseId ||
+              targetAdvice) && (
+              <div className="notice" role="status">
+                {savedAssistance.categorySource === "jev" && (
+                  <p>
+                    {T("Jev categorized this expense", "Jev 已自动为这笔支出分类")}:{" "}
+                    {data?.categories?.find(
+                      (item) => item.id === savedAssistance.suggestions?.categoryId
+                    )?.name || T("Saved", "已保存")}
+                    .
+                  </p>
+                )}
+                {savedAssistance.suggestions?.duplicateExpenseId && (
+                  <p>
+                    {T(
+                      "This expense may duplicate an existing entry. Review your records.",
+                      "这笔支出可能与已有记录重复，请核对账目。"
+                    )}
+                  </p>
+                )}
+                {targetAdvice && <p>{targetAdvice}</p>}
+              </div>
+            )}
+          {workspace && !canWriteExpenses && !canManageProjects && !canManageCategories && (
+            <p className="notice" role="status">
+              {T(
+                "You have read-only access to this ledger. Reports and CSV export remain available.",
+                "你对此账本只有查看权限，仍可查看报表和导出 CSV。"
+              )}
+            </p>
           )}
           {data && mode === "projects" && data.repositoryError && (
             <div role="alert" className="notice">
@@ -1020,9 +1266,11 @@ export function LedgerScreen({
               </button>
             </div>
           )}
-          {needsGitHubReconnect && (
+          {canManageProjects && needsGitHubReconnect && (
             <div role="alert" className="notice">
-              <p>{errorText({ payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } } })}</p>
+              <p>
+                {errorText({ payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } } })}
+              </p>
               <button className="btn primary" disabled={busy || loading} onClick={reconnectGitHub}>
                 {T("Reconnect GitHub", "重新连接 GitHub")}
               </button>
@@ -1031,62 +1279,67 @@ export function LedgerScreen({
           {loading && !data && <LedgerSkeleton mode={mode} />}
           {data && mode === "projects" && (
             <>
-              {data.projects.items.length === 0 && data.repositories && !needsGitHubReconnect && (
-                <section className="panel" aria-label={T("Get started", "开始使用")}>
-                  <div className="panel-h">
-                    <h2>{T("A clear path to your first expense", "三步，记下第一笔支出")}</h2>
-                  </div>
-                  <ol className="setup-steps">
-                    <li aria-current="step">
-                      <span className="setup-number">01</span>
-                      <div>
-                        <strong>
-                          <a
-                            href="#add-repository"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              startAddingRepository();
-                            }}
-                          >
-                            {T("Add a repository", "添加一个仓库")} <I.ArrowR size={12} />
-                          </a>
-                        </strong>
-                        <p>{T("Choose the project you want to track.", "选择你想记账的项目。")}</p>
-                      </div>
-                    </li>
-                    <li>
-                      <span className="setup-number">
-                        {activeCategories.length ? <I.Check size={14} /> : "02"}
-                      </span>
-                      <div>
-                        <strong>
-                          <a {...screenLinkProps(go, "ledgerCategories")}>
-                            {T("Create categories")} <I.ArrowR size={12} />
-                          </a>
-                        </strong>
-                        <p>
-                          {T(
-                            "Hosting, domains, AI tools — make it yours.",
-                            "托管、域名、AI 工具，按需分类。"
-                          )}
-                        </p>
-                      </div>
-                    </li>
-                    <li>
-                      <span className="setup-number">03</span>
-                      <div>
-                        <strong>{T("Record expenses")}</strong>
-                        <p>
-                          {T(
-                            "Open a project and add your first expense.",
-                            "打开项目，添加第一笔支出。"
-                          )}
-                        </p>
-                      </div>
-                    </li>
-                  </ol>
-                </section>
-              )}
+              {canManageProjects &&
+                data.projects.items.length === 0 &&
+                data.repositories &&
+                !needsGitHubReconnect && (
+                  <section className="panel" aria-label={T("Get started", "开始使用")}>
+                    <div className="panel-h">
+                      <h2>{T("A clear path to your first expense", "三步，记下第一笔支出")}</h2>
+                    </div>
+                    <ol className="setup-steps">
+                      <li aria-current="step">
+                        <span className="setup-number">01</span>
+                        <div>
+                          <strong>
+                            <a
+                              href="#add-repository"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                startAddingRepository();
+                              }}
+                            >
+                              {T("Add a repository", "添加一个仓库")} <I.ArrowR size={12} />
+                            </a>
+                          </strong>
+                          <p>
+                            {T("Choose the project you want to track.", "选择你想记账的项目。")}
+                          </p>
+                        </div>
+                      </li>
+                      <li>
+                        <span className="setup-number">
+                          {activeCategories.length ? <I.Check size={14} /> : "02"}
+                        </span>
+                        <div>
+                          <strong>
+                            <a {...screenLinkProps(go, "ledgerCategories")}>
+                              {T("Create categories")} <I.ArrowR size={12} />
+                            </a>
+                          </strong>
+                          <p>
+                            {T(
+                              "Hosting, domains, AI tools — make it yours.",
+                              "托管、域名、AI 工具，按需分类。"
+                            )}
+                          </p>
+                        </div>
+                      </li>
+                      <li>
+                        <span className="setup-number">03</span>
+                        <div>
+                          <strong>{T("Record expenses")}</strong>
+                          <p>
+                            {T(
+                              "Open a project and add your first expense.",
+                              "打开项目，添加第一笔支出。"
+                            )}
+                          </p>
+                        </div>
+                      </li>
+                    </ol>
+                  </section>
+                )}
               <div
                 className={
                   showProjectForm && data.projects.items.length > 0 ? "ledger-split" : undefined
@@ -1142,13 +1395,18 @@ export function LedgerScreen({
                             <I.GitBranch size={18} />
                           </span>
                           <div className="ledger-row-main">
-                            <h3>
-                              {project.githubFullName ||
-                                project.description ||
-                                T("Project history")}
-                            </h3>
-                            {project.description && project.githubFullName && (
-                              <p>{project.description}</p>
+                            <h3>{projectLabel(project)}</h3>
+                            {project.description &&
+                              projectLabel(project) !== project.description && (
+                                <p>{project.description}</p>
+                              )}
+                            {project.repositories?.length > 1 && (
+                              <p>
+                                {project.repositories.length} {T("repositories", "个仓库")}
+                              </p>
+                            )}
+                            {project.githubOrganization?.login && (
+                              <p>{project.githubOrganization.login}</p>
                             )}
                             {project.githubAccess === "lost" && (
                               <p className="ledger-access-lost">
@@ -1156,7 +1414,12 @@ export function LedgerScreen({
                               </p>
                             )}
                             {project.githubAccess === "unavailable" && (
-                              <p>{T("GitHub access could not be verified", "暂时无法验证 GitHub 授权")}</p>
+                              <p>
+                                {T(
+                                  "GitHub access could not be verified",
+                                  "暂时无法验证 GitHub 授权"
+                                )}
+                              </p>
                             )}
                           </div>
                           <span className="ledger-project-total">
@@ -1187,11 +1450,37 @@ export function LedgerScreen({
                           : T("Add a repository", "添加一个仓库")}
                       </h2>
                     </div>
+                    {organizations.length > 0 && (
+                      <div className="ledger-field">
+                        <label htmlFor={organizationFieldId}>
+                          {T("GitHub organization (optional)", "GitHub 组织（选填）")}
+                        </label>
+                        <select
+                          id={organizationFieldId}
+                          value={organizationId}
+                          disabled={busy}
+                          onChange={(event) => {
+                            setOrganizationId(event.target.value);
+                            setSelectedRepo("");
+                            setAdditionalRepoIds([]);
+                          }}
+                        >
+                          <option value="">
+                            {T("All accessible repositories", "所有已授权仓库")}
+                          </option>
+                          {organizations.map((org) => (
+                            <option key={org.id} value={org.id}>
+                              {org.login}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     {availableRepos.length > 0 && (
                       <p className="ledger-help">
                         {T(
-                          "GitHub access is ready. Choose a repository and create its expense project below.",
-                          "GitHub 已授权。在下面选一个仓库，创建它的支出项目。"
+                          "Choose one to thirty authorized repositories for this expense project. Your own GitHub access is used.",
+                          "为这个支出项目选择 1 到 30 个已授权仓库，使用你自己的 GitHub 授权。"
                         )}
                       </p>
                     )}
@@ -1212,11 +1501,21 @@ export function LedgerScreen({
                         className="ledger-form"
                         onSubmit={(event) => {
                           event.preventDefault();
+                          if (
+                            !canManageProjects ||
+                            selectedCreateIds.length < 1 ||
+                            selectedCreateIds.length > 30
+                          )
+                            return;
                           const request = requestId.current;
                           action(async () => {
-                            const project = await ledgerApi.createProject(
+                            const project = await api.createProject(
                               {
-                                githubRepoId: Number(selectedRepository.githubRepoId),
+                                githubRepoIds: selectedCreateIds,
+                                ...(projectName.trim() ? { name: projectName.trim() } : {}),
+                                ...(organizationId
+                                  ? { githubOrganizationId: Number(organizationId) }
+                                  : {}),
                                 description,
                               },
                               {}
@@ -1226,6 +1525,18 @@ export function LedgerScreen({
                           });
                         }}
                       >
+                        <div className="ledger-field">
+                          <label htmlFor={projectNameId}>
+                            {T("Project name (optional)", "项目名称（选填）")}
+                          </label>
+                          <input
+                            id={projectNameId}
+                            value={projectName}
+                            maxLength={120}
+                            disabled={busy}
+                            onChange={(event) => setProjectName(event.target.value)}
+                          />
+                        </div>
                         <div className="ledger-field">
                           <label htmlFor={repositoryFieldId}>{T("Repository")}</label>
                           <select
@@ -1241,6 +1552,43 @@ export function LedgerScreen({
                             ))}
                           </select>
                         </div>
+                        {availableRepos.length > 1 && (
+                          <fieldset className="api-scope-panel">
+                            <legend>
+                              {T("Additional repositories (optional)", "其他仓库（选填）")}
+                            </legend>
+                            {availableRepos
+                              .filter(
+                                (repo) => repo.githubRepoId !== selectedRepository.githubRepoId
+                              )
+                              .map((repo) => (
+                                <label className="api-scope-row" key={repo.githubRepoId}>
+                                  <input
+                                    type="checkbox"
+                                    checked={additionalRepoIds.includes(repo.githubRepoId)}
+                                    disabled={
+                                      busy ||
+                                      (selectedCreateIds.length >= 30 &&
+                                        !additionalRepoIds.includes(repo.githubRepoId))
+                                    }
+                                    onChange={(event) =>
+                                      setAdditionalRepoIds((old) =>
+                                        event.target.checked
+                                          ? [...old, repo.githubRepoId]
+                                          : old.filter((id) => id !== repo.githubRepoId)
+                                      )
+                                    }
+                                  />
+                                  <span className="api-scope-copy">
+                                    <span>{repo.fullName}</span>
+                                  </span>
+                                </label>
+                              ))}
+                            <p className="ledger-help">
+                              {selectedCreateIds.length} / 30 {T("repositories", "个仓库")}
+                            </p>
+                          </fieldset>
+                        )}
                         <details className="disclosure">
                           <summary>
                             {T("Project description (optional)", "项目说明（选填）")}
@@ -1395,13 +1743,13 @@ export function LedgerScreen({
                             : T("Ready to use", "可用于记账")}
                         </p>
                       </div>
-                      {categoryEdit?.id === category.id && (
+                      {canManageCategories && categoryEdit?.id === category.id && (
                         <form
                           className="ledger-actions"
                           onSubmit={(event) => {
                             event.preventDefault();
                             action(() =>
-                              ledgerApi.updateCategory(
+                              api.updateCategory(
                                 category.id,
                                 category.revision,
                                 { name: categoryEdit.name.trim(), color: category.color },
@@ -1442,104 +1790,113 @@ export function LedgerScreen({
                           </button>
                         </form>
                       )}
-                      {!category.archivedAt && categoryEdit?.id !== category.id && (
-                        <div className="ledger-actions">
-                          {confirmCategoryId !== category.id && (
-                            <button
-                              className="btn ghost sm"
-                              disabled={busy}
-                              onClick={(event) => {
-                                categoryEditorRowRef.current =
-                                  event.currentTarget.closest("article");
-                                setCategoryEdit({ id: category.id, name: category.name });
-                              }}
-                            >
-                              {T("Rename")}
-                            </button>
-                          )}
-                          {confirmCategoryId === category.id ? (
-                            <>
+                      {canManageCategories &&
+                        !category.archivedAt &&
+                        categoryEdit?.id !== category.id && (
+                          <div className="ledger-actions">
+                            {confirmCategoryId !== category.id && (
                               <button
-                                className="btn"
+                                className="btn ghost sm"
                                 disabled={busy}
-                                onClick={() =>
-                                  action(() =>
-                                    ledgerApi.archiveCategory(category.id, category.revision, {})
-                                  ).then((ok) => {
-                                    if (ok) setConfirmCategoryId("");
-                                  })
-                                }
+                                onClick={(event) => {
+                                  categoryEditorRowRef.current =
+                                    event.currentTarget.closest("article");
+                                  setCategoryEdit({ id: category.id, name: category.name });
+                                }}
                               >
-                                {T("Confirm archive")}
+                                {T("Rename")}
                               </button>
+                            )}
+                            {confirmCategoryId === category.id ? (
+                              <>
+                                <button
+                                  className="btn"
+                                  disabled={busy}
+                                  onClick={() =>
+                                    action(() =>
+                                      api.archiveCategory(category.id, category.revision, {})
+                                    ).then((ok) => {
+                                      if (ok) setConfirmCategoryId("");
+                                    })
+                                  }
+                                >
+                                  {T("Confirm archive")}
+                                </button>
+                                <button
+                                  className="btn"
+                                  disabled={busy}
+                                  onClick={() => setConfirmCategoryId("")}
+                                >
+                                  {T("Cancel")}
+                                </button>
+                              </>
+                            ) : (
                               <button
-                                className="btn"
+                                className="btn ghost sm"
                                 disabled={busy}
-                                onClick={() => setConfirmCategoryId("")}
+                                onClick={() => setConfirmCategoryId(category.id)}
                               >
-                                {T("Cancel")}
+                                {T("Archive")}
                               </button>
-                            </>
-                          ) : (
-                            <button
-                              className="btn ghost sm"
-                              disabled={busy}
-                              onClick={() => setConfirmCategoryId(category.id)}
-                            >
-                              {T("Archive")}
-                            </button>
-                          )}
-                        </div>
-                      )}
+                            )}
+                          </div>
+                        )}
                     </article>
                   ))}
                 </div>
               </section>
-              <section className="panel">
-                <div className="panel-h">
-                  <I.Plus size={20} />
-                  <h2>{T("Add category")}</h2>
-                </div>
-                <p className="ledger-help">
-                  {T(
-                    "Try Hosting, Domains or AI tools. You can use the same categories in every project.",
-                    "比如「托管」「域名」「AI 工具」，所有项目都可以使用这些分类。"
-                  )}
-                </p>
-                <form
-                  className="ledger-form"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    action(() => ledgerApi.createCategory({ name: categoryName.trim() }, {})).then(
-                      (ok) => {
-                        if (ok) setCategoryName("");
-                      }
-                    );
-                  }}
-                >
-                  <label>
-                    {T("Category name")}
-                    <input
-                      value={categoryName}
-                      maxLength={80}
-                      placeholder={T("e.g. Hosting", "例如：托管")}
-                      required
-                      disabled={busy}
-                      onChange={(event) => setCategoryName(event.target.value)}
-                    />
-                  </label>
-                  <button className="btn primary" type="submit" disabled={busy}>
-                    {T("Add category")}
-                  </button>
-                </form>
-              </section>
+              {canManageCategories && (
+                <section className="panel">
+                  <div className="panel-h">
+                    <I.Plus size={20} />
+                    <h2>{T("Add category")}</h2>
+                  </div>
+                  <p className="ledger-help">
+                    {T(
+                      "Try Hosting, Domains or AI tools. You can use the same categories in every project.",
+                      "比如「托管」「域名」「AI 工具」，所有项目都可以使用这些分类。"
+                    )}
+                  </p>
+                  <form
+                    className="ledger-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      action(() => api.createCategory({ name: categoryName.trim() }, {})).then(
+                        (ok) => {
+                          if (ok) setCategoryName("");
+                        }
+                      );
+                    }}
+                  >
+                    <label>
+                      {T("Category name")}
+                      <input
+                        value={categoryName}
+                        maxLength={80}
+                        placeholder={T("e.g. Hosting", "例如：托管")}
+                        required
+                        disabled={busy}
+                        onChange={(event) => setCategoryName(event.target.value)}
+                      />
+                    </label>
+                    <button className="btn primary" type="submit" disabled={busy}>
+                      {T("Add category")}
+                    </button>
+                  </form>
+                </section>
+              )}
             </div>
           )}
           {data && (mode === "shared" || mode === "project") && (
             <>
-              {loading && <p className="ledger-help" role="status">
-                {T("Updating results… Previous results remain visible.", "正在更新结果，当前仍显示此前的数据。")}
-              </p>}
+              {loading && (
+                <p className="ledger-help" role="status">
+                  {T(
+                    "Updating results… Previous results remain visible.",
+                    "正在更新结果，当前仍显示此前的数据。"
+                  )}
+                </p>
+              )}
               <ViewTabs
                 id={viewId}
                 label={T("Ledger views", "账本视图")}
@@ -1553,14 +1910,14 @@ export function LedgerScreen({
                 value={view}
                 onChange={setView}
               />
-              {data.project?.githubAccess === "lost" && (
+              {data.project?.githubAccess === "lost" && canWriteExpenses && (
                 <div className="notice" role="status">
                   {T(
                     "GitHub access lost. You can review, edit and remove historical expenses. Reconnect GitHub to add new expenses."
                   )}
                 </div>
               )}
-              {data.project?.githubAccess === "unavailable" && (
+              {data.project?.githubAccess === "unavailable" && canWriteExpenses && (
                 <div className="notice" role="status">
                   {T(
                     "GitHub access could not be verified. You can review, edit and remove historical expenses; adding new expenses is paused.",
@@ -1579,7 +1936,12 @@ export function LedgerScreen({
                   </span>
                 </div>
                 {data.summaryError && (
-                  <p role="status">{T("Spending summary is unavailable. Reload to try again.", "支出汇总暂不可用，重新加载后可再试。")}</p>
+                  <p role="status">
+                    {T(
+                      "Spending summary is unavailable. Reload to try again.",
+                      "支出汇总暂不可用，重新加载后可再试。"
+                    )}
+                  </p>
                 )}
                 {data.summary?.groups.length === 0 && (
                   <p className="ledger-help">
@@ -1650,7 +2012,7 @@ export function LedgerScreen({
                         {data.expenses.nextCursor ? "+" : ""}
                       </span>
                     </div>
-                    {!showExpenseForm && activeCategories.length === 0 && (
+                    {canManageCategories && !showExpenseForm && activeCategories.length === 0 && (
                       <p className="ledger-help">
                         {T(
                           "Start by adding a category, such as Hosting or AI tools.",
@@ -1659,6 +2021,14 @@ export function LedgerScreen({
                         <button className="btn" onClick={() => go("ledgerCategories")}>
                           {T("Manage categories")}
                         </button>
+                      </p>
+                    )}
+                    {!canManageCategories && canWriteExpenses && activeCategories.length === 0 && (
+                      <p className="ledger-help">
+                        {T(
+                          "Ask an Owner or Admin to add a category before recording an expense.",
+                          "请先让所有者或管理员添加一个分类，再记录支出。"
+                        )}
                       </p>
                     )}
                     {expenses.length === 0 && (
@@ -1711,46 +2081,48 @@ export function LedgerScreen({
                             <strong className="ledger-amount">
                               {expense.currency} {expense.amount}
                             </strong>
-                            <div className="ledger-actions">
-                              <button
-                                className="btn ghost sm"
-                                disabled={busy}
-                                onClick={(event) => {
-                                  expenseOpenerRef.current = event.currentTarget;
-                                  setEditing(expense);
-                                }}
-                                aria-label={`${T("Edit")} ${expense.purpose}`}
-                              >
-                                {T("Edit")}
-                              </button>
-                              {confirmId === expense.id ? (
-                                <>
-                                  <button
-                                    className="btn ghost sm"
-                                    disabled={busy}
-                                    onClick={() => removeExpense(expense)}
-                                  >
-                                    {T("Confirm removal")}
-                                  </button>
-                                  <button
-                                    className="btn"
-                                    disabled={busy}
-                                    onClick={() => setConfirmId("")}
-                                  >
-                                    {T("Cancel")}
-                                  </button>
-                                </>
-                              ) : (
+                            {canWriteExpenses && (
+                              <div className="ledger-actions">
                                 <button
                                   className="btn ghost sm"
                                   disabled={busy}
-                                  onClick={() => setConfirmId(expense.id)}
-                                  aria-label={`${T("Remove")} ${expense.purpose}`}
+                                  onClick={(event) => {
+                                    expenseOpenerRef.current = event.currentTarget;
+                                    setEditing(expense);
+                                  }}
+                                  aria-label={`${T("Edit")} ${expense.purpose}`}
                                 >
-                                  {T("Remove")}
+                                  {T("Edit")}
                                 </button>
-                              )}
-                            </div>
+                                {confirmId === expense.id ? (
+                                  <>
+                                    <button
+                                      className="btn ghost sm"
+                                      disabled={busy}
+                                      onClick={() => removeExpense(expense)}
+                                    >
+                                      {T("Confirm removal")}
+                                    </button>
+                                    <button
+                                      className="btn"
+                                      disabled={busy}
+                                      onClick={() => setConfirmId("")}
+                                    >
+                                      {T("Cancel")}
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    className="btn ghost sm"
+                                    disabled={busy}
+                                    onClick={() => setConfirmId(expense.id)}
+                                    aria-label={`${T("Remove")} ${expense.purpose}`}
+                                  >
+                                    {T("Remove")}
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </article>
                       ))}
@@ -1777,9 +2149,11 @@ export function LedgerScreen({
                             "Start by adding a category, such as Hosting or AI tools.",
                             "先添加一个分类，比如「托管」或「AI 工具」。"
                           )}{" "}
-                          <button className="btn" onClick={() => go("ledgerCategories")}>
-                            {T("Manage categories")}
-                          </button>
+                          {canManageCategories && (
+                            <button className="btn" onClick={() => go("ledgerCategories")}>
+                              {T("Manage categories")}
+                            </button>
+                          )}
                         </p>
                       ) : (
                         <p className="ledger-help">
@@ -1790,6 +2164,7 @@ export function LedgerScreen({
                         </p>
                       )}
                       <ExpenseForm
+                        api={api}
                         key={editing?.id || "new"}
                         value={editing}
                         target={target}
@@ -1849,43 +2224,235 @@ export function LedgerScreen({
                 >
                   <div className="panel-h">
                     <I.FileCode size={20} />
-                    <h2>{T("Project description")}</h2>
+                    <h2>{T("Project settings", "项目设置")}</h2>
                   </div>
                   <p className="ledger-help">
                     {T(
-                      "A short description helps you recognize this project.",
-                      "用一句简短说明，方便辨认这个项目。"
+                      "Keep a financial name for this project independently of GitHub access. Repository changes use your own GitHub authorization.",
+                      "财务项目名称独立于 GitHub 授权保留。更换仓库使用你自己的 GitHub 授权。"
                     )}
                   </p>
-                  <form
-                    className="ledger-form"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      action(() =>
-                        ledgerApi.updateProject(
-                          projectId,
-                          data.project.revision,
-                          { description },
-                          {}
+                  {canManageProjects ? (
+                    <form
+                      className="ledger-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (
+                          !canManageProjects ||
+                          projectRepoIds.length < 1 ||
+                          projectRepoIds.length > 30
                         )
-                      );
-                    }}
-                  >
-                    <div className="ledger-field">
-                      <label htmlFor={projectDescriptionId}>{T("Description")}</label>
-                      <textarea
-                        id={projectDescriptionId}
-                        value={description}
-                        maxLength={2000}
-                        onChange={(event) => setDescription(event.target.value)}
-                      />
-                    </div>
-                    <div className="ledger-actions">
-                      <button className="btn primary" type="submit" disabled={busy}>
-                        {T("Save description")}
-                      </button>
-                    </div>
-                  </form>
+                          return;
+                        const changedRepositories =
+                          JSON.stringify([...projectRepoIds].sort()) !==
+                          JSON.stringify([...boundRepositoryIds(data.project)].sort());
+                        const changedOrganization =
+                          String(data.project.githubOrganizationId || "") !== organizationId;
+                        action(() =>
+                          api.updateProject(
+                            projectId,
+                            data.project.revision,
+                            {
+                              description,
+                              ...(projectName.trim() !== (data.project.name || "")
+                                ? { name: projectName.trim() }
+                                : {}),
+                              ...(changedRepositories ? { githubRepoIds: projectRepoIds } : {}),
+                              ...(changedOrganization
+                                ? {
+                                    githubOrganizationId: organizationId
+                                      ? Number(organizationId)
+                                      : null,
+                                  }
+                                : {}),
+                            },
+                            {}
+                          )
+                        );
+                      }}
+                    >
+                      <div className="ledger-field">
+                        <label htmlFor={projectNameId}>
+                          {T("Project name (optional)", "项目名称（选填）")}
+                        </label>
+                        <input
+                          id={projectNameId}
+                          value={projectName}
+                          maxLength={120}
+                          disabled={busy}
+                          onChange={(event) => setProjectName(event.target.value)}
+                        />
+                      </div>
+                      {(organizations.length > 0 || data.project.githubOrganizationId) && (
+                        <div className="ledger-field">
+                          <label htmlFor={organizationFieldId}>
+                            {T("GitHub organization (optional)", "GitHub 组织（选填）")}
+                          </label>
+                          <select
+                            id={organizationFieldId}
+                            value={organizationId}
+                            disabled={busy}
+                            onChange={(event) => {
+                              setOrganizationId(event.target.value);
+                              if (event.target.value) setProjectRepoIds([]);
+                            }}
+                          >
+                            <option value="">
+                              {T("All accessible repositories", "所有已授权仓库")}
+                            </option>
+                            {data.project.githubOrganizationId &&
+                              !organizations.some(
+                                (org) => org.id === data.project.githubOrganizationId
+                              ) && (
+                                <option value={data.project.githubOrganizationId}>
+                                  {T("Organization", "组织")} #{data.project.githubOrganizationId}
+                                </option>
+                              )}
+                            {organizations.map((org) => (
+                              <option key={org.id} value={org.id}>
+                                {org.login}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="ledger-help">
+                            {T(
+                              "Choose repositories again when changing organization.",
+                              "更换组织后请重新选择仓库。"
+                            )}
+                          </p>
+                        </div>
+                      )}
+                      <fieldset className="api-scope-panel">
+                        <legend>{T("Project repositories", "项目仓库")}</legend>
+                        {[
+                          ...boundRepositoryIds(data.project)
+                            .map((id) => {
+                              const repository = data.project.repositories?.find(
+                                (repo) => repo.githubRepoId === id
+                              );
+                              return {
+                                githubRepoId: id,
+                                fullName:
+                                  repository?.githubAccess === "authorized"
+                                    ? repository.githubFullName
+                                    : !repository && data.project.githubAccess === "authorized"
+                                      ? data.project.githubFullName
+                                      : null,
+                                account: repository?.account,
+                              };
+                            })
+                            .filter(
+                              (repo) =>
+                                !organizationId ||
+                                String(repo.account?.id) === organizationId ||
+                                projectRepoIds.includes(repo.githubRepoId)
+                            ),
+                          ...availableRepos.filter(
+                            (repo) => !boundRepositoryIds(data.project).includes(repo.githubRepoId)
+                          ),
+                        ].map((repo) => (
+                          <label className="api-scope-row" key={repo.githubRepoId}>
+                            <input
+                              type="checkbox"
+                              checked={projectRepoIds.includes(repo.githubRepoId)}
+                              disabled={
+                                busy ||
+                                !data.repositories ||
+                                (projectRepoIds.length >= 30 &&
+                                  !projectRepoIds.includes(repo.githubRepoId))
+                              }
+                              onChange={(event) =>
+                                setProjectRepoIds((old) =>
+                                  event.target.checked
+                                    ? [...old, repo.githubRepoId]
+                                    : old.filter((id) => id !== repo.githubRepoId)
+                                )
+                              }
+                            />
+                            <span className="api-scope-copy">
+                              <span>
+                                {repo.fullName ||
+                                  `${T("Repository", "仓库")} #${repo.githubRepoId}`}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                        <p className="ledger-help">
+                          {projectRepoIds.length} / 30 {T("repositories", "个仓库")}
+                        </p>
+                      </fieldset>
+                      {data.repositoryError && (
+                        <div className="notice notice-error" role="alert">
+                          <p>{errorText(data.repositoryError)}</p>
+                          <button
+                            className="btn"
+                            type="button"
+                            disabled={busy || loading}
+                            onClick={retryRepositories}
+                          >
+                            {T("Check repository access", "检查仓库授权")}
+                          </button>
+                        </div>
+                      )}
+                      {data.repositories?.nextCursor && (
+                        <button
+                          className="btn"
+                          type="button"
+                          disabled={loadingMore}
+                          onClick={() => loadMore("repositories")}
+                        >
+                          {T("Load more repositories")}
+                        </button>
+                      )}
+                      <div className="ledger-field">
+                        <label htmlFor={projectDescriptionId}>{T("Description")}</label>
+                        <textarea
+                          id={projectDescriptionId}
+                          value={description}
+                          maxLength={2000}
+                          onChange={(event) => setDescription(event.target.value)}
+                        />
+                      </div>
+                      <div className="ledger-actions">
+                        <button
+                          className="btn primary"
+                          type="submit"
+                          disabled={busy || projectRepoIds.length < 1 || projectRepoIds.length > 30}
+                        >
+                          {T("Save project", "保存项目")}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <p>{data.project.description || T("No description", "暂无说明")}</p>
+                      {data.project.githubOrganization?.githubAccess === "authorized" &&
+                        data.project.githubOrganization.login && (
+                          <p>
+                            {T("Organization", "组织")}: {data.project.githubOrganization.login}
+                          </p>
+                        )}
+                      <h3>{T("Project repositories", "项目仓库")}</h3>
+                      <div className="ledger-list">
+                        {boundRepositoryIds(data.project).map((id) => {
+                          const repo = data.project.repositories?.find(
+                            (item) => item.githubRepoId === id
+                          );
+                          const name =
+                            repo?.githubAccess === "authorized"
+                              ? repo.githubFullName
+                              : !repo && data.project.githubAccess === "authorized"
+                                ? data.project.githubFullName
+                                : null;
+                          return (
+                            <article key={id}>
+                              <p>{name || `${T("Repository", "仓库")} #${id}`}</p>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </section>
               )}
             </>
