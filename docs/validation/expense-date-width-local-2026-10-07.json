@@ -1,0 +1,492 @@
+{
+  "date": "2026-10-07",
+  "completedAt": "2026-10-07T06:47:24.184Z",
+  "status": "Targeted local Chromium expense date width acceptance complete",
+  "scope": "Eight synthetic GET-intercepted project/shared expense forms, with no remote API, real account sessions, D1, providers or submitted writes.",
+  "browser": {
+    "name": "Chromium 151.0.7922.173 built on Debian GNU/Linux 13 (trixie)",
+    "engine": "Chromium",
+    "platform": "Linux",
+    "webkit": {
+      "available": false,
+      "executablePath": "/home/agent/.cache/ms-playwright/webkit-2359/pw_run.sh",
+      "executableExists": false,
+      "installationAttempted": false,
+      "safariAcceptanceEstablished": false
+    }
+  },
+  "sourceSha256": {
+    "src/screens/ledger.css": "9c9579f69ebd5edb41adf149a22bf446288c58b50dc07cf516d67d0061b18d40",
+    "src/screens/ledger.jsx": "a62d76448cd630afd9862779c00e003e9c948186209cb6227b5034c2fd9bcdc9"
+  },
+  "artifacts": [
+    {
+      "path": "assets/index-aEYjOJbq.css",
+      "bytes": 72518,
+      "sha256": "dfc948a7c353f28c833eb0c13d3cf35c4f0eb0cd78d754216ae255f6de4b899f"
+    },
+    {
+      "path": "assets/index-rjRHPbxJ.js",
+      "bytes": 42047,
+      "sha256": "6e1c2dbc9c5259e5ff598d4afeac1c51a0e41379ffc35f633315127b63efa60d"
+    },
+    {
+      "path": "assets/ledger-Bvh7ex7i.js",
+      "bytes": 53251,
+      "sha256": "3c256c9ee701cdc495836e605f7b0046f4bd7c13f7c8eb9e1ff889abda652cb3"
+    },
+    {
+      "path": "assets/ledger-C8hciBb7.css",
+      "bytes": 10192,
+      "sha256": "c8c80b0fd21417ae3b0e792093314c641c655aea2af8907b8243ab0108c145e3"
+    },
+    {
+      "path": "index.html",
+      "bytes": 4916,
+      "sha256": "3c02cdbdf7218762941b294148bf3f4ac91e3b1d928925f45530f34ebc803c99"
+    }
+  ],
+  "fullArtifactManifestSha256": "028ed593fb1a045d94720b6f5b1892316d020bbe9e09cb85ad3dd84d61dcc28d",
+  "artifactDirectory": "/workspace/qa-private/projects-spacing-2026-10-07",
+  "rawEvidence": {
+    "path": "date-width-chromium-evidence.json",
+    "sha256": "7641a299dccb016408ba889dce599b6d6e65981f351964bf0c408607dc7f3dea"
+  },
+  "harness": {
+    "path": "capture-date-width.mjs",
+    "sha256": "e848f9118a2e23f2d743dac6eb82e4e7fae766f5cd76475fea0b718120021a4b"
+  },
+  "method": [
+    "Every browser request intercepted before navigation; all API responses synthetic GET fixtures, mutations blocked, external hosts aborted and service workers blocked.",
+    "Both project and shared expense forms at 1440/900px desktop English and 390/320px touch Chinese.",
+    "Compare date, amount, currency and category control border boxes inside the same primary form grid; validate containing label/field bounds and actual native label association.",
+    "Measure blank date, native fill 2026-10-07, clear, refill and post-capture states. Check native type=date, exact value/epoch and browser validity without submitting the form.",
+    "Wait fonts and two animation frames, check viewport/media/sidebar/grid before and after screenshots. Desktop uses Playwright full-page screenshot; touch uses native viewport capture without clip/viewport resizing."
+  ],
+  "checks": {
+    "forms": 8,
+    "passed": 8,
+    "maxDateVsPeerWidthDeltaPx": 0,
+    "widthsByViewportPx": {
+      "1440": 307,
+      "900": 227,
+      "390": 358,
+      "320": 288
+    },
+    "editTriggeredApiRequests": 0,
+    "pageErrors": 0,
+    "unexpectedRoutes": 0,
+    "overflow": 0
+  },
+  "visualReview": {
+    "reviewedScreenshots": [
+      "date-width-chromium/320-zh-project-expense-date-lower.png",
+      "date-width-chromium/390-zh-shared-expense-date-lower.png",
+      "date-width-chromium-unfocused/390-zh-project-expense-date-lower.png"
+    ],
+    "result": "Date, amount, currency and category border boxes align; labels and native date text remain readable.",
+    "focusNote": "Native fill leaves date focused. Its focus outline extends around the border box; measured control widths remain equal."
+  },
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "target": "project",
+      "gridColumns": "307px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        307,
+        307,
+        307,
+        307
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": false,
+        "after": false
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/1440-en-project-expense-date.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "target": "shared",
+      "gridColumns": "307px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        307,
+        307,
+        307,
+        307
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": false,
+        "after": false
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/1440-en-shared-expense-date.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 900,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "target": "project",
+      "gridColumns": "227px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        227,
+        227,
+        227,
+        227
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": false,
+        "after": false
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/900-en-project-expense-date.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 900,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "target": "shared",
+      "gridColumns": "227px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        227,
+        227,
+        227,
+        227
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": false,
+        "after": false
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/900-en-shared-expense-date.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "target": "project",
+      "gridColumns": "358px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        358,
+        358,
+        358,
+        358
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": true,
+        "after": true
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/390-zh-project-expense-date.png",
+      "lowerScreenshot": "date-width-chromium/390-zh-project-expense-date-lower.png",
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "target": "shared",
+      "gridColumns": "358px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        358,
+        358,
+        358,
+        358
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": true,
+        "after": true
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/390-zh-shared-expense-date.png",
+      "lowerScreenshot": "date-width-chromium/390-zh-shared-expense-date-lower.png",
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "target": "project",
+      "gridColumns": "288px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        288,
+        288,
+        288,
+        288
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": true,
+        "after": true
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/320-zh-project-expense-date.png",
+      "lowerScreenshot": "date-width-chromium/320-zh-project-expense-date-lower.png",
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "target": "shared",
+      "gridColumns": "288px",
+      "dateAmountCurrencyCategoryWidthsPx": [
+        288,
+        288,
+        288,
+        288
+      ],
+      "maxWidthDeltaPx": 0,
+      "labelAssociations": [
+        "implicit",
+        "implicit",
+        "implicit",
+        "explicit"
+      ],
+      "allLabelsAndControlsWithinField": true,
+      "nativeDate": {
+        "type": "date",
+        "value": "2026-10-07",
+        "valueAsNumber": 1791331200000,
+        "blankAndClearedValueMissing": true,
+        "filledAndRefilledValid": true,
+        "appearance": "auto",
+        "pickerMethodPresent": true,
+        "pickerOpened": false
+      },
+      "editTriggeredApiRequests": 0,
+      "shellStableDuringCapture": true,
+      "coarsePointerBeforeAfter": {
+        "before": true,
+        "after": true
+      },
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "overflow": 0,
+      "screenshot": "date-width-chromium/320-zh-shared-expense-date.png",
+      "lowerScreenshot": "date-width-chromium/320-zh-shared-expense-date-lower.png",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "WebKit executable is absent; this establishes Chromium evidence only. Safari/iOS native date-control rendering remains unverified.",
+    "No native picker popup was opened. Native input type, date value, validity, programmatic native fill and clear/refill behavior were checked.",
+    "This is local synthetic frontend evidence and does not establish live authentication, backend expense writes, invitation flow or payment/provider acceptance."
+  ],
+  "passed": true,
+  "unfocusedVisualSupplement": {
+    "forms": 1,
+    "viewportWidth": 390,
+    "language": "zh",
+    "target": "project",
+    "action": "Blur native date input before screenshot; no form submission.",
+    "dateAmountCurrencyCategoryWidthsPx": [
+      358,
+      358,
+      358,
+      358
+    ],
+    "maxWidthDeltaPx": 0,
+    "editTriggeredApiRequests": 0,
+    "rawEvidence": {
+      "path": "date-width-chromium-unfocused-evidence.json",
+      "sha256": "ac31f9ed8cde13bcded6f0a0a94a5cc1d17803f65ea1027fa5f0463baba2d993"
+    },
+    "harness": {
+      "path": "capture-date-width-unfocused.mjs",
+      "sha256": "b1b49bcd774c78378cf591c670d80a064636bc06ef68d75e2431409bf6a0f66a"
+    },
+    "screenshot": "date-width-chromium-unfocused/390-zh-project-expense-date-lower.png",
+    "shellStable": true,
+    "passed": true
+  }
+}

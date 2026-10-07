@@ -2,6 +2,21 @@
 
 Updated 2026-10-07. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Expense date input width (2026-10-07)
+
+Date controls have explicit maximum physical/logical widths and no intrinsic
+minimum inline size; wrapping input labels inside the field grid use a
+`minmax(0, 1fr)` column. Native date type, picker and ISO values are preserved.
+The adjustment stays within the owning Ledger CSS and does not alter checkbox
+row layouts. Full lint/build, 434 tests and Worker configuration checks pass.
+
+[Focused built Chromium acceptance](expense-date-width-local-2026-10-07.json)
+passes eight project/shared expense forms at 1440, 900, 390 and 320px. Date,
+amount, currency and category border-box widths match exactly at 307, 227, 358
+and 288px respectively, across blank, fill, clear and refill states. Editing
+the date triggers no additional API request. All fixtures are intercepted
+locally; this is not a real Safari or authenticated preview acceptance claim.
+
 ## Projects console spacing (2026-10-07)
 
 The Projects search icon/input share one control border, with 16px before a

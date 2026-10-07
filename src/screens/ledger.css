@@ -255,6 +255,9 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 16px;
 }
+.ledger-screen .ledger-fields > label {
+  grid-template-columns: minmax(0, 1fr);
+}
 .ledger-screen .disclosure .ledger-fields {
   margin-bottom: 16px;
 }
@@ -280,6 +283,12 @@
   font: inherit;
   min-height: 42px;
   transition: border-color 160ms ease;
+}
+.ledger-screen .main input[type="date"] {
+  display: block;
+  min-inline-size: 0;
+  max-width: 100%;
+  max-inline-size: 100%;
 }
 .ledger-screen textarea {
   min-height: 94px;
