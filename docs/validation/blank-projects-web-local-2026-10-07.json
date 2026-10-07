@@ -1,0 +1,586 @@
+{
+  "completedAt": "2026-10-07T13:41:49.820Z",
+  "status": "passed",
+  "scope": "Local built Chromium UI acceptance of standalone projects. Every request intercepted and locally fulfilled or aborted; all mutations affect fixture memory only. Synthetic accounts, workspace roles, repository candidates and expense history. Zero request forwarding, remote APIs, real credentials/sessions, providers, D1 or payments.",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.173",
+    "executable": "/usr/bin/chromium",
+    "serviceWorkers": "blocked"
+  },
+  "sourceSHA256": {
+    "src/screens/ledger.jsx": "e66636cb4ea554a841eefaff431b264869912ab9b9f435760888dd987791a509",
+    "src/screens/api-docs.jsx": "8b87056c2c7eb4a5998401409b787260fac6e2c3b8055fc74d942ae8fa8b1fd1",
+    "src/locales/ledger.js": "14c1516af77c65654040b89403bb94d1cded8d881bf4d6fe0c7bae95698e1d54",
+    "src/locales/ledger-screen.js": "294be4a93e10e203d7e5c4041ff3a32ce9cd88241b93b5efb54dcfe409ffe430",
+    "src/locales/ledger-ui.js": "d4795a4f57257c675637784f6c5d04534401889b6c25775f174f4d35bb2b1563"
+  },
+  "builtArtifacts": [
+    {
+      "path": "assets/index-CeC2xTea.js",
+      "bytes": 42047,
+      "sha256": "a4e3b9fe8898a06d81a1f4f607cfe234d885f9948a93e1cd169470d67a25945d"
+    },
+    {
+      "path": "assets/index-aEYjOJbq.css",
+      "bytes": 72518,
+      "sha256": "dfc948a7c353f28c833eb0c13d3cf35c4f0eb0cd78d754216ae255f6de4b899f"
+    },
+    {
+      "path": "assets/ledger-C8hciBb7.css",
+      "bytes": 10192,
+      "sha256": "c8c80b0fd21417ae3b0e792093314c641c655aea2af8907b8243ab0108c145e3"
+    },
+    {
+      "path": "assets/ledger-Dh7e8Ywm.js",
+      "bytes": 55799,
+      "sha256": "eba70d6c3b9e9fe26dae06ddb6d4b098047ef6a1ce433d655ad8b89a3a97becd"
+    },
+    {
+      "path": "index.html",
+      "bytes": 4916,
+      "sha256": "afd6f52f5d716f0d984bc2214d14cc0e4d9dc9dbed077f4f04511765de03a230"
+    }
+  ],
+  "fullPrivateArtifactManifest": "/workspace/qa-private/blank-projects-web-2026-10-07/final-evidence.json",
+  "artifactHashesMatchedAcrossAllPhases": true,
+  "allBuiltHTMLJSCSSUnchangedBeforeAfterEachPhase": true,
+  "harnesses": {
+    "capture-blank-first-attempt.mjs": {
+      "path": "/workspace/qa-private/blank-projects-web-2026-10-07/capture-blank-first-attempt.mjs",
+      "sha256": "e74ccf5b6b50a90538461a0b45c5edaf000490a0a664aae469f15a497d940884"
+    },
+    "capture-blank-recovery.mjs": {
+      "path": "/workspace/qa-private/blank-projects-web-2026-10-07/capture-blank-recovery.mjs",
+      "sha256": "7b938aedfa5bcb8f4efc6e9063b69166d91cb45724f4ad17538e593a0c8122d3"
+    },
+    "capture-blank.mjs": {
+      "path": "/workspace/qa-private/blank-projects-web-2026-10-07/capture-blank.mjs",
+      "sha256": "80dc1bc2a0ec8f54f07496cde45812facdda4ce7281c3fd13e37e7fb14e460d7"
+    }
+  },
+  "method": {
+    "requestCapsPerContext": {
+      "all": 120,
+      "api": 20,
+      "syntheticMutations": 1
+    },
+    "enforcement": "**/* route installed before navigation. Exact synthetic POST/PATCH allowlist with body, workspace and If-Match/idempotency header validation. All external hosts and unspecified API paths/methods aborted. No continue/fallback or provider calls.",
+    "capture": "Desktop Playwright fullPage; touch CDP native viewport without clip or resize. Fonts settled, network idle, instant scroll and two animation frames. Width/media/sidebar/workspace/grid geometry compared before/after screenshot. Touch/coarse state asserted and restored when necessary. Visible main controls and left/right document bounds checked.",
+    "syntheticMutationScope": "Six accepted contexts each execute one in-memory mutation; viewer executes zero. First failed recovery context executed zero. Expense was rerun once only to align fixture with canonical /me defaults.",
+    "schema": "Current null githubRepoId, empty githubRepoIds/repositories, null organization, githubAccess=not_linked and active canCreateExpense=true. Viewer keeps financial canCreateExpense=true while role permissions are all false. Selected viewer workspace first in legal workspace array; personal owner workspace remains separate.",
+    "explicitLinking": "Only opening optional links/settings can request candidate repositories; attach candidate belongs to the synthetic actor. GitHub OAuth/provider authorization itself is not exercised."
+  },
+  "phases": {
+    "final": {
+      "status": "first-attempt-retained",
+      "contexts": 7,
+      "functionalAndGeometryPassed": 6,
+      "failed": 1,
+      "failure": {
+        "case": "provider-failure-close-blank-create",
+        "reason": "Harness waited for the repository failure alert inside #add-repository, but the actual accessible alert is above that form. 503 and one candidate GET were observed. No synthetic mutation was dispatched.",
+        "observedFailure": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#add-repository').getByRole('alert') to be visible\u001b[22m\n",
+        "screenshot": "/workspace/qa-private/blank-projects-web-2026-10-07/final/390-zh-provider-failure-close-blank-create-failure.png"
+      },
+      "fixtureQualification": "Expense /me used nondefault Free writesPerMinute=60, monthlyBudgetUsd=\"0\" and a reduced owner scope list. This response was replaced by canonical defaults in expense-canonical; its first result is retained, not the final canonical acceptance. The viewer branch had overbroad /me scopes but was never requested (meGET=0); no viewer response actually used that branch.",
+      "createdAt": "2026-10-07T13:38:43.153Z",
+      "completedAt": "2026-10-07T13:39:14.690Z",
+      "rawEvidence": {
+        "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final-evidence.json",
+        "sha256": "63f60281e59b00f2a3ea25e33ed5a06c06a7f7e39a0ba89565f7dfd6daf8c05d"
+      },
+      "requests": {
+        "total": 261,
+        "api": 100,
+        "syntheticMutations": 5
+      }
+    },
+    "recovery-corrected": {
+      "status": "accepted-repository-failure-case-only",
+      "contexts": 1,
+      "passed": 1,
+      "correction": "Only alert selector changed from form-scoped to whole-page; no product change.",
+      "createdAt": "2026-10-07T13:40:00.413Z",
+      "completedAt": "2026-10-07T13:40:03.797Z",
+      "rawEvidence": {
+        "path": "/workspace/qa-private/blank-projects-web-2026-10-07/recovery-corrected-evidence.json",
+        "sha256": "4c283cb369624b3e328fa52c7461c318fe4714dbe073cb53bb5f197e600884c5"
+      },
+      "requests": {
+        "total": 40,
+        "api": 14,
+        "syntheticMutations": 1
+      }
+    },
+    "expense-canonical": {
+      "status": "accepted-expense-case-only",
+      "contexts": 1,
+      "passed": 1,
+      "correction": "Only /me fixture aligned with current default Free policy (10 writes/min, 1000/month, Jev 0.00) and sorted owner role scopes. Unused viewer /me fixture changed to the five read scopes. No product change.",
+      "createdAt": "2026-10-07T13:41:47.404Z",
+      "completedAt": "2026-10-07T13:41:49.820Z",
+      "rawEvidence": {
+        "path": "/workspace/qa-private/blank-projects-web-2026-10-07/expense-canonical-evidence.json",
+        "sha256": "201462c60070e4570790b85af10438fdafe9ed622d00771ef407ea49082d3019"
+      },
+      "requests": {
+        "total": 44,
+        "api": 18,
+        "syntheticMutations": 1
+      }
+    }
+  },
+  "result": {
+    "acceptedCases": 7,
+    "passed": 7,
+    "failed": 0,
+    "acceptedRequests": {
+      "total": 269,
+      "api": 108,
+      "syntheticMutations": 6
+    },
+    "allAttempts": {
+      "contexts": 9,
+      "totalRequests": 345,
+      "apiRequests": 132,
+      "syntheticMutations": 7
+    },
+    "maximumObservedPerContext": {
+      "all": 45,
+      "api": 19,
+      "syntheticMutations": 1
+    },
+    "forwardedRequests": 0,
+    "remoteD1Operations": 0,
+    "uncaughtPageErrors": 0,
+    "unexpectedRequests": 0
+  },
+  "cases": [
+    {
+      "case": "blank-create",
+      "evidencePhase": "final",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "language": "en",
+        "touch": false
+      },
+      "passed": true,
+      "requests": {
+        "total": 32,
+        "api": 13,
+        "syntheticMutations": 1,
+        "candidateRepositoryGET": 0,
+        "meGET": 0,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "blankCreateBody": {
+          "name": "Standalone launch costs",
+          "description": "",
+          "githubRepoIds": []
+        },
+        "defaultCandidateReads": 0,
+        "repositoryDisclosureClosedBeforeSubmit": true,
+        "requiredName": true
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 1440,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 0,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": true,
+        "beforeMutationControlsOutsideMain": 0,
+        "beforeMutationHorizontalOverflowElements": 0,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/1440-en-blank-create.png",
+          "sha256": "46cd9f3851b31a78b3c03dc2c084c668d00b716be9f1755850f43858387e899e"
+        },
+        "beforeMutation": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/1440-en-blank-create-form.png",
+          "sha256": "b6e673ad3445a65243e06a65005ec1de3f1858f356e8d1a136f61c2c1051d8b0"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    },
+    {
+      "case": "provider-failure-close-blank-create",
+      "evidencePhase": "recovery-corrected",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "language": "zh",
+        "touch": true
+      },
+      "passed": true,
+      "requests": {
+        "total": 40,
+        "api": 14,
+        "syntheticMutations": 1,
+        "candidateRepositoryGET": 1,
+        "meGET": 0,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "providerErrorVisible": true,
+        "blankCreateBody": {
+          "name": "独立项目支出",
+          "description": "",
+          "githubRepoIds": []
+        },
+        "defaultCandidateReads": 0,
+        "repositoryDisclosureClosedBeforeSubmit": true,
+        "requiredName": true
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 390,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 0,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": true,
+        "beforeMutationControlsOutsideMain": 0,
+        "beforeMutationHorizontalOverflowElements": 0,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/recovery-corrected/390-zh-provider-failure-close-blank-create.png",
+          "sha256": "e72cb9ec63b5e398de2a454e329eb50854feaeb42072215c467229b5c39b9889"
+        },
+        "resultLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/recovery-corrected/390-zh-provider-failure-close-blank-create-lower.png",
+          "sha256": "e72cb9ec63b5e398de2a454e329eb50854feaeb42072215c467229b5c39b9889"
+        },
+        "beforeMutation": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/recovery-corrected/390-zh-provider-failure-close-blank-create-form.png",
+          "sha256": "365ac9522d40dcf1eea9c0d241defafe09e9006e87823aa077d36d4e8fa991d5"
+        },
+        "beforeMutationLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/recovery-corrected/390-zh-provider-failure-close-blank-create-form-lower.png",
+          "sha256": "9e5acabe8756040089bbcdde2db95b553aea92bcbd0da9abf4ff325885644427"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    },
+    {
+      "case": "blank-expense-explicit-category",
+      "evidencePhase": "expense-canonical",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "language": "zh",
+        "touch": true
+      },
+      "passed": true,
+      "requests": {
+        "total": 44,
+        "api": 18,
+        "syntheticMutations": 1,
+        "candidateRepositoryGET": 0,
+        "meGET": 1,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "explicitCategoryPreserved": true,
+        "savedTarget": {
+          "kind": "project",
+          "projectId": "prj_blank"
+        },
+        "idempotencyKeyPresent": true,
+        "replayTested": false,
+        "historyUnchanged": true
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 390,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 0,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": true,
+        "beforeMutationControlsOutsideMain": 0,
+        "beforeMutationHorizontalOverflowElements": 0,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/expense-canonical/390-zh-blank-expense-explicit-category.png",
+          "sha256": "c2605e28580c2738ace8a75df2f1bd4e721e5a956b9cb5c42f6cf81d472fd686"
+        },
+        "resultLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/expense-canonical/390-zh-blank-expense-explicit-category-lower.png",
+          "sha256": "97850c379b658ec3d5f8af31e49e70f99841273f5b8d96013ec37b0d6ba24b1f"
+        },
+        "beforeMutation": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/expense-canonical/390-zh-blank-expense-explicit-category-form.png",
+          "sha256": "99e5e14c660d7b6ecb2c14f2ef1ec6c05f52a2ea23dbf005646daa8dbdbb33ac"
+        },
+        "beforeMutationLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/expense-canonical/390-zh-blank-expense-explicit-category-form-lower.png",
+          "sha256": "5f47e158bbc3a80ebee470b15c33d671566f5eb7ac9805fe97ff9d61f6489605"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    },
+    {
+      "case": "blank-settings-rename",
+      "evidencePhase": "final",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "language": "en",
+        "touch": false
+      },
+      "passed": true,
+      "requests": {
+        "total": 36,
+        "api": 17,
+        "syntheticMutations": 1,
+        "candidateRepositoryGET": 0,
+        "meGET": 0,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "ifMatch": "\"7\"",
+        "patchBody": {
+          "description": "",
+          "name": "Renamed standalone costs"
+        },
+        "projectIdUnchanged": true,
+        "historyUnchanged": true,
+        "finalName": "Renamed standalone costs",
+        "finalBindings": [],
+        "finalOrganization": null
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 1440,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 3,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": true,
+        "beforeMutationControlsOutsideMain": 0,
+        "beforeMutationHorizontalOverflowElements": 0,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/1440-en-blank-settings-rename.png",
+          "sha256": "7db27ddac8ff2fb6792e9256910b6ccfe1d113803e48cae2f7a11abfc3806d3a"
+        },
+        "beforeMutation": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/1440-en-blank-settings-rename-form.png",
+          "sha256": "b4e5d228fc46464b78387145b0f29b301c79af9bbe81dd59d3da401d2b05b75e"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    },
+    {
+      "case": "explicit-actor-repository-attach",
+      "evidencePhase": "final",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "language": "zh",
+        "touch": true
+      },
+      "passed": true,
+      "requests": {
+        "total": 45,
+        "api": 19,
+        "syntheticMutations": 1,
+        "candidateRepositoryGET": 2,
+        "meGET": 0,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "ifMatch": "\"7\"",
+        "patchBody": {
+          "description": "",
+          "githubRepoIds": [
+            202
+          ]
+        },
+        "projectIdUnchanged": true,
+        "historyUnchanged": true,
+        "finalName": "日常运营费用",
+        "finalBindings": [
+          202
+        ],
+        "finalOrganization": null
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 390,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 5,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": true,
+        "beforeMutationControlsOutsideMain": 0,
+        "beforeMutationHorizontalOverflowElements": 0,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/390-zh-explicit-actor-repository-attach.png",
+          "sha256": "a088465974f4568cf38f228a4e5f5f58531b784d6521612fd44493dd4c50420c"
+        },
+        "resultLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/390-zh-explicit-actor-repository-attach-lower.png",
+          "sha256": "1d3b877f2df7e89cf36e3e30d8837318967bc30b00e4d5926a3cc5d5e80a6187"
+        },
+        "beforeMutation": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/390-zh-explicit-actor-repository-attach-form.png",
+          "sha256": "d81c66fbbcaf9080903767393977143cecadf8b327edc254134ad77c0116348b"
+        },
+        "beforeMutationLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/390-zh-explicit-actor-repository-attach-form-lower.png",
+          "sha256": "a0eeb7ff7943d0893d5c1ab53b26df820d4cd66a9c1ddde95b90d5b2aac34990"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    },
+    {
+      "case": "detach-last-repository-retain-history",
+      "evidencePhase": "final",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "language": "en",
+        "touch": false
+      },
+      "passed": true,
+      "requests": {
+        "total": 37,
+        "api": 18,
+        "syntheticMutations": 1,
+        "candidateRepositoryGET": 1,
+        "meGET": 0,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "ifMatch": "\"7\"",
+        "patchBody": {
+          "description": "",
+          "name": "Detached operating costs",
+          "githubRepoIds": [],
+          "githubOrganizationId": null
+        },
+        "projectIdUnchanged": true,
+        "historyUnchanged": true,
+        "finalName": "Detached operating costs",
+        "finalBindings": [],
+        "finalOrganization": null
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 1440,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 3,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": true,
+        "beforeMutationControlsOutsideMain": 0,
+        "beforeMutationHorizontalOverflowElements": 0,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/1440-en-detach-last-repository-retain-history.png",
+          "sha256": "c9ab52db8ab9fbd8b6594a5f7c4fe56a3b97113949516f9d5dec6f1f93cb7a0e"
+        },
+        "beforeMutation": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/1440-en-detach-last-repository-retain-history-form.png",
+          "sha256": "35a574533889c35aa056caa3771b882479ee6ce9f5b597e0ab04abed0891d0a8"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    },
+    {
+      "case": "viewer-standalone-detail",
+      "evidencePhase": "final",
+      "viewport": {
+        "width": 320,
+        "height": 844,
+        "language": "zh",
+        "touch": true
+      },
+      "passed": true,
+      "requests": {
+        "total": 35,
+        "api": 9,
+        "syntheticMutations": 0,
+        "candidateRepositoryGET": 0,
+        "meGET": 0,
+        "externalRequestsAborted": 1
+      },
+      "outcome": {
+        "workspaceRole": "viewer",
+        "financialDTOCanCreateExpense": true,
+        "rolePermissions": {
+          "manageProjects": false,
+          "manageCategories": false,
+          "writeExpenses": false,
+          "manageMembers": false,
+          "manageAdmins": false
+        },
+        "noWriteControls": true,
+        "actualProjectFormCount": 0
+      },
+      "geometry": {
+        "viewportAndMediaStableBeforeAfterScreenshot": true,
+        "scrollWidth": 320,
+        "horizontalOverflowElements": 0,
+        "visibleControlCount": 0,
+        "controlsOutsideMain": 0,
+        "beforeMutationCaptureStable": null,
+        "beforeMutationControlsOutsideMain": null,
+        "beforeMutationHorizontalOverflowElements": null,
+        "lowerScreenshotsStable": true
+      },
+      "screenshots": {
+        "result": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/320-zh-viewer-standalone-detail.png",
+          "sha256": "090b26131ffd8a3ed11cfef63cc655c66f48a57635401c425795d100c8b0f6aa"
+        },
+        "resultLower": {
+          "path": "/workspace/qa-private/blank-projects-web-2026-10-07/final/320-zh-viewer-standalone-detail-lower.png",
+          "sha256": "090b26131ffd8a3ed11cfef63cc655c66f48a57635401c425795d100c8b0f6aa"
+        }
+      },
+      "uncaughtPageErrors": [],
+      "unexpectedRequests": []
+    }
+  ],
+  "visualReview": {
+    "agentReviewed": [
+      "390-zh-blank-expense-explicit-category-form-lower.png",
+      "320-zh-viewer-standalone-detail-lower.png",
+      "390-zh-provider-failure-close-blank-create-form-lower.png"
+    ],
+    "rootReportedReviewed": [
+      "390-zh-blank-expense-explicit-category-form-lower.png",
+      "320-zh-viewer-standalone-detail-lower.png",
+      "1440-en-detach-last-repository-retain-history-form.png"
+    ],
+    "finding": "Representative form and readonly detail content fits the viewport with legible wrapping and aligned date input; no horizontal overflow or controls outside the main panel."
+  },
+  "limitations": [
+    "Synthetic browser UI evidence; not two real-account, native Worker/D1, provider, authentication or payment acceptance.",
+    "Expense idempotency header and one-write dispatch verified; idempotent replay and backend exactly-once behavior not exercised.",
+    "Attachment uses a deterministic authorized actor-candidate fixture; no GitHub provider grant validation.",
+    "Viewer write controls and role intersection checked; server-side authorization rejection is outside this browser run.",
+    "API Docs source SHA recorded; optional Copy Page workflow was not executed in this matrix.",
+    "Chromium only; Safari/WebKit not exercised."
+  ]
+}

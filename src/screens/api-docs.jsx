@@ -9,13 +9,13 @@ const ENDPOINTS = [
   ["GET", "/api/v1/me", "profile:read", "Account profile"],
   ["GET", "/api/v1/repositories", "projects:read", "Authorized repositories"],
   ["GET", "/api/v1/projects", "projects:read", "Your projects"],
-  ["POST", "/api/v1/projects", "projects:write", "Bind one or more authorized repositories"],
+  ["POST", "/api/v1/projects", "projects:write", "Create a project with optional GitHub links"],
   ["GET", "/api/v1/projects/{id}", "projects:read", "Project and description"],
   [
     "PATCH",
     "/api/v1/projects/{id}",
     "projects:write",
-    "Update name, repository bindings or description with If-Match",
+    "Update project details or GitHub links with If-Match",
   ],
   ["GET", "/api/v1/categories", "categories:read", "Account categories"],
   ["POST", "/api/v1/categories", "categories:write", "Create category"],
@@ -76,6 +76,15 @@ function DocsCode({ title, children }) {
   );
 }
 
+const PROJECT_CREATION =
+  'Create a standalone project with POST /api/v1/projects and a nonempty name, for example {"name":"Website launch"}. description is optional. Omit githubRepoIds or send []; omit githubOrganizationId or use null. Standalone projects work without installing the GitHub App on a repository. Authenticate normally.';
+const PROJECT_BINDINGS =
+  "To link GitHub, send githubRepoIds with 1–30 distinct numeric IDs authorized to the acting user. A non-null githubOrganizationId requires at least one repository and current access to that organization. GitHub organization access does not grant ledger membership.";
+const PROJECT_UPDATES =
+  "PATCH /api/v1/projects/{id} requires If-Match. Omit githubRepoIds to keep the current links; send [] to remove every repository and automatically clear the organization. A project with no repositories must have a nonempty name; include name in the same PATCH if needed. Later links and removals preserve the project ID and expense history.";
+const PROJECT_STATE =
+  'Standalone responses have githubRepoId: null, githubRepoIds: [], repositories: [] and githubAccess: "not_linked". Active standalone projects can record expenses under the usual role, scope and plan limits.';
+
 const MAX_ASSISTANCE =
   "For Max accounts, regular expense creation and editing automatically receive Jev assistance while the model is available and within the monthly allowance. No separate suggestion request or suggestions:use scope is needed; expenses:write and the normal target restrictions apply.";
 const CATEGORY_BEHAVIOR =
@@ -85,7 +94,7 @@ const ASSISTANCE_RESPONSE =
 const EXACT_TOTALS =
   "Single expense amountMinor values are safe integers. Aggregate amountMinor totals are numbers up to 9007199254740991 and exact decimal integer strings above that boundary; parse large totals with BigInt or decimal arithmetic.";
 
-function markdown(base, example, createExample) {
+function markdown(base, example, createExample, projectExample) {
   return [
     "# Pullwise ledger REST API",
     "",
@@ -95,7 +104,19 @@ function markdown(base, example, createExample) {
     "",
     "Keys are bound to one workspace and intersect the issuing member's current role. Team membership revision changes invalidate the key. X-Pullwise-Workspace cannot override that binding. Cookie requests may select a ledger with X-Pullwise-Workspace; native CSV links use workspaceId. Conflicting selectors are rejected. Members share the ledger Owner's plan and monthly model allowance.",
     "",
-    "Projects accept githubRepoIds (1–30 distinct authorized numeric IDs), optional name, description and githubOrganizationId. Associations are explicit; changing them preserves historical expenses and stable project IDs. GitHub organization access never grants financial membership.",
+    "## Projects",
+    "",
+    PROJECT_CREATION,
+    "",
+    PROJECT_BINDINGS,
+    "",
+    PROJECT_UPDATES,
+    "",
+    PROJECT_STATE,
+    "",
+    "```sh",
+    projectExample,
+    "```",
     "",
     "## Base URL",
     "",
@@ -146,9 +167,16 @@ export function ApiDocsScreen({ go, auth }) {
     "  -H 'Idempotency-Key: hosting-2026-09-unique'",
     `  --data '{"target":{"kind":"shared"},"occurredOn":"2026-09-27","amount":"12.00","currency":"USD","purpose":"September hosting"}'`,
   ].join(" \\\n");
+  const projectExample = [
+    `curl -X POST '${apiUrl("/api/v1/projects", base)}'`,
+    '  -H "Authorization: Bearer $PULLWISE_API_KEY"',
+    "  -H 'Content-Type: application/json'",
+    `  --data '{"name":"Website launch"}'`,
+  ].join(" \\\n");
   const nav = [
     ["overview", "Overview"],
     ["authentication", "Authentication"],
+    ["projects", "Projects"],
     ["endpoints", "Endpoints"],
     ["filters", "Filters and writes"],
     ["max-assistance", "Automatic Max assistance"],
@@ -156,7 +184,7 @@ export function ApiDocsScreen({ go, auth }) {
   ];
   async function copyPage() {
     try {
-      await navigator.clipboard.writeText(markdown(base, example, createExample));
+      await navigator.clipboard.writeText(markdown(base, example, createExample, projectExample));
       setCopied(true);
     } catch {
       setCopied(false);
@@ -218,12 +246,36 @@ export function ApiDocsScreen({ go, auth }) {
               "每个密钥绑定一个账本，不能超出发行成员的当前角色权限。成员权限版本变化后，团队密钥会失效。Cookie 客户端通过 X-Pullwise-Workspace 选择账本，CSV 链接使用 workspaceId；冲突的选择器会被拒绝。所有成员共用账本 Owner 的套餐和模型额度。"
             )}
           </p>
+          <h2 id="projects" className="docs-h2">
+            {T("Projects", "项目")}
+          </h2>
           <p>
             {T(
-              "Create projects with githubRepoIds containing 1–30 distinct authorized numeric IDs, plus optional name, description and githubOrganizationId. Repository changes preserve the project ID and historical expenses. Organization access does not grant ledger membership.",
-              "创建项目时使用 githubRepoIds，包含 1–30 个不重复的已授权数字仓库 ID，也可填写 name、description 和 githubOrganizationId。更改仓库关联会保留项目 ID 和历史支出。组织访问权不会自动授予账本成员资格。"
+              PROJECT_CREATION,
+              '通过 POST /api/v1/projects 和非空 name 创建独立项目，例如 {"name":"Website launch"}。description 可选。省略 githubRepoIds 或传入 []，省略 githubOrganizationId 或传入 null。独立项目无需为仓库安装 GitHub App，仍需正常认证。'
             )}
           </p>
+          <p>
+            {T(
+              PROJECT_BINDINGS,
+              "关联 GitHub 时，githubRepoIds 使用 1–30 个不重复且当前操作用户已授权的数字仓库 ID。非空 githubOrganizationId 必须同时有关联仓库，并验证当前组织访问权。GitHub 组织访问权不会自动授予账本成员资格。"
+            )}
+          </p>
+          <p>
+            {T(
+              PROJECT_UPDATES,
+              "PATCH /api/v1/projects/{id} 需要 If-Match。省略 githubRepoIds 保留当前关联，传入 [] 解除所有仓库关联并自动清除组织。没有关联仓库的项目必须有非空 name，可在同一次 PATCH 中填写。后续关联或解除关联会保留项目 ID 和历史支出。"
+            )}
+          </p>
+          <p>
+            {T(
+              PROJECT_STATE,
+              '独立项目响应为 githubRepoId: null、githubRepoIds: []、repositories: [] 和 githubAccess: "not_linked"。启用的独立项目可按原有角色、权限范围及套餐限额记录支出。'
+            )}
+          </p>
+          <DocsCode title={T("Create a standalone project", "创建独立项目")}>
+            {projectExample}
+          </DocsCode>
           <h2 id="endpoints" className="docs-h2">
             {T("Endpoints", "接口")}
           </h2>

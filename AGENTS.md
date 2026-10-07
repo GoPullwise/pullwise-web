@@ -1,5 +1,17 @@
 # Pullwise Web
 
+## Standalone projects follow-up (2026-10-07)
+
+Project creation defaults to a name and optional description, with GitHub
+repository/Organization association optional. Do not enumerate repositories
+until explicit association intent or require GitHub candidates for a blank
+project. Standalone projects use real null GitHub anchors, empty repository
+arrays and `githubAccess=not_linked`; they keep ordinary ledger expense/report,
+role/key/CAS and plan behavior. Preserve linked-project GitHub access checks and
+historical data, responsive layout, identity/workspace draft isolation and
+explicit association changes. Push all related changes to main and publish
+preview after local Server/schema/Web verification; production D1 stays paused.
+
 ## Layout follow-up authority (2026-10-07)
 
 The user requests a more spacious Projects console and analogous fixes across

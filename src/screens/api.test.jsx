@@ -140,7 +140,9 @@ describe("API screens", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/CATEGORY_REQUIRED/)).toBeInTheDocument();
     expect(screen.getByText(/categorySource/)).toBeInTheDocument();
-    expect(screen.getByText(/curl.*POST/)).toHaveTextContent("Idempotency-Key");
+    expect(screen.getByText(/curl.*POST.*\/api\/v1\/expenses/)).toHaveTextContent(
+      "Idempotency-Key"
+    );
   });
 
   it("exposes API key management docs navigation as real screen links", async () => {

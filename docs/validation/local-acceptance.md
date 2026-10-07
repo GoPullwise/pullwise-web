@@ -2,6 +2,43 @@
 
 Updated 2026-10-07. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Blank projects: local acceptance (2026-10-07)
+
+Projects now default to a required project name and optional description. GitHub
+repository/Organization association is an optional disclosure; its candidate
+request starts only after explicit association intent. Name-only creation,
+standalone detail/settings, rename and expense entry do not require GitHub App
+access. A repository-loading failure can be closed to continue creating a blank
+project. Later association and explicit removal of all repositories preserve
+project IDs and financial history. The latter clears Organization association.
+Role permissions still intersect project expense eligibility.
+
+API Docs and their copied Markdown document name-only POST, nullable GitHub
+fields, `not_linked`, explicit `githubRepoIds: []` detachment and `If-Match`.
+New UI and contract messages have Chinese, Japanese, Korean, French and Spanish
+translations. No additional backward-compatibility workflow was introduced.
+
+Final checks pass **476 tests in 36 files**, ESLint, production build and offline
+Worker configuration checks. Focused Ledger/Projects/App checks pass 119 tests.
+The first full run exposed an API Docs test selecting both valid POST examples;
+the expense example now has an endpoint-specific selector and the full suite
+passes. No product behavior was changed for that test correction.
+
+[Seven built Chromium cases](blank-projects-web-local-2026-10-07.json) pass at
+1440, 390 and 320 pixels: blank creation, optional-repository failure recovery,
+explicit-category expense entry/idempotency, rename, later attachment, last
+repository detachment, and Viewer controls. Accepted contexts attempted 269
+requests/108 mocked API calls/6 synthetic writes; all nine preserved contexts
+including one selector failure and one nondefault fixture run attempted
+345/132/7. Each context stayed below 120 total, 20 API and one synthetic-write
+attempt. No request was forwarded; real credentials, D1, providers and payments
+were not used. Screenshots and geometry checks confirm no horizontal overflow
+or control overlap, and the date input matches neighboring widths.
+
+Local native Server business/schema evidence is separate in the companion
+record. This section precedes explicit preview publication and the separately
+consented DFerryman REST/key-revocation acceptance; it does not claim either.
+
 ## Named member invitation UX (2026-10-07)
 
 The invitation review retains named GitHub recipients: the username is resolved
