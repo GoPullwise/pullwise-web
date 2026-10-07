@@ -43,9 +43,14 @@ requests. Representative screenshots were visually reviewed. Mobile Billing's
 summary height decreased from 260px to 42.5px. These are local layout checks,
 not new authenticated preview or payment acceptance.
 
-Preview publication evidence will be recorded separately after the Web-only
-asset/Worker upload and four finite static GETs; Server and D1 are outside
-this layout change.
+Web main `8ba2327844a4f7faa6404c6782325b0a74e45a6b` was published to
+preview as `4a78411e-5ea3-431d-947f-f85abe35e0fb` at 100% traffic.
+Management read-back retained preview bindings, SPA handling, Worker-first HTML
+and security headers. Exactly four static GETs passed: HTML with noindex and
+three resources matching local byte counts/SHA-256. JavaScript, sessions, API
+requests and D1 operations were excluded. See the
+[publication record](projects-spacing-preview-release-2026-10-07.json).
+Server and production configuration were not changed by this layout release.
 
 ## Earlier real-account acceptance (2026-10-06)
 

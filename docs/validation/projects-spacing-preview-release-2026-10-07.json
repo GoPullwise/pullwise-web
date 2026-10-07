@@ -1,0 +1,146 @@
+{
+  "date": "2026-10-07",
+  "status": "Published preview and verified",
+  "source": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "runtimeCommit": "8ba2327844a4f7faa6404c6782325b0a74e45a6b",
+    "tree": "0479864f2d260eda04314e57f7e14d726602e1f0",
+    "localChecks": {
+      "testFiles": 36,
+      "tests": 434,
+      "lint": true,
+      "build": true,
+      "workerConfig": true,
+      "finalCssFormat": true,
+      "localBuiltBrowserStates": 41,
+      "manualScreenshotReviews": 6
+    }
+  },
+  "target": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "account": "84e421f26c708c0cf437e287eed11fa1"
+  },
+  "publication": {
+    "previousVersion": "ea62c7a0-37e4-4693-b78a-bbb3c96c53b6",
+    "version": "4a78411e-5ea3-431d-947f-f85abe35e0fb",
+    "deployment": "f2383ff2-9222-4021-a26e-7dd0fb0b2daf",
+    "trafficPercentage": 100,
+    "createdAt": "2026-10-07T05:38:48.265758Z",
+    "assetManifestCount": 42,
+    "assetBytes": 840698,
+    "uploadedAssetFiles": 6,
+    "uploadBuckets": 3,
+    "workerBytes": 19681,
+    "workerSha256": "f9fa644e68f10113bfc960538c45707ea3d3d240f8ba0025b1175fc99e17a089",
+    "manifestSha256": "7be8a93afe78293fd828de4e45e084effe326dc56cbf3ba0f4c60b19e145b8b2"
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "compatibilityFlags": [],
+    "logpush": false,
+    "uploadedObservabilityEnabled": false,
+    "assetsReadback": {
+      "notFoundHandling": "single-page-application",
+      "runWorkerFirst": [
+        "/*",
+        "!/assets/*"
+      ],
+      "securityHeadersMatchLocal": true
+    },
+    "routesWereNotMutated": true
+  },
+  "staticVerification": {
+    "passed": true,
+    "sourceSha": "8ba2327844a4f7faa6404c6782325b0a74e45a6b",
+    "version": "4a78411e-5ea3-431d-947f-f85abe35e0fb",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4917,
+        "contentType": "text/html",
+        "noindex": "noindex, nofollow"
+      },
+      {
+        "path": "/assets/ledger-U3ODljBb.css",
+        "status": 200,
+        "bytes": 10014,
+        "contentType": "text/css",
+        "sha256": "e9d73e96631f4c9851a7c63f2df25a65601cf9249e597f8ebd860a76fb0330d3"
+      },
+      {
+        "path": "/assets/index-pahGKKM9.js",
+        "status": 200,
+        "bytes": 42047,
+        "contentType": "text/javascript",
+        "sha256": "45c8a90714db90b025701d5ebb4a4ca84a817fe8cd6a9e3dd23378be715df322"
+      },
+      {
+        "path": "/assets/ledger-D512eIz8.js",
+        "status": 200,
+        "bytes": 53251,
+        "contentType": "text/javascript",
+        "sha256": "3c256c9ee701cdc495836e605f7b0046f4bd7c13f7c8eb9e1ff889abda652cb3"
+      }
+    ],
+    "forwardedRequests": 4,
+    "blockedRequests": 2,
+    "apiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "javaScriptEnabled": false,
+    "cookiesProvided": false,
+    "credentialsProvided": false,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "screenshots": false,
+    "traces": false,
+    "scope": "Actual Chromium exact static paths only; no Server service invocation",
+    "browserClosed": true,
+    "completedAt": "2026-10-07T05:39:36.924Z"
+  },
+  "scope": {
+    "webOnly": true,
+    "serverDeployment": false,
+    "productionMutation": false,
+    "d1Commands": 0,
+    "apiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "businessMutations": 0,
+    "realSessionsUsed": false,
+    "paymentsMade": false,
+    "noRetries": true
+  },
+  "limitations": [
+    "Local 41-state UI acceptance uses intercepted synthetic fixtures; it is separate from the actual four static GET publication checks.",
+    "No new authenticated preview, OAuth or payment acceptance was attempted in this layout release.",
+    "D1 zero effects follow from local interception and Web static routing; no extra D1 accounting query was made."
+  ],
+  "privateUploadTokenRemovedAfterPublication": true
+}
