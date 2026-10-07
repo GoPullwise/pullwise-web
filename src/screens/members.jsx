@@ -396,7 +396,7 @@ function MembersContent({
   };
 
   return (
-    <div className="app product-workspace ledger-screen fade-in">
+    <div className="app product-workspace ledger-screen members-screen fade-in">
       <Topbar
         go={go}
         breadcrumbs={[{ label: T("Members", "成员") }]}
@@ -461,14 +461,17 @@ function MembersContent({
                 </div>
               )}
               {preview && (
-                <>
+                <div className="panel-body">
                   {preview.workspace?.name && <h3>{preview.workspace.name}</h3>}
                   <p>
                     {T("GitHub account", "GitHub 账户")}: {preview.recipient.login}
                   </p>
                   <p>
-                    {T("Role", "角色")}: {roleName(
-                      preview.status === "accepted" ? preview.workspace.role || preview.role : preview.role
+                    {T("Role", "角色")}:{" "}
+                    {roleName(
+                      preview.status === "accepted"
+                        ? preview.workspace.role || preview.role
+                        : preview.role
                     )}
                   </p>
                   {preview.status === "accepted" ? (
@@ -489,28 +492,30 @@ function MembersContent({
                       "接受邀请后，你将能按所授角色访问此账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
                     )}
                   </p>
-                  {preview.status === "accepted" ? (
-                    <button
-                      className="btn primary"
-                      disabled={busy}
-                      onClick={() => {
-                        if (!current(lifecycle.current)) return;
-                        callbacks.current.clearInvitation();
-                        callbacks.current.onMembershipChanged?.(preview.workspace.id);
-                      }}
-                    >
-                      {T("Open shared ledger", "打开共享账本")}
-                    </button>
-                  ) : (
-                    <button
-                      className="btn primary"
-                      onClick={accept}
-                      disabled={busy || acceptAttempted}
-                    >
-                      {T("Accept invitation", "接受邀请")}
-                    </button>
-                  )}
-                </>
+                  <div className="panel-actions">
+                    {preview.status === "accepted" ? (
+                      <button
+                        className="btn primary"
+                        disabled={busy}
+                        onClick={() => {
+                          if (!current(lifecycle.current)) return;
+                          callbacks.current.clearInvitation();
+                          callbacks.current.onMembershipChanged?.(preview.workspace.id);
+                        }}
+                      >
+                        {T("Open shared ledger", "打开共享账本")}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn primary"
+                        onClick={accept}
+                        disabled={busy || acceptAttempted}
+                      >
+                        {T("Accept invitation", "接受邀请")}
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
             </section>
           )}
@@ -672,78 +677,94 @@ function MembersContent({
                 <div className="panel-h">
                   <h2>{T("Invite member", "邀请成员")}</h2>
                 </div>
-                <p className="notice">
-                  {T(
-                    "Inviting shares all existing and future ledger data, including projects, categories, shared expenses and reports.",
-                    "邀请成员将按所授角色共享此所有者账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
+                <div className="panel-body">
+                  <p className="notice">
+                    {T(
+                      "Inviting shares all existing and future ledger data, including projects, categories, shared expenses and reports.",
+                      "邀请成员将按所授角色共享此所有者账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
+                    )}
+                  </p>
+                  <form className="ledger-form" onSubmit={createInvite}>
+                    <div className="ledger-field">
+                      <label htmlFor="invite-github-login">
+                        {T("GitHub username", "GitHub 用户名")}
+                      </label>
+                      <input
+                        id="invite-github-login"
+                        className="auth-input"
+                        value={githubLogin}
+                        required
+                        maxLength={100}
+                        disabled={disabled}
+                        autoComplete="off"
+                        onChange={(event) => setGithubLogin(event.target.value)}
+                      />
+                    </div>
+                    <div className="ledger-field">
+                      <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
+                      <select
+                        id="invite-role"
+                        className="auth-input"
+                        value={inviteRole}
+                        disabled={disabled}
+                        onChange={(event) => setInviteRole(event.target.value)}
+                      >
+                        {grantableRoles.map((role) => (
+                          <option value={role} key={role}>
+                            {roleName(role)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="panel-actions">
+                      <button className="btn primary" type="submit" disabled={disabled}>
+                        {T("Create invitation", "创建邀请")}
+                      </button>
+                    </div>
+                  </form>
+                  {createdInvite && (
+                    <div className="notice" role="status">
+                      <div className="panel-body">
+                        <p>
+                          {T("GitHub account", "GitHub 账户")}: {createdInvite.recipient.login} ·{" "}
+                          {roleName(createdInvite.role)}
+                        </p>
+                        <p>
+                          {T("Expires", "有效期至")}: {createdInvite.expiresAt}
+                        </p>
+                        <p>
+                          {T(
+                            "This link is shown only now. Copy it before leaving this page.",
+                            "此链接只在本次创建后显示，请在离开页面前复制。"
+                          )}
+                        </p>
+                        <div className="ledger-field">
+                          <label htmlFor="new-invitation-link">
+                            {T("New invitation link", "新邀请链接")}
+                          </label>
+                          <input
+                            id="new-invitation-link"
+                            value={createdInvite.link}
+                            readOnly
+                            onFocus={(event) => event.target.select()}
+                          />
+                        </div>
+                        <div className="panel-actions">
+                          <button
+                            className="btn"
+                            onClick={copyInvite}
+                            disabled={copied || copying}
+                            aria-busy={copying}
+                          >
+                            {copied
+                              ? T("Copied", "已复制")
+                              : T("Copy invitation link", "复制邀请链接")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
-                </p>
-                <form className="ledger-form" onSubmit={createInvite}>
-                  <label htmlFor="invite-github-login">
-                    {T("GitHub username", "GitHub 用户名")}
-                  </label>
-                  <input
-                    id="invite-github-login"
-                    className="auth-input"
-                    value={githubLogin}
-                    required
-                    maxLength={100}
-                    disabled={disabled}
-                    autoComplete="off"
-                    onChange={(event) => setGithubLogin(event.target.value)}
-                  />
-                  <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
-                  <select
-                    id="invite-role"
-                    className="auth-input"
-                    value={inviteRole}
-                    disabled={disabled}
-                    onChange={(event) => setInviteRole(event.target.value)}
-                  >
-                    {grantableRoles.map((role) => (
-                      <option value={role} key={role}>
-                        {roleName(role)}
-                      </option>
-                    ))}
-                  </select>
-                  <button className="btn primary" type="submit" disabled={disabled}>
-                    {T("Create invitation", "创建邀请")}
-                  </button>
-                </form>
-                {createdInvite && (
-                  <div className="notice" role="status">
-                    <p>
-                      {T("GitHub account", "GitHub 账户")}: {createdInvite.recipient.login} ·{" "}
-                      {roleName(createdInvite.role)}
-                    </p>
-                    <p>
-                      {T("Expires", "有效期至")}: {createdInvite.expiresAt}
-                    </p>
-                    <p>
-                      {T(
-                        "This link is shown only now. Copy it before leaving this page.",
-                        "此链接只在本次创建后显示，请在离开页面前复制。"
-                      )}
-                    </p>
-                    <label htmlFor="new-invitation-link">
-                      {T("New invitation link", "新邀请链接")}
-                    </label>
-                    <input
-                      id="new-invitation-link"
-                      value={createdInvite.link}
-                      readOnly
-                      onFocus={(event) => event.target.select()}
-                    />
-                    <button
-                      className="btn"
-                      onClick={copyInvite}
-                      disabled={copied || copying}
-                      aria-busy={copying}
-                    >
-                      {copied ? T("Copied", "已复制") : T("Copy invitation link", "复制邀请链接")}
-                    </button>
-                  </div>
-                )}
+                </div>
               </section>
               <section
                 className="panel"

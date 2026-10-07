@@ -555,27 +555,6 @@ body:has(.with-side) .lang-menu {
   .modal-foot .btn {
     flex: 1 1 100%;
   }
-
-  .key-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .set-shell {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .set-side {
-    flex-direction: row;
-    overflow-x: auto;
-    flex: 0 0 auto;
-  }
-
-  .set-side-i {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
 }
 .lp-top > div:last-child {
   min-width: 0;

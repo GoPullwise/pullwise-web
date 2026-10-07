@@ -1,6 +1,53 @@
 # Current local acceptance
 
-Updated 2026-10-06. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-10-07. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Projects console spacing (2026-10-07)
+
+The Projects search icon/input share one control border, with 16px before a
+separate project-list divider. Creation panels use the shared 16px body stack;
+organization controls and forms align within the same 800px maximum width.
+Submit and secondary controls use wrapping action groups. Form help no longer
+adds a second bottom margin, repository legends have inset labels, and touch
+checkboxes keep their native size inside at least 44px clickable rows.
+Medium desktop widths retain more space for project records by scaling the
+secondary column from 260 to 340px. Desktop split columns have a 48px gutter
+and a 32px inset after the rail divider. Ledger sections use 32px vertical
+padding, reduced to 24px on small screens; the existing breakpoints remain.
+
+Fields now fit columns to their actual available width. Narrow project records,
+API-key rows, subscription records and charts rearrange their contents instead
+of squeezing adjacent columns. Settings navigation wraps, invitation fields
+keep their label/control groups and shared body spacing, and long content can
+wrap without hiding financial amounts or dates. The sticky console header is
+opaque so scrolling content cannot show through it.
+Mobile subscription summaries use their content height instead of carrying the
+desktop 260px flex basis into the vertical layout. Chart amount wrapping targets
+the actual amount element; key rows have one container-based layout owner.
+
+Full checks passed 36 files / 434 tests, lint/build and Worker configuration.
+The final build incorporates the search-spacing and automatic-layout follow-ups. The
+[local browser record](projects-spacing-local-2026-10-07.json) distinguishes
+baseline, intermediate geometry and final reliable screenshot checks. Actual
+built Chromium uses intercepted synthetic data only, with no real sessions,
+remote API/provider calls or D1 writes. The intermediate CDP full-page paint
+anomaly is preserved and is not a final visual pass. Final representative
+desktop/mobile views use stable viewport, shell and layout assertions.
+
+The final artifact passed 41 built-browser states: 18 Projects/search/overview,
+four key ledger forms, six related ledger modules, eight account modules,
+three 320px layouts and two long-amount report layouts. Chinese and English
+checks cover 1440, 1280, 900, 390 and 320px as appropriate; every state checks
+document/control bounds, stable capture layout and zero page errors/unexpected
+requests. Representative screenshots were visually reviewed. Mobile Billing's
+summary height decreased from 260px to 42.5px. These are local layout checks,
+not new authenticated preview or payment acceptance.
+
+Preview publication evidence will be recorded separately after the Web-only
+asset/Worker upload and four finite static GETs; Server and D1 are outside
+this layout change.
+
+## Earlier real-account acceptance (2026-10-06)
 
 The [first two-real-user run](../../../pullwise-server/docs/validation/projects-two-real-users-baseline-2026-10-06.json)
 passed Projects, reports/CSV, invitation acceptance and Viewer checks, then

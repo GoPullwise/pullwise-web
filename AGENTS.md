@@ -1,5 +1,16 @@
 # Pullwise Web
 
+## Layout follow-up authority (2026-10-07)
+
+The user requests a more spacious Projects console and analogous fixes across
+the other console modules, followed by main push and Cloudflare preview
+publication. Keep controls and content from overlapping. When available module
+width shrinks, forms, records, navigation and charts must reflow, wrap or use
+appropriate text ellipsis rather than squeeze into unreadable columns. Preserve
+complete financial amounts and dates. This frontend scope does not require
+Server publication or D1 writes; browser checks use local intercepted fixtures
+and preview publication uses the finite static-only check below.
+
 ## Latest follow-up authority (2026-10-06)
 
 The user requests full Projects and two-real-account (DFerryman/SanChai20)
@@ -193,8 +204,11 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   Account overview leads with totals before its filters. Project descriptions
   live in the Project settings tab; creation descriptions remain optional
   native disclosures. `base.css` owns `.view-tabs` and the hidden-panel rule.
-- Shared panel headings use 16px content gaps. Ledger forms use 16px field
-  gaps, desktop split columns use 32px gutters, and section starts use 24px.
+- Shared panel headings and panel bodies use 16px content gaps. Ledger forms
+  use 16px field gaps and fit their columns to the available module width;
+  desktop split columns use 48px gutters with a 32px secondary-panel inset.
+  Ledger section starts use 32px, reducing to 24px on small screens. Projects
+  search has 16px before the separate project-list divider.
   Keep the Projects list heading at the same height when its creation rail
   opens; expense entry adds its section gap on the split container. Category
   creation uses `.ledger-form` so the field and primary button share an edge.

@@ -304,9 +304,7 @@ select {
   justify-content: space-between;
   padding: 0 24px;
   border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--bg);
   position: sticky;
   top: 0;
   z-index: var(--z-topbar);
@@ -833,6 +831,11 @@ a.crumb-button:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+.panel-body {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
 }
 details.panel > summary.panel-h {
   cursor: pointer;

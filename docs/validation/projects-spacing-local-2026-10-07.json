@@ -1,0 +1,823 @@
+{
+  "date": "2026-10-07",
+  "completedAt": "2026-10-07T05:33:23.628886+00:00",
+  "status": "final spacing acceptance",
+  "scope": "Finite local built Chromium UI acceptance using entirely intercepted synthetic GET fixtures. Static files served from dist; external requests blocked; service workers blocked; no route forwarding, real sessions/accounts, remote API/provider/payment calls or backend mutations.",
+  "artifactDirectory": "/workspace/qa-private/projects-spacing-2026-10-07",
+  "browser": "Chromium 151.0.7922.173, headless, deviceScaleFactor 1, light theme, en/zh",
+  "harness": {
+    "path": "/workspace/qa-private/projects-spacing-2026-10-07/capture.mjs",
+    "sha256": "4a0e3789001c3d46a67fed288dc45fc0a328ae43c889450777fef2aab0fe30f3",
+    "requestLimitPerContext": 120
+  },
+  "sourceSha256": {
+    "styles/base.css": "d0c8891da406b82079689b4fd7966318ae33e31642a5b66e6f5be3843f6798b0",
+    "styles/screens.css": "b566b2f8d6172c5b63597fbc29c60a77fea0c7437d42f4352daf1269d4a45f6d",
+    "src/screens/ledger.css": "a0263bc875607e934b27812e323ee769f61a209b66cd187c1c868e474ec164cf",
+    "src/screens/ledger.jsx": "a62d76448cd630afd9862779c00e003e9c948186209cb6227b5034c2fd9bcdc9",
+    "src/screens/members.jsx": "d6aba908a9362687b99eb1da8f7f25bd995a1debb7a59112bec0b05e01d54c3e"
+  },
+  "phases": [
+    {
+      "phase": "baseline",
+      "states": 32,
+      "role": "Comparison only",
+      "evidence": "baseline-consolidated.json",
+      "artifacts": [
+        {
+          "path": "assets/index-5eu4-MCJ.css",
+          "bytes": 72195,
+          "sha256": "ad31be41b1f24d387397b51034b2ec689714484ba8d3af02797ca23e13e9daa6"
+        },
+        {
+          "path": "assets/index-HtTttSzC.js",
+          "bytes": 42047,
+          "sha256": "5b4892c31b27e460575f9d41cb5882d8ee57e17f7964ccd3c705370b824b3ca5"
+        },
+        {
+          "path": "assets/ledger-BZBu9qAp.css",
+          "bytes": 8831,
+          "sha256": "db25eb464b29a8a3f4eb9827aea14448831fc09040fcbd90a18e01985a8541d9"
+        },
+        {
+          "path": "index.html",
+          "bytes": 4916,
+          "sha256": "700c44fe3aa8da57e7f135deffbc6cb1f7a9fdf9a7d163434dff0da12ceeb1c6"
+        }
+      ]
+    },
+    {
+      "phase": "additionalBaseline",
+      "states": 12,
+      "evidence": [
+        "baseline-similar-evidence.json",
+        "baseline-accounts-evidence.json"
+      ]
+    },
+    {
+      "phase": "intermediate",
+      "states": 32,
+      "geometryPassed": true,
+      "visualPassed": false,
+      "acceptedForFinal": false,
+      "evidence": "intermediate-consolidated.json",
+      "artifacts": [
+        {
+          "path": "assets/index-BYp2t3ef.js",
+          "bytes": 42047,
+          "sha256": "acf57af874c26894772ba0c41953579e7d474fd2c4c0157c2611dc1bb53e7488"
+        },
+        {
+          "path": "assets/index-CBrT6Dm5.css",
+          "bytes": 72241,
+          "sha256": "53da8dcd502c5c8f2c82a967b38acaef9740f2bdb76500947b36edd1d9432e18"
+        },
+        {
+          "path": "assets/ledger-DMANNjxm.css",
+          "bytes": 9518,
+          "sha256": "a36a53810b73b603b117f1a4e62f17f148c9b22053a4d06ac1bb0ed3f342c264"
+        },
+        {
+          "path": "index.html",
+          "bytes": 4916,
+          "sha256": "393c0e7b5862c9e5c45a90764a2c547fe108e56561cec15751e91fbdbea0c538"
+        }
+      ],
+      "note": "CDP fullclip painting anomaly retained. 1440-en-creation pixels did not match shell/grid bounds; this phase was rejected for final visual acceptance."
+    },
+    {
+      "phase": "supersededPreviousFinal",
+      "states": 20,
+      "geometryPassed": true,
+      "visualPassed": true,
+      "acceptedForCurrentRequest": false,
+      "evidence": "superseded-previous-final-report.json",
+      "artifacts": [
+        {
+          "path": "assets/index-CBrT6Dm5.css",
+          "bytes": 72241,
+          "sha256": "53da8dcd502c5c8f2c82a967b38acaef9740f2bdb76500947b36edd1d9432e18"
+        },
+        {
+          "path": "assets/index-FGMFrEi7.js",
+          "bytes": 42047,
+          "sha256": "53a3d259984f39b6e0eeaf8c39e15671c6878cb9147d82950bd21dbd23abea46"
+        },
+        {
+          "path": "assets/ledger-Bg5eiPh6.js",
+          "bytes": 11492,
+          "sha256": "459cb36f8015f6974aa0fd5a3dc2216bbaa79baa2b8526cf114ae845622813e4"
+        },
+        {
+          "path": "assets/ledger-Bp8_jHZk.js",
+          "bytes": 53251,
+          "sha256": "3c256c9ee701cdc495836e605f7b0046f4bd7c13f7c8eb9e1ff889abda652cb3"
+        },
+        {
+          "path": "assets/ledger-CSuEUHzm.css",
+          "bytes": 9639,
+          "sha256": "ce5b7cf6f923fd81b90f617729959b0a46d323cacc16eac4b8c48d9f31f810be"
+        },
+        {
+          "path": "assets/ledger-longform-BixB5j7f.js",
+          "bytes": 46464,
+          "sha256": "dfe9bfbfdea27f37c776f932e8a4d70757d1086a76c639af187590128f6fa5e5"
+        },
+        {
+          "path": "assets/ledger-q3VSO9UY.js",
+          "bytes": 2925,
+          "sha256": "da3104663315a2e49b29d59775309e466511d70b09d0acfd6640d9114af74032"
+        },
+        {
+          "path": "assets/ledger-scopes-B4otesy_.js",
+          "bytes": 3975,
+          "sha256": "a3afd12cc23a107eddb1efa9e97135d76ccff3b8222aae644bc8b9c39e2a155a"
+        },
+        {
+          "path": "assets/ledger-screen-D6EL-FPv.js",
+          "bytes": 35333,
+          "sha256": "c4d1eb943c04c2a4b71125de462e3048be74e41e7f840e838979659c1e9a4b1c"
+        },
+        {
+          "path": "assets/ledger-ui-C9fwhtfe.js",
+          "bytes": 18874,
+          "sha256": "4a2495a6f0c98e5b2ad9485bf85ffe01f9e61821b7ece0f1c836818dc82ce389"
+        },
+        {
+          "path": "index.html",
+          "bytes": 4916,
+          "sha256": "7229bbf61d665a7643c9a56f583c37c7ae8b7a399905960e2a0b3c6dcf609576"
+        }
+      ],
+      "note": "Search gap16 version superseded by the requested wider shared module/section spacing."
+    },
+    {
+      "phase": "supersededPreChartBillingFix",
+      "observedGeometryStates": 36,
+      "acceptedForCurrentRequest": false,
+      "evidence": [
+        "final2-evidence.json",
+        "final2-keys-evidence.json",
+        "final2-similar-evidence.json",
+        "final2-accounts-evidence.json"
+      ],
+      "note": "Preserved prior observations. A sibling capture may have crossed a dist rebuild, so artifact binding is not accepted. Mobile billing retained a 260px summary height; final4 below verifies the correction."
+    },
+    {
+      "phase": "final",
+      "states": 41,
+      "geometryPassed": true,
+      "visualPassed": true,
+      "evidence": [
+        "final4-evidence.json",
+        "final4-keys-evidence.json",
+        "final4-similar-evidence.json",
+        "final4-accounts-evidence.json",
+        "final4-squeeze-evidence.json",
+        "final4-longreports-evidence.json"
+      ],
+      "artifacts": [
+        {
+          "path": "assets/index-aEYjOJbq.css",
+          "bytes": 72518,
+          "sha256": "dfc948a7c353f28c833eb0c13d3cf35c4f0eb0cd78d754216ae255f6de4b899f"
+        },
+        {
+          "path": "assets/index-pahGKKM9.js",
+          "bytes": 42047,
+          "sha256": "45c8a90714db90b025701d5ebb4a4ca84a817fe8cd6a9e3dd23378be715df322"
+        },
+        {
+          "path": "assets/ledger-U3ODljBb.css",
+          "bytes": 10014,
+          "sha256": "e9d73e96631f4c9851a7c63f2df25a65601cf9249e597f8ebd860a76fb0330d3"
+        },
+        {
+          "path": "index.html",
+          "bytes": 4916,
+          "sha256": "1fc30afb6d41882e6e996c99df4a6cb4a03044d7d90adeb2c99525243d608dbf"
+        }
+      ],
+      "fullArtifactManifestSha256": "a609ad28f16b90d0f243e4ff7e9c2a038324aed31a76d5ab565c7a27685fdb0f"
+    }
+  ],
+  "checks": {
+    "searchToList": {
+      "beforePx": 0,
+      "finalPx": 16,
+      "states": 19,
+      "passed": true
+    },
+    "organizationToHelp": {
+      "beforePx": 0,
+      "finalPx": 16,
+      "states": 12,
+      "passed": true
+    },
+    "desktopSharedSplit": {
+      "baselineGridGapPx": 32,
+      "baselineRailPaddingPx": 24,
+      "finalGridGapPx": 48,
+      "finalRailPaddingPx": 32,
+      "finalContentGapIncludingBorderPx": 81,
+      "states": 9,
+      "passed": true
+    },
+    "mediumProjectSplit": {
+      "viewportPx": 900,
+      "baselineColumnsPx": [
+        236,
+        340
+      ],
+      "previousFinalColumnsPx": [
+        316,
+        260
+      ],
+      "finalColumnsPx": [
+        300,
+        260
+      ],
+      "passed": true
+    },
+    "normalPanelPadding": {
+      "desktopBeforePx": 24,
+      "desktopFinalPx": 32,
+      "touchBeforePx": 20,
+      "touchFinalPx": 24,
+      "passed": true
+    },
+    "emptyCreationAlignment": {
+      "beforeOrganizationWidthPx": 1148,
+      "beforeFormWidthPx": 800,
+      "finalBothWidthPx": 800,
+      "passed": true
+    },
+    "reportGaps": {
+      "before": "0px 32px",
+      "final": [
+        {
+          "width": 1440,
+          "gap": "0px 48px"
+        },
+        {
+          "width": 390,
+          "gap": "0px 48px"
+        },
+        {
+          "width": 390,
+          "gap": "0px 48px"
+        },
+        {
+          "width": 320,
+          "gap": "0px 48px"
+        }
+      ],
+      "passed": true
+    },
+    "accountNavigationGaps": {
+      "measurements": [
+        {
+          "state": "api-keys",
+          "width": 1440,
+          "gap": "48px"
+        },
+        {
+          "state": "billing",
+          "width": 1440,
+          "gap": "48px"
+        },
+        {
+          "state": "api-keys",
+          "width": 900,
+          "gap": "48px"
+        },
+        {
+          "state": "billing",
+          "width": 900,
+          "gap": "48px"
+        },
+        {
+          "state": "api-keys",
+          "width": 390,
+          "gap": "0px"
+        },
+        {
+          "state": "billing",
+          "width": 390,
+          "gap": "0px"
+        },
+        {
+          "state": "api-keys",
+          "width": 320,
+          "gap": "0px"
+        }
+      ],
+      "passed": true
+    },
+    "expenseRailFieldsSingleColumn": {
+      "measurements": [
+        {
+          "state": "expense",
+          "width": 390,
+          "columns": "358px"
+        },
+        {
+          "state": "shared-expense",
+          "width": 1440,
+          "columns": "307px"
+        },
+        {
+          "state": "shared-expense",
+          "width": 390,
+          "columns": "358px"
+        },
+        {
+          "state": "shared-expense",
+          "width": 320,
+          "columns": "288px"
+        }
+      ],
+      "passed": true
+    },
+    "mobileBillingCompactness": {
+      "oldSummaryMainHeightPx": 260,
+      "finalSummaryMainHeightPx": 42.5,
+      "passed": true
+    },
+    "touchCheckboxTargets": {
+      "checkboxSizePx": 14,
+      "checkboxes": 7,
+      "minimumLabelHeightPx": 44,
+      "passed": true
+    },
+    "opaqueStickyHeader": {
+      "background": "rgb(248, 247, 246)",
+      "backdropFilter": "none",
+      "allFinalStates": true,
+      "passed": true
+    },
+    "filterAndClear": {
+      "contexts": 8,
+      "rowsBefore": 2,
+      "rowsFiltered": 1,
+      "rowsAfterClear": 2,
+      "inputAfterClear": "",
+      "additionalRequests": 0,
+      "passed": true
+    },
+    "captureStabilityAndOverflow": {
+      "states": 41,
+      "pageErrors": 0,
+      "unexpectedRoutes": 0,
+      "leftOrRightOverflowElements": 0,
+      "passed": true
+    }
+  },
+  "method": "Waited for fonts, network idle and two animation frames. Desktop Playwright full-page capture; touch native CDP viewport capture without clipping or viewport changes, with supplemental scrolled images for offscreen sections. Before/after viewport/media/pointer/touch/sidebar/main-padding/workspace-select/visible-grid snapshots must match. Checked both left and right overflow against configured/client/visual widths. Hidden split panels are excluded.",
+  "visualReview": {
+    "result": "Six representative final screenshots manually reviewed against bounds; all 41 states have automated shell, control bounds and capture-stability checks. Additional screenshot references identify captures, not extra manual review claims.",
+    "screenshotReferences": [
+      "final4/1440-en-creation.png",
+      "final4/900-zh-creation.png",
+      "final4/390-zh-populated.png",
+      "final4-keys/1440-en-empty.png",
+      "final4-keys/390-zh-settings-lower.png",
+      "final4-keys/390-zh-expense-lower.png",
+      "final4-similar/1440-en-categories.png",
+      "final4-similar/1440-en-shared-expense.png",
+      "final4-similar/1440-en-reports.png",
+      "final4-accounts/390-zh-billing.png",
+      "final4-accounts/900-en-api-keys.png",
+      "final4-squeeze/320-zh-shared-expense-lower.png",
+      "final4-longreports/320-zh-long-reports-lower.png",
+      "final4-accounts/1440-en-api-keys.png",
+      "final4-accounts/1440-en-billing.png",
+      "final4-accounts/390-zh-members-lower.png"
+    ],
+    "manuallyReviewedScreenshots": [
+      "final4/1440-en-creation.png",
+      "final4-keys/390-zh-expense-lower.png",
+      "final4-accounts/390-zh-billing.png",
+      "final4-accounts/900-en-api-keys.png",
+      "final4-squeeze/320-zh-shared-expense-lower.png",
+      "final4-longreports/320-zh-long-reports-lower.png"
+    ]
+  },
+  "cases": [
+    {
+      "case": "1440-en-populated",
+      "screenshots": [
+        "final4/1440-en-populated.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "1440-en-creation",
+      "screenshots": [
+        "final4/1440-en-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "760px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "1440-en-overview",
+      "screenshots": [
+        "final4/1440-en-overview.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "760px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "1440-zh-populated",
+      "screenshots": [
+        "final4/1440-zh-populated.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "1440-zh-creation",
+      "screenshots": [
+        "final4/1440-zh-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "760px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "1280-en-populated",
+      "screenshots": [],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "1280-en-creation",
+      "screenshots": [
+        "final4/1280-en-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "600px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "1280-zh-populated",
+      "screenshots": [],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "1280-zh-creation",
+      "screenshots": [
+        "final4/1280-zh-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "600px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "900-en-populated",
+      "screenshots": [],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "900-en-creation",
+      "screenshots": [
+        "final4/900-en-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "300px 260px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "900-zh-populated",
+      "screenshots": [],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "900-zh-creation",
+      "screenshots": [
+        "final4/900-zh-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "searchToListPx": 16.0,
+      "splitColumns": "300px 260px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "390-en-populated",
+      "screenshots": [
+        "final4/390-en-populated.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "390-en-creation",
+      "screenshots": [
+        "final4/390-en-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "390-zh-populated",
+      "screenshots": [
+        "final4/390-zh-populated.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "390-zh-creation",
+      "screenshots": [
+        "final4/390-zh-creation.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "390-zh-overview",
+      "screenshots": [
+        "final4/390-zh-overview.png",
+        "final4/390-zh-overview-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "1440-en-empty",
+      "screenshots": [
+        "final4-keys/1440-en-empty.png"
+      ],
+      "shellStable": true,
+      "overflow": 0
+    },
+    {
+      "case": "1440-en-settings",
+      "screenshots": [
+        "final4-keys/1440-en-settings.png"
+      ],
+      "shellStable": true,
+      "overflow": 0
+    },
+    {
+      "case": "390-zh-expense",
+      "screenshots": [
+        "final4-keys/390-zh-expense.png",
+        "final4-keys/390-zh-expense-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "390-zh-settings",
+      "screenshots": [
+        "final4-keys/390-zh-settings.png",
+        "final4-keys/390-zh-settings-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "1440-en-categories",
+      "screenshots": [
+        "final4-similar/1440-en-categories.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "splitColumns": "760px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "1440-en-shared-expense",
+      "screenshots": [
+        "final4-similar/1440-en-shared-expense.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "splitColumns": "760px 340px",
+      "gridGapPx": 48,
+      "railPaddingLeftPx": 32,
+      "contentGapIncludingBorderPx": 81
+    },
+    {
+      "case": "1440-en-reports",
+      "screenshots": [
+        "final4-similar/1440-en-reports.png"
+      ],
+      "shellStable": true,
+      "overflow": 0
+    },
+    {
+      "case": "390-zh-categories",
+      "screenshots": [
+        "final4-similar/390-zh-categories.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "390-zh-shared-expense",
+      "screenshots": [
+        "final4-similar/390-zh-shared-expense.png",
+        "final4-similar/390-zh-shared-expense-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "390-zh-reports",
+      "screenshots": [
+        "final4-similar/390-zh-reports.png",
+        "final4-similar/390-zh-reports-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "1440-en-api-keys",
+      "screenshots": [
+        "final4-accounts/1440-en-api-keys.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "accountShellGap": "48px"
+    },
+    {
+      "case": "1440-en-billing",
+      "screenshots": [
+        "final4-accounts/1440-en-billing.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "accountShellGap": "48px"
+    },
+    {
+      "case": "1440-en-members",
+      "screenshots": [
+        "final4-accounts/1440-en-members.png"
+      ],
+      "shellStable": true,
+      "overflow": 0
+    },
+    {
+      "case": "900-en-api-keys",
+      "screenshots": [
+        "final4-accounts/900-en-api-keys.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "accountShellGap": "48px"
+    },
+    {
+      "case": "900-en-billing",
+      "screenshots": [
+        "final4-accounts/900-en-billing.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "accountShellGap": "48px"
+    },
+    {
+      "case": "390-zh-api-keys",
+      "screenshots": [
+        "final4-accounts/390-zh-api-keys.png",
+        "final4-accounts/390-zh-api-keys-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "accountShellGap": "0px"
+    },
+    {
+      "case": "390-zh-billing",
+      "screenshots": [
+        "final4-accounts/390-zh-billing.png",
+        "final4-accounts/390-zh-billing-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "accountShellGap": "0px"
+    },
+    {
+      "case": "390-zh-members",
+      "screenshots": [
+        "final4-accounts/390-zh-members.png",
+        "final4-accounts/390-zh-members-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "320-zh-creation",
+      "screenshots": [
+        "final4-squeeze/320-zh-creation.png",
+        "final4-squeeze/320-zh-creation-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "searchToListPx": 16.0
+    },
+    {
+      "case": "320-zh-shared-expense",
+      "screenshots": [
+        "final4-squeeze/320-zh-shared-expense.png",
+        "final4-squeeze/320-zh-shared-expense-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "320-zh-api-keys",
+      "screenshots": [
+        "final4-squeeze/320-zh-api-keys.png",
+        "final4-squeeze/320-zh-api-keys-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1",
+      "accountShellGap": "0px"
+    },
+    {
+      "case": "390-zh-long-reports",
+      "screenshots": [
+        "final4-longreports/390-zh-long-reports.png",
+        "final4-longreports/390-zh-long-reports-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    },
+    {
+      "case": "320-zh-long-reports",
+      "screenshots": [
+        "final4-longreports/320-zh-long-reports.png",
+        "final4-longreports/320-zh-long-reports-lower.png"
+      ],
+      "shellStable": true,
+      "overflow": 0,
+      "touchBeforeAfter": "coarse=true, maxTouchPoints=1"
+    }
+  ],
+  "limitations": "Synthetic frontend layout and client-side search acceptance only. No claim of backend, real two-account, provider/payment, invitation POST success, or load acceptance. Billing uses synthetic prices and active account records with no mutation clicks. Members checks form/member/pending-invite layouts only. en/zh light theme; external fonts blocked.",
+  "passed": true
+}

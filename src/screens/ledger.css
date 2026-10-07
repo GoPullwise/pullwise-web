@@ -1,6 +1,9 @@
 .ledger-screen .main {
   padding-bottom: 64px;
 }
+.ledger-screen .panel {
+  padding: 32px 0;
+}
 .ledger-screen .page-h .sub {
   max-width: 580px;
   line-height: 1.7;
@@ -55,14 +58,24 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid var(--border-strong);
-  margin-bottom: 0;
+  border: 1px solid var(--border-strong);
+  padding: 0 12px;
+  margin-bottom: 16px;
+  background: var(--bg-elev);
   color: var(--text-3);
 }
-.ledger-screen .ledger-search input {
+.ledger-search > svg,
+.ledger-search > .btn {
+  flex-shrink: 0;
+}
+.ledger-screen .main .ledger-search input[type="search"] {
+  flex: 1 1 0;
   border: 0;
   background: transparent;
-  padding-left: 0;
+  padding-inline: 0;
+}
+.ledger-your-projects > .ledger-list:not(:empty) {
+  border-top: 1px solid var(--border);
 }
 .ledger-project-row {
   display: grid;
@@ -120,8 +133,8 @@
 /* Primary records and secondary creation share one calm workspace. */
 .ledger-screen .ledger-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  gap: 0 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, min(340px, 38%));
+  gap: 0 48px;
   align-items: start;
 }
 .ledger-screen .ledger-split > .panel:not(.ledger-overview) {
@@ -130,13 +143,16 @@
 }
 .ledger-screen .ledger-split > .panel:nth-child(2) {
   border-left: 1px solid var(--border);
-  padding-left: 24px;
+  padding-left: 32px;
 }
 .ledger-screen .ledger-overview {
   grid-column: 1 / -1;
 }
+.ledger-screen .ledger-split > .ledger-overview {
+  border-top: 1px solid var(--border);
+}
 .ledger-screen .ledger-entry {
-  padding-top: 24px;
+  padding-top: 32px;
 }
 .ledger-screen .ledger-list {
   display: grid;
@@ -155,6 +171,9 @@
 }
 .ledger-screen .ledger-list > :last-child {
   border-bottom: 0;
+}
+.ledger-screen .ledger-list + .panel-actions {
+  margin-top: 16px;
 }
 .ledger-screen .ledger-list h3 {
   margin: 0 0 4px;
@@ -212,9 +231,28 @@
   margin-top: 0;
   max-width: none;
 }
+.ledger-screen #add-repository > .panel-body {
+  max-width: 800px;
+}
+.ledger-screen .panel-body > .ledger-form,
+.ledger-screen .panel-body > .ledger-help {
+  margin: 0;
+}
+.ledger-screen .ledger-form .ledger-help {
+  margin-bottom: 0;
+}
+.ledger-screen .api-scope-panel > legend {
+  max-width: calc(100% - 28px);
+  margin-left: 6px;
+  padding: 0 8px;
+  color: var(--text-2);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
 .ledger-screen .ledger-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 16px;
 }
 .ledger-screen .disclosure .ledger-fields {
@@ -258,7 +296,7 @@
 }
 .ledger-screen .ledger-filters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 175px), 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -288,7 +326,7 @@
 }
 .ledger-screen .ledger-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 24px;
 }
 .ledger-screen .ledger-overview > .ledger-filters {
@@ -315,12 +353,13 @@
 .ledger-screen .ledger-reports {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 0 32px;
+  gap: 0 48px;
   align-items: start;
 }
 .ledger-screen .ledger-chart {
   display: grid;
   gap: 16px;
+  container-type: inline-size;
 }
 .ledger-screen .ledger-chart-row {
   display: grid;
@@ -331,6 +370,20 @@
 }
 .ledger-screen .ledger-chart-row > span:first-child {
   overflow-wrap: anywhere;
+}
+.ledger-screen .ledger-chart-row > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@container (max-width: 440px) {
+  .ledger-screen .ledger-chart-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .ledger-screen .ledger-chart-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
 }
 .ledger-screen .ledger-chart-track {
   height: 8px;
@@ -360,7 +413,7 @@
     gap: 0;
   }
   .ledger-screen .ledger-split > .panel:not(.ledger-overview) {
-    padding-top: 24px;
+    padding-top: 32px;
     border-bottom: 1px solid var(--border);
   }
   .ledger-screen .ledger-split > .panel:first-child {
@@ -376,9 +429,9 @@
   }
   .ledger-screen .ledger-entry > .panel:first-child {
     grid-row: 2;
-    padding-top: 24px;
+    padding-top: 32px;
   }
-  .ledger-screen .ledger-overview {
+  .ledger-screen .ledger-split > .ledger-overview {
     margin-top: 0;
     border-top: 0;
   }
@@ -400,10 +453,10 @@
     width: auto;
   }
   .ledger-screen .panel {
-    padding: 20px 0;
+    padding: 24px 0;
   }
   .ledger-screen .ledger-split > .panel:not(.ledger-overview) {
-    padding-top: 20px;
+    padding-top: 24px;
   }
   .ledger-screen .ledger-split > .panel:first-child {
     padding-top: 0;
@@ -412,6 +465,9 @@
     padding-top: 0;
   }
   .ledger-screen .ledger-entry > .panel:first-child {
+    padding-top: 24px;
+  }
+  .ledger-screen .ledger-entry {
     padding-top: 24px;
   }
   .setup-steps {
@@ -471,9 +527,12 @@
   .ledger-screen .disclosure > summary {
     min-height: 44px;
   }
-  .ledger-screen input,
+  .ledger-screen input:not([type="checkbox"]),
   .ledger-screen select,
   .ledger-screen .btn {
+    min-height: 44px;
+  }
+  .ledger-screen .main .api-scope-row {
     min-height: 44px;
   }
 }

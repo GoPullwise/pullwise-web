@@ -780,7 +780,10 @@ function ScopedLedgerScreen({
       .then((result) => {
         if (!controller.signal.aborted && request === requestId.current) {
           setData(result);
-          if (mode === "project" && (!projectSettingsBase.current || !projectSettingsDirty.current)) {
+          if (
+            mode === "project" &&
+            (!projectSettingsBase.current || !projectSettingsDirty.current)
+          ) {
             projectSettingsBase.current = {
               revision: result.project.revision,
               name: result.project.name || "",
@@ -1453,13 +1456,15 @@ function ScopedLedgerScreen({
                       ))}
                     </div>
                     {data.projects.nextCursor && (
-                      <button
-                        className="btn"
-                        disabled={loadingMore}
-                        onClick={() => loadMore("projects")}
-                      >
-                        {T("Load more projects")}
-                      </button>
+                      <div className="panel-actions">
+                        <button
+                          className="btn"
+                          disabled={loadingMore}
+                          onClick={() => loadMore("projects")}
+                        >
+                          {T("Load more projects")}
+                        </button>
+                      </div>
                     )}
                   </section>
                 )}
@@ -1473,201 +1478,209 @@ function ScopedLedgerScreen({
                           : T("Add a repository", "添加一个仓库")}
                       </h2>
                     </div>
-                    {organizations.length > 0 && (
-                      <div className="ledger-field">
-                        <label htmlFor={organizationFieldId}>
-                          {T("GitHub organization (optional)", "GitHub 组织（选填）")}
-                        </label>
-                        <select
-                          id={organizationFieldId}
-                          value={organizationId}
-                          disabled={busy}
-                          onChange={(event) => {
-                            setOrganizationId(event.target.value);
-                            setSelectedRepo("");
-                            setAdditionalRepoIds([]);
-                          }}
-                        >
-                          <option value="">
-                            {T("All accessible repositories", "所有已授权仓库")}
-                          </option>
-                          {organizations.map((org) => (
-                            <option key={org.id} value={org.id}>
-                              {org.login}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {availableRepos.length > 0 && (
-                      <p className="ledger-help">
-                        {T(
-                          "Choose one to thirty authorized repositories for this expense project. Your own GitHub access is used.",
-                          "为这个支出项目选择 1 到 30 个已授权仓库，使用你自己的 GitHub 授权。"
-                        )}
-                      </p>
-                    )}
-                    {availableRepos.length === 0 && !data.repositories.nextCursor ? (
-                      <p className="ledger-help">
-                        {data.repositories.items.length > 0
-                          ? T(
-                              "These repositories are already in your projects. Open one to record an expense, or connect another repository.",
-                              "这些仓库已经添加到项目了。打开项目即可记账，也可以再连接其他仓库。"
-                            )
-                          : T(
-                              "No repositories are available yet. Connect GitHub and choose the repositories you want to track.",
-                              "还没有可用仓库。连接 GitHub，选择你想记账的仓库。"
-                            )}
-                      </p>
-                    ) : availableRepos.length > 0 ? (
-                      <form
-                        className="ledger-form"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          if (
-                            !canManageProjects ||
-                            selectedCreateIds.length < 1 ||
-                            selectedCreateIds.length > 30
-                          )
-                            return;
-                          const request = requestId.current;
-                          action(async () => {
-                            const project = await api.createProject(
-                              {
-                                githubRepoIds: selectedCreateIds,
-                                ...(projectName.trim() ? { name: projectName.trim() } : {}),
-                                ...(organizationId
-                                  ? { githubOrganizationId: Number(organizationId) }
-                                  : {}),
-                                description,
-                              },
-                              {}
-                            );
-                            if (request === requestId.current && project?.id)
-                              go("ledgerProject", { id: project.id });
-                          });
-                        }}
-                      >
+                    <div className="panel-body">
+                      {organizations.length > 0 && (
                         <div className="ledger-field">
-                          <label htmlFor={projectNameId}>
-                            {T("Project name (optional)", "项目名称（选填）")}
+                          <label htmlFor={organizationFieldId}>
+                            {T("GitHub organization (optional)", "GitHub 组织（选填）")}
                           </label>
-                          <input
-                            id={projectNameId}
-                            value={projectName}
-                            maxLength={120}
-                            disabled={busy}
-                            onChange={(event) => setProjectName(event.target.value)}
-                          />
-                        </div>
-                        <div className="ledger-field">
-                          <label htmlFor={repositoryFieldId}>{T("Repository")}</label>
                           <select
-                            id={repositoryFieldId}
-                            value={String(selectedRepository.githubRepoId)}
+                            id={organizationFieldId}
+                            value={organizationId}
                             disabled={busy}
-                            onChange={(event) => setSelectedRepo(event.target.value)}
+                            onChange={(event) => {
+                              setOrganizationId(event.target.value);
+                              setSelectedRepo("");
+                              setAdditionalRepoIds([]);
+                            }}
                           >
-                            {availableRepos.map((repo) => (
-                              <option key={repo.githubRepoId} value={repo.githubRepoId}>
-                                {repo.fullName}
+                            <option value="">
+                              {T("All accessible repositories", "所有已授权仓库")}
+                            </option>
+                            {organizations.map((org) => (
+                              <option key={org.id} value={org.id}>
+                                {org.login}
                               </option>
                             ))}
                           </select>
                         </div>
-                        {availableRepos.length > 1 && (
-                          <fieldset className="api-scope-panel">
-                            <legend>
-                              {T("Additional repositories (optional)", "其他仓库（选填）")}
-                            </legend>
-                            {availableRepos
-                              .filter(
-                                (repo) => repo.githubRepoId !== selectedRepository.githubRepoId
+                      )}
+                      {availableRepos.length > 0 && (
+                        <p className="ledger-help">
+                          {T(
+                            "Choose one to thirty authorized repositories for this expense project. Your own GitHub access is used.",
+                            "为这个支出项目选择 1 到 30 个已授权仓库，使用你自己的 GitHub 授权。"
+                          )}
+                        </p>
+                      )}
+                      {availableRepos.length === 0 && !data.repositories.nextCursor ? (
+                        <p className="ledger-help">
+                          {data.repositories.items.length > 0
+                            ? T(
+                                "These repositories are already in your projects. Open one to record an expense, or connect another repository.",
+                                "这些仓库已经添加到项目了。打开项目即可记账，也可以再连接其他仓库。"
                               )
-                              .map((repo) => (
-                                <label className="api-scope-row" key={repo.githubRepoId}>
-                                  <input
-                                    type="checkbox"
-                                    checked={additionalRepoIds.includes(repo.githubRepoId)}
-                                    disabled={
-                                      busy ||
-                                      (selectedCreateIds.length >= 30 &&
-                                        !additionalRepoIds.includes(repo.githubRepoId))
-                                    }
-                                    onChange={(event) =>
-                                      setAdditionalRepoIds((old) =>
-                                        event.target.checked
-                                          ? [...old, repo.githubRepoId]
-                                          : old.filter((id) => id !== repo.githubRepoId)
-                                      )
-                                    }
-                                  />
-                                  <span className="api-scope-copy">
-                                    <span>{repo.fullName}</span>
-                                  </span>
-                                </label>
-                              ))}
-                            <p className="ledger-help">
-                              {selectedCreateIds.length} / 30 {T("repositories", "个仓库")}
-                            </p>
-                          </fieldset>
-                        )}
-                        <details className="disclosure">
-                          <summary>
-                            {T("Project description (optional)", "项目说明（选填）")}
-                          </summary>
-                          <div className="ledger-field">
-                            <label htmlFor={projectDescriptionId}>{T("Project description")}</label>
-                            <textarea
-                              id={projectDescriptionId}
-                              value={description}
-                              maxLength={2000}
-                              placeholder={T(
-                                "What are you building? (optional)",
-                                "这个项目是做什么的？（选填）"
+                            : T(
+                                "No repositories are available yet. Connect GitHub and choose the repositories you want to track.",
+                                "还没有可用仓库。连接 GitHub，选择你想记账的仓库。"
                               )}
+                        </p>
+                      ) : availableRepos.length > 0 ? (
+                        <form
+                          className="ledger-form"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            if (
+                              !canManageProjects ||
+                              selectedCreateIds.length < 1 ||
+                              selectedCreateIds.length > 30
+                            )
+                              return;
+                            const request = requestId.current;
+                            action(async () => {
+                              const project = await api.createProject(
+                                {
+                                  githubRepoIds: selectedCreateIds,
+                                  ...(projectName.trim() ? { name: projectName.trim() } : {}),
+                                  ...(organizationId
+                                    ? { githubOrganizationId: Number(organizationId) }
+                                    : {}),
+                                  description,
+                                },
+                                {}
+                              );
+                              if (request === requestId.current && project?.id)
+                                go("ledgerProject", { id: project.id });
+                            });
+                          }}
+                        >
+                          <div className="ledger-field">
+                            <label htmlFor={projectNameId}>
+                              {T("Project name (optional)", "项目名称（选填）")}
+                            </label>
+                            <input
+                              id={projectNameId}
+                              value={projectName}
+                              maxLength={120}
                               disabled={busy}
-                              onChange={(event) => setDescription(event.target.value)}
+                              onChange={(event) => setProjectName(event.target.value)}
                             />
                           </div>
-                        </details>
-                        <button className="btn primary" type="submit" disabled={busy}>
-                          {T("Create project")}
+                          <div className="ledger-field">
+                            <label htmlFor={repositoryFieldId}>{T("Repository")}</label>
+                            <select
+                              id={repositoryFieldId}
+                              value={String(selectedRepository.githubRepoId)}
+                              disabled={busy}
+                              onChange={(event) => setSelectedRepo(event.target.value)}
+                            >
+                              {availableRepos.map((repo) => (
+                                <option key={repo.githubRepoId} value={repo.githubRepoId}>
+                                  {repo.fullName}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {availableRepos.length > 1 && (
+                            <fieldset className="api-scope-panel">
+                              <legend>
+                                {T("Additional repositories (optional)", "其他仓库（选填）")}
+                              </legend>
+                              {availableRepos
+                                .filter(
+                                  (repo) => repo.githubRepoId !== selectedRepository.githubRepoId
+                                )
+                                .map((repo) => (
+                                  <label className="api-scope-row" key={repo.githubRepoId}>
+                                    <input
+                                      type="checkbox"
+                                      checked={additionalRepoIds.includes(repo.githubRepoId)}
+                                      disabled={
+                                        busy ||
+                                        (selectedCreateIds.length >= 30 &&
+                                          !additionalRepoIds.includes(repo.githubRepoId))
+                                      }
+                                      onChange={(event) =>
+                                        setAdditionalRepoIds((old) =>
+                                          event.target.checked
+                                            ? [...old, repo.githubRepoId]
+                                            : old.filter((id) => id !== repo.githubRepoId)
+                                        )
+                                      }
+                                    />
+                                    <span className="api-scope-copy">
+                                      <span>{repo.fullName}</span>
+                                    </span>
+                                  </label>
+                                ))}
+                              <p className="ledger-help">
+                                {selectedCreateIds.length} / 30 {T("repositories", "个仓库")}
+                              </p>
+                            </fieldset>
+                          )}
+                          <details className="disclosure">
+                            <summary>
+                              {T("Project description (optional)", "项目说明（选填）")}
+                            </summary>
+                            <div className="ledger-field">
+                              <label htmlFor={projectDescriptionId}>
+                                {T("Project description")}
+                              </label>
+                              <textarea
+                                id={projectDescriptionId}
+                                value={description}
+                                maxLength={2000}
+                                placeholder={T(
+                                  "What are you building? (optional)",
+                                  "这个项目是做什么的？（选填）"
+                                )}
+                                disabled={busy}
+                                onChange={(event) => setDescription(event.target.value)}
+                              />
+                            </div>
+                          </details>
+                          <div className="panel-actions">
+                            <button className="btn primary" type="submit" disabled={busy}>
+                              {T("Create project")}
+                            </button>
+                          </div>
+                        </form>
+                      ) : null}
+                      <div className="panel-actions">
+                        {data.repositories.nextCursor && (
+                          <button
+                            className="btn"
+                            disabled={loadingMore}
+                            onClick={() => loadMore("repositories")}
+                          >
+                            {T("Load more repositories")}
+                          </button>
+                        )}
+                        <button
+                          className={
+                            availableRepos.length || data.repositories.nextCursor
+                              ? "btn ghost"
+                              : "btn primary"
+                          }
+                          disabled={busy || loading}
+                          onClick={() => action(() => connectGitHubRepositories({ add: true }))}
+                        >
+                          <I.Github size={14} /> {T("Manage GitHub access")}
                         </button>
-                      </form>
-                    ) : null}
-                    {data.repositories.nextCursor && (
-                      <button
-                        className="btn"
-                        disabled={loadingMore}
-                        onClick={() => loadMore("repositories")}
-                      >
-                        {T("Load more repositories")}
-                      </button>
-                    )}
-                    <button
-                      className={
-                        availableRepos.length || data.repositories.nextCursor
-                          ? "btn ghost"
-                          : "btn primary"
-                      }
-                      disabled={busy || loading}
-                      onClick={() => action(() => connectGitHubRepositories({ add: true }))}
-                    >
-                      <I.Github size={14} /> {T("Manage GitHub access")}
-                    </button>
-                    {data.projects.items.length > 0 && (
-                      <button
-                        className="btn ghost"
-                        disabled={busy}
-                        onClick={() => {
-                          restoreProjectFocus.current = true;
-                          setAddingProject(false);
-                        }}
-                      >
-                        {T("Cancel")}
-                      </button>
-                    )}
+                        {data.projects.items.length > 0 && (
+                          <button
+                            className="btn ghost"
+                            disabled={busy}
+                            onClick={() => {
+                              restoreProjectFocus.current = true;
+                              setAddingProject(false);
+                            }}
+                          >
+                            {T("Cancel")}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </section>
                 )}
                 <details
@@ -2285,8 +2298,7 @@ function ScopedLedgerScreen({
                         const changedRepositories =
                           JSON.stringify([...projectRepoIds].sort()) !==
                           JSON.stringify([...base.githubRepoIds].sort());
-                        const changedOrganization =
-                          base.githubOrganizationId !== organizationId;
+                        const changedOrganization = base.githubOrganizationId !== organizationId;
                         const request = requestId.current;
                         action(async () => {
                           await api.updateProject(
@@ -2494,7 +2506,10 @@ function ScopedLedgerScreen({
                           className="btn primary"
                           type="submit"
                           disabled={
-                            busy || loading || projectRepoIds.length < 1 || projectRepoIds.length > 30
+                            busy ||
+                            loading ||
+                            projectRepoIds.length < 1 ||
+                            projectRepoIds.length > 30
                           }
                         >
                           {T("Save project", "保存项目")}
@@ -2502,7 +2517,7 @@ function ScopedLedgerScreen({
                       </div>
                     </form>
                   ) : (
-                    <>
+                    <div className="panel-body">
                       <p>{data.project.description || T("No description", "暂无说明")}</p>
                       {data.project.githubOrganization?.githubAccess === "authorized" &&
                         data.project.githubOrganization.login && (
@@ -2529,7 +2544,7 @@ function ScopedLedgerScreen({
                           );
                         })}
                       </div>
-                    </>
+                    </div>
                   )}
                 </section>
               )}
