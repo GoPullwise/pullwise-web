@@ -6,6 +6,16 @@ import "./ledger.css";
 
 const EDITABLE_ROLES = ["admin", "editor", "viewer"];
 
+function recipientLogin(value) {
+  const input = value.trim();
+  const profile = /^(?:https:\/\/)?github\.com\/([A-Za-z0-9-]+)\/?(?:\?tab=[A-Za-z0-9_-]+)?$/i.exec(
+    input
+  );
+  const login = profile ? profile[1] : input.startsWith("@") ? input.slice(1) : input;
+  // Keep the API's existing ASCII login grammar and send no URL/provider query.
+  return /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(login) ? login : "";
+}
+
 function invitationToken() {
   const values = new URLSearchParams(window.location.hash.slice(1)).getAll("invite");
   return values.length === 1 && values[0].length <= 8192 ? values[0] : "";
@@ -33,6 +43,21 @@ function items(result) {
 }
 
 function failureMessage(failure) {
+  if (failure?.code === "INVITATION_EXISTS")
+    return T(
+      "An invitation is already pending for this GitHub account. Revoke it below before creating a new link.",
+      "此 GitHub 账户已有待接受的邀请，原链接仍可使用。若丢失链接，请先在下方撤销邀请，再生成新链接。"
+    );
+  if (failure?.code === "INVITATION_LIMIT")
+    return T(
+      "The pending invitation limit has been reached. Revoke an unused invitation below, then try again.",
+      "待接受邀请已达到上限，请在下方撤销一个不用的邀请后再试。"
+    );
+  if (failure?.code === "OWNER_IMMUTABLE")
+    return T(
+      "You already own this ledger. Invite another GitHub account.",
+      "你已是此账本的所有者，请邀请其他 GitHub 账户。"
+    );
   if (failure?.code === "INVITATION_RECIPIENT_MISMATCH")
     return T(
       "This invitation is for another GitHub account. Sign in with the invited account.",
@@ -65,8 +90,8 @@ function failureMessage(failure) {
     );
   if (failure?.code === "ALREADY_MEMBER")
     return T(
-      "You already belong to this ledger. Choose it from your ledgers.",
-      "你已经是此账本的成员，请在账本列表中选择它。"
+      "That GitHub account is already a member of this ledger.",
+      "此 GitHub 账户已经是此账本的成员。"
     );
   if (failure?.status === 409 || failure?.status === 412) {
     return T(
@@ -155,6 +180,7 @@ function MembersContent({
   const [roles, setRoles] = useState({});
   const [removeId, setRemoveId] = useState("");
   const [githubLogin, setGithubLogin] = useState("");
+  const inviteLoginInput = useRef(null);
   const [inviteRole, setInviteRole] = useState("viewer");
   const [createdInvite, setCreatedInvite] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -182,14 +208,23 @@ function MembersContent({
   );
 
   const failed = useCallback((failure, invitation = false) => {
+    const invitationConflict =
+      failure?.status === 409 && ["INVITATION_EXISTS", "ALREADY_MEMBER"].includes(failure.code);
+    const invitationForbidden =
+      failure?.status === 403 && ["INVITATION_LIMIT", "OWNER_IMMUTABLE"].includes(failure.code);
     if (invitation) setInvitationError(failureMessage(failure));
     else {
       setError(failureMessage(failure));
-      if (failure?.status === 409 || failure?.status === 412) setConflict(true);
+      if (!invitationConflict && (failure?.status === 409 || failure?.status === 412))
+        setConflict(true);
     }
     // The incoming capability can name another or deleted ledger. Its failure
     // must not invalidate the independently loaded current ledger or replay preview.
-    if (!invitation && (failure?.status === 403 || failure?.status === 404)) {
+    if (
+      !invitation &&
+      !invitationForbidden &&
+      (failure?.status === 403 || failure?.status === 404)
+    ) {
       setAccessLost(true);
       if (!accessNotified.current) {
         accessNotified.current = true;
@@ -327,9 +362,15 @@ function MembersContent({
   const createInvite = (event) => {
     event.preventDefault();
     if (!canManage) return;
-    const login = githubLogin.trim();
+    const login = recipientLogin(githubLogin);
     if (!login) {
-      setError(T("Enter a GitHub username.", "请输入 GitHub 用户名。"));
+      setError(
+        T(
+          "Enter a valid GitHub username, @username or GitHub profile URL.",
+          "请输入有效的 GitHub 用户名、@用户名或 GitHub 个人主页链接。"
+        )
+      );
+      inviteLoginInput.current?.focus();
       return;
     }
     if (!grantableRoles.includes(inviteRole)) return;
@@ -692,13 +733,24 @@ function MembersContent({
                       <input
                         id="invite-github-login"
                         className="auth-input"
+                        ref={inviteLoginInput}
+                        aria-describedby="invite-github-help"
                         value={githubLogin}
                         required
                         maxLength={100}
                         disabled={disabled}
                         autoComplete="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        placeholder="octocat / @octocat / https://github.com/octocat"
                         onChange={(event) => setGithubLogin(event.target.value)}
                       />
+                      <p className="ledger-help" id="invite-github-help">
+                        {T(
+                          "Use a username, @username or GitHub profile URL. Only that GitHub account can accept the link.",
+                          "支持用户名、@用户名或 GitHub 个人主页链接，只有对应的 GitHub 账户可以接受邀请。"
+                        )}
+                      </p>
                     </div>
                     <div className="ledger-field">
                       <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
@@ -728,6 +780,12 @@ function MembersContent({
                         <p>
                           {T("GitHub account", "GitHub 账户")}: {createdInvite.recipient.login} ·{" "}
                           {roleName(createdInvite.role)}
+                        </p>
+                        <p>
+                          {T(
+                            "Send this link to @{username}. Only that GitHub account can accept it.",
+                            "请将此链接发送给 @{username}，只有该 GitHub 账户可以接受邀请。"
+                          ).replace("{username}", createdInvite.recipient.login)}
                         </p>
                         <p>
                           {T("Expires", "有效期至")}: {createdInvite.expiresAt}

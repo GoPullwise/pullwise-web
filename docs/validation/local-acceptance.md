@@ -2,6 +2,51 @@
 
 Updated 2026-10-07. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Named member invitation UX (2026-10-07)
+
+The invitation review retains named GitHub recipients: the username is resolved
+once to a stable GitHub numeric ID, while the single-use link delivers explicit
+acceptance. All existing and future ledger data is shared according to role.
+A generic application link with Owner approval would need a separate pending
+request lifecycle; this change improves the existing directed flow instead.
+Server identity, 24-hour expiry, atomic consumption and role checks remain in
+the [current contract](../../../pullwise-server/openapi/ledger-v1.yaml).
+
+Web accepts usernames, `@username`, HTTPS GitHub profile URLs and direct
+`github.com/username` input, normalizing locally to the existing 39-character
+login contract. Exact-host/profile-path checks reject malformed or unrelated
+links without an API request. Account-format help is associated with the input,
+and newly created links identify their canonical recipient and explain who can
+accept them. The existing one-time display/copy flow and Viewer default remain.
+Seven new messages have translations for Chinese, Japanese, Korean, French and
+Spanish.
+
+Known invitation business failures now have specific recovery messages:
+`INVITATION_EXISTS` / `ALREADY_MEMBER` do not trigger a stale-version lock, and
+`INVITATION_LIMIT` / `OWNER_IMMUTABLE` do not invalidate an independently loaded
+ledger. Users can explicitly revoke an unused pending invitation and then
+create another link. Generic 403/404 and actual 409/412 conflict guards remain.
+No automatic provider lookup, reissue, retry or polling was added.
+
+Five selected pre-fix tests failed on unnormalized `@username` and four wrong
+business-error messages. Those message failures occurred before their later
+guard assertions; they do not establish an executed pre-fix guard test.
+The corrected Members/App subset passed 72 tests. Final full lint/build and
+Worker configuration checks pass 36 files / 465 tests, including the corrected
+known-error and generic-status guard assertions.
+
+[Focused built Chromium acceptance](member-invitation-ux-local-2026-10-07.json)
+passes all 11 final cases: username/profile normalization, invalid input with
+no POST, four recoverable business failures, generic access loss, wrong-recipient
+isolation and a 320px long-helper layout. Two mobile visual supplements cover
+the canonical recipient/link/copied status and the duplicate-invitation error.
+Representative 390px and 320px screenshots were visually reviewed without
+overlap or document overflow. All traffic and clipboard activity are synthetic
+and intercepted locally; there are no real sessions, provider calls or D1
+operations. The first rejected capture run and a supplement copy-expectation
+failure are retained separately from the corrected passing evidence.
+Preview publication is recorded separately when complete.
+
 ## Expense date input width (2026-10-07)
 
 Date controls have explicit maximum physical/logical widths and no intrinsic

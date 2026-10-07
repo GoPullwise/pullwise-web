@@ -1,0 +1,749 @@
+{
+  "date": "2026-10-07",
+  "completedAt": "2026-10-07T07:10:29.108Z",
+  "status": "Targeted local member invitation UX acceptance complete",
+  "scope": "Built Chromium with entirely intercepted synthetic account/workspace/invitation GET and allowlisted POST responses. No remote requests, real sessions, GitHub/provider operations, D1, real invitations or native clipboard writes.",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.173",
+    "platform": "Linux",
+    "safariTested": false
+  },
+  "sourceSha256": {
+    "src/screens/members.jsx": "97b1f21ae880de93800598fbaa0d1a3c10c4c7bc5e2778620f1e5c39508df7a0",
+    "src/locales/ledger-ui.js": "1c1906e6c02101f386ea95d9b651e2bc6ba0be1cff80ff8467f5983ae56f49b4",
+    "src/api/ledger.js": "d817d000bced7768840bc561d489a54fbc63b4af72129cc59786aad8155d3051"
+  },
+  "artifacts": [
+    {
+      "path": "assets/index-CH3-RK2R.js",
+      "bytes": 42047,
+      "sha256": "9cfba969b34b9885a9866c0c13c31cdc7eeb89673655297ce72b9018be23427f"
+    },
+    {
+      "path": "assets/index-aEYjOJbq.css",
+      "bytes": 72518,
+      "sha256": "dfc948a7c353f28c833eb0c13d3cf35c4f0eb0cd78d754216ae255f6de4b899f"
+    },
+    {
+      "path": "assets/ledger-C8hciBb7.css",
+      "bytes": 10192,
+      "sha256": "c8c80b0fd21417ae3b0e792093314c641c655aea2af8907b8243ab0108c145e3"
+    },
+    {
+      "path": "assets/ledger-ui-EV5OTVUP.js",
+      "bytes": 23096,
+      "sha256": "643e2c6cc79a6f3e5106dd6a3b7073309244d98c9eff67c0eb6de38fa86e455b"
+    },
+    {
+      "path": "assets/members-pUt3ty-l.js",
+      "bytes": 18193,
+      "sha256": "6a366394cb95e13613bc6451a2f650d09431c5a6ffeb00b2a3497c8c345ba347"
+    },
+    {
+      "path": "index.html",
+      "bytes": 4916,
+      "sha256": "2ef5a3e37fc07ae24c3f57522092e609d8fa5c2fc8a60d357bdf0d57bbec3502"
+    }
+  ],
+  "fullArtifactManifestSha256": "5018caa5bdef1fab96b3b88bd860c69ca12d5c436f208d1997a50af518c8e9ae",
+  "artifactDirectory": "/workspace/qa-private/member-invitation-ux-2026-10-07",
+  "harnesses": [
+    {
+      "path": "capture-members.mjs",
+      "sha256": "0a528baa8fa6b216f5846dccccab7ae7a4fdb1102cdda55cfe86b30fdfb9668b"
+    },
+    {
+      "path": "capture-members-visual.mjs",
+      "sha256": "19b973699c9385c5dd7da50041a37ed8a7f383dc866b218adc8a420b339c7e55"
+    },
+    {
+      "path": "capture-members-duplicate-mobile.mjs",
+      "sha256": "2f4592329e4737aed9d37d131d1e23e6e0317ae32332680d93f7b0f58b9cc3e9"
+    }
+  ],
+  "method": [
+    "Routes installed before navigation and service workers blocked. Only spacing.local.test assets and exact synthetic API paths fulfilled; external hosts and every nonallowlisted mutation aborted. No route continuation or fallback.",
+    "Each case has a synthetic owned workspace and fixed recipient githubId=202. Invitation/preview tokens have the legal pwi_ plus 43-character shape and are local deterministic fixtures; no token is transmitted beyond the intercepted browser. Pending invitations include status/createdAt and members responses include workspace.",
+    "User typing is measured independently before submission. Invite POST body and workspace header must exactly match the expected normalized username and selected editor role. Each context allows at most one synthetic POST.",
+    "Clipboard API replaced with an asynchronous in-memory stub. Successful copy must exactly equal the generated canonical-recipient invitation URL and occur once.",
+    "Wait for fonts/network idle and animation frames; use instant scroll and wait for the toolbar back-to-top state before capture. Assert viewport/media/sidebar/selector geometry remains stable across screenshots; touch uses native viewport captures without resizing."
+  ],
+  "requestBudget": {
+    "perCaseCaps": {
+      "allRequestsPerCase": 120,
+      "apiRequestsPerCase": 20,
+      "syntheticMutationsPerCase": 1,
+      "cases": 11
+    },
+    "mainMatrixActualApiRequests": 62,
+    "mainMatrixSyntheticPostRequests": 9,
+    "mainMatrixMaximumApiRequestsPerCase": 8,
+    "allAttemptsActualApiRequests": 142,
+    "allAttemptsSyntheticPostRequests": 21,
+    "allAttemptsBrowserRequests": 655,
+    "remoteForwardedRequests": 0,
+    "actualD1Writes": 0
+  },
+  "phases": [
+    {
+      "rawEvidence": "final-evidence.json",
+      "sha256": "7d00a983802b5ed2187290eecaa158d131d0d51d9ac72e9e7168ff31206fb113",
+      "cases": 11,
+      "overallPassed": false,
+      "status": "rejected-first-attempt",
+      "actualApiRequests": 62,
+      "syntheticPostRequests": 9
+    },
+    {
+      "rawEvidence": "final-corrected-evidence.json",
+      "sha256": "a1b9cd46d74696fe167dcdd85cfcc0375ae7d4afce500b4f4cebb65067d92dde",
+      "cases": 11,
+      "overallPassed": true,
+      "status": "accepted-main-matrix",
+      "actualApiRequests": 62,
+      "syntheticPostRequests": 9
+    },
+    {
+      "rawEvidence": "visual-supplement-evidence.json",
+      "sha256": "b585bb496022c5cde208199f246aec43c4f35c15f843f022998d7e9de32c0571",
+      "cases": 2,
+      "overallPassed": false,
+      "status": "partially-rejected-copy-expectation",
+      "actualApiRequests": 13,
+      "syntheticPostRequests": 2
+    },
+    {
+      "rawEvidence": "duplicate-mobile-confirmed-evidence.json",
+      "sha256": "1f5b991121de04d883c90bfac8be98c1a208bc6206e2dd7e3c420458c55e6568",
+      "cases": 1,
+      "overallPassed": true,
+      "status": "accepted-corrected-mobile-copy",
+      "actualApiRequests": 5,
+      "syntheticPostRequests": 1
+    }
+  ],
+  "rejectedAttemptBoundaries": [
+    {
+      "phase": "rejected-first-attempt",
+      "observed": "All 11 fixture outcome assertions returned true, but 8 desktop shell comparisons changed the workspace-selector position by 48px during scroll settling. Overall acceptance was false.",
+      "fixtureIssues": "First attempt also used noncanonical token shapes and omitted pending status/createdAt and members.workspace DTO fields. It is not accepted as product evidence.",
+      "correction": "Preserved raw/screenshots; corrected fixture shapes and instant-scroll stabilization, then ran the same 11-case matrix once. No product changes."
+    },
+    {
+      "phase": "partially-rejected-copy-expectation",
+      "observed": "390px created-link case passed. Duplicate-case permissions, request counts and geometry passed, but exact Chinese copy assertion used a catalog translation instead of the final inline Members fallback. Overall two-case supplement was false.",
+      "actualInlineCopy": "此 GitHub 账户已有待接受的邀请，原链接仍可使用。若丢失链接，请先在下方撤销邀请，再生成新链接。",
+      "correction": "Preserved raw/screenshots; confirmed only the duplicate mobile case against exact frozen Members source wording. No product changes."
+    }
+  ],
+  "checks": {
+    "mainMatrix": {
+      "cases": 11,
+      "passed": 11
+    },
+    "additionalMobileVisualStates": {
+      "states": 2,
+      "accepted": 2,
+      "note": "Created-link case accepted independently from the partially rejected supplement; duplicate case accepted in the subsequent one-case confirmation."
+    },
+    "typingTriggeredApiRequests": 0,
+    "invalidInputsInvitePosts": 0,
+    "businessErrorsKeepManagement": true,
+    "businessConflictErrorsAvoidFalseVersionConflict": true,
+    "unknown403RetainsMembersLocalGuard": true,
+    "wrongAccountPreviewAcceptPosts": 0,
+    "pageErrors": 0,
+    "unexpectedRoutes": 0,
+    "overflow": 0,
+    "allFinalCapturesStable": true
+  },
+  "visualReview": {
+    "reviewers": [
+      "native_acceptance agent",
+      "root agent"
+    ],
+    "screenshots": [
+      "visual-supplement/390-zh-success-profile-url-link-status-lower.png",
+      "visual-supplement/390-zh-pending-invitation-exists-mobile.png",
+      "final-corrected/320-zh-narrow-success-long-helper-lower.png"
+    ],
+    "result": "Canonical-recipient instructions, copied link status and pending rows are readable at 390px; duplicate guidance wraps without overlap; 320px helper and long canonical recipient stay within bounds. The invitation-link input can scroll/select its full value and copy uses the exact complete URL."
+  },
+  "cases": [
+    {
+      "name": "success-at-name",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "success",
+      "responseStatus": null,
+      "responseCode": null,
+      "submittedLogin": "CaRoL",
+      "canonicalRecipient": "carol",
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 8,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [],
+      "copiedToSyntheticMemory": true,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-success-at-name.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "success-profile-url",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "kind": "success",
+      "responseStatus": null,
+      "responseCode": null,
+      "submittedLogin": "carol",
+      "canonicalRecipient": "carol",
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 8,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "撤销 carol 的邀请",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [],
+      "copiedToSyntheticMemory": true,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/390-zh-success-profile-url.png",
+      "lowerScreenshot": "final-corrected/390-zh-success-profile-url-lower.png",
+      "passed": true
+    },
+    {
+      "name": "invalid-untrusted-host",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "invalid",
+      "responseStatus": null,
+      "responseCode": null,
+      "submittedLogin": null,
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 0,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 4,
+      "mutationRequests": 0,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "Enter a valid GitHub username, @username or GitHub profile URL."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-invalid-untrusted-host.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "invalid-repository-path",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "invalid",
+      "responseStatus": null,
+      "responseCode": null,
+      "submittedLogin": null,
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 0,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 4,
+      "mutationRequests": 0,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "Enter a valid GitHub username, @username or GitHub profile URL."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-invalid-repository-path.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "pending-invitation-exists",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "error",
+      "responseStatus": 409,
+      "responseCode": "INVITATION_EXISTS",
+      "submittedLogin": "carol",
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "An invitation is already pending for this GitHub account. Revoke it below before creating a new link."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-pending-invitation-exists.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "already-member",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "error",
+      "responseStatus": 409,
+      "responseCode": "ALREADY_MEMBER",
+      "submittedLogin": "synthetic-editor",
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "That GitHub account is already a member of this ledger."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-already-member.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "pending-invitation-limit",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "error",
+      "responseStatus": 403,
+      "responseCode": "INVITATION_LIMIT",
+      "submittedLogin": "carol",
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "The pending invitation limit has been reached. Revoke an unused invitation below, then try again."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-pending-invitation-limit.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "owner-immutable",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "error",
+      "responseStatus": 403,
+      "responseCode": "OWNER_IMMUTABLE",
+      "submittedLogin": "synthetic-qa",
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "You already own this ledger. Invite another GitHub account."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-owner-immutable.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "generic-forbidden-guard",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "language": "en",
+      "kind": "forbidden",
+      "responseStatus": 403,
+      "responseCode": "SYNTHETIC_FORBIDDEN",
+      "submittedLogin": "carol",
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": false,
+        "roleEnabled": false,
+        "createEnabled": false,
+        "revokeButtons": [
+          {
+            "text": "Revoke invitation for carol",
+            "disabled": true
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "Your access changed or this invitation is for another GitHub account."
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/1440-en-generic-forbidden-guard.png",
+      "lowerScreenshot": null,
+      "passed": true
+    },
+    {
+      "name": "wrong-account-preview",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "kind": "preview",
+      "responseStatus": 403,
+      "responseCode": "INVITATION_RECIPIENT_MISMATCH",
+      "submittedLogin": null,
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 0,
+      "previewPosts": 1,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "撤销 carol 的邀请",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "此邀请属于另一个 GitHub 账户，请使用受邀账户登录。重新检查邀请"
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/390-zh-wrong-account-preview.png",
+      "lowerScreenshot": "final-corrected/390-zh-wrong-account-preview-lower.png",
+      "passed": true
+    },
+    {
+      "name": "narrow-success-long-helper",
+      "sourceEvidence": "final-corrected-evidence.json",
+      "viewport": {
+        "width": 320,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "kind": "success",
+      "responseStatus": null,
+      "responseCode": null,
+      "submittedLogin": "synthetic-recipient-with-long-login",
+      "canonicalRecipient": "synthetic-recipient-with-long-login",
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 8,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "撤销 synthetic-recipient-with-long-login 的邀请",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [],
+      "copiedToSyntheticMemory": true,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "final-corrected/320-zh-narrow-success-long-helper.png",
+      "lowerScreenshot": "final-corrected/320-zh-narrow-success-long-helper-lower.png",
+      "passed": true
+    }
+  ],
+  "visualSupplementCases": [
+    {
+      "name": "success-profile-url-link-status",
+      "sourceEvidence": "visual-supplement-evidence.json",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "kind": "success",
+      "responseStatus": null,
+      "responseCode": null,
+      "submittedLogin": "carol",
+      "canonicalRecipient": "carol",
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 8,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "撤销 carol 的邀请",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [],
+      "copiedToSyntheticMemory": true,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "visual-supplement/390-zh-success-profile-url-link-status.png",
+      "lowerScreenshot": "visual-supplement/390-zh-success-profile-url-link-status-lower.png",
+      "passed": true
+    },
+    {
+      "name": "pending-invitation-exists-mobile",
+      "sourceEvidence": "duplicate-mobile-confirmed-evidence.json",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "language": "zh",
+      "kind": "error",
+      "responseStatus": 409,
+      "responseCode": "INVITATION_EXISTS",
+      "submittedLogin": "carol",
+      "canonicalRecipient": null,
+      "typingApiRequests": 0,
+      "invitePosts": 1,
+      "previewPosts": 0,
+      "acceptPosts": 0,
+      "actualApiRequests": 5,
+      "mutationRequests": 1,
+      "management": {
+        "inviteInputEnabled": true,
+        "roleEnabled": true,
+        "createEnabled": true,
+        "revokeButtons": [
+          {
+            "text": "撤销 carol 的邀请",
+            "disabled": false
+          }
+        ],
+        "selectedOwnedWorkspaceRetained": true
+      },
+      "alerts": [
+        "此 GitHub 账户已有待接受的邀请，原链接仍可使用。若丢失链接，请先在下方撤销邀请，再生成新链接。"
+      ],
+      "copiedToSyntheticMemory": false,
+      "acceptButtons": 0,
+      "shellStable": true,
+      "visibleControlBoundsInvalid": 0,
+      "overflow": 0,
+      "screenshot": "duplicate-mobile-confirmed/390-zh-pending-invitation-exists-mobile.png",
+      "lowerScreenshot": "duplicate-mobile-confirmed/390-zh-pending-invitation-exists-mobile-lower.png",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Synthetic frontend response handling only. This does not verify real GitHub username resolution/recipient identity, Server authorization/CAS persistence, actual invitations, delivery, shared-ledger acceptance or payment/provider behavior.",
+    "No accept or revoke mutation was dispatched. Wrong-account preview exposes no Accept control and issues no accept POST; existing pending invitation revoke buttons remain enabled after the four business errors.",
+    "The generic 403 case uses an unknown synthetic error code and proves the Members local access fence. It does not establish App-wide ROLE_FORBIDDEN/WORKSPACE_FORBIDDEN membership-refresh behavior.",
+    "English covers all four business error messages; Chinese covers success, duplicate invitation, wrong-account preview and narrow helper wrapping. Other locales and Safari/WebKit are not browser-verified.",
+    "The earlier reported five failing unit regression assertions are separate upstream unit-test evidence, not a browser baseline observed by this harness."
+  ],
+  "passed": true
+}

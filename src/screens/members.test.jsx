@@ -221,6 +221,138 @@ describe("Members screen", () => {
     );
   });
 
+  it.each([
+    [" carol ", "carol"],
+    ["@CaRoL", "CaRoL"],
+    [" https://github.com/carol/ ", "carol"],
+    ["https://github.com/carol?tab=repositories", "carol"],
+    ["github.com/carol", "carol"],
+    ["https://github.com/a--b", "a--b"],
+    ["a".repeat(39), "a".repeat(39)],
+  ])(
+    "normalizes invitation recipient %s before the single creation request",
+    async (input, login) => {
+      show();
+      const recipient = await screen.findByLabelText("GitHub username");
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
+      );
+      fireEvent.change(recipient, { target: { value: input } });
+      fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
+      await screen.findByLabelText("New invitation link");
+      expect(api.inviteMember).toHaveBeenCalledTimes(1);
+      expect(api.inviteMember).toHaveBeenCalledWith(
+        "ws_owner",
+        { githubLogin: login, role: "viewer" },
+        {}
+      );
+      expect(
+        screen.getByText("Send this link to @carol. Only that GitHub account can accept it.")
+      ).toBeVisible();
+    }
+  );
+
+  it.each([
+    "https://github.com.evil.test/carol",
+    "https://evil.test/carol",
+    "https://user@github.com/carol",
+    "https://github.com:443/carol",
+    "http://github.com/carol",
+    "https://github.com/carol/repository",
+    "https://github.com/a/../carol",
+    "https://github.com/%63arol",
+    "https://github.com/carol#profile",
+    "https://github.com/carol?redirect=elsewhere",
+    "@@carol",
+    "-carol",
+    "carol-",
+    "a".repeat(40),
+    "卡罗尔",
+    "car ol",
+  ])("rejects malformed invitation recipient %s locally without an API request", async (input) => {
+    show();
+    const recipient = await screen.findByLabelText("GitHub username");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
+    );
+    fireEvent.change(recipient, { target: { value: input } });
+    fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Enter a valid GitHub username, @username or GitHub profile URL."
+    );
+    expect(recipient).toHaveFocus();
+    expect(recipient).toHaveValue(input);
+    expect(api.inviteMember).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled();
+  });
+
+  it.each([
+    [
+      409,
+      "INVITATION_EXISTS",
+      "carol",
+      "An invitation is already pending for this GitHub account. Revoke it below before creating a new link.",
+    ],
+    [409, "ALREADY_MEMBER", "bob", "That GitHub account is already a member of this ledger."],
+    [
+      403,
+      "INVITATION_LIMIT",
+      "dave",
+      "The pending invitation limit has been reached. Revoke an unused invitation below, then try again.",
+    ],
+    [
+      403,
+      "OWNER_IMMUTABLE",
+      "alice",
+      "You already own this ledger. Invite another GitHub account.",
+    ],
+  ])(
+    "keeps invitation business failure %s/%s local and permits explicit revocation",
+    async (status, code, login, message) => {
+      api.invites.mockResolvedValue({ items: [invitation] });
+      api.inviteMember.mockRejectedValue(error(status, code));
+      const accessChanged = vi.fn();
+      show({ onAccessChanged: accessChanged });
+      const revoke = await screen.findByRole("button", { name: "Revoke invitation for carol" });
+      await waitFor(() => expect(revoke).toBeEnabled());
+      fireEvent.change(screen.getByLabelText("GitHub username"), { target: { value: login } });
+      fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      expect(screen.queryByText(/Changes conflict with a newer version/)).not.toBeInTheDocument();
+      expect(accessChanged).not.toHaveBeenCalled();
+      expect(api.inviteMember).toHaveBeenCalledTimes(1);
+      expect(api.members).toHaveBeenCalledTimes(1);
+      expect(api.invites).toHaveBeenCalledTimes(1);
+      expect(revoke).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled();
+      expect(screen.getByText("Bob")).toBeVisible();
+      fireEvent.click(revoke);
+      await waitFor(() =>
+        expect(api.revokeInvite).toHaveBeenCalledWith("ws_owner", "inv_1", 1, {})
+      );
+    }
+  );
+
+  it.each([403, 404, 409, 412])(
+    "keeps a generic invitation creation %s protected until reload",
+    async (status) => {
+      api.invites.mockResolvedValue({ items: [invitation] });
+      api.inviteMember.mockRejectedValue(error(status));
+      const accessChanged = vi.fn();
+      show({ onAccessChanged: accessChanged });
+      const revoke = await screen.findByRole("button", { name: "Revoke invitation for carol" });
+      await waitFor(() => expect(revoke).toBeEnabled());
+      fireEvent.change(screen.getByLabelText("GitHub username"), { target: { value: "carol" } });
+      fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
+      await screen.findByRole("alert");
+      expect(revoke).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Create invitation" })).toBeDisabled();
+      expect(accessChanged).toHaveBeenCalledTimes(status === 403 || status === 404 ? 1 : 0);
+      expect(api.inviteMember).toHaveBeenCalledTimes(1);
+      expect(api.revokeInvite).not.toHaveBeenCalled();
+    }
+  );
+
   it("warns about the entire ledger and reveals/copies only the newly issued invitation link", async () => {
     const copy = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { clipboard: { writeText: copy } });
@@ -451,7 +583,9 @@ describe("Members screen", () => {
   it("recovers a confirmed acceptance through a read-only preview without replaying the acceptance write", async () => {
     window.history.replaceState(null, "", "/members#invite=incoming-token");
     api.acceptInvitation.mockRejectedValueOnce(new Error("Connection lost"));
-    api.previewInvitation.mockResolvedValueOnce(preview).mockResolvedValueOnce({ ...preview, status: "accepted" });
+    api.previewInvitation
+      .mockResolvedValueOnce(preview)
+      .mockResolvedValueOnce({ ...preview, status: "accepted" });
     const changed = vi.fn();
     show({ workspace: null, onMembershipChanged: changed });
     fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
