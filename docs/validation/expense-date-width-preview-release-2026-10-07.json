@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-07",
+  "status": "Published preview and verified",
+  "runtimeSource": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "commit": "2db8d2391bc72221f44d253af3033f1f6a333859",
+    "tree": "27cd2252646f58d0088f167bb63cb6ad4d028b74"
+  },
+  "localValidation": {
+    "tests": 434,
+    "testFiles": 36,
+    "lint": true,
+    "build": true,
+    "workerConfiguration": true,
+    "cssFormatting": true,
+    "interceptedExpenseForms": 8,
+    "unfocusedVisualSupplement": 1,
+    "webkitSafariAvailable": false,
+    "reference": "expense-date-width-local-2026-10-07.json"
+  },
+  "publication": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "previousVersion": "4a78411e-5ea3-431d-947f-f85abe35e0fb",
+    "version": "22216794-c8a3-4fd0-bc5e-55c9726b9f5f",
+    "deployment": "12fe2288-ed05-499d-a706-48aaf6fdba56",
+    "trafficPercentage": 100,
+    "createdAt": "2026-10-07T06:51:45.188772Z",
+    "assetManifestCount": 42,
+    "uploadedFiles": 3,
+    "uploadBuckets": 3,
+    "workerSha256": "f9fa644e68f10113bfc960538c45707ea3d3d240f8ba0025b1175fc99e17a089",
+    "manifestSha256": "f6230bc1ce1bcee31581ecae807aff2e37c1f58e4dc82528d93a4d365c6ed375"
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "previewBindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "compatibilityFlags": [],
+    "logpush": false,
+    "SPA": true,
+    "runWorkerFirst": [
+      "/*",
+      "!/assets/*"
+    ],
+    "securityHeadersRetained": true
+  },
+  "staticVerification": {
+    "passed": true,
+    "sourceSha": "2db8d2391bc72221f44d253af3033f1f6a333859",
+    "version": "22216794-c8a3-4fd0-bc5e-55c9726b9f5f",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4917,
+        "contentType": "text/html",
+        "noindex": "noindex, nofollow"
+      },
+      {
+        "path": "/assets/ledger-C8hciBb7.css",
+        "status": 200,
+        "bytes": 10192,
+        "contentType": "text/css",
+        "sha256": "c8c80b0fd21417ae3b0e792093314c641c655aea2af8907b8243ab0108c145e3"
+      },
+      {
+        "path": "/assets/index-rjRHPbxJ.js",
+        "status": 200,
+        "bytes": 42047,
+        "contentType": "text/javascript",
+        "sha256": "6e1c2dbc9c5259e5ff598d4afeac1c51a0e41379ffc35f633315127b63efa60d"
+      },
+      {
+        "path": "/assets/ledger-Bvh7ex7i.js",
+        "status": 200,
+        "bytes": 53251,
+        "contentType": "text/javascript",
+        "sha256": "3c256c9ee701cdc495836e605f7b0046f4bd7c13f7c8eb9e1ff889abda652cb3"
+      }
+    ],
+    "forwardedRequests": 4,
+    "blockedRequests": 2,
+    "apiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "javaScriptEnabled": false,
+    "cookiesProvided": false,
+    "credentialsProvided": false,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "screenshots": false,
+    "traces": false,
+    "scope": "Actual Chromium exact static paths only; no Server service invocation",
+    "browserClosed": true,
+    "completedAt": "2026-10-07T06:52:14.856Z"
+  },
+  "scope": {
+    "webOnly": true,
+    "serverPublication": false,
+    "productionMutation": false,
+    "apiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "businessWrites": 0,
+    "realSessions": false,
+    "realPayments": false
+  },
+  "limitations": [
+    "Eight form-width cases and the unfocused capture are local Chromium evidence; native Safari rendering was not tested.",
+    "The four remote GETs establish static publication identity, not new authenticated expense acceptance."
+  ],
+  "privateCompletionTokenRemoved": true
+}

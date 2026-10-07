@@ -17,6 +17,13 @@ and 288px respectively, across blank, fill, clear and refill states. Editing
 the date triggers no additional API request. All fixtures are intercepted
 locally; this is not a real Safari or authenticated preview acceptance claim.
 
+Source `2db8d2391bc72221f44d253af3033f1f6a333859` is on main and published
+to preview as `22216794-c8a3-4fd0-bc5e-55c9726b9f5f` at 100% traffic.
+Bindings and asset routing match the preview configuration. Exactly four
+static GETs passed, including matching final asset sizes/hashes; no JavaScript,
+business API or D1 was invoked. See the
+[publication record](expense-date-width-preview-release-2026-10-07.json).
+
 ## Projects console spacing (2026-10-07)
 
 The Projects search icon/input share one control border, with 16px before a
