@@ -2,6 +2,41 @@
 
 Updated 2026-10-07. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Final real REST and temporary-key acceptance (2026-10-07)
+
+[DFerryman's consented real preview run](rest-final-real-preview-2026-10-07.json)
+passes **28 business HTTP requests**, spaced at least five seconds, with six
+mutation attempts: one temporary key issuance, four exact `INSUFFICIENT_SCOPE`
+rejections and one issuer revocation. The key expires after 900 seconds and
+contains only the five default read scopes, one existing project allowlist,
+its owner's workspace and `shared: false`. No project, category or expense was
+created or changed; no real payment or model request was made.
+
+Profile, project list/detail, categories, one-day expense list, all three
+reports and CSV return their expected success. Shared-pool reads/export,
+workspace override, the known QA ID and a second existing personal project
+outside the allowlist are forbidden. Key management requires the issuer's session; missing authentication
+is rejected. Project/category/expense writes and standalone suggestions reject
+the absent write/use scope before resource/model work. The known QA project ID
+proves an allowlist rejection, not the continued existence of a foreign project.
+
+Issuer revocation succeeds; the token disappears from the active metadata
+list and immediately returns **401 UNAUTHENTICATED** on the next request.
+The sole consented session/token existed only in process memory; the receiver
+has exited and cleared them. Sanitized evidence retains no credential or raw
+financial body. This one-key real run covers five present read scopes and four
+absent write/use scopes; all nine-scope/four-role issuance/principal matrices
+and additional write-success paths are separately local SQL/native evidence.
+
+[Temporary helper cleanup](rest-final-helper-cleanup-2026-10-07.json) is verified:
+the exact consent route, Worker and its own Durable Object namespace are absent;
+the original product budget namespace remains present. The receiver has exited
+and six local helper control files have been removed. One anonymous, DO-only
+post-acceptance budget read confirms schema v6 and no permanent row cutoff.
+The interval added 906 observed D1 rows read and 25 rows written (reserved
+906/35); these counter deltas may include concurrent activity and are not a
+per-request attribution. No budget reset or repeated test loop was used.
+
 ## Blank projects: local acceptance (2026-10-07)
 
 Projects now default to a required project name and optional description. GitHub
@@ -35,9 +70,15 @@ attempt. No request was forwarded; real credentials, D1, providers and payments
 were not used. Screenshots and geometry checks confirm no horizontal overflow
 or control overlap, and the date input matches neighboring widths.
 
-Local native Server business/schema evidence is separate in the companion
-record. This section precedes explicit preview publication and the separately
-consented DFerryman REST/key-revocation acceptance; it does not claim either.
+[Explicit preview publication](blank-projects-preview-release-2026-10-07.json)
+serves Web source `19d134f0dc2532052f69051acb61be501392fdf6`, version
+`0a588b77-3625-4943-aee5-4c57e2c2bbc6`, at 100% traffic. Four anonymous,
+no-JavaScript GETs verify the current HTML/noindex, Ledger CSS, entry JS and
+actual Projects UI module by exact bytes/hash. They invoke no REST/D1. Runtime
+asset metadata confirms the SPA fallback, shell security headers, immutable
+assets and Worker-first routing. The Server companion source is deployed at
+100%, schema v6/health verified with its original DB/journal/Secrets preserved.
+The consented DFerryman final REST/key-revocation result is separate.
 
 ## Named member invitation UX (2026-10-07)
 
