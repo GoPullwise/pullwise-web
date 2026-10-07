@@ -45,7 +45,16 @@ overlap or document overflow. All traffic and clipboard activity are synthetic
 and intercepted locally; there are no real sessions, provider calls or D1
 operations. The first rejected capture run and a supplement copy-expectation
 failure are retained separately from the corrected passing evidence.
-Preview publication is recorded separately when complete.
+
+Source `b39039ef4d0e77fd1435f5977f0f55c0d06a9587` is on main and published
+to preview as `54cd490e-3a59-4eea-be4e-12641def0ae4` at 100% traffic.
+Management read-back retained preview bindings, SPA handling, Worker-first HTML
+and security headers. Exactly four static GETs passed: HTML with noindex,
+Ledger CSS, the entry runtime and the actual Members runtime, with resource
+sizes/SHA-256 matching the final local build. JavaScript, sessions, business
+API and D1 operations were excluded. See the
+[publication record](member-invitation-ux-preview-release-2026-10-07.json).
+Server and production configuration were not changed.
 
 ## Expense date input width (2026-10-07)
 

@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-07",
+  "status": "Published preview and verified",
+  "runtimeSource": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "commit": "b39039ef4d0e77fd1435f5977f0f55c0d06a9587",
+    "tree": "e336cef6c8412314d9d5a36a1dff0912dd0e3705"
+  },
+  "localValidation": {
+    "tests": 465,
+    "testFiles": 36,
+    "lint": true,
+    "build": true,
+    "workerConfiguration": true,
+    "focusedMembersAndAppTests": 72,
+    "interceptedInvitationCases": 11,
+    "mobileVisualStates": 2,
+    "webkitSafariAvailable": false,
+    "reference": "member-invitation-ux-local-2026-10-07.json"
+  },
+  "publication": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "previousVersion": "22216794-c8a3-4fd0-bc5e-55c9726b9f5f",
+    "version": "54cd490e-3a59-4eea-be4e-12641def0ae4",
+    "deployment": "a1e3e953-147a-4218-8674-a0d86d1dc0b9",
+    "trafficPercentage": 100,
+    "createdAt": "2026-10-07T07:15:04.46088Z",
+    "assetManifestCount": 42,
+    "uploadedFiles": 19,
+    "uploadBuckets": 3,
+    "workerSha256": "f9fa644e68f10113bfc960538c45707ea3d3d240f8ba0025b1175fc99e17a089",
+    "manifestSha256": "dd725253240a16ec13d4c6f37d00493245b2d62a7d8ebe3ddd8e82980ad99143"
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "previewBindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "compatibilityFlags": [],
+    "logpush": false,
+    "SPA": true,
+    "runWorkerFirst": [
+      "/*",
+      "!/assets/*"
+    ],
+    "securityHeadersRetained": true
+  },
+  "staticVerification": {
+    "passed": true,
+    "sourceSha": "b39039ef4d0e77fd1435f5977f0f55c0d06a9587",
+    "version": "54cd490e-3a59-4eea-be4e-12641def0ae4",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4917,
+        "contentType": "text/html",
+        "noindex": "noindex, nofollow"
+      },
+      {
+        "path": "/assets/ledger-C8hciBb7.css",
+        "status": 200,
+        "bytes": 10192,
+        "contentType": "text/css",
+        "sha256": "c8c80b0fd21417ae3b0e792093314c641c655aea2af8907b8243ab0108c145e3"
+      },
+      {
+        "path": "/assets/index-CH3-RK2R.js",
+        "status": 200,
+        "bytes": 42047,
+        "contentType": "text/javascript",
+        "sha256": "9cfba969b34b9885a9866c0c13c31cdc7eeb89673655297ce72b9018be23427f"
+      },
+      {
+        "path": "/assets/members-pUt3ty-l.js",
+        "status": 200,
+        "bytes": 18193,
+        "contentType": "text/javascript",
+        "sha256": "6a366394cb95e13613bc6451a2f650d09431c5a6ffeb00b2a3497c8c345ba347"
+      }
+    ],
+    "forwardedRequests": 4,
+    "blockedRequests": 2,
+    "apiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "javaScriptEnabled": false,
+    "cookiesProvided": false,
+    "credentialsProvided": false,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "screenshots": false,
+    "traces": false,
+    "scope": "Actual Chromium exact static paths only; no Server service invocation",
+    "browserClosed": true,
+    "completedAt": "2026-10-07T07:15:42.905Z"
+  },
+  "scope": {
+    "webOnly": true,
+    "serverPublication": false,
+    "productionMutation": false,
+    "apiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "businessWrites": 0,
+    "realSessions": false,
+    "realPayments": false
+  },
+  "limitations": [
+    "The 11 browser cases and two mobile visual states use local synthetic responses and in-memory clipboard; they do not establish new real-account or Server persistence acceptance.",
+    "The first capture run and one mobile copy-expectation failure were rejected and preserved separately; only corrected passing evidence is accepted.",
+    "Remote verification comprises exactly four static GETs, including the actual Members runtime, with JavaScript and credentials excluded. Safari/WebKit was not tested."
+  ],
+  "privateCompletionTokenRemoved": true
+}
