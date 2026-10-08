@@ -6,7 +6,7 @@ import { LEDGER_UI_PHRASES } from "./locales/ledger-ui.js";
 import { LEDGER_SCREEN_PHRASES } from "./locales/ledger-screen.js";
 
 const LEDGER_COPY = [
-  "Projects", "Shared expense pool", "Account overview", "Totals by currency",
+  "Projects", "Project", "Project expenses", "Shared expense pool", "Account overview", "Totals by currency",
   "From date", "Export CSV", "Automatic", "Save expense", "Automatic Max assistance",
   "Jev categorized this expense", "This expense may duplicate an existing entry. Review your records.",
   "Choose a category to finish saving. Your draft is still here.",

@@ -2,6 +2,59 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Divider midpoints, text selection and project detail clarity (2026-10-08)
+
+Both resize grips now inherit the shared absolute midpoint rule and scroll
+with their own divider. The sidebar grip retains its matching 10px line offset;
+the secondary divider continues to measure the two primary panels and excludes
+account overview. This supersedes the earlier viewport-sticky grip behavior.
+Pointer/keyboard capture, accessible values, width bounds and mobile hiding
+remain unchanged.
+
+Record data and prose remain selectable. The public-page audit removes broad
+selection suppression from status details, legal update dates, landing examples,
+404 requested paths and dialog titles/descriptions. Only navigation/action
+regions suppress selection; input fields, ordinary links and informational tags
+remain selectable. Existing native project-name copy protection and drag cleanup
+remain in place.
+
+Project detail initially uses Project expenses and Loading project expenses…;
+a no-data failure explicitly says Unable to load project expenses. Successful
+and retained refresh views keep the actual project name and the short Expenses
+and reports for this project description. Unnamed project/picker fallbacks use
+Project. All six languages are covered; historical lost-access guidance is intact.
+
+Shared terminal panel rules omit closing borders when no subsequent visible
+content exists. Hidden views and resize overlays are ignored; list-item borders
+and genuine section boundaries remain. Mobile expense-entry order retains the
+form-to-record divider and omits the records' closing border.
+
+`npm run check` passes lint, **38 test files / 529 tests** and build. Worker
+configuration/syntax, owned-source formatting/diff and Wrangler 4.136.3 preview
+packaging checks pass. Flat locale catalogs/tests keep their established style.
+The final preview build has 45 files and uses only preview URL/API/App settings.
+
+[Built-browser acceptance](console-clarity-local-2026-10-08.json) passes **5
+physical contributing contexts / 123 accepted states / 25 unedited captures**.
+Desktop 1440px English/light, actual-touch 900px Chinese/dark, live 390/320px,
+public pages, a trusted native modal opener and readonly project settings
+cover midpoint scroll geometry, pointer/keyboard/touch cancellation, complete
+native text copying without navigation/extra reads, controlled project loading,
+and genuine/terminal borders across eight console routes. The public segment
+accepts only its 18 successful selection states; an unrelated non-native-opener
+focus assumption is excluded, and a trusted native supplement proves focus.
+
+Accepted contexts record **257 intercepted requests / 110 fixture GETs / 0
+mutations**; each stays below the 120-request cap (maximum 87). Seven wholly
+excluded diagnostic contexts record 281 intercepted/83 GETs separately. Smooth
+scroll measurement, decorative inline/text endpoints and icon separator spaces
+required harness corrections only; runtime/artifacts never changed. Different
+runs retain explicit provenance with each physical context counted once.
+External origins are blocked. All 45 artifact and 11 runtime source hashes
+remain stable. Independent source and root visual reviews pass, and owned
+browser/CDP/Vite/profile cleanup is complete. These are synthetic local checks;
+preview publication remains static-only, with production and Server/D1 untouched.
+
 ## Shared console interactions and financial hierarchy (2026-10-08)
 
 The frontend goals are now recorded in `AGENTS.md`: simple layouts, prominent

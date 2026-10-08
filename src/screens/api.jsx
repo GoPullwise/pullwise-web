@@ -114,7 +114,7 @@ function projectChoices(payload) {
       );
       return {
         id: project.id,
-        label: textValue(project.name, repository, project.description) || T("Project history"),
+        label: textValue(project.name, repository, project.description) || T("Project", "项目"),
         description: textValue(project.description),
         repository,
         archived: project.status === "archived",

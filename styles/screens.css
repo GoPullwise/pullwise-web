@@ -2483,6 +2483,7 @@
   margin: 0 0 24px;
 }
 .notfound-req .kbd {
+  user-select: text;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--text-3);

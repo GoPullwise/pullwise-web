@@ -532,12 +532,7 @@ a.crumb-button:hover {
   left: 10px;
 }
 .console-sidebar-resizer::after {
-  position: sticky;
-  display: block;
-  top: calc((100dvh + var(--workspace-header-height, 54px)) / 2);
-  left: auto;
-  margin-left: 6px;
-  transform: translateY(-50%);
+  left: 10px;
 }
 .side {
   position: sticky;
@@ -936,6 +931,11 @@ a.crumb-button:hover {
   border-bottom: 1px solid var(--border);
   min-width: 0;
 }
+/* A section divider separates following content, not the page from empty
+   space. Hidden views and overlaid resize controls do not add a section. */
+.panel:not(:has(~ :not([hidden], [role="separator"]))) {
+  border-bottom: 0;
+}
 .panel > h2 {
   font-size: var(--fs-3xl);
   font-weight: 600;
@@ -1042,25 +1042,25 @@ details.panel[open] > summary.panel-h::after,
 .topbar,
 .crumbs,
 .side,
-.modal-h,
 .modal-foot,
 .lang-picker,
 .kbd,
-.sev,
 .badge,
 .dot,
 .notfound-suggest-i,
 .seg-i,
 .pricing-toggle,
 .lp-top,
-.lp-preview,
+.lp-preview-side,
+.lp-foot-links,
+.auth-back-home,
 .docs-side,
-.legal-side,
+.docs-crumbs,
+.legal-side-h,
+.legal-side-i,
+.legal-crumbs,
 .set-side,
-.status-overall,
-.status-dot,
-.status-row-region,
-.status-row-pct {
+.status-dot {
   user-select: none;
 }
 

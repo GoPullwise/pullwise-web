@@ -825,6 +825,7 @@ describe("ledger screens", () => {
     const go = vi.fn();
     render(<LedgerScreen go={go} mode="project" projectId="prj_1" />);
     await screen.findByRole("heading", { name: "alice/project", level: 1 });
+    expect(screen.getByText("Expenses and reports for this project.")).toBeVisible();
     const breadcrumbs = within(screen.getByRole("navigation", { name: "Breadcrumbs" }));
     const parent = breadcrumbs.getByRole("link", { name: "Go to Projects" });
     expect(parent).toHaveAttribute("href", "/projects");
@@ -846,6 +847,9 @@ describe("ledger screens", () => {
     api.project.mockRejectedValueOnce(new Error("Project unavailable"));
     render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
     await screen.findByRole("alert");
+    expect(screen.getByRole("heading", { name: "Project expenses", level: 1 })).toBeVisible();
+    expect(screen.getByText("Unable to load project expenses.")).toBeVisible();
+    expect(screen.queryByText("Project history")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to projects" })).toHaveAttribute(
       "href",
       "/projects"
@@ -881,7 +885,10 @@ describe("ledger screens", () => {
 
     render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
 
-    const status = screen.getByRole("status", { name: /loading ledger/i });
+    expect(screen.getByRole("heading", { name: "Project expenses", level: 1 })).toBeVisible();
+    expect(screen.getByText("Loading project expenses…")).toBeVisible();
+    expect(screen.queryByText("Project history")).not.toBeInTheDocument();
+    const status = screen.getByRole("status", { name: /loading project expenses/i });
     expect(status.querySelectorAll(".ledger-stats")).toHaveLength(1);
     expect(status.querySelectorAll(".ledger-filter-bar")).toHaveLength(1);
     expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(0);

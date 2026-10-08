@@ -1,0 +1,1230 @@
+{
+  "date": "2026-10-08",
+  "scope": "Web UI only; GitHub main; publish preview.pull-wise.com only",
+  "sourceBase": "bddafe7c1267970b98fe0c055a4d66b71a8eee78",
+  "frontendGoals": [
+    "Simple layouts / \u5e03\u5c40\u7b80\u6d01",
+    "Prominent priorities / \u91cd\u70b9\u7a81\u51fa",
+    "Clear, understandable actions / \u64cd\u4f5c\u6e05\u6670\u660e\u4e86"
+  ],
+  "implementation": {
+    "dividerGrips": "Shared absolute top:50% and two-axis translate; navigation left:10px matches its line. Both grips scroll with actual divider midpoint. Existing bounds, capture, keyboard, accessible values and mobile hiding unchanged.",
+    "selection": "Navigation/actions avoid accidental selection; prose, names/accounts, financial values, dates, IDs/key prefixes, ordinary links/tags remain selectable. Public status/last-updated/404 paths/preview examples/modal headers corrected by narrowing owners. Native selected-link copy and drag cleanup unchanged.",
+    "projectCopy": {
+      "initialTitle": "Project expenses",
+      "initialDescription": "Loading project expenses\u2026",
+      "loadedTitle": "Actual project name",
+      "loadedDescription": "Expenses and reports for this project.",
+      "noDataErrorDescription": "Unable to load project expenses.",
+      "namelessFallback": "Project",
+      "languages": 6,
+      "retainedRefreshAndHistoricalAccessGuidancePreserved": true
+    },
+    "terminalBorders": "Common final visible-content rules ignore hidden siblings and separator overlays. Genuine section/list boundaries remain; mobile expense-entry order explicitly keeps form-to-record border and removes last records closing border."
+  },
+  "checks": {
+    "npmRunCheck": {
+      "passed": true,
+      "lint": true,
+      "testFiles": 38,
+      "tests": 529,
+      "build": true
+    },
+    "workerConfigurationAndSyntax": true,
+    "previewWranglerDryRun": true,
+    "ownedSourceFormattingAndDiff": true,
+    "localeFormatting": "Catalogs and locale tests retain their established flat style; all translations/syntax covered by check."
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "runtimeSourceHashes": [
+    {
+      "path": "styles/base.css",
+      "sha256": "7258736642bd5d5c87db31217a2035e28a67566e6e8910623fa9e1a7bc097106"
+    },
+    {
+      "path": "styles/screens.css",
+      "sha256": "3b5f3bbac8a6691da1c1a363c6456823d7090310d1a6a4e97c885fc5b5909632"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "sha256": "9582d03d8a6b295ff83f76290b444ad3a12d94941be0d3919de61d0d98ee1460"
+    },
+    {
+      "path": "src/lib/navigation.js",
+      "sha256": "d7a1ac6a1fcf77da0ec4046475169e949edc8113ac37cc94cf775aad1b675eee"
+    },
+    {
+      "path": "src/screens/ledger.jsx",
+      "sha256": "b6eab32ddd661b67e94a526ecfe93cc87b8a4d8526efab2d8dbca5ef81d4358b"
+    },
+    {
+      "path": "src/screens/api.jsx",
+      "sha256": "87fd366fdce1b353facc22aff83c1ead5ff78f234bf3fe1d526e60e3dcd5516e"
+    },
+    {
+      "path": "src/locales/ledger.js",
+      "sha256": "42e21d563abba2b4ad6b3cafebef4191dec7142426edfdf642674816b2e63a90"
+    },
+    {
+      "path": "src/locales/ledger-screen.js",
+      "sha256": "6c80ffb9c9fd193a24e4c0d80d741e12e20d0e4e126555bfe2c4d3803e7c5922"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    }
+  ],
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-CRMLCJP7.js",
+      "bytes": 24197,
+      "sha256": "87651bc9cb3567cf3a4f0423c5916374144300db695778d37d8c1c52f79ce9ea"
+    },
+    {
+      "path": "assets/api-docs-DOTS1bG3.js",
+      "bytes": 14645,
+      "sha256": "d22b40b9c12f94ba5d8cf87fff570b3daeedddfd6e9adcd591e0fdce799b7b3f"
+    },
+    {
+      "path": "assets/auth-8nntGaRT.js",
+      "bytes": 8495,
+      "sha256": "d3b8da697839b6d6e54f40b002d2027720c132561a6830dd8e661c79ce662ae2"
+    },
+    {
+      "path": "assets/billing-C-bjA83Q.js",
+      "bytes": 32327,
+      "sha256": "3808e2af4e589e3e29f660cb67c6339e839ffda3e600b96414af338efe03ef77"
+    },
+    {
+      "path": "assets/confirm-dialog-eWuXdNuQ.js",
+      "bytes": 2992,
+      "sha256": "97ade48f991fd515ef86146a1970768bb712de2bc630b0449aa588825cb953b9"
+    },
+    {
+      "path": "assets/console-layout-CG-hxhiz.js",
+      "bytes": 4262,
+      "sha256": "74f924a700b9bbc62d6eb0219b13f7c7dc9dc1783c51330279aef0fae0b085ca"
+    },
+    {
+      "path": "assets/docs-DPmU8dSi.js",
+      "bytes": 6565,
+      "sha256": "58ec4f22987352fdc707ec7444416cab9d67e23534323e4b7988bf320e2f5d9b"
+    },
+    {
+      "path": "assets/dynamic-DCZrMema.js",
+      "bytes": 4150,
+      "sha256": "501dd5c94f8fbf844992a8bb94d3de3b267653e8cff8bdfe7e13b310d8c63dfc"
+    },
+    {
+      "path": "assets/es-683QKabM.js",
+      "bytes": 12961,
+      "sha256": "749d530105eaa50b1e5bb4e0faad2e4160511b335f73458be9174a260bb47130"
+    },
+    {
+      "path": "assets/financial-value-QxLZwFKp.js",
+      "bytes": 477,
+      "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+    },
+    {
+      "path": "assets/fr-DfZHQbgS.js",
+      "bytes": 13283,
+      "sha256": "db2319ec96719e64469b1f1c0191eecdd33a6ed88aefef054a7f206384a23019"
+    },
+    {
+      "path": "assets/index-BXbApSmU.js",
+      "bytes": 42173,
+      "sha256": "058296df85267946f733108faf730ab890cd19fbff3120a8ad31959b8f336ed6"
+    },
+    {
+      "path": "assets/index-Dk2qL_6C.css",
+      "bytes": 78673,
+      "sha256": "d5830cf5acfe451eb9f2c953c8632841477c6dc56e1d69a986425a36041eac25"
+    },
+    {
+      "path": "assets/ja-C8b4xV62.js",
+      "bytes": 13959,
+      "sha256": "514f4a4dc67d95220873faf28838651d4d465993c5b532894fdd469fea4c918b"
+    },
+    {
+      "path": "assets/ko-BUVTLl8w.js",
+      "bytes": 12762,
+      "sha256": "b8e2eb7689b5f3fb0c3f938cc36c239693737edf09d2e5b8dc6ba63cf1d6c2b5"
+    },
+    {
+      "path": "assets/ledger-04iPuyDQ.js",
+      "bytes": 2925,
+      "sha256": "5c53ce5e74c65c8f9402498f280bb3091d288ac404aa51192a08c0065f36540e"
+    },
+    {
+      "path": "assets/ledger-8wSoYICE.js",
+      "bytes": 11569,
+      "sha256": "94834ca420932fe3c99726da6a418440f19609233ebfded68cef6010ea3f808d"
+    },
+    {
+      "path": "assets/ledger-Do9xzD33.css",
+      "bytes": 11854,
+      "sha256": "882558db01e2172402b2ea54618cface217a5ea6cc57334cb38dcab18080ab8e"
+    },
+    {
+      "path": "assets/ledger-EQRxzV_M.js",
+      "bytes": 1545,
+      "sha256": "d38648dfbd6da77944725f66a9cf5b38c147aa98038dd2a850bc70ed1c3540c7"
+    },
+    {
+      "path": "assets/ledger-gbZbmPYo.js",
+      "bytes": 56491,
+      "sha256": "0ef8fd2aad718fc36fd82bafd77af40a5ec7d7b2135a2227bb1cd1dbccdc41ef"
+    },
+    {
+      "path": "assets/ledger-longform-DOxwwOdJ.js",
+      "bytes": 53941,
+      "sha256": "55a1d40a3b1c62fe6a5a7858e5485a8dbb5e0f0b01f1f5482a08a04d8795a9bd"
+    },
+    {
+      "path": "assets/ledger-scopes-B4otesy_.js",
+      "bytes": 3975,
+      "sha256": "a3afd12cc23a107eddb1efa9e97135d76ccff3b8222aae644bc8b9c39e2a155a"
+    },
+    {
+      "path": "assets/ledger-screen-uZBtPae1.js",
+      "bytes": 36499,
+      "sha256": "41b24434155f83c1f93274a51a8e32e9593bf7421e4622689036dbfebd4cfed6"
+    },
+    {
+      "path": "assets/ledger-ui-Dv-Tohwi.js",
+      "bytes": 36433,
+      "sha256": "ab2ef400baa6bd33669d65f634382920847176ffe44d4528336364c751c6e4fc"
+    },
+    {
+      "path": "assets/legal-B_R4mtPb.js",
+      "bytes": 17109,
+      "sha256": "1fb5b6db120edac381179d25b09178a3b1b529bcfeba5a697dab77e5692dbbc4"
+    },
+    {
+      "path": "assets/members-C50YO8cR.js",
+      "bytes": 21574,
+      "sha256": "afa70faa61d5a6ee0f739920c2fd741935d90c78291952ec539a4d6a3a9e91b3"
+    },
+    {
+      "path": "assets/navigation-BgeMJHa2.js",
+      "bytes": 13292,
+      "sha256": "74b2d747990362c8b42044db7e7528f141b630ea40804d7a95b78cfa792839cc"
+    },
+    {
+      "path": "assets/notifications-DzVFO7cs.js",
+      "bytes": 2705,
+      "sha256": "a701b8a17ace5188b0fd0fbd422c17b31b245b7f95796562a21564dabc15e50a"
+    },
+    {
+      "path": "assets/public-layout-DuCenRMy.js",
+      "bytes": 2431,
+      "sha256": "79cc117e92a03fb8e04db4390babe57087bf7fb292592de4dbb1b922bb6620ef"
+    },
+    {
+      "path": "assets/pullwise-wG_LYwQ5.js",
+      "bytes": 1775,
+      "sha256": "438739de1b03e6570efb59fff3a3681a167a2c1ca83a7754d6e29a288cbb0f44"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-DwEwoo9v.js",
+      "bytes": 8184,
+      "sha256": "e59d174893491eef6c171f514ca971caf7d917ea49d24e8e77589c8b9921d08f"
+    },
+    {
+      "path": "assets/shell-DAUjqZP3.js",
+      "bytes": 5247,
+      "sha256": "147dda6a1974cfba1c38bcf8b2f412d44187f90f755bccda0d19a240cb846928"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/zh-CNi7RLYc.js",
+      "bytes": 11381,
+      "sha256": "ac3dbf8af423708c2f69750394465a4d9879e4022bc54b7e463d4dd5849b3d77"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 4913,
+      "sha256": "3d0981c23e24821e7f8a884f2e35cfc94a67c0eaf9bf4b42590e13491fbb52e5"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 25866,
+      "sha256": "1b153369b7efe00a1322b4f75209cc0b5efce343af45b6a3acc3bf66ca330903"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2126,
+      "sha256": "50dcfe168f1ed22609b544e637ed2497d2f5c3749a6fc635f3da5c1724a03638"
+    }
+  ],
+  "browserAcceptanceSha256": "1068b84dad5f1ea6a69e46360e08447e56c1d34ec244b9aa9efffa7ee17bd4fd",
+  "browserAcceptance": {
+    "status": "passed",
+    "scope": "Finite composed local built native acceptance of divider midpoint scrolling, selection, project detail copy/loading and terminal panel borders. Dist/source frozen. No product/source/build/deploy changes by QA. Synthetic local GET fixtures only; no real sessions, remote business endpoints or writes.",
+    "counts": {
+      "contexts": 5,
+      "states": 123,
+      "captures": 25,
+      "intercepted": 257,
+      "fixtureGET": 110,
+      "blockedExternal": 5
+    },
+    "physicalContributingContexts": 5,
+    "maximumAcceptedRequestsPerContext": 87,
+    "requestCapPerContext": 120,
+    "pageErrors": 0,
+    "unknownRoutes": 0,
+    "mutations": 0,
+    "realRemoteRequests": 0,
+    "artifactEntry": "/assets/index-BXbApSmU.js",
+    "artifactFiles": 45,
+    "artifactManifestPath": "/workspace/work/divider-midpoint-2026-10-08/final-artifact-manifest.json",
+    "artifactManifestSha256": "f057cf91c6fbfe71471573ed8e4b54c0169dbe775bc891e9e95fd6c70e811a51",
+    "runtimeSourceHashPath": "/workspace/work/divider-midpoint-2026-10-08/final-runtime-source-hashes.json",
+    "runtimeSourceHashFileSha256": "12e73e936dbf31d33937941711636e146f291d927df0034c5adb9e5c997a5576",
+    "runtimeSourceFiles": 11,
+    "artifactAndRuntimeSourcesVerifiedStableAtAssembly": true,
+    "contributors": [
+      {
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 48,
+          "captures": 9,
+          "intercepted": 87,
+          "fixtureGET": 51,
+          "blockedExternal": 1
+        },
+        "scope": "All 48 states of completed desktop profile; the separate failed tablet profile is excluded.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/evidence.json",
+        "evidenceSha256": "3eb0dccb2c01f0c784dc8fe7325ea49aa72103d2b443e0a33db519574562c965",
+        "harnessSnapshot": "/workspace/work/divider-midpoint-2026-10-08/capture-accepted-desktop.mjs",
+        "harnessSha256": "304d4aedb9c17b54328d36ca169361ed51bceea52d4ebe9c48eafa47b16daf8c",
+        "acceptedStateNames": [
+          "members-firstscreen",
+          "members-firstscreen",
+          "members-scrolled",
+          "members-scrolled",
+          "member-name-initial",
+          "sidebar-key-home",
+          "sidebar-key-step",
+          "sidebar-key-end",
+          "sidebar-key-reset",
+          "right-key-home",
+          "right-key-step",
+          "right-key-end",
+          "right-key-reset",
+          "right-native-mouse",
+          "sidebar-native-mouse",
+          "member-name-after-drag-and-scroll",
+          "members-native-midpoint",
+          "projects-firstscreen",
+          "projects-firstscreen",
+          "projects-scrolled",
+          "projects-scrolled",
+          "project-link-name",
+          "project-amount",
+          "overview-excluded-from-right-height",
+          "projects-full-divider",
+          "categories-firstscreen",
+          "categories-scrolled",
+          "shared-firstscreen",
+          "shared-scrolled",
+          "shared-genuine-section-lines",
+          "detail-firstscreen",
+          "detail-scrolled",
+          "detail-genuine-section-lines",
+          "manager-settings",
+          "manager-settings",
+          "settings-firstscreen",
+          "settings-scrolled",
+          "api-firstscreen",
+          "api-scrolled",
+          "key-prefix",
+          "billing-firstscreen",
+          "billing-scrolled",
+          "controlled-project-loading",
+          "controlled-project-loading",
+          "controlled-project-loaded",
+          "mobile-390-hidden-dividers",
+          "mobile-320-hidden-dividers",
+          "mobile-320-divider-hidden"
+        ],
+        "blockedExternal": [
+          {
+            "key": "desktop-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 47,
+          "captures": 8,
+          "intercepted": 87,
+          "fixtureGET": 45,
+          "blockedExternal": 1
+        },
+        "scope": "All 47 states of completed tablet profile; separate public dot probe is excluded.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/evidence.json",
+        "evidenceSha256": "e69c308aa24c8453d030876eac4389b6beef8ba5b2d3bec8b4b8cc99b4c2a359",
+        "harnessSnapshot": "/workspace/work/divider-midpoint-2026-10-08/capture-accepted-tablet.mjs",
+        "harnessSha256": "218e936bfb3c5a528a6c99853511d159e81676df385fa5fc0d2d8aa607f41006",
+        "acceptedStateNames": [
+          "members-firstscreen",
+          "members-firstscreen",
+          "members-scrolled",
+          "members-scrolled",
+          "member-name-initial",
+          "sidebar-key-home",
+          "sidebar-key-step",
+          "sidebar-key-end",
+          "sidebar-key-reset",
+          "right-key-home",
+          "right-key-step",
+          "right-key-end",
+          "right-key-reset",
+          "right-native-mouse",
+          "sidebar-native-mouse",
+          "member-name-after-drag-and-scroll",
+          "right-native-touch-cancel",
+          "member-name-after-touch-cancel",
+          "members-native-midpoint",
+          "projects-firstscreen",
+          "projects-firstscreen",
+          "projects-scrolled",
+          "projects-scrolled",
+          "project-link-name",
+          "project-amount",
+          "overview-excluded-from-right-height",
+          "projects-full-divider",
+          "categories-firstscreen",
+          "categories-scrolled",
+          "shared-firstscreen",
+          "shared-scrolled",
+          "shared-genuine-section-lines",
+          "detail-firstscreen",
+          "detail-scrolled",
+          "detail-genuine-section-lines",
+          "manager-settings",
+          "manager-settings",
+          "settings-firstscreen",
+          "settings-scrolled",
+          "api-firstscreen",
+          "api-scrolled",
+          "key-prefix",
+          "billing-firstscreen",
+          "billing-scrolled",
+          "mobile-390-hidden-dividers",
+          "mobile-320-hidden-dividers",
+          "mobile-320-divider-hidden"
+        ],
+        "blockedExternal": [
+          {
+            "key": "tablet-900-zh-dark",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "public-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "public",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 18,
+          "captures": 5,
+          "intercepted": 29,
+          "fixtureGET": 3,
+          "blockedExternal": 1
+        },
+        "scope": "18 successful public text/modal-copy states only. The final nonnative-opener focus assertion was not a state and is excluded; trusted modal supplement verifies real focus restoration.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/evidence.json",
+        "evidenceSha256": "8c60db7c3107cdc1f0455d6f45994ab672ecf5173bacb66be00dbbef2765474b",
+        "harnessSnapshot": "/workspace/work/divider-midpoint-2026-10-08/capture-accepted-public-text.mjs",
+        "harnessSha256": "4579ec7cbfe5bf97f6ca3bc1616fd46d73b1bdc003d7c8b88aeb16a317fec9d7",
+        "acceptedStateNames": [
+          "landing-loaded",
+          "preview-title",
+          "preview-field",
+          "preview-url",
+          "preview-saved",
+          "public-navigation-none",
+          "preview-text",
+          "privacy-update-date",
+          "privacy-date",
+          "404-request-path",
+          "404-path",
+          "status-heading",
+          "status-detail",
+          "status-enum",
+          "status-data",
+          "modal-title",
+          "modal-helper",
+          "modal-copy"
+        ],
+        "blockedExternal": [
+          {
+            "key": "public-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "native-modal-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "modal",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 4,
+          "captures": 1,
+          "intercepted": 23,
+          "fixtureGET": 2,
+          "blockedExternal": 1
+        },
+        "scope": "Completed trusted modal supplement, including exact title/helper selection and Escape/opener focus restoration.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/final-completion/evidence.json",
+        "evidenceSha256": "ac75788f6c4999727c1f026613bb4d375f5e4f107fa74d03d1d46b10bd03b454",
+        "harnessSnapshot": "/workspace/work/divider-midpoint-2026-10-08/capture-accepted-completion.mjs",
+        "harnessSha256": "c6e528f3404b3a83268bd7f246e459bcce6f07443977780d0a96b9b89c27c829",
+        "acceptedStateNames": [
+          "modal-title",
+          "modal-helper",
+          "modal-copy",
+          "modal-escape-cleanup"
+        ],
+        "blockedExternal": [
+          {
+            "key": "native-modal-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "viewer-settings-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "viewer",
+          "role": "viewer"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 6,
+          "captures": 2,
+          "intercepted": 31,
+          "fixtureGET": 9,
+          "blockedExternal": 1
+        },
+        "scope": "Completed viewer settings desktop/mobile terminal borders and readonly repository checks.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/final-completion/evidence.json",
+        "evidenceSha256": "ac75788f6c4999727c1f026613bb4d375f5e4f107fa74d03d1d46b10bd03b454",
+        "harnessSnapshot": "/workspace/work/divider-midpoint-2026-10-08/capture-accepted-completion.mjs",
+        "harnessSha256": "c6e528f3404b3a83268bd7f246e459bcce6f07443977780d0a96b9b89c27c829",
+        "acceptedStateNames": [
+          "readonly-settings",
+          "readonly-settings",
+          "readonly-settings-firstscreen",
+          "readonly-settings-scrolled",
+          "readonly-mobile-settings",
+          "readonly-mobile-settings"
+        ],
+        "blockedExternal": [
+          {
+            "key": "viewer-settings-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ]
+      }
+    ],
+    "acceptedCaptures": [
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "members-firstscreen",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-members-firstscreen.png",
+        "sha256": "6f40fba46a00c3356d4feeac2dc6963826c9962faa3d73361c67b8a26ccaeca5",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1231,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "members-scrolled",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-members-scrolled.png",
+        "sha256": "58689d87b31869890391576dbe70bf2ebd525a776a92858f11fabf2d219bb2b3",
+        "nativeUnedited": true,
+        "scrollY": 156,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1231,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "members-native-midpoint",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-members-native-midpoint.png",
+        "sha256": "ef4f8bfcbbe67696a6d9eecb22d2578ab5b06c781b857f94d7a79f515f241d7f",
+        "nativeUnedited": true,
+        "scrollY": 75,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1162,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "projects-firstscreen",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-projects-firstscreen.png",
+        "sha256": "b5e9d625d993e29d6f25c0ba1f147d24ec36bc287a9af315c87dd8ef0e1c5610",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1936,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "projects-scrolled",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-projects-scrolled.png",
+        "sha256": "28ac019355d2856eaf1f61e791e1b11027b3e99012473115825af4a3626c8fb8",
+        "nativeUnedited": true,
+        "scrollY": 352,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1936,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "projects-full-divider",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-projects-full-divider.png",
+        "sha256": "5d8760f51dd3ab865bf39cfc335d0c18ef8ddf5a2743e0c42f349ee2b481c7dc",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1936,
+        "fullPage": true,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "manager-settings",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-manager-settings.png",
+        "sha256": "f4b7ccf329d6875115fc550ad5b576dba83d4b1e83e88f7fffbbe0038c441206",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1129,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "controlled-project-loading",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-controlled-project-loading.png",
+        "sha256": "7a082648d5be013c09844660206bcba0f3cd21e72b93ca0a91834e51c8381d39",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "mobile-320-divider-hidden",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/desktop-1440-en-light-mobile-320-divider-hidden.png",
+        "sha256": "fcd8b0908867fa8eee8effa2c6c98063e981bc9b5b9b0cee5ce64973184decaf",
+        "nativeUnedited": true,
+        "scrollY": 177,
+        "viewportWidth": 320,
+        "viewportHeight": 844,
+        "documentHeight": 3280,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "members-firstscreen",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-members-firstscreen.png",
+        "sha256": "78b0a5616c65a74536e65105cbafa56e87d17330be8780ef7fbac8b0b76cfd4a",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1331,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "members-scrolled",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-members-scrolled.png",
+        "sha256": "dc75059ecded27a0853632c16fa924cabec5de3b2505a8b9d116de50232c97cc",
+        "nativeUnedited": true,
+        "scrollY": 406,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1331,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "members-native-midpoint",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-members-native-midpoint.png",
+        "sha256": "bef1d89c8f439afa620cb313d388394958678ffd6eef3040639f0c2b0b3eff29",
+        "nativeUnedited": true,
+        "scrollY": 289,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1262,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "projects-firstscreen",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-projects-firstscreen.png",
+        "sha256": "d2cb39dab787bbf884f07c110c49c9cf4df54e2e6e13be51d6c5522d4a63568f",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 2712,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "projects-scrolled",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-projects-scrolled.png",
+        "sha256": "588a82246069f69e7e3da09d51f14bfdf1a00ec0d496b832f116dc52c3395faf",
+        "nativeUnedited": true,
+        "scrollY": 942,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 2712,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "projects-full-divider",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-projects-full-divider.png",
+        "sha256": "a942950071f8f0f250a70ba9676088b4f7c523a80325a6463fb29190dd63f470",
+        "nativeUnedited": true,
+        "scrollY": 267,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 2712,
+        "fullPage": true,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "manager-settings",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-manager-settings.png",
+        "sha256": "aba56d3f347260aa7b4d73ef66d44d221e41d9775c705a786062ff8506423839",
+        "nativeUnedited": true,
+        "scrollY": 430,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1203,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "mobile-320-divider-hidden",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/tablet-900-zh-dark-mobile-320-divider-hidden.png",
+        "sha256": "61c340cc743b026d0596fc9e638f893b0d3c5d3c9a9d5fc31d5b604993a8ef3a",
+        "nativeUnedited": true,
+        "scrollY": 500,
+        "viewportWidth": 320,
+        "viewportHeight": 844,
+        "documentHeight": 3228,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "preview-text",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/public-1440-en-light-preview-text.png",
+        "sha256": "e2e4bfbd69bd3bc45a786730724726f32375e3c0f0df708da8cbb4b31a9d74fd",
+        "nativeUnedited": true,
+        "scrollY": 404,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 2276,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "privacy-date",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/public-1440-en-light-privacy-date.png",
+        "sha256": "5e6fbfff7a44aca40014fc60af5023c126811b89c45ae9e06e55179207a21de5",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1777,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "404-path",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/public-1440-en-light-404-path.png",
+        "sha256": "15b02342b9add10ffb0717cc9ea078ab88e1fe4f3c1b693d40caab55904d6454",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "status-data",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/public-1440-en-light-status-data.png",
+        "sha256": "d4549e69901ab70c8b2295f2fbcdb39cf804ed364edafb127938de369f14c634",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "modal-copy",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/public-1440-en-light-modal-copy.png",
+        "sha256": "074603fc5db90bbeb0e136f4e9d57caed303437a7a60ec7e68403487aa766ee1",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "native-modal-1440-en-light",
+        "state": "modal-copy",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-completion/native-modal-1440-en-light-modal-copy.png",
+        "sha256": "074603fc5db90bbeb0e136f4e9d57caed303437a7a60ec7e68403487aa766ee1",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "viewer-settings-1440-en-light",
+        "state": "readonly-settings",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-completion/viewer-settings-1440-en-light-readonly-settings.png",
+        "sha256": "2ee3fcef861c6017ea4b79c4d7c1128f9616a8d020b1a3251a9453c73b4999c8",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "viewer-settings-1440-en-light",
+        "state": "readonly-mobile-settings",
+        "path": "/workspace/work/divider-midpoint-2026-10-08/final-completion/viewer-settings-1440-en-light-readonly-mobile-settings.png",
+        "sha256": "eaf9d493422d37d4236df8078968ef1af435aff85eec7f3a064059f16931e7ce",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "documentHeight": 1020,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      }
+    ],
+    "excludedCounts": {
+      "contexts": 7,
+      "states": 96,
+      "captures": 22,
+      "intercepted": 281,
+      "fixtureGET": 83
+    },
+    "excludedAttempts": [
+      {
+        "reason": "Settled waiter incorrectly required the topbar spinner absent during controlled held loading.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/excluded-pending-waiter/evidence.json",
+        "evidenceSha256": "8be0bcb5ebe023116119fde6abc043c47a37d0afe63f37bb2e3ec5ddfceea1e6",
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 42,
+          "captures": 7,
+          "intercepted": 79,
+          "fixtureGET": 43
+        },
+        "status": "excluded",
+        "harnessSha256": "bd2dfd7ddc40c2f2bed2e8baee1740e42f5754b8958595393f84079c7c0d9758",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      },
+      {
+        "reason": "Tablet selection coordinates became stale during default smooth scrollIntoView.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/accepted-desktop-and-excluded-tablet-selection/evidence.json",
+        "evidenceSha256": "3eb0dccb2c01f0c784dc8fe7325ea49aa72103d2b443e0a33db519574562c965",
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 23,
+          "captures": 5,
+          "intercepted": 46,
+          "fixtureGET": 14
+        },
+        "status": "excluded",
+        "harnessSha256": "304d4aedb9c17b54328d36ca169361ed51bceea52d4ebe9c48eafa47b16daf8c",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      },
+      {
+        "reason": "Finite native input event trace for fresh tablet Project selection.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/diagnostic-tablet-selection/evidence.json",
+        "evidenceSha256": "22f32169fb3e9b911c9880fafccf4f01fa8aaf40993431d13729bd752a49142e",
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 4,
+          "captures": 2,
+          "intercepted": 42,
+          "fixtureGET": 12
+        },
+        "status": "excluded",
+        "harnessSha256": "1b2d5562f5abfcc0d402b96fef2bdf311438deb98d392224e4951fbf1adc483b",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      },
+      {
+        "reason": "One horizontal-first native input path comparison; smooth-scroll coordinates still stale.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/diagnostic-tablet-selection-path/evidence.json",
+        "evidenceSha256": "4a8e390deaeb5d44117122db8c227687af2effeb4fb23acab60dfe94f36d8daa",
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 4,
+          "captures": 2,
+          "intercepted": 34,
+          "fixtureGET": 5
+        },
+        "status": "excluded",
+        "harnessSha256": "d6208064306da7a76d00e8341910f5099c642262558dd00ed65edc4f159d0f7f",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      },
+      {
+        "reason": "Finite focus/scroll trace confirmed scrollY changed 259\u2192235\u2192214\u2192181 during native input.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/diagnostic-tablet-focus-first/evidence.json",
+        "evidenceSha256": "6dd425bf9da5d74f59f21d2bc981906bc0182452ccae6a33cbac2eda56767071",
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 4,
+          "captures": 2,
+          "intercepted": 34,
+          "fixtureGET": 5
+        },
+        "status": "excluded",
+        "harnessSha256": "a11f8c633fa7dd16e03a3f4cdf84c02392a2a97bac0c0b4909cebf06d1e2d71e",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      },
+      {
+        "reason": "Public saved probe started at decorative .dot inline box; actual text node is selectable.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/final-remaining/evidence.json",
+        "evidenceSha256": "e69c308aa24c8453d030876eac4389b6beef8ba5b2d3bec8b4b8cc99b4c2a359",
+        "profile": {
+          "key": "public-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "public",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 4,
+          "captures": 0,
+          "intercepted": 17,
+          "fixtureGET": 1
+        },
+        "status": "excluded",
+        "harnessSha256": "218e936bfb3c5a528a6c99853511d159e81676df385fa5fc0d2d8aa607f41006",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      },
+      {
+        "reason": "Modal raw title contained a collapsed leading icon separator space; visible title selection passed.",
+        "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/excluded-public-leading-space/evidence.json",
+        "evidenceSha256": "43ccc9af9ccd730a06ab1f032f348a414bb7c7cbb91d0b80ac1a55249badfa97",
+        "profile": {
+          "key": "public-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "public",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 15,
+          "captures": 4,
+          "intercepted": 29,
+          "fixtureGET": 3
+        },
+        "status": "excluded",
+        "harnessSha256": "55d24c968d9190250f991a995ecef8dafe8714b9b94508a929a4b70e7eec46a9",
+        "writes": 0,
+        "unknownRoutes": 0,
+        "pageErrors": 0
+      }
+    ],
+    "excludedAssertionOnly": {
+      "reason": "Public profile used DOM.click opener, so its last Escape/focus assertion incorrectly assumed native focus. 18 successful public states are accepted; the failed assertion produced no accepted state. Trusted modal supplement independently passed native opener/focus.",
+      "evidencePath": "/workspace/work/divider-midpoint-2026-10-08/final-public-viewer/evidence.json",
+      "additionalContexts": 0,
+      "additionalRequests": 0,
+      "additionalStates": 0,
+      "additionalCaptures": 0,
+      "physicalContextCountedOnceUnderAcceptedPublicSegment": true
+    },
+    "oldPreRepairBuildContexts": 0,
+    "captureEnvironment": {
+      "browser": "Chrome/151.0.7922.173",
+      "method": "native raw CDP",
+      "flags": [
+        "--headless=new",
+        "--hide-scrollbars"
+      ],
+      "noProxy": true,
+      "allExternalOriginsBlocked": true,
+      "screenshotsUnedited": true,
+      "stableTouchAfterScreenshotsVerified": true
+    },
+    "methods": [
+      "Pseudo grip computed absolute position + resolved percentages and DOMMatrix center equals actual divider midpoint. Scroll proofs preserve document Y while viewport Y changes by minus actual scroll delta.",
+      "Right divider measures only the two direct main/side panels; account overview is excluded. Bounds/native mouse capture/key steps/touchCancel preserved.",
+      "Text endpoints use visible actual Text-node fragments rather than decorative inline boxes. Position with scrollIntoView behavior instant to avoid stale smooth-scroll coordinates. Native held moves use button left/buttons1 with frames. No programmatic selection.",
+      "Amounts/project names/key prefixes preserve exact textContent. Modal visible title only trims outer icon separator whitespace; raw text retained. Route and fixture GET count remain unchanged during selection.",
+      "Manager terminal panel border0; readonly repository between-border1 and last-border0. Expense record boundaries and first report-section border1 remain, terminal report-section0; mobile entry form visually first border1 and records visually last border0."
+    ],
+    "manualVisualReview": {
+      "verdict": "passed",
+      "reviewed": "Desktop Members scrolled and Projects full divider; tablet Projects full divider; manager/viewer settings; 390 readonly viewport; controlled loading and modal copy. Layout/labels/real boundaries readable, grips follow actual divider midpoint. Native full-document shot from scrolled state includes naturally positioned sticky header; no screenshot edit. Mobile viewport crops later rows naturally; geometry checks cover terminal border without claiming viewport reached page end."
+    },
+    "cleanup": {
+      "previewPidTerminated": 46391,
+      "remainingOwnedProcesses": [],
+      "remainingBrowserProfiles": [],
+      "ports": {
+        "4199": "free",
+        "9229": "free"
+      }
+    }
+  },
+  "independentSourceAudit": "Passed divider containing blocks/midpoints, all console/public selection owners and cleanup, loading/loaded/error/retained copy and all languages, final visible panels and mobile visual order; no blocker.",
+  "rootVisualReview": {
+    "passed": true,
+    "acceptedExamples": [
+      "Desktop Members scrolled and Projects divider/manager settings",
+      "Controlled loading with Project expenses and explicit loading text",
+      "900 Chinese dark Members/Projects divider",
+      "Viewer desktop repository between-line and clear page end",
+      "390 viewer settings viewport"
+    ],
+    "fullDocumentCaptureLimit": "A full-document capture at nonzero scroll retains naturally positioned sticky chrome; viewport captures verify actual screen behavior. Native images remain unedited."
+  },
+  "limits": "Local synthetic GET-only browser evidence. Publication verification is separately limited to one homepage and three exact hashed asset GETs. No production, Server/D1, real session, provider or payment operations."
+}

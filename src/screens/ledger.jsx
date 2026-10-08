@@ -284,7 +284,10 @@ function LedgerSkeleton({ mode }) {
     </div>
   );
   return (
-    <div role="status" aria-label={T("Loading ledger…")}>
+    <div
+      role="status"
+      aria-label={T(mode === "project" ? "Loading project expenses…" : "Loading ledger…")}
+    >
       {mode === "projects" || mode === "categories" ? (
         <div className="ledger-split">
           <div className="panel">
@@ -334,7 +337,7 @@ const projectLabel = (project) =>
   (!["lost", "unavailable", "reauthorization_required"].includes(project.githubAccess) &&
     project.githubFullName) ||
   project.description ||
-  T("Project history");
+  T("Project", "项目");
 
 function ExpenseForm({
   value,
@@ -1064,7 +1067,7 @@ function ScopedLedgerScreen({
           ? T("Shared expense pool")
           : data?.project
             ? projectLabel(data.project)
-            : T("Project history");
+            : T("Project expenses", "项目支出");
   const target = mode === "shared" ? { kind: "shared" } : { kind: "project", projectId };
   const expenses = data?.expenses?.items || [];
   const suggestedTargetKind = savedAssistance?.suggestions?.targetKind;
@@ -1203,10 +1206,11 @@ function ScopedLedgerScreen({
                           "Group your spending so you can see where the money goes.",
                           "给支出分个类，看看钱都花在哪儿了。"
                         )
-                      : T(
-                          "Hosting, domains, tools — keep this project's costs together.",
-                          "托管、域名、工具，把这个项目的费用记在一起。"
-                        )}
+                      : loading && !data
+                        ? T("Loading project expenses…", "正在加载项目支出…")
+                        : error && !data
+                          ? T("Unable to load project expenses.", "无法加载项目支出。")
+                          : T("Expenses and reports for this project.", "此项目的支出与报表。")}
               </p>
               {mode === "project" && data?.project?.githubAccess === "not_linked" && (
                 <p className="ledger-meta">{T("No GitHub connection", "未关联 GitHub")}</p>

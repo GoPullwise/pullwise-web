@@ -22,8 +22,9 @@ changes monetary arithmetic, precision, currency or source data. Soft breaks
 after grouping commas preserve exact textContent and native copying. Show
 each project currency independently, keep full amounts in narrow panes and
 reflow labels, amounts, charts and actions by actual container width.
-Focus indicators belong to divider grips, with viewport-visible sticky grips;
-retain the shared hit area, bounds and keyboard behavior.
+Focus indicators belong to divider grips. Both navigation and secondary-pane
+grips stay at the midpoint of their own divider and scroll with it; do not pin
+them to the viewport. Retain the shared hit area, bounds and keyboard behavior.
 
 ## Console layout follow-up (2026-10-08)
 
@@ -47,6 +48,16 @@ ordinary links remain selectable. Navigation/actions/drag handles prevent
 accidental selection; drag suppression is temporary and released on every
 completion/cancellation path. Do not disable selection on complete data rows,
 informational tags or dynamic page headings.
+Keep public status details, legal update dates, requested 404 paths, preview
+examples and dialog titles/descriptions selectable too. Apply non-selection
+to their navigation/action elements rather than whole mixed-content regions.
+Section hairlines separate following content. Terminal panels omit their bottom
+border across shared containers, ignoring hidden views and resize overlays.
+Keep list-item and genuine section boundaries; mobile expense-entry order
+places the form first, so the last records panel has no closing line.
+Project detail uses Project expenses while its name is unavailable, explicit
+loading/failure guidance, and the real name after loading. Its short description
+explains expenses/reports; nameless projects use Project rather than history.
 
 Projects search uses one square accent focus perimeter around the icon, input
 and clear action. The topbar Ledger label and picker stay side by side, with
