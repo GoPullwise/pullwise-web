@@ -2,13 +2,13 @@
 export const DYNAMIC_PHRASE_TRANSLATIONS = [
   {
     match:
-      /^Contact (.+) to request access, export, correction or deletion of account data\. You can manage GitHub access and revoke API keys in the product\.$/,
+      /^Contact (.+) to request access, export, correction or deletion of account data\. We may verify your identity and consider applicable law and other ledger members' rights before acting\. You can export authorized expenses as CSV, manage members and GitHub access according to your permissions, and revoke your API keys in the product\.$/,
     translations: {
-      zh: "请联系 $1 请求访问、导出、更正或删除账户数据。你也可以在产品中管理 GitHub 授权和撤销 API 密钥。",
-      ja: "$1 に連絡してアカウントデータの閲覧、エクスポート、訂正、削除を依頼できます。製品内で GitHub の権限管理と API キーの失効もできます。",
-      ko: "$1에 연락해 계정 데이터의 열람, 내보내기, 수정 또는 삭제를 요청할 수 있습니다. 제품에서 GitHub 접근을 관리하고 API 키를 폐기할 수도 있습니다.",
-      fr: "Contactez $1 pour demander l'accès, l'exportation, la correction ou la suppression des données de votre compte. Vous pouvez aussi gérer l'accès GitHub et révoquer les clés API dans le produit.",
-      es: "Contacta a $1 para solicitar acceso, exportación, corrección o eliminación de los datos de tu cuenta. También puedes gestionar el acceso a GitHub y revocar claves API en el producto.",
+      zh: "请联系 $1 请求访问、导出、更正或删除账户数据。处理前我们可能核实身份，并考虑适用法律及其他账本成员的权利。你可以导出有权访问的支出 CSV、按权限管理成员与 GitHub 授权，并在产品中撤销自己的 API 密钥。",
+      ja: "アカウントデータへのアクセス、エクスポート、訂正、削除を請求するには、$1 までご連絡ください。対応に先立ち、本人確認を行い、適用される法律や他の台帳メンバーの権利を考慮する場合があります。製品内では、アクセス権のある支出を CSV でエクスポートし、権限に応じてメンバーと GitHub アクセス権を管理し、ご自身の API キーを取り消すことができます。",
+      ko: "계정 데이터의 접근, 내보내기, 정정 또는 삭제를 요청하려면 $1으로 연락해 주세요. 당사는 조치 전에 신원을 확인하고 적용 법률과 다른 장부 멤버의 권리를 고려할 수 있습니다. 제품에서 접근 권한이 있는 지출을 CSV로 내보내고, 권한에 따라 멤버와 GitHub 접근 권한을 관리하며, 본인의 API 키를 취소할 수 있습니다.",
+      fr: "Contactez $1 pour demander l'accès, l'export, la rectification ou la suppression des données de votre compte. Nous pouvons vérifier votre identité et prendre en compte la législation applicable ainsi que les droits des autres membres du registre avant de donner suite à votre demande. Vous pouvez exporter au format CSV les dépenses auxquelles vous avez accès, gérer les membres et l'accès à GitHub selon vos autorisations, et révoquer vos clés API dans le produit.",
+      es: "Contacta con $1 para solicitar el acceso, la exportación, la rectificación o la eliminación de los datos de tu cuenta. Podemos verificar tu identidad y tener en cuenta la legislación aplicable y los derechos de otros miembros del libro antes de actuar. Puedes exportar en formato CSV los gastos a los que tienes acceso, gestionar los miembros y el acceso a GitHub según tus permisos, y revocar tus claves API en el producto.",
     },
   },
   {

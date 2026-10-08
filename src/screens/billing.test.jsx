@@ -226,7 +226,7 @@ describe("BillingScreen", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/timeout/i);
     expect(screen.getByRole("button", { name: /retry pricing/i })).toBeInTheDocument();
     expect(document.querySelectorAll(".pricing-card")).toHaveLength(0);
-    expect(document.body).not.toHaveTextContent("Configured in provider");
+    expect(document.body).not.toHaveTextContent("Price unavailable");
   });
 
   it("keeps the Pricing heading centered independently from the landing hero", () => {
@@ -868,10 +868,12 @@ describe("BillingScreen", () => {
       "Expense records: 20,000",
       "Expense records: 20,000",
     ]);
-    expect(screen.getByText(/Jev budget:/)).toHaveTextContent("Jev budget: $5.00 / month");
+    expect(screen.getByText(/Archived projects and removed expenses still count toward capacity/i)).toBeInTheDocument();
+    expect(screen.getByText(/monthly Jev allowance covers model assistance, has no cash value/i)).toBeInTheDocument();
+    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent("Jev assistance allowance: $5.00 / month");
     expect(screen.getByText("Activation pending · no rollover")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /yearly/i }));
-    expect(screen.getByText(/Jev budget:/)).toHaveTextContent("Jev budget: $5.00 / month");
+    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent("Jev assistance allowance: $5.00 / month");
   });
 
   it("does not leak malformed billing price amounts", async () => {
@@ -898,7 +900,7 @@ describe("BillingScreen", () => {
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
-    const unavailablePrices = await screen.findAllByText("Configured in provider");
+    const unavailablePrices = await screen.findAllByText("Price unavailable");
     expect(unavailablePrices).toHaveLength(3);
     unavailablePrices.forEach((price) => expect(price).toHaveClass("financial-unavailable"));
     expect(document.body).not.toHaveTextContent("$-5");
@@ -974,8 +976,10 @@ describe("BillingScreen", () => {
     expect(dialog).toHaveTextContent("$290");
     expect(dialog).toHaveTextContent("per year");
     expect(dialog).toHaveTextContent("$58 less per year");
-    expect(dialog).toHaveTextContent(/prorated charge today/i);
-    expect(dialog).toHaveTextContent(/Creem charges the prorated difference/i);
+    expect(dialog).toHaveTextContent(/possible charge today/i);
+    expect(dialog).toHaveTextContent(/Creem may charge a prorated difference/i);
+    expect(dialog).toHaveTextContent(/plan updates after payment confirmation/i);
+    expect(dialog).not.toHaveTextContent(/new plan takes effect immediately/i);
 
     await user.click(screen.getByRole("button", { name: /confirm change/i }));
 
@@ -1098,8 +1102,10 @@ describe("BillingScreen", () => {
     expect(dialog).toHaveTextContent("$49");
     expect(dialog).toHaveTextContent("per month");
     expect(dialog).toHaveTextContent("$20 more per month");
-    expect(dialog).toHaveTextContent(/prorated charge today/i);
-    expect(dialog).toHaveTextContent(/Creem charges the prorated difference/i);
+    expect(dialog).toHaveTextContent(/possible charge today/i);
+    expect(dialog).toHaveTextContent(/Creem may charge a prorated difference/i);
+    expect(dialog).toHaveTextContent(/plan updates after payment confirmation/i);
+    expect(dialog).not.toHaveTextContent(/new plan takes effect immediately/i);
 
     await user.click(screen.getByRole("button", { name: /confirm change/i }));
 

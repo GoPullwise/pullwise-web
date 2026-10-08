@@ -6,10 +6,10 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 const SECTIONS = [
   {
     id: "connect",
-    title: ["Connect a repository", "连接仓库"],
+    title: ["Create a project", "创建项目"],
     text: [
-      "Sign in with GitHub and explicitly select up to 30 authorized repositories for a ledger project, with an optional project name. You can associate a GitHub Organization and later change the selected repositories without copying expenses or changing the project ID. GitHub access is checked for the acting member.",
-      "通过 GitHub 登录，为有名称的账本项目明确选择最多 30 个已授权仓库，也可关联 GitHub Organization。之后更改仓库关联时不会复制支出，也不会改变项目 ID。GitHub 授权按当前操作成员检查。",
+      "Sign in with GitHub and create a project with a name and optional description. Repository links are optional: you can associate up to 30 authorized repositories and a GitHub Organization. Changing these links preserves the project ID and expense history. GitHub access is checked for the acting member when linking repositories or adding expenses to a linked project.",
+      "通过 GitHub 登录，为项目起名并按需填写说明。仓库关联为可选项，可关联最多 30 个已授权仓库及 GitHub 组织。修改关联会保留项目 ID 和历史支出。关联仓库或为已关联项目新增支出时，会检查当前操作成员的 GitHub 访问权。",
     ],
   },
   {
@@ -24,24 +24,24 @@ const SECTIONS = [
     id: "expenses",
     title: ["Record expenses", "记录支出"],
     text: [
-      "Choose a project or the shared pool, date, amount, currency, category and purpose. The shared pool is counted once in your account overview; it is not copied into every project.",
-      "选择项目或公共池，并填写日期、金额、币种、类别和用途。公共池在账户总览中只计一次，不会复制到每个项目。",
+      "Choose a project or the shared pool, date, amount, currency, category and purpose. The shared pool is counted once in the selected ledger overview; it is not copied into every project.",
+      "选择项目或公共池，并填写日期、金额、币种、类别和用途。公共池在当前账本总览中只计一次，不会复制到每个项目。",
     ],
   },
   {
     id: "max-assistance",
     title: ["Automatic Max assistance", "Max 自动辅助"],
     text: [
-      "With Max, Jev automatically assists when you save an expense in the web app or REST API, while the model is available and within your monthly allowance. You can leave the category blank for reliable automatic categorization or choose one yourself. Your chosen category, project, amount and currency stay unchanged. If categorization is uncertain, choose a category to finish saving. Possible duplicates appear as advice after saving.",
-      "Max 在模型可用且月度额度内，会在 Web 应用或 REST API 保存支出时自动启用 Jev 辅助。分类可留空交由可靠的自动分类，也可自行选择。你明确选择的分类、项目、金额和币种会保持不变。无法可靠分类时，选择分类后即可保存；疑似重复记录会在保存后以提示呈现。",
+      "With the ledger Owner's Max plan, Jev automatically assists when you save an expense in the web app or REST API, while the model is available and within the ledger's monthly allowance. For a new expense, you can leave the category blank when automatic categorization is available or choose one yourself. Editing requires an explicit category. Your chosen category, project, amount and currency stay unchanged. If no category can be suggested, choose one to finish saving. Possible duplicates appear as advice after saving.",
+      "账本所有者订阅 Max 后，在模型可用且账本月度额度内，Web 应用或 REST API 保存支出时会自动启用 Jev 辅助。新增支出时，自动分类可用则可留空类别，也可自行选择；编辑支出必须明确选择类别。你明确选择的类别、项目、金额和币种会保持不变。无法提供类别建议时，请选择类别后再保存；疑似重复记录会在保存后以提示呈现。",
     ],
   },
   {
     id: "reports",
     title: ["Review reports", "查看报表"],
     text: [
-      "Filter detail and charts by date and category. Totals stay separate by currency; Pullwise does not infer exchange rates. All ledger members can read reports and export its history; Owner, Admin and Editor can edit and remove entries.",
-      "按日期和类别筛选明细及图表。总额按币种分开，Pullwise 不推断汇率。账本成员可以查看报表和导出历史记录；Owner、Admin 和 Editor 可以修改和移除记录。",
+      "Filter detail and charts by date and category. Totals stay separate by currency; Pullwise does not convert currencies. All ledger members can read reports and export CSV; Owner, Admin and Editor can edit and remove entries.",
+      "按日期和类别筛选明细及图表。总额按币种分开，Pullwise 不进行货币转换。账本成员可以查看报表和导出 CSV；Owner、Admin 和 Editor 可以修改和移除记录。",
     ],
   },
   {
@@ -86,7 +86,7 @@ export function DocsScreen({ go, auth }) {
             <span className="sep">/</span>
             <span className="now">{T("Docs", "文档")}</span>
           </div>
-          <h1 className="docs-h1">{T("GitHub project expense ledger", "GitHub 项目支出账本")}</h1>
+          <h1 className="docs-h1">{T("Project expense ledger", "项目支出账本")}</h1>
           <p className="docs-lede">
             {T(
               "Record project and shared costs, then review per-currency totals.",

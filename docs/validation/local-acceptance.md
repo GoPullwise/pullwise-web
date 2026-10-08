@@ -2,7 +2,46 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
-## Divider midpoints, text selection and project detail clarity (2026-10-08)
+## Integrated console clarity acceptance (2026-10-08)
+
+The divider midpoint, text-selection, project-detail copy and terminal-border
+changes below are integrated with the concurrent product-copy release. The
+merge preserves the shared fluid containers, Members hierarchy/role editor,
+project chooser, Ledger ownership labels, bottom-right tools, stable hover
+insets, bounded resizing and financial typography from the earlier phases.
+
+`npm run check` passes lint, **38 test files / 535 tests** and build. Worker
+configuration/syntax, whitespace checks and Wrangler 4.136.3 preview packaging
+pass. Independent merged-source review finds no blocker. The preview-specific
+build uses entry `/assets/index-BOqOOvin.js`; all 45 artifact files and 30
+runtime source hashes remain unchanged through final acceptance.
+
+[Final merged browser evidence](console-clarity-merged-local-2026-10-08.json)
+passes **4 physical contexts / 121 accepted states / 24 native unedited
+captures**: desktop 1440px English/light, actual-touch 900px Chinese/dark,
+public pages with a trusted native modal opener, and readonly project settings.
+Live 390/320px layouts, all eight console routes, midpoint scroll geometry,
+mouse/keyboard/touch cleanup, native text copying, loading/loaded copy and
+terminal/genuine section boundaries pass. Four key root visual samples pass.
+
+Accepted contexts record **234 intercepted requests / 108 local fixture GETs /
+0 writes**, with maximum 87 of the 120 per-context cap. Unknown routes, runtime
+errors and real remote calls are zero; external origins are blocked. One tablet
+interceptor-cancellation diagnostic is excluded separately (44 partial states,
+7 captures, 86 intercepted/44 GETs); the accepted desktop segment is counted
+once. The final broker logs seven browser-canceled requests and ignores no
+stale fulfillment IDs. A canonical filename-sort preflight created no browser
+context or requests. These were harness corrections; runtime remained frozen.
+Owned browser/CDP/Vite processes and profiles are cleaned, and ports are free.
+Local fixtures do not establish real-session or payment acceptance. Publication
+uses the exact accepted build and is documented separately; only the Web
+preview is in scope, with production and Server/D1 untouched by this release.
+
+## Divider midpoints, text selection and project detail clarity — pre-merge (2026-10-08)
+
+This local phase validated source `68d90fb8f6beebc4827378e56f1d6081c2979221`
+before integrating the concurrent product-copy release below. Its artifacts
+are historical evidence; the integrated release receives its own checks.
 
 Both resize grips now inherit the shared absolute midpoint rule and scroll
 with their own divider. The sidebar grip retains its matching 10px line offset;
@@ -54,6 +93,64 @@ External origins are blocked. All 45 artifact and 11 runtime source hashes
 remain stable. Independent source and root visual reviews pass, and owned
 browser/CDP/Vite/profile cleanup is complete. These are synthetic local checks;
 preview publication remains static-only, with production and Server/D1 untouched.
+
+## Product copy, translations and subscription policies (2026-10-08)
+
+Pullwise / pull-wise.com now consistently describes a project expense ledger
+for developers and teams. The landing page, login, docs/API help, console copy,
+pricing, metadata and social card explain named standalone projects, optional
+GitHub repository links, shared-ledger access and separate currency totals.
+Platform subscriptions remain separate from entered expenses. Plan capacities
+are shared by the Owner's members/API keys; archived projects and removed
+expenses still count. Jev assistance allowances have no cash/payment value.
+
+Terms preserve the two previously reviewed Creem billing paragraphs in full.
+One additional paragraph states that paid subscription fees are non-refundable
+except where applicable law requires otherwise, and that cancelling renewal
+keeps access until the paid period ends without refunding that period.
+No refund request workflow or unimplemented refund endpoint is promised.
+The operator is identified as Pullwise, without invented company or address
+details. Billing explanations tie upgrades to verified payment confirmation.
+
+Privacy now covers actual identity/token, ledger, subscription and membership
+data, Cloudflare/GitHub/Creem/TypeSafe processing, Google Fonts requests,
+browser storage, model inputs and soft-removal retention. Invitation access
+includes all current/future ledger data, while personal billing stays separate.
+Status labels report browser loading, API reachability and configuration flags;
+they do not assert end-to-end payment, authorization or database availability.
+All five non-English catalogs cover the current public/console descriptions
+and policies, including previously untranslated interface text.
+
+The final copy commit incorporates the latest main console/financial layout
+updates rather than replacing them. `npm run check` passes lint, **38 test files
+/ 535 tests** and the build. Worker configuration/syntax checks, whitespace
+checks and pinned Wrangler 4.136.3 Preview packaging pass. The accepted build
+uses the Preview app URL, same-origin API base and Preview GitHub App slug.
+
+Built-browser acceptance passes **96 route/language/viewport cases**: eight
+public routes in en/zh/ja/ko/fr/es at 1440px and 320px. Legal anchors,
+translation fallback checks, document overflow and script errors pass. Touch
+media/events are asserted and restored after Chromium screenshots. Twenty
+English/Chinese captures include the home, privacy, terms, pricing and status
+pages; sampled mobile terms/pricing and desktop privacy pass visual review.
+All 45 built artifacts remain identical throughout acceptance. The 132 API
+requests are intercepted local fixtures, with no mutations; font CSS uses an
+empty local fixture, so these captures verify fallback-font layouts without
+contacting Google. No remote business request or real payment is part of this
+audit. Preview publication is recorded separately below.
+
+[Preview publication](copy-audit-preview-release-2026-10-08.json) publishes Web
+runtime commit `9e765d72a8b36aa353059ddd5a1177536aabeb6f` as version
+`f31de511-c39b-48ef-8bff-6f21bdb57d67` at `preview.pull-wise.com`, alongside
+Server source `9349b48eb043d9b0dc566cae15a63265b7db510f` as version
+`ead2b046-b7df-4869-b8d3-c5dbb84e33f1`. Management readback confirms both at
+100% traffic and preserves the Preview service binding, SPA assets, runtime
+settings, database and budget namespace. The finite one-homepage/three-asset
+static check returns 403; the asset bodies identify Cloudflare error 1010.
+No redirect, retry, page JavaScript or business API is used. Remote asset
+hashes and public-page acceptance are therefore not confirmed by this check.
+Production activation and real payment acceptance remain outside this release.
+The publication records are documentation-only and require no further deployment.
 
 ## Shared console interactions and financial hierarchy (2026-10-08)
 

@@ -161,11 +161,19 @@ continue production repair, activation, deployment or validation for this task.
 Use `main` for all work unless the user explicitly requests another branch.
 Select preview/production using the matching deployment config and bindings.
 
-The current product is the GitHub project expense ledger in
+The current product is Pullwise, a project expense ledger for developers and
+teams at pull-wise.com, described in
 `../pullwise-server/docs/design/github-project-ledger/README.md`. Server owns
 authorization, money, aggregates and platform payment facts. Web and external
 clients share `../pullwise-server/openapi/ledger-v1.yaml`; use `src/api/ledger.js`
 for ledger resources and `src/api/pullwise.js` for account/payment operations.
+GitHub sign-in remains required; named standalone projects do not require
+repository links or GitHub App installation. Optional GitHub associations may
+include up to 30 repositories and an Organization. Shared-pool expenses count
+once in the selected ledger and are not allocated to projects. Keep totals
+separate by currency without conversion, and separate recorded expenses from
+the owner's platform subscription and payment history. Use the public slogan
+"Track project and shared expenses. Keep every cost in view."
 
 ## Runtime
 
@@ -225,9 +233,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   Back to projects header link, including loading/error states. Use shared
   `screenLinkProps` so `/projects` navigation works with SPA history, keyboard
   activation and normal modified-link clicks rather than browser-back guesses.
-- The empty-state Add repository action opens/focuses the current chooser,
-  loads the next repository page when present, or starts guarded GitHub access
-  when no candidates remain. Native `showPicker` is optional; keep the focused
+- The empty-state Add project action opens/focuses the project-name field.
+  Load repository candidates only after explicit optional-association intent;
+  the chooser may load its next page or start guarded GitHub access on user
+  action. Native `showPicker` is optional; keep the focused
   chooser usable when unsupported/restricted. Popup completion verifies access
   via Server's read-only `/repositories/sync` before reloading candidates.
 - A failed spending summary must not hide otherwise loaded project/repository
@@ -289,8 +298,9 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
 - Projects searches only loaded names/descriptions; keep pagination available
   for no matches. Existing Projects reveal the creation rail on explicit Add
   project intent and restore opener focus on dismissal. The first-project
-  flow shows the repository chooser directly with three concise setup steps.
-  Account overview is a native disclosure, expanded on summary errors/filters.
+  flow shows project-name entry with three concise setup steps and an optional
+  repository-association disclosure.
+  Selected ledger overview is a native disclosure, expanded on summary errors/filters.
   Project rows adapt to the actual list container width: place totals below
   the name when that container is at most 560px, including desktop creation
   rails, so amounts cannot squeeze names into single-character lines.
@@ -305,7 +315,7 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   row's Rename action after cancel/save. Clear its editor and focus refs when
   route/project/access scope changes.
 - Keep creation rails hairline-separated on desktop and stacked on mobile.
-  Account overview leads with totals before its filters. Project descriptions
+  Selected ledger overview leads with totals before its filters. Project descriptions
   live in the Project settings tab; creation descriptions remain optional
   native disclosures. `base.css` owns `.view-tabs` and the hidden-panel rule.
 - Shared panel headings and panel bodies use 16px content gaps. Ledger forms
@@ -420,8 +430,9 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   never change the explicit target or money. Public API examples preserve
   Web's outer /api prefix plus Server's /api/v1 path and shell-expand key vars.
   Annual pricing never changes the monthly Jev budget or enables rollover.
-  Privacy describes model input as submitted purpose/note and allowed category
-  names only. Duplicate comparison is local Server logic; historical expense
+  Privacy describes model input as submitted purpose/note, allowed active
+  category IDs and names, and fixed project/shared/uncertain target-choice
+  labels. Duplicate comparison is local Server logic; historical expense
   text, repository code and stored credential tokens are not model inputs.
 - Web `wrangler.jsonc` targets production domains. Preview routing/config,
   Server domain, Cookie SameSite/domain and provider callbacks require review

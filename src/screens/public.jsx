@@ -10,8 +10,8 @@ function getAuthErrorMessage(error) {
   return (
     error?.message ||
     T(
-      "Authentication is unavailable. Check the backend auth service.",
-      "认证不可用。请检查后端认证服务。"
+      "Sign-in is unavailable. Please try again later.",
+      "登录暂不可用，请稍后重试。"
     )
   );
 }
@@ -21,14 +21,14 @@ function getRepositoryAuthErrorMessage(error) {
   const code = String(error?.code || "");
   if (error?.status === 409 || message.includes("private or not publicly visible")) {
     return T(
-      "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.",
-      "此 GitHub App 当前仅所有者可安装。请将 GitHub App 设为公开（任何账户），以便用户可在自己的账户或组织中安装后再试。"
+      "Repository connection is currently unavailable for this GitHub account. Please contact Pullwise support.",
+      "此 GitHub 账户暂时无法连接仓库，请联系 Pullwise 支持。"
     );
   }
   if (error?.status === 503 || message.includes("Unable to verify GitHub App")) {
     return T(
-      "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.",
-      "Pullwise 无法验证此 GitHub App 是否公开。请在 GitHub API 可用后再试。"
+      "Pullwise could not verify repository access. Please try again later.",
+      "Pullwise 暂时无法验证仓库访问权，请稍后重试。"
     );
   }
   if (
@@ -42,8 +42,8 @@ function getRepositoryAuthErrorMessage(error) {
   }
   if (code === "missing_installation_id" || message.includes("missing_installation_id")) {
     return T(
-      "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again.",
-      "GitHub 返回时未携带 installation id。请检查 GitHub App 设置 URL 是否指向 Pullwise 后端回调，然后再试安装。"
+      "GitHub connection did not complete. Please try connecting again.",
+      "GitHub 连接未完成，请重新连接。"
     );
   }
   if (
@@ -51,14 +51,14 @@ function getRepositoryAuthErrorMessage(error) {
     message.includes("GitHub App API is not configured")
   ) {
     return T(
-      "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.",
-      "Pullwise 已找到 GitHub App 安装，但后端无法同步仓库，因为 GitHub App 私钥缺失或无效。请设置 PULLWISE_GITHUB_APP_ID 和 PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH 或 PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64，然后重启后端。"
+      "Pullwise could not load your connected repositories. Please try again later or contact support.",
+      "Pullwise 暂时无法加载已连接的仓库，请稍后重试或联系支持。"
     );
   }
   if (message.includes("Contents: read")) {
     return T(
-      "The GitHub App needs repository access to bind projects. Check its permissions and try again.",
-      "GitHub App 需要仓库权限才能绑定项目。请检查权限后重试。"
+      "GitHub repository access is required to link a repository. Review the permissions in GitHub and try again.",
+      "关联仓库需要 GitHub 仓库访问权，请在 GitHub 检查权限后重试。"
     );
   }
   return getAuthErrorMessage(error);
@@ -90,7 +90,7 @@ export function LandingScreen({ go, auth }) {
       <section className="lp-hero" aria-labelledby="lp-title">
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
-          <span>{T("Project expenses for GitHub teams", "面向 GitHub 团队的项目支出账本")}</span>
+          <span>{T("Project expense tracking for developers and teams", "面向开发者与团队的项目支出账本")}</span>
         </div>
         <h1 id="lp-title" className="lp-title">
           {T("Track project and shared expenses.", "记录项目与公共支出。")}
@@ -101,8 +101,8 @@ export function LandingScreen({ go, auth }) {
         </h1>
         <p className="lp-sub">
           {T(
-            "Connect GitHub repositories, record project and shared costs, and review per-currency totals in one workspace.",
-            "连接 GitHub 仓库，在一个工作台记录项目和公共支出，查看逐币汇总。"
+            "Record project and shared costs, review totals by currency, and share a ledger with your team. GitHub repository links are optional.",
+            "记录项目与公共支出，按币种查看汇总，与团队共享账本。GitHub 仓库可按需关联。"
           )}
         </p>
         <div className="lp-cta">
@@ -128,7 +128,7 @@ export function LandingScreen({ go, auth }) {
         </div>
         <div className="lp-meta">
           <span>
-            <I.Check size={12} /> {T("Repository projects", "仓库项目")}
+            <I.Check size={12} /> {T("Named projects", "独立项目")}
           </span>
           <span>
             <I.Check size={12} /> {T("Shared expense pool", "公共支出池")}
@@ -219,8 +219,8 @@ export function LandingScreen({ go, auth }) {
             </h2>
             <p>
               {T(
-                "Choose a repository, record expenses, then use the same filters for detail and reports.",
-                "选择仓库、记录支出，再用相同条件筛选明细和报表。"
+                "Create a project, record expenses, then use the same filters for detail and reports.",
+                "创建项目、记录支出，再用相同条件筛选明细和报表。"
               )}
             </p>
           </div>
@@ -229,10 +229,10 @@ export function LandingScreen({ go, auth }) {
           {[
             {
               i: <I.Layers />,
-              h: T("Connect authorized repositories", "连接已授权仓库"),
+              h: T("Create projects", "创建项目"),
               p: T(
-                "Create a project for each authorized GitHub repository.",
-                "为每个已授权的 GitHub 仓库创建项目。"
+                "Start with a project name. Optionally link up to 30 authorized GitHub repositories.",
+                "为项目起个名字即可开始，也可关联最多 30 个已授权 GitHub 仓库。"
               ),
             },
             {
@@ -260,8 +260,8 @@ export function LandingScreen({ go, auth }) {
               i: <I.FileCode />,
               h: T("Compare currencies separately", "逐币查看汇总"),
               p: T(
-                "Keep USD, EUR and other currencies separate, without inferred exchange rates.",
-                "不同币种分别汇总，不推断汇率。"
+                "View totals separately for each currency. Pullwise does not convert currencies.",
+                "按币种分别查看汇总，Pullwise 不进行货币转换。"
               ),
             },
             {
@@ -367,8 +367,8 @@ export function LoginScreen({ go } = {}) {
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Use GitHub to sign in. Connect repositories later to create ledger projects.",
-            "使用 GitHub 登录，之后连接仓库并创建账本项目。"
+            "Sign in with GitHub, then create a project by name. Repository links are optional.",
+            "使用 GitHub 登录，为项目起名即可开始，仓库关联为可选项。"
           )}
         </p>
 
@@ -400,7 +400,7 @@ export function LoginScreen({ go } = {}) {
           <div className="auth-next-i">
             <span>2</span>
             <p>
-              {T("Connect repositories and create ledger projects.", "连接仓库并创建账本项目。")}
+              {T("Create a project and record your first expense.", "创建项目，记下第一笔支出。")}
             </p>
           </div>
         </div>
@@ -465,11 +465,11 @@ export function OAuthScreen({ go, auth }) {
             />
           </div>
           <div className="oauth-brand">Pullwise / GitHub</div>
-          <h1>{T("Bring your projects into Pullwise", "把你的项目带到 Pullwise")}</h1>
+          <h1>{T("Link GitHub repositories to your projects", "为项目关联 GitHub 仓库")}</h1>
           <p className="oauth-org">
             {T(
-              "Choose the repositories you want to track, then keep their expenses in one place.",
-              "选择你想记账的仓库，把项目费用集中记录。"
+              "Repository links are optional. Authorize the repositories you want to associate with your expense projects.",
+              "仓库关联为可选项，授权你希望与支出项目关联的仓库。"
             )}
           </p>
           <ol className="oauth-steps">
@@ -497,11 +497,11 @@ export function OAuthScreen({ go, auth }) {
             <li>
               <span>03</span>
               <div>
-                <strong>{T("Create your first project", "创建第一个项目")}</strong>
+                <strong>{T("Link repositories in Projects", "在项目页面关联仓库")}</strong>
                 <p>
                   {T(
-                    "Back in Pullwise, add a repository and record its first expense.",
-                    "回到 Pullwise，添加仓库，再记下第一笔支出。"
+                    "Back in Pullwise, create or update a project and select its repositories.",
+                    "回到 Pullwise，创建或编辑项目并选择关联仓库。"
                   )}
                 </p>
               </div>
@@ -524,8 +524,8 @@ export function OAuthScreen({ go, auth }) {
               i: <I.FileCode size={15} />,
               h: T("Repository access", "仓库权限"),
               p: T(
-                "Check that you can access each project. Recording expenses does not change your code.",
-                "确认你能访问对应项目。记账不会修改你的代码。"
+                "Verify access to linked repositories. Ledger membership and GitHub access are managed separately.",
+                "验证关联仓库的访问权，账本成员权限与 GitHub 授权分别管理。"
               ),
             },
           ].map((permission, index) => (

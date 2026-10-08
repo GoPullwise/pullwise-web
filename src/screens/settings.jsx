@@ -151,14 +151,14 @@ export function SettingsScreen({ go }) {
                         `已授权 ${repositoryCount} 个仓库${accounts.length ? `（${accounts.join("、")}）` : ""}。`
                       )
                     : T(
-                        "Connect repositories to create ledger projects.",
-                        "连接仓库，为项目记录支出。"
+                        "Repository links are optional. Connect GitHub repositories to associate them with your projects.",
+                        "仓库关联为可选项，你可以连接 GitHub 仓库并将其关联到项目。"
                       )}
                 </p>
                 <p className="github-next-step">
                   {T(
-                    "After connecting, open Projects and add a repository to start recording expenses.",
-                    "授权后，去项目页面添加一个仓库，就可以开始记账了。"
+                    "Open Projects to create a named project and record expenses. You can add or change repository links later.",
+                    "打开项目页面，为项目起名即可记账，仓库关联可在之后添加或修改。"
                   )}
                 </p>
                 <div className="panel-actions">

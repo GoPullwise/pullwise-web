@@ -1,30 +1,44 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { setLang, T } from "./i18n.jsx";
 import { API_KEY_SCOPES } from "./screens/ledger-api-scopes.js";
+import { PHRASES as ZH_PHRASES } from "./locales/zh.js";
+import { PHRASES as JA_PHRASES } from "./locales/ja.js";
+import { PHRASES as KO_PHRASES } from "./locales/ko.js";
+import { PHRASES as FR_PHRASES } from "./locales/fr.js";
+import { PHRASES as ES_PHRASES } from "./locales/es.js";
+import { LEDGER_PHRASES } from "./locales/ledger.js";
 import { LEDGER_LONG_PHRASES } from "./locales/ledger-longform.js";
 import { LEDGER_UI_PHRASES } from "./locales/ledger-ui.js";
 import { LEDGER_SCREEN_PHRASES } from "./locales/ledger-screen.js";
+import { LEDGER_SCOPE_PHRASES } from "./locales/ledger-scopes.js";
+
+const BASE_PHRASES = { zh: ZH_PHRASES, ja: JA_PHRASES, ko: KO_PHRASES, fr: FR_PHRASES, es: ES_PHRASES };
+const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
+const sources = ["screens", "components"].flatMap((directory) => {
+  const directoryPath = join(SOURCE_DIRECTORY, directory);
+  return readdirSync(directoryPath)
+    .filter((name) => /\.(js|jsx)$/.test(name) && !name.includes(".test."))
+    .map((name) => readFileSync(join(directoryPath, name), "utf8"));
+}).concat(["App.jsx", "shell.jsx"].map((name) => readFileSync(join(SOURCE_DIRECTORY, name), "utf8")));
+// Cover literal copy used by current screens; interpolated provider/user data
+// keeps its deliberate English fallback and is exercised separately below.
+const CURRENT_COPY = [...new Set(sources.flatMap((source) =>
+  [...source.matchAll(/\bT\(\s*("(?:\\.|[^"\\])*")/g)].map((match) => JSON.parse(match[1]))))];
 
 const LEDGER_COPY = [
-  "Projects", "Project", "Project expenses", "Shared expense pool", "Account overview", "Totals by currency",
+  "Projects", "Project", "Project expenses", "Shared expense pool", "Ledger overview", "Totals by currency",
   "From date", "Export CSV", "Automatic", "Save expense", "Automatic Max assistance",
   "Jev categorized this expense", "This expense may duplicate an existing entry. Review your records.",
   "Choose a category to finish saving. Your draft is still here.",
-  "Automatic Jev assistance when saving expenses", "Missing category classification and review advice · Web + REST API",
+  "Automatic Jev assistance when saving expenses", "Automatic categorization and expense advice · Web + REST API",
   "Annual subscriptions keep the same monthly Jev budget", "Monthly UTC budget · no rollover",
   "Awaiting payment confirmation", "Subscription confirmed", "Refresh billing", "less per year",
-  "Track expenses for each GitHub repository.",
   "Your recorded expenses remain available when GitHub access changes.",
-  "Project expenses for GitHub teams", "Record project and shared expenses.",
-];
-
-const LEDGER_LONG_COPY = [
-  "Sign in with GitHub, grant access to a repository, and create a project for it. A project belongs to your Pullwise account and follows the repository ID through renames.",
-  "Categories belong to your account and can be used for project or shared expenses. Archived categories remain on historical entries.",
-  "Expense lists and reports share target, projectId, categoryId, from (inclusive), to (exclusive) and currency filters. Lists also use limit and cursor. Amounts are decimal strings on writes and minor units in totals. Currencies are never combined.",
-  "Pullwise provides a GitHub-connected project expense ledger through the web app and REST API. This policy also covers account, billing and support interactions.",
-  "Ledger history remains with your account when GitHub access changes. Removed expenses and suggestion decisions may be retained in audit records. Account, API key, payment and operational records are kept as needed for service, security, tax, audit or legal purposes. Contact us to ask about deletion.",
-  "You can cancel renewal for an active subscription from Pullwise Billing. It ends at the current paid period. You can resume renewal from Pullwise Billing before that date. Upgrades update your plan after payment confirmation; Creem calculates any proration. Lower-tier changes or yearly-to-monthly changes are unavailable in the product.",
+  "Project expense tracking for developers and teams", "Record project and shared expenses.",
+  "No repositories linked", "Jev assistance allowance",
 ];
 
 describe("ledger locale copy", () => {
@@ -37,19 +51,22 @@ describe("ledger locale copy", () => {
         expect(T(english).trim()).not.toBe("");
       }
     });
-    it(`${locale} translates ledger documentation and legal paragraphs`, async () => {
+    it(`${locale} covers current screen, documentation and legal source keys`, async () => {
       await setLang(locale);
-      for (const english of [...LEDGER_LONG_COPY, ...Object.keys(LEDGER_LONG_PHRASES[locale]),
-        ...Object.keys(LEDGER_UI_PHRASES[locale]),
-        ...API_KEY_SCOPES.flatMap(scope => [scope.labelEn, scope.descEn])]) {
-        expect(T(english), `${locale}: ${english}`).not.toBe(english);
-      }
-      for (const [english, translated] of Object.entries(LEDGER_SCREEN_PHRASES[locale])) {
+      const phrases = { ...BASE_PHRASES[locale], ...LEDGER_PHRASES[locale],
+        ...LEDGER_LONG_PHRASES[locale], ...LEDGER_UI_PHRASES[locale],
+        ...LEDGER_SCOPE_PHRASES[locale], ...LEDGER_SCREEN_PHRASES[locale] };
+      for (const english of [...CURRENT_COPY, ...API_KEY_SCOPES.flatMap(scope => [scope.labelEn, scope.descEn])]) {
+        expect(Object.hasOwn(phrases, english), `${locale}: ${english}`).toBe(true);
+        const translated = phrases[english];
         expect(translated.trim(), `${locale}: ${english}`).not.toBe("");
         expect(T(english)).toBe(translated);
       }
       expect(T("Contact contact@pull-wise.com with privacy or security questions.")).not.toMatch(/^Contact /);
       expect(T("For questions, contact contact@pull-wise.com.")).not.toMatch(/^For questions/);
+      const rights = T("Contact privacy@example.com to request access, export, correction or deletion of account data. We may verify your identity and consider applicable law and other ledger members' rights before acting. You can export authorized expenses as CSV, manage members and GitHub access according to your permissions, and revoke your API keys in the product.");
+      expect(rights).not.toMatch(/^Contact /);
+      expect(rights).toContain("privacy@example.com");
     });
   }
 });

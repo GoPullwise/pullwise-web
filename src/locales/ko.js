@@ -23,7 +23,6 @@ export const PHRASES = {
   "Copyright 2026 Pullwise": "저작권 2026 Pullwise",
   "API key": "API 키",
   Authentication: "인증",
-  "Account automation": "계정 자동화",
   "Unable to load API keys.": "API 키를 불러올 수 없습니다.",
   "API key response was malformed.": "API 키 응답 형식이 잘못되었습니다.",
   "Unable to create API key.": "API 키를 만들 수 없습니다.",
@@ -43,7 +42,6 @@ export const PHRASES = {
   "Final amount is calculated by Creem": "최종 금액은 Creem이 계산",
   "Listed prices and tax are shown by Pullwise. The exact charge for this change is calculated by Creem at confirmation.":
     "표시 가격과 세금은 Pullwise가 보여줍니다. 이 변경의 정확한 청구액은 확인 시 Creem이 계산합니다.",
-  "Prorated charge today": "오늘 비례 청구",
   "The new plan is effective now. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date.":
     "새 요금제는 즉시 적용됩니다. Creem은 현재 기간의 남은 기간에 대한 비례 차액을 청구하고 다음 갱신일에 새 금액을 청구합니다.",
   "Plan tier": "요금제 등급",
@@ -69,8 +67,6 @@ export const PHRASES = {
   "Calculated at confirmation": "확인 시 계산",
   "What changes now": "지금 변경되는 내용",
   "How this works": "작동 방식",
-  "The new plan takes effect immediately. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date. You can cancel renewal from Pullwise Billing.":
-    "새 요금제는 즉시 적용됩니다. Creem은 현재 기간의 남은 기간에 대한 비례 차액을 청구하고 다음 갱신일에 새 금액을 청구합니다. Pullwise Billing에서 갱신을 취소할 수 있습니다.",
   "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem.":
     "Pullwise는 표시된 요금제 가격만 보여줍니다. 세금, 비례 계산, 크레딧 및 최종 청구액은 Creem이 계산합니다.",
   "Confirm change": "변경 확인",
@@ -80,18 +76,8 @@ export const PHRASES = {
   "API contract": "API 계약",
   "Unable to connect GitHub repository access.": "GitHub 저장소 접근을 연결할 수 없습니다.",
   "GitHub repository authorization": "GitHub 저장소 권한",
-  "Authentication is unavailable. Check the backend auth service.":
-    "인증을 사용할 수 없습니다. 백엔드 인증 서비스를 확인하세요.",
-  "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.":
-    "이 GitHub App은 현재 소유자만 설치할 수 있습니다. 사용자가 자신의 계정 또는 조직에 설치할 수 있도록 GitHub App을 Public / Any account로 변경한 뒤 다시 시도하세요.",
-  "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.":
-    "Pullwise가 이 GitHub App이 공개 상태인지 확인할 수 없습니다. GitHub API 접근이 가능해진 뒤 다시 시도하세요.",
   "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected.":
     "GitHub가 앱을 설치하지 않았습니다. 조직을 선택했다면 저장소를 연결하기 전에 조직 소유자가 요청을 승인해야 할 수 있습니다.",
-  "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again.":
-    "GitHub가 installation id 없이 돌아왔습니다. GitHub App setup URL이 Pullwise 백엔드 콜백을 가리키는지 확인한 뒤 앱 설치를 다시 시도하세요.",
-  "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.":
-    "Pullwise가 GitHub App 설치를 찾았지만 GitHub App 개인 키가 없거나 유효하지 않아 백엔드가 저장소를 동기화할 수 없습니다. PULLWISE_GITHUB_APP_ID와 PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH 또는 PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64를 설정한 뒤 백엔드를 재시작하세요.",
   "Restoring your account.": "계정을 복원하는 중입니다.",
   "Continue from your account.": "계정에서 계속하세요.",
   "Continue with GitHub": "GitHub로 계속",
@@ -118,7 +104,6 @@ export const PHRASES = {
   Service: "서비스",
   "Account and GitHub access": "계정 및 GitHub 접근",
   "API use": "API 사용",
-  "configured backend": "구성된 백엔드",
   "Last checked": "마지막 확인",
   "Initial check, then refresh manually": "최초 확인 후 수동으로 새로고침하세요",
   "Refresh status": "상태 새로고침",
@@ -130,7 +115,6 @@ export const PHRASES = {
   Spanish: "스페인어",
   French: "프랑스어",
   API: "API",
-  "Account overview": "계정 개요",
   "Add account or organization": "계정 또는 조직 추가",
   "API docs": "API 문서",
   "API Keys": "API 키",
@@ -183,13 +167,8 @@ export const PHRASES = {
   Product: "제품",
   "API reachable": "API 도달 가능",
   "API unreachable": "API 도달 불가",
-  "Live components": "실시간 구성 요소",
   "Web app": "웹 앱",
   "REST API": "REST API",
-  "State database": "상태 데이터베이스",
-  "Waiting for backend health.": "백엔드 상태 확인 대기 중.",
-  "Backend readiness": "백엔드 준비 상태",
-  "Configuration visible from safe /health fields": "안전한 /health 필드에서 보이는 설정",
   "GitHub integration": "GitHub 통합",
   "Billing provider": "결제 제공자",
   "OAuth configured": "OAuth 구성됨",
@@ -202,10 +181,8 @@ export const PHRASES = {
   "Visibility check off": "가시성 확인 꺼짐",
   enabled: "활성화",
   "not enabled": "비활성화",
-  "Configured in provider": "제공자 측 구성",
   "Switch to yearly": "연간으로 전환",
   "View pricing": "가격 보기",
-  "Billing is not configured on the backend yet.": "백엔드에서 결제가 아직 구성되지 않았습니다.",
   Monthly: "월간",
   Yearly: "연간",
   save: "절약",

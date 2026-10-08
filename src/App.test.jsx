@@ -153,7 +153,7 @@ it("focuses the page heading after a lazy screen loads", async () => {
   pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true });
   render(<App />);
 
-  const heading = await screen.findByRole("heading", { name: "GitHub project expense ledger" });
+  const heading = await screen.findByRole("heading", { name: "Project expense ledger" });
   await waitFor(() => expect(heading).toHaveFocus());
 });
 
@@ -164,7 +164,7 @@ it("moves keyboard focus to the destination heading after navigation", async () 
 
   screen.getAllByRole("link", { name: "Docs" })[0].focus();
   await user.keyboard("{Enter}");
-  const heading = await screen.findByRole("heading", { name: "GitHub project expense ledger" });
+  const heading = await screen.findByRole("heading", { name: "Project expense ledger" });
   await waitFor(() => expect(heading).toHaveFocus());
 });
 

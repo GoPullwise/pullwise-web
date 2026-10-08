@@ -1,0 +1,1198 @@
+{
+  "date": "2026-10-08",
+  "scope": "Merged Web-only local acceptance for GitHub main and Cloudflare preview publication. Production and Server/D1 operations excluded.",
+  "sourceParents": [
+    "68d90fb8f6beebc4827378e56f1d6081c2979221",
+    "0a2cd4f3731a7d45a78a27ea2167fdf73566768d"
+  ],
+  "frontendGoals": "布局简洁、重点突出、操作清晰明了",
+  "implementation": [
+    "Shared divider grips are absolute midpoints of their own lines and scroll with them on all console screens; bounds, keyboard and mobile rules preserved.",
+    "Body data, informational tags, normal links, public status/legal/examples/404 details and dialog text remain selectable; navigation/actions use none.",
+    "Project expenses with explicit loading/failure text, real name when loaded, Project fallback and short expense/report description in all six languages.",
+    "Terminal shared panel closing borders removed while internal record/visible section boundaries and mobile form-first ordering remain.",
+    "Concurrent product copy, translation, subscription policy and metadata changes preserved."
+  ],
+  "checks": {
+    "npmRunCheck": {
+      "passed": true,
+      "testFiles": 38,
+      "tests": 535,
+      "lint": true,
+      "build": true
+    },
+    "workerConfigAndSyntax": "passed",
+    "diffWhitespace": "passed",
+    "wranglerPreviewDryRun": {
+      "passed": true,
+      "version": "4.136.3",
+      "config": "wrangler.preview.jsonc"
+    },
+    "independentMergedSourceAudit": "passed"
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview",
+    "entry": "/assets/index-BOqOOvin.js"
+  },
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-docs-ZOESA-YP.js",
+      "bytes": 14737,
+      "sha256": "afbeb0e786a4e11cbef3274cd010a243ba0ab57d6fa0bf001536beebb6303177"
+    },
+    {
+      "path": "assets/api-fQoxXcCR.js",
+      "bytes": 24344,
+      "sha256": "a87afd50ecf742a27b819c47bff6a39a5354c6594480fc728d603fbc842f6d80"
+    },
+    {
+      "path": "assets/auth-Dd8R1OIh.js",
+      "bytes": 8495,
+      "sha256": "b99545018fefb5a7ada1db4c018eaa11ff621b077a83d0e8da8a2c33bbcb363a"
+    },
+    {
+      "path": "assets/billing-C_VN5vQd.js",
+      "bytes": 32978,
+      "sha256": "847bb4b4af676be7638493cda3e462eab5a511635a64217951a63bbaa11b576c"
+    },
+    {
+      "path": "assets/confirm-dialog-BrGI5e1c.js",
+      "bytes": 2992,
+      "sha256": "b60e38fbece2fcdfaf5989650cc10b78fb9c51df1b23ed9d27052e097706e3ef"
+    },
+    {
+      "path": "assets/console-layout-CKYZ6RAG.js",
+      "bytes": 4262,
+      "sha256": "856037b5af67c77a3669c28f90953fb7d799aaf12b92058af23f8dd31a3a2b7f"
+    },
+    {
+      "path": "assets/docs-DnWApNci.js",
+      "bytes": 6830,
+      "sha256": "89de109256fd337a004883f7f3550aef93c80343ed3dc14c0320e650ba32c38f"
+    },
+    {
+      "path": "assets/dynamic-CqKDyOhl.js",
+      "bytes": 5542,
+      "sha256": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae"
+    },
+    {
+      "path": "assets/es-jfEriZci.js",
+      "bytes": 10179,
+      "sha256": "5a532468b44449d47a5c6b767d58ae7066d7327dc81b9351926f3b35a932fe60"
+    },
+    {
+      "path": "assets/financial-value-QxLZwFKp.js",
+      "bytes": 477,
+      "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+    },
+    {
+      "path": "assets/fr-BcJKfRKG.js",
+      "bytes": 10444,
+      "sha256": "6b804a4b8b8e63ec0b48b7cb420ad9a8f77bfd936968c00ed4fd8a1cee360413"
+    },
+    {
+      "path": "assets/index-BOqOOvin.js",
+      "bytes": 41990,
+      "sha256": "c161ac1b598864e5d08ecfc91988318660927cc1eb1cd4f610116041fbe4e51d"
+    },
+    {
+      "path": "assets/index-Dk2qL_6C.css",
+      "bytes": 78673,
+      "sha256": "d5830cf5acfe451eb9f2c953c8632841477c6dc56e1d69a986425a36041eac25"
+    },
+    {
+      "path": "assets/ja-aFH0VZEy.js",
+      "bytes": 10906,
+      "sha256": "fbb951eff269a558dfd70a98a4455181e2f76ff507032a43b791b24ee809cc95"
+    },
+    {
+      "path": "assets/ko-Yj9J4J2H.js",
+      "bytes": 9973,
+      "sha256": "4b3685077de1723eaa8167073d4dc94ee067825b9cd88eebfa4b297414821a76"
+    },
+    {
+      "path": "assets/ledger-BV3d146m.js",
+      "bytes": 56525,
+      "sha256": "dfa9faa02da7daefeb5dd46fab98bbd7655a3b2a5de54b63309661443a80a105"
+    },
+    {
+      "path": "assets/ledger-CIWwQYwV.js",
+      "bytes": 10698,
+      "sha256": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3"
+    },
+    {
+      "path": "assets/ledger-CUFylEjG.js",
+      "bytes": 1545,
+      "sha256": "5a4f119d4c53efca9649b82f4a0018c71ae72d0db489fb34de114cc11c861fb0"
+    },
+    {
+      "path": "assets/ledger-DQ_CLtXS.js",
+      "bytes": 2925,
+      "sha256": "f81796adfbb300a4b6f654b3572bc68e889aa0587ff79bf3793f7472a8035a9d"
+    },
+    {
+      "path": "assets/ledger-Do9xzD33.css",
+      "bytes": 11854,
+      "sha256": "882558db01e2172402b2ea54618cface217a5ea6cc57334cb38dcab18080ab8e"
+    },
+    {
+      "path": "assets/ledger-longform-CcLR1b--.js",
+      "bytes": 92564,
+      "sha256": "a9be02edfc674bf49997b6439c49c76d553b6b3cfd057985924878007c09a5b3"
+    },
+    {
+      "path": "assets/ledger-scopes-eTtBJDmQ.js",
+      "bytes": 3115,
+      "sha256": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369"
+    },
+    {
+      "path": "assets/ledger-screen-GMY1Hzwc.js",
+      "bytes": 96535,
+      "sha256": "bfae31b48319bda0bbce976ce6d36390bb71b047940586436050fbe886214fda"
+    },
+    {
+      "path": "assets/ledger-ui-ydcEM64p.js",
+      "bytes": 34050,
+      "sha256": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+    },
+    {
+      "path": "assets/legal-CKWjAhqD.js",
+      "bytes": 25361,
+      "sha256": "77cbe5285053c565f93b92415d0e27912f3c4c81a7702d396f70fd716918ef57"
+    },
+    {
+      "path": "assets/members-D8mKpq7E.js",
+      "bytes": 21574,
+      "sha256": "0555a6d14e6fe5c70716e6504c5214eb298230e51208a96137b1def64b101150"
+    },
+    {
+      "path": "assets/navigation-DECtZffD.js",
+      "bytes": 13292,
+      "sha256": "63053461bb0c8127a3a1c09cef4bb1039327af4b2df241dea84c4a386a87b6aa"
+    },
+    {
+      "path": "assets/notifications-CBmDihgj.js",
+      "bytes": 2705,
+      "sha256": "95b70e2adbb7a1ab0147501857696b6277fb95a7ba03d3f6ff7d794d1bf9c65e"
+    },
+    {
+      "path": "assets/public-layout-Cbq8e5Pu.js",
+      "bytes": 2431,
+      "sha256": "27b4116dc3cfbb5de81c315f778fa99dfa1c590bd0e586f565b1745a509ae3c2"
+    },
+    {
+      "path": "assets/pullwise-CqInO05x.js",
+      "bytes": 1775,
+      "sha256": "61003246bb03bc338408909c80a3ab88b87fdaccf9c4402f5dadb60fca5da062"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-BYtMCr21.js",
+      "bytes": 8320,
+      "sha256": "4bd21c24fe996681cb8df2d9756a55d5fd9ca105b4a48e1646c6c2747e29216c"
+    },
+    {
+      "path": "assets/shell-BKU_j411.js",
+      "bytes": 5247,
+      "sha256": "70c97ac4050d3a50d847f49b0d4151103e141725f6adb91cd1a22c81adf12336"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/zh-DAknT88L.js",
+      "bytes": 8981,
+      "sha256": "88c39be45a80e310b8089dde1ef8419f4c6aa6c4ee94556ff88ac08b6b9f9fe1"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 5088,
+      "sha256": "89cfc3f4e70fd66bc0039663739c978632cb0b057970975635cfd2cbee948e9b"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 50268,
+      "sha256": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2113,
+      "sha256": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+    }
+  ],
+  "runtimeSourceHashes": [
+    {
+      "path": "styles/base.css",
+      "sha256": "7258736642bd5d5c87db31217a2035e28a67566e6e8910623fa9e1a7bc097106"
+    },
+    {
+      "path": "styles/screens.css",
+      "sha256": "3b5f3bbac8a6691da1c1a363c6456823d7090310d1a6a4e97c885fc5b5909632"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "sha256": "9582d03d8a6b295ff83f76290b444ad3a12d94941be0d3919de61d0d98ee1460"
+    },
+    {
+      "path": "src/lib/navigation.js",
+      "sha256": "d7a1ac6a1fcf77da0ec4046475169e949edc8113ac37cc94cf775aad1b675eee"
+    },
+    {
+      "path": "src/screens/ledger.jsx",
+      "sha256": "3fcd19c1d7b362caddde025e75f2871d234bb5ec7c59f302704f4c81a5d32d7f"
+    },
+    {
+      "path": "src/screens/api.jsx",
+      "sha256": "a005e8c7b330cf4d9b7d0e9973c1bb0009c73acd367800672f8177926a3f7139"
+    },
+    {
+      "path": "src/locales/ledger.js",
+      "sha256": "d890fa276280bcf1ff2779bdd37cc282b768a1e0c5334485066ed15e34a59b0f"
+    },
+    {
+      "path": "src/locales/ledger-screen.js",
+      "sha256": "84de4dcfed314fca04e9e74193a87c4023e28b6735fb9e7ba72d9edfa1d3c417"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    },
+    {
+      "path": "src/screens/legal.jsx",
+      "sha256": "e68680edbe63c66f712046af44ee4a2205c41a01497f0075878918a1489be22e"
+    },
+    {
+      "path": "src/screens/public.jsx",
+      "sha256": "8459d769b4c81e53b0022fde7ab870d1b2e952488ba200840591673932fdcc5e"
+    },
+    {
+      "path": "src/screens/billing.jsx",
+      "sha256": "835904d1fa67b41265d5a48e12c4b7588d728451efa81385c42707d969ad1997"
+    },
+    {
+      "path": "src/screens/settings.jsx",
+      "sha256": "0842971e89f5ec1a2712d04b9629e2116c5fb3821a7fdc25da885bc008b833f7"
+    },
+    {
+      "path": "src/lib/seo.js",
+      "sha256": "40fe3c7717752be5617f81ba5bc15a679cd75fa6ccb22890ce6128f2250f9352"
+    },
+    {
+      "path": "index.html",
+      "sha256": "68de7a8a7bd06701893787b4b65b92257bf085c98d25979836899c8506c9096b"
+    },
+    {
+      "path": "public/social-card.png",
+      "sha256": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077"
+    },
+    {
+      "path": "src/locales/ledger-longform.js",
+      "sha256": "d92ec3b0c7de651d2073db559d9698bcaf28491827cb443d69979fb19c7e9b15"
+    },
+    {
+      "path": "src/locales/ledger-ui.js",
+      "sha256": "df52f42935c3b9b875bfea6f9ab29258b1c9504130dcbb041fd150c090d20873"
+    },
+    {
+      "path": "src/locales/dynamic.js",
+      "sha256": "6d89b95747eedc8a1cfcb322ca9935f5cf191f43c5ea645adece7f0ccb9ffbb1"
+    },
+    {
+      "path": "src/locales/zh.js",
+      "sha256": "9bbbb3487f87dc42d6ea41882b5c9f3b4ddf5adbd21607deb785bdd840815e32"
+    },
+    {
+      "path": "src/locales/ja.js",
+      "sha256": "738807a706f3dbdd204448295486822a18c2dc15e5d394015227c8be6ad68a86"
+    },
+    {
+      "path": "src/locales/ko.js",
+      "sha256": "ce1c64e4036e14dadc76b747b4d787c4e56e2de0dfa0cd781c42ae92c20aa4b2"
+    },
+    {
+      "path": "src/locales/fr.js",
+      "sha256": "086f0aa7ca775f089dafd8c235c4a9431d79f68a2aeb74438508dad2c64e869b"
+    },
+    {
+      "path": "src/locales/es.js",
+      "sha256": "c6e2447ccbdcc7c14012645405088c3094ee825229a1fd3f9b16dfdd2a573702"
+    },
+    {
+      "path": "src/screens/docs.jsx",
+      "sha256": "5734d3a95a8b7e498f52fdffbcfb18a9f2a395fcbaa404901f52d2dbdb2072c0"
+    },
+    {
+      "path": "src/screens/api-docs.jsx",
+      "sha256": "4f59009b09fd406cb744f86296df24af377ac76eb5e979269cede1840fe0911d"
+    },
+    {
+      "path": "src/screens/error.jsx",
+      "sha256": "591d11605e238394716213590f0b977e1eefe89a10807f768d3335895e24e3cf"
+    },
+    {
+      "path": "src/screens/ledger-api-scopes.js",
+      "sha256": "c592817cb22363936632903722d925edd65b892208c2b0245166e519ff195168"
+    }
+  ],
+  "browserAcceptanceSha256": "5f73f299880a9e6308e6ebe56a9f38556a18884da157d06f5c7db1c780b4cf6a",
+  "browserAcceptance": {
+    "status": "passed",
+    "phase": "post-merge-final",
+    "scope": "Finite merged-source browser regression only: console8 routes, divider midpoint/scroll/mouse/key/tablet touch, native body/public/modal text selection, controlled project loading copy, viewer and mobile terminal borders. No repeated monetary arithmetic or96-locale matrix. Synthetic local GET-only; no real auth/provider/payment/API/remote session calls or writes.",
+    "counts": {
+      "contexts": 4,
+      "states": 121,
+      "captures": 24,
+      "intercepted": 234,
+      "fixtureGET": 108,
+      "blockedExternal": 4
+    },
+    "physicalAcceptedContexts": 4,
+    "requestCapPerContext": 120,
+    "maximumAcceptedRequestsPerContext": 87,
+    "pageErrors": 0,
+    "unknownRoutes": 0,
+    "mutations": 0,
+    "realRemoteRequests": 0,
+    "artifactEntry": "/assets/index-BOqOOvin.js",
+    "artifactFiles": 45,
+    "artifactManifestPath": "/workspace/work/post-merge-ui-2026-10-08/final-artifact-manifest.json",
+    "artifactManifestSha256": "211b5918016e34446cf5be3b18b2ad203f08f92dd10ee5499cba82ab79d773e5",
+    "runtimeSourceHashPath": "/workspace/work/post-merge-ui-2026-10-08/final-runtime-source-hashes.json",
+    "runtimeSourceHashFileSha256": "6d23f1bbecb972b9a023636151707db899095e4964abeff34800f476e9b5a1da",
+    "runtimeSourceFiles": 30,
+    "artifactAndRuntimeSourcesVerifiedStableAtAssembly": true,
+    "contributors": [
+      {
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 48,
+          "captures": 9,
+          "intercepted": 87,
+          "fixtureGET": 51,
+          "blockedExternal": 1
+        },
+        "scope": "Completed profile of the frozen merged build. Each physical context counted once. Desktop reused from earlier combined run; that run's failed tablet is excluded.",
+        "evidencePath": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/evidence.json",
+        "evidenceSha256": "6b38ef8a1934a5366ea4ea90988e86059df3f84544c0e0d595f4919431f2140c",
+        "harnessSnapshot": "/workspace/work/post-merge-ui-2026-10-08/capture-accepted-desktop.mjs",
+        "harnessSha256": "3ef64b9f08c8271f2156d67675fec947f660420176a41ed181a3a54955f7a0e0",
+        "acceptedStateNames": [
+          "members-firstscreen",
+          "members-firstscreen",
+          "members-scrolled",
+          "members-scrolled",
+          "member-name-initial",
+          "sidebar-key-home",
+          "sidebar-key-step",
+          "sidebar-key-end",
+          "sidebar-key-reset",
+          "right-key-home",
+          "right-key-step",
+          "right-key-end",
+          "right-key-reset",
+          "right-native-mouse",
+          "sidebar-native-mouse",
+          "member-name-after-drag-and-scroll",
+          "members-native-midpoint",
+          "projects-firstscreen",
+          "projects-firstscreen",
+          "projects-scrolled",
+          "projects-scrolled",
+          "project-link-name",
+          "project-amount",
+          "overview-excluded-from-right-height",
+          "projects-full-divider",
+          "categories-firstscreen",
+          "categories-scrolled",
+          "shared-firstscreen",
+          "shared-scrolled",
+          "shared-genuine-section-lines",
+          "detail-firstscreen",
+          "detail-scrolled",
+          "detail-genuine-section-lines",
+          "manager-settings",
+          "manager-settings",
+          "settings-firstscreen",
+          "settings-scrolled",
+          "api-firstscreen",
+          "api-scrolled",
+          "key-prefix",
+          "billing-firstscreen",
+          "billing-scrolled",
+          "controlled-project-loading",
+          "controlled-project-loading",
+          "controlled-project-loaded",
+          "mobile-390-hidden-dividers",
+          "mobile-320-hidden-dividers",
+          "mobile-320-divider-hidden"
+        ],
+        "blockedExternal": [
+          {
+            "key": "desktop-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ],
+        "canceledNetworkRequests": [],
+        "canceledStaleFulfill": [],
+        "syntheticHealthUi": null,
+        "modalCleanup": null,
+        "overviewLabels": [
+          "Ledger overview"
+        ]
+      },
+      {
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 47,
+          "captures": 8,
+          "intercepted": 87,
+          "fixtureGET": 45,
+          "blockedExternal": 1
+        },
+        "scope": "Completed profile from final remaining run, same frozen merged build.",
+        "evidencePath": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/evidence.json",
+        "evidenceSha256": "556b31fed3cae968c23e56098de64233afb4e1772f44552ff73da745683374fd",
+        "harnessSnapshot": "/workspace/work/post-merge-ui-2026-10-08/capture-accepted-remaining.mjs",
+        "harnessSha256": "d196fcb58f5043a1dc766d52e0f70b5c0aa8204906ac2ab25bc5eb86d3c3fc2c",
+        "acceptedStateNames": [
+          "members-firstscreen",
+          "members-firstscreen",
+          "members-scrolled",
+          "members-scrolled",
+          "member-name-initial",
+          "sidebar-key-home",
+          "sidebar-key-step",
+          "sidebar-key-end",
+          "sidebar-key-reset",
+          "right-key-home",
+          "right-key-step",
+          "right-key-end",
+          "right-key-reset",
+          "right-native-mouse",
+          "sidebar-native-mouse",
+          "member-name-after-drag-and-scroll",
+          "right-native-touch-cancel",
+          "member-name-after-touch-cancel",
+          "members-native-midpoint",
+          "projects-firstscreen",
+          "projects-firstscreen",
+          "projects-scrolled",
+          "projects-scrolled",
+          "project-link-name",
+          "project-amount",
+          "overview-excluded-from-right-height",
+          "projects-full-divider",
+          "categories-firstscreen",
+          "categories-scrolled",
+          "shared-firstscreen",
+          "shared-scrolled",
+          "shared-genuine-section-lines",
+          "detail-firstscreen",
+          "detail-scrolled",
+          "detail-genuine-section-lines",
+          "manager-settings",
+          "manager-settings",
+          "settings-firstscreen",
+          "settings-scrolled",
+          "api-firstscreen",
+          "api-scrolled",
+          "key-prefix",
+          "billing-firstscreen",
+          "billing-scrolled",
+          "mobile-390-hidden-dividers",
+          "mobile-320-hidden-dividers",
+          "mobile-320-divider-hidden"
+        ],
+        "blockedExternal": [
+          {
+            "key": "tablet-900-zh-dark",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ],
+        "canceledNetworkRequests": [
+          {
+            "requestId": "51647.103",
+            "timestamp": 14679.929257,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          },
+          {
+            "requestId": "51647.104",
+            "timestamp": 14679.929289,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          },
+          {
+            "requestId": "51647.105",
+            "timestamp": 14679.92931,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          },
+          {
+            "requestId": "51647.106",
+            "timestamp": 14679.929342,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          },
+          {
+            "requestId": "51647.107",
+            "timestamp": 14679.929365,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          },
+          {
+            "requestId": "51647.108",
+            "timestamp": 14679.929384,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          },
+          {
+            "requestId": "51647.109",
+            "timestamp": 14679.929399,
+            "type": "Fetch",
+            "errorText": "net::ERR_ABORTED",
+            "canceled": true
+          }
+        ],
+        "canceledStaleFulfill": [],
+        "syntheticHealthUi": null,
+        "modalCleanup": null,
+        "overviewLabels": [
+          "账本总览"
+        ]
+      },
+      {
+        "profile": {
+          "key": "public-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "public",
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 20,
+          "captures": 5,
+          "intercepted": 29,
+          "fixtureGET": 3,
+          "blockedExternal": 1
+        },
+        "scope": "Completed profile from final remaining run, same frozen merged build.",
+        "evidencePath": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/evidence.json",
+        "evidenceSha256": "556b31fed3cae968c23e56098de64233afb4e1772f44552ff73da745683374fd",
+        "harnessSnapshot": "/workspace/work/post-merge-ui-2026-10-08/capture-accepted-remaining.mjs",
+        "harnessSha256": "d196fcb58f5043a1dc766d52e0f70b5c0aa8204906ac2ab25bc5eb86d3c3fc2c",
+        "acceptedStateNames": [
+          "landing-loaded",
+          "preview-title",
+          "preview-field",
+          "preview-url",
+          "preview-saved",
+          "public-navigation-none",
+          "preview-text",
+          "privacy-update-date",
+          "privacy-date",
+          "404-request-path",
+          "404-path",
+          "status-heading",
+          "status-detail",
+          "status-label",
+          "status-database-detail",
+          "status-data",
+          "modal-title",
+          "modal-helper",
+          "modal-copy",
+          "modal-escape-cleanup"
+        ],
+        "blockedExternal": [
+          {
+            "key": "public-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ],
+        "canceledNetworkRequests": [],
+        "canceledStaleFulfill": [],
+        "syntheticHealthUi": {
+          "api": "Reachable",
+          "database": "Configured",
+          "databaseDetail": "d1: backend reported by API"
+        },
+        "modalCleanup": {
+          "dialog": false,
+          "backgroundInert": false,
+          "focusText": "Switch to yearly",
+          "active": "<button class=\"btn\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m7.5 4.5 9 5\"></path><path d=\"M21 16V8l-9-5-9 5v8l9 5Z\"></path><path d=\"m3 7 9 5 9-5\"></path><path d=\"M12 22V12\"></path></svg> Switch to yearly</button>"
+        },
+        "overviewLabels": []
+      },
+      {
+        "profile": {
+          "key": "viewer-settings-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "kind": "viewer",
+          "role": "viewer"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 6,
+          "captures": 2,
+          "intercepted": 31,
+          "fixtureGET": 9,
+          "blockedExternal": 1
+        },
+        "scope": "Completed profile from final remaining run, same frozen merged build.",
+        "evidencePath": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/evidence.json",
+        "evidenceSha256": "556b31fed3cae968c23e56098de64233afb4e1772f44552ff73da745683374fd",
+        "harnessSnapshot": "/workspace/work/post-merge-ui-2026-10-08/capture-accepted-remaining.mjs",
+        "harnessSha256": "d196fcb58f5043a1dc766d52e0f70b5c0aa8204906ac2ab25bc5eb86d3c3fc2c",
+        "acceptedStateNames": [
+          "readonly-settings",
+          "readonly-settings",
+          "readonly-settings-firstscreen",
+          "readonly-settings-scrolled",
+          "readonly-mobile-settings",
+          "readonly-mobile-settings"
+        ],
+        "blockedExternal": [
+          {
+            "key": "viewer-settings-1440-en-light",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET"
+          }
+        ],
+        "canceledNetworkRequests": [],
+        "canceledStaleFulfill": [],
+        "syntheticHealthUi": null,
+        "modalCleanup": null,
+        "overviewLabels": []
+      }
+    ],
+    "acceptedCaptures": [
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "members-firstscreen",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-members-firstscreen.png",
+        "sha256": "6f40fba46a00c3356d4feeac2dc6963826c9962faa3d73361c67b8a26ccaeca5",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1231,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "members-scrolled",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-members-scrolled.png",
+        "sha256": "58689d87b31869890391576dbe70bf2ebd525a776a92858f11fabf2d219bb2b3",
+        "nativeUnedited": true,
+        "scrollY": 156,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1231,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "members-native-midpoint",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-members-native-midpoint.png",
+        "sha256": "ef4f8bfcbbe67696a6d9eecb22d2578ab5b06c781b857f94d7a79f515f241d7f",
+        "nativeUnedited": true,
+        "scrollY": 75,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1162,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "projects-firstscreen",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-projects-firstscreen.png",
+        "sha256": "fa8997b92784c62a8ee78053f2d84ec26c5db4011b09f65bc486a7a20809c612",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1936,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "projects-scrolled",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-projects-scrolled.png",
+        "sha256": "be886858df83d1acc06fa8656042d5fa0070eeb7107dd295cae36356d474778f",
+        "nativeUnedited": true,
+        "scrollY": 352,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1936,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "projects-full-divider",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-projects-full-divider.png",
+        "sha256": "3b27892c8e49c5b9e2ef0c930fcf60f4b7d76026fb61793c2c08543273c2237c",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1936,
+        "fullPage": true,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "manager-settings",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-manager-settings.png",
+        "sha256": "f4b7ccf329d6875115fc550ad5b576dba83d4b1e83e88f7fffbbe0038c441206",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1129,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "controlled-project-loading",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-controlled-project-loading.png",
+        "sha256": "7a082648d5be013c09844660206bcba0f3cd21e72b93ca0a91834e51c8381d39",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "mobile-320-divider-hidden",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/desktop-1440-en-light-mobile-320-divider-hidden.png",
+        "sha256": "fcd8b0908867fa8eee8effa2c6c98063e981bc9b5b9b0cee5ce64973184decaf",
+        "nativeUnedited": true,
+        "scrollY": 177,
+        "viewportWidth": 320,
+        "viewportHeight": 844,
+        "documentHeight": 3280,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "members-firstscreen",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-members-firstscreen.png",
+        "sha256": "78b0a5616c65a74536e65105cbafa56e87d17330be8780ef7fbac8b0b76cfd4a",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1331,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "members-scrolled",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-members-scrolled.png",
+        "sha256": "dc75059ecded27a0853632c16fa924cabec5de3b2505a8b9d116de50232c97cc",
+        "nativeUnedited": true,
+        "scrollY": 406,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1331,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "members-native-midpoint",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-members-native-midpoint.png",
+        "sha256": "bef1d89c8f439afa620cb313d388394958678ffd6eef3040639f0c2b0b3eff29",
+        "nativeUnedited": true,
+        "scrollY": 289,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1262,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "projects-firstscreen",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-projects-firstscreen.png",
+        "sha256": "a96412f9fa6ddcacbd882df581e62e916ca7b7aec8167decfcc44e83e8ccb727",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 2712,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "projects-scrolled",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-projects-scrolled.png",
+        "sha256": "f2b54e0bb87087572c6ed8717f5c459dc5447f1aac8ca29e98eb9ea0a3bb0fee",
+        "nativeUnedited": true,
+        "scrollY": 942,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 2712,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "projects-full-divider",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-projects-full-divider.png",
+        "sha256": "c91d0947a183d915f55b1201ad13b4bd61b23e99da4c55c652037d22b252c361",
+        "nativeUnedited": true,
+        "scrollY": 267,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 2712,
+        "fullPage": true,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "manager-settings",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-manager-settings.png",
+        "sha256": "aba56d3f347260aa7b4d73ef66d44d221e41d9775c705a786062ff8506423839",
+        "nativeUnedited": true,
+        "scrollY": 430,
+        "viewportWidth": 900,
+        "viewportHeight": 600,
+        "documentHeight": 1203,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "mobile-320-divider-hidden",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/tablet-900-zh-dark-mobile-320-divider-hidden.png",
+        "sha256": "61c340cc743b026d0596fc9e638f893b0d3c5d3c9a9d5fc31d5b604993a8ef3a",
+        "nativeUnedited": true,
+        "scrollY": 500,
+        "viewportWidth": 320,
+        "viewportHeight": 844,
+        "documentHeight": 3228,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "preview-text",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/public-1440-en-light-preview-text.png",
+        "sha256": "41a69c353adf5896e78baf86cde358be669e15d99529348bdd528678f029b3a3",
+        "nativeUnedited": true,
+        "scrollY": 404,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 2276,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "privacy-date",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/public-1440-en-light-privacy-date.png",
+        "sha256": "d33e6f4ff839baf3f87498957ed35c1d5418d4eb322ae44c4c87a77845163bd7",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 2328,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "404-path",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/public-1440-en-light-404-path.png",
+        "sha256": "6d9e6331a0803bfa3e91b5d2d23ac17bb72883af6bf3612601dfe8e68cd9662c",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "status-data",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/public-1440-en-light-status-data.png",
+        "sha256": "55cfe1c55fcfe5b60ee3d8a71234471f0955ea03d72b4cab138f406931fa82b5",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "public-1440-en-light",
+        "state": "modal-copy",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/public-1440-en-light-modal-copy.png",
+        "sha256": "581096444e6079fac24bf43225a9c0350924fede15fce2ed305eae5096500c4f",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "viewer-settings-1440-en-light",
+        "state": "readonly-settings",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/viewer-settings-1440-en-light-readonly-settings.png",
+        "sha256": "2ee3fcef861c6017ea4b79c4d7c1128f9616a8d020b1a3251a9453c73b4999c8",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 1440,
+        "viewportHeight": 1000,
+        "documentHeight": 1000,
+        "fullPage": false,
+        "coarse": false,
+        "touchPoints": 0
+      },
+      {
+        "profile": "viewer-settings-1440-en-light",
+        "state": "readonly-mobile-settings",
+        "path": "/workspace/work/post-merge-ui-2026-10-08/final-remaining/viewer-settings-1440-en-light-readonly-mobile-settings.png",
+        "sha256": "eaf9d493422d37d4236df8078968ef1af435aff85eec7f3a064059f16931e7ce",
+        "nativeUnedited": true,
+        "scrollY": 0,
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "documentHeight": 1020,
+        "fullPage": false,
+        "coarse": true,
+        "touchPoints": 1
+      }
+    ],
+    "excludedCounts": {
+      "contexts": 1,
+      "states": 44,
+      "captures": 7,
+      "intercepted": 86,
+      "fixtureGET": 44
+    },
+    "excludedAttempts": [
+      {
+        "status": "excluded",
+        "evidencePath": "/workspace/work/post-merge-ui-2026-10-08/accepted-desktop-excluded-tablet-broker/evidence.json",
+        "evidenceSha256": "6b38ef8a1934a5366ea4ea90988e86059df3f84544c0e0d595f4919431f2140c",
+        "scope": "Only failed tablet activeContext excluded. Accepted desktop completed profile from the same run is separately included once.",
+        "reason": "Invalid InterceptionId from local CDP fixture fulfill during SPA transition; this prior run lacked Network.loadingFailed correlation. All failed-tablet partial states/captures/requests are excluded. No source/runtime/API mutation failure claimed.",
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true,
+          "role": "owner"
+        },
+        "counts": {
+          "contexts": 1,
+          "states": 44,
+          "captures": 7,
+          "intercepted": 86,
+          "fixtureGET": 44
+        },
+        "pageErrors": 0,
+        "unknownRoutes": 0,
+        "mutations": 0
+      }
+    ],
+    "brokerMethod": "Record Network.loadingFailed(canceled=true). A stale fulfill ID is ignored only for the same canceled local GET/networkId; unmatched failures remain fatal. Final remaining run recorded7 canceled Network requests and0 ignored stale fulfill IDs. All intercepted requests remain charged to context budget.",
+    "preflightOnly": {
+      "scope": "Canonical sorting mismatch, before creating Chromium. All45 paths/bytes/SHA independently matched; replaced localeCompare with explicit path byte order.",
+      "contexts": 0,
+      "requests": 0,
+      "captures": 0
+    },
+    "preMergeEvidence": {
+      "path": "/workspace/work/divider-midpoint-2026-10-08/acceptance.json",
+      "entry": "/assets/index-BXbApSmU.js",
+      "scope": "Separate historical pre-merge phase, not reused for this merged artifact and excluded from current counts."
+    },
+    "captureEnvironment": {
+      "browser": "Chrome/151.0.7922.173",
+      "method": "native raw CDP",
+      "flags": [
+        "--headless=new",
+        "--hide-scrollbars"
+      ],
+      "proxyDisabled": true,
+      "allExternalOriginsBlocked": true,
+      "screenshotsUnedited": true,
+      "stableTouchBeforeAfterCapturesVerified": true
+    },
+    "methods": [
+      "Computed ::after absolute position + percentages + DOMMatrix center equals actual divider midpoint. Scroll changes viewport grip position by minus actual scroll delta, preserving document coordinates. Right height excludes ledger overview.",
+      "Native text drag uses actual Text-node fragments, instant scroll positioning and held buttonleft/buttons1 moves with frames. No programmatic selection. Data amounts/names/keyprefix exact textContent; visible modal title trims only outer icon separator whitespace and retains rawTextContent. Route and fixture GET count unchanged during selection.",
+      "Trusted mouse modal opener, native Escape, restored opener focus; no final payment action. Health configured flags only validate synthetic UI: Reachable/Configured and backend reported by API, never real service or database health.",
+      "Manager terminal panel0; viewer2 repo lines1/0 and panel0. Real expense record and report separation retained; mobile form-first1/record-last0."
+    ],
+    "manualVisualReview": {
+      "verdict": "passed",
+      "rootReviewed": [
+        "merged desktop controlled project loading",
+        "merged desktop Members scrolled",
+        "merged tablet Members native midpoint",
+        "merged viewer settings desktop"
+      ],
+      "qaReviewed": [
+        "merged synthetic status labels/details and public data selection screenshot",
+        "merged Billing modal copy/layout screenshot"
+      ],
+      "notes": "All screenshots are native and unedited. Full beyond-viewport captures at nonzero scroll preserve the naturally positioned sticky header at its actual document location; full-page does not imply scroll0. Mobile viewport crops later rows naturally; geometry covers terminal borders."
+    },
+    "cleanup": {
+      "previewPidTerminated": 50993,
+      "remainingOwnedProcesses": [],
+      "remainingBrowserProfiles": [],
+      "ports": {
+        "4199": "free",
+        "9229": "free"
+      }
+    }
+  },
+  "rootVisualReview": {
+    "verdict": "passed",
+    "rootReviewed": [
+      "merged desktop controlled project loading",
+      "merged desktop Members scrolled",
+      "merged tablet Members native midpoint",
+      "merged viewer settings desktop"
+    ],
+    "qaReviewed": [
+      "merged synthetic status labels/details and public data selection screenshot",
+      "merged Billing modal copy/layout screenshot"
+    ],
+    "notes": "All screenshots are native and unedited. Full beyond-viewport captures at nonzero scroll preserve the naturally positioned sticky header at its actual document location; full-page does not imply scroll0. Mobile viewport crops later rows naturally; geometry covers terminal borders."
+  },
+  "limits": [
+    "Synthetic local fixture acceptance does not establish real authenticated, provider or payment acceptance.",
+    "Exact accepted merged dist is frozen for preview-only deployment; remote publication is recorded separately."
+  ]
+}

@@ -12,7 +12,7 @@ export function NotFoundScreen({ go, requested, auth }) {
         {
           k: "ledgerProjects",
           t: T("Projects", "项目"),
-          d: T("Account overview", "账户总览"),
+          d: T("Ledger overview", "账本总览"),
           i: <I.Layout size={14} />,
         },
         {

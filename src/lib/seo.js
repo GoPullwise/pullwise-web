@@ -6,12 +6,12 @@ const PAGE_DEFINITIONS = {
   landing: {
     path: "/",
     title: {
-      en: "Pullwise — GitHub Project Expense Ledger",
-      zh: "Pullwise — GitHub 项目支出账本",
+      en: "Pullwise — Project Expense Tracking for Developers and Teams",
+      zh: "Pullwise — 面向开发者与团队的项目支出账本",
     },
     description: {
-      en: "Record project and shared expenses for GitHub repositories, then review separate totals for each currency.",
-      zh: "为 GitHub 仓库记录项目和公共支出，并查看各币种分别汇总的账目。",
+      en: "Track project and shared expenses, share a ledger with your team, and review totals by currency. GitHub repository links are optional.",
+      zh: "记录项目与公共支出，与团队共享账本，按币种查看汇总。GitHub 仓库可按需关联。",
     },
     schemaType: "software",
   },
@@ -34,8 +34,8 @@ const PAGE_DEFINITIONS = {
       zh: "Pullwise 文档 — 项目支出账本",
     },
     description: {
-      en: "Learn how to connect repositories, record expenses and review per-currency reports.",
-      zh: "了解如何连接仓库、记录支出和查看逐币报表。",
+      en: "Learn how to create projects, record and share expenses, review per-currency reports, and optionally link GitHub repositories.",
+      zh: "了解如何创建项目、记录并共享支出、查看逐币报表，以及按需关联 GitHub 仓库。",
     },
     schemaType: "article",
   },
@@ -54,8 +54,8 @@ const PAGE_DEFINITIONS = {
   privacy: {
     path: "/privacy",
     title: {
-      en: "Pullwise Privacy Policy — Repository and Account Data",
-      zh: "Pullwise 隐私政策 — 仓库与账户数据",
+      en: "Pullwise Privacy Policy — Account and Ledger Data",
+      zh: "Pullwise 隐私政策 — 账户与账本数据",
     },
     description: {
       en: "Read how Pullwise handles account, GitHub, ledger, billing and support data.",
@@ -78,12 +78,12 @@ const PAGE_DEFINITIONS = {
   status: {
     path: "/status",
     title: {
-      en: "Pullwise Status — Web and API Health",
-      zh: "Pullwise 状态 — Web 与 API 健康度",
+      en: "Pullwise Status — API Reachability and Service Configuration",
+      zh: "Pullwise 状态 — API 连通性与服务配置",
     },
     description: {
-      en: "Check current Pullwise web, API, database, GitHub integration, and billing availability.",
-      zh: "查看 Pullwise Web、API、数据库、GitHub 集成和账单的当前可用性。",
+      en: "Check Pullwise API reachability and reported database, GitHub, and billing configuration. This is not an end-to-end availability check.",
+      zh: "查看 Pullwise API 连通性以及返回的数据库、GitHub 和账单配置；这些信息不代表端到端服务可用性。",
     },
     schemaType: "page",
   },
@@ -157,12 +157,13 @@ function publicSchema(definition, title, description, canonical, origin) {
       description,
       publisher: { "@id": organizationId },
       featureList: [
-        "GitHub repository projects",
+        "Named expense projects",
         "Shared expense pool",
         "Date and category reports",
         "Per-currency totals",
         "Expense history",
-        "GitHub repository authorization",
+        "Shared ledgers and member roles",
+        "Optional GitHub repository links",
       ],
     });
   } else if (definition.schemaType === "article") {
@@ -199,7 +200,7 @@ export function seoMetadataForScreen(screen, options = {}) {
   if (!definition) {
     return {
       title: "Pullwise — Project Expense Ledger",
-      description: "Pullwise records project and shared expenses for GitHub repositories.",
+      description: "Pullwise tracks project and shared expenses for developers and teams.",
       robots: "noindex,nofollow",
       canonical: "",
       image: "",

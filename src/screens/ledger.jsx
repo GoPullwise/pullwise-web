@@ -1213,7 +1213,7 @@ function ScopedLedgerScreen({
                           : T("Expenses and reports for this project.", "此项目的支出与报表。")}
               </p>
               {mode === "project" && data?.project?.githubAccess === "not_linked" && (
-                <p className="ledger-meta">{T("No GitHub connection", "未关联 GitHub")}</p>
+                <p className="ledger-meta">{T("No repositories linked", "未关联仓库")}</p>
               )}
             </div>
             <div className="actions">
@@ -1370,7 +1370,7 @@ function ScopedLedgerScreen({
                             {T("Add project", "添加项目")} <I.ArrowR size={12} />
                           </a>
                         </strong>
-                        <p>{T("Choose the project you want to track.", "选择你想记账的项目。")}</p>
+                        <p>{T("Name the project you want to track.", "为你想记账的项目起个名字。")}</p>
                       </div>
                     </li>
                     <li>
@@ -1478,7 +1478,7 @@ function ScopedLedgerScreen({
                             <h3>{projectLabel(project)}</h3>
                             {project.githubAccess === "not_linked" && (
                               <p className="ledger-meta">
-                                {T("No GitHub connection", "未关联 GitHub")}
+                                {T("No repositories linked", "未关联仓库")}
                               </p>
                             )}
                             {project.status === "archived" && (
@@ -1616,8 +1616,8 @@ function ScopedLedgerScreen({
                         <div className="panel-body">
                           <p className="ledger-help">
                             {T(
-                              "GitHub repositories are optional. You can create and use this project without connecting GitHub.",
-                              "GitHub 仓库为选填项，无需关联即可创建项目并记账。"
+                              "GitHub repositories are optional. You can create and use this project without linking a repository.",
+                              "GitHub 仓库为选填项，无需关联仓库即可创建项目并记账。"
                             )}
                           </p>
                           {repositoryLoading && (
@@ -1800,7 +1800,7 @@ function ScopedLedgerScreen({
                 >
                   <summary className="panel-h">
                     <I.Activity size={20} />
-                    <h2>{T("Account overview")}</h2>
+                    <h2>{T("Ledger overview")}</h2>
                   </summary>
                   {data.summaryError && (
                     <p role="status">
@@ -2507,8 +2507,8 @@ function ScopedLedgerScreen({
                           {boundRepositoryIds(data.project).length === 0 && (
                             <p className="ledger-help">
                               {T(
-                                "No repositories are linked. This project can record expenses without GitHub.",
-                                "项目未关联仓库，无需 GitHub 授权即可记账。"
+                                "No repositories are linked. This project can record expenses without repository authorization.",
+                                "项目未关联仓库，无需仓库授权即可记账。"
                               )}
                             </p>
                           )}
@@ -2699,7 +2699,7 @@ function ScopedLedgerScreen({
                         )}
                       <h3>{T("Project repositories", "项目仓库")}</h3>
                       {boundRepositoryIds(data.project).length === 0 && (
-                        <p className="ledger-help">{T("No GitHub connection", "未关联 GitHub")}</p>
+                        <p className="ledger-help">{T("No repositories linked", "未关联仓库")}</p>
                       )}
                       <div className="ledger-list">
                         {boundRepositoryIds(data.project).map((id) => {
