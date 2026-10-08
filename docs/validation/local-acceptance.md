@@ -47,6 +47,19 @@ empty local fixture, so these captures verify fallback-font layouts without
 contacting Google. No remote business request or real payment is part of this
 audit. Preview publication is recorded separately below.
 
+[Preview publication](copy-audit-preview-release-2026-10-08.json) publishes Web
+runtime commit `9e765d72a8b36aa353059ddd5a1177536aabeb6f` as version
+`f31de511-c39b-48ef-8bff-6f21bdb57d67` at `preview.pull-wise.com`, alongside
+Server source `9349b48eb043d9b0dc566cae15a63265b7db510f` as version
+`ead2b046-b7df-4869-b8d3-c5dbb84e33f1`. Management readback confirms both at
+100% traffic and preserves the Preview service binding, SPA assets, runtime
+settings, database and budget namespace. The finite one-homepage/three-asset
+static check returns 403; the asset bodies identify Cloudflare error 1010.
+No redirect, retry, page JavaScript or business API is used. Remote asset
+hashes and public-page acceptance are therefore not confirmed by this check.
+Production activation and real payment acceptance remain outside this release.
+The publication records are documentation-only and require no further deployment.
+
 ## Shared console interactions and financial hierarchy (2026-10-08)
 
 The frontend goals are now recorded in `AGENTS.md`: simple layouts, prominent

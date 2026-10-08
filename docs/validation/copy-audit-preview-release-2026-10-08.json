@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-08",
+  "status": "Preview deployments confirmed; static HTTP verification blocked by Cloudflare 1010",
+  "source": {
+    "branch": "main",
+    "webRuntimeCommit": "9e765d72a8b36aa353059ddd5a1177536aabeb6f",
+    "serverCommit": "9349b48eb043d9b0dc566cae15a63265b7db510f",
+    "serverApplicationModulesUnchanged": 48
+  },
+  "localAcceptance": {
+    "webTestFiles": 38,
+    "webTests": 535,
+    "serverTests": 1015,
+    "publicRouteLanguageViewportCases": 96,
+    "capturedPages": 20,
+    "mockedApiRequests": 132,
+    "mutations": 0,
+    "googleFonts": "Empty local CSS fixture; no remote Google request",
+    "builtArtifactFiles": 45,
+    "buildManifestSha256": "be7a69d062193fb8129b9243058811692f076424489c29a513a05d93d917b572",
+    "artifactManifestStable": true
+  },
+  "publication": {
+    "tool": "Wrangler 4.136.3",
+    "web": {
+      "host": "preview.pull-wise.com",
+      "version": "f31de511-c39b-48ef-8bff-6f21bdb57d67",
+      "deploymentId": "22d86508-ae8d-40f8-ba13-069ea6f1da35",
+      "trafficPercent": 100
+    },
+    "server": {
+      "host": "preview-api.pull-wise.com",
+      "version": "ead2b046-b7df-4869-b8d3-c5dbb84e33f1",
+      "deploymentId": "6a2fdc7a-c4e2-4c00-93d7-b608cab36c6c",
+      "trafficPercent": 100
+    }
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "webServiceBinding": "pullwise-server-preview",
+    "spaAssets": true,
+    "htmlFirstRouting": true,
+    "serverCompatibilityFlags": [
+      "python_workers"
+    ],
+    "previewDatabaseId": "e9dc3b89-f81f-4fce-87ef-d8797d879fb4",
+    "budgetNamespaceId": "0e0ce4946c5e4d5f81c606273ba94b5d",
+    "runtimeSettingsPreserved": true,
+    "productionConfigChanged": false
+  },
+  "serverPackaging": {
+    "initialAttempt": "Rejected during upload validation because an external config root omitted the managed Python SDK",
+    "fix": "Use identical deployment overlay in the Python project directory so python_modules is packaged",
+    "sdkOrDependencyUpgrade": false,
+    "temporaryConfigRemoved": true,
+    "pylockRestored": true
+  },
+  "staticVerification": {
+    "passed": false,
+    "reason": "Homepage returned 403; all three exact asset GETs returned Cloudflare error 1010",
+    "requests": [
+      {
+        "path": "/",
+        "status": 403
+      },
+      {
+        "path": "/assets/index-CjCvziad.js",
+        "status": 403,
+        "headers": {
+          "Content-Type": "text/plain; charset=UTF-8",
+          "Server": "envoy",
+          "CF-Ray": "a47365040eb46c25-DFW"
+        },
+        "errorExcerpt": "error code: 1010\n"
+      },
+      {
+        "path": "/assets/legal-BAKPt_Ew.js",
+        "status": 403,
+        "headers": {
+          "Content-Type": "text/plain; charset=UTF-8",
+          "Server": "envoy",
+          "CF-Ray": "a47365059dfd636f-DFW"
+        },
+        "errorExcerpt": "error code: 1010\n"
+      },
+      {
+        "path": "/assets/ledger-longform-CcLR1b--.js",
+        "status": 403,
+        "headers": {
+          "Content-Type": "text/plain; charset=UTF-8",
+          "Server": "envoy",
+          "CF-Ray": "a47365074c8f9929-DFW"
+        },
+        "errorExcerpt": "error code: 1010\n"
+      }
+    ],
+    "httpRequests": 4,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "pageJavaScriptExecuted": false,
+    "businessApiRequests": 0,
+    "remoteAssetHashMatchConfirmed": false
+  },
+  "scope": {
+    "directDeploymentEnvironment": "preview",
+    "productionActivated": false,
+    "d1Commands": 0,
+    "realPaymentRequests": 0,
+    "realSessionsUsed": false,
+    "localPreviewProcessStopped": true
+  }
+}
