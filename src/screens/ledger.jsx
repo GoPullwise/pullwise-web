@@ -606,6 +606,7 @@ function ScopedLedgerScreen({
   const projectStatusId = useId();
   const projectSettingsBase = useRef(null);
   const projectSettingsDirty = useRef(false);
+  const projectSearchRef = useRef(null);
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
   const inFlight = useRef(false);
@@ -1404,8 +1405,9 @@ function ScopedLedgerScreen({
                     </div>
                     {data.projects.items.length > 0 && (
                       <div className="ledger-search">
-                        <I.Search size={16} />
+                        <I.Search size={16} aria-hidden="true" />
                         <input
+                          ref={projectSearchRef}
                           type="search"
                           aria-label={T("Find a project", "查找项目")}
                           placeholder={T("Find a project", "查找项目")}
@@ -1413,8 +1415,17 @@ function ScopedLedgerScreen({
                           onChange={(event) => setProjectSearch(event.target.value)}
                         />
                         {projectSearch && (
-                          <button className="btn ghost sm" onClick={() => setProjectSearch("")}>
-                            {T("Clear search", "清除搜索")}
+                          <button
+                            className="btn ghost sm"
+                            type="button"
+                            aria-label={T("Clear search", "清除搜索")}
+                            title={T("Clear search", "清除搜索")}
+                            onClick={() => {
+                              setProjectSearch("");
+                              projectSearchRef.current?.focus({ preventScroll: true });
+                            }}
+                          >
+                            <I.X size={16} aria-hidden="true" />
                           </button>
                         )}
                       </div>

@@ -1,0 +1,650 @@
+{
+  "date": "2026-10-08",
+  "status": "Local UI acceptance passed",
+  "sourceBaseCommit": "820c5ed4c9aa478e9da726515cfdc4525838d7cc",
+  "runtimeSourceSha256": {
+    "src/screens/ledger.css": "287a20a88500ba3b835aa6ee5b8007788c3bedc06afdd2bc0f6fcf28dee826a1",
+    "src/screens/ledger.jsx": "c0e58c88ab7a07e8bde4b8ea2cde620e689b594eab465900c573d6e3b839fe11",
+    "src/screens/members.jsx": "3cfae8b00822a2fa3400eb58da8559dbb553069022c0a6d3b5670a9b9915023f",
+    "src/shell.jsx": "efa9379214571a39d7c72bb6c08038a1df162a7a28cfbe7ce89c928529bca81a",
+    "src/app.css": "c294513398b4b9820f9fd7daa462bdd6159b6161d824663edfac331b7a4c86dd",
+    "styles/base.css": "0039ff5f648d55fe53b95fed6ee57b6dcaf53b2ef8eebfa292f18f9cb27c7727",
+    "styles/screens.css": "f687eaccbbdfa63136953712f7fa1497c53a225bea32fd8fec68baffba8fab60",
+    "src/locales/ledger-screen.js": "786226a1983870cd943a345e8fd391a5d7ab71468c362a6358f48ab1b4a4946b"
+  },
+  "localChecks": {
+    "lint": true,
+    "testFiles": 36,
+    "tests": 476,
+    "build": true,
+    "workerConfiguration": true,
+    "workerSyntax": true,
+    "wranglerPreviewDryRun": true,
+    "wranglerVersion": "4.136.3"
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "browser": "Chrome/151.0.7922.173",
+  "scope": "Finite built local Chromium UI checks; every API is fulfilled from synthetic fixtures; external requests blocked; no real accounts, remote API calls, provider calls or auth tokens.",
+  "requestCapPerContext": 120,
+  "matrix": {
+    "status": "passed",
+    "startedAt": "2026-10-08T04:00:57.189Z",
+    "completedAt": "2026-10-08T04:02:02.862Z",
+    "harnessSha256": "d1c2f74161f94e634dcb8b8ecf7e49c34afb091e3ebb72446bb6e7cac879b97b",
+    "artifactStable": true,
+    "profiles": [
+      {
+        "key": "1440-en-light",
+        "profile": {
+          "width": 1440,
+          "lang": "en",
+          "theme": "light"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 48,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "1440-en-dark",
+        "profile": {
+          "width": 1440,
+          "lang": "en",
+          "theme": "dark"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 48,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "1440-zh-light",
+        "profile": {
+          "width": 1440,
+          "lang": "zh",
+          "theme": "light"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 62,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "1440-zh-dark",
+        "profile": {
+          "width": 1440,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 62,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "390-en-light",
+        "profile": {
+          "width": 390,
+          "lang": "en",
+          "theme": "light"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 48,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "390-en-dark",
+        "profile": {
+          "width": 390,
+          "lang": "en",
+          "theme": "dark"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 48,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "390-zh-light",
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "light"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 62,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "390-zh-dark",
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 62,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "320-en-light",
+        "profile": {
+          "width": 320,
+          "lang": "en",
+          "theme": "light"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 48,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "320-en-dark",
+        "profile": {
+          "width": 320,
+          "lang": "en",
+          "theme": "dark"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 48,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "320-zh-light",
+        "profile": {
+          "width": 320,
+          "lang": "zh",
+          "theme": "light"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 62,
+        "fixtureApiGets": 9
+      },
+      {
+        "key": "320-zh-dark",
+        "profile": {
+          "width": 320,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        "states": [
+          "projects-focus",
+          "projects-scrolled",
+          "projects-language-menu",
+          "members-top",
+          "members-confirm",
+          "members-long-identity",
+          "members-lower"
+        ],
+        "interceptedRequests": 62,
+        "fixtureApiGets": 9
+      }
+    ],
+    "captures": 84,
+    "interceptedRequests": 660,
+    "fixtureApiGets": 108,
+    "blockedFontRequests": 24,
+    "pageErrors": 0,
+    "unexpectedApis": 0,
+    "mutations": 0
+  },
+  "settledScrollSupplement": {
+    "status": "passed",
+    "startedAt": "2026-10-08T04:04:58.761Z",
+    "completedAt": "2026-10-08T04:05:09.732Z",
+    "harnessSha256": "d38a305f1b2f8fa2b827c6ccc3bd93c7c9993c6f482ec917be9269ae48d673b1",
+    "artifactStable": true,
+    "profiles": [
+      {
+        "key": "390-en-light",
+        "profile": {
+          "width": 390,
+          "lang": "en",
+          "theme": "light"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 23,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "390-en-dark",
+        "profile": {
+          "width": 390,
+          "lang": "en",
+          "theme": "dark"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 23,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "390-zh-light",
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "light"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 30,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "390-zh-dark",
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 30,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "320-en-light",
+        "profile": {
+          "width": 320,
+          "lang": "en",
+          "theme": "light"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 23,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "320-en-dark",
+        "profile": {
+          "width": 320,
+          "lang": "en",
+          "theme": "dark"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 23,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "320-zh-light",
+        "profile": {
+          "width": 320,
+          "lang": "zh",
+          "theme": "light"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 30,
+        "fixtureApiGets": 4
+      },
+      {
+        "key": "320-zh-dark",
+        "profile": {
+          "width": 320,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        "states": [
+          "members-long-identity"
+        ],
+        "interceptedRequests": 30,
+        "fixtureApiGets": 4
+      }
+    ],
+    "captures": 8,
+    "interceptedRequests": 212,
+    "fixtureApiGets": 32,
+    "blockedFontRequests": 8,
+    "pageErrors": 0,
+    "unexpectedApis": 0,
+    "mutations": 0
+  },
+  "acceptance": {
+    "documentOverflow": false,
+    "horizontalLedgerPicker": true,
+    "wholeSearchFocusPerimeter": true,
+    "searchClearRestoresFocus": true,
+    "searchFixtureApiRequests": 0,
+    "bottomControls": true,
+    "languageMenuViewportBounded": true,
+    "backToTopAndThemeActions": true,
+    "memberPermissionUiAndRoleSelection": true,
+    "memberRemovalConfirmationCancel": true,
+    "longNamesAndInvitationActionsWrap": true,
+    "coarsePointerAndTouchRestoredAfterCaptures": true,
+    "actualMemberTouchTargetMinimumPx": 44,
+    "finalMemberFieldsAndActionsClearBottomControls": true
+  },
+  "visualReview": {
+    "passed": true,
+    "reviewed": "Desktop and 390px en/zh light/dark Projects and Members, 320px long identity, pending invitation and removal confirmation.",
+    "acceptedHeaderEvidence": [
+      "settled-diagnostic/390-zh-dark-members-confirm.png",
+      "settled-diagnostic/390-zh-dark-projects-language-menu.png"
+    ],
+    "captureLimitation": "Native Chromium screenshots can intermittently omit a sticky header paint after smooth scroll despite correct measured bounds. The 8 mobile long-identity captures were supplemented after stable scrolling; those single-shot header pixels are not used as visual header acceptance."
+  },
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-D44vLvTH.js",
+      "bytes": 17809,
+      "sha256": "a84d6c68d00cd7e897388174edeee54dfd0808a0dd26031d16f7a49268ed4aab"
+    },
+    {
+      "path": "assets/api-docs-DJtGBjAS.js",
+      "bytes": 14645,
+      "sha256": "e20171dbed59e0ffc0a8db04b09e15e71bb4ff4f1ec4e1de0ee050b41ce8b1cb"
+    },
+    {
+      "path": "assets/auth-KBjvQuiy.js",
+      "bytes": 8495,
+      "sha256": "11d199bf883cf476f69c5da26a616ad3817ed8ac48d7b5fdd610242978c03e71"
+    },
+    {
+      "path": "assets/billing-BKnWkLfM.js",
+      "bytes": 31913,
+      "sha256": "97bc15bd2b157ff0bf5de11cc5e9e12cb0501173706d0a60b6eac514956dba11"
+    },
+    {
+      "path": "assets/confirm-dialog-DRQErMnh.js",
+      "bytes": 2992,
+      "sha256": "3062d7dcdfd73c95f2457a6a33cf5762e26ef10949067f106ed9e887d6a540ee"
+    },
+    {
+      "path": "assets/docs-CJhY0aqa.js",
+      "bytes": 6565,
+      "sha256": "b9a78bdcd3d7a2463c27bd1a731de5db561c53179b3c1652167ae76d77a0aba1"
+    },
+    {
+      "path": "assets/dynamic-DCZrMema.js",
+      "bytes": 4150,
+      "sha256": "501dd5c94f8fbf844992a8bb94d3de3b267653e8cff8bdfe7e13b310d8c63dfc"
+    },
+    {
+      "path": "assets/es-683QKabM.js",
+      "bytes": 12961,
+      "sha256": "749d530105eaa50b1e5bb4e0faad2e4160511b335f73458be9174a260bb47130"
+    },
+    {
+      "path": "assets/fr-DfZHQbgS.js",
+      "bytes": 13283,
+      "sha256": "db2319ec96719e64469b1f1c0191eecdd33a6ed88aefef054a7f206384a23019"
+    },
+    {
+      "path": "assets/index-APtlcYvT.css",
+      "bytes": 73912,
+      "sha256": "8766465e74db4e349fdb8208d5c04ae02864aa380b98fd755f5c3137fe6bba63"
+    },
+    {
+      "path": "assets/index-D-QKPb0A.js",
+      "bytes": 42055,
+      "sha256": "68a6317aba20f15ed75992d6baaf66965f1c9b049427c87458fbb71d2f1a2b18"
+    },
+    {
+      "path": "assets/ja-C8b4xV62.js",
+      "bytes": 13959,
+      "sha256": "514f4a4dc67d95220873faf28838651d4d465993c5b532894fdd469fea4c918b"
+    },
+    {
+      "path": "assets/ko-BUVTLl8w.js",
+      "bytes": 12762,
+      "sha256": "b8e2eb7689b5f3fb0c3f938cc36c239693737edf09d2e5b8dc6ba63cf1d6c2b5"
+    },
+    {
+      "path": "assets/ledger-Bg5eiPh6.js",
+      "bytes": 11492,
+      "sha256": "459cb36f8015f6974aa0fd5a3dc2216bbaa79baa2b8526cf114ae845622813e4"
+    },
+    {
+      "path": "assets/ledger-BYHP6hbm.js",
+      "bytes": 2925,
+      "sha256": "d79d5bebc2b42d8b2ca0243db18b1885f7003e420bfd67e5edd54c081bafae69"
+    },
+    {
+      "path": "assets/ledger-D4KDF3QE.css",
+      "bytes": 10667,
+      "sha256": "ed7306d1537a74fba25d383eb73f959049fa505993bb855d9a21f28b9545988a"
+    },
+    {
+      "path": "assets/ledger-longform-DOxwwOdJ.js",
+      "bytes": 53941,
+      "sha256": "55a1d40a3b1c62fe6a5a7858e5485a8dbb5e0f0b01f1f5482a08a04d8795a9bd"
+    },
+    {
+      "path": "assets/ledger-scopes-B4otesy_.js",
+      "bytes": 3975,
+      "sha256": "a3afd12cc23a107eddb1efa9e97135d76ccff3b8222aae644bc8b9c39e2a155a"
+    },
+    {
+      "path": "assets/ledger-screen-BKfq9bfZ.js",
+      "bytes": 36222,
+      "sha256": "5240bf8e5edf0952d61f0a5e7a859a7af70ee3d590f24ba6cb3c2faae49311ee"
+    },
+    {
+      "path": "assets/ledger-Twe3oGBv.js",
+      "bytes": 56001,
+      "sha256": "f51a8c68404db21d50abc3c1918bb1b2d393a2c8adfc081145b36126fd5fded5"
+    },
+    {
+      "path": "assets/ledger-ui-adOcPjb-.js",
+      "bytes": 27598,
+      "sha256": "e3f97a2ef1868748801d0f4f992a57366b14089f4594dac2a2b7fb377ec4f13c"
+    },
+    {
+      "path": "assets/legal-CTZ3fcs_.js",
+      "bytes": 17109,
+      "sha256": "51814af073381b58ddd86683f2025e509b1d211b5b64b369d90230bfc57ea559"
+    },
+    {
+      "path": "assets/members-D7qlREIx.js",
+      "bytes": 18695,
+      "sha256": "f3903a5c2b108f0e64f47c7122a1f52f5823cb30a55dadff3ef11df716cb1635"
+    },
+    {
+      "path": "assets/navigation-B8fnmnVj.js",
+      "bytes": 13112,
+      "sha256": "9f3bc662135d27915979fb3027c2301a2944be85be94ea26e8cade7ae7b54453"
+    },
+    {
+      "path": "assets/notifications-aSeXUqIB.js",
+      "bytes": 2705,
+      "sha256": "8a06a199273a784d9479e23f3aa8d1b5e6b767c2c3afeda8ec8bd0d26edfdab8"
+    },
+    {
+      "path": "assets/public-layout-ChRIYix7.js",
+      "bytes": 2431,
+      "sha256": "9714f8ff07403e06ab9ed4446ff9f700a4836f5eba110faf037d862ea618c9cc"
+    },
+    {
+      "path": "assets/pullwise-C-KvE2XC.js",
+      "bytes": 1775,
+      "sha256": "21b083841a0c275c014526ec6841f9415d61399b8fe7c731b7aa688bfddbba81"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-B7oP73H7.js",
+      "bytes": 8161,
+      "sha256": "4b0c1bfcc7077db91aac19e0fb3e2a5d9ac83d842f5d022ce8e2cfacf9e3730b"
+    },
+    {
+      "path": "assets/shell-CKCUlTry.js",
+      "bytes": 5034,
+      "sha256": "6a3693b7c86932e09ecb651f31f95ce0340c55a8b44e08b6894b0c77e773217d"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/workspace-context-CLsmFTwk.js",
+      "bytes": 202,
+      "sha256": "5a7a3bb35582e68ab0642cac15a33a3c9c3851bae90ce8c33c29a165fc934e1d"
+    },
+    {
+      "path": "assets/zh-CNi7RLYc.js",
+      "bytes": 11381,
+      "sha256": "ac3dbf8af423708c2f69750394465a4d9879e4022bc54b7e463d4dd5849b3d77"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 4916,
+      "sha256": "e9bce0f1e7519b5a3d3dfa2ef0dca57fc26a359754feba028afccda2cb796b91"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 25866,
+      "sha256": "1b153369b7efe00a1322b4f75209cc0b5efce343af45b6a3acc3bf66ca330903"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2126,
+      "sha256": "50dcfe168f1ed22609b544e637ed2497d2f5c3749a6fc635f3da5c1724a03638"
+    }
+  ],
+  "limitations": [
+    "Synthetic local fixtures do not establish real OAuth, member authorization, payment or remote business API acceptance.",
+    "External web-font requests were blocked; local browser captures use the explicit fallback font stacks."
+  ],
+  "scopeLimits": {
+    "webOnly": true,
+    "remoteBusinessApis": 0,
+    "serverDeployments": 0,
+    "productionMutations": 0,
+    "d1Commands": 0
+  }
+}

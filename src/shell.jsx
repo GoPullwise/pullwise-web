@@ -69,11 +69,12 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
           </nav>
         )}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div className="topbar-actions">
         {ledgers?.workspace && (
-          <label className="workspace-picker">
-            <span>{T("Ledger", "账本")}</span>
+          <div className="workspace-picker">
+            <label htmlFor="workspace-select">{T("Ledger", "账本")}</label>
             <select
+              id="workspace-select"
               aria-label={T("Select ledger", "选择账本")}
               value={ledgers.workspace.id}
               onChange={(event) => ledgers.onSelect(event.target.value)}
@@ -84,7 +85,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
         )}
         {loading && (
           <span

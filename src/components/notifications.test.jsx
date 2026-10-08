@@ -87,7 +87,7 @@ describe("NotificationProvider", () => {
     const styles = readFileSync("src/app.css", "utf8");
 
     expect(styles).toMatch(
-      /\.notification-stack\s*\{[\s\S]*right:\s*166px;[\s\S]*bottom:\s*18px;[\s\S]*width:\s*min\(390px,\s*calc\(100vw - 184px\)\);/
+      /\.notification-stack\s*\{[\s\S]*right:\s*166px;[\s\S]*bottom:\s*calc\(18px \+ env\(safe-area-inset-bottom\)\);[\s\S]*width:\s*min\(390px,\s*calc\(100vw - 184px\)\);/
     );
   });
 

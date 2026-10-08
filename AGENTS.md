@@ -1,5 +1,17 @@
 # Pullwise Web
 
+## Console layout follow-up (2026-10-08)
+
+Projects search uses one square accent focus perimeter around the icon, input
+and clear action. The topbar Ledger label and picker stay side by side, with
+long ledger names constrained inside the native selector. Language, theme and
+back-to-top controls stay at the bottom right on all pages; reserve content
+clearance below console modules and bound the language menu above its opener.
+Member rows separate identity and role from aligned, wrapping management
+controls. Preserve hard edges, permission checks and identity/revision isolation.
+The current release is Web-only: push main and publish preview.pull-wise.com.
+Production deployment and Server/D1 operations are outside this task.
+
 ## Standalone projects follow-up (2026-10-07)
 
 Project creation defaults to a name and optional description, with GitHub
@@ -249,10 +261,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   background. Use the shared scrim rgba(8, 12, 20, 0.52). Floating controls stay
   below modal backdrops. Small-screen notifications sit above the pickers;
   coarse-pointer targets are at least 44px. Verify 390px document overflow.
-  In authenticated `.with-side` workspaces, language/theme/back-to-top controls
-  occupy the topbar with reserved space beside account actions. Keep their
-  dropdown below the header and bounded by viewport height; floating controls
-  must not obscure fields or record actions. Public pages retain bottom controls.
+  Language/theme/back-to-top controls occupy the bottom right on public and
+  authenticated pages. Keep their dropdown above the opener and bounded by
+  viewport height; reserve bottom content clearance so floating controls do
+  not obscure the final fields or record actions.
   Restore modal focus after all cleanups release the background's inert state.
   Route focus waits for lazy headings; identity-only workspace remounts preserve
   a language/theme control that the user is already operating.

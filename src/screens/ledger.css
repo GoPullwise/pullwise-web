@@ -1,6 +1,3 @@
-.ledger-screen .main {
-  padding-bottom: 64px;
-}
 .ledger-screen .panel {
   padding: 32px 0;
 }
@@ -57,22 +54,47 @@
 .ledger-search {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
+  min-height: 44px;
   border: 1px solid var(--border-strong);
-  padding: 0 12px;
+  padding: 0 6px 0 12px;
   margin-bottom: 16px;
   background: var(--bg-elev);
   color: var(--text-3);
 }
-.ledger-search > svg,
-.ledger-search > .btn {
+.ledger-search:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+.ledger-search > svg {
   flex-shrink: 0;
+}
+.ledger-search > .btn {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  outline: none;
+}
+.ledger-search > .btn:focus-visible {
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 .ledger-screen .main .ledger-search input[type="search"] {
   flex: 1 1 0;
+  min-width: 0;
+  width: 0;
   border: 0;
+  outline: none;
+  appearance: none;
   background: transparent;
   padding-inline: 0;
+}
+.ledger-search input::-webkit-search-cancel-button,
+.ledger-search input::-webkit-search-decoration {
+  display: none;
 }
 .ledger-your-projects > .ledger-list:not(:empty) {
   border-top: 1px solid var(--border);
@@ -533,11 +555,15 @@
   }
 }
 @media (pointer: coarse) {
+  .ledger-search > .btn {
+    flex-basis: 44px;
+    width: 44px;
+  }
   .ledger-screen .disclosure > summary {
     min-height: 44px;
   }
-  .ledger-screen input:not([type="checkbox"]),
-  .ledger-screen select,
+  .ledger-screen .main input:not([type="checkbox"]),
+  .ledger-screen .main select,
   .ledger-screen .btn {
     min-height: 44px;
   }

@@ -1,6 +1,47 @@
 # Current local acceptance
 
-Updated 2026-10-07. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Projects and Members layout refinement (2026-10-08)
+
+Projects search now highlights the entire square control, including its search
+icon and clear action. Clearing the filter restores input focus. The topbar
+Ledger label and selector share one row; long ledger names remain inside the
+native selector. Language, theme and back-to-top controls return to the bottom
+right on every page. Console content and notification offsets reserve their
+clearance, including mobile safe areas, and the language menu opens above its
+button within the viewport.
+
+Member rows separate name, GitHub account and role from management controls.
+Desktop rows align the controls on the right; narrow containers stack identity,
+role selection and wrapping actions. Visible action labels are concise, while
+accessible labels retain the member identity in all supported languages.
+Pending invitation actions use the same concise labels; the full recipient
+stays in the translated accessible name, so long GitHub usernames cannot
+stretch the 320px layout. Native touch inputs/selects retain the actual 44px
+minimum despite the lazy ledger stylesheet's shared control rules.
+Owner/Admin authority, optimistic-concurrency revisions and request lifecycles
+remain unchanged.
+
+`npm run check` passes lint, **36 test files / 476 tests** and the build.
+`npm run check:workers`, Worker syntax checks and the Wrangler 4.136.3 preview
+packaging dry run pass. Preview artifacts use the preview app URL and GitHub
+App slug. Local browser evidence and the finite remote publication check are
+recorded in the dated companion records for this release; local fixtures do
+not establish authenticated remote acceptance. The release covers only the
+Web Worker/assets at `preview.pull-wise.com`, with the existing preview Server
+binding. Production and Server/D1 deployment are outside this task.
+
+[Local browser acceptance](console-layout-local-2026-10-08.json) passes the
+12-profile matrix (1440/390/320px, en/zh, light/dark) with 84 capture states,
+plus eight settled-scroll long-identity supplements. Coarse-pointer media,
+touch restoration, actual 44px control targets, search/clear without API
+refresh, theme/back-to-top actions and member role/confirmation/cancel flows
+pass. No document overflow or script error remains. Artifacts remain identical
+throughout both accepted phases; all API traffic uses local synthetic fixtures.
+Sticky-header pixels after smooth scrolling use the explicitly settled
+diagnostic captures because native Chromium can intermittently omit that
+header paint in single-shot captures with otherwise correct measured bounds.
 
 ## Final real REST and temporary-key acceptance (2026-10-07)
 

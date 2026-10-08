@@ -1,7 +1,7 @@
 .lang-picker {
   position: fixed;
   right: 70px;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: var(--z-float);
 }
 
@@ -47,6 +47,8 @@
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
+  max-height: calc(100dvh - 96px - env(safe-area-inset-bottom));
+  overflow-y: auto;
 }
 
 .lang-menu-i {
@@ -83,7 +85,7 @@
 .theme-toggle {
   position: fixed;
   right: 18px;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: var(--z-float);
   width: 42px;
   height: 42px;
@@ -110,7 +112,7 @@
 .back-to-top {
   position: fixed;
   right: 122px;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: var(--z-float);
   width: 42px;
   height: 42px;
@@ -152,7 +154,7 @@
 .notification-stack {
   position: fixed;
   right: 166px;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: var(--z-toast);
   width: min(390px, calc(100vw - 184px));
   display: flex;
@@ -263,7 +265,7 @@
 @media (max-width: 520px) {
   .notification-stack {
     right: 16px;
-    bottom: 72px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
     width: calc(100vw - 32px);
   }
 
@@ -285,9 +287,6 @@
   }
 }
 
-.topbar > div:last-child {
-  flex: 0 1 auto;
-}
 .page-h .actions,
 .modal-foot,
 .docs-foot-actions,
@@ -295,32 +294,6 @@
   flex: 0 0 auto;
 }
 
-/* Keep workspace preferences in the header, clear of records and forms. */
-body:has(.with-side) .lang-picker,
-body:has(.with-side) .theme-toggle,
-body:has(.with-side) .back-to-top {
-  top: 6px;
-  bottom: auto;
-}
-body:has(.with-side) .topbar > div:last-child {
-  padding-right: 100px;
-}
-body:has(.with-side):has(.back-to-top.visible) .topbar > div:last-child {
-  padding-right: 148px;
-}
-body:has(.with-side) .lang-menu {
-  top: 52px;
-  bottom: auto;
-  max-height: calc(100dvh - 84px);
-  overflow-y: auto;
-}
-@media (max-width: 760px) {
-  body:has(.with-side) .lang-picker,
-  body:has(.with-side) .theme-toggle,
-  body:has(.with-side) .back-to-top {
-    top: 4px;
-  }
-}
 @media (pointer: coarse) {
   .lang-toggle,
   .theme-toggle,

@@ -159,7 +159,7 @@ describe("Design token discipline", () => {
       .find(Boolean);
     expect(toastBlock).toBeTruthy();
     expect(toastBlock).toContain("width: calc(100vw - 32px);");
-    expect(toastBlock).toContain("bottom: 72px;");
+    expect(toastBlock).toContain("bottom: calc(72px + env(safe-area-inset-bottom));");
     expect(toastBlock).not.toContain("calc(100vw - 184px)");
 
     // Coarse pointers get the same 44px target on the collapsed topbar

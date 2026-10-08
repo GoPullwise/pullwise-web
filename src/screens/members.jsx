@@ -576,7 +576,7 @@ function MembersContent({
               </div>
               {loading && <p role="status">{T("Loading members…", "正在加载成员…")}</p>}
               {members && (
-                <div className="ledger-list">
+                <div className="ledger-list member-list">
                   {members.map((member) => {
                     const label = memberName(member);
                     const editable =
@@ -585,24 +585,36 @@ function MembersContent({
                       EDITABLE_ROLES.includes(member.role) &&
                       (canManageAdmins || member.role !== "admin");
                     return (
-                      <article key={member.userId}>
-                        <h3>{member.name || label}</h3>
-                        {member.githubLogin && <p className="ledger-meta">{member.githubLogin}</p>}
-                        <p>{roleName(member.role)}</p>
-                        {member.role === "owner" && (
-                          <p className="ledger-meta">
-                            {T("Owner access cannot be changed here.", "此处不能变更所有者权限。")}
-                          </p>
-                        )}
-                        {canManage && member.role === "admin" && !canManageAdmins && (
-                          <p className="ledger-meta">
-                            {T("Admin access cannot be changed here.", "此处不能变更管理员权限。")}
-                          </p>
-                        )}
+                      <article key={member.userId} className="member-row">
+                        <div className="member-identity">
+                          <h3>{member.name || label}</h3>
+                          <div className="member-meta">
+                            {member.githubLogin && (
+                              <span className="member-login">@{member.githubLogin}</span>
+                            )}
+                            <span className="tag">{roleName(member.role)}</span>
+                          </div>
+                          {member.role === "owner" && (
+                            <p className="ledger-meta">
+                              {T(
+                                "Owner access cannot be changed here.",
+                                "此处不能变更所有者权限。"
+                              )}
+                            </p>
+                          )}
+                          {canManage && member.role === "admin" && !canManageAdmins && (
+                            <p className="ledger-meta">
+                              {T(
+                                "Admin access cannot be changed here.",
+                                "此处不能变更管理员权限。"
+                              )}
+                            </p>
+                          )}
+                        </div>
                         {editable && (
                           <>
                             <form
-                              className="ledger-form"
+                              className="member-controls"
                               onSubmit={(event) => {
                                 event.preventDefault();
                                 const role = roles[member.userId] || member.role;
@@ -623,46 +635,58 @@ function MembersContent({
                                 );
                               }}
                             >
-                              <label htmlFor={`role-${member.userId}`}>
-                                {T(`Role for ${label}`, `${label} 的角色`)}
-                              </label>
-                              <select
-                                id={`role-${member.userId}`}
-                                value={roles[member.userId] || member.role}
-                                disabled={disabled}
-                                onChange={(event) =>
-                                  setRoles((values) => ({
-                                    ...values,
-                                    [member.userId]: event.target.value,
-                                  }))
-                                }
-                              >
-                                {grantableRoles.map((role) => (
-                                  <option key={role} value={role}>
-                                    {roleName(role)}
-                                  </option>
-                                ))}
-                              </select>
+                              <div className="ledger-field">
+                                <label htmlFor={`role-${member.userId}`}>{T("Role", "角色")}</label>
+                                <select
+                                  id={`role-${member.userId}`}
+                                  aria-label={T("Role for {member}", "{member} 的角色").replace(
+                                    "{member}",
+                                    label
+                                  )}
+                                  value={roles[member.userId] || member.role}
+                                  disabled={disabled}
+                                  onChange={(event) =>
+                                    setRoles((values) => ({
+                                      ...values,
+                                      [member.userId]: event.target.value,
+                                    }))
+                                  }
+                                >
+                                  {grantableRoles.map((role) => (
+                                    <option key={role} value={role}>
+                                      {roleName(role)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                               <div className="panel-actions">
                                 <button
                                   className="btn"
                                   type="submit"
+                                  aria-label={T(
+                                    "Save role for {member}",
+                                    "保存 {member} 的角色"
+                                  ).replace("{member}", label)}
                                   disabled={
                                     disabled ||
                                     !roles[member.userId] ||
                                     roles[member.userId] === member.role
                                   }
                                 >
-                                  {T(`Save role for ${label}`, `保存 ${label} 的角色`)}
+                                  {T("Save role", "保存角色")}
                                 </button>
                                 {removeId !== member.userId && (
                                   <button
                                     className="btn ghost"
                                     type="button"
+                                    aria-label={T("Remove {member}", "移除 {member}").replace(
+                                      "{member}",
+                                      label
+                                    )}
                                     disabled={disabled}
                                     onClick={() => setRemoveId(member.userId)}
                                   >
-                                    {T(`Remove ${label}`, `移除 ${label}`)}
+                                    {T("Remove", "移除")}
                                   </button>
                                 )}
                               </div>
@@ -846,6 +870,10 @@ function MembersContent({
                         {(canManageAdmins || invite.role !== "admin") && (
                           <button
                             className="btn"
+                            aria-label={T(
+                              "Revoke invitation for {member}",
+                              "撤销 {member} 的邀请"
+                            ).replace("{member}", invite.recipient?.login)}
                             disabled={disabled}
                             onClick={() => {
                               if (canManage && (canManageAdmins || invite.role !== "admin"))
@@ -861,10 +889,7 @@ function MembersContent({
                                 );
                             }}
                           >
-                            {T(
-                              `Revoke invitation for ${invite.recipient?.login}`,
-                              `撤销 ${invite.recipient?.login} 的邀请`
-                            )}
+                            {T("Revoke invitation", "撤销邀请")}
                           </button>
                         )}
                       </article>

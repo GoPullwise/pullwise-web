@@ -302,6 +302,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 0 24px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
@@ -341,18 +342,28 @@ select {
   flex: 0 0 auto;
   color: var(--text-3);
 }
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .workspace-picker {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
-  max-width: 220px;
-  font-size: var(--fs-xs);
+  max-width: 280px;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
+.workspace-picker > label {
+  flex: 0 0 auto;
+}
 .workspace-picker select {
-  width: 100%;
-  padding: 4px 6px;
+  flex: 1 1 auto;
+  width: 180px;
+  min-height: 32px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
@@ -527,7 +538,7 @@ a.crumb-button:hover {
 }
 
 .main {
-  padding: 32px 36px 72px;
+  padding: 32px 36px calc(88px + env(safe-area-inset-bottom));
   min-width: 0;
   max-width: 1200px;
   width: 100%;
@@ -944,15 +955,14 @@ details.panel[open] > summary.panel-h::after,
     padding: 4px 12px;
     flex-wrap: wrap;
   }
-  .topbar > div:first-child {
-    padding-right: 100px;
-  }
   .topbar > div:last-child {
-    flex: 1 1 100%;
-    justify-content: flex-end;
+    max-width: 100%;
   }
   .workspace-picker {
-    max-width: min(220px, calc(100vw - 190px));
+    max-width: min(280px, calc(100vw - 80px));
+  }
+  .workspace-picker select {
+    width: 140px;
   }
   .topbar-location {
     gap: 8px;
@@ -1074,7 +1084,7 @@ details.panel[open] > summary.panel-h::after,
 
   .main {
     max-width: none;
-    padding: 20px 16px 48px;
+    padding: 20px 16px calc(88px + env(safe-area-inset-bottom));
   }
 
   .empty {
@@ -1133,6 +1143,9 @@ details.panel[open] > summary.panel-h::after,
   .topbar .btn.ghost.sm {
     min-width: 44px;
   }
+  .workspace-picker select {
+    min-height: 44px;
+  }
 }
 #root {
   min-height: 100vh;
@@ -1153,7 +1166,7 @@ details.panel[open] > summary.panel-h::after,
 }
 
 .topbar > div:last-child {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
 }
 
 .topbar .brand {
