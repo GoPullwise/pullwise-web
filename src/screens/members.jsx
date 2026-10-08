@@ -445,7 +445,7 @@ function MembersContent({
       />
       <div className="with-side">
         <Sidebar section="ledgerMembers" go={go} />
-        <main className="main wide">
+        <main className="main">
           <div className="page-h">
             <div>
               <h1>{T("Members", "成员")}</h1>

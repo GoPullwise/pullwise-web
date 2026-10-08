@@ -1,0 +1,1007 @@
+{
+  "date": "2026-10-08",
+  "status": "Local shared-container and named-project-selection acceptance passed",
+  "sourceBaseCommit": "4ef7315e42253eaaeaec7cf6384b7db5b2595931",
+  "sourceSha256": {
+    "styles/base.css": "d9c363c963a8c48927de2ce1bfa1300a270c43545c1681c140e88a2b2949b361",
+    "styles/screens.css": "ee047f059ce12fe8ae8ea3d4ee8df402ded51b43fd128dcf0508686159aa8836",
+    "src/screens/api.jsx": "95a43fb6f6a539acc841ef37a27c96b5e341d05ec76911884f737fa3c50c11a2",
+    "src/screens/api.test.jsx": "c0ccc8b53b3dc6597df3b43da5f60d5a42d969cbde046e5ec99215cc83a97763",
+    "src/locales/ledger-ui.js": "249a406f950ef9d70c6be8c6d09f25768e7e582971767da5ebfa6e1ab0cb67b5",
+    "src/screens/settings.jsx": "fe88070e844ecdda493960708badd4cff74ab047d2e24c3d170990aeda6688ae",
+    "src/screens/members.jsx": "3cfae8b00822a2fa3400eb58da8559dbb553069022c0a6d3b5670a9b9915023f",
+    "src/screens/ledger.jsx": "5e7d1a9ec58b71235cb6dc97f6ab4b95fc675c02158c7334d4135e4c5d3df41e",
+    "src/screens/billing.jsx": "c6d46d71d7504391f2c825b884adf925266d2ca83781d6a2c0577fb44fafcc14"
+  },
+  "changes": [
+    "Authenticated console .main owns fluid width/gutters/clearance by default; no per-screen wide opt-in.",
+    "API key targets choose current-ledger project names with shared native disclosure/input/selection rows; backend allowlist uses selected real IDs."
+  ],
+  "checks": {
+    "lint": true,
+    "testFiles": 36,
+    "tests": 490,
+    "build": true,
+    "workerConfiguration": true,
+    "workerSyntax": true,
+    "wranglerPreviewDryRun": true
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "architectureReview": {
+    "mainWidthOwner": "styles/base.css",
+    "mainConsumers": 5,
+    "authenticatedRoutes": 8,
+    "publicPagesUseSeparateContainers": true,
+    "loadingAndErrorReuseMain": true,
+    "existingSetShellAndLedgerSplitReused": true,
+    "boundedControlsAndProsePreserved": true,
+    "legacyWideModifierRemoved": true
+  },
+  "browser": "Chrome/151.0.7922.173",
+  "localScope": "Built local Chromium with synthetic intercepted APIs, blocked external requests and no real sessions, remote APIs, provider or payment calls.",
+  "requestCapPerContext": 120,
+  "containerMatrix": {
+    "harnessSha256": "a7777f9ee861bbe97516735e508568f4018a8a27a752675c28c2be622e293b3b",
+    "startedAt": "2026-10-08T04:34:25.431Z",
+    "completedAt": "2026-10-08T04:35:06.800Z",
+    "contexts": 24,
+    "geometryStates": 82,
+    "captures": 25,
+    "sampledCapturesReviewed": 12,
+    "widthParityPassed": true,
+    "nestedApiAndBillingAllocationStates": 24,
+    "interceptedRequests": 838,
+    "syntheticGetRequests": 154,
+    "externalFontRequestsBlocked": 32,
+    "pageErrors": [],
+    "unknownApis": [],
+    "mutations": [],
+    "measurements": [
+      {
+        "page": "projects",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "creation-rail",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "detail",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "reports-tab",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "settings-tab",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "entry-rail",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "shared",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "reports-tab",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "entry-rail",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "categories",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "api",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "billing",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "settings",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "members",
+        "viewport": 1600,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loading",
+            "viewportWidth": 1600,
+            "mainWidth": 1380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loading",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "loaded",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 1600,
+            "mainWidth": 1370,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "error",
+            "viewportWidth": 2560,
+            "mainWidth": 2330,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "projects",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "creation-rail",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "detail",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "reports-tab",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "settings-tab",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "entry-rail",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "shared",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "reports-tab",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "entry-rail",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "categories",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "api",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "billing",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "settings",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "members",
+        "viewport": 320,
+        "language": "en",
+        "theme": "light",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 320,
+            "mainWidth": 310,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "projects",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "creation-rail",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "detail",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "reports-tab",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "settings-tab",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "entry-rail",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "shared",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "reports-tab",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          },
+          {
+            "state": "entry-rail",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "categories",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "api",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "billing",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "settings",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      },
+      {
+        "page": "members",
+        "viewport": 390,
+        "language": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "state": "loaded",
+            "viewportWidth": 390,
+            "mainWidth": 380,
+            "mainMaxWidth": "none",
+            "overflow": false
+          }
+        ]
+      }
+    ]
+  },
+  "projectPicker": {
+    "harnessSha256": "19602597aced90b6f8182f37f5b93d76c4b51551876c4ce8a0bd410fea956cba",
+    "startedAt": "2026-10-08T04:35:19.666Z",
+    "completedAt": "2026-10-08T04:35:45.115Z",
+    "contexts": 3,
+    "geometryStates": 41,
+    "captures": 8,
+    "capturesReviewed": 8,
+    "interceptedRequests": 173,
+    "syntheticGetRequests": 30,
+    "projectGetRequests": 12,
+    "syntheticCreateRequests": 9,
+    "externalFontRequestsBlocked": 6,
+    "acceptance": [
+      "No project GET before explicit restriction intent; limit 50 and manual pagination.",
+      "Local search/clear, no-match pagination, selection retention and clear-focus restoration.",
+      "Initial/cursor loading and 503 block restricted creation; explicit retry recovers.",
+      "Selected IDs, shared false/true and explicit empty [] checked in three local-only POST bodies per profile.",
+      "320/390 coarse touch media and actual target geometry verified after captures.",
+      "Archived badge follows shared copy-column mobile placement; text remains readable in the bounded scroll list."
+    ],
+    "createdRestrictions": [
+      {
+        "shared": false,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": ["prj_1", "prj_5"]
+      },
+      {
+        "shared": true,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": ["prj_1", "prj_5"]
+      },
+      {
+        "shared": false,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": []
+      },
+      {
+        "shared": false,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": ["prj_1", "prj_5"]
+      },
+      {
+        "shared": true,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": ["prj_1", "prj_5"]
+      },
+      {
+        "shared": false,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": []
+      },
+      {
+        "shared": false,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": ["prj_1", "prj_5"]
+      },
+      {
+        "shared": true,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": ["prj_1", "prj_5"]
+      },
+      {
+        "shared": false,
+        "workspaceId": "ws_fixture",
+        "workspaceMemberRevision": 1,
+        "projectIds": []
+      }
+    ],
+    "pageErrors": [],
+    "unknownApis": [],
+    "unexpectedMutations": []
+  },
+  "buildArtifacts": {
+    "stableAcrossBothSuites": true,
+    "count": 43,
+    "manifestSha256": "39051a728b742ad04284732b6c2805664a432ad46d2eec9e8e32f45359627d90",
+    "relevantAssets": [
+      {
+        "path": "assets/api-CQUUu8pa.js",
+        "bytes": 24112,
+        "sha256": "7dcc62a6492804422e3ec1f22c2a13aeff71529dfeaad7c01060412c4adccdb8"
+      },
+      {
+        "path": "assets/api-docs-CQXCSHz1.js",
+        "bytes": 14645,
+        "sha256": "9b36dabfa9c870ec26c88a68b167dd9b129b4ab432ec24ed9ed214db80b7f68c"
+      },
+      {
+        "path": "assets/billing-Cos55roC.js",
+        "bytes": 31908,
+        "sha256": "25e8ef7c141f00a8b73d91d96bb70bbaef4ea6b01dbf8cd10f82fdceff2c907e"
+      },
+      {
+        "path": "assets/index-1jiiMwYd.css",
+        "bytes": 74401,
+        "sha256": "5b04b19d7cad774133456d733e152c3c5cad362b92ad1a796a2e6bee7b4d23a8"
+      },
+      {
+        "path": "assets/index-BH351crD.js",
+        "bytes": 42061,
+        "sha256": "e8b275c7c260d43624ac4400f1c230dd98be7a7bc1fa6c3f64eb541dbdea7215"
+      },
+      {
+        "path": "assets/ledger-Bg5eiPh6.js",
+        "bytes": 11492,
+        "sha256": "459cb36f8015f6974aa0fd5a3dc2216bbaa79baa2b8526cf114ae845622813e4"
+      },
+      {
+        "path": "assets/ledger-CxDbiZB1.js",
+        "bytes": 2925,
+        "sha256": "404e1b854a72d3742c4f5037aa8f211b641b3955b1e4d61596ac56a510dbab12"
+      },
+      {
+        "path": "assets/ledger-D4KDF3QE.css",
+        "bytes": 10667,
+        "sha256": "ed7306d1537a74fba25d383eb73f959049fa505993bb855d9a21f28b9545988a"
+      },
+      {
+        "path": "assets/ledger-De0Mfeac.js",
+        "bytes": 55996,
+        "sha256": "3e39bf7b117b92fed18727968a0552be9bed9539ee67cb51923cb33e936bc397"
+      },
+      {
+        "path": "assets/ledger-longform-DOxwwOdJ.js",
+        "bytes": 53941,
+        "sha256": "55a1d40a3b1c62fe6a5a7858e5485a8dbb5e0f0b01f1f5482a08a04d8795a9bd"
+      },
+      {
+        "path": "assets/ledger-scopes-B4otesy_.js",
+        "bytes": 3975,
+        "sha256": "a3afd12cc23a107eddb1efa9e97135d76ccff3b8222aae644bc8b9c39e2a155a"
+      },
+      {
+        "path": "assets/ledger-screen-BKfq9bfZ.js",
+        "bytes": 36222,
+        "sha256": "5240bf8e5edf0952d61f0a5e7a859a7af70ee3d590f24ba6cb3c2faae49311ee"
+      },
+      {
+        "path": "assets/ledger-ui-D3iVL857.js",
+        "bytes": 31837,
+        "sha256": "3b36ef6d27c754e34e1633dc931ef21e730b4f9db233bf0b77144f1604a517c3"
+      },
+      {
+        "path": "assets/members-veJyO9q_.js",
+        "bytes": 18695,
+        "sha256": "4d3ee4240ed898389b9aa91718c41fec991a3f3bdadaccab81b7589604ad2302"
+      },
+      {
+        "path": "assets/settings-CPw_VhRL.js",
+        "bytes": 8161,
+        "sha256": "26abf980ea93eec9c6318ee74ba7d90c45c5acdc83fc1cc949438e18990dc127"
+      }
+    ]
+  },
+  "scopeLimits": {
+    "webOnly": true,
+    "remoteBusinessApiRequests": 0,
+    "serverDeployment": false,
+    "productionDeployment": false,
+    "d1Commands": 0
+  },
+  "limitations": [
+    "Local fixture acceptance does not establish authenticated remote OAuth/API or payment acceptance.",
+    "Width comparison uses document client width to account for native vertical scrollbars.",
+    "Browser captures use blocked external fonts and local fallback fonts."
+  ]
+}

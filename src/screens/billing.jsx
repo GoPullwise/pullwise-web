@@ -743,7 +743,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
         <Topbar go={go} breadcrumbs={[{ label: T("Billing", "Billing") }]} loading={loading} />
         <div className="with-side">
           <Sidebar section="billing" go={go} />
-          <div className="main wide" role="main">
+          <div className="main" role="main">
             <div className="page-h">
               <div>
                 <h1>{T("Billing", "Billing")}</h1>

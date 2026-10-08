@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createLedgerApi } from "../api/ledger.js";
 import { pullwiseApi } from "../api/pullwise.js";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
@@ -85,6 +86,41 @@ function workspaceScopeValues(workspace) {
       (!requiredPermission[scope] || permissions[requiredPermission[scope]] === true) &&
       (!Array.isArray(workspace.scopes) || workspace.scopes.includes(scope))
   );
+}
+
+const emptyProjectPage = () => ({ items: [], nextCursor: null, loaded: false });
+
+function projectChoices(payload) {
+  if (
+    !Array.isArray(payload?.items) ||
+    (payload.nextCursor !== null && typeof payload.nextCursor !== "string") ||
+    payload.items.some(
+      (project) =>
+        !objectRecord(project) ||
+        typeof project.id !== "string" ||
+        !/^prj_[A-Za-z0-9_-]{1,100}$/.test(project.id)
+    )
+  ) {
+    throw new Error(T("Project list response was malformed.", "项目列表响应格式错误。"));
+  }
+  return {
+    items: payload.items.map((project) => {
+      const repository = textValue(
+        Array.isArray(project.repositories)
+          ? project.repositories.find((repo) => repo?.githubAccess === "authorized")?.githubFullName
+          : null,
+        project.githubAccess === "authorized" ? project.githubFullName : null
+      );
+      return {
+        id: project.id,
+        label: textValue(project.name, repository, project.description) || T("Project history"),
+        description: textValue(project.description),
+        repository,
+        archived: project.status === "archived",
+      };
+    }),
+    nextCursor: payload.nextCursor || null,
+  };
 }
 
 function ApiKeysSkeleton() {
@@ -185,6 +221,9 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     workspaceId || "personal",
     workspace?.revision,
     memberRevision,
+    workspace?.permissionsRevision,
+    workspace?.authorizationRevision,
+    workspace?.permissions,
     allowedScopeValues,
   ]);
   const scopeValuesKey = allowedScopeValues.join(",");
@@ -196,7 +235,13 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const [name, setName] = useState(T("Account automation", "账户自动化"));
   const [selectedScopes, setSelectedScopes] = useState(defaultScopes);
   const [restrictProjects, setRestrictProjects] = useState(false);
-  const [projectIdsInput, setProjectIdsInput] = useState("");
+  const [selectedProjectIds, setSelectedProjectIds] = useState([]);
+  const [projectPage, setProjectPage] = useState(emptyProjectPage);
+  const [projectQuery, setProjectQuery] = useState("");
+  const [projectLoading, setProjectLoading] = useState(false);
+  const [projectError, setProjectError] = useState("");
+  const [projectRetryCursor, setProjectRetryCursor] = useState(null);
+  const [projectPaginationBlocked, setProjectPaginationBlocked] = useState(false);
   const [allowShared, setAllowShared] = useState(false);
   const [createdCredential, setCreatedCredential] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -210,22 +255,56 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const activeScopeRef = useRef(scopeKey);
   const readControllerRef = useRef(null);
   const readRequestRef = useRef(0);
+  const projectReadControllerRef = useRef(null);
+  const projectReadRequestRef = useRef(0);
+  const projectCursorHistoryRef = useRef(new Set());
+  const projectSearchRef = useRef(null);
+  const projectSearchId = useId();
   const accessChangedRef = useRef(onAccessChanged);
   const revokeBackgroundRef = useRef(null);
   activeScopeRef.current = scopeKey;
   accessChangedRef.current = onAccessChanged;
   const currentScope = renderedScope === scopeKey;
+  const projectApi = useMemo(() => createLedgerApi(workspaceId), [workspaceId]);
+  const matchingProjects = projectPage.items.filter((project) =>
+    [project.label, project.description, project.repository]
+      .join(" ")
+      .toLowerCase()
+      .includes(projectQuery.trim().toLowerCase())
+  );
   useErrorNotification(currentScope ? error : "", {
     title: T("API key error", "API key error"),
     key: `api-keys:${scopeKey}:${error}`,
   });
 
   const handleAccessFailure = useCallback((failure) => {
-    if (failure?.status !== 403 && failure?.status !== 404) return;
+    if (
+      failure?.status !== 403 &&
+      failure?.status !== 404 &&
+      ![
+        "ROLE_FORBIDDEN",
+        "AUTHORIZATION_CHANGED",
+        "WORKSPACE_MEMBERSHIP_CHANGED",
+        "WORKSPACE_NOT_FOUND",
+        "WORKSPACE_FORBIDDEN",
+      ].includes(failure?.code || failure?.payload?.error?.code)
+    )
+      return;
     setKeys([]);
     setCreatedCredential(null);
     setRevokeTarget(null);
     setLoadedOnce(false);
+    setError(failure?.message || T("Unable to load API keys.", "无法加载 API key。"));
+    setProjectPage(emptyProjectPage());
+    setSelectedProjectIds([]);
+    setProjectQuery("");
+    readControllerRef.current?.abort();
+    readRequestRef.current += 1;
+    setLoading(false);
+    projectReadControllerRef.current?.abort();
+    projectReadRequestRef.current += 1;
+    projectReadControllerRef.current = null;
+    setProjectLoading(false);
     accessChangedRef.current?.(failure);
   }, []);
 
@@ -258,6 +337,75 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     }
   }, [scopeKey, workspaceId, handleAccessFailure]);
 
+  const loadProjects = async (cursor = null) => {
+    if (
+      !mountedRef.current ||
+      activeScopeRef.current !== scopeKey ||
+      projectReadControllerRef.current
+    )
+      return;
+    const controller = new AbortController();
+    projectReadControllerRef.current = controller;
+    const request = ++projectReadRequestRef.current;
+    const current = () =>
+      mountedRef.current &&
+      !controller.signal.aborted &&
+      activeScopeRef.current === scopeKey &&
+      request === projectReadRequestRef.current;
+    setProjectLoading(true);
+    setProjectError("");
+    setProjectRetryCursor(cursor);
+    setProjectPaginationBlocked(false);
+    if (!cursor) {
+      setProjectPage(emptyProjectPage());
+      setSelectedProjectIds([]);
+      projectCursorHistoryRef.current = new Set();
+    }
+    try {
+      const payload = await projectApi.projects(
+        { limit: 50, ...(cursor ? { cursor } : {}) },
+        { signal: controller.signal }
+      );
+      if (!current()) return;
+      const next = projectChoices(payload);
+      const loadedIds = new Set(projectPage.items.map((project) => project.id));
+      if (
+        next.nextCursor &&
+        (next.nextCursor === cursor ||
+          projectCursorHistoryRef.current.has(next.nextCursor) ||
+          next.items.length === 0 ||
+          (cursor && next.items.every((project) => loadedIds.has(project.id))))
+      ) {
+        setProjectPaginationBlocked(true);
+        throw new Error(T("Pagination did not advance. Reload to retry."));
+      }
+      if (cursor) projectCursorHistoryRef.current.add(cursor);
+      setProjectPage((previous) => {
+        const items = cursor ? previous.items : [];
+        const seen = new Set(items.map((project) => project.id));
+        return {
+          items: [
+            ...items,
+            ...next.items.filter((project) => {
+              if (seen.has(project.id)) return false;
+              seen.add(project.id);
+              return true;
+            }),
+          ],
+          nextCursor: next.nextCursor,
+          loaded: true,
+        };
+      });
+    } catch (failure) {
+      if (!current()) return;
+      handleAccessFailure(failure);
+      setProjectError(failure?.message || T("Unable to load projects.", "无法加载项目。"));
+    } finally {
+      if (current()) setProjectLoading(false);
+      if (projectReadControllerRef.current === controller) projectReadControllerRef.current = null;
+    }
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     mutationInFlightRef.current = null;
@@ -270,13 +418,23 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     setName(T("Account automation", "账户自动化"));
     setSelectedScopes(defaultScopes);
     setRestrictProjects(false);
-    setProjectIdsInput("");
+    setSelectedProjectIds([]);
+    setProjectPage(emptyProjectPage());
+    setProjectQuery("");
+    setProjectLoading(false);
+    setProjectError("");
+    setProjectRetryCursor(null);
+    setProjectPaginationBlocked(false);
+    projectCursorHistoryRef.current = new Set();
     setAllowShared(false);
     load();
     return () => {
       mountedRef.current = false;
       readRequestRef.current += 1;
       readControllerRef.current?.abort();
+      projectReadRequestRef.current += 1;
+      projectReadControllerRef.current?.abort();
+      projectReadControllerRef.current = null;
       mutationInFlightRef.current = null;
     };
   }, [scopeKey, load, defaultScopes]);
@@ -291,6 +449,26 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     });
   };
 
+  const toggleProjectRestriction = (checked) => {
+    setRestrictProjects(checked);
+    if (checked) {
+      if (!projectPage.loaded) loadProjects();
+    } else {
+      projectReadControllerRef.current?.abort();
+      projectReadRequestRef.current += 1;
+      projectReadControllerRef.current = null;
+      setProjectLoading(false);
+    }
+  };
+
+  const toggleProject = (projectId) => {
+    if (!currentScope || !projectPage.items.some((project) => project.id === projectId)) return;
+    setSelectedProjectIds((selected) => {
+      if (selected.includes(projectId)) return selected.filter((id) => id !== projectId);
+      return selected.length < 100 ? [...selected, projectId] : selected;
+    });
+  };
+
   const createKey = async (event) => {
     event.preventDefault();
     if (
@@ -301,6 +479,15 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       !allowedScopeValues.length
     )
       return;
+    if (restrictProjects && (!projectPage.loaded || projectLoading || projectError)) {
+      setError(
+        T(
+          "Load or retry the project list before creating a restricted key.",
+          "请先加载或重试项目列表，再创建受限密钥。"
+        )
+      );
+      return;
+    }
     const mutation = {};
     mutationInFlightRef.current = mutation;
     const current = () =>
@@ -312,13 +499,17 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     setCreatedCredential(null);
     try {
       const scopes = allowedScopeValues.filter((scope) => selectedScopes.includes(scope));
-      const projectIds = projectIdsInput.split(/[\s,]+/).filter(Boolean);
+      const projectIds = [...new Set(selectedProjectIds)];
       if (
         restrictProjects &&
-        (projectIds.length > 100 || projectIds.some((id) => !/^prj_[A-Za-z0-9_-]{1,100}$/.test(id)))
+        (projectIds.length > 100 ||
+          projectIds.some((id) => !projectPage.items.some((project) => project.id === id)))
       ) {
         throw new Error(
-          T("Enter valid project IDs separated by commas.", "请输入以逗号分隔的有效项目 ID。")
+          T(
+            "Some selected projects are no longer available. Choose projects again.",
+            "部分已选项目已不可用，请重新选择项目。"
+          )
         );
       }
       const payload = await pullwiseApi.apiKeys.create({
@@ -327,7 +518,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
         restrictions: {
           shared: allowShared,
           ...(workspaceId ? { workspaceId, workspaceMemberRevision: memberRevision } : {}),
-          ...(restrictProjects ? { projectIds: [...new Set(projectIds)] } : {}),
+          ...(restrictProjects ? { projectIds } : {}),
         },
       });
       if (!current()) return;
@@ -347,7 +538,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       setName(T("Account automation", "账户自动化"));
       setSelectedScopes(defaultScopes);
       setRestrictProjects(false);
-      setProjectIdsInput("");
+      setSelectedProjectIds([]);
+      setProjectQuery("");
       setAllowShared(false);
     } catch (err) {
       if (!current()) return;
@@ -431,7 +623,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
         />
         <div className="with-side">
           <Sidebar section="apiKeys" go={go} />
-          <div className="main wide" role="main">
+          <div className="main" role="main">
             <div className="page-h">
               <div>
                 <h1>{T("API Keys", "API 密钥")}</h1>
@@ -582,26 +774,187 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           <input
                             type="checkbox"
                             checked={restrictProjects}
-                            onChange={(event) => setRestrictProjects(event.target.checked)}
+                            disabled={Boolean(pending)}
+                            onChange={(event) => toggleProjectRestriction(event.target.checked)}
                           />
-                          {T("Limit to selected project IDs", "仅允许指定项目 ID")}
+                          {T("Limit to selected projects", "仅允许所选项目")}
                         </label>
                         {restrictProjects && (
-                          <label className="auth-field">
-                            <span>{T("Project IDs (comma separated)", "项目 ID（逗号分隔）")}</span>
-                            <div className="auth-input">
-                              <input
-                                value={projectIdsInput}
-                                onChange={(event) => setProjectIdsInput(event.target.value)}
-                                placeholder="prj_..."
-                              />
+                          <details className="disclosure api-project-picker" open>
+                            <summary>
+                              <I.Folder size={14} aria-hidden="true" />
+                              {T("Choose projects", "选择项目")}
+                              <span className="tag" aria-label={T("Selected projects", "已选项目")}>
+                                {selectedProjectIds.length} / 100
+                              </span>
+                            </summary>
+                            <div className="api-project-picker-body" aria-busy={projectLoading}>
+                              <div className="auth-field">
+                                <label htmlFor={projectSearchId}>
+                                  {T("Find a project", "查找项目")}
+                                </label>
+                                <div className="auth-input">
+                                  <I.Search size={14} aria-hidden="true" />
+                                  <input
+                                    ref={projectSearchRef}
+                                    id={projectSearchId}
+                                    type="search"
+                                    value={projectQuery}
+                                    disabled={Boolean(pending)}
+                                    placeholder={T("Find a project", "查找项目")}
+                                    onChange={(event) => setProjectQuery(event.target.value)}
+                                  />
+                                  {projectQuery && (
+                                    <button
+                                      className="btn ghost sm"
+                                      type="button"
+                                      disabled={Boolean(pending)}
+                                      aria-label={T("Clear search", "清除搜索")}
+                                      title={T("Clear search", "清除搜索")}
+                                      onClick={() => {
+                                        setProjectQuery("");
+                                        projectSearchRef.current?.focus({ preventScroll: true });
+                                      }}
+                                    >
+                                      <I.X size={14} aria-hidden="true" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="muted">
+                                {T("Choose up to 100 projects.", "最多选择 100 个项目。")}
+                              </p>
+                              {projectLoading && (
+                                <p role="status">{T("Loading projects…", "正在加载项目…")}</p>
+                              )}
+                              {projectError && (
+                                <div className="notice notice-error" role="alert">
+                                  <p>{projectError}</p>
+                                  <button
+                                    className="btn"
+                                    type="button"
+                                    disabled={projectLoading || Boolean(pending)}
+                                    onClick={() =>
+                                      loadProjects(
+                                        projectPaginationBlocked ? null : projectRetryCursor
+                                      )
+                                    }
+                                  >
+                                    <I.Refresh size={13} aria-hidden="true" />
+                                    {projectPaginationBlocked
+                                      ? T("Reload projects", "重新加载项目")
+                                      : T("Retry projects", "重试项目列表")}
+                                  </button>
+                                </div>
+                              )}
+                              {matchingProjects.length > 0 && (
+                                <div className="api-scope-list">
+                                  {matchingProjects.map((project) => {
+                                    const checked = selectedProjectIds.includes(project.id);
+                                    return (
+                                      <label
+                                        key={project.id}
+                                        className={"api-scope-row" + (checked ? " selected" : "")}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          aria-label={project.label}
+                                          checked={checked}
+                                          disabled={
+                                            Boolean(pending) ||
+                                            (!checked && selectedProjectIds.length >= 100)
+                                          }
+                                          onChange={() => toggleProject(project.id)}
+                                        />
+                                        <span className="api-scope-copy">
+                                          <b>{project.label}</b>
+                                          {project.description &&
+                                            project.description !== project.label && (
+                                              <span>{project.description}</span>
+                                            )}
+                                          {project.repository &&
+                                            project.repository !== project.label && (
+                                              <span>{project.repository}</span>
+                                            )}
+                                        </span>
+                                        {project.archived && (
+                                          <span className="api-scope-value">
+                                            {T("Archived", "已归档")}
+                                          </span>
+                                        )}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {projectPage.loaded &&
+                                !projectLoading &&
+                                !projectError &&
+                                matchingProjects.length === 0 && (
+                                  <div className="empty">
+                                    <I.Folder size={24} aria-hidden="true" />
+                                    <h3>
+                                      {projectPage.items.length
+                                        ? T("No matching projects", "没有匹配的项目")
+                                        : T("No projects in this ledger", "此账本中暂无项目")}
+                                    </h3>
+                                    <p>
+                                      {projectPage.items.length
+                                        ? T(
+                                            "Try another name or load more projects.",
+                                            "换个名称搜索，或加载更多项目。"
+                                          )
+                                        : T(
+                                            "Create a project to make it available here.",
+                                            "创建项目后即可在此选择。"
+                                          )}
+                                    </p>
+                                    {!projectPage.items.length && (
+                                      <a className="btn" {...screenLinkProps(go, "ledgerProjects")}>
+                                        {T("Your projects", "你的项目")}
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+                              {projectPage.nextCursor && !projectError && (
+                                <div className="panel-actions">
+                                  <button
+                                    className="btn"
+                                    type="button"
+                                    disabled={projectLoading || Boolean(pending)}
+                                    onClick={() => loadProjects(projectPage.nextCursor)}
+                                  >
+                                    {T("Load more projects", "加载更多项目")}
+                                  </button>
+                                </div>
+                              )}
+                              <p role="status" className="muted">
+                                {selectedProjectIds.length === 0
+                                  ? T(
+                                      "No projects selected. This key cannot access any project.",
+                                      "未选择项目，此密钥无法访问任何项目。"
+                                    )
+                                  : T(
+                                      "Only the selected projects are allowed. The shared pool is controlled separately.",
+                                      "仅允许访问所选项目，公共池权限单独设置。"
+                                    )}
+                              </p>
                             </div>
-                          </label>
+                          </details>
+                        )}
+                        {!restrictProjects && (
+                          <p>
+                            {T(
+                              "All projects in this ledger are allowed.",
+                              "允许访问此账本中的所有项目。"
+                            )}
+                          </p>
                         )}
                         <label className="api-scope-row">
                           <input
                             type="checkbox"
                             checked={allowShared}
+                            disabled={Boolean(pending)}
                             onChange={(event) => setAllowShared(event.target.checked)}
                           />
                           {T("Allow shared expense pool", "允许访问公共池")}
@@ -617,7 +970,12 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                         <button
                           className="btn primary"
                           type="submit"
-                          disabled={Boolean(pending) || !allowedScopeValues.length}
+                          disabled={
+                            Boolean(pending) ||
+                            !allowedScopeValues.length ||
+                            (restrictProjects &&
+                              (!projectPage.loaded || projectLoading || Boolean(projectError)))
+                          }
                         >
                           {pending === "create" && (
                             <span className="spin">

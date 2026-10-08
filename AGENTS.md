@@ -9,10 +9,18 @@ back-to-top controls stay at the bottom right on all pages; reserve content
 clearance below console modules and bound the language menu above its opener.
 Member rows separate identity and role from aligned, wrapping management
 controls. Preserve hard edges, permission checks and identity/revision isolation.
-All authenticated console modules use the shared `main wide` content container,
-including Settings and Members, so their right-hand panels track the available
-workspace width. Verify live resizing beyond 1440px rather than checking only
-one desktop viewport; keep bounded individual inputs and readable prose.
+All authenticated console modules use the shared `.main` content container.
+`base.css` owns its full available width, gutters and bottom clearance; there
+is no per-page width opt-in or `.wide` modifier. Settings, Members, Ledger,
+API Keys and Billing inherit that same rule, including loading/error states.
+Verify live resizing beyond 1440px rather than checking only one desktop
+viewport; keep bounded individual inputs and readable prose.
+API key project restrictions select project names from the current ledger's
+authorized, paginated project list rather than requiring copied project IDs.
+Reuse native disclosures, shared inputs and selection rows; keep searches local
+and load additional pages on explicit intent. Submit the selected real IDs,
+preserve the explicit empty-list/no-project semantics and independent shared
+pool permission, and isolate reads/selections across workspace/access changes.
 The current release is Web-only: push main and publish preview.pull-wise.com.
 Production deployment and Server/D1 operations are outside this task.
 

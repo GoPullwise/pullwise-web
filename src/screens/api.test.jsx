@@ -9,10 +9,15 @@ import {
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { createLedgerApi } from "../api/ledger.js";
 import { NotificationProvider } from "../components/notifications.jsx";
 import { env } from "../config/env.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
+
+const { projects } = vi.hoisted(() => ({ projects: vi.fn() }));
+
+vi.mock("../api/ledger.js", () => ({ createLedgerApi: vi.fn() }));
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -54,10 +59,21 @@ const workspaceFixture = (id, overrides = {}) => ({
   scopes: readScopes,
   ...overrides,
 });
+const projectFixture = (id, name, overrides = {}) => ({
+  id,
+  name,
+  description: "",
+  status: "active",
+  githubAccess: "not_linked",
+  repositories: [],
+  ...overrides,
+});
 
 describe("API screens", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    createLedgerApi.mockReturnValue({ projects });
+    projects.mockResolvedValue({ items: [], nextCursor: null });
   });
 
   it("documents the ledger contract and target restrictions", () => {
@@ -816,6 +832,414 @@ describe("API screens", () => {
     expect(screen.queryByText("Old workspace lost")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
     expect(onAccessChanged).not.toHaveBeenCalled();
+  });
+
+  it("selects projects by name across search and pagination and submits only the chosen real IDs", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_projects",
+      token: "pwk_projects_local",
+    });
+    projects
+      .mockResolvedValueOnce({
+        items: [
+          projectFixture("prj_web", "Website", { description: "Customer site" }),
+          projectFixture("prj_api", "API service", { description: "Backend" }),
+        ],
+        nextCursor: "next",
+      })
+      .mockResolvedValueOnce({
+        items: [projectFixture("prj_later", "Later project")],
+        nextCursor: null,
+      });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    const restrict = await screen.findByRole("checkbox", { name: "Limit to selected projects" });
+    expect(projects).not.toHaveBeenCalled();
+    await user.click(restrict);
+    await user.click(await screen.findByRole("checkbox", { name: "Website" }));
+    const search = screen.getByRole("searchbox", { name: "Find a project" });
+    fireEvent.change(search, { target: { value: "BACKEND" } });
+    expect(screen.queryByRole("checkbox", { name: "Website" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: "API service" }));
+    await user.click(screen.getByRole("checkbox", { name: "API service" }));
+    fireEvent.change(search, { target: { value: "Later" } });
+    expect(screen.getByText("No matching projects")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Load more projects" }));
+    expect(projects).toHaveBeenNthCalledWith(
+      2,
+      { limit: 50, cursor: "next" },
+      { signal: expect.any(AbortSignal) }
+    );
+    await user.click(await screen.findByRole("checkbox", { name: "Later project" }));
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(search).toHaveFocus();
+    expect(screen.getByRole("checkbox", { name: "Website" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "API service" })).not.toBeChecked();
+    const picker = document.querySelector(".api-project-picker");
+    await user.click(picker.querySelector("summary"));
+    expect(picker).not.toHaveAttribute("open");
+    await user.click(picker.querySelector("summary"));
+    expect(screen.getByRole("checkbox", { name: "Later project" })).toBeChecked();
+    expect(projects).toHaveBeenCalledTimes(2);
+    expect(screen.queryByText("prj_web")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: "Allow shared expense pool" }));
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
+      name: "Account automation",
+      scopes: readScopes,
+      restrictions: { shared: true, projectIds: ["prj_web", "prj_later"] },
+    });
+    expect(await screen.findByText("pwk_projects_local")).toBeInTheDocument();
+  });
+
+  it.each([false, true])(
+    "keeps an empty selection restricted with shared access set to %s",
+    async (shared) => {
+      pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+      pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_empty", token: "pwk_empty_local" });
+      const go = vi.fn();
+      const user = userEvent.setup();
+      render(<ApiKeysScreen go={go} />);
+      await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+      expect(await screen.findByText("No projects in this ledger")).toBeVisible();
+      expect(
+        screen.getByText("No projects selected. This key cannot access any project.")
+      ).toBeVisible();
+      const link = screen.getByRole("link", { name: "Your projects" });
+      expect(link).toHaveAttribute("href", "/projects");
+      await user.click(link);
+      expect(go).toHaveBeenCalledWith("ledgerProjects");
+      if (shared)
+        await user.click(screen.getByRole("checkbox", { name: "Allow shared expense pool" }));
+      await user.click(screen.getByRole("button", { name: "Create key" }));
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(
+        expect.objectContaining({ restrictions: { shared, projectIds: [] } })
+      );
+    }
+  );
+
+  it("blocks a restricted create while project access is unknown and recovers only on explicit retry", async () => {
+    const pendingProjects = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_retry", token: "pwk_retry_local" });
+    projects.mockReturnValueOnce(pendingProjects.promise).mockResolvedValueOnce({
+      items: [projectFixture("prj_retry", "Recovered project")],
+      nextCursor: null,
+    });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    const create = screen.getByRole("button", { name: "Create key" });
+    expect(create).toBeDisabled();
+    fireEvent.submit(create.closest("form"));
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+    await act(async () => pendingProjects.reject(new Error("Project service unavailable")));
+    const picker = document.querySelector(".api-project-picker");
+    expect(within(picker).getByRole("alert")).toHaveTextContent("Project service unavailable");
+    expect(create).toBeDisabled();
+    expect(projects).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("No projects in this ledger")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Retry projects" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Recovered project" }));
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(
+      expect.objectContaining({ restrictions: { shared: false, projectIds: ["prj_retry"] } })
+    );
+  });
+
+  it("treats malformed project data as an error rather than a successful empty allowlist", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    projects.mockResolvedValue({ items: null, nextCursor: null });
+    render(<ApiKeysScreen go={vi.fn()} />);
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    expect(await screen.findByText("Project list response was malformed.")).toBeVisible();
+    const create = screen.getByRole("button", { name: "Create key" });
+    expect(create).toBeDisabled();
+    fireEvent.submit(create.closest("form"));
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+    expect(screen.queryByText("No projects in this ledger")).not.toBeInTheDocument();
+    expect(projects).toHaveBeenCalledTimes(1);
+  });
+
+  it("deduplicates project choices, hides unverified repository names and retains selections after a failed next page", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_pages", token: "pwk_pages_local" });
+    projects
+      .mockResolvedValueOnce({
+        items: [
+          projectFixture("prj_a", "Standalone project"),
+          projectFixture("prj_a", "Duplicate project"),
+          projectFixture("prj_lost", "Historical project", {
+            githubAccess: "lost",
+            githubFullName: "secret/repo",
+          }),
+        ],
+        nextCursor: "next",
+      })
+      .mockRejectedValueOnce(new Error("Next page unavailable"))
+      .mockResolvedValueOnce({
+        items: [
+          projectFixture("prj_a", "Standalone project"),
+          projectFixture("prj_b", "Second project"),
+        ],
+        nextCursor: null,
+      });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Standalone project" }));
+    expect(screen.queryByText("Duplicate project")).not.toBeInTheDocument();
+    expect(screen.queryByText("secret/repo")).not.toBeInTheDocument();
+    expect(screen.queryByText("false")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Load more projects" }));
+    expect(await screen.findByText("Next page unavailable")).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: "Standalone project" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Retry projects" }));
+    expect(projects).toHaveBeenNthCalledWith(
+      3,
+      { limit: 50, cursor: "next" },
+      { signal: expect.any(AbortSignal) }
+    );
+    await user.click(await screen.findByRole("checkbox", { name: "Second project" }));
+    expect(screen.getAllByRole("checkbox", { name: "Standalone project" })).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(
+      expect.objectContaining({ restrictions: { shared: false, projectIds: ["prj_a", "prj_b"] } })
+    );
+  });
+
+  it("stops a cursor cycle and reloads only after explicit intent", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    projects
+      .mockResolvedValueOnce({
+        items: [projectFixture("prj_a", "First project")],
+        nextCursor: "page_1",
+      })
+      .mockResolvedValueOnce({
+        items: [projectFixture("prj_b", "Second project")],
+        nextCursor: "page_2",
+      })
+      .mockResolvedValueOnce({
+        items: [projectFixture("prj_c", "Third project")],
+        nextCursor: "page_1",
+      })
+      .mockResolvedValueOnce({
+        items: [projectFixture("prj_b", "Second project")],
+        nextCursor: null,
+      });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    await user.click(await screen.findByRole("checkbox", { name: "First project" }));
+    await user.click(screen.getByRole("button", { name: "Load more projects" }));
+    await screen.findByRole("checkbox", { name: "Second project" });
+    await user.click(screen.getByRole("button", { name: "Load more projects" }));
+    expect(await screen.findByText("Pagination did not advance. Reload to retry.")).toBeVisible();
+    expect(projects).toHaveBeenCalledTimes(3);
+    expect(screen.queryByRole("button", { name: "Load more projects" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Reload projects" }));
+    expect(await screen.findByRole("checkbox", { name: "Second project" })).not.toBeChecked();
+    expect(screen.queryByRole("checkbox", { name: "First project" })).not.toBeInTheDocument();
+    expect(projects).toHaveBeenCalledTimes(4);
+  });
+
+  it("aborts old workspace project reads and never submits old IDs or restores late protected names", async () => {
+    const oldPage = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_b", token: "pwk_b_local" });
+    projects.mockReturnValueOnce(oldPage.promise).mockResolvedValueOnce({
+      items: [projectFixture("prj_b", "Workspace B project")],
+      nextCursor: null,
+    });
+    const user = userEvent.setup();
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_a")} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    const signal = projects.mock.calls[0][1].signal;
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_b")} />
+      </NotificationProvider>
+    );
+    expect(signal.aborted).toBe(true);
+    const restriction = await screen.findByRole("checkbox", { name: "Limit to selected projects" });
+    expect(restriction).not.toBeChecked();
+    await user.click(restriction);
+    await user.click(await screen.findByRole("checkbox", { name: "Workspace B project" }));
+    await act(async () =>
+      oldPage.resolve({
+        items: [projectFixture("prj_a", "Workspace A private project")],
+        nextCursor: null,
+      })
+    );
+    expect(screen.queryByText("Workspace A private project")).not.toBeInTheDocument();
+    expect(createLedgerApi).toHaveBeenCalledWith("wsp_a");
+    expect(createLedgerApi).toHaveBeenCalledWith("wsp_b");
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restrictions: {
+          shared: false,
+          projectIds: ["prj_b"],
+          workspaceId: "wsp_b",
+          workspaceMemberRevision: 3,
+        },
+      })
+    );
+  });
+
+  it.each([{ memberRevision: 4 }, { permissionsRevision: 4 }])(
+    "clears project targets and search on a same-workspace access revision change: %j",
+    async (revision) => {
+      pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+      projects
+        .mockResolvedValueOnce({
+          items: [projectFixture("prj_old", "Old project")],
+          nextCursor: null,
+        })
+        .mockResolvedValueOnce({
+          items: [projectFixture("prj_new", "New project")],
+          nextCursor: null,
+        });
+      const user = userEvent.setup();
+      const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_team")} />);
+      await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Old project" }));
+      fireEvent.change(screen.getByRole("searchbox", { name: "Find a project" }), {
+        target: { value: "Old" },
+      });
+      await user.click(screen.getByRole("checkbox", { name: "Allow shared expense pool" }));
+      view.rerender(
+        <NotificationProvider>
+          <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_team", revision)} />
+        </NotificationProvider>
+      );
+      const restriction = await screen.findByRole("checkbox", {
+        name: "Limit to selected projects",
+      });
+      expect(restriction).not.toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Allow shared expense pool" })).not.toBeChecked();
+      await user.click(restriction);
+      expect(await screen.findByRole("checkbox", { name: "New project" })).not.toBeChecked();
+      expect(screen.getByRole("searchbox", { name: "Find a project" })).toHaveValue("");
+      expect(screen.queryByText("Old project")).not.toBeInTheDocument();
+    }
+  );
+
+  it("aborts project reads when restrictions close or the screen unmounts and ignores late access failures", async () => {
+    const first = deferredPromise();
+    const second = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    projects.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const onAccessChanged = vi.fn();
+    const user = userEvent.setup();
+    const view = render(<ApiKeysScreen go={vi.fn()} onAccessChanged={onAccessChanged} />);
+    const restriction = await screen.findByRole("checkbox", { name: "Limit to selected projects" });
+    await user.click(restriction);
+    const firstSignal = projects.mock.calls[0][1].signal;
+    await user.click(restriction);
+    expect(firstSignal.aborted).toBe(true);
+    await act(async () => first.reject({ status: 403, message: "Obsolete project access denied" }));
+    expect(onAccessChanged).not.toHaveBeenCalled();
+    expect(screen.queryByText("Obsolete project access denied")).not.toBeInTheDocument();
+    await user.click(restriction);
+    const secondSignal = projects.mock.calls[1][1].signal;
+    view.unmount();
+    expect(secondSignal.aborted).toBe(true);
+    await act(async () =>
+      second.reject({ status: 403, message: "Unmounted project access denied" })
+    );
+    expect(onAccessChanged).not.toHaveBeenCalled();
+  });
+
+  it("invalidates a concurrent key-list read when project access is denied", async () => {
+    const keyReload = deferredPromise();
+    const projectRead = deferredPromise();
+    pullwiseApi.apiKeys.list
+      .mockResolvedValueOnce({ apiKeys: [] })
+      .mockReturnValueOnce(keyReload.promise);
+    projects.mockReturnValue(projectRead.promise);
+    const onAccessChanged = vi.fn();
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} onAccessChanged={onAccessChanged} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    fireEvent.submit(screen.getByRole("button", { name: "Create key" }).closest("form"));
+    await user.click(
+      within(document.querySelector(".set-body > .notice")).getByRole("button", { name: "Retry" })
+    );
+    const keyReadSignal = pullwiseApi.apiKeys.list.mock.calls[1][1].signal;
+    const failure = {
+      status: 403,
+      code: "WORKSPACE_MEMBERSHIP_CHANGED",
+      message: "Project access changed",
+    };
+    await act(async () => projectRead.reject(failure));
+    expect(keyReadSignal.aborted).toBe(true);
+    expect(
+      await screen.findByRole("heading", { name: "API keys are unavailable" })
+    ).toBeInTheDocument();
+    await act(async () =>
+      keyReload.resolve({ apiKeys: [{ id: "key_private", name: "Denied ledger key" }] })
+    );
+    expect(screen.queryByText("Denied ledger key")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: "Limit to selected projects" })
+    ).not.toBeInTheDocument();
+    expect(onAccessChanged).toHaveBeenCalledTimes(1);
+    expect(onAccessChanged).toHaveBeenCalledWith(failure);
+  });
+
+  it("refreshes current access for an authorization error code even when its status is 409", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    const failure = {
+      status: 409,
+      payload: { error: { code: "AUTHORIZATION_CHANGED" } },
+      message: "Authorization changed",
+    };
+    projects.mockRejectedValue(failure);
+    const onAccessChanged = vi.fn();
+    render(<ApiKeysScreen go={vi.fn()} onAccessChanged={onAccessChanged} />);
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    expect(
+      await screen.findByRole("heading", { name: "API keys are unavailable" })
+    ).toBeInTheDocument();
+    expect(onAccessChanged).toHaveBeenCalledTimes(1);
+    expect(projects).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+  });
+
+  it("caps selected projects at 100 while allowing a checked project to be removed", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_limit", token: "pwk_limit_local" });
+    projects.mockResolvedValue({
+      items: Array.from({ length: 101 }, (_, index) =>
+        projectFixture(`prj_${index}`, `Project ${index}`)
+      ),
+      nextCursor: null,
+    });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    await screen.findByRole("checkbox", { name: "Project 100" });
+    const choices = within(document.querySelector(".api-project-picker")).getAllByRole("checkbox");
+    choices.slice(0, 100).forEach((checkbox) => fireEvent.click(checkbox));
+    expect(choices[100]).toBeDisabled();
+    expect(choices[0]).not.toBeDisabled();
+    fireEvent.click(choices[0]);
+    expect(choices[100]).not.toBeDisabled();
+    fireEvent.click(choices[100]);
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    const restrictions = pullwiseApi.apiKeys.create.mock.calls[0][0].restrictions;
+    expect(restrictions.projectIds).toHaveLength(100);
+    expect(restrictions.projectIds).not.toContain("prj_0");
+    expect(restrictions.projectIds).toContain("prj_100");
+    expect(restrictions.shared).toBe(false);
   });
 
   it("disallows writes when workspace capabilities are missing and disables empty effective access", async () => {

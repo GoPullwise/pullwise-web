@@ -1169,7 +1169,7 @@ function ScopedLedgerScreen({
                 : "ledgerProjects"
           }
         />
-        <main className={`main wide ledger-${mode}`}>
+        <main className={`main ledger-${mode}`}>
           <div className="page-h">
             <div>
               <h1>{title}</h1>

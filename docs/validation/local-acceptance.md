@@ -2,29 +2,41 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
-## Fluid Settings and Members content width (2026-10-08)
+## Shared console containers and named project selection (2026-10-08)
 
-Settings and Members now use the shared `main wide` container, as Projects,
-API Keys and Billing already do. Both previously inherited `.main`'s 1200px
-maximum, which stopped the whole right-hand content area from expanding on
-wide desktop windows. The page heading, panels, member rows and GitHub access
-records now follow their available grid column. Individual form/control and
-prose limits remain in place for readability; permissions and API behavior
-are unchanged.
+All authenticated modules inherit full available width, gutters and bottom
+clearance from the shared `.main` rule in `base.css`. The fixed 1200px default
+and per-page `wide` opt-in are removed. Settings, Members, Projects, project
+detail, Shared Pool, Categories, API Keys and Billing therefore use the same
+outer container in normal, loading and error states. Existing shared split
+and settings navigation grids allocate their inner columns; individual
+controls and prose retain their purposeful readability limits.
 
-`npm run check` passes lint, **36 test files / 476 tests** and the build.
-Worker configuration/syntax checks and the Wrangler preview packaging dry run
-pass. Local acceptance explicitly compares same-page expansion and contraction
-at 1280, 1600, 1920 and 2560px, plus 320/390px touch layouts, against Projects.
-Publication remains limited to the Web Worker/assets at `preview.pull-wise.com`.
+API key restrictions select projects by name from the current ledger's
+existing authorized project list. A native disclosure, shared search input and
+selection rows provide local name/description search, multiple selection and
+explicit pagination. Selected real IDs still form the backend allowlist;
+manual ID entry is removed. An explicit empty selection allows no projects,
+and shared-pool access remains independent. Unknown or failed project reads
+block restricted creation until recovery. Scope changes clear choices and
+abort reads; stale responses cannot restore protected data.
 
-[Focused browser acceptance](console-width-local-2026-10-08.json) passes nine
-contexts and 27 measured states with nine manually reviewed screenshots. In
-the same mounted page, Settings expands from 1060px at a 1280px viewport to
-2340px at 2560px, then contracts back. Members and Projects follow the same
-available-column widths after accounting for their 10px native scrollbar.
-All panels and heading rows fill the main content width; mobile overflow/touch
-checks pass, resize makes no API call and the member invitation draft survives.
+`npm run check` passes lint, **36 test files / 490 tests** and the build.
+Worker configuration/syntax checks and the preview Wrangler packaging dry run
+pass. [Built-browser acceptance](console-container-project-picker-local-2026-10-08.json)
+passes 24 console contexts with 82 measured states, including loading, normal
+and recoverable 503 states at 1600/2560px, loaded 320/390px touch layouts, and
+explicit creation/entry/report/settings views. All headings and sections track
+their allocated columns; 24 additional API Keys/Billing panel measurements
+confirm the nested settings-grid allocation. Purposeful visual samples pass.
+
+The same accepted build passes three project-picker profiles with 41 states
+and eight reviewed captures. Nine entirely intercepted local fixture POSTs
+confirm selected IDs, independent shared-pool access and the explicit empty
+allowlist. Search/clear, selection retention, pagination, error/retry, archived
+mobile badges, bounded list scrolling and coarse touch targets pass. The full
+artifact manifest stays identical through both suites. These are local
+synthetic checks; publication verification remains static-only and preview-only.
 
 ## Projects and Members layout refinement (2026-10-08)
 
@@ -354,7 +366,6 @@ schemaVersion 5, ready and unstopped, reserved 33,358/719 and observed
 0; main Builds may publish paused code. Complete publication evidence is in the
 [Server release record](../../../pullwise-server/docs/validation/workspaces-preview-release-2026-10-06.json).
 
-
 ## Frontend continuation audit (2026-10-06)
 
 The current objective resumes audit, repair and verification. The earlier
@@ -452,15 +463,15 @@ count of every redirect-follow-up HTTP request. The batch is closed.
 
 Earlier incomplete stages are retained as harness evidence, not product defects:
 
-| Aggregate routed forwards / API | Stage and outcome |
-| --- | --- |
-| 21 / 3 | Bootstrap expected literal `Max`; the real plan was `Pullwise Max`. Corrected the selector. |
-| 59 / 8 | Four desktop pages passed. Mobile hid the secondary Sign in link; its primary Get started entry remained available. |
-| 60 / 8 | Chromium reported `ERR_CERT_VERIFIER_CHANGED` before an HTTP response. Diagnosed proxy/NSS trust and added an internal startup document. |
-| 76 / 10 | A default five-second expectation expired during signed-out startup. Set explicit 30-second readiness and lazy-heading waits. |
-| 89 / 12 | Capture cleared touch emulation. Stopped the mobile assertion and verified capture/touch restoration with network-free local HTML. |
-| 107 / 15 | Mobile Home passed. Mouse-to-touch conversion prevented the next interaction from settling; replaced it with locally verified trusted native touch events. |
-| 128 / 19 | Remaining mobile Pricing, Docs and Login passed; the single OAuth navigation reached GitHub. The post-navigation response-body capture race prevented the remaining provider assertions. |
+| Aggregate routed forwards / API | Stage and outcome                                                                                                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 21 / 3                          | Bootstrap expected literal `Max`; the real plan was `Pullwise Max`. Corrected the selector.                                                                                              |
+| 59 / 8                          | Four desktop pages passed. Mobile hid the secondary Sign in link; its primary Get started entry remained available.                                                                      |
+| 60 / 8                          | Chromium reported `ERR_CERT_VERIFIER_CHANGED` before an HTTP response. Diagnosed proxy/NSS trust and added an internal startup document.                                                 |
+| 76 / 10                         | A default five-second expectation expired during signed-out startup. Set explicit 30-second readiness and lazy-heading waits.                                                            |
+| 89 / 12                         | Capture cleared touch emulation. Stopped the mobile assertion and verified capture/touch restoration with network-free local HTML.                                                       |
+| 107 / 15                        | Mobile Home passed. Mouse-to-touch conversion prevented the next interaction from settling; replaced it with locally verified trusted native touch events.                               |
+| 128 / 19                        | Remaining mobile Pricing, Docs and Login passed; the single OAuth navigation reached GitHub. The post-navigation response-body capture race prevented the remaining provider assertions. |
 
 All remote traffic used the configured environment proxy. Chromium used an
 exception pinned to the configured proxy CA's exact SPKI; global certificate
@@ -563,10 +574,10 @@ Source `1bc0b57ed992602a8c3666670a0b47b7d0e52229` was published to both Web
 environments using the reviewed build. The local checks and 20 synthetic
 browser cases above apply to this source.
 
-| Environment | Worker | Published version |
-| --- | --- | --- |
+| Environment                       | Worker                 | Published version                      |
+| --------------------------------- | ---------------------- | -------------------------------------- |
 | Preview — `preview.pull-wise.com` | `pullwise-web-preview` | `d893c3ec-cb0d-433c-bacb-e9e5e20fd036` |
-| Production — `pull-wise.com` | `pullwise-web` | `ed8d1647-b4cc-462a-84c5-3b329b569d60` |
+| Production — `pull-wise.com`      | `pullwise-web`         | `ed8d1647-b4cc-462a-84c5-3b329b569d60` |
 
 Exactly **8 bounded static GETs** checked one homepage and three assets on each
 domain: `index-BzdxAS89.js`, `index-ARKSj5jK.css` and `ledger-CkYP8DBE.js`.
@@ -592,10 +603,10 @@ and production build; `npm run check:workers`, both Worker syntax checks and
 `git diff --check` passed. Wrangler 4.146.0 dry runs confirmed the matching
 production/preview Server service bindings before publishing the same build.
 
-| Environment | Worker | Published version |
-| --- | --- | --- |
-| Preview — `preview.pull-wise.com` | `pullwise-web-preview` | `a1472817-48b4-41c5-acff-f8969dd7d2d7` |
-| Production — `pull-wise.com`, `www.pull-wise.com` | `pullwise-web` | `02cd03a3-f11b-42bf-9319-6e81cef92563` |
+| Environment                                       | Worker                 | Published version                      |
+| ------------------------------------------------- | ---------------------- | -------------------------------------- |
+| Preview — `preview.pull-wise.com`                 | `pullwise-web-preview` | `a1472817-48b4-41c5-acff-f8969dd7d2d7` |
+| Production — `pull-wise.com`, `www.pull-wise.com` | `pullwise-web`         | `02cd03a3-f11b-42bf-9319-6e81cef92563` |
 
 Preview and the primary production domain each passed exactly one homepage GET
 and three exact hashed asset GETs: entry JS, app CSS and API Keys JS. All **8
