@@ -2,6 +2,38 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Shared expense toolbar and chart-only Reports (2026-10-08)
+
+Project expenses and shared pool now use one view toolbar for collapsible
+date/category filters and scoped CSV export. Expenses starts directly with
+records; Reports starts directly with the existing trend and category charts.
+The user's final follow-up removes the standalone currency-total block from
+both views, its unused summary request, oversized loading placeholders and
+exclusive styles. One labeled field group retains active values across tabs,
+can close with active filters and exposes count/clear controls. Project settings
+hides the tools. Route, ledger, membership, authorization and permission changes
+clear state and abort late responses; fixed expense/export targets remain intact.
+
+[Local evidence](expense-toolbar-charts-local-2026-10-08.json) records lint,
+**43 files / 727 tests**, configuration/syntax, owned formatting, whitespace,
+explicit preview build and pinned Wrangler packaging. Native acceptance passes
+three complete contexts and 57 states with six Root-reviewed original viewport
+captures: English/light desktop, actual-touch Chinese/dark landscape and mobile
+390px with live 320px. Default/active collapse, reopen, cross-tab retention,
+Settings visibility, exact CSV scope and full USD/JPY/KWD chart point readouts
+pass; no summary request occurs. PNG hashes/dimensions and raw before/after
+metadata match. All 46 artifact / 70 runtime source hashes remain stable.
+Traffic is 178 interceptions / 96 synthetic GETs, maximum 63 of 100 per context,
+no writes or external delivery; three font attempts are blocked. Browsers and
+profiles are cleaned and ports are free.
+
+Dates are explicitly programmatic in the native harness; date payload/boundary
+evidence primarily comes from unit tests. Other toolbar controls use trusted
+native events. Local fixtures do not prove real-session/provider operations,
+native CSV downloads or OS clipboard contents. The earlier passed design with
+totals in Reports was superseded by the user's follow-up before any commit or
+deployment; its six retained images contribute nothing to final acceptance.
+
 ## Projects product-only list (2026-10-08)
 
 The latest user request replaces the earlier all-link list design. Projects

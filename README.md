@@ -33,6 +33,12 @@ expandable repository groups. Domains and store links use validated
 HTTP(S) URLs; a bare domain is normalized to HTTPS. Financial data and link text
 remain selectable, while ordinary controls keep their shared interaction style.
 
+Project expenses and the shared pool use one compact view toolbar for date/category
+filters and CSV export. Expenses focuses on records; Reports starts with trend
+and category charts, without a separate currency-total block. Filter fields expand
+when requested and retain their values across the two views, with a clear/reset
+action.
+
 The project/shared-pool expense form can create a one-time expense or a weekly,
 monthly, calendar-quarterly or yearly rule for that page's fixed target. Rules
 store an IANA timezone, start date, optional end date and original day anchor.

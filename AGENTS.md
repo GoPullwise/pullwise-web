@@ -1,5 +1,21 @@
 # Pullwise Web
 
+## Shared expense toolbar (2026-10-08)
+
+After publishing the simplified Projects list, redesign the large totals/filter
+block in project expenses and shared pool with the same shared layout. Expenses
+starts with records; Reports starts directly with trend and category charts.
+The latest follow-up removes the standalone Totals by currency section from
+Reports as well, including its unused summary request and exclusive styles.
+Place Filters and CSV export beside the view tabs, with one compact
+date/category field group expanded only on request. Active filters can stay
+collapsed with a clear indicator; retain clear/reset and cross-tab values.
+Hide tools in project settings and clear/abort on identity/workspace changes.
+Preserve fixed project/shared/export targets, current permissions, before-date
+semantics, full precise currencies, drafts and recurring rules. Remove the
+oversized totals/filter loading skeleton. Keep the original theme and common
+responsive containers, and publish only Web preview after checks.
+
 ## Projects list simplification (2026-10-08)
 
 The latest user request supersedes the earlier all-link Projects list design.

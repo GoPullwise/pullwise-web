@@ -1,0 +1,328 @@
+{
+  "date": "2026-10-08",
+  "scope": "Shared project/pool view toolbar; Expenses starts with records, Reports starts with charts; standalone currency totals and unused summary requests removed. Web preview only.",
+  "checks": {
+    "testFiles": 43,
+    "testsPassed": 727,
+    "lint": true,
+    "workerConfig": true,
+    "workerSyntax": true,
+    "ownedFormatting": true,
+    "whitespace": true,
+    "explicitPreviewBuild": true,
+    "wranglerDryRun": "4.136.3"
+  },
+  "browserAcceptance": {
+    "status": "passed",
+    "phase": "expense-toolbar-chart-only-reports-final",
+    "scope": "Three finite local synthetic GET-only contexts. Project/Shared compact Filters+Export toolbar, collapsed and active filter states, across-tab preservation, Reports directly displaying charts without totals/summary reads, fixed scoped CSV href and Settings without tools. Includes one short unchanged Projects product-only guard and common native divider cleanup. No submits/API writes/CSV or external-link activation/providers/real sessions/accounts/build/source/deployment writes. Native unedited viewport PNGs; selected text is not OS clipboard evidence.",
+    "artifactEntry": "/assets/index-B3bUObTH.js",
+    "artifactFiles": 46,
+    "sourceFiles": 70,
+    "artifactManifestSha256": "1dbfa3372fffd15f7d07708b599cee9026f9b11e3b1f0ad580964af40995478b",
+    "sourceManifestSha256": "7c8559e139e71868ba4f00f3e7c07eb528db3f6a934788cd97cd627e32807134",
+    "harnessSha256": "92067f42b3184bdb592cab255d2da413ff0ab4c9ae47019a16064f0e1d81d7b6",
+    "fixtureHashes": {
+      "fixtures.mjs": "d1aa7e863076974ebc9cf4d5d3aa3a2562797f109a2f83755806b9ba8e9030ce",
+      "inner-fixtures.mjs": "fbd7bded94542475964496405f7e996b783b41603a8eaf44fa5396f79a821c4e",
+      "base-fixtures.mjs": "caabb3db79aa0ecab9ce8e5b8dc93a9defc4864d620b803ef0bb63e194154cb4",
+      "chart-fixtures.mjs": "f11dc1a08aeab1b039cda39ff5c87b617b3a0ea8860058d9065b3654e15058fd",
+      "equal-fixtures.mjs": "3d4ea79ab6e23b8157562d6b06433a9cf8d7ed6829ab3f93f1711d52c6632a3a",
+      "projects-fixtures.mjs": "b7a2dc3f202acb6c11912bc55198f96dabac2d3ad1c51aa471f3991955e23960"
+    },
+    "cdpSha256": "79de3722f5037836e491fe5e4bc576f74a9c88d1818023f52222b65041f778a0",
+    "measureSha256": "182a0cddb8bf4bf2e8dd07f4187ad5f2f16f56b9a2715342f87b4c17fb7147ac",
+    "configSha256": "06fdd7b1babcb475476e383d92ec53473323a348469c1e227b693b25d275e1c2",
+    "accepted": {
+      "contexts": 3,
+      "scenarios": 57,
+      "captures": 6,
+      "intercepted": 178,
+      "fixtureGET": 96,
+      "blockedExternalAttempts": 3,
+      "externalDelivered": 0,
+      "businessWrites": 0,
+      "providerDelivered": 0,
+      "realAccounts": 0,
+      "maxRequestsPerContext": 63
+    },
+    "acceptedContexts": [
+      {
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light"
+        },
+        "intercepted": 59,
+        "fixtureGET": 34,
+        "states": 21,
+        "captures": 2,
+        "filterChanges": 2,
+        "filterClears": 1,
+        "requestCap": 100,
+        "programmaticDate": {
+          "method": "Programmatic native value setter + untrusted change event",
+          "nativeDateInput": false,
+          "field": "from",
+          "value": "2026-09-10",
+          "primaryBoundaryEvidence": "Domain/unit tests owned by root"
+        }
+      },
+      {
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true
+        },
+        "intercepted": 63,
+        "fixtureGET": 31,
+        "states": 18,
+        "captures": 2,
+        "filterChanges": 2,
+        "filterClears": 1,
+        "requestCap": 100,
+        "programmaticDate": {
+          "method": "Programmatic native value setter + untrusted change event",
+          "nativeDateInput": false,
+          "field": "to",
+          "value": "2026-09-21",
+          "primaryBoundaryEvidence": "Domain/unit tests owned by root"
+        }
+      },
+      {
+        "profile": {
+          "key": "mobile-390-en-light",
+          "width": 390,
+          "height": 844,
+          "lang": "en",
+          "theme": "light",
+          "coarse": true
+        },
+        "intercepted": 56,
+        "fixtureGET": 31,
+        "states": 18,
+        "captures": 2,
+        "filterChanges": 2,
+        "filterClears": 1,
+        "requestCap": 100,
+        "programmaticDate": {
+          "method": "Programmatic native value setter + untrusted change event",
+          "nativeDateInput": false,
+          "field": "from",
+          "value": "2026-09-10",
+          "primaryBoundaryEvidence": "Domain/unit tests owned by root"
+        }
+      }
+    ],
+    "captureCount": 6,
+    "captures": [
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "project-expenses-closed",
+        "path": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/desktop-1440-en-light-project-expenses-closed.png",
+        "sha256": "a939174b9625a6098efca589933ffc4b2e1d25493ecd224a5ee37993ca7527a0",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "scrollY": 0,
+        "coarse": false,
+        "touchPoints": 0,
+        "metadataEvidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+        "beforeAfterIdentical": true
+      },
+      {
+        "profile": "desktop-1440-en-light",
+        "state": "shared-reports-filter-expanded",
+        "path": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/desktop-1440-en-light-shared-reports-filter-expanded.png",
+        "sha256": "4520d9aa68e5b8d951d134893e4a1844174dfe6aafc8ac963b4f01d77496d9b7",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "scrollY": 0,
+        "coarse": false,
+        "touchPoints": 0,
+        "metadataEvidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+        "beforeAfterIdentical": true
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "shared-expenses-closed",
+        "path": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/tablet-900-zh-dark-shared-expenses-closed.png",
+        "sha256": "16ee3d65cd9173aa3e67ca08de040d3380d0211b9c9422a977d55e58f1c14651",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "actualViewport": {
+          "width": 900,
+          "height": 600
+        },
+        "scrollY": 0,
+        "coarse": true,
+        "touchPoints": 1,
+        "metadataEvidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+        "beforeAfterIdentical": true
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "state": "project-reports",
+        "path": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/tablet-900-zh-dark-project-reports.png",
+        "sha256": "254716bc4d1310302c2ada6576847c26b5e0b2ffffee6585715c273f451e87ab",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "actualViewport": {
+          "width": 900,
+          "height": 600
+        },
+        "scrollY": 0,
+        "coarse": true,
+        "touchPoints": 1,
+        "metadataEvidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+        "beforeAfterIdentical": true
+      },
+      {
+        "profile": "mobile-390-en-light",
+        "state": "shared-expenses-closed",
+        "path": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/mobile-390-en-light-shared-expenses-closed.png",
+        "sha256": "67cf8cf1c5c7e0547af3125764052c2e6f291bd30f8266d820c4a02d18ecab09",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "actualViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scrollY": 0,
+        "coarse": true,
+        "touchPoints": 1,
+        "metadataEvidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+        "beforeAfterIdentical": true
+      },
+      {
+        "profile": "mobile-390-en-light",
+        "state": "project-expenses-filters-open",
+        "path": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/mobile-390-en-light-project-expenses-filters-open.png",
+        "sha256": "f643a8f0010c4b07aede68b173a3076a111e15f8dc70ef241e670a03aef825bd",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "actualViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scrollY": 0,
+        "coarse": true,
+        "touchPoints": 1,
+        "metadataEvidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+        "beforeAfterIdentical": true
+      }
+    ],
+    "summaryGETProof": {
+      "observedFulfilledSummaryGETs": 0,
+      "blockedSummaryAttempts": 0,
+      "summaryGETsObserved": 0,
+      "guard": "All scoped or unscoped /api/v1/reports/summary interceptions are blocked and fail before fixture delivery; accepted status is passed.",
+      "pathsEvidence": "Every fulfilled fixture GET is recorded in profile.paths; forbidden summary attempts are recorded in raw unexpectedOverviewRequests.",
+      "rawGuardArray": "unexpectedOverviewRequests",
+      "rawUnexpectedOverviewRequests": [],
+      "harnessHashUnchanged": true
+    },
+    "blockedExternalAttempts": [
+      {
+        "key": "desktop-1440-en-light",
+        "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+        "method": "GET"
+      },
+      {
+        "key": "tablet-900-zh-dark",
+        "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+        "method": "GET"
+      },
+      {
+        "key": "mobile-390-en-light",
+        "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+        "method": "GET"
+      }
+    ],
+    "externalDelivered": [],
+    "excluded": {
+      "contexts": 0,
+      "captures": 0,
+      "intercepted": 0,
+      "businessWrites": 0
+    },
+    "previousDesign": {
+      "status": "passed-superseded-by-user",
+      "compactPath": "/workspace/work/expense-toolbar-2026-10-08/acceptance-compact.json",
+      "compactSha256": "073a188937e916900ab9ee8cbeac5677a822a79e1b6d04d53a4ec39fd758db07",
+      "excludedFromFinalCounts": true
+    },
+    "evidencePath": "/workspace/work/expense-toolbar-no-totals-2026-10-08/final/evidence.json",
+    "evidenceSha256": "93523cc95a783219ea8644345acd0913c75ec91dad3a6fabb1843ec919660772",
+    "cleanup": {
+      "previewPortFree": true,
+      "debugPortFree": true,
+      "ownedProfileRemoved": true
+    },
+    "freezeVerification": {
+      "sourceFiles": 70,
+      "artifactFiles": 46,
+      "allSourceHashesMatch": true,
+      "allArtifactPathsBytesHashesMatch": true,
+      "rootVisualReview": "Root confirmed all six new native original images: Reports directly show charts without totals; no source changes requested.",
+      "rawWorkRoot": "/workspace/work/expense-toolbar-no-totals-2026-10-08"
+    },
+    "limitations": [
+      "Local intercepted synthetic GET-only UI evidence; no real ledger/session/account/provider or native CSV download acceptance.",
+      "No expense saves/creates/deletes/recurring mutations and no CSV/external anchors activated.",
+      "Date value setting was programmatic and explicitly recorded as untrusted, not native date entry. Date API/boundary contracts primarily rely on root unit tests.",
+      "Toggle/category/clear/tab/keyboard focus were trusted native events; each context performed exactly2filterchanges and1clear.",
+      "Chart amounts are exact date/category point aggregation and selected readouts, not grand totals.",
+      "Native selected-string smoke does not claim OS clipboard access.",
+      "Loading/error/pagination and unchanged feature matrices were not repeated; one short preceding Projects product-only guard passed.",
+      "The earlier with-totals design remains passed historical evidence but is superseded and contributes no final counts/captures."
+    ]
+  },
+  "freeze": {
+    "artifactEntry": "/assets/index-B3bUObTH.js",
+    "artifactFiles": 46,
+    "sourceFiles": 70,
+    "artifactManifestSha256": "1dbfa3372fffd15f7d07708b599cee9026f9b11e3b1f0ad580964af40995478b",
+    "sourceManifestSha256": "7c8559e139e71868ba4f00f3e7c07eb528db3f6a934788cd97cd627e32807134",
+    "buildEnvironment": {
+      "VITE_APP_URL": "https://preview.pull-wise.com",
+      "VITE_API_BASE_URL": "/api",
+      "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+    }
+  },
+  "rootReview": {
+    "originalNativeCapturesViewed": 6,
+    "visualPass": true,
+    "pngHashesAndDimensionsVerified": true,
+    "rawBeforeAfterMetadataVerified": true,
+    "allRuntimeSourceAndArtifactHashesReverified": true
+  },
+  "compactSha256": "b1a9e24083e66ccab57088491853d31adb1e0873a8bfd2c9a04ee709d6865bdf",
+  "supersededUnpublishedDesign": {
+    "scope": "Earlier toolbar design retained a Totals by currency block in Reports, before the user requested its removal.",
+    "status": "passed_then_superseded_by_user_followup",
+    "committed": false,
+    "deployed": false,
+    "evidencePath": "/workspace/work/expense-toolbar-2026-10-08/final/evidence.json",
+    "rootReviewedOriginalCaptures": 6,
+    "finalAcceptanceCountsContribution": 0
+  },
+  "unchangedScope": [
+    "Server source/runtime",
+    "D1 schema/data",
+    "recurring scheduling",
+    "production deployments"
+  ]
+}

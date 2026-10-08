@@ -461,54 +461,37 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 175px), 1fr));
   gap: 16px;
-  margin-bottom: 20px;
 }
-.ledger-screen .ledger-filter-bar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
+.ledger-view-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
 }
-.ledger-screen .ledger-filter-bar .ledger-filters {
-  margin-bottom: 0;
-}
-.ledger-filter-disclosure {
-  border-top: 0;
-}
-.ledger-filter-disclosure > summary {
-  width: fit-content;
-  padding: 0;
-  min-height: 34px;
-}
-.ledger-filter-disclosure[open] {
-  grid-column: 1 / -1;
-}
-.ledger-screen .ledger-filter-bar > .ledger-actions {
-  justify-self: end;
-}
-.ledger-screen .ledger-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: 24px;
-}
-.ledger-screen .ledger-stat {
+.ledger-view-toolbar > .view-tabs {
   min-width: 0;
-}
-.ledger-screen .ledger-stat h3 {
-  --financial-size: var(--fs-value-primary);
-  margin: 0 0 12px;
-  overflow-wrap: anywhere;
-}
-.ledger-screen .ledger-stat p {
-  --financial-size: var(--fs-value-secondary);
-  color: var(--text-2);
-  line-height: 1.7;
-  margin-bottom: 8px;
-  overflow-wrap: anywhere;
-}
-.ledger-screen .ledger-stat > :last-child {
+  max-width: 100%;
+  border-bottom: 0;
   margin-bottom: 0;
+}
+.ledger-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ledger-filter-strip {
+  max-width: 800px;
+  padding-top: 16px;
+}
+.ledger-screen .main .ledger-filter-strip input,
+.ledger-screen .ledger-filter-strip select {
+  min-height: 38px;
+  padding: 8px 10px;
 }
 .ledger-screen .ledger-reports {
   display: grid;
@@ -631,9 +614,6 @@
   }
   .ledger-screen .ledger-amount {
     --financial-size: var(--fs-value-row-compact);
-  }
-  .ledger-screen .ledger-stat h3 {
-    --financial-size: var(--fs-value-primary-compact);
   }
 }
 @media (pointer: coarse) {

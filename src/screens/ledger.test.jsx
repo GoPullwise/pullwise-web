@@ -69,6 +69,14 @@ async function openGitHubLinks() {
   await waitFor(() => expect(screen.queryByText("Loading repositories…")).not.toBeInTheDocument());
 }
 
+async function openFilters() {
+  const button = await screen.findByRole("button", { name: "Filters" });
+  await waitFor(() => expect(button).toBeEnabled());
+  if (button.getAttribute("aria-expanded") !== "true") fireEvent.click(button);
+  await waitFor(() => expect(button).toHaveAttribute("aria-expanded", "true"));
+  expect(document.getElementById(button.getAttribute("aria-controls"))).toBeVisible();
+}
+
 describe("ledger screens", () => {
   it("records an expense in a standalone project without requesting GitHub repository access", async () => {
     const project = {
@@ -593,6 +601,7 @@ describe("ledger screens", () => {
       target: { value: "Unsaved description" },
     });
     fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+    await openFilters();
     fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-10-01" } });
     await waitFor(() => expect(api.project).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
@@ -640,6 +649,7 @@ describe("ledger screens", () => {
           finish = resolve;
         })
     );
+    await openFilters();
     fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
     expect(
       await screen.findByText("Updating results… Previous results remain visible.")
@@ -647,8 +657,11 @@ describe("ledger screens", () => {
     expect(screen.getByRole("button", { name: "Edit Existing hosting" })).toBeInTheDocument();
     expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Unsaved draft");
     expect(screen.getByRole("tabpanel", { name: "Expenses" })).toHaveAttribute("aria-busy", "true");
-    const totals = screen.getByRole("heading", { name: "Totals by currency" }).closest("section");
-    expect(totals).toHaveAttribute("aria-busy", "true");
+    const reports = document.getElementById(
+      screen.getByRole("tab", { name: "Reports" }).getAttribute("aria-controls")
+    );
+    expect(reports).not.toBeVisible();
+    expect(reports).toHaveAttribute("aria-busy", "true");
     finish({ items: [previous], nextCursor: null });
     await waitFor(() =>
       expect(
@@ -659,39 +672,54 @@ describe("ledger screens", () => {
       "aria-busy",
       "false"
     );
+    expect(reports).toHaveAttribute("aria-busy", "false");
     expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Unsaved draft");
   });
-  it("retains expense history and editing when reports fail independently", async () => {
-    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
-    api.expenses.mockResolvedValue({
-      items: [
-        {
-          id: "exp_1",
-          target: { kind: "shared" },
-          occurredOn: "2026-09-27",
-          amount: "12.00",
-          amountMinor: 1200,
-          currency: "USD",
-          categoryId: "cat_1",
-          purpose: "Existing hosting",
-          revision: 1,
-        },
-      ],
-      nextCursor: null,
-    });
-    api.reportSummary.mockRejectedValue(new Error("Summary offline"));
-    api.reportTimeseries.mockRejectedValue(new Error("Chart offline"));
-    render(<LedgerScreen go={vi.fn()} mode="shared" />);
-    const edit = await screen.findByRole("button", { name: "Edit Existing hosting" });
-    expect(screen.getByText(/Spending summary is unavailable/i)).toBeInTheDocument();
-    fireEvent.click(edit);
-    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Existing hosting");
-    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
-    expect(screen.getByText(/This report is unavailable/i)).toBeVisible();
-    const chart = screen.getByRole("heading", { name: "Expenses over time" }).closest("section");
-    expect(within(chart).queryByText("No expenses in this range.")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Expenses by category" })).toBeVisible();
-  });
+  it.each(["project", "shared"])(
+    "retains $s history and editing when chart reports fail",
+    async (mode) => {
+      api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+      api.expenses.mockResolvedValue({
+        items: [
+          {
+            id: "exp_1",
+            target:
+              mode === "project" ? { kind: "project", projectId: "prj_1" } : { kind: "shared" },
+            occurredOn: "2026-09-27",
+            amount: "12.00",
+            amountMinor: 1200,
+            currency: "USD",
+            categoryId: "cat_1",
+            purpose: "Existing hosting",
+            revision: 1,
+          },
+        ],
+        nextCursor: null,
+      });
+      api.reportTimeseries.mockRejectedValue(new Error("Trend offline"));
+      api.reportCategories.mockRejectedValue(new Error("Category chart offline"));
+      render(
+        <LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} />
+      );
+      const edit = await screen.findByRole("button", { name: "Edit Existing hosting" });
+      fireEvent.click(edit);
+      expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Existing hosting");
+      fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+      const reports = screen.getByRole("tabpanel", { name: "Reports" });
+      for (const title of ["Expenses over time", "Expenses by category"]) {
+        const chart = within(reports).getByRole("heading", { name: title }).closest("section");
+        expect(within(chart).getByText(/This report is unavailable/i)).toBeVisible();
+        expect(within(chart).queryByText("No expenses in this range.")).not.toBeInTheDocument();
+      }
+      expect(
+        screen.queryByRole("heading", { name: "Totals by currency", hidden: true })
+      ).not.toBeInTheDocument();
+      expect(
+        reports.querySelector(".ledger-stat, .ledger-stats, .ledger-report-totals")
+      ).not.toBeInTheDocument();
+      expect(api.reportSummary).not.toHaveBeenCalled();
+    }
+  );
   it("keeps history editable during an unknown GitHub outage without claiming access was lost", async () => {
     api.project.mockResolvedValueOnce({
       id: "prj_1",
@@ -879,6 +907,7 @@ describe("ledger screens", () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     await screen.findByRole("heading", { name: "Expenses" });
+    await openFilters();
     fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
     await screen.findByText("No expenses match these filters");
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
@@ -1013,7 +1042,7 @@ describe("ledger screens", () => {
     expect(screen.queryByRole("heading", { name: "Your projects" })).not.toBeInTheDocument();
   });
 
-  it("renders panel skeletons while a project detail loads", () => {
+  it.each(["project", "shared"])("renders only record skeletons while $s expenses load", (mode) => {
     api.categories.mockReturnValue(new Promise(() => {}));
     api.expenses.mockReturnValue(new Promise(() => {}));
     api.project.mockReturnValue(new Promise(() => {}));
@@ -1022,14 +1051,22 @@ describe("ledger screens", () => {
     api.reportTimeseries.mockReturnValue(new Promise(() => {}));
     api.reportCategories.mockReturnValue(new Promise(() => {}));
 
-    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    render(<LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} />);
 
-    expect(screen.getByRole("heading", { name: "Project expenses", level: 1 })).toBeVisible();
-    expect(screen.getByText("Loading project expenses…")).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: mode === "project" ? "Project expenses" : "Shared expense pool",
+        level: 1,
+      })
+    ).toBeVisible();
+    if (mode === "project") expect(screen.getByText("Loading project expenses…")).toBeVisible();
     expect(screen.queryByText("Project history")).not.toBeInTheDocument();
-    const status = screen.getByRole("status", { name: /loading project expenses/i });
-    expect(status.querySelectorAll(".ledger-stats")).toHaveLength(1);
-    expect(status.querySelectorAll(".ledger-filter-bar")).toHaveLength(1);
+    const status = screen.getByRole("status", {
+      name: mode === "project" ? /loading project expenses/i : /loading ledger/i,
+    });
+    expect(status.querySelectorAll(".panel")).toHaveLength(1);
+    expect(status.querySelectorAll(".ledger-stats")).toHaveLength(0);
+    expect(status.querySelectorAll(".ledger-filter-bar")).toHaveLength(0);
     expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(0);
     expect(screen.queryByRole("heading", { name: "Expenses" })).not.toBeInTheDocument();
   });
@@ -1451,6 +1488,7 @@ describe("ledger screens", () => {
     ]);
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     await screen.findByText(/No expenses for this target yet/i);
+    await openFilters();
     fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
     fireEvent.change(screen.getByLabelText("Before date"), { target: { value: "2026-10-01" } });
     fireEvent.change(screen.getByLabelText("Filter category"), { target: { value: "cat_1" } });
@@ -1511,13 +1549,8 @@ describe("ledger screens", () => {
     expect(api.reportSummary).not.toHaveBeenCalled();
   });
 
-  it("renders large exact integer-string totals and chart proportions without rounding money", async () => {
+  it("renders exact large and zero chart amounts without rounding plotted proportions", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
-    api.reportSummary.mockResolvedValue({
-      groups: [
-        { target: "shared", projectId: null, currency: "USD", amountMinor: "18014398509481982" },
-      ],
-    });
     api.reportTimeseries.mockResolvedValue({
       groups: [
         { bucket: "2026-09-01", currency: "USD", amountMinor: "18014398509481982" },
@@ -1526,24 +1559,28 @@ describe("ledger screens", () => {
       ],
     });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
-    const totals = (await screen.findByRole("heading", { name: "Totals by currency" })).closest(
-      "section"
-    );
-    expect(within(totals).getByText("USD 180,143,985,094,819.82")).toBeVisible();
-    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Reports" }));
     const chart = screen.getByRole("heading", { name: "Expenses over time" }).closest("section");
     const currencyChart = chart.querySelector('figure.expense-chart[data-currency="USD"]');
-    fireEvent.click(within(currencyChart).getByRole("button", { name: /2026-09-01/ }));
-    expect(
-      within(currencyChart).getByText("USD 180,143,985,094,819.82", {
-        selector: ".financial-value",
-      })
-    ).toBeVisible();
+    for (const [date, amount] of [
+      ["2026-09-01", "USD 180,143,985,094,819.82"],
+      ["2026-09-02", "USD 90,071,992,547,409.91"],
+      ["2026-09-03", "USD 0.00"],
+    ]) {
+      fireEvent.click(within(currencyChart).getByRole("button", { name: new RegExp(date) }));
+      expect(
+        within(currencyChart).getByText(amount, { selector: ".financial-value" })
+      ).toBeVisible();
+    }
     expect(
       [...currencyChart.querySelectorAll(".expense-chart-point")].map((point) =>
         Number(point.dataset.y)
       )
     ).toEqual([12, 100, 188]);
+    expect(
+      screen.queryByRole("heading", { name: "Totals by currency", hidden: true })
+    ).not.toBeInTheDocument();
+    expect(api.reportSummary).not.toHaveBeenCalled();
   });
 
   it("scales each currency independently in trend and category charts", async () => {

@@ -166,31 +166,33 @@ function formatRecurringTotal(rule) {
 }
 
 function LedgerFilters({ filters, onChange, categories = [] }) {
-  const categoryFieldId = useId();
+  const fieldId = useId();
   const update = (name, value) => onChange((old) => ({ ...old, [name]: value }));
   return (
     <div className="ledger-filters">
-      <label>
-        {T("From date")}
+      <div className="ledger-field">
+        <label htmlFor={`${fieldId}-from`}>{T("From date")}</label>
         <input
+          id={`${fieldId}-from`}
           type="date"
           value={filters.from}
           onChange={(event) => update("from", event.target.value)}
         />
-      </label>
-      <label>
-        {T("Before date", "截止日期（不含当天）")}
+      </div>
+      <div className="ledger-field">
+        <label htmlFor={`${fieldId}-before`}>{T("Before date", "截止日期（不含当天）")}</label>
         <input
+          id={`${fieldId}-before`}
           type="date"
           value={filters.to}
           min={filters.from || undefined}
           onChange={(event) => update("to", event.target.value)}
         />
-      </label>
+      </div>
       <div className="ledger-field">
-        <label htmlFor={categoryFieldId}>{T("Filter category")}</label>
+        <label htmlFor={`${fieldId}-category`}>{T("Filter category")}</label>
         <select
-          id={categoryFieldId}
+          id={`${fieldId}-category`}
           value={filters.categoryId}
           onChange={(event) => update("categoryId", event.target.value)}
         >
@@ -203,6 +205,70 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
         </select>
       </div>
     </div>
+  );
+}
+
+function LedgerViewToolbar({
+  id,
+  mode,
+  view,
+  onViewChange,
+  filters,
+  onFiltersChange,
+  categories,
+  expanded,
+  onExpandedChange,
+  exportHref,
+}) {
+  const filterCount = Object.values(filters).filter(Boolean).length;
+  const filtersId = `${id}-filters`;
+  return (
+    <>
+      <div className="ledger-view-toolbar">
+        <ViewTabs
+          id={id}
+          label={T("Ledger views", "账本视图")}
+          tabs={[
+            { key: "expenses", label: T("Expenses") },
+            { key: "reports", label: T("Reports", "报表") },
+            ...(mode === "project"
+              ? [{ key: "settings", label: T("Project settings", "项目设置") }]
+              : []),
+          ]}
+          value={view}
+          onChange={onViewChange}
+        />
+        <div className="ledger-view-controls" hidden={view === "settings"}>
+          <button
+            className="btn ghost"
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={filtersId}
+            onClick={() => onExpandedChange(!expanded)}
+          >
+            <I.Sliders size={14} aria-hidden="true" /> {T("Filters", "筛选")}
+            {filterCount > 0 && (
+              <span className="numeric-count ledger-filter-count">{filterCount}</span>
+            )}
+          </button>
+          {filterCount > 0 && (
+            <button
+              className="btn ghost"
+              type="button"
+              onClick={() => onFiltersChange({ from: "", to: "", categoryId: "" })}
+            >
+              {T("Clear filters", "清除筛选")}
+            </button>
+          )}
+          <a className="btn ghost" href={exportHref} download="expenses.csv">
+            <I.Download size={14} aria-hidden="true" /> {T("Export CSV")}
+          </a>
+        </div>
+      </div>
+      <div className="ledger-filter-strip" id={filtersId} hidden={view === "settings" || !expanded}>
+        <LedgerFilters filters={filters} onChange={onFiltersChange} categories={categories} />
+      </div>
+    </>
   );
 }
 
@@ -267,16 +333,6 @@ function LedgerSkeleton({ mode }) {
       <SkeletonLine className="sk-line sk-w-26 sk-h-34" />
     </div>
   );
-  const statsSkeleton = (
-    <div className="ledger-stats">
-      {Array.from({ length: 3 }, (_, index) => (
-        <div className="ledger-stat skeleton-row" key={`ledger-stat-skeleton-${index}`}>
-          <SkeletonLine className="sk-line sk-w-22" />
-          <SkeletonLine className="sk-line sk-w-45 sk-h-28" />
-        </div>
-      ))}
-    </div>
-  );
   return (
     <div
       role="status"
@@ -294,21 +350,10 @@ function LedgerSkeleton({ mode }) {
           </div>
         </div>
       ) : (
-        <>
-          <div className="panel">
-            {headingSkeleton}
-            {statsSkeleton}
-            <div className="ledger-filter-bar skeleton-row">
-              <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
-              <SkeletonLine className="sk-line sk-w-30 sk-h-40" />
-              <SkeletonLine className="sk-line sk-w-16 sk-h-34" />
-            </div>
-          </div>
-          <div className="panel">
-            {headingSkeleton}
-            {listSkeleton}
-          </div>
-        </>
+        <div className="panel">
+          {headingSkeleton}
+          {listSkeleton}
+        </div>
       )}
     </div>
   );
@@ -768,7 +813,7 @@ function ExpenseForm({
 export function LedgerScreen(props) {
   const workspace = props.workspace;
   const identity = workspace
-    ? `${workspace.id}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(workspace.permissions)}`
+    ? `${workspace.id}:${workspace.revision}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(workspace.permissions)}`
     : "personal";
   const scope = `${identity}:${props.mode || "projects"}:${props.projectId || ""}:${props.authorizationRevision || 0}`;
   return <ScopedLedgerScreen key={scope} {...props} />;
@@ -798,6 +843,7 @@ function ScopedLedgerScreen({
   const [revision, setRevision] = useState(0);
   const [loadedRequest, setLoadedRequest] = useState(0);
   const [filters, setFilters] = useState({ from: "", to: "", categoryId: "" });
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [repositoryLoading, setRepositoryLoading] = useState(false);
@@ -946,13 +992,12 @@ function ScopedLedgerScreen({
             return { failure };
           }
         );
-      const [categories, expenses, project, projects, summary, timeseries, categoryReport] =
+      const [categories, expenses, project, projects, timeseries, categoryReport] =
         await Promise.all([
           api.categories(options),
           api.expenses(detailQuery, options),
           mode === "project" ? api.project(projectId, options) : Promise.resolve(null),
           api.projects({}, options),
-          optionalReport(api.reportSummary(detailQuery, options)),
           optionalReport(api.reportTimeseries(detailQuery, options)),
           optionalReport(api.reportCategories(detailQuery, options)),
         ]);
@@ -963,8 +1008,6 @@ function ScopedLedgerScreen({
         projects,
         repositories: null,
         repositoryError: null,
-        summary: summary.value,
-        summaryError: summary.failure ? errorText(summary.failure) : "",
         timeseries: timeseries.value,
         timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
         categoryReport: categoryReport.value,
@@ -2192,18 +2235,17 @@ function ScopedLedgerScreen({
                   )}
                 </p>
               )}
-              <ViewTabs
+              <LedgerViewToolbar
                 id={viewId}
-                label={T("Ledger views", "账本视图")}
-                tabs={[
-                  { key: "expenses", label: T("Expenses") },
-                  { key: "reports", label: T("Reports", "报表") },
-                  ...(mode === "project"
-                    ? [{ key: "settings", label: T("Project settings", "项目设置") }]
-                    : []),
-                ]}
-                value={view}
-                onChange={setView}
+                mode={mode}
+                view={view}
+                onViewChange={setView}
+                filters={filters}
+                onFiltersChange={setFilters}
+                categories={data.categories}
+                expanded={filtersExpanded}
+                onExpandedChange={setFiltersExpanded}
+                exportHref={exportHref}
               />
               {data.project?.status === "archived" && (
                 <div className="notice" role="status">
@@ -2233,77 +2275,6 @@ function ScopedLedgerScreen({
                   )}
                 </div>
               )}
-              <section className="panel" hidden={view === "settings"} aria-busy={loading}>
-                <div className="panel-h">
-                  <I.Trend size={20} />
-                  <h2>{T("Totals by currency")}</h2>
-                  <span className="count">
-                    {Object.keys(filtered).length
-                      ? T("Filtered spending", "筛选内支出")
-                      : T("All time", "全部时间")}
-                  </span>
-                </div>
-                {data.summaryError && (
-                  <p role="status">
-                    {T(
-                      "Spending summary is unavailable. Reload to try again.",
-                      "支出汇总暂不可用，重新加载后可再试。"
-                    )}
-                  </p>
-                )}
-                {data.summary?.groups.length === 0 && (
-                  <p className="ledger-help">
-                    {T(
-                      "Your spending totals will appear after you record an expense.",
-                      "记下第一笔支出后，这里就会显示合计。"
-                    )}
-                  </p>
-                )}
-                <div className="ledger-stats">
-                  {data.summary?.groups
-                    .filter(
-                      (group) =>
-                        group.target === mode &&
-                        (mode === "shared" || group.projectId === projectId)
-                    )
-                    .map((group) => (
-                      <article className="ledger-stat" key={group.currency}>
-                        <h3>
-                          <LedgerTotal total={group} />
-                        </h3>
-                      </article>
-                    ))}
-                </div>
-                <div className="ledger-filter-bar">
-                  <details
-                    className="disclosure ledger-filter-disclosure"
-                    open={Object.keys(filtered).length ? true : undefined}
-                  >
-                    <summary>
-                      <I.Sliders size={14} />
-                      {T("Filters", "筛选")}
-                    </summary>
-                    <LedgerFilters
-                      filters={filters}
-                      onChange={setFilters}
-                      categories={data.categories}
-                    />
-                  </details>
-                  <div className="ledger-actions">
-                    {Object.keys(filtered).length > 0 && (
-                      <button
-                        className="btn ghost"
-                        onClick={() => setFilters({ from: "", to: "", categoryId: "" })}
-                      >
-                        {T("Clear filters", "清除筛选")}
-                      </button>
-                    )}
-                    <a className="btn" href={exportHref} download="expenses.csv">
-                      <I.Download size={14} /> {T("Export CSV")}
-                    </a>
-                  </div>
-                </div>
-              </section>
               <div
                 role="tabpanel"
                 id={`${viewId}-panel-expenses`}
