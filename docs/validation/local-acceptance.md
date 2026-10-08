@@ -37,6 +37,18 @@ Local fixtures do not establish real-session or payment acceptance. Publication
 uses the exact accepted build and is documented separately; only the Web
 preview is in scope, with production and Server/D1 untouched by this release.
 
+[Preview publication](console-clarity-preview-release-2026-10-08.json) publishes
+merged runtime `f80dc9e56a9154d6379de0cbe390bad76dfdfd55` as Web version
+`979c05c6-1c61-4379-9687-beafd1d72b4c` at `preview.pull-wise.com`.
+Management readback confirms the Preview service binding, vars, SPA assets and
+HTML-first noindex routing. Exactly one homepage GET and three hashed asset
+GETs return 200; shared CSS, Members JavaScript and Ledger CSS match the
+accepted local build and HTML references its exact entry. No redirects, retries,
+page JavaScript, remote business API or credentials are used. All 45 artifact
+and 30 runtime source hashes remain unchanged. Production and Server/D1 remain
+untouched by this Web-only release. Publication evidence is documentation-only
+and requires no further deployment.
+
 ## Divider midpoints, text selection and project detail clarity — pre-merge (2026-10-08)
 
 This local phase validated source `68d90fb8f6beebc4827378e56f1d6081c2979221`

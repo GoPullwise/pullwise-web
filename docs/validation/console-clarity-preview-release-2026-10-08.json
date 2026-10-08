@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-08",
+  "scope": "Web Worker/assets only at preview.pull-wise.com. No production, Server publication or D1 operation.",
+  "sourceCommit": "f80dc9e56a9154d6379de0cbe390bad76dfdfd55",
+  "sourceParents": [
+    "68d90fb8f6beebc4827378e56f1d6081c2979221",
+    "0a2cd4f3731a7d45a78a27ea2167fdf73566768d"
+  ],
+  "worker": "pullwise-web-preview",
+  "config": "wrangler.preview.jsonc",
+  "versionId": "979c05c6-1c61-4379-9687-beafd1d72b4c",
+  "createdOn": "2026-10-08T07:59:37.397098Z",
+  "annotations": {
+    "workers/message": "Console clarity merged acceptance; source f80dc9e56a9154d6379de0cbe390bad76dfdfd55",
+    "workers/tag": "clarity-20261008-f80dc9e",
+    "workers/triggered_by": "version_upload"
+  },
+  "deploymentTrigger": "preview.pull-wise.com (custom domain)",
+  "managementReadback": {
+    "passed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "assets": {
+      "notFoundHandling": "single-page-application",
+      "runWorkerFirst": [
+        "/*",
+        "!/assets/*"
+      ],
+      "staticRouting": {
+        "user_worker": [
+          "/*"
+        ],
+        "asset_worker": [
+          "/assets/*"
+        ]
+      }
+    }
+  },
+  "localChecks": {
+    "testFiles": 38,
+    "tests": 535,
+    "lint": true,
+    "build": true,
+    "workerConfigAndSyntax": true,
+    "wranglerDryRun": "4.136.3",
+    "independentSourceAudit": "passed",
+    "browserContexts": 4,
+    "browserStates": 121,
+    "nativeCaptures": 24,
+    "interceptedRequests": 234,
+    "fixtureGETs": 108,
+    "mutations": 0,
+    "realRemoteCalls": 0
+  },
+  "localAcceptance": "console-clarity-merged-local-2026-10-08.json",
+  "browserAcceptanceSha256": "5f73f299880a9e6308e6ebe56a9f38556a18884da157d06f5c7db1c780b4cf6a",
+  "artifactEntry": "/assets/index-BOqOOvin.js",
+  "artifactFiles": 45,
+  "artifactManifestSha256": "211b5918016e34446cf5be3b18b2ad203f08f92dd10ee5499cba82ab79d773e5",
+  "runtimeSourceFiles": 30,
+  "runtimeSourceHashFileSha256": "6d23f1bbecb972b9a023636151707db899095e4964abeff34800f476e9b5a1da",
+  "acceptedArtifactsAndSourceStillUnchanged": true,
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4750,
+        "sha256": "81a678bec259632ac62a200958b77e42da088df08cf7f7be7f5c8091699591a7",
+        "noindex": true,
+        "expectedBuiltEntry": "/assets/index-BOqOOvin.js",
+        "builtEntryMatched": "/assets/index-BOqOOvin.js"
+      },
+      {
+        "path": "/assets/index-Dk2qL_6C.css",
+        "status": 200,
+        "bytes": 78673,
+        "sha256": "d5830cf5acfe451eb9f2c953c8632841477c6dc56e1d69a986425a36041eac25",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-D8mKpq7E.js",
+        "status": 200,
+        "bytes": 21574,
+        "sha256": "0555a6d14e6fe5c70716e6504c5214eb298230e51208a96137b1def64b101150",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-Do9xzD33.css",
+        "status": 200,
+        "bytes": 11854,
+        "sha256": "882558db01e2172402b2ea54618cface217a5ea6cc57334cb38dcab18080ab8e",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false,
+    "failures": []
+  },
+  "productionDeployed": false,
+  "serverDeployed": false,
+  "d1Operations": 0,
+  "realSessionOrPaymentAcceptance": false,
+  "documentationFollowupRequiresRedeploy": false
+}
