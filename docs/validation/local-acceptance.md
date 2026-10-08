@@ -2,6 +2,62 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Equal records, contextual expense entry and visual Reports (2026-10-08)
+
+Console record lists share naturally sized equal CSS grid tracks with compact,
+centered contents. Headers, helpers and pagination remain outside record grids;
+bounded project-option scrolling is on an outer wrapper. Wrapping, filtering,
+pagination, inline editors and live widths retain equal outer heights and complete
+selectable data. Decorative terminal borders are removed from parallel Reports
+and before trailing Billing availability notes; genuine following sections,
+stacked report boundaries and record/control separators remain.
+
+Expense entry no longer asks Project or shared cost. New expenses use the current
+project/shared page target; edits preserve their original target and revision.
+Date receives initial focus, with draft, category, permission, identity and
+idempotency guards retained. Project and shared-pool Reports share responsive
+SVG date trends and category columns, exact persistent readouts and independent
+currency scales. Calendar distance and BigInt arithmetic remain exact; no missing
+date zeros or currency conversions are invented. Keyboard, pointer and touch
+inspection preserve full labels and monetary values and Pullwise's original style.
+
+Native testing exposed compatibility mouse-enter events replacing a touched
+category. Removing the redundant point-level handler keeps inspection on real
+non-touch pointer movement and explicit click/focus/keyboard actions. A focused
+regression and the final native touch runs pass. Earlier positioning diagnostics
+and pre-fix runs are recorded separately and contribute no final acceptance.
+
+`npm run check` passes lint, **39 files / 554 tests** and build. Worker
+configuration/syntax, source formatting/whitespace, independent source review
+and Wrangler 4.136.3 preview packaging pass. The accepted preview entry is
+`/assets/index-p1WJqR4M.js`; all **46 artifact / 25 source** hashes remain unchanged.
+
+[Final local evidence](console-rows-charts-local-2026-10-08.json) passes **3
+physical contexts / 217 scenarios / 8 native unedited viewport captures**, all
+visually reviewed by Root: 1440px English/light desktop, actual-touch 900px
+Chinese/dark landscape and actual-touch 390px English/light with live 320px.
+Eight console routes, live 2560/1180px and 280px primary-pane resizing, equal
+ordinary records, idle/hover/copy, form open/edit/draft/cancel, full graph values,
+keyboard/hover/tap, irregular dates, independent currencies, zero/tiny/single
+values, empty/503 reports and actual 647/648px boundaries pass. Accepted traffic
+is **215 intercepted / 102 fixture GETs / 0 writes**, maximum 77 of 120 per
+context. Unknown routes, runtime errors and real external calls are zero.
+External fonts are blocked, so captures establish native fallback-font layout.
+Copy evidence is the exact browser-selected string, not OS clipboard inspection;
+submission payloads are unit evidence, while browsers never submit. Owned
+browsers/CDP/Vite/profiles are cleaned and ports are free. Local fixtures do not
+establish real-session, provider or payment acceptance.
+
+[Preview publication](console-rows-charts-preview-release-2026-10-08.json)
+publishes source `9dcd5dc0671f37360f1b6a657ee506a8695f1eed` as Web version
+`5a37a81f-4d16-40d9-a352-2775709ac53c` at `preview.pull-wise.com`.
+Management readback confirms preview bindings, SPA assets and HTML-first noindex
+routing. Exactly one homepage and three exact hashed asset GETs return 200;
+the sampled assets match the accepted build and HTML references its entry.
+An offline CSS-chunk selector preflight made no requests. No redirects, retries,
+page JavaScript, credentials or business API are used. Production and Server/D1
+remain untouched. These evidence files are documentation-only and need no redeploy.
+
 ## Projects list information hierarchy (2026-10-08)
 
 The approved newer ZIP informs `/projects` only. Pullwise keeps its original

@@ -1,0 +1,864 @@
+{
+  "date": "2026-10-08",
+  "scope": "Equal console records and terminal dividers; contextual expense entry; visual Reports on projects and shared pool. Preserve Pullwise style. Web preview only.",
+  "implementation": [
+    "Shared natural CSS grid rows have equal outer heights; content remains centered, complete and selectable. Headers/helpers/pagers stay outside record grids; bounded scrolling is on outer wrappers.",
+    "Remove decorative terminal borders, including parallel Reports and Billing trailing notes; retain following sections, stacked Reports, record and control boundaries.",
+    "Remove expense target chooser. New records use their current page target; edits preserve original target/revision; Date focus, drafts, permission and idempotency guards remain.",
+    "Shared responsive SVG date trend and category columns replace report rows; exact BigInt money, independent currencies, real calendar spacing and persistent mouse/touch/keyboard inspection.",
+    "Only non-touch pointer movement drives hover inspection. Compatibility mouse-enter after touch cannot replace the tapped value."
+  ],
+  "checks": {
+    "lint": true,
+    "testFiles": 39,
+    "tests": 554,
+    "build": true,
+    "workerConfigurationAndSyntax": true,
+    "prettierAndWhitespace": true,
+    "wranglerPreviewDryRun": "4.136.3",
+    "independentSourceReview": "passed"
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "artifactEntry": "/assets/index-p1WJqR4M.js",
+  "artifactManifestSha256": "de2e9eec59bb5a5d4c5d8f2dbaa3da196633803333410501384b135f7c944e89",
+  "sourceManifestSha256": "d1715b2914f6fed5c4e2fdd4c55a6530175464e704c27260e1b093614a31c3b8",
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-6SOTi_Lr.js",
+      "bytes": 24404,
+      "sha256": "89ce008e0c92e04f23551f0b7a65ba7a378e8f1049525dc968f8d09cae329105"
+    },
+    {
+      "path": "assets/api-docs-CxcxE8pZ.js",
+      "bytes": 14737,
+      "sha256": "542087e441f06c284328f25dbeaed447fdec2b5c66afe62817d9f7360ca6e70e"
+    },
+    {
+      "path": "assets/auth-ClJifkLe.js",
+      "bytes": 8495,
+      "sha256": "65422f50a4f8099ebe088f68efd51e3fb0d9ec6cf7011e1489de19e2ec46b96c"
+    },
+    {
+      "path": "assets/billing-C3vov1Cv.js",
+      "bytes": 32978,
+      "sha256": "79f75fa8f4f094d8a30c3569b8881e9ef32e2dba7a5cae2af544b57a70c683ad"
+    },
+    {
+      "path": "assets/confirm-dialog-B6q4VQFe.js",
+      "bytes": 2992,
+      "sha256": "b06c476ec8dc6fee93e608bb76c5816cbf399d40c6801931d3216f6dc260b5b1"
+    },
+    {
+      "path": "assets/console-layout-s1Mm6Vau.js",
+      "bytes": 4262,
+      "sha256": "a32b6311a6cdbb987409da9b215f524b9e21a928818c59fecb302b39855d015b"
+    },
+    {
+      "path": "assets/docs-DTaXCVX4.js",
+      "bytes": 6830,
+      "sha256": "ccfc72317b71958afaf138a7a7a3e9ac16d095dbf1587a8904414a9d3b4c5ee9"
+    },
+    {
+      "path": "assets/dynamic-CqKDyOhl.js",
+      "bytes": 5542,
+      "sha256": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae"
+    },
+    {
+      "path": "assets/es-jfEriZci.js",
+      "bytes": 10179,
+      "sha256": "5a532468b44449d47a5c6b767d58ae7066d7327dc81b9351926f3b35a932fe60"
+    },
+    {
+      "path": "assets/financial-value-QxLZwFKp.js",
+      "bytes": 477,
+      "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+    },
+    {
+      "path": "assets/fr-BcJKfRKG.js",
+      "bytes": 10444,
+      "sha256": "6b804a4b8b8e63ec0b48b7cb420ad9a8f77bfd936968c00ed4fd8a1cee360413"
+    },
+    {
+      "path": "assets/index-CJ4tQ_YI.css",
+      "bytes": 78945,
+      "sha256": "8394f7031eed3b7ceedc1ad17956b670ee4a6c48765fd170c73b86bf7947af2c"
+    },
+    {
+      "path": "assets/index-p1WJqR4M.js",
+      "bytes": 42022,
+      "sha256": "f81ece1dd7deb9f1d8279c50a93b3276cf34c3c8df2cd55d67544db5e9b0d0d3"
+    },
+    {
+      "path": "assets/ja-aFH0VZEy.js",
+      "bytes": 10906,
+      "sha256": "fbb951eff269a558dfd70a98a4455181e2f76ff507032a43b791b24ee809cc95"
+    },
+    {
+      "path": "assets/ko-Yj9J4J2H.js",
+      "bytes": 9973,
+      "sha256": "4b3685077de1723eaa8167073d4dc94ee067825b9cd88eebfa4b297414821a76"
+    },
+    {
+      "path": "assets/ledger-BxAUGb5W.js",
+      "bytes": 62011,
+      "sha256": "dcb646cc349e572d2dd155feed5668bee4fe8518fe35fbf974d548ce13aa0922"
+    },
+    {
+      "path": "assets/ledger-CIWwQYwV.js",
+      "bytes": 10698,
+      "sha256": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3"
+    },
+    {
+      "path": "assets/ledger-CZ_rx2tE.js",
+      "bytes": 2925,
+      "sha256": "033bfb21219ff6b4e41336740c01d7541fab211ef6ff00961991042e93b280ed"
+    },
+    {
+      "path": "assets/ledger-D3S-H5yl.css",
+      "bytes": 2286,
+      "sha256": "249e2573274712db8571464d33f8bd0cda7e12cc4aacaaeeb88f8bd40cb90358"
+    },
+    {
+      "path": "assets/ledger-dMmA0zkO.css",
+      "bytes": 12474,
+      "sha256": "1e4a0333c04e20b592cdbda8e11e49ffaa6b1d4183d05688411676d1bf908556"
+    },
+    {
+      "path": "assets/ledger-longform-CcLR1b--.js",
+      "bytes": 92564,
+      "sha256": "a9be02edfc674bf49997b6439c49c76d553b6b3cfd057985924878007c09a5b3"
+    },
+    {
+      "path": "assets/ledger-scopes-eTtBJDmQ.js",
+      "bytes": 3115,
+      "sha256": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369"
+    },
+    {
+      "path": "assets/ledger-screen-BsGbMCfE.js",
+      "bytes": 97614,
+      "sha256": "c5e98aa1c905142f8fa9462f030719f0b91331e056aff157d010592fbedd810c"
+    },
+    {
+      "path": "assets/ledger-uXEFuoGg.js",
+      "bytes": 1545,
+      "sha256": "4525d416d954f074a9a15d73b3f2974f583f66b020ff63161b8cd387d21811e5"
+    },
+    {
+      "path": "assets/ledger-ui-ydcEM64p.js",
+      "bytes": 34050,
+      "sha256": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+    },
+    {
+      "path": "assets/legal-CM_-H6Ep.js",
+      "bytes": 25361,
+      "sha256": "9862b756baab75bcc288fb80ebe98d4bff5e2a63c0e3323eb74ed59f1798f51a"
+    },
+    {
+      "path": "assets/members-CurcF755.js",
+      "bytes": 21574,
+      "sha256": "cfadbb29fe415adc02d7364f565381c5c87e233392e422d534bf79e5d50ed037"
+    },
+    {
+      "path": "assets/navigation-D9cGd3dS.js",
+      "bytes": 13292,
+      "sha256": "fb7a2e9dd02e4ff07a6ca8389b38df32c56c2b2430a9bcfd3888326f54da7ebd"
+    },
+    {
+      "path": "assets/notifications-vjr8Mn79.js",
+      "bytes": 2705,
+      "sha256": "86144839f96fb7c0974bc129b1441d6530f86550d4268b2563c6f187903053f2"
+    },
+    {
+      "path": "assets/public-layout-BwLa86K9.js",
+      "bytes": 2431,
+      "sha256": "d5ba85b5413c122991527be35310dba058801d80a52194468f6876fc8fb0b433"
+    },
+    {
+      "path": "assets/pullwise-BoMNaGzf.js",
+      "bytes": 1775,
+      "sha256": "bf7fa1da940c7aa4dbdb87f203bf88c1cd0ce8f603c3789f393bcf5d3a1344f4"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-Dpxf-XgJ.js",
+      "bytes": 8320,
+      "sha256": "b6d90636f6037a4afe1aa2ca4722a47e712496efde3bc54cc254fc3346aa7d12"
+    },
+    {
+      "path": "assets/shell-vgrJbdFn.js",
+      "bytes": 5247,
+      "sha256": "3b605d91bbf63d27ff3c7e41e1f195f0581727992b29b0ee2e05bcd4fdb2030f"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/zh-DAknT88L.js",
+      "bytes": 8981,
+      "sha256": "88c39be45a80e310b8089dde1ef8419f4c6aa6c4ee94556ff88ac08b6b9f9fe1"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 5088,
+      "sha256": "7d97535f2ed09dead60455dc7d02e585c179bf3cd66410f74187d3ebc6612163"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 50268,
+      "sha256": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2113,
+      "sha256": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+    }
+  ],
+  "runtimeSourceHashes": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 34415,
+      "sha256": "2e554aaa9aa211d580b3b266147be158a4a50ff37e9bc218197457d63dee4cb1"
+    },
+    {
+      "path": "src/screens/ledger.jsx",
+      "bytes": 116805,
+      "sha256": "fc8dc906f143c77462cf403a07f4da76ce58a23de69e93885a196857a0d3479e"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "bytes": 15218,
+      "sha256": "d496c4ed8dcf969b95b140f98feb419cd536babd1171bec9c014049bba0006c4"
+    },
+    {
+      "path": "src/screens/ledger.test.jsx",
+      "bytes": 79900,
+      "sha256": "db83b9b1aec11e4c3c569118bbed13e0566e17f0615eaa6905d94af92fd1c012"
+    },
+    {
+      "path": "src/locales/ledger-screen.js",
+      "bytes": 99300,
+      "sha256": "485cb62ba32a2c81cf2f73fc41e7073ddab1f9981244670ff3c7c663cb971c3e"
+    },
+    {
+      "path": "src/locales.test.js",
+      "bytes": 4721,
+      "sha256": "493ec8194169ca1f76d79ff8f5e4225d2c30fbc11df0247aacf9cf035a076993"
+    },
+    {
+      "path": "styles/base.css",
+      "bytes": 25167,
+      "sha256": "6407aec5d5a0eb0e2b98264d22029a3414854eb559c1685dc8edd90b13cd3218"
+    },
+    {
+      "path": "src/components/financial-value.jsx",
+      "bytes": 803,
+      "sha256": "47fcd46e8ee1971e6c868803784f1127c5f34977ededf81a9cd192340ef13a82"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "bytes": 2516,
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "bytes": 2737,
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "bytes": 5920,
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/lib/navigation.js",
+      "bytes": 2714,
+      "sha256": "d7a1ac6a1fcf77da0ec4046475169e949edc8113ac37cc94cf775aad1b675eee"
+    },
+    {
+      "path": "src/shell.jsx",
+      "bytes": 7671,
+      "sha256": "80bbae94975b1ac904860e0952880535746a0e42b71566870a5e9d4493aa05f9"
+    },
+    {
+      "path": "worker-entry.js",
+      "bytes": 1902,
+      "sha256": "9d1c0e7d44ddc2fa67bead2e85300495ec9f59030a118d868f5d41144fe5e721"
+    },
+    {
+      "path": "worker.js",
+      "bytes": 8627,
+      "sha256": "319cd0910ab001ec8c92ee552b6459ba64c828de29becfc4916b5c9a4c41dc2d"
+    },
+    {
+      "path": "wrangler.preview.jsonc",
+      "bytes": 663,
+      "sha256": "4428e61c06ea9074bfff4f1d6d107df0b865ba949d834cef161a9c1453290f96"
+    },
+    {
+      "path": "styles/screens.css",
+      "bytes": 49744,
+      "sha256": "9922e819a55e1644390ebf5563cf00ce7faa9331738ebbfc0d607e4593a672e2"
+    },
+    {
+      "path": "src/screens/api.jsx",
+      "bytes": 45839,
+      "sha256": "bf6e52c221bdf2c7aa92fa4a6ad7aa2b18ae56181f33704039898890e138cde0"
+    },
+    {
+      "path": "src/screens/members.jsx",
+      "bytes": 47406,
+      "sha256": "71fdb74c5af60021b92f8a3a01f79d874ac0db1643d69d928ece6f3d225bdcde"
+    },
+    {
+      "path": "src/screens/settings.jsx",
+      "bytes": 8578,
+      "sha256": "0842971e89f5ec1a2712d04b9629e2116c5fb3821a7fdc25da885bc008b833f7"
+    },
+    {
+      "path": "src/screens/billing.jsx",
+      "bytes": 59967,
+      "sha256": "835904d1fa67b41265d5a48e12c4b7588d728451efa81385c42707d969ad1997"
+    },
+    {
+      "path": "src/components/github-installations.jsx",
+      "bytes": 6081,
+      "sha256": "86babff5f8879950ff26e8485b1748924cd4e86dd07ce239d11f4290c9692904"
+    },
+    {
+      "path": "src/components/expense-charts.jsx",
+      "bytes": 11918,
+      "sha256": "292a4fc4c09ee2719cd3c7ffb9fcd5d5b8810e1531ca25b7fdb3074c2e8cd302"
+    },
+    {
+      "path": "src/components/expense-charts.css",
+      "bytes": 2798,
+      "sha256": "db738bee4faeb391ba2df5ef25fdf6d2725e60d77c71d2194d38dd9dc3a825a4"
+    },
+    {
+      "path": "src/components/expense-charts.test.jsx",
+      "bytes": 16224,
+      "sha256": "92c49e6b04021436c9d60b6d3a4a64e843636bd43af9636c79a420f0a634da51"
+    }
+  ],
+  "rawBrowserReportSha256": "f39df82e06c88714e6dc90ff710a8e5c67ad7d42e6a90b5bbf64c6565d41dddc",
+  "browser": {
+    "status": "passed",
+    "counts": {
+      "contexts": 3,
+      "scenarios": 217,
+      "captures": 8,
+      "intercepted": 215,
+      "fixtureGET": 102,
+      "blockedExternal": 3,
+      "maxRequestsPerContext": 77
+    },
+    "profiles": [
+      {
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light"
+        },
+        "scenarios": 75,
+        "captures": 5,
+        "intercepted": 77,
+        "fixtureGET": 42,
+        "states": [
+          "projects-loaded-equal-records",
+          "projects-equal-wide",
+          "projects-native-hover",
+          "project-name-native-copy",
+          "project-USD-native-copy",
+          "project-search-shrinks-natural-row",
+          "project-search-clear-restores-equal-height",
+          "project-pagination-longer-record-recomputes-max",
+          "project-creation-rail-equal-reflow",
+          "projects-live2560-recomputed-equal",
+          "navigation-mouse-max",
+          "right-pane-mouse-max-primary280",
+          "projects-primary280-equal-long-content",
+          "projects-primary280-hover",
+          "projects-equal-primary280",
+          "members-loaded-equal-records",
+          "members-native-hover",
+          "member-editor-recomputes-equal-parent-records",
+          "member-editor-cancel-restores-equal-height",
+          "categories-loaded-equal-records",
+          "category-editor-equal-parent-records",
+          "category-editor-cancel-equal",
+          "shared-loaded-equal-records",
+          "shared-expense-hover",
+          "shared-amount-native-copy",
+          "shared-create-fixed-target-date-and-values",
+          "shared-create-cancel-no-write",
+          "shared-edit-fixed-target-date-and-values",
+          "shared-edit-cancel-no-write",
+          "shared-reports-chart-terminal-boundaries",
+          "shared-charts-normal",
+          "shared-native-trend-hover-earliest",
+          "shared-chart-key-Home",
+          "shared-chart-key-ArrowRight",
+          "shared-chart-key-End",
+          "shared-chart-key-ArrowDown",
+          "shared-chart-key-ArrowUp",
+          "shared-chart-key-Enter",
+          "shared-native-category-zero-inspect",
+          "shared-chart-exact-native-selectedstring",
+          "shared-charts-normal",
+          "shared-reports-empty-loaded-expenses-contract",
+          "shared-empty-report-contract",
+          "shared-charts-empty",
+          "shared-reports-error-loaded-expenses-contract",
+          "shared-report503-healthy-category",
+          "shared-error-report-contract",
+          "shared-charts-error",
+          "detail-loaded-equal-records",
+          "detail-expense-hover",
+          "detail-amount-native-copy",
+          "detail-create-fixed-target-date-and-values",
+          "detail-create-cancel-no-write",
+          "detail-edit-fixed-target-date-and-values",
+          "detail-edit-cancel-no-write",
+          "detail-reports-chart-terminal-boundaries",
+          "detail-charts-normal",
+          "detail-native-trend-hover-earliest",
+          "detail-chart-key-Home",
+          "detail-chart-key-ArrowRight",
+          "detail-chart-key-End",
+          "detail-chart-key-ArrowDown",
+          "detail-chart-key-ArrowUp",
+          "detail-chart-key-Enter",
+          "detail-native-category-zero-inspect",
+          "settings-loaded-equal-records",
+          "api-loaded-equal-records",
+          "keys-native-hover",
+          "key-prefix-native-copy",
+          "api-revoke-dialog-no-write",
+          "api-dialog-cancel-restores-equal-list",
+          "api-project-picker-natural-inner-equal-rows",
+          "api-project-options-scrolled-still-equal",
+          "billing-loaded-equal-records",
+          "billing-terminal-panel-and-note"
+        ]
+      },
+      {
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true
+        },
+        "scenarios": 69,
+        "captures": 1,
+        "intercepted": 73,
+        "fixtureGET": 30,
+        "states": [
+          "projects-loaded-equal-records",
+          "projects-native-hover",
+          "project-name-native-copy",
+          "project-USD-native-copy",
+          "project-search-shrinks-natural-row",
+          "project-search-clear-restores-equal-height",
+          "project-pagination-longer-record-recomputes-max",
+          "project-creation-rail-equal-reflow",
+          "tablet-navigation-touch",
+          "tablet-right-pane-touch",
+          "tablet-creation-touch-equal-reflow",
+          "members-loaded-equal-records",
+          "members-native-hover",
+          "member-editor-recomputes-equal-parent-records",
+          "member-editor-cancel-restores-equal-height",
+          "categories-loaded-equal-records",
+          "category-editor-equal-parent-records",
+          "category-editor-cancel-equal",
+          "shared-loaded-equal-records",
+          "shared-expense-hover",
+          "shared-amount-native-copy",
+          "shared-create-fixed-target-date-and-values",
+          "shared-create-cancel-no-write",
+          "shared-edit-fixed-target-date-and-values",
+          "shared-edit-cancel-no-write",
+          "shared-reports-chart-terminal-boundaries",
+          "shared-charts-normal",
+          "shared-native-trend-hover-earliest",
+          "shared-chart-key-Home",
+          "shared-chart-key-ArrowRight",
+          "shared-chart-key-End",
+          "shared-chart-key-ArrowDown",
+          "shared-chart-key-ArrowUp",
+          "shared-chart-key-Enter",
+          "shared-native-category-zero-inspect",
+          "shared-chart-exact-native-selectedstring",
+          "reports-actual648-side-by-side-terminal",
+          "charts-actual648",
+          "reports-native-width647",
+          "reports-actual647-stacked-genuine-boundary",
+          "charts-actual647",
+          "shared-charts-touch-647",
+          "detail-loaded-equal-records",
+          "detail-expense-hover",
+          "detail-amount-native-copy",
+          "detail-create-fixed-target-date-and-values",
+          "detail-create-cancel-no-write",
+          "detail-edit-fixed-target-date-and-values",
+          "detail-edit-cancel-no-write",
+          "detail-reports-chart-terminal-boundaries",
+          "detail-charts-normal",
+          "detail-native-trend-hover-earliest",
+          "detail-chart-key-Home",
+          "detail-chart-key-ArrowRight",
+          "detail-chart-key-End",
+          "detail-chart-key-ArrowDown",
+          "detail-chart-key-ArrowUp",
+          "detail-chart-key-Enter",
+          "detail-native-category-zero-inspect",
+          "settings-loaded-equal-records",
+          "api-loaded-equal-records",
+          "keys-native-hover",
+          "key-prefix-native-copy",
+          "api-revoke-dialog-no-write",
+          "api-dialog-cancel-restores-equal-list",
+          "api-project-picker-natural-inner-equal-rows",
+          "api-project-options-scrolled-still-equal",
+          "billing-loaded-equal-records",
+          "billing-terminal-panel-and-note"
+        ]
+      },
+      {
+        "profile": {
+          "key": "mobile-390-en-light",
+          "width": 390,
+          "height": 844,
+          "lang": "en",
+          "theme": "light",
+          "coarse": true
+        },
+        "scenarios": 73,
+        "captures": 2,
+        "intercepted": 65,
+        "fixtureGET": 30,
+        "states": [
+          "projects-loaded-equal-records",
+          "projects-native-hover",
+          "project-name-native-copy",
+          "project-USD-native-copy",
+          "project-search-shrinks-natural-row",
+          "project-search-clear-restores-equal-height",
+          "project-pagination-longer-record-recomputes-max",
+          "project-creation-rail-equal-reflow",
+          "members-loaded-equal-records",
+          "members-native-hover",
+          "member-editor-recomputes-equal-parent-records",
+          "members-editor-live320-recomputed",
+          "member-editor-cancel-restores-equal-height",
+          "categories-loaded-equal-records",
+          "category-editor-equal-parent-records",
+          "category-editor-cancel-equal",
+          "shared-loaded-equal-records",
+          "shared-expense-hover",
+          "shared-amount-native-copy",
+          "shared-create-date-targetless",
+          "shared-create-fixed-target-date-and-values",
+          "shared-create-cancel-no-write",
+          "shared-edit-fixed-target-date-and-values",
+          "shared-edit-cancel-no-write",
+          "shared-reports-chart-terminal-boundaries",
+          "shared-charts-normal",
+          "shared-native-trend-hover-earliest",
+          "shared-chart-key-Home",
+          "shared-chart-key-ArrowRight",
+          "shared-chart-key-End",
+          "shared-chart-key-ArrowDown",
+          "shared-chart-key-ArrowUp",
+          "shared-chart-key-Enter",
+          "shared-native-category-zero-inspect",
+          "shared-chart-exact-native-selectedstring",
+          "shared-reports-live320-natural-chart",
+          "shared-charts-live320",
+          "shared-mobile320-native-trend-hover-earliest",
+          "shared-mobile320-chart-key-Home",
+          "shared-mobile320-chart-key-ArrowRight",
+          "shared-mobile320-chart-key-End",
+          "shared-mobile320-chart-key-ArrowDown",
+          "shared-mobile320-chart-key-ArrowUp",
+          "shared-mobile320-chart-key-Enter",
+          "shared-mobile320-native-category-zero-inspect",
+          "shared-charts-320",
+          "detail-loaded-equal-records",
+          "detail-expense-hover",
+          "detail-amount-native-copy",
+          "detail-create-fixed-target-date-and-values",
+          "detail-create-cancel-no-write",
+          "detail-edit-fixed-target-date-and-values",
+          "detail-edit-cancel-no-write",
+          "detail-reports-chart-terminal-boundaries",
+          "detail-charts-normal",
+          "detail-native-trend-hover-earliest",
+          "detail-chart-key-Home",
+          "detail-chart-key-ArrowRight",
+          "detail-chart-key-End",
+          "detail-chart-key-ArrowDown",
+          "detail-chart-key-ArrowUp",
+          "detail-chart-key-Enter",
+          "detail-native-category-zero-inspect",
+          "settings-loaded-equal-records",
+          "api-loaded-equal-records",
+          "keys-native-hover",
+          "key-prefix-native-copy",
+          "api-revoke-dialog-no-write",
+          "api-dialog-cancel-restores-equal-list",
+          "api-project-picker-natural-inner-equal-rows",
+          "api-project-options-scrolled-still-equal",
+          "billing-loaded-equal-records",
+          "billing-terminal-panel-and-note"
+        ]
+      }
+    ],
+    "captures": [
+      {
+        "file": "desktop-1440-en-light-projects-equal-wide.png",
+        "sha256": "20148e61a6afecd588a8b3dbe3ddc974a274730ad56452c88a68b5e1319172a0",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "desktop-1440-en-light-projects-equal-primary280.png",
+        "sha256": "a1c179c1a3d6f7bbf395d2a1ad9e15449ab468d538db53afdcae5786120ed67a",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "desktop-1440-en-light-shared-charts-normal.png",
+        "sha256": "8a1fb2b722507a1fc0e70ac7011d3f221074f4ff4591b502ecd54430ce60ecc3",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "desktop-1440-en-light-shared-charts-empty.png",
+        "sha256": "cb0967995deb136c15e493101967b71e9575857a75e899e9ea52104fd10e12db",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "desktop-1440-en-light-shared-charts-error.png",
+        "sha256": "09a675208e24e800d7ecf894a978675aa3f0cc8f8eea3e28343f9d2114a6de39",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "tablet-900-zh-dark-shared-charts-touch-647.png",
+        "sha256": "16c0cff5be78bb43af48454f3e21cad9f794dbdfbdcc29e131b84062c3bf1cea",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "mobile-390-en-light-shared-create-date-targetless.png",
+        "sha256": "3ecc25f8389d636c974d2ebb00eb8dacc2d9673bef1caaed4999b7b2e9da3565",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      },
+      {
+        "file": "mobile-390-en-light-shared-charts-320.png",
+        "sha256": "1cfe045ec789840c19a089b36996b0e5748cd101e0a5d6aade06c5f42942a9ed",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "rootVisualReview": "passed"
+      }
+    ],
+    "browserVersion": "Chrome/151.0.7922.173",
+    "requestCapPerContext": 120,
+    "businessWrites": 0,
+    "unknownRoutes": 0,
+    "pageErrors": 0,
+    "realExternalCalls": 0,
+    "externalOriginsBlocked": true,
+    "harnessAndFixtureHashes": {
+      "harnessSha256": "4f87b041ee43418f0a8781da18eb6ed71a126a15d5a3fb4d672c2655bdcf0eb2",
+      "fixturesSha256": "f11dc1a08aeab1b039cda39ff5c87b617b3a0ea8860058d9065b3654e15058fd",
+      "baseFixturesSha256": "caabb3db79aa0ecab9ce8e5b8dc93a9defc4864d620b803ef0bb63e194154cb4",
+      "cdpSha256": "2eb9b1e96f298ae486779c9f72b8dbc4fe60f76e4cfb1cf4b3335b541829538a",
+      "chartChecksSha256": "63436b06d60b9818b8989183747a84de9d3e2988d5494e426ce3d37dddb2f92f",
+      "equalBaseFixturesSha256": "b58bf4d4ae90fd6f427a63baea41635b1265cad036e65a03498cc34340152fa7",
+      "projectsFixturesSha256": "a23c805878e84135efd1ae58de3abf06a7524400cd1b6ff7b15331eafeddf4da"
+    },
+    "nativeCopyScope": "Native browser-selected string only; no OS clipboard read or assertion.",
+    "expensePayloadScope": "UI-only create/edit/cancel; original-target and fixed-target submission guards are covered by existing product unit tests, not synthetic writes here.",
+    "fontScope": "External font origins were blocked; native captures establish installed fallback-font layout, not fetched external fonts.",
+    "acceptanceScope": "Synthetic loopback GET-only UI evidence; not real-session, provider or payment acceptance.",
+    "cleanup": {
+      "ownedProcessCount": 0,
+      "remainingProfileDirectories": [],
+      "ports": [
+        {
+          "port": 4199,
+          "bindable": true
+        },
+        {
+          "port": 9229,
+          "bindable": true
+        }
+      ]
+    },
+    "cleanupRecordSha256": "6f3e4f198ef8379dec915f45d65c8d33d7519ad28e5368b5401b46b0a4a247ba",
+    "acceptedHarnessSnapshot": {
+      "file": "capture-final-accepted.mjs",
+      "sha256": "4f87b041ee43418f0a8781da18eb6ed71a126a15d5a3fb4d672c2655bdcf0eb2"
+    },
+    "rootVisualReview": "Passed all eight native unedited viewport captures from the accepted final-fixed run."
+  },
+  "productionDeployed": false,
+  "serverDeployed": false,
+  "d1Operations": 0,
+  "sourceCommit": "9dcd5dc0671f37360f1b6a657ee506a8695f1eed",
+  "historicalPhases": {
+    "acceptedContributionToFinalRelease": 0,
+    "preTouchArtifact": {
+      "entry": "/assets/index-TPY55dJf.js",
+      "artifactCount": 46,
+      "sourceCount": 25,
+      "artifactManifestSha256": "1708069a1d7997af407c52692a7d654722baaba0b0e60304fff577af31f64e08",
+      "sourceManifestSha256": "8bcf71416dc79c7b1f28faaaecce5b6a2874db553015da3d32a39522f8395db4"
+    },
+    "preFixDesktop": {
+      "rawReport": "/workspace/work/console-rows-charts-2026-10-08/final/evidence.json",
+      "rawSha256": "9ea2c7d347865eb04cda9ad1e178c53d656a67f72c70f212ffed11e147d08758",
+      "physicalContexts": 1,
+      "scenarios": 75,
+      "captures": 5,
+      "intercepted": 77,
+      "fixtureGET": 42,
+      "blockedExternal": 1
+    },
+    "diagnosticTotals": {
+      "physicalContexts": 4,
+      "scenarios": 169,
+      "captures": 3,
+      "intercepted": 216,
+      "fixtureGET": 81,
+      "blockedExternal": 4,
+      "mutations": 0,
+      "unknownRoutes": 0,
+      "pageErrors": 0
+    },
+    "diagnostics": [
+      {
+        "rawReportFile": "excluded-tablet-tab-position/evidence.json",
+        "rawReportSha256": "9ea2c7d347865eb04cda9ad1e178c53d656a67f72c70f212ffed11e147d08758",
+        "contexts": 1,
+        "scenarios": 49,
+        "captures": 1,
+        "intercepted": 59,
+        "fixtureGET": 24
+      },
+      {
+        "rawReportFile": "excluded-tablet-header-hit/evidence.json",
+        "rawReportSha256": "c4a18120af821e6b16ad9f5801f209d5133c09229fd7b6d314e32950fc7ac860",
+        "contexts": 1,
+        "scenarios": 49,
+        "captures": 1,
+        "intercepted": 59,
+        "fixtureGET": 24
+      },
+      {
+        "rawReportFile": "excluded-tablet-category-tap/evidence.json",
+        "rawReportSha256": "f6811398e736d9f9c473660439df9699f27f3ce5ccb74ef13dcf2600b00afb55",
+        "contexts": 1,
+        "scenarios": 58,
+        "captures": 1,
+        "intercepted": 59,
+        "fixtureGET": 24
+      },
+      {
+        "rawReportFile": "diagnostic-category-tap/evidence.json",
+        "rawReportSha256": "b092a729831e8dd80fc627c7fca9eaf27610e01102f9948c24631e13d37bb245",
+        "contexts": 1,
+        "scenarios": 13,
+        "captures": 0,
+        "intercepted": 39,
+        "fixtureGET": 9
+      }
+    ],
+    "diagnosticFindings": "Two tablet native-tab position failures were harness hit-location errors. A later native category tap and bounded trusted-event probe exposed compatibility mouse-enter replacing the touched value; the point handler was removed and the regression plus final three contexts passed. No readout/plot movement occurred in that probe.",
+    "trustedTapTraceSha256": "e1e295ddfca8c06315276b80b8bb17d7413ae20663cbc2365ce0a88a5a9e4b24",
+    "earlierEqualRows": {
+      "scope": "Equal-row phase before contextual forms/new charts; separate historical evidence, not final release acceptance. Root reviewed all eight accepted captures.",
+      "accepted": {
+        "contexts": 3,
+        "scenarios": 126,
+        "captures": 8,
+        "intercepted": 201,
+        "fixtureGET": 90,
+        "blockedExternal": 3,
+        "maxRequestsPerContext": 72
+      },
+      "rawReportSha256": "d78a571d35c990a26663f6cb0468e4f5f08865b6a58c1bff12b496d3b4e63b86",
+      "excluded": {
+        "contexts": 3,
+        "scenarios": 126,
+        "captures": 8,
+        "intercepted": 199,
+        "fixtureGET": 90,
+        "blockedExternal": 3,
+        "maxRequestsPerContext": 71
+      },
+      "excludedRawReportSha256": "11f0fc071fc16c15847d1320bf65f0220b359d86215f0a58bcd7d44922163172",
+      "cause": "Initial uncentered inner tracks produced poor narrow spacing; corrected with shared align-content:center before accepted row phase."
+    }
+  }
+}

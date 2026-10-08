@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-08",
+  "scope": "Equal console records and terminal dividers; contextual expense entry; visual Reports on projects and shared pool. Preserve Pullwise style. Web preview only.",
+  "sourceCommit": "9dcd5dc0671f37360f1b6a657ee506a8695f1eed",
+  "worker": "pullwise-web-preview",
+  "config": "wrangler.preview.jsonc",
+  "versionId": "5a37a81f-4d16-40d9-a352-2775709ac53c",
+  "createdOn": "2026-10-08T10:16:20.649417Z",
+  "annotations": {
+    "workers/message": "Equal rows, contextual expense entry and visual reports; source 9dcd5dc0671f37360f1b6a657ee506a8695f1eed",
+    "workers/tag": "console-20261008-9dcd5dc",
+    "workers/triggered_by": "version_upload"
+  },
+  "customDomainTrigger": "preview.pull-wise.com",
+  "managementReadback": {
+    "passed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "assets": {
+      "notFoundHandling": "single-page-application",
+      "runWorkerFirst": ["/*", "!/assets/*"]
+    },
+    "compatibilityDate": "2026-05-25"
+  },
+  "localAcceptance": "console-rows-charts-local-2026-10-08.json",
+  "tests": 554,
+  "testFiles": 39,
+  "browserCounts": {
+    "contexts": 3,
+    "scenarios": 217,
+    "captures": 8,
+    "intercepted": 215,
+    "fixtureGET": 102,
+    "blockedExternal": 3,
+    "maxRequestsPerContext": 77
+  },
+  "rawBrowserReportSha256": "f39df82e06c88714e6dc90ff710a8e5c67ad7d42e6a90b5bbf64c6565d41dddc",
+  "artifactEntry": "/assets/index-p1WJqR4M.js",
+  "artifactFiles": 46,
+  "runtimeSourceFiles": 25,
+  "artifactManifestSha256": "de2e9eec59bb5a5d4c5d8f2dbaa3da196633803333410501384b135f7c944e89",
+  "sourceManifestSha256": "d1715b2914f6fed5c4e2fdd4c55a6530175464e704c27260e1b093614a31c3b8",
+  "artifactAndSourceHashesRemainUnchanged": true,
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4750,
+        "sha256": "7cfa88d7e93a62884dcd1ab95475fa60d659aa60f06c45ee8b6167b45ee837a2",
+        "noindex": true,
+        "expectedBuiltEntry": "/assets/index-p1WJqR4M.js",
+        "builtEntryMatched": "/assets/index-p1WJqR4M.js"
+      },
+      {
+        "path": "/assets/index-CJ4tQ_YI.css",
+        "status": 200,
+        "bytes": 78945,
+        "sha256": "8394f7031eed3b7ceedc1ad17956b670ee4a6c48765fd170c73b86bf7947af2c",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-CurcF755.js",
+        "status": 200,
+        "bytes": 21574,
+        "sha256": "cfadbb29fe415adc02d7364f565381c5c87e233392e422d534bf79e5d50ed037",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-dMmA0zkO.css",
+        "status": 200,
+        "bytes": 12474,
+        "sha256": "1e4a0333c04e20b592cdbda8e11e49ffaa6b1d4183d05688411676d1bf908556",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false,
+    "failures": []
+  },
+  "staticCheckPreflight": {
+    "requests": 0,
+    "cause": "New graph CSS produces a second ledger-*.css chunk. The offline selector was narrowed to the unique owning .ledger-reports CSS before the only four remote static GETs. No HTTP retry occurred."
+  },
+  "productionDeployed": false,
+  "serverDeployed": false,
+  "d1Operations": 0,
+  "documentationOnlyNoRedeploy": true
+}
