@@ -2,6 +2,47 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Navigation grip fixed in the visible sidebar (2026-10-08)
+
+The latest user instruction supersedes the earlier document-centered navigation
+grip behavior. The shared left navigation separator now uses fixed positioning
+from the measured workspace header to viewport bottom, with its existing grip
+at 50% of that visible area. It stays at the same viewport midpoint while the
+page or sidebar scrolls and tracks the navigation width on horizontal resize.
+The secondary-pane grip still scrolls at its own divider midpoint. Shared
+bounds, capture/cleanup, keyboard/ARIA, 44px hit area and mobile hiding remain.
+No new ZIP reference styles or business behavior are part of this change.
+
+`npm run check` passes lint, **38 files / 535 tests** and build. Worker
+configuration/syntax, source formatting/whitespace, independent review and
+Wrangler 4.136.3 Preview packaging pass. The Preview-specific build entry is
+`/assets/index-DZtT8uc1.js`; all 45 artifact and 9 related source hashes are
+unchanged after acceptance and publication.
+
+[Local evidence](sidebar-fixed-midpoint-local-2026-10-08.json) passes **2 physical
+contexts / 31 targeted scenarios / 4 native unedited captures**: 1440px
+English/light desktop and actual-touch 900px Chinese/dark landscape. Eight
+console routes each check top/middle/bottom document positions and trusted
+pointer hits at top/middle/bottom of the left separator. The left grip remains
+at the visible viewport midpoint; the right stays at its document midpoint.
+Mouse/keyboard min/max, native touch cancellation, live 390px hiding and four
+root-reviewed API/Members captures pass. Accepted traffic is **131 intercepted
+requests / 56 local fixture GETs / 0 writes**, maximum 69 of 120 per context.
+Unknown routes, page errors, real remote calls and excluded diagnostics are
+zero. External origins are blocked. Owned browser/CDP/Vite/profile cleanup is
+complete and ports are free; these fixtures do not establish real-session or
+payment acceptance.
+
+[Preview publication](sidebar-fixed-midpoint-preview-release-2026-10-08.json)
+publishes runtime `238396b65827f5d4d62a99d192297aece3a6dd29` as Web version
+`4a768a79-bef9-4aa8-aba3-4c934d7d6163` at `preview.pull-wise.com`.
+Management readback preserves the Preview bindings, SPA assets and HTML-first
+noindex routing. Exactly one homepage and three hashed asset GETs return 200;
+shared CSS, Members JavaScript and Ledger CSS match the accepted local build,
+and the homepage references its exact entry. No retries, redirects, page
+JavaScript, credentials or business API are used. Production and Server/D1 are
+untouched. These evidence files are documentation-only and need no redeploy.
+
 ## Integrated console clarity acceptance (2026-10-08)
 
 The divider midpoint, text-selection, project-detail copy and terminal-border

@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-08",
+  "scope": "Web Worker/assets only, preview.pull-wise.com. Production and Server/D1 untouched.",
+  "sourceCommit": "238396b65827f5d4d62a99d192297aece3a6dd29",
+  "worker": "pullwise-web-preview",
+  "config": "wrangler.preview.jsonc",
+  "versionId": "4a768a79-bef9-4aa8-aba3-4c934d7d6163",
+  "createdOn": "2026-10-08T08:34:12.521806Z",
+  "annotations": {
+    "workers/message": "Fixed visible navigation midpoint; source 238396b65827f5d4d62a99d192297aece3a6dd29",
+    "workers/tag": "sidebar-20261008-238396b",
+    "workers/triggered_by": "version_upload"
+  },
+  "customDomainTrigger": "preview.pull-wise.com",
+  "managementReadback": {
+    "passed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "assets": {
+      "notFoundHandling": "single-page-application",
+      "runWorkerFirst": [
+        "/*",
+        "!/assets/*"
+      ]
+    },
+    "compatibilityDate": "2026-05-25"
+  },
+  "localAcceptance": "sidebar-fixed-midpoint-local-2026-10-08.json",
+  "tests": 535,
+  "testFiles": 38,
+  "browserCounts": {
+    "contexts": 2,
+    "scenarios": 31,
+    "captures": 4,
+    "intercepted": 131,
+    "fixtureGET": 56,
+    "blockedExternal": 2
+  },
+  "maximumRequestsPerContext": 69,
+  "rawBrowserReportSha256": "a7fc6812a50d71b2d154bfa5a2adfa0559c50c315c4fe3d20f82283b5c01ecb9",
+  "artifactEntry": "/assets/index-DZtT8uc1.js",
+  "artifactFiles": 45,
+  "runtimeSourceFiles": 9,
+  "artifactManifestSha256": "3d669269fde2595129425f33dc90a841eac35ad453eb0d720705d8e28be9e44a",
+  "artifactAndSourceHashesRemainUnchanged": true,
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4750,
+        "sha256": "ea21ef1ac9c0b1bf89029946a5c142067d67ca9de73e48d9d5c54fd4ce433ce0",
+        "noindex": true,
+        "expectedBuiltEntry": "/assets/index-DZtT8uc1.js",
+        "builtEntryMatched": "/assets/index-DZtT8uc1.js"
+      },
+      {
+        "path": "/assets/index-D3DJvA40.css",
+        "status": 200,
+        "bytes": 78731,
+        "sha256": "e9e1ecd313c50bb86527cd6d87587ffc14862942ef9fcfd9998fd66473e98d1c",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-D8mKpq7E.js",
+        "status": 200,
+        "bytes": 21574,
+        "sha256": "0555a6d14e6fe5c70716e6504c5214eb298230e51208a96137b1def64b101150",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-Do9xzD33.css",
+        "status": 200,
+        "bytes": 11854,
+        "sha256": "882558db01e2172402b2ea54618cface217a5ea6cc57334cb38dcab18080ab8e",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false,
+    "failures": []
+  },
+  "productionDeployed": false,
+  "serverDeployed": false,
+  "d1Operations": 0,
+  "documentationOnlyNoRedeploy": true
+}

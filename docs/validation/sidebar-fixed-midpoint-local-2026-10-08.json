@@ -1,0 +1,3668 @@
+{
+  "date": "2026-10-08",
+  "scope": "Fixed navigation grip at visible workspace midpoint, Web-only preview follow-up. New ZIP was reference evaluation only; no reference style implementation.",
+  "sourceCommit": "238396b65827f5d4d62a99d192297aece3a6dd29",
+  "implementation": "Shared navigation separator is fixed below measured workspace header with bottom 0 and automatic height; shared absolute grip remains its midpoint. Right-pane divider keeps its document-relative midpoint. Bounds, capture, ARIA, keyboard and mobile rules are unchanged.",
+  "checks": {
+    "lint": true,
+    "testFiles": 38,
+    "tests": 535,
+    "build": true,
+    "workerConfigurationAndSyntax": true,
+    "prettierAndWhitespace": true,
+    "wranglerPreviewDryRun": "4.136.3",
+    "independentSourceReview": "passed"
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-docs-ZOESA-YP.js",
+      "bytes": 14737,
+      "sha256": "afbeb0e786a4e11cbef3274cd010a243ba0ab57d6fa0bf001536beebb6303177"
+    },
+    {
+      "path": "assets/api-fQoxXcCR.js",
+      "bytes": 24344,
+      "sha256": "a87afd50ecf742a27b819c47bff6a39a5354c6594480fc728d603fbc842f6d80"
+    },
+    {
+      "path": "assets/auth-Dd8R1OIh.js",
+      "bytes": 8495,
+      "sha256": "b99545018fefb5a7ada1db4c018eaa11ff621b077a83d0e8da8a2c33bbcb363a"
+    },
+    {
+      "path": "assets/billing-C_VN5vQd.js",
+      "bytes": 32978,
+      "sha256": "847bb4b4af676be7638493cda3e462eab5a511635a64217951a63bbaa11b576c"
+    },
+    {
+      "path": "assets/confirm-dialog-BrGI5e1c.js",
+      "bytes": 2992,
+      "sha256": "b60e38fbece2fcdfaf5989650cc10b78fb9c51df1b23ed9d27052e097706e3ef"
+    },
+    {
+      "path": "assets/console-layout-CKYZ6RAG.js",
+      "bytes": 4262,
+      "sha256": "856037b5af67c77a3669c28f90953fb7d799aaf12b92058af23f8dd31a3a2b7f"
+    },
+    {
+      "path": "assets/docs-DnWApNci.js",
+      "bytes": 6830,
+      "sha256": "89de109256fd337a004883f7f3550aef93c80343ed3dc14c0320e650ba32c38f"
+    },
+    {
+      "path": "assets/dynamic-CqKDyOhl.js",
+      "bytes": 5542,
+      "sha256": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae"
+    },
+    {
+      "path": "assets/es-jfEriZci.js",
+      "bytes": 10179,
+      "sha256": "5a532468b44449d47a5c6b767d58ae7066d7327dc81b9351926f3b35a932fe60"
+    },
+    {
+      "path": "assets/financial-value-QxLZwFKp.js",
+      "bytes": 477,
+      "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+    },
+    {
+      "path": "assets/fr-BcJKfRKG.js",
+      "bytes": 10444,
+      "sha256": "6b804a4b8b8e63ec0b48b7cb420ad9a8f77bfd936968c00ed4fd8a1cee360413"
+    },
+    {
+      "path": "assets/index-D3DJvA40.css",
+      "bytes": 78731,
+      "sha256": "e9e1ecd313c50bb86527cd6d87587ffc14862942ef9fcfd9998fd66473e98d1c"
+    },
+    {
+      "path": "assets/index-DZtT8uc1.js",
+      "bytes": 41990,
+      "sha256": "c161ac1b598864e5d08ecfc91988318660927cc1eb1cd4f610116041fbe4e51d"
+    },
+    {
+      "path": "assets/ja-aFH0VZEy.js",
+      "bytes": 10906,
+      "sha256": "fbb951eff269a558dfd70a98a4455181e2f76ff507032a43b791b24ee809cc95"
+    },
+    {
+      "path": "assets/ko-Yj9J4J2H.js",
+      "bytes": 9973,
+      "sha256": "4b3685077de1723eaa8167073d4dc94ee067825b9cd88eebfa4b297414821a76"
+    },
+    {
+      "path": "assets/ledger-BV3d146m.js",
+      "bytes": 56525,
+      "sha256": "dfa9faa02da7daefeb5dd46fab98bbd7655a3b2a5de54b63309661443a80a105"
+    },
+    {
+      "path": "assets/ledger-CIWwQYwV.js",
+      "bytes": 10698,
+      "sha256": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3"
+    },
+    {
+      "path": "assets/ledger-CUFylEjG.js",
+      "bytes": 1545,
+      "sha256": "5a4f119d4c53efca9649b82f4a0018c71ae72d0db489fb34de114cc11c861fb0"
+    },
+    {
+      "path": "assets/ledger-DQ_CLtXS.js",
+      "bytes": 2925,
+      "sha256": "f81796adfbb300a4b6f654b3572bc68e889aa0587ff79bf3793f7472a8035a9d"
+    },
+    {
+      "path": "assets/ledger-Do9xzD33.css",
+      "bytes": 11854,
+      "sha256": "882558db01e2172402b2ea54618cface217a5ea6cc57334cb38dcab18080ab8e"
+    },
+    {
+      "path": "assets/ledger-longform-CcLR1b--.js",
+      "bytes": 92564,
+      "sha256": "a9be02edfc674bf49997b6439c49c76d553b6b3cfd057985924878007c09a5b3"
+    },
+    {
+      "path": "assets/ledger-scopes-eTtBJDmQ.js",
+      "bytes": 3115,
+      "sha256": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369"
+    },
+    {
+      "path": "assets/ledger-screen-GMY1Hzwc.js",
+      "bytes": 96535,
+      "sha256": "bfae31b48319bda0bbce976ce6d36390bb71b047940586436050fbe886214fda"
+    },
+    {
+      "path": "assets/ledger-ui-ydcEM64p.js",
+      "bytes": 34050,
+      "sha256": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+    },
+    {
+      "path": "assets/legal-CKWjAhqD.js",
+      "bytes": 25361,
+      "sha256": "77cbe5285053c565f93b92415d0e27912f3c4c81a7702d396f70fd716918ef57"
+    },
+    {
+      "path": "assets/members-D8mKpq7E.js",
+      "bytes": 21574,
+      "sha256": "0555a6d14e6fe5c70716e6504c5214eb298230e51208a96137b1def64b101150"
+    },
+    {
+      "path": "assets/navigation-DECtZffD.js",
+      "bytes": 13292,
+      "sha256": "63053461bb0c8127a3a1c09cef4bb1039327af4b2df241dea84c4a386a87b6aa"
+    },
+    {
+      "path": "assets/notifications-CBmDihgj.js",
+      "bytes": 2705,
+      "sha256": "95b70e2adbb7a1ab0147501857696b6277fb95a7ba03d3f6ff7d794d1bf9c65e"
+    },
+    {
+      "path": "assets/public-layout-Cbq8e5Pu.js",
+      "bytes": 2431,
+      "sha256": "27b4116dc3cfbb5de81c315f778fa99dfa1c590bd0e586f565b1745a509ae3c2"
+    },
+    {
+      "path": "assets/pullwise-CqInO05x.js",
+      "bytes": 1775,
+      "sha256": "61003246bb03bc338408909c80a3ab88b87fdaccf9c4402f5dadb60fca5da062"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-BYtMCr21.js",
+      "bytes": 8320,
+      "sha256": "4bd21c24fe996681cb8df2d9756a55d5fd9ca105b4a48e1646c6c2747e29216c"
+    },
+    {
+      "path": "assets/shell-BKU_j411.js",
+      "bytes": 5247,
+      "sha256": "70c97ac4050d3a50d847f49b0d4151103e141725f6adb91cd1a22c81adf12336"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/zh-DAknT88L.js",
+      "bytes": 8981,
+      "sha256": "88c39be45a80e310b8089dde1ef8419f4c6aa6c4ee94556ff88ac08b6b9f9fe1"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 5088,
+      "sha256": "d17d1ed74d01f3b1c7b66cb5ab88f43a94bc596d75d9f09deac22273ba5eca12"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 50268,
+      "sha256": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2113,
+      "sha256": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+    }
+  ],
+  "runtimeSourceHashes": [
+    {
+      "path": "styles/base.css",
+      "sha256": "b31a58ce2ec8f7699cc2f449328c79fb199506e80a47beb10a7c1ac3cfe645f7"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    },
+    {
+      "path": "src/shell.jsx",
+      "sha256": "80bbae94975b1ac904860e0952880535746a0e42b71566870a5e9d4493aa05f9"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "sha256": "9582d03d8a6b295ff83f76290b444ad3a12d94941be0d3919de61d0d98ee1460"
+    },
+    {
+      "path": "worker.js",
+      "sha256": "319cd0910ab001ec8c92ee552b6459ba64c828de29becfc4916b5c9a4c41dc2d"
+    },
+    {
+      "path": "worker-entry.js",
+      "sha256": "9d1c0e7d44ddc2fa67bead2e85300495ec9f59030a118d868f5d41144fe5e721"
+    },
+    {
+      "path": "wrangler.preview.jsonc",
+      "sha256": "4428e61c06ea9074bfff4f1d6d107df0b865ba949d834cef161a9c1453290f96"
+    }
+  ],
+  "rawBrowserReportSha256": "a7fc6812a50d71b2d154bfa5a2adfa0559c50c315c4fe3d20f82283b5c01ecb9",
+  "browserReportNormalization": "Compact accepted scenario evidence retains three scroll coordinates per route, trusted native hit counts, viewport/header/handle positions, gesture/capture/bounds results and four unchanged native screenshot states. Exact raw report SHA identifies full provenance.",
+  "browserAcceptance": {
+    "phase": "fixed-navigation-midpoint-final",
+    "scope": "Only fixed navigation midpoint and unchanged scrolling right divider, console8 routes, bounded native mouse/key/tablet touchCancel and live390 hidden. Synthetic local GET only. No text/financial/public matrix, no product/source/build/remote/deploy changes.",
+    "artifactManifestSha256": "3d669269fde2595129425f33dc90a841eac35ad453eb0d720705d8e28be9e44a",
+    "artifactEntry": "/assets/index-DZtT8uc1.js",
+    "artifactFiles": 45,
+    "harnessSha256": "09371d996949b0c0881baebceefb9a2421ba5a5e58075dcad96f9ca2524eef97",
+    "fixturesSha256": "4db78ae99c31eb16d14ebb2ab5c97c656b6daf42cc34db435eaea29bdc8f1fba",
+    "baseFixturesSha256": "caabb3db79aa0ecab9ce8e5b8dc93a9defc4864d620b803ef0bb63e194154cb4",
+    "cdpSha256": "2eb9b1e96f298ae486779c9f72b8dbc4fe60f76e4cfb1cf4b3335b541829538a",
+    "requestCapPerContext": 120,
+    "browserVersion": "Chrome/151.0.7922.173",
+    "status": "passed",
+    "counts": {
+      "contexts": 2,
+      "scenarios": 31,
+      "captures": 4,
+      "intercepted": 131,
+      "fixtureGET": 56,
+      "blockedExternal": 2
+    },
+    "pageErrors": 0,
+    "unknownRoutes": 0,
+    "mutations": 0,
+    "realRemoteCalls": 0,
+    "maximumRequestsPerContext": 69,
+    "profiles": [
+      {
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light"
+        },
+        "requests": 62,
+        "fixtureGET": 28,
+        "scenarios": [
+          {
+            "state": "members-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                220,
+                527,
+                54,
+                3,
+                true,
+                [
+                  655.92175
+                ],
+                [
+                  655.921875
+                ]
+              ],
+              [
+                115,
+                220,
+                527,
+                54,
+                3,
+                true,
+                [
+                  540.92175
+                ],
+                [
+                  655.921875
+                ]
+              ],
+              [
+                231,
+                220,
+                527,
+                54,
+                3,
+                true,
+                [
+                  424.92175
+                ],
+                [
+                  655.921875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "navigation-key-min-max",
+            "values": [
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1231,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1042,
+                        "y": -61.90625,
+                        "right": 1086,
+                        "bottom": 911.75,
+                        "width": 44,
+                        "height": 973.65625
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1064,
+                        "centerY": 424.92175,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 340,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 655.921875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -61.90625,
+                          "right": 1016,
+                          "bottom": 538.890625,
+                          "width": 800,
+                          "height": 600.796875
+                        },
+                        {
+                          "x": 1064,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 911.75,
+                          "width": 340,
+                          "height": 973.65625
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "340px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "ArrowRight",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1231,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1042,
+                        "y": -61.90625,
+                        "right": 1086,
+                        "bottom": 911.75,
+                        "width": 44,
+                        "height": 973.65625
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1064,
+                        "centerY": 424.92175,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 340,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 655.921875,
+                      "panels": [
+                        {
+                          "x": 232,
+                          "y": -61.90625,
+                          "right": 1016,
+                          "bottom": 538.890625,
+                          "width": 784,
+                          "height": 600.796875
+                        },
+                        {
+                          "x": 1064,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 911.75,
+                          "width": 340,
+                          "height": 973.65625
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 186,
+                        "y": 54,
+                        "right": 230,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 196,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 196,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "196px",
+                  "splitInline": "340px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "End",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1231,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1042,
+                        "y": -61.90625,
+                        "right": 1086,
+                        "bottom": 911.75,
+                        "width": 44,
+                        "height": 973.65625
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1064,
+                        "centerY": 424.92175,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 340,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 655.921875,
+                      "panels": [
+                        {
+                          "x": 356,
+                          "y": -61.90625,
+                          "right": 1016,
+                          "bottom": 810.6875,
+                          "width": 660,
+                          "height": 872.59375
+                        },
+                        {
+                          "x": 1064,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 911.75,
+                          "width": 340,
+                          "height": 973.65625
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 310,
+                        "y": 54,
+                        "right": 354,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 320,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 320,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "320px",
+                  "splitInline": "340px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1231,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1042,
+                        "y": -61.90625,
+                        "right": 1086,
+                        "bottom": 911.75,
+                        "width": 44,
+                        "height": 973.65625
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1064,
+                        "centerY": 424.92175,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 340,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 655.921875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -61.90625,
+                          "right": 1016,
+                          "bottom": 538.890625,
+                          "width": 800,
+                          "height": 600.796875
+                        },
+                        {
+                          "x": 1064,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 911.75,
+                          "width": 340,
+                          "height": 973.65625
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "340px",
+                  "selection": ""
+                }
+              }
+            ]
+          },
+          {
+            "state": "right-key-min-max",
+            "values": [
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1342,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1122,
+                        "y": -61.90625,
+                        "right": 1166,
+                        "bottom": 1023.4375,
+                        "width": 44,
+                        "height": 1085.34375
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1144,
+                        "centerY": 480.76575,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 711.765625,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -61.90625,
+                          "right": 1096,
+                          "bottom": 533.890625,
+                          "width": 880,
+                          "height": 595.796875
+                        },
+                        {
+                          "x": 1144,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 1023.4375,
+                          "width": 260,
+                          "height": 1085.34375
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "ArrowLeft",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1319,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1106,
+                        "y": -61.90625,
+                        "right": 1150,
+                        "bottom": 999.640625,
+                        "width": 44,
+                        "height": 1061.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1128,
+                        "centerY": 468.85974999999996,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 276,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 699.8671875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -61.90625,
+                          "right": 1080,
+                          "bottom": 538.890625,
+                          "width": 864,
+                          "height": 600.796875
+                        },
+                        {
+                          "x": 1128,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 999.640625,
+                          "width": 276,
+                          "height": 1061.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "276px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "End",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1162,
+                  "scrollY": 162,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 862,
+                        "y": 7.09375,
+                        "right": 906,
+                        "bottom": 912.0625,
+                        "width": 44,
+                        "height": 904.96875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 884,
+                        "centerY": 459.57775,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 520,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 621.578125,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": 7.09375,
+                          "right": 836,
+                          "bottom": 879.6875,
+                          "width": 620,
+                          "height": 872.59375
+                        },
+                        {
+                          "x": 884,
+                          "y": 7.09375,
+                          "right": 1404,
+                          "bottom": 912.0625,
+                          "width": 520,
+                          "height": 904.96875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 689,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "520px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 1440,
+                  "height": 1000,
+                  "clientWidth": 1440,
+                  "docWidth": 1440,
+                  "docHeight": 1342,
+                  "scrollY": 231,
+                  "coarse": false,
+                  "touchPoints": 0,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 1440,
+                    "bottom": 54,
+                    "width": 1440,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 1122,
+                        "y": -61.90625,
+                        "right": 1166,
+                        "bottom": 1023.4375,
+                        "width": 44,
+                        "height": 1085.34375
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 1144,
+                        "centerY": 480.76575,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 520,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 711.765625,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -61.90625,
+                          "right": 1096,
+                          "bottom": 533.890625,
+                          "width": 880,
+                          "height": 595.796875
+                        },
+                        {
+                          "x": 1144,
+                          "y": -61.90625,
+                          "right": 1404,
+                          "bottom": 1023.4375,
+                          "width": 260,
+                          "height": 1085.34375
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 1000,
+                        "width": 44,
+                        "height": 946
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 527,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 320,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 758,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              }
+            ]
+          },
+          {
+            "state": "navigation-native-mouse",
+            "before": {
+              "viewport": [
+                1440,
+                1000
+              ],
+              "scrollY": 231,
+              "headerBottom": 54,
+              "coarse": false,
+              "touchPoints": 0,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  527
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 320,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 480.76575,
+                  "documentMidpoint": 711.765625
+                }
+              ]
+            },
+            "held": {
+              "viewport": [
+                1440,
+                1000
+              ],
+              "scrollY": 231,
+              "headerBottom": 54,
+              "coarse": false,
+              "touchPoints": 0,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  196,
+                  527
+                ],
+                "value": 196,
+                "min": 180,
+                "max": 320,
+                "disabled": "false",
+                "resizing": true
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 480.76575,
+                  "documentMidpoint": 711.765625
+                }
+              ]
+            },
+            "after": {
+              "viewport": [
+                1440,
+                1000
+              ],
+              "scrollY": 231,
+              "headerBottom": 54,
+              "coarse": false,
+              "touchPoints": 0,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  196,
+                  527
+                ],
+                "value": 196,
+                "min": 180,
+                "max": 320,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 480.76575,
+                  "documentMidpoint": 711.765625
+                }
+              ]
+            },
+            "pointerType": "mouse",
+            "cancel": false,
+            "events": [
+              {
+                "type": "gotpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              },
+              {
+                "type": "lostpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              }
+            ]
+          },
+          {
+            "state": "right-native-mouse",
+            "before": {
+              "viewport": [
+                1440,
+                1000
+              ],
+              "scrollY": 122,
+              "headerBottom": 54,
+              "coarse": false,
+              "touchPoints": 0,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  527
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 320,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 499.5777499999999,
+                  "documentMidpoint": 621.578125
+                }
+              ]
+            },
+            "held": {
+              "viewport": [
+                1440,
+                1000
+              ],
+              "scrollY": 122,
+              "headerBottom": 54,
+              "coarse": false,
+              "touchPoints": 0,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  527
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 320,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 499.5777499999999,
+                  "documentMidpoint": 621.578125
+                }
+              ]
+            },
+            "after": {
+              "viewport": [
+                1440,
+                1000
+              ],
+              "scrollY": 122,
+              "headerBottom": 54,
+              "coarse": false,
+              "touchPoints": 0,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  527
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 320,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 499.5777499999999,
+                  "documentMidpoint": 621.578125
+                }
+              ]
+            },
+            "pointerType": "mouse",
+            "cancel": false,
+            "events": [
+              {
+                "type": "gotpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              },
+              {
+                "type": "lostpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              }
+            ]
+          },
+          {
+            "state": "projects-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  852.46875
+                ],
+                [
+                  852.4765625
+                ]
+              ],
+              [
+                468,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  384.46875
+                ],
+                [
+                  852.4765625
+                ]
+              ],
+              [
+                936,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  -83.53125
+                ],
+                [
+                  852.4765625
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "categories-top-middle-bottom-scroll-hits",
+            "scrollability": "viewport-fits",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  326.53175
+                ],
+                [
+                  326.5390625
+                ]
+              ],
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  326.53175
+                ],
+                [
+                  326.5390625
+                ]
+              ],
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  326.53175
+                ],
+                [
+                  326.5390625
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "shared-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  842.79675
+                ],
+                [
+                  842.8046875
+                ]
+              ],
+              [
+                161,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  681.79675
+                ],
+                [
+                  842.8046875
+                ]
+              ],
+              [
+                322,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  520.79675
+                ],
+                [
+                  842.8046875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "detail-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  842.79675
+                ],
+                [
+                  842.8046875
+                ]
+              ],
+              [
+                161,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  681.79675
+                ],
+                [
+                  842.8046875
+                ]
+              ],
+              [
+                322,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [
+                  520.79675
+                ],
+                [
+                  842.8046875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "settings-top-middle-bottom-scroll-hits",
+            "scrollability": "viewport-fits",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ]
+            ]
+          },
+          {
+            "state": "api-first",
+            "capture": {
+              "path": "/workspace/work/sidebar-fixed-midpoint-2026-10-08/final/desktop-1440-en-light-api-first.png",
+              "sha256": "baf29308843cd81f888ffc4cca016b7c3f5938f9dc1c07192e7a3439c045eaef",
+              "nativeUnedited": true,
+              "beforeAfterGeometryEqual": true,
+              "geometry": {
+                "viewport": [
+                  1440,
+                  1000
+                ],
+                "scrollY": 0,
+                "headerBottom": 54,
+                "coarse": false,
+                "touchPoints": 0,
+                "noDocumentOverflow": true,
+                "nav": {
+                  "position": "fixed",
+                  "width": 44,
+                  "grip": [
+                    180,
+                    527
+                  ],
+                  "value": 180,
+                  "min": 180,
+                  "max": 320,
+                  "disabled": "false",
+                  "resizing": false
+                },
+                "secondary": []
+              }
+            }
+          },
+          {
+            "state": "api-scrolled",
+            "capture": {
+              "path": "/workspace/work/sidebar-fixed-midpoint-2026-10-08/final/desktop-1440-en-light-api-scrolled.png",
+              "sha256": "2dcb99f8e7ce7f7ed3d364a242d41d1509187b02be8ea12885fe6a1b9ffb9ee2",
+              "nativeUnedited": true,
+              "beforeAfterGeometryEqual": true,
+              "geometry": {
+                "viewport": [
+                  1440,
+                  1000
+                ],
+                "scrollY": 669,
+                "headerBottom": 54,
+                "coarse": false,
+                "touchPoints": 0,
+                "noDocumentOverflow": true,
+                "nav": {
+                  "position": "fixed",
+                  "width": 44,
+                  "grip": [
+                    180,
+                    527
+                  ],
+                  "value": 180,
+                  "min": 180,
+                  "max": 320,
+                  "disabled": "false",
+                  "resizing": false
+                },
+                "secondary": []
+              }
+            }
+          },
+          {
+            "state": "api-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                334,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                669,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ]
+            ]
+          },
+          {
+            "state": "billing-top-middle-bottom-scroll-hits",
+            "scrollability": "viewport-fits",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                0,
+                180,
+                527,
+                54,
+                3,
+                true,
+                [],
+                []
+              ]
+            ]
+          },
+          {
+            "state": "live390-navigation-hidden",
+            "geometry": {
+              "viewport": [
+                390,
+                844
+              ],
+              "scrollY": 0,
+              "headerBottom": 53,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": null,
+              "secondary": []
+            }
+          }
+        ],
+        "canceledNetworkRequests": 0,
+        "ignoredCanceledStaleFulfill": 0
+      },
+      {
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true
+        },
+        "requests": 69,
+        "fixtureGET": 28,
+        "scenarios": [
+          {
+            "state": "members-first",
+            "capture": {
+              "path": "/workspace/work/sidebar-fixed-midpoint-2026-10-08/final/tablet-900-zh-dark-members-first.png",
+              "sha256": "03398c1f313e7ead8bce9f5251e5d69bb2aae3246d8997f6ef0f74cddacae962",
+              "nativeUnedited": true,
+              "beforeAfterGeometryEqual": true,
+              "geometry": {
+                "viewport": [
+                  900,
+                  600
+                ],
+                "scrollY": 0,
+                "headerBottom": 54,
+                "coarse": true,
+                "touchPoints": 1,
+                "noDocumentOverflow": true,
+                "nav": {
+                  "position": "fixed",
+                  "width": 44,
+                  "grip": [
+                    220,
+                    327
+                  ],
+                  "value": 220,
+                  "min": 180,
+                  "max": 240,
+                  "disabled": "false",
+                  "resizing": false
+                },
+                "secondary": [
+                  {
+                    "position": "absolute",
+                    "viewportMidpoint": 705.85975,
+                    "documentMidpoint": 705.8671875
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "members-scrolled",
+            "capture": {
+              "path": "/workspace/work/sidebar-fixed-midpoint-2026-10-08/final/tablet-900-zh-dark-members-scrolled.png",
+              "sha256": "0bb0e89c22835623f8bf769042459fc2ee6520c043cf676d575fd5442e91a40e",
+              "nativeUnedited": true,
+              "beforeAfterGeometryEqual": true,
+              "geometry": {
+                "viewport": [
+                  900,
+                  600
+                ],
+                "scrollY": 731,
+                "headerBottom": 54,
+                "coarse": true,
+                "touchPoints": 1,
+                "noDocumentOverflow": true,
+                "nav": {
+                  "position": "fixed",
+                  "width": 44,
+                  "grip": [
+                    220,
+                    327
+                  ],
+                  "value": 220,
+                  "min": 180,
+                  "max": 240,
+                  "disabled": "false",
+                  "resizing": false
+                },
+                "secondary": [
+                  {
+                    "position": "absolute",
+                    "viewportMidpoint": -25.140250000000037,
+                    "documentMidpoint": 705.8671875
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "members-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                220,
+                327,
+                54,
+                3,
+                true,
+                [
+                  705.85975
+                ],
+                [
+                  705.8671875
+                ]
+              ],
+              [
+                365,
+                220,
+                327,
+                54,
+                3,
+                true,
+                [
+                  340.85974999999996
+                ],
+                [
+                  705.8671875
+                ]
+              ],
+              [
+                731,
+                220,
+                327,
+                54,
+                3,
+                true,
+                [
+                  -25.140250000000037
+                ],
+                [
+                  705.8671875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "navigation-key-min-max",
+            "values": [
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1331,
+                  "scrollY": 731,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 582,
+                        "y": -561.90625,
+                        "right": 626,
+                        "bottom": 511.640625,
+                        "width": 44,
+                        "height": 1073.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 604,
+                        "centerY": -25.140250000000037,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 320,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 705.8671875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -561.90625,
+                          "right": 556,
+                          "bottom": 337.1875,
+                          "width": 340,
+                          "height": 899.09375
+                        },
+                        {
+                          "x": 604,
+                          "y": -561.90625,
+                          "right": 864,
+                          "bottom": 511.640625,
+                          "width": 260,
+                          "height": 1073.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1058,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "ArrowRight",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1331,
+                  "scrollY": 731,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 582,
+                        "y": -561.90625,
+                        "right": 626,
+                        "bottom": 511.640625,
+                        "width": 44,
+                        "height": 1073.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 604,
+                        "centerY": -25.140250000000037,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 304,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 705.8671875,
+                      "panels": [
+                        {
+                          "x": 232,
+                          "y": -561.90625,
+                          "right": 556,
+                          "bottom": 359.6875,
+                          "width": 324,
+                          "height": 921.59375
+                        },
+                        {
+                          "x": 604,
+                          "y": -561.90625,
+                          "right": 864,
+                          "bottom": 511.640625,
+                          "width": 260,
+                          "height": 1073.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 186,
+                        "y": 54,
+                        "right": 230,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 196,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 196,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1058,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "196px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "End",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1331,
+                  "scrollY": 731,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 582,
+                        "y": -561.90625,
+                        "right": 626,
+                        "bottom": 511.640625,
+                        "width": 44,
+                        "height": 1073.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "none",
+                        "centerX": 608,
+                        "centerY": -11.1328125,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "none"
+                      },
+                      "min": 260,
+                      "max": 260,
+                      "now": 260,
+                      "disabled": "true",
+                      "resizing": false,
+                      "documentMidpoint": 705.8671875,
+                      "panels": [
+                        {
+                          "x": 276,
+                          "y": -561.90625,
+                          "right": 556,
+                          "bottom": 382.1875,
+                          "width": 280,
+                          "height": 944.09375
+                        },
+                        {
+                          "x": 604,
+                          "y": -561.90625,
+                          "right": 864,
+                          "bottom": 511.640625,
+                          "width": 260,
+                          "height": 1073.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 230,
+                        "y": 54,
+                        "right": 274,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 240,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 240,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1058,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "240px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1331,
+                  "scrollY": 731,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 582,
+                        "y": -561.90625,
+                        "right": 626,
+                        "bottom": 511.640625,
+                        "width": 44,
+                        "height": 1073.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 604,
+                        "centerY": -25.140250000000037,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 320,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 705.8671875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -561.90625,
+                          "right": 556,
+                          "bottom": 337.1875,
+                          "width": 340,
+                          "height": 899.09375
+                        },
+                        {
+                          "x": 604,
+                          "y": -561.90625,
+                          "right": 864,
+                          "bottom": 511.640625,
+                          "width": 260,
+                          "height": 1073.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1058,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              }
+            ]
+          },
+          {
+            "state": "right-key-min-max",
+            "values": [
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1331,
+                  "scrollY": 731,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 582,
+                        "y": -561.90625,
+                        "right": 626,
+                        "bottom": 511.640625,
+                        "width": 44,
+                        "height": 1073.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 604,
+                        "centerY": -25.140250000000037,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 320,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 705.8671875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -561.90625,
+                          "right": 556,
+                          "bottom": 337.1875,
+                          "width": 340,
+                          "height": 899.09375
+                        },
+                        {
+                          "x": 604,
+                          "y": -561.90625,
+                          "right": 864,
+                          "bottom": 511.640625,
+                          "width": 260,
+                          "height": 1073.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1058,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "ArrowLeft",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1307,
+                  "scrollY": 707,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 566,
+                        "y": -537.90625,
+                        "right": 610,
+                        "bottom": 511.84375,
+                        "width": 44,
+                        "height": 1049.75
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 588,
+                        "centerY": -13.03125,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 320,
+                      "now": 276,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 693.96875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -537.90625,
+                          "right": 540,
+                          "bottom": 383.6875,
+                          "width": 324,
+                          "height": 921.59375
+                        },
+                        {
+                          "x": 588,
+                          "y": -537.90625,
+                          "right": 864,
+                          "bottom": 511.84375,
+                          "width": 276,
+                          "height": 1049.75
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1034,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "276px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "End",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1220,
+                  "scrollY": 620,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 522,
+                        "y": -450.90625,
+                        "right": 566,
+                        "bottom": 512.359375,
+                        "width": 44,
+                        "height": 963.265625
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 544,
+                        "centerY": 30.71875,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 320,
+                      "now": 320,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 650.7265625,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -450.90625,
+                          "right": 496,
+                          "bottom": 493.1875,
+                          "width": 280,
+                          "height": 944.09375
+                        },
+                        {
+                          "x": 544,
+                          "y": -450.90625,
+                          "right": 864,
+                          "bottom": 512.359375,
+                          "width": 320,
+                          "height": 963.265625
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 947,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "320px",
+                  "selection": ""
+                }
+              },
+              {
+                "key": "Home",
+                "geometry": {
+                  "path": "/members",
+                  "width": 900,
+                  "height": 600,
+                  "clientWidth": 900,
+                  "docWidth": 900,
+                  "docHeight": 1331,
+                  "scrollY": 731,
+                  "coarse": true,
+                  "touchPoints": 1,
+                  "header": {
+                    "x": 0,
+                    "y": 0,
+                    "right": 900,
+                    "bottom": 54,
+                    "width": 900,
+                    "height": 54
+                  },
+                  "headerToken": "54px",
+                  "handles": [
+                    {
+                      "className": "ledger-split-resizer",
+                      "position": "absolute",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 582,
+                        "y": -561.90625,
+                        "right": 626,
+                        "bottom": 511.640625,
+                        "width": 44,
+                        "height": 1073.546875
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 604,
+                        "centerY": -25.140250000000037,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 260,
+                      "max": 320,
+                      "now": 260,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 705.8671875,
+                      "panels": [
+                        {
+                          "x": 216,
+                          "y": -561.90625,
+                          "right": 556,
+                          "bottom": 337.1875,
+                          "width": 340,
+                          "height": 899.09375
+                        },
+                        {
+                          "x": 604,
+                          "y": -561.90625,
+                          "right": 864,
+                          "bottom": 511.640625,
+                          "width": 260,
+                          "height": 1073.546875
+                        }
+                      ]
+                    },
+                    {
+                      "className": "console-sidebar-resizer",
+                      "position": "fixed",
+                      "userSelect": "none",
+                      "rect": {
+                        "x": 170,
+                        "y": 54,
+                        "right": 214,
+                        "bottom": 600,
+                        "width": 44,
+                        "height": 546
+                      },
+                      "grip": {
+                        "position": "absolute",
+                        "display": "block",
+                        "centerX": 180,
+                        "centerY": 327,
+                        "width": 8,
+                        "height": 28,
+                        "transform": "matrix(1, 0, 0, 1, -4, -14)"
+                      },
+                      "min": 180,
+                      "max": 240,
+                      "now": 180,
+                      "disabled": "false",
+                      "resizing": false,
+                      "documentMidpoint": 1058,
+                      "panels": []
+                    }
+                  ],
+                  "sideInline": "180px",
+                  "splitInline": "260px",
+                  "selection": ""
+                }
+              }
+            ]
+          },
+          {
+            "state": "navigation-native-mouse",
+            "before": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 731,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  327
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": -25.140250000000037,
+                  "documentMidpoint": 705.8671875
+                }
+              ]
+            },
+            "held": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 731,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  196,
+                  327
+                ],
+                "value": 196,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": true
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": -25.140250000000037,
+                  "documentMidpoint": 705.8671875
+                }
+              ]
+            },
+            "after": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 731,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  196,
+                  327
+                ],
+                "value": 196,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": -25.140250000000037,
+                  "documentMidpoint": 705.8671875
+                }
+              ]
+            },
+            "pointerType": "mouse",
+            "cancel": false,
+            "events": [
+              {
+                "type": "gotpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              },
+              {
+                "type": "lostpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              }
+            ]
+          },
+          {
+            "state": "right-native-mouse",
+            "before": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 351,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  327
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 299.71875,
+                  "documentMidpoint": 650.7265625
+                }
+              ]
+            },
+            "held": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 351,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  327
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 320.51575,
+                  "documentMidpoint": 671.5234375
+                }
+              ]
+            },
+            "after": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 351,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  327
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 320.51575,
+                  "documentMidpoint": 671.5234375
+                }
+              ]
+            },
+            "pointerType": "mouse",
+            "cancel": false,
+            "events": [
+              {
+                "type": "gotpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              },
+              {
+                "type": "lostpointercapture",
+                "pointerType": "mouse",
+                "isTrusted": true
+              }
+            ]
+          },
+          {
+            "state": "navigation-native-touch-cancel",
+            "before": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 351,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  180,
+                  327
+                ],
+                "value": 180,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 320.51575,
+                  "documentMidpoint": 671.5234375
+                }
+              ]
+            },
+            "held": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 351,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  196,
+                  327
+                ],
+                "value": 196,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": true
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 331.71875,
+                  "documentMidpoint": 682.71875
+                }
+              ]
+            },
+            "after": {
+              "viewport": [
+                900,
+                600
+              ],
+              "scrollY": 351,
+              "headerBottom": 54,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": {
+                "position": "fixed",
+                "width": 44,
+                "grip": [
+                  196,
+                  327
+                ],
+                "value": 196,
+                "min": 180,
+                "max": 240,
+                "disabled": "false",
+                "resizing": false
+              },
+              "secondary": [
+                {
+                  "position": "absolute",
+                  "viewportMidpoint": 331.71875,
+                  "documentMidpoint": 682.71875
+                }
+              ]
+            },
+            "pointerType": "touch",
+            "cancel": true,
+            "events": [
+              {
+                "type": "gotpointercapture",
+                "pointerType": "touch",
+                "isTrusted": true
+              },
+              {
+                "type": "gotpointercapture",
+                "pointerType": "touch",
+                "isTrusted": true
+              },
+              {
+                "type": "pointercancel",
+                "pointerType": "touch",
+                "isTrusted": true
+              },
+              {
+                "type": "pointercancel",
+                "pointerType": "touch",
+                "isTrusted": true
+              },
+              {
+                "type": "lostpointercapture",
+                "pointerType": "touch",
+                "isTrusted": true
+              },
+              {
+                "type": "lostpointercapture",
+                "pointerType": "touch",
+                "isTrusted": true
+              }
+            ]
+          },
+          {
+            "state": "projects-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  1252.86375
+                ],
+                [
+                  1252.8671875
+                ]
+              ],
+              [
+                1067,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  185.86374999999998
+                ],
+                [
+                  1252.8671875
+                ]
+              ],
+              [
+                2135,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  -882.13625
+                ],
+                [
+                  1252.8671875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "categories-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  442.78175
+                ],
+                [
+                  442.7890625
+                ]
+              ],
+              [
+                72,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  370.78175
+                ],
+                [
+                  442.7890625
+                ]
+              ],
+              [
+                144,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  298.78175
+                ],
+                [
+                  442.7890625
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "shared-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  1346.79675
+                ],
+                [
+                  1346.796875
+                ]
+              ],
+              [
+                810,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  536.79675
+                ],
+                [
+                  1346.796875
+                ]
+              ],
+              [
+                1620,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  -273.20325
+                ],
+                [
+                  1346.796875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "detail-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  1379.79675
+                ],
+                [
+                  1379.796875
+                ]
+              ],
+              [
+                826,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  553.79675
+                ],
+                [
+                  1379.796875
+                ]
+              ],
+              [
+                1653,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [
+                  -273.20325
+                ],
+                [
+                  1379.796875
+                ]
+              ]
+            ]
+          },
+          {
+            "state": "settings-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                154,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                308,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ]
+            ]
+          },
+          {
+            "state": "api-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                713,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                1427,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ]
+            ]
+          },
+          {
+            "state": "billing-top-middle-bottom-scroll-hits",
+            "scrollability": "scrollable",
+            "sampleColumns": [
+              "scrollY",
+              "navGripX",
+              "navGripY",
+              "headerBottom",
+              "nativeHits",
+              "allEventsTrusted",
+              "rightViewportMidpoints",
+              "rightDocumentMidpoints"
+            ],
+            "samples": [
+              [
+                0,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                128,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ],
+              [
+                256,
+                196,
+                327,
+                54,
+                3,
+                true,
+                [],
+                []
+              ]
+            ]
+          },
+          {
+            "state": "live390-navigation-hidden",
+            "geometry": {
+              "viewport": [
+                390,
+                844
+              ],
+              "scrollY": 217,
+              "headerBottom": 53,
+              "coarse": true,
+              "touchPoints": 1,
+              "noDocumentOverflow": true,
+              "nav": null,
+              "secondary": []
+            }
+          }
+        ],
+        "canceledNetworkRequests": 0,
+        "ignoredCanceledStaleFulfill": 0
+      }
+    ]
+  },
+  "cleanupAndFreezeMetadata": {
+    "status": "passed",
+    "rawReport": "final/evidence.json",
+    "rawReportSha256": "a7fc6812a50d71b2d154bfa5a2adfa0559c50c315c4fe3d20f82283b5c01ecb9",
+    "artifactFreezeStable": {
+      "files": 45,
+      "sha256": "3d669269fde2595129425f33dc90a841eac35ad453eb0d720705d8e28be9e44a"
+    },
+    "sourceFreezeStable": {
+      "files": 9,
+      "sha256": "298d603bd75eaf220e57c4d05a7828ac35dcacf50a2d0d7ebb11babc8dd7b662"
+    },
+    "harnessSha256": "09371d996949b0c0881baebceefb9a2421ba5a5e58075dcad96f9ca2524eef97",
+    "counts": {
+      "contexts": 2,
+      "scenarios": 31,
+      "captures": 4,
+      "intercepted": 131,
+      "fixtureGET": 56,
+      "blockedExternal": 2,
+      "maxRequestsPerContext": 69,
+      "cap": 120,
+      "businessWrites": 0,
+      "unknownRoutes": 0,
+      "pageErrors": 0,
+      "realExternalCalls": 0,
+      "excludedDiagnostics": 0
+    },
+    "cleanup": {
+      "ownedPreviewTerminatedPid": 55371,
+      "ownedBrowserCDPProcessesRemaining": 0,
+      "ownedProfilesRemaining": [],
+      "ports": {
+        "4199": "free/reusable",
+        "9229": "free/reusable"
+      }
+    },
+    "parentVisualReview": "All four native viewport captures passed; desktop left grip fixed y527, tablet fixed y327."
+  },
+  "cleanupMetadataSha256": "00216c2685768f6d4acc162d9e13ecaa56d7166fad65d92194b45aacc840765b",
+  "rootVisualReview": {
+    "passed": true,
+    "nativeUneditedCaptures": 4,
+    "scope": "Desktop API first/scrolled and tablet Members first/scrolled. Left midpoint remains 527px/327px respectively, below 54px header."
+  },
+  "limits": "Synthetic local GET-only acceptance. No real authenticated/provider/payment acceptance or production/Server/D1 operations."
+}
