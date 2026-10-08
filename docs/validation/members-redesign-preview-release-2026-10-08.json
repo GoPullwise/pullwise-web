@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-08",
+  "status": "Published preview and verified",
+  "source": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "runtimeCommit": "74d749517806de3cbc28191a46c534787a224b94",
+    "localAcceptance": "members-redesign-local-2026-10-08.json",
+    "testFiles": 36,
+    "tests": 499,
+    "acceptedBrowserContexts": 16,
+    "acceptedBrowserStates": 86,
+    "acceptedCaptures": 25,
+    "sourceHashesAndBuildManifestStillMatch": true,
+    "qaProcessCleanupPassed": true
+  },
+  "target": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "account": "84e421f26c708c0cf437e287eed11fa1"
+  },
+  "publication": {
+    "tool": "Wrangler 4.136.3",
+    "config": "wrangler.preview.jsonc",
+    "version": "4b484a10-245a-44a2-a24b-a9851bec10c3",
+    "createdAt": "2026-10-08T05:25:10.131379Z",
+    "tag": "members-20261008-74d7495",
+    "message": "Redesign Members directory and distinguish ledger ownership; source 74d749517806de3cbc28191a46c534787a224b94",
+    "localBuildManifestCount": 43,
+    "localBuildManifestSha256": "1000a1cb2c99fac0963f2969503ba42dc25c048e307feb57f21e26a9252a72a5",
+    "newOrModifiedUploadedAssets": 20,
+    "reusedUploadedAssets": 22
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "assetNotFoundHandling": "single-page-application",
+    "runWorkerFirst": ["/*", "!/assets/*"],
+    "customDomain": "preview.pull-wise.com",
+    "productionConfigChanged": false
+  },
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4550,
+        "sha256": "608740b6965e2dd09c3b84e5fd32e330ac5a9627bb238bb79f98a860bd089776",
+        "noindex": true,
+        "builtEntryMatched": "/assets/index-BT4Ptylr.js"
+      },
+      {
+        "path": "/assets/index-Dvt-9UPF.css",
+        "status": 200,
+        "bytes": 75426,
+        "sha256": "39e1b613359eaaa615d83de4ccc116c15a06f108ce818dd885d83fc1995fb93a",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-eghCfmml.js",
+        "status": 200,
+        "bytes": 21517,
+        "sha256": "e43cd953f9cdabf896ef5e22fef627a52d39cf9c0044bb1b20a45db26dc667b4",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-D4KDF3QE.css",
+        "status": 200,
+        "bytes": 10667,
+        "sha256": "ed7306d1537a74fba25d383eb73f959049fa505993bb855d9a21f28b9545988a",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false
+  },
+  "scope": {
+    "webOnly": true,
+    "serverDeployment": false,
+    "productionDeployment": false,
+    "productionMutations": false,
+    "d1Commands": 0,
+    "businessApiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "realSessionsUsed": false,
+    "paymentsMade": false
+  },
+  "limitations": [
+    "Browser UI checks use entirely intercepted local synthetic fixtures; remote publication verification consists only of four unauthenticated static GETs.",
+    "No new authenticated preview, OAuth, member or invitation mutation, provider delivery or payment acceptance was performed remotely."
+  ]
+}

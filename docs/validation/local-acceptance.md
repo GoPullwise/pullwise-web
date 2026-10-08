@@ -48,11 +48,23 @@ identical throughout acceptance.
 
 The final capture environment consistently hides native scrollbars before
 both baseline and capture while retaining functional scrolling and strict
-viewport/scroll/coarse-pointer/touch equality. Two GET-only capture diagnostics
+viewport/scroll/coarse-pointer/touch equality. The original rejected screenshot attempt and two GET-only capture diagnostics
 that failed when Chromium temporarily removed its 10px scrollbar gutter are
 excluded from the accepted counts; they required no product source change.
+All QA browser/CDP/Vite processes are cleaned.
 These are local synthetic checks; preview publication verification remains
 static-only and production/Server/D1 operations are outside this release.
+
+[Preview publication](members-redesign-preview-release-2026-10-08.json)
+deploys runtime commit `74d749517806de3cbc28191a46c534787a224b94` as Web version
+`4b484a10-245a-44a2-a24b-a9851bec10c3` at `preview.pull-wise.com`. Configuration
+readback confirms the preview Server binding, SPA assets and HTML-first
+noindex routing. One homepage GET and three exact hashed asset GETs (shared
+CSS, Members JavaScript and the shared Ledger stylesheet) return 200; all
+three asset bodies match the accepted local build, and the homepage references
+its exact entry. Production, Server/D1, real sessions and remote business APIs
+remain untouched. Publication/evidence updates are documentation-only and do
+not require another Web deployment.
 
 ## Shared console containers and named project selection (2026-10-08)
 

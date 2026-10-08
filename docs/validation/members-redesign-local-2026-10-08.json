@@ -2721,12 +2721,18 @@
       ]
     },
     "excludedCaptureDiagnostics": {
-      "runs": 2,
+      "runs": 3,
       "fixtureGetOnly": true,
       "productSourceChanged": false,
       "remoteApplicationRequests": 0,
-      "reason": "Native full-page capture temporarily removed its 10px scrollbar gutter; width consistency failed while scroll, coarse pointer and maxTouchPoints remained unchanged. Final baselines and captures uniformly use native --hide-scrollbars and retain strict viewport/scroll/touch assertions."
-    }
+      "reason": "Native full-page capture temporarily removed its 10px scrollbar gutter; width consistency failed while scroll, coarse pointer and maxTouchPoints remained unchanged. Final baselines and captures uniformly use native --hide-scrollbars and retain strict viewport/scroll/touch assertions.",
+      "attempts": "Original rejected screenshot attempt plus two GET-only diagnostics; none included in accepted counts.",
+      "interceptedRequestsUpperBound": 360,
+      "exactRequestCountsRetained": false
+    },
+    "processCleanupPassed": true,
+    "evidenceSha256": "134818ec7c42cfb8222eebedb948b0464ab5fe38685a215ec20ac22c738b3e67",
+    "reviewSummarySha256": "d47c9bbf614000a5ce1092e5fe637f2e49c1f6da4d478005da8e68a61ee09500"
   },
   "buildArtifact": {
     "manifestCount": 43,
