@@ -339,6 +339,67 @@ const projectLabel = (project) =>
   project.description ||
   T("Project", "项目");
 
+function ProjectListRow({ project, go }) {
+  const repositoryCount = new Set(boundRepositoryIds(project)).size;
+  const repositoryName =
+    project.repositories?.find(
+      (repository) => repository.githubAccess === "authorized" && repository.githubFullName
+    )?.githubFullName ||
+    (!project.repositories?.length &&
+      project.githubAccess === "authorized" &&
+      project.githubFullName);
+  const organizationName =
+    project.githubOrganization?.githubAccess === "authorized" && project.githubOrganization.login;
+
+  return (
+    <a
+      className="ledger-project-row"
+      draggable={false}
+      {...screenLinkProps(go, "ledgerProject", { id: project.id })}
+    >
+      <div className="ledger-row-main">
+        <h2>{projectLabel(project)}</h2>
+        {project.description && projectLabel(project) !== project.description && (
+          <p>{project.description}</p>
+        )}
+        {project.status === "archived" && (
+          <p className="ledger-meta">{T("Archived project", "已归档项目")}</p>
+        )}
+      </div>
+      <div className="ledger-project-total">
+        <span className="ledger-project-label">{T("Expense total", "支出合计")}</span>
+        {project.totals.length
+          ? project.totals.map((total) => <LedgerTotal key={total.currency} total={total} />)
+          : T("No expenses")}
+      </div>
+      <div className="ledger-project-associations">
+        <span className="ledger-project-label">
+          {T("Repositories / organization", "仓库 / 组织")}
+        </span>
+        {project.githubAccess === "not_linked" ? (
+          <p>{T("No repositories linked", "未关联仓库")}</p>
+        ) : repositoryCount > 1 ? (
+          <p>
+            {repositoryCount} {T("repositories", "个仓库")}
+          </p>
+        ) : repositoryName ? (
+          <p>{repositoryName}</p>
+        ) : repositoryCount === 1 ? (
+          <p>{T("Repository", "仓库")}</p>
+        ) : null}
+        {organizationName && <p>{organizationName}</p>}
+        {["lost", "reauthorization_required"].includes(project.githubAccess) && (
+          <p className="ledger-access-lost">{T("GitHub access lost", "GitHub 授权已失效")}</p>
+        )}
+        {project.githubAccess === "unavailable" && (
+          <p>{T("GitHub access could not be verified", "暂时无法验证 GitHub 授权")}</p>
+        )}
+      </div>
+      <I.ArrowR size={16} aria-hidden="true" />
+    </a>
+  );
+}
+
 function ExpenseForm({
   value,
   categories,
@@ -1370,7 +1431,9 @@ function ScopedLedgerScreen({
                             {T("Add project", "添加项目")} <I.ArrowR size={12} />
                           </a>
                         </strong>
-                        <p>{T("Name the project you want to track.", "为你想记账的项目起个名字。")}</p>
+                        <p>
+                          {T("Name the project you want to track.", "为你想记账的项目起个名字。")}
+                        </p>
                       </div>
                     </li>
                     <li>
@@ -1411,16 +1474,15 @@ function ScopedLedgerScreen({
                 scope={`${workspaceScope}:projects`}
               >
                 {data.projects.items.length > 0 && (
-                  <section className="panel ledger-your-projects">
-                    <div className="panel-h">
-                      <I.Folder size={20} />
-                      <h2>{T("Your projects")}</h2>
-                      <span className="count">
-                        {data.projects.items.length}
-                        {data.projects.nextCursor ? "+" : ""}
-                      </span>
-                    </div>
-                    {data.projects.items.length > 0 && (
+                  <section className="panel ledger-your-projects" aria-label={T("Projects")}>
+                    <div className="ledger-project-toolbar">
+                      <div className="ledger-project-count">
+                        <span>{T("Projects")}</span>
+                        <span className="count">
+                          {data.projects.items.length}
+                          {data.projects.nextCursor ? "+" : ""}
+                        </span>
+                      </div>
                       <div className="ledger-search">
                         <I.Search size={16} aria-hidden="true" />
                         <input
@@ -1446,7 +1508,7 @@ function ScopedLedgerScreen({
                           </button>
                         )}
                       </div>
-                    )}
+                    </div>
                     {projectSearch.trim() && matchingProjects.length === 0 && (
                       <div className="empty">
                         <I.Search size={24} />
@@ -1460,65 +1522,17 @@ function ScopedLedgerScreen({
                       </div>
                     )}
                     <div className="ledger-list">
+                      {matchingProjects.length > 0 && (
+                        <div className="ledger-project-head" aria-hidden="true">
+                          <span>{T("Project", "项目")}</span>
+                          <span className="ledger-project-head-amount">
+                            {T("Expense total", "支出合计")}
+                          </span>
+                          <span>{T("Repositories / organization", "仓库 / 组织")}</span>
+                        </div>
+                      )}
                       {matchingProjects.map((project) => (
-                        <a
-                          className="ledger-project-row"
-                          draggable={false}
-                          key={project.id}
-                          {...screenLinkProps(go, "ledgerProject", { id: project.id })}
-                        >
-                          <span className="ledger-project-icon">
-                            {boundRepositoryIds(project).length ? (
-                              <I.GitBranch size={18} />
-                            ) : (
-                              <I.Folder size={18} />
-                            )}
-                          </span>
-                          <div className="ledger-row-main">
-                            <h3>{projectLabel(project)}</h3>
-                            {project.githubAccess === "not_linked" && (
-                              <p className="ledger-meta">
-                                {T("No repositories linked", "未关联仓库")}
-                              </p>
-                            )}
-                            {project.status === "archived" && (
-                              <p className="ledger-meta">{T("Archived project", "已归档项目")}</p>
-                            )}
-                            {project.description &&
-                              projectLabel(project) !== project.description && (
-                                <p>{project.description}</p>
-                              )}
-                            {project.repositories?.length > 1 && (
-                              <p>
-                                {project.repositories.length} {T("repositories", "个仓库")}
-                              </p>
-                            )}
-                            {project.githubOrganization?.login && (
-                              <p>{project.githubOrganization.login}</p>
-                            )}
-                            {project.githubAccess === "lost" && (
-                              <p className="ledger-access-lost">
-                                {T("GitHub access lost", "GitHub 授权已失效")}
-                              </p>
-                            )}
-                            {project.githubAccess === "unavailable" && (
-                              <p>
-                                {T(
-                                  "GitHub access could not be verified",
-                                  "暂时无法验证 GitHub 授权"
-                                )}
-                              </p>
-                            )}
-                          </div>
-                          <span className="ledger-project-total">
-                            {project.totals.length
-                              ? project.totals.map((total) => (
-                                  <LedgerTotal key={total.currency} total={total} />
-                                ))
-                              : T("No expenses")}
-                          </span>
-                          <I.ArrowR size={16} />
-                        </a>
+                        <ProjectListRow key={project.id} project={project} go={go} />
                       ))}
                     </div>
                     {data.projects.nextCursor && (

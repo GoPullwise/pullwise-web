@@ -726,6 +726,55 @@ describe("ledger screens", () => {
     expect(api.projects).toHaveBeenCalledTimes(1);
   });
 
+  it("shows current authorized association metadata without exposing stale repository or organization names", async () => {
+    api.projects.mockResolvedValue({
+      items: [
+        {
+          id: "prj_multi",
+          name: "Infrastructure",
+          description: "Cloud services",
+          githubRepoIds: [201, 303],
+          repositories: [
+            { githubRepoId: 201, githubFullName: "alice/api", githubAccess: "authorized" },
+            { githubRepoId: 303, githubFullName: "stale/private", githubAccess: "lost" },
+          ],
+          githubOrganization: { login: "stale-organization", githubAccess: "lost" },
+          githubAccess: "partial",
+          totals: [{ currency: "USD", amountMinor: 200 }],
+        },
+        {
+          id: "prj_single",
+          name: "Website",
+          githubRepoIds: [404],
+          repositories: [
+            { githubRepoId: 404, githubFullName: "alice/web", githubAccess: "authorized" },
+          ],
+          githubOrganization: { login: "alice-team", githubAccess: "authorized" },
+          githubAccess: "authorized",
+          totals: [],
+        },
+        {
+          id: "prj_legacy",
+          name: "Legacy project",
+          githubRepoId: 505,
+          githubFullName: "stale/legacy",
+          githubAccess: "unavailable",
+          totals: [],
+        },
+      ],
+      nextCursor: null,
+    });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    expect(await screen.findByText("2 repositories")).toBeVisible();
+    expect(screen.getByText("alice/web")).toBeVisible();
+    expect(screen.getByText("alice-team")).toBeVisible();
+    expect(screen.getByText("GitHub access could not be verified")).toBeVisible();
+    expect(screen.queryByText("stale/private")).not.toBeInTheDocument();
+    expect(screen.queryByText("stale-organization")).not.toBeInTheDocument();
+    expect(screen.queryByText("stale/legacy")).not.toBeInTheDocument();
+    expect(api.repositories).not.toHaveBeenCalled();
+  });
+
   it("reveals project creation on intent and restores focus when dismissed", async () => {
     api.projects.mockResolvedValue({
       items: [{ id: "prj_1", githubRepoId: 201, githubFullName: "alice/web", totals: [] }],

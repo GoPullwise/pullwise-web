@@ -99,50 +99,127 @@
 .ledger-your-projects > .ledger-list:not(:empty) {
   border-top: 1px solid var(--border);
 }
-.ledger-project-row {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto 16px;
+.ledger-your-projects .ledger-project-toolbar {
+  display: flex;
   align-items: center;
-  gap: 20px;
-  padding-block: 20px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.ledger-your-projects .ledger-project-count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text-3);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+.ledger-your-projects .ledger-project-count .count {
+  margin: 0;
+  color: var(--text-2);
+}
+.ledger-your-projects .ledger-search {
+  flex: 1;
+  max-width: 400px;
+  margin-bottom: 0;
+}
+.ledger-your-projects .ledger-project-head,
+.ledger-your-projects .ledger-project-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.2fr) 16px;
+  align-items: center;
+  gap: 24px;
+}
+.ledger-your-projects .ledger-project-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+.ledger-your-projects .ledger-project-head-amount {
+  text-align: right;
+}
+.ledger-your-projects .ledger-project-row {
+  padding-block: 24px;
   border-bottom: 1px solid var(--border);
   transition: background 160ms ease;
 }
-.ledger-project-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border);
-  color: var(--text-2);
-}
-.ledger-project-total {
+.ledger-your-projects .ledger-project-total {
   --financial-size: var(--fs-value-row);
+  position: relative;
   display: grid;
   gap: 4px;
   min-width: 0;
-  max-width: 260px;
   text-align: right;
   color: var(--text-2);
   font-size: var(--fs-lg);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-@container (max-width: 560px) {
-  .ledger-project-row {
-    grid-template-columns: 36px minmax(0, 1fr) 16px;
-    gap: 8px 16px;
+.ledger-your-projects .ledger-project-associations {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-3);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.ledger-your-projects .ledger-project-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@container (max-width: 759px) {
+  .ledger-your-projects .ledger-project-head {
+    display: none;
   }
-  .ledger-project-total {
+  .ledger-your-projects .ledger-project-row {
+    grid-template-columns: minmax(0, 1fr) 16px;
+    gap: 16px;
+  }
+  .ledger-your-projects .ledger-project-total {
+    --financial-size: var(--fs-value-row-compact);
     grid-column: 1 / -1;
     grid-row: 2;
-    max-width: none;
     text-align: left;
   }
-  .ledger-project-row > svg {
-    grid-column: 3;
+  .ledger-your-projects .ledger-project-associations {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  .ledger-your-projects .ledger-project-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    font-weight: 400;
+  }
+  .ledger-your-projects .ledger-project-row > svg {
+    grid-column: 2;
     grid-row: 1;
+    align-self: start;
+    margin-top: 4px;
+  }
+}
+@container (max-width: 419px) {
+  .ledger-your-projects .ledger-project-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ledger-your-projects .ledger-search {
+    max-width: none;
   }
 }
 .ledger-screen .ledger-list .ledger-access-lost {
@@ -208,7 +285,8 @@
 .ledger-screen .ledger-list + .panel-actions {
   margin-top: 16px;
 }
-.ledger-screen .ledger-list h3 {
+.ledger-screen .ledger-list h3,
+.ledger-screen .ledger-your-projects .ledger-list h2 {
   margin: 0 0 4px;
   overflow-wrap: anywhere;
   font-size: var(--fs-xl);
@@ -219,6 +297,12 @@
   line-height: 1.6;
   margin-bottom: 8px;
   overflow-wrap: anywhere;
+}
+.ledger-your-projects .ledger-project-associations p {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 .ledger-screen .ledger-list .ledger-meta {
   color: var(--text-3);
@@ -549,26 +633,6 @@
   }
   .setup-steps strong {
     font-size: var(--fs-md);
-  }
-  .ledger-project-row {
-    grid-template-columns: 28px minmax(0, 1fr) 16px;
-    gap: 8px 12px;
-    padding-block: 20px;
-  }
-  .ledger-project-icon {
-    width: 28px;
-    height: 28px;
-  }
-  .ledger-project-total {
-    --financial-size: var(--fs-value-row-compact);
-    grid-column: 1 / -1;
-    grid-row: 2;
-    max-width: none;
-    text-align: left;
-  }
-  .ledger-project-row > svg {
-    grid-column: 3;
-    grid-row: 1;
   }
   .ledger-screen .ledger-chart-row {
     grid-template-columns: minmax(0, 1fr);

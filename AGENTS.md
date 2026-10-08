@@ -10,6 +10,20 @@ keeping supporting labels readable. Give each area a clear purpose and make
 the next action easy to recognize. These goals guide future frontend work,
 including normal/hover states, responsive reflow and keyboard/touch behavior.
 
+## Projects reference follow-up (2026-10-08)
+
+The newer DevLedger ZIP is a layout reference for `/projects` only. Keep
+Pullwise's existing palette, typography, hard edges, financial hierarchy and
+shared containers. Organize project identity/description, expense totals and
+repository/organization metadata into aligned regions, with quiet column
+labels and a compact count/search toolbar. Remove repetitive project icon
+frames and the duplicate large list title. Reflow by actual list-container
+width to identity, amounts and associations in that order; retain full
+multi-currency values, native copying, stable hover insets and row navigation.
+Repository/organization labels use current authorized metadata, with real
+binding counts and existing access-state guidance. This reference work does
+not extend to project detail or other pages, global themes or business APIs.
+
 ## Financial typography follow-up (2026-10-08)
 
 Real financial values share `FinancialValue` and the `base.css` value-size

@@ -22,6 +22,8 @@ const rows = [
   ["Hosting, domains, AI tools — make it yours.", "托管、域名、AI 工具，按需分类。", "ホスティング、ドメイン、AIツールなど自由に分類。", "호스팅, 도메인, AI 도구 등을 분류하세요.", "Hébergement, domaines, outils IA : classez à votre façon.", "Alojamiento, dominios, herramientas de IA: clasifica a tu gusto."],
   ["Open a project and add your first expense.", "打开项目，添加第一笔支出。", "プロジェクトを開き、最初の支出を追加しましょう。", "프로젝트를 열고 첫 지출을 추가하세요.", "Ouvrez un projet et ajoutez votre première dépense.", "Abre un proyecto y añade tu primer gasto."],
   ["Find a project", "查找项目", "プロジェクトを検索", "프로젝트 검색", "Rechercher un projet", "Buscar un proyecto"],
+  ["Expense total", "支出合计", "支出合計", "지출 합계", "Total des dépenses", "Total de gastos"],
+  ["Repositories / organization", "仓库 / 组织", "リポジトリ / 組織", "저장소 / 조직", "Dépôts / organisation", "Repositorios / organización"],
   ["Clear search", "清除搜索", "検索をクリア", "검색 지우기", "Effacer la recherche", "Borrar búsqueda"],
   ["No matching projects", "没有匹配的项目", "一致するプロジェクトがありません", "일치하는 프로젝트 없음", "Aucun projet correspondant", "No hay proyectos coincidentes"],
   ["Try another name or load more projects.", "换个名称搜索，或加载更多项目。", "別の名前で検索するか、さらに読み込んでください。", "다른 이름을 검색하거나 프로젝트를 더 불러오세요.", "Essayez un autre nom ou chargez plus de projets.", "Prueba otro nombre o carga más proyectos."],
