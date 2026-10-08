@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-08",
+  "status": "Published preview and verified",
+  "source": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "runtimeCommit": "2adaddd62bd71da0149b0426aa175f665ce31d9e",
+    "localAcceptance": "console-layout-local-2026-10-08.json",
+    "testFiles": 36,
+    "tests": 476,
+    "sourceHashesAndBuildManifestStillMatch": true
+  },
+  "target": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "account": "84e421f26c708c0cf437e287eed11fa1"
+  },
+  "publication": {
+    "tool": "Wrangler 4.136.3",
+    "config": "wrangler.preview.jsonc",
+    "version": "9a811fde-68b9-4914-880a-5308f2dc0612",
+    "previousVersion": "0a588b77-3625-4943-aee5-4c57e2c2bbc6",
+    "createdAt": "2026-10-08T04:08:15.76807Z",
+    "tag": "ui-20261008-2adaddd",
+    "message": "Refine Projects and Members layout; source 2adaddd62bd71da0149b0426aa175f665ce31d9e",
+    "assetManifestCount": 43,
+    "newOrModifiedUploadedAssets": 21
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "assetNotFoundHandling": "single-page-application",
+    "runWorkerFirst": [
+      "/*",
+      "!/assets/*"
+    ],
+    "customDomain": "preview.pull-wise.com",
+    "productionConfigChanged": false
+  },
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4550,
+        "sha256": "2b9f5e5f93638e39d6a7cedd51cc963a34d73661dac0dc6c21d157351bf8ed32",
+        "noindex": true,
+        "builtEntryMatched": "/assets/index-D-QKPb0A.js"
+      },
+      {
+        "path": "/assets/index-APtlcYvT.css",
+        "status": 200,
+        "bytes": 73912,
+        "sha256": "8766465e74db4e349fdb8208d5c04ae02864aa380b98fd755f5c3137fe6bba63",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-D4KDF3QE.css",
+        "status": 200,
+        "bytes": 10667,
+        "sha256": "ed7306d1537a74fba25d383eb73f959049fa505993bb855d9a21f28b9545988a",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-D7qlREIx.js",
+        "status": 200,
+        "bytes": 18695,
+        "sha256": "f3903a5c2b108f0e64f47c7122a1f52f5823cb30a55dadff3ef11df716cb1635",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false
+  },
+  "scope": {
+    "webOnly": true,
+    "serverDeployment": false,
+    "productionDeployment": false,
+    "productionMutations": false,
+    "d1Commands": 0,
+    "businessApiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "realSessionsUsed": false,
+    "paymentsMade": false
+  },
+  "limitations": [
+    "Browser UI acceptance uses synthetic local fixtures; the remote publication check consists only of four unauthenticated static GETs.",
+    "No new authenticated preview, OAuth, member mutation or payment acceptance was performed for this UI release."
+  ]
+}

@@ -43,6 +43,15 @@ Sticky-header pixels after smooth scrolling use the explicitly settled
 diagnostic captures because native Chromium can intermittently omit that
 header paint in single-shot captures with otherwise correct measured bounds.
 
+[Preview publication](console-layout-preview-release-2026-10-08.json) deploys
+runtime commit `2adaddd62bd71da0149b0426aa175f665ce31d9e` as Web version
+`9a811fde-68b9-4914-880a-5308f2dc0612` at `preview.pull-wise.com`. Remote
+configuration readback confirms the preview Server binding and asset routing.
+One homepage GET plus three exact hashed asset GETs return 200; the homepage
+has preview noindex and references the accepted build entry, and all three
+asset bodies match the local hashes. No business API, Server/D1 operation,
+real session or production deployment is part of this publication check.
+
 ## Final real REST and temporary-key acceptance (2026-10-07)
 
 [DFerryman's consented real preview run](rest-final-real-preview-2026-10-07.json)
