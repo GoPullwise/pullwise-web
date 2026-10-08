@@ -908,7 +908,55 @@
     ],
     "pageErrors": [],
     "unknownApis": [],
-    "unexpectedMutations": []
+    "unexpectedMutations": [],
+    "settledMobileCaptures": {
+      "harnessSha256": "dbe017432705c1c8a05ca7f24c69bf35f03bad2335dc61fff052722585e98e6e",
+      "profiles": 2,
+      "shots": 6,
+      "intercepted": 112,
+      "syntheticGets": 18,
+      "externalBlocked": 4,
+      "mutations": 0,
+      "exceptions": 0,
+      "unknownRoutes": 0,
+      "artifactStable": true,
+      "purpose": "Supersedes only six mobile captures; actual sticky topbar/sidebar bottom plus16px positions complete chooser summary/count/search below chrome; scroll/touch/media and internal list scroll remain stable.",
+      "evidenceSha256": "44c7da8026734087cfc7ab7ab0de30205eccafafa3bfc060e57e4c729e028c57"
+    },
+    "acceptedCaptureSha256": [
+      {
+        "capture": "api-picker-1600-en-light-loading.png",
+        "sha256": "fd47d173a3eb1b177b59009337b692c5dfb86bbaa0b3537520c2ef22280cc27b"
+      },
+      {
+        "capture": "api-picker-1600-en-light-no-matches.png",
+        "sha256": "88949f38bd4754b719b5b88c56c5e7ea2c5e8e0dd992d6e1031cf1cbb6c7fbaf"
+      },
+      {
+        "capture": "api-picker-320-en-light-loaded.png",
+        "sha256": "86621e6b1836645c11c32cebfec799c4e17b559cd4e9ee198eba4bf2eebae375"
+      },
+      {
+        "capture": "api-picker-320-en-light-archived-badge.png",
+        "sha256": "9ced250580e927ba693326695549cfb4999257603ef96eb56497dc98a24f33ab"
+      },
+      {
+        "capture": "api-picker-320-en-light-recovered.png",
+        "sha256": "86621e6b1836645c11c32cebfec799c4e17b559cd4e9ee198eba4bf2eebae375"
+      },
+      {
+        "capture": "api-picker-390-zh-dark-archived-badge.png",
+        "sha256": "a6e60cf56715963e48db3f007e11fd5a4e039017be3b6115eb34cc6b0652222a"
+      },
+      {
+        "capture": "api-picker-390-zh-dark-paginated-selected.png",
+        "sha256": "d251e07cb6823cb368ca8049dd0beb12916e9cf9888394e2e349a9a58b4b7175"
+      },
+      {
+        "capture": "api-picker-390-zh-dark-error.png",
+        "sha256": "036f5e687754d569d9a0572f275b81ef87f603323dbc114fae51d81183ff8429"
+      }
+    ]
   },
   "buildArtifacts": {
     "stableAcrossBothSuites": true,
@@ -1003,5 +1051,19 @@
     "Local fixture acceptance does not establish authenticated remote OAuth/API or payment acceptance.",
     "Width comparison uses document client width to account for native vertical scrollbars.",
     "Browser captures use blocked external fonts and local fallback fonts."
-  ]
+  ],
+  "captureDiagnostics": {
+    "acceptedEvidenceUnchanged": true,
+    "knownCompletedProfiles": 2,
+    "knownSyntheticLocalPosts": 6,
+    "syntheticLocalPostsUpperBound": 9,
+    "requestsUpperBound": 360,
+    "remoteRequestsReached": 0,
+    "description": "An offset correction full repeat had started before supplemental-only follow-up arrived; stopped its exact Node/Chromium processes immediately; not accepted release evidence.",
+    "knownCompletedProfileIntercepts": 106,
+    "knownCompletedProfileSyntheticGets": 20,
+    "remainingThirdProfileActualCounts": "unknown; process stopped before a completed profile/report was emitted",
+    "acceptedStatesUnchanged": 123
+  },
+  "qaProcessesCleaned": true
 }

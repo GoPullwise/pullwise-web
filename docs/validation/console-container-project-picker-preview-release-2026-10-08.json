@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-08",
+  "status": "Published preview and verified",
+  "source": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "runtimeCommit": "b493260d40d24355779a9d04b92b0d0162ce874f",
+    "localAcceptance": "console-container-project-picker-local-2026-10-08.json",
+    "testFiles": 36,
+    "tests": 490,
+    "acceptedBrowserStates": 123,
+    "sourceHashesAndBuildManifestStillMatch": true
+  },
+  "target": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "account": "84e421f26c708c0cf437e287eed11fa1"
+  },
+  "publication": {
+    "tool": "Wrangler 4.136.3",
+    "config": "wrangler.preview.jsonc",
+    "version": "ac33e344-1d65-42b1-85ec-2ad34d7f44d4",
+    "createdAt": "2026-10-08T04:39:56.571954Z",
+    "tag": "console-20261008-b493260",
+    "message": "Unify console containers and select API key projects; source b493260d40d24355779a9d04b92b0d0162ce874f",
+    "localBuildManifestCount": 43,
+    "localBuildManifestSha256": "39051a728b742ad04284732b6c2805664a432ad46d2eec9e8e32f45359627d90",
+    "newOrModifiedUploadedAssets": 20,
+    "reusedUploadedAssets": 22
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "assetNotFoundHandling": "single-page-application",
+    "runWorkerFirst": ["/*", "!/assets/*"],
+    "customDomain": "preview.pull-wise.com",
+    "productionConfigChanged": false
+  },
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4550,
+        "sha256": "01828e228afdf862e1cbaaf5477a2176dcae16b1db692b7189aea7613b1c01ef",
+        "noindex": true,
+        "builtEntryMatched": "/assets/index-BH351crD.js"
+      },
+      {
+        "path": "/assets/index-1jiiMwYd.css",
+        "status": 200,
+        "bytes": 74401,
+        "sha256": "5b04b19d7cad774133456d733e152c3c5cad362b92ad1a796a2e6bee7b4d23a8",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/api-CQUUu8pa.js",
+        "status": 200,
+        "bytes": 24112,
+        "sha256": "7dcc62a6492804422e3ec1f22c2a13aeff71529dfeaad7c01060412c4adccdb8",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-veJyO9q_.js",
+        "status": 200,
+        "bytes": 18695,
+        "sha256": "4d3ee4240ed898389b9aa91718c41fec991a3f3bdadaccab81b7589604ad2302",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false
+  },
+  "scope": {
+    "webOnly": true,
+    "serverDeployment": false,
+    "productionDeployment": false,
+    "productionMutations": false,
+    "d1Commands": 0,
+    "businessApiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "realSessionsUsed": false,
+    "paymentsMade": false
+  },
+  "limitations": [
+    "Browser UI and API key creation checks use fully intercepted local synthetic fixtures; remote publication verification consists only of four unauthenticated static GETs.",
+    "No new authenticated preview, OAuth, key creation/member mutation or payment acceptance was performed remotely."
+  ]
+}

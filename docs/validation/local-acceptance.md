@@ -37,6 +37,20 @@ allowlist. Search/clear, selection retention, pagination, error/retry, archived
 mobile badges, bounded list scrolling and coarse touch targets pass. The full
 artifact manifest stays identical through both suites. These are local
 synthetic checks; publication verification remains static-only and preview-only.
+Six settled GET-only mobile captures retain the complete chooser summary and
+count below the sticky navigation; they supersede the original mobile shots.
+The interrupted capture diagnostic is recorded separately from the 123 accepted
+states, with no remote application request. All QA processes are cleaned.
+
+[Preview publication](console-container-project-picker-preview-release-2026-10-08.json)
+deploys runtime commit `b493260d40d24355779a9d04b92b0d0162ce874f` as Web version
+`ac33e344-1d65-42b1-85ec-2ad34d7f44d4` at `preview.pull-wise.com`. Configuration
+readback confirms the preview Server binding, SPA asset fallback and HTML-first
+noindex routing. One homepage GET and three exact hashed asset GETs (shared
+CSS, API Keys and Members JavaScript) return 200; all three asset bodies match
+the accepted local build, and the homepage references its exact entry. No page
+JavaScript, business API, real session, Server/D1 operation or production
+deployment is part of this publication check.
 
 ## Projects and Members layout refinement (2026-10-08)
 
