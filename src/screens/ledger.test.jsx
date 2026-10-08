@@ -777,7 +777,7 @@ describe("ledger screens", () => {
     expect(api.projects).toHaveBeenCalledTimes(1);
   });
 
-  it("shows current authorized association metadata without exposing stale repository or organization names", async () => {
+  it("shows only product shortcuts beside projects without GitHub or development metadata", async () => {
     api.projects.mockResolvedValue({
       items: [
         {
@@ -791,6 +791,7 @@ describe("ledger screens", () => {
           ],
           githubOrganization: { login: "stale-organization", githubAccess: "lost" },
           githubAccess: "partial",
+          productUrl: "https://platform.example/",
           totals: [{ currency: "USD", amountMinor: 200 }],
         },
         {
@@ -802,6 +803,16 @@ describe("ledger screens", () => {
           ],
           githubOrganization: { login: "alice-team", githubAccess: "authorized" },
           githubAccess: "authorized",
+          productUrl: "https://website.example/",
+          totals: [],
+        },
+        {
+          id: "prj_standalone",
+          name: "Standalone project",
+          githubRepoIds: [],
+          repositories: [],
+          githubAccess: "not_linked",
+          developmentUrl: "https://development.example/",
           totals: [],
         },
         {
@@ -816,13 +827,35 @@ describe("ledger screens", () => {
       nextCursor: null,
     });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
-    expect(await screen.findByText("2 repositories")).toBeVisible();
-    expect(screen.getByText("alice/web")).toBeVisible();
-    expect(screen.getByText("alice-team")).toBeVisible();
-    expect(screen.getByText("GitHub access could not be verified")).toBeVisible();
-    expect(screen.queryByText("stale/private")).not.toBeInTheDocument();
-    expect(screen.queryByText("stale-organization")).not.toBeInTheDocument();
-    expect(screen.queryByText("stale/legacy")).not.toBeInTheDocument();
+    const infrastructure = (await screen.findByRole("link", { name: "Infrastructure" })).closest(
+      "article"
+    );
+    const website = screen.getByRole("link", { name: "Website" }).closest("article");
+    expect(within(infrastructure).getByRole("link", { name: "Product" })).toHaveAttribute(
+      "href",
+      "https://platform.example/"
+    );
+    expect(within(website).getByRole("link", { name: "Product" })).toHaveAttribute(
+      "href",
+      "https://website.example/"
+    );
+    expect(screen.getAllByRole("link", { name: "Product" })).toHaveLength(2);
+    expect(screen.queryByRole("link", { name: "Development" })).not.toBeInTheDocument();
+    for (const metadata of [
+      "2 repositories",
+      "alice/api",
+      "alice/web",
+      "alice-team",
+      "stale/private",
+      "stale-organization",
+      "stale/legacy",
+      "Repository #303",
+      "GitHub access lost",
+      "GitHub access could not be verified",
+      "No repositories linked",
+    ]) {
+      expect(screen.queryByText(metadata)).not.toBeInTheDocument();
+    }
     expect(api.repositories).not.toHaveBeenCalled();
   });
 
@@ -971,7 +1004,12 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
 
     const status = screen.getByRole("status", { name: /loading ledger/i });
-    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(3);
+    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(2);
+    expect(status.querySelector(".ledger-overview")).not.toBeInTheDocument();
+    expect(api.categories).not.toHaveBeenCalled();
+    expect(api.reportSummary).not.toHaveBeenCalled();
+    expect(api.reportTimeseries).not.toHaveBeenCalled();
+    expect(api.reportCategories).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "Your projects" })).not.toBeInTheDocument();
   });
 
@@ -1038,13 +1076,25 @@ describe("ledger screens", () => {
     expect(github.connect).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps optional repository links usable when the spending summary fails", async () => {
+  it("loads Projects and optional repository linking without category or report requests", async () => {
     api.reportSummary.mockRejectedValue({ status: 503 });
+    api.reportTimeseries.mockRejectedValue({ status: 503 });
+    api.reportCategories.mockRejectedValue({ status: 503 });
+    api.categories.mockRejectedValue({ status: 503 });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
     await openGitHubLinks();
     expect(await screen.findByRole("option", { name: "alice/project" })).toBeInTheDocument();
-    expect(screen.getByText(/Spending summary is unavailable/i)).toBeInTheDocument();
     expect(screen.getByText(/Choose one to thirty authorized repositories/i)).toBeInTheDocument();
+    expect(api.projects).toHaveBeenCalledTimes(1);
+    expect(api.categories).not.toHaveBeenCalled();
+    expect(api.reportSummary).not.toHaveBeenCalled();
+    expect(api.reportTimeseries).not.toHaveBeenCalled();
+    expect(api.reportCategories).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "Ledger overview" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("From date")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Before date")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Filter category")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Spending summary is unavailable/i)).not.toBeInTheDocument();
     expect(screen.queryByText("No expenses in this range.")).not.toBeInTheDocument();
   });
 
@@ -1167,7 +1217,7 @@ describe("ledger screens", () => {
     );
   });
 
-  it("creates a project and shows the lost access recovery state", async () => {
+  it("retains existing project expenses and permits creation without list access warnings", async () => {
     api.repositories.mockResolvedValue({ items: [{ githubRepoId: 303, fullName: "alice/new" }] });
     api.projects.mockResolvedValue({
       items: [
@@ -1185,8 +1235,8 @@ describe("ledger screens", () => {
       nextCursor: null,
     });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
-    expect(await screen.findByText(/GitHub access lost/i)).toBeInTheDocument();
-    expect(screen.getByText(/History/)).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "History" })).toBeVisible();
+    expect(screen.queryByText(/GitHub access lost/i)).not.toBeInTheDocument();
     expect(screen.getByText("USD 2.00")).toBeInTheDocument();
     api.createProject.mockResolvedValue({ id: "prj_2" });
     fireEvent.click(screen.getByRole("button", { name: "Add project" }));
@@ -1422,20 +1472,43 @@ describe("ledger screens", () => {
     expect(exportUrl.searchParams.get("categoryId")).toBe("cat_1");
   });
 
-  it("shows account totals per currency with project and shared costs separate", async () => {
-    api.reportSummary.mockResolvedValue({
-      groups: [
-        { target: "project", projectId: null, currency: "USD", amountMinor: 1000 },
-        { target: "shared", projectId: null, currency: "USD", amountMinor: 500 },
-        { target: "account", projectId: null, currency: "USD", amountMinor: 1500 },
-        { target: "account", projectId: null, currency: "JPY", amountMinor: 120 },
+  it("shows each project's exact expense totals independently by currency", async () => {
+    api.projects.mockResolvedValue({
+      items: [
+        {
+          id: "prj_platform",
+          name: "Platform expenses",
+          githubAccess: "not_linked",
+          totals: [
+            { currency: "USD", amountMinor: "18014398509481982" },
+            { currency: "JPY", amountMinor: 120 },
+            { currency: "KRW", amountMinor: 500 },
+          ],
+        },
+        {
+          id: "prj_website",
+          name: "Website expenses",
+          githubAccess: "not_linked",
+          totals: [
+            { currency: "USD", amountMinor: 500 },
+            { currency: "EUR", amountMinor: 1000 },
+          ],
+        },
       ],
+      nextCursor: null,
     });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
-    expect(await screen.findByText("USD 15.00")).toBeInTheDocument();
-    expect(screen.getByText("JPY 120")).toBeInTheDocument();
-    expect(screen.getByText("USD 10.00")).toBeInTheDocument();
-    expect(screen.getByText("USD 5.00")).toBeInTheDocument();
+    const platform = (await screen.findByRole("link", { name: "Platform expenses" })).closest(
+      "article"
+    );
+    const website = screen.getByRole("link", { name: "Website expenses" }).closest("article");
+    expect(
+      [...platform.querySelectorAll(".financial-value")].map((value) => value.textContent)
+    ).toEqual(["USD 180,143,985,094,819.82", "JPY 120", "KRW 500"]);
+    expect(
+      [...website.querySelectorAll(".financial-value")].map((value) => value.textContent)
+    ).toEqual(["USD 5.00", "EUR 10.00"]);
+    expect(api.reportSummary).not.toHaveBeenCalled();
   });
 
   it("renders large exact integer-string totals and chart proportions without rounding money", async () => {

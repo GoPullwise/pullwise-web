@@ -95,12 +95,16 @@ describe("Project links in the real ledger views", () => {
     "keeps %s data links explicitly selectable without turning a selection into navigation",
     async (mode) => {
       const styles = readFileSync("src/screens/ledger.css", "utf8");
-      const rule = styles.match(
-        /\.ledger-project-links > a,\s*\.ledger-row-main h2 > a\s*\{[^}]*\}/
-      )?.[0];
-      expect(rule).toBeTruthy();
+      const linkRules = [...styles.matchAll(/([^{}]+)\{[^{}]*\}/g)]
+        .filter(([, selectors]) =>
+          [".ledger-project-links > a", ".ledger-row-main h2 > a"].some((selector) =>
+            selectors.includes(selector)
+          )
+        )
+        .map(([rule]) => rule);
+      expect(linkRules.length).toBeGreaterThan(0);
       const stylesheet = document.createElement("style");
-      stylesheet.textContent = rule;
+      stylesheet.textContent = linkRules.join("\n");
       document.head.append(stylesheet);
       const selection = document.getSelection();
       try {
@@ -112,13 +116,16 @@ describe("Project links in the real ledger views", () => {
         const view = render(
           <LedgerScreen api={client(current)} go={go} mode={mode} projectId="prj_one" />
         );
-        await screen.findByRole("link", { name: "Development" });
+        await screen.findByRole("link", { name: "Product" });
         const links = view.container.querySelectorAll(
           ".ledger-project-links > a, .ledger-row-main h2 > a"
         );
-        expect(links).toHaveLength(mode === "projects" ? 3 : 2);
+        expect(links).toHaveLength(2);
         for (const link of links) {
           expect(getComputedStyle(link).userSelect).toBe("text");
+          expect(getComputedStyle(link).textDecoration).toBe(
+            mode === "projects" ? "none" : "underline"
+          );
           expect(link).toHaveAttribute("draggable", "false");
         }
         if (mode === "projects") {
@@ -141,7 +148,7 @@ describe("Project links in the real ledger views", () => {
     }
   );
 
-  it("keeps project entry and safe external links separate, and does not expose lost GitHub names", async () => {
+  it("limits list shortcuts to a safe product link and keeps project entry separate", async () => {
     const linked = project({
       githubRepoIds: [202, 303, 303],
       repositories: [
@@ -162,29 +169,25 @@ describe("Project links in the real ledger views", () => {
     expect(row.querySelector("a a")).toBeNull();
     expect(entry).toHaveAttribute("href", "/projects/prj_one");
     expect(entry).toHaveAttribute("draggable", "false");
-    expect(within(row).getByText("2 repositories", { selector: "summary" })).toBeVisible();
-    fireEvent.click(within(row).getByText("2 repositories", { selector: "summary" }));
-    expect(within(row).getByText("Repository #202")).toBeVisible();
-    expect(within(row).getByRole("link", { name: "team/service" })).toHaveAttribute(
-      "href",
-      "https://github.com/team/service"
-    );
-    expect(within(row).getByRole("link", { name: "team" })).toHaveAttribute(
-      "href",
-      "https://github.com/team"
-    );
+    expect(row.querySelector("details")).toBeNull();
+    expect(within(row).queryByText("Repository #202")).not.toBeInTheDocument();
+    expect(within(row).queryByRole("link", { name: "team/service" })).not.toBeInTheDocument();
+    expect(within(row).queryByRole("link", { name: "team" })).not.toBeInTheDocument();
     expect(screen.queryByText("secret/private")).not.toBeInTheDocument();
     expect(within(row).queryByRole("link", { name: "Development" })).not.toBeInTheDocument();
     const productLink = within(row).getByRole("link", { name: "Product" });
+    expect(productLink).toHaveAttribute("href", "https://product.example.com/");
     expect(productLink).toHaveAttribute("target", "_blank");
     expect(productLink).toHaveAttribute("rel", "noopener noreferrer");
+    expect(productLink).toHaveAttribute("draggable", "false");
+    expect(within(row).getAllByRole("link")).toHaveLength(2);
     fireEvent.click(productLink);
     expect(go).not.toHaveBeenCalled();
     fireEvent.click(entry);
     expect(go).toHaveBeenCalledExactlyOnceWith("ledgerProject", { id: "prj_one" });
   });
 
-  it("shows manual development links only for truly unlinked projects and refuses unsafe stored URLs", async () => {
+  it("leaves no product shortcut or helper text for an unsafe or missing product URL", async () => {
     const unlinked = project({
       developmentUrl: "http://localhost:3000/app",
       productUrl: "javascript:alert(1)",
@@ -192,11 +195,54 @@ describe("Project links in the real ledger views", () => {
     const api = client(unlinked);
     render(<LedgerScreen api={api} go={vi.fn()} mode="projects" />);
     const row = (await screen.findByRole("link", { name: unlinked.name })).closest("article");
-    expect(within(row).getByRole("link", { name: "Development" })).toHaveAttribute(
-      "href",
-      "http://localhost:3000/app"
-    );
+    expect(within(row).queryByRole("link", { name: "Development" })).not.toBeInTheDocument();
     expect(within(row).queryByRole("link", { name: "Product" })).not.toBeInTheDocument();
+    expect(within(row).queryByText("No repositories linked")).not.toBeInTheDocument();
+    expect(row.querySelector(".ledger-project-associations")).toBeEmptyDOMElement();
+  });
+
+  it("retains authorized GitHub shortcuts and repository disclosure on project detail", async () => {
+    const linked = project({
+      githubRepoIds: [202, 303],
+      repositories: [
+        { githubRepoId: 202, githubAccess: "lost", githubFullName: "secret/private" },
+        { githubRepoId: 303, githubAccess: "authorized", githubFullName: "team/service" },
+      ],
+      githubOrganization: { id: 8, login: "team", githubAccess: "authorized" },
+      githubAccess: "partial",
+      developmentUrl: "https://dev.example.com/",
+      productUrl: "https://product.example.com/",
+    });
+    render(<LedgerScreen api={client(linked)} go={vi.fn()} mode="project" projectId="prj_one" />);
+    const productLink = await screen.findByRole("link", { name: "Product" });
+    expect(productLink).toHaveAttribute("href", linked.productUrl);
+    const disclosure = screen.getByText("2 repositories", { selector: "summary" });
+    fireEvent.click(disclosure);
+    const shortcuts = within(disclosure.closest(".ledger-project-links"));
+    expect(shortcuts.getByText("Repository #202")).toBeVisible();
+    expect(shortcuts.getByRole("link", { name: "team/service" })).toHaveAttribute(
+      "href",
+      "https://github.com/team/service"
+    );
+    expect(shortcuts.getByRole("link", { name: "team" })).toHaveAttribute(
+      "href",
+      "https://github.com/team"
+    );
+    expect(screen.queryByText("secret/private")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Development" })).not.toBeInTheDocument();
+  });
+
+  it("retains an explicit HTTP development shortcut only on an unlinked project detail", async () => {
+    const unlinked = project({
+      developmentUrl: "http://localhost:3000/app",
+      productUrl: "javascript:alert(1)",
+    });
+    render(<LedgerScreen api={client(unlinked)} go={vi.fn()} mode="project" projectId="prj_one" />);
+    expect(await screen.findByRole("link", { name: "Development" })).toHaveAttribute(
+      "href",
+      unlinked.developmentUrl
+    );
+    expect(screen.queryByRole("link", { name: "Product" })).not.toBeInTheDocument();
   });
 
   it("normalizes optional links on creation without requiring GitHub association", async () => {

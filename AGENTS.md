@@ -1,5 +1,19 @@
 # Pullwise Web
 
+## Projects list simplification (2026-10-08)
+
+The latest user request supersedes the earlier all-link Projects list design.
+The list shows project identity/description, exact per-currency expense totals
+and only a product shortcut. Development, GitHub repository/Organization links
+and expandable repository groups remain in project detail, with settings and
+creation unchanged. Do not show repository access/count placeholders in the
+list. Remove the entire Projects ledger overview, its loading skeleton, filters
+and overview-only requests; retain project/shared Reports and the Server APIs.
+Reduce Projects-only decorative lines and permanent link underlines. Use calm
+equal-row spacing and aligned columns, retaining native data selection, clear
+hover/focus, full values, responsive container reflow and the original theme.
+Publish the Web change to GitHub main and Cloudflare preview only.
+
 ## Project links and recurring expenses (2026-10-08)
 
 Implement optional development/product links in project settings and shortcuts

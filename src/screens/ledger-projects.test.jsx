@@ -582,13 +582,21 @@ describe("Projects authorization and creation", () => {
     expect(api.repositories).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps project controls usable when the spending summary fails", async () => {
-    api.reportSummary.mockRejectedValueOnce(new Error("Summary unavailable"));
+  it("creates projects without reading workspace reports or category filters", async () => {
+    api.reportSummary.mockImplementation(() => new Promise(() => {}));
+    api.categories.mockImplementation(() => new Promise(() => {}));
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
     await nameProject();
     expect(screen.queryByRole("combobox", { name: "Repository" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Spending summary is unavailable/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Spending summary is unavailable/i)).not.toBeInTheDocument();
     expect(screen.queryByText("No expenses in this range.")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Ledger overview" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("From date")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Filter category")).not.toBeInTheDocument();
+    expect(api.categories).not.toHaveBeenCalled();
+    expect(api.reportSummary).not.toHaveBeenCalled();
+    expect(api.reportTimeseries).not.toHaveBeenCalled();
+    expect(api.reportCategories).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: /Create project/i }));
     await waitFor(() =>
       expect(api.createProject).toHaveBeenCalledWith(
@@ -596,6 +604,43 @@ describe("Projects authorization and creation", () => {
         {}
       )
     );
+  });
+
+  it("keeps search local and refreshes or paginates only the Projects list", async () => {
+    const first = { ...blankProject, id: "prj_first", name: "First project" };
+    const next = { ...blankProject, id: "prj_next", name: "Next project" };
+    api.projects
+      .mockResolvedValueOnce({ items: [first], nextCursor: "projects-page-2" })
+      .mockResolvedValueOnce({ items: [next], nextCursor: null })
+      .mockResolvedValueOnce({ items: [first], nextCursor: null });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    await screen.findByRole("link", { name: first.name });
+    fireEvent.change(screen.getByRole("searchbox", { name: "Find a project" }), {
+      target: { value: "Nothing matches" },
+    });
+    expect(screen.getByRole("heading", { name: "No matching projects" })).toBeVisible();
+    expect(api.projects).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load more projects" }));
+    expect(await screen.findByRole("link", { name: next.name })).toBeVisible();
+    expect(api.projects).toHaveBeenLastCalledWith(
+      { cursor: "projects-page-2" },
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    await waitFor(() => expect(api.projects).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(screen.queryByRole("link", { name: next.name })).not.toBeInTheDocument()
+    );
+    expect(screen.getByRole("link", { name: first.name })).toBeVisible();
+    expect(api.categories).not.toHaveBeenCalled();
+    expect(api.reportSummary).not.toHaveBeenCalled();
+    expect(api.reportTimeseries).not.toHaveBeenCalled();
+    expect(api.reportCategories).not.toHaveBeenCalled();
+    expect(api.repositories).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "Ledger overview" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("From date")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Filter category")).not.toBeInTheDocument();
   });
 
   it("opens the explicitly created project and guards duplicate submission", async () => {
@@ -858,7 +903,7 @@ describe("Projects authorization and creation", () => {
     fireEvent.click(retry);
     expect(api.repositories).toHaveBeenCalledTimes(2);
     expect(api.projects).toHaveBeenCalledTimes(1);
-    expect(api.reportSummary).toHaveBeenCalledTimes(1);
+    expect(api.reportSummary).not.toHaveBeenCalled();
     view.rerender(<LedgerScreen go={vi.fn()} mode="projects" authorizationRevision={1} />);
     await openGitHubLinks();
     expect(await screen.findByRole("option", { name: "alice/project" })).toBeInTheDocument();

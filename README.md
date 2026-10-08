@@ -25,9 +25,11 @@ Server changes are on GitHub main. See the current acceptance for separate
 local/native and actual publication evidence.
 
 Project settings and creation accept optional product links and, for standalone
-projects, development links. The project list and detail header provide quick
-shortcuts. Linked projects expose only each acting member's authorized GitHub
-repository/Organization destinations. Domains and store links use validated
+projects, development links. The Projects list provides product shortcuts;
+development links and each acting member's authorized GitHub repository/Organization
+destinations remain in project detail. The list uses aligned project information,
+expense totals and product entry points without an account-wide overview or
+expandable repository groups. Domains and store links use validated
 HTTP(S) URLs; a bare domain is normalized to HTTPS. Financial data and link text
 remain selectable, while ordinary controls keep their shared interaction style.
 

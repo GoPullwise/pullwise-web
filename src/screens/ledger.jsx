@@ -292,12 +292,6 @@ function LedgerSkeleton({ mode }) {
             {headingSkeleton}
             {formSkeleton}
           </div>
-          {mode === "projects" && (
-            <div className="panel ledger-overview">
-              {headingSkeleton}
-              {statsSkeleton}
-            </div>
-          )}
         </div>
       ) : (
         <>
@@ -433,6 +427,7 @@ function ProjectLinkFields({ developmentUrl, productUrl, onChange, disabled }) {
 }
 
 function ProjectListRow({ project, go }) {
+  const productHref = projectUrlHref(project.productUrl);
   return (
     <article className="ledger-project-row">
       <div className="ledger-row-main">
@@ -455,19 +450,14 @@ function ProjectListRow({ project, go }) {
           : T("No expenses")}
       </div>
       <div className="ledger-project-associations">
-        <span className="ledger-project-label">{T("Project links", "项目链接")}</span>
-        {project.githubAccess === "not_linked" ? (
-          <p>{T("No repositories linked", "未关联仓库")}</p>
-        ) : null}
-        <ProjectExternalLinks project={project} />
-        {["lost", "reauthorization_required"].includes(project.githubAccess) && (
-          <p className="ledger-access-lost">{T("GitHub access lost", "GitHub 授权已失效")}</p>
-        )}
-        {project.githubAccess === "unavailable" && (
-          <p>{T("GitHub access could not be verified", "暂时无法验证 GitHub 授权")}</p>
+        {productHref && (
+          <div className="ledger-project-links">
+            <a href={productHref} target="_blank" rel="noopener noreferrer" draggable={false}>
+              {T("Product", "产品")} <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         )}
       </div>
-      <I.ArrowR size={16} aria-hidden="true" />
     </article>
   );
 }
@@ -941,21 +931,10 @@ function ScopedLedgerScreen({
     const options = { signal: controller.signal };
     const load = async () => {
       if (mode === "projects") {
-        const [projects, categories, summary] = await Promise.all([
-          api.projects({}, options),
-          api.categories(options),
-          api.reportSummary(filtered, options).then(
-            (value) => ({ value }),
-            (failure) => ({ failure })
-          ),
-        ]);
         return {
-          projects,
+          projects: await api.projects({}, options),
           repositories: null,
           repositoryError: null,
-          categories,
-          summary: summary.value,
-          summaryError: summary.failure ? errorText(summary.failure) : "",
         };
       }
       if (mode === "categories") return { categories: await api.categories(options) };
@@ -1622,9 +1601,7 @@ function ScopedLedgerScreen({
                       </div>
                     </li>
                     <li>
-                      <span className="setup-number">
-                        {activeCategories.length ? <I.Check size={14} /> : "02"}
-                      </span>
+                      <span className="setup-number">02</span>
                       <div>
                         <strong>
                           <a {...screenLinkProps(go, "ledgerCategories")}>
@@ -1712,7 +1689,7 @@ function ScopedLedgerScreen({
                         <span className="ledger-project-head-amount">
                           {T("Expense total", "支出合计")}
                         </span>
-                        <span>{T("Project links", "项目链接")}</span>
+                        <span>{T("Product", "产品")}</span>
                       </div>
                     )}
                     <div className="ledger-list">
@@ -2024,67 +2001,6 @@ function ScopedLedgerScreen({
                     </form>
                   </section>
                 )}
-                <details
-                  className="panel ledger-overview"
-                  open={data.summaryError || Object.keys(filtered).length ? true : undefined}
-                >
-                  <summary className="panel-h">
-                    <I.Activity size={20} />
-                    <h2>{T("Ledger overview")}</h2>
-                  </summary>
-                  {data.summaryError && (
-                    <p role="status">
-                      {T(
-                        "Spending summary is unavailable. Your projects are still ready to use.",
-                        "支出汇总暂时无法加载，你仍可以使用项目。"
-                      )}{" "}
-                      {data.summaryError}
-                    </p>
-                  )}
-                  {data.summary &&
-                    data.summary.groups.filter((group) => group.target === "account").length ===
-                      0 && <p>{T("No expenses in this range.")}</p>}
-                  <div className="ledger-stats">
-                    {data.summary?.groups
-                      .filter((group) => group.target === "account")
-                      .map((group) => (
-                        <article className="ledger-stat" key={group.currency}>
-                          <h3>
-                            <LedgerTotal total={group} />
-                          </h3>
-                          <p>
-                            {T("Projects")}:{" "}
-                            <LedgerTotal
-                              total={
-                                data.summary.groups.find(
-                                  (item) =>
-                                    item.target === "project" &&
-                                    item.projectId == null &&
-                                    item.currency === group.currency
-                                ) || { currency: group.currency, amountMinor: 0 }
-                              }
-                            />
-                          </p>
-                          <p>
-                            {T("Shared pool")}:{" "}
-                            <LedgerTotal
-                              total={
-                                data.summary.groups.find(
-                                  (item) =>
-                                    item.target === "shared" && item.currency === group.currency
-                                ) || { currency: group.currency, amountMinor: 0 }
-                              }
-                            />
-                          </p>
-                        </article>
-                      ))}
-                  </div>
-                  <LedgerFilters
-                    filters={filters}
-                    onChange={setFilters}
-                    categories={data.categories}
-                  />
-                </details>
               </LedgerSplit>
             </>
           )}

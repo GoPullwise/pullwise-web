@@ -2,6 +2,36 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Projects product-only list (2026-10-08)
+
+The latest user request replaces the earlier all-link list design. Projects
+now align name/description, exact expense totals and one safe product shortcut.
+Development, repository/Organization shortcuts and their expansion stay in
+project detail/settings. Repository/access placeholders and the noninteractive
+row arrow leave the list. Projects-only CSS removes row hairlines and permanent
+name/link underlines, retaining one quiet table header boundary, natural equal
+tracks, full values, hover insets, native text selection and keyboard focus.
+
+The entire ledger overview, its loading skeleton, filter fields and specialized
+CSS are removed. Initial load/reload and pagination read only Projects; local
+search makes no request. Categories remain in their own page and detail entry,
+while project/shared Reports and their existing filters continue to work.
+
+[Local evidence](projects-product-only-local-2026-10-08.json) records lint,
+**42 files / 703 tests**, config/syntax, owned formatting, whitespace, explicit
+preview build and pinned Wrangler packaging. Native acceptance passes three
+complete contexts and 52 states with four Root-reviewed unedited viewport
+captures: English/light desktop, actual-touch Chinese/dark landscape and
+mobile 390px with live 320px. Held initial loading, product-only safe anchors,
+no overview requests, native name/money/input selection, focus/hover/equal
+heights, retained detail links/settings and 280px creation split/Cancel pass.
+All 46 artifact / 70 runtime source hashes remain stable. Accepted traffic is
+145 interceptions / 60 synthetic GETs, maximum 53 of 100 per context, no writes
+or external delivery; three font attempts are blocked. One initial harness
+navigation deadlock is excluded: one interception and no fixture, state or
+capture. Browsers/profiles are cleaned and ports are free. Local fixtures do
+not prove real-session/provider operations or OS clipboard contents.
+
 ## Project links and recurring expenses (2026-10-08)
 
 Project creation/settings support optional product URLs and standalone
