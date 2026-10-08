@@ -23,7 +23,6 @@ export const PHRASES = {
   "Copyright 2026 Pullwise": "Copyright 2026 Pullwise",
   "API key": "API キー",
   Authentication: "認証",
-  "Account automation": "アカウント自動化",
   "Unable to load API keys.": "API キーを読み込めません。",
   "API key response was malformed.": "API キーレスポンスの形式が不正です。",
   "Unable to create API key.": "API キーを作成できません。",
@@ -43,7 +42,6 @@ export const PHRASES = {
   "Final amount is calculated by Creem": "最終金額は Creem が計算",
   "Listed prices and tax are shown by Pullwise. The exact charge for this change is calculated by Creem at confirmation.":
     "表示価格と税金は Pullwise が表示します。この変更の正確な請求額は確認時に Creem が計算します。",
-  "Prorated charge today": "本日の按分請求",
   "The new plan is effective now. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date.":
     "新しいプランは今すぐ有効になります。Creem は現在期間の残り分の按分差額を請求し、次回更新日に新しい金額を請求します。",
   "Plan tier": "プラン階層",
@@ -69,8 +67,6 @@ export const PHRASES = {
   "Calculated at confirmation": "確認時に計算",
   "What changes now": "今回変更される内容",
   "How this works": "仕組み",
-  "The new plan takes effect immediately. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date. You can cancel renewal from Pullwise Billing.":
-    "新しいプランは即時有効になります。Creem は現在期間の残り分の按分差額を請求し、次回更新日に新しい金額を請求します。Pullwise Billing から更新をキャンセルできます。",
   "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem.":
     "Pullwise はプランの表示価格のみを表示します。税金、按分、クレジット、最終請求額は Creem が計算します。",
   "Confirm change": "変更を確認",
@@ -80,18 +76,8 @@ export const PHRASES = {
   "API contract": "API 契約",
   "Unable to connect GitHub repository access.": "GitHub リポジトリアクセスを接続できません。",
   "GitHub repository authorization": "GitHub リポジトリ認可",
-  "Authentication is unavailable. Check the backend auth service.":
-    "認証を利用できません。バックエンド認証サービスを確認してください。",
-  "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.":
-    "この GitHub App は現在オーナーのみがインストールできます。ユーザーが自分のアカウントまたは組織にインストールできるよう、GitHub App を Public / Any account にしてから再試行してください。",
-  "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.":
-    "Pullwise はこの GitHub App が公開されているか確認できませんでした。GitHub API アクセスが利用可能になってから再試行してください。",
   "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected.":
     "GitHub はアプリをインストールしませんでした。組織を選んだ場合、リポジトリを接続する前に組織オーナーの承認が必要な場合があります。",
-  "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again.":
-    "GitHub が installation id なしで戻りました。GitHub App の setup URL が Pullwise バックエンドコールバックを指していることを確認し、もう一度インストールしてください。",
-  "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.":
-    "Pullwise は GitHub App インストールを見つけましたが、GitHub App の秘密鍵がないか無効なため、バックエンドはリポジトリを同期できません。PULLWISE_GITHUB_APP_ID と PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH または PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64 を設定して、バックエンドを再起動してください。",
   "Restoring your account.": "アカウントを復元しています。",
   "Continue from your account.": "アカウントから続行します。",
   "Continue with GitHub": "GitHub で続行",
@@ -118,7 +104,6 @@ export const PHRASES = {
   Service: "サービス",
   "Account and GitHub access": "アカウントと GitHub アクセス",
   "API use": "API 利用",
-  "configured backend": "設定済みバックエンド",
   "Last checked": "最終確認",
   "Initial check, then refresh manually": "初回の確認後は手動で更新します",
   "Refresh status": "状態を更新",
@@ -130,7 +115,6 @@ export const PHRASES = {
   Spanish: "スペイン語",
   French: "フランス語",
   API: "API",
-  "Account overview": "アカウント概要",
   "Add account or organization": "アカウントまたは組織を追加",
   "API docs": "API ドキュメント",
   "API Keys": "API キー",
@@ -183,13 +167,8 @@ export const PHRASES = {
   Product: "製品",
   "API reachable": "API 到達可能",
   "API unreachable": "API 到達不能",
-  "Live components": "ライブコンポーネント",
   "Web app": "Web アプリ",
   "REST API": "REST API",
-  "State database": "状態データベース",
-  "Waiting for backend health.": "バックエンドのヘルスチェック待機中。",
-  "Backend readiness": "バックエンドの稼働状況",
-  "Configuration visible from safe /health fields": "安全な /health フィールドから見える設定",
   "GitHub integration": "GitHub 統合",
   "Billing provider": "請求プロバイダー",
   "OAuth configured": "OAuth 設定済み",
@@ -202,10 +181,8 @@ export const PHRASES = {
   "Visibility check off": "可視性チェック オフ",
   enabled: "有効",
   "not enabled": "未有効",
-  "Configured in provider": "提供者側で設定",
   "Switch to yearly": "年次に切替",
   "View pricing": "料金を見る",
-  "Billing is not configured on the backend yet.": "バックエンドで請求がまだ設定されていません。",
   Monthly: "月額",
   Yearly: "年次",
   save: "お得",

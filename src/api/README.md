@@ -31,11 +31,17 @@ member's current role. Membership revision changes invalidate team keys, and
 a workspace header cannot override a key's binding. Owner ledger quotas, plan
 and model allowance pool team usage; members' personal ledgers remain separate.
 
-Project writes use `githubRepoIds` with 1–30 distinct stable authorized numeric
-repository IDs, plus optional `name`, `description` and `githubOrganizationId`.
+Standalone project creation requires a nonempty `name` and accepts an optional
+`description`. Omit `githubRepoIds` or send `[]`; omit `githubOrganizationId` or
+send `null`. Repository authorization is not required for standalone expenses.
+Optional GitHub links use `githubRepoIds` with 1–30 distinct stable authorized
+numeric repository IDs, plus an optional `githubOrganizationId`.
 GitHub authorization belongs to the actual actor, independently of ledger
 membership. Changing associations preserves the project ID and financial
-history. New project expenses require at least one currently authorized linked
-repository; unavailable protected repository metadata is hidden. Member,
+history. On update, omitted repository IDs preserve existing links; `[]`
+removes all links and clears the Organization association, with a nonempty
+project name required. New expenses in linked projects require at least one
+currently authorized linked repository; unavailable protected repository
+metadata is hidden. Member,
 invitation and existing resource changes use `If-Match` revisions; expense
 creation uses a fresh `Idempotency-Key`.

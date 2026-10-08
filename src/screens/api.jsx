@@ -233,7 +233,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     [scopeValuesKey]
   );
   const [keys, setKeys] = useState([]);
-  const [name, setName] = useState(T("Account automation", "账户自动化"));
+  const [name, setName] = useState(T("Ledger automation", "账本自动化"));
   const [selectedScopes, setSelectedScopes] = useState(defaultScopes);
   const [restrictProjects, setRestrictProjects] = useState(false);
   const [selectedProjectIds, setSelectedProjectIds] = useState([]);
@@ -416,7 +416,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     setRevokeTarget(null);
     setLoadedOnce(false);
     setPending("");
-    setName(T("Account automation", "账户自动化"));
+    setName(T("Ledger automation", "账本自动化"));
     setSelectedScopes(defaultScopes);
     setRestrictProjects(false);
     setSelectedProjectIds([]);
@@ -536,7 +536,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
         );
       }
       setCreatedCredential({ keyId: key.id, token });
-      setName(T("Account automation", "账户自动化"));
+      setName(T("Ledger automation", "账本自动化"));
       setSelectedScopes(defaultScopes);
       setRestrictProjects(false);
       setSelectedProjectIds([]);

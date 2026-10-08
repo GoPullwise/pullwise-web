@@ -261,7 +261,7 @@ describe("API screens", () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({
       id: "key_keyboard",
-      name: "Account automation",
+      name: "Ledger automation",
       key: "pwk_keyboard_local",
     });
     const user = userEvent.setup();
@@ -275,7 +275,7 @@ describe("API screens", () => {
 
     await waitFor(() =>
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-        name: "Account automation",
+        name: "Ledger automation",
         scopes: [
           "profile:read",
           "projects:read",
@@ -333,7 +333,7 @@ describe("API screens", () => {
 
     creation.resolve({
       id: "key_serialized",
-      name: "Account automation",
+      name: "Ledger automation",
       prefix: "pwk_serialized",
       key: "pwk_live_serialized",
     });
@@ -396,7 +396,7 @@ describe("API screens", () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({
       id: "key_without_token",
-      name: "Account automation",
+      name: "Ledger automation",
       prefix: "pwk_missing",
     });
     const user = userEvent.setup();
@@ -469,7 +469,7 @@ describe("API screens", () => {
     await user.click(screen.getByRole("button", { name: /create key/i }));
     await waitFor(() =>
       expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-        name: "Account automation",
+        name: "Ledger automation",
         scopes: [
           "profile:read",
           "projects:read",
@@ -581,7 +581,7 @@ describe("API screens", () => {
     ).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button", { name: "Create key" }));
     expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-      name: "Account automation",
+      name: "Ledger automation",
       scopes: ["expenses:read", "reports:read"],
       restrictions: { shared: false, workspaceId: "wsp_team", workspaceMemberRevision: 3 },
     });
@@ -886,7 +886,7 @@ describe("API screens", () => {
     await user.click(screen.getByRole("checkbox", { name: "Allow shared expense pool" }));
     await user.click(screen.getByRole("button", { name: "Create key" }));
     expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith({
-      name: "Account automation",
+      name: "Ledger automation",
       scopes: readScopes,
       restrictions: { shared: true, projectIds: ["prj_web", "prj_later"] },
     });

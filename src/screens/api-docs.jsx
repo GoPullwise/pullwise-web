@@ -17,7 +17,7 @@ const ENDPOINTS = [
     "projects:write",
     "Update project details or GitHub links with If-Match",
   ],
-  ["GET", "/api/v1/categories", "categories:read", "Account categories"],
+  ["GET", "/api/v1/categories", "categories:read", "Ledger categories"],
   ["POST", "/api/v1/categories", "categories:write", "Create category"],
   ["PATCH", "/api/v1/categories/{id}", "categories:write", "Rename with If-Match"],
   ["DELETE", "/api/v1/categories/{id}", "categories:write", "Archive with If-Match"],
@@ -31,7 +31,7 @@ const ENDPOINTS = [
     "GET",
     "/api/v1/reports/summary",
     "reports:read",
-    "Per-currency account, project and shared totals",
+    "Per-currency ledger, project and shared totals",
   ],
   ["GET", "/api/v1/reports/timeseries", "reports:read", "Date-bucket totals"],
   ["GET", "/api/v1/reports/categories", "reports:read", "Category totals"],
@@ -86,9 +86,9 @@ const PROJECT_STATE =
   'Standalone responses have githubRepoId: null, githubRepoIds: [], repositories: [] and githubAccess: "not_linked". Active standalone projects can record expenses under the usual role, scope and plan limits.';
 
 const MAX_ASSISTANCE =
-  "For Max accounts, regular expense creation and editing automatically receive Jev assistance while the model is available and within the monthly allowance. No separate suggestion request or suggestions:use scope is needed; expenses:write and the normal target restrictions apply.";
+  "For ledgers on the Owner's Max plan, regular expense creation and editing automatically receive Jev assistance while the model is available and within the ledger's monthly allowance. No separate suggestion request or suggestions:use scope is needed; expenses:write and the normal target restrictions apply.";
 const CATEGORY_BEHAVIOR =
-  "On POST /api/v1/expenses, Max can omit categoryId for reliable automatic categorization. Explicit category, target, amount and currency are preserved. If no reliable category is available, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry with a new Idempotency-Key. Free and Pro require a category. PATCH always requires an explicit category.";
+  "On POST /api/v1/expenses, Max can omit categoryId when automatic categorization is available. Explicit category, target, amount and currency are preserved. If no category can be suggested, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry with a new Idempotency-Key. Free and Pro require a category. PATCH always requires an explicit category.";
 const ASSISTANCE_RESPONSE =
   "Successful writes return the expense with an assistance object: status, categorySource (jev or user), suggestions and optional reason/modelVersion/questionVersion. Duplicate advice never blocks saving. Identical Idempotency-Key replays return the cached result without another model call. Reads do not invoke Jev.";
 const EXACT_TOTALS =
@@ -100,7 +100,7 @@ function markdown(base, example, createExample, projectExample) {
     "",
     "Use a Bearer key with the required ledger scopes and project/shared restrictions.",
     "",
-    "The account ledger and Pullwise platform billing are separate. No exchange rate is inferred.",
+    "Ledger expenses and Pullwise platform billing are separate. Totals stay separate by currency; no currency conversion is performed.",
     "",
     "Keys are bound to one workspace and intersect the issuing member's current role. Team membership revision changes invalidate the key. X-Pullwise-Workspace cannot override that binding. Cookie requests may select a ledger with X-Pullwise-Workspace; native CSV links use workspaceId. Conflicting selectors are rejected. Members share the ledger Owner's plan and monthly model allowance.",
     "",
@@ -321,13 +321,13 @@ export function ApiDocsScreen({ go, auth }) {
           <p>
             {T(
               MAX_ASSISTANCE,
-              "Max 账户在模型可用且月度额度内，正常创建和编辑支出即可自动享受 Jev 辅助。无需另发建议请求或授予 suggestions:use 权限；使用 expenses:write 和正常目标权限即可。"
+              "账本所有者订阅 Max 后，在模型可用且账本月度额度内，正常创建和编辑支出即可自动享受 Jev 辅助。无需另发建议请求或授予 suggestions:use 权限；使用 expenses:write 和正常目标权限即可。"
             )}
           </p>
           <p>
             {T(
               CATEGORY_BEHAVIOR,
-              "POST /api/v1/expenses 时，Max 可省略 categoryId 使用可靠的自动分类。明确填写的分类、目标、金额和币种会保留。没有可靠分类时返回 422 CATEGORY_REQUIRED，支出尚未保存；请选择分类并用新的 Idempotency-Key 重试。Free 和 Pro 必须填写分类；PATCH 始终需要明确分类。"
+              "POST /api/v1/expenses 时，自动分类可用则 Max 可省略 categoryId。明确填写的类别、目标、金额和币种会保留。无法提供类别建议时返回 422 CATEGORY_REQUIRED，支出尚未保存；请选择类别并用新的 Idempotency-Key 重试。Free 和 Pro 必须填写类别；PATCH 始终需要明确类别。"
             )}
           </p>
           <p>

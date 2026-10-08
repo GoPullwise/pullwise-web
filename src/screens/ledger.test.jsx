@@ -85,7 +85,7 @@ describe("ledger screens", () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     api.me.mockResolvedValue({ entitlements: { jev: { eligible: false, available: false } } });
     render(<LedgerScreen go={vi.fn()} mode="project" projectId={project.id} />);
-    expect(await screen.findByText("No GitHub connection")).toBeVisible();
+    expect(await screen.findByText("No repositories linked")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-07" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "4.00" } });

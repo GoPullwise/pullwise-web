@@ -67,9 +67,10 @@ describe("public navigation links", () => {
     expect(screen.queryByText(/full-repository|start scans|fix-ready|review high-risk/i)).not.toBeInTheDocument();
   });
 
-  it("explains repository access in terms of the new services", () => {
+  it("explains project creation with optional repository links", () => {
     render(<LoginScreen go={vi.fn()} />);
-    expect(screen.getAllByText(/create ledger projects/i)).toHaveLength(2);
+    expect(screen.getByText(/repository links are optional/i)).toBeInTheDocument();
+    expect(screen.getByText(/create a project and record your first expense/i)).toBeInTheDocument();
     expect(screen.queryByText(/start a scan/i)).not.toBeInTheDocument();
   });
 

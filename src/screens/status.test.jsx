@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { setLang } from "../i18n.jsx";
@@ -29,13 +29,14 @@ describe("StatusScreen", () => {
     setLang("en");
   });
 
-  it("renders live backend health instead of generated incident history", async () => {
+  it("reports API reachability and backend information without claiming full service availability", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
       mode: "preview",
       database: {
         type: "d1",
+        configured: true,
         path: "/private/ledger.db",
       },
     });
@@ -46,17 +47,20 @@ describe("StatusScreen", () => {
     expect(pullwiseApi.system.health).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("Scan system")).not.toBeInTheDocument();
     expect(pullwiseApi.system.status).toBeUndefined();
-    expect(screen.getByText(/d1: configured backend/i)).toBeInTheDocument();
+    expect(screen.getByText(/d1: backend reported by API/i)).toBeInTheDocument();
+    expect(screen.getByText(/does not verify ledger writes, GitHub authorization or payments/i)).toBeInTheDocument();
+    expect(screen.getByText("Loaded in this browser")).toBeInTheDocument();
+    expect(screen.queryByText(/^operational$/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/\/private\/ledger\.db/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Elevated scan latency/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Brief web app outage/i)).not.toBeInTheDocument();
   });
 
-  it("shows only current GitHub and billing readiness from health", async () => {
+  it("describes optional GitHub and billing fields as configuration rather than operational checks", async () => {
     pullwiseApi.system.health.mockResolvedValue({
       ok: true,
       service: "pullwise-server",
-      database: { type: "d1", path: "/private/ledger.db" },
+      database: { type: "d1", configured: true, path: "/private/ledger.db" },
       github: { oauthConfigured: true, appInstallConfigured: true, appApiConfigured: false },
       billing: { provider: "disabled", enabled: false },
       scanSystem: { queuedJobs: 5, busyWorkerCount: 1 },
@@ -65,7 +69,9 @@ describe("StatusScreen", () => {
 
     render(<StatusScreen go={vi.fn()} />);
 
-    expect(await screen.findByText("Backend readiness")).toBeInTheDocument();
+    expect(await screen.findByText("Reported configuration")).toBeInTheDocument();
+    expect(screen.getByText("Incomplete configuration")).toBeInTheDocument();
+    expect(screen.getByText("Configuration flags do not verify integration availability")).toBeInTheDocument();
     expect(screen.getByText(/OAuth configured/i)).toBeInTheDocument();
     expect(screen.getByText(/App API missing/i)).toBeInTheDocument();
     expect(screen.getByText(/disabled \(not enabled\)/i)).toBeInTheDocument();
@@ -73,6 +79,28 @@ describe("StatusScreen", () => {
       screen.queryByText(/Scan system|Review runtimes|old-model|queued/i)
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/\/private\/ledger\.db/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps fully configured providers distinct from successful authorization or payment acceptance", async () => {
+    pullwiseApi.system.health.mockResolvedValue({
+      ok: true,
+      service: "pullwise-server",
+      github: { oauthConfigured: true, appInstallConfigured: true, appApiConfigured: true },
+      billing: { provider: "creem", enabled: true },
+    });
+
+    render(<StatusScreen go={vi.fn()} />);
+
+    expect(await screen.findByText("Reported configuration")).toBeInTheDocument();
+    const githubRow = screen.getByText("GitHub integration").closest(".status-row");
+    const billingRow = screen.getByText("Billing provider").closest(".status-row");
+    const databaseRow = screen.getByText("Database backend").closest(".status-row");
+    expect(within(githubRow).getByText("Configured")).toBeInTheDocument();
+    expect(within(billingRow).getByText("enabled")).toBeInTheDocument();
+    expect(within(databaseRow).getByText("Not reported")).toBeInTheDocument();
+    expect(within(databaseRow).getByText("No database information reported.")).toBeInTheDocument();
+    expect(screen.queryByText(/^operational$/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^degraded$/i)).not.toBeInTheDocument();
   });
 
   it("allows an explicit refresh to fail and recover without repeating the request automatically", async () => {
@@ -102,7 +130,7 @@ describe("StatusScreen", () => {
         ok: true,
         service: "pullwise-server",
         mode: "production",
-        database: { type: "d1", path: "/private/ledger.db" },
+        database: { type: "d1", configured: true, path: "/private/ledger.db" },
       });
       await freshHealth.promise;
     });

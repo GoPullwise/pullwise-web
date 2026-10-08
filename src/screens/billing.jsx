@@ -32,9 +32,9 @@ function priceFor(plan, interval) {
 }
 
 function priceLabel(price) {
-  if (!price) return T("Configured in provider", "Configured in provider");
+  if (!price) return T("Price unavailable", "价格暂不可用");
   const amount = priceAmount(price.amount);
-  if (amount == null) return T("Configured in provider", "Configured in provider");
+  if (amount == null) return T("Price unavailable", "价格暂不可用");
   if (amount === 0) return "$0";
   return `${currencySymbol(price.currency)}${amount}`;
 }
@@ -183,8 +183,8 @@ function cadenceLabel(interval) {
 
 // Charge callout for the dialog — derived from the listed delta. Downgrade
 // is no longer a supported flow, so this always shows the upgrade copy:
-// charge prorated diff now, new plan effective immediately, new amount on
-// the next renewal date.
+// describe a possible provider charge and keep plan activation tied to
+// payment confirmation.
 function chargeCallout(deltaText) {
   const noPrice =
     deltaText === T("Final amount is calculated by Creem.", "Final amount is calculated by Creem.");
@@ -204,10 +204,10 @@ function chargeCallout(deltaText) {
   return {
     tone: "charge",
     icon: I.Trend,
-    title: T("Prorated charge today", "今天按比例扣款"),
+    title: T("Possible charge today", "今天可能产生扣款"),
     body: T(
-      "Creem charges the prorated difference immediately and may start a new billing cycle. Your plan updates after payment confirmation.",
-      "Creem 会立即按比例收取差额，并可能开始新的计费周期。支付确认后套餐才会更新。"
+      "Creem may charge a prorated difference immediately and may start a new billing cycle. Your plan updates after payment confirmation.",
+      "Creem 可能立即按比例收取差额，并可能开始新的计费周期。支付确认后套餐才会更新。"
     ),
     deltaText,
     showDelta: true,
@@ -938,8 +938,8 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                   {!billingEnabled && !error && (
                     <div className="muted">
                       {T(
-                        "Billing is not configured on the backend yet.",
-                        "Billing is not configured on the backend yet."
+                        "Paid subscriptions are currently unavailable.",
+                        "Paid subscriptions are currently unavailable."
                       )}
                     </div>
                   )}
@@ -1094,8 +1094,8 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                   <b>{T("How this works", "变更说明")}</b>
                   <p>
                     {T(
-                      "The new plan takes effect immediately. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date. You can cancel renewal from Pullwise Billing.",
-                      "新套餐立即生效。Creem 会按当前周期剩余时间收取差额，并在下个续费日按新价格计费。你可以在 Pullwise 账单页取消续订。"
+                      "Your plan updates after payment confirmation. Creem calculates any immediate charge and may start a new billing cycle. Review the final amount and renewal details in Creem. You can cancel renewal from Pullwise Billing.",
+                      "支付确认后套餐才会更新。Creem 计算可能立即收取的费用，并可能开始新的计费周期。请在 Creem 查看最终金额与续费详情。你可以在 Pullwise 账单页取消续订。"
                     )}
                   </p>
                 </div>
@@ -1393,14 +1393,28 @@ export function PricingScreen({
         </section>
       )}
 
-      {!pricingLoading && !billingEnabled && !error && (
+      {!pricingLoading && !error && (
         <div className="pricing-faq" style={{ paddingTop: 0 }}>
-          <div className="muted">
+          <p className="muted">
             {T(
-              "Billing is not configured on the backend yet.",
-              "Billing is not configured on the backend yet."
+              "Project and expense limits apply to the Owner's ledger and are shared by members and API keys. Archived projects and removed expenses still count toward capacity.",
+              "项目与支出限额按所有者的账本计算，由成员及 API 密钥共同使用。已归档项目和已移除支出仍占用容量。"
             )}
-          </div>
+          </p>
+          <p className="muted">
+            {T(
+              "The monthly Jev allowance covers model assistance, has no cash value, and cannot pay expenses or subscription charges.",
+              "Jev 月度额度用于模型辅助，没有现金价值，不能用于支付支出或订阅费用。"
+            )}
+          </p>
+          {!billingEnabled && (
+            <p className="muted">
+              {T(
+                "Paid subscriptions are currently unavailable.",
+                "付费订阅暂不可用。"
+              )}
+            </p>
+          )}
         </div>
       )}
 
@@ -1498,14 +1512,14 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
             <li>
               <I.Check size={13} />{" "}
               {T(
-                "Missing category classification and review advice · Web + REST API",
-                "缺失类别自动分类与核对建议 · 网页及 REST API"
+                "Automatic categorization and expense advice · Web + REST API",
+                "自动分类与支出建议 · 网页及 REST API"
               )}
             </li>
             <li>
               <I.Check size={13} />
               <span>
-                {T("Jev budget", "Jev 预算")}: <FinancialValue value={`$${jevBudget}`} /> /{" "}
+                {T("Jev assistance allowance", "Jev 辅助额度")}: <FinancialValue value={`$${jevBudget}`} /> /{" "}
                 {T("month", "月")}
               </span>
             </li>

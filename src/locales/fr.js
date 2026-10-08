@@ -23,7 +23,6 @@ export const PHRASES = {
   "Copyright 2026 Pullwise": "Copyright 2026 Pullwise",
   "API key": "Clé API",
   Authentication: "Authentification",
-  "Account automation": "Automatisation du compte",
   "Unable to load API keys.": "Impossible de charger les clés API.",
   "API key response was malformed.": "La réponse de clé API était mal formée.",
   "Unable to create API key.": "Impossible de créer la clé API.",
@@ -43,7 +42,6 @@ export const PHRASES = {
   "Final amount is calculated by Creem": "Montant final calculé par Creem",
   "Listed prices and tax are shown by Pullwise. The exact charge for this change is calculated by Creem at confirmation.":
     "Les prix affichés et les taxes sont indiqués par Pullwise. Le montant exact de ce changement est calculé par Creem lors de la confirmation.",
-  "Prorated charge today": "Frais proratisés aujourd'hui",
   "The new plan is effective now. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date.":
     "Le nouveau forfait prend effet maintenant. Creem facture la différence proratisée pour le reste de la période actuelle, puis le nouveau montant à la prochaine date de renouvellement.",
   "Plan tier": "Niveau de forfait",
@@ -69,8 +67,6 @@ export const PHRASES = {
   "Calculated at confirmation": "Calculé à la confirmation",
   "What changes now": "Ce qui change maintenant",
   "How this works": "Fonctionnement",
-  "The new plan takes effect immediately. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date. You can cancel renewal from Pullwise Billing.":
-    "Le nouveau forfait prend effet immédiatement. Creem facture la différence proratisée pour le reste de la période actuelle, puis le nouveau montant à la prochaine date de renouvellement. Vous pouvez annuler le renouvellement depuis Pullwise Billing.",
   "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem.":
     "Pullwise affiche uniquement les prix listés des forfaits. Les taxes, proratas, crédits et le montant final sont calculés par Creem.",
   "Confirm change": "Confirmer le changement",
@@ -80,18 +76,8 @@ export const PHRASES = {
   "API contract": "Contrat API",
   "Unable to connect GitHub repository access.": "Impossible de connecter l'accès au dépôt GitHub.",
   "GitHub repository authorization": "Autorisation de dépôt GitHub",
-  "Authentication is unavailable. Check the backend auth service.":
-    "L'authentification est indisponible. Vérifiez le service d'authentification backend.",
-  "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.":
-    "Cette GitHub App est actuellement réservée au propriétaire. Rendez la GitHub App publique / tout compte afin que les utilisateurs puissent l'installer sur leur compte ou organisation, puis réessayez.",
-  "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.":
-    "Pullwise n'a pas pu vérifier que cette GitHub App est publique. Réessayez lorsque l'accès à l'API GitHub sera disponible.",
   "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected.":
     "GitHub n'a pas installé l'application. Si vous avez choisi une organisation, un propriétaire de l'organisation devra peut-être approuver la demande avant de connecter les dépôts.",
-  "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again.":
-    "GitHub est revenu sans installation id. Vérifiez que l'URL de configuration de la GitHub App pointe vers le callback backend Pullwise, puis réessayez l'installation.",
-  "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.":
-    "Pullwise a trouvé l'installation de la GitHub App, mais le backend ne peut pas synchroniser les dépôts car la clé privée de la GitHub App est manquante ou invalide. Définissez PULLWISE_GITHUB_APP_ID ainsi que PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH ou PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, puis redémarrez le backend.",
   "Restoring your account.": "Restauration de votre compte.",
   "Continue from your account.": "Continuer depuis votre compte.",
   "Continue with GitHub": "Continuer avec GitHub",
@@ -118,7 +104,6 @@ export const PHRASES = {
   Service: "Service",
   "Account and GitHub access": "Compte et accès GitHub",
   "API use": "Utilisation de l'API",
-  "configured backend": "backend configuré",
   "Last checked": "Dernière vérification",
   "Initial check, then refresh manually": "Vérification initiale, puis actualisation manuelle",
   "Refresh status": "Actualiser l’état",
@@ -131,7 +116,6 @@ export const PHRASES = {
   Spanish: "Espagnol",
   French: "Français",
   API: "API",
-  "Account overview": "Vue d'ensemble du compte",
   "Add account or organization": "Ajouter un compte ou une organisation",
   "API docs": "Docs API",
   "API Keys": "Clés API",
@@ -184,14 +168,8 @@ export const PHRASES = {
   Product: "Produit",
   "API reachable": "API accessible",
   "API unreachable": "API injoignable",
-  "Live components": "Composants en direct",
   "Web app": "Application web",
   "REST API": "REST API",
-  "State database": "Base de données d'état",
-  "Waiting for backend health.": "En attente de la santé du backend.",
-  "Backend readiness": "État de préparation du backend",
-  "Configuration visible from safe /health fields":
-    "Configuration visible depuis les champs /health sécurisés",
   "GitHub integration": "Intégration GitHub",
   "Billing provider": "Fournisseur de facturation",
   "OAuth configured": "OAuth configuré",
@@ -204,11 +182,8 @@ export const PHRASES = {
   "Visibility check off": "Vérification de visibilité désactivée",
   enabled: "activé",
   "not enabled": "non activé",
-  "Configured in provider": "Configuré côté fournisseur",
   "Switch to yearly": "Passer à l'annuel",
   "View pricing": "Voir les tarifs",
-  "Billing is not configured on the backend yet.":
-    "La facturation n'est pas encore configurée sur le backend.",
   Monthly: "Mensuel",
   Yearly: "Annuel",
   save: "économisez",

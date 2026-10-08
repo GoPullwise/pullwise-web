@@ -6,8 +6,8 @@ describe("product Docs", () => {
   it("explains project and shared expense workflows", () => {
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: false }} />);
 
-    expect(screen.getByRole("heading", { name: /GitHub project expense ledger/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /connect a repository/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /project expense ledger/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /create a project/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /record expenses/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /review reports/i })).toBeInTheDocument();
     expect(screen.getByText(/shared pool is counted once/i)).toBeInTheDocument();

@@ -19,7 +19,7 @@ describe("landing positioning", () => {
       name: /how pullwise organizes costs/i,
     });
     expect(within(pipeline).getAllByRole("article")).toHaveLength(6);
-    expect(screen.getByText("Connect authorized repositories")).toBeInTheDocument();
+    expect(screen.getByText("Create projects")).toBeInTheDocument();
     expect(screen.getByText("Record project expenses")).toBeInTheDocument();
     expect(screen.getByText("Record shared expenses")).toBeInTheDocument();
     expect(screen.getByText("Review category reports")).toBeInTheDocument();

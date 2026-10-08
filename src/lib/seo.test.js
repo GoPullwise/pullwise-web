@@ -14,8 +14,8 @@ describe("public SEO metadata", () => {
       pathname: "/",
     });
 
-    expect(metadata.title).toBe("Pullwise — GitHub Project Expense Ledger");
-    expect(metadata.description).toMatch(/project and shared expenses for GitHub repositories/i);
+    expect(metadata.title).toBe("Pullwise — Project Expense Tracking for Developers and Teams");
+    expect(metadata.description).toMatch(/project and shared expenses.*GitHub repository links are optional/i);
     expect(metadata.description).not.toMatch(/scan|full-repository|finding/i);
     expect(metadata.canonical).toBe("https://pull-wise.com/");
     expect(metadata.robots).toBe("index,follow");

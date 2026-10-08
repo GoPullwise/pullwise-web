@@ -23,7 +23,6 @@ export const PHRASES = {
   "Copyright 2026 Pullwise": "版权所有 © 2026 Pullwise",
   "API key": "API 密钥",
   Authentication: "认证",
-  "Account automation": "账户自动化",
   "Unable to load API keys.": "无法加载 API key。",
   "API key response was malformed.": "API key 响应格式错误。",
   "Unable to create API key.": "无法创建 API key。",
@@ -43,7 +42,6 @@ export const PHRASES = {
   "Final amount is calculated by Creem": "最终金额由 Creem 计算",
   "Listed prices and tax are shown by Pullwise. The exact charge for this change is calculated by Creem at confirmation.":
     "标价和税费由 Pullwise 显示。本次变更的最终扣款金额在确认时由 Creem 计算。",
-  "Prorated charge today": "今天按比例扣款",
   "The new plan is effective now. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date.":
     "新套餐立即生效。Creem 会按当前周期剩余时间收取差额，并在下个续费日按新价格计费。",
   "Plan tier": "套餐等级",
@@ -69,8 +67,6 @@ export const PHRASES = {
   "Calculated at confirmation": "确认时计算",
   "What changes now": "本次变更",
   "How this works": "变更说明",
-  "The new plan takes effect immediately. Creem charges the prorated difference for the rest of the current period, and the new amount is billed on the next renewal date. You can cancel renewal from Pullwise Billing.":
-    "新套餐立即生效。Creem 会按当前周期剩余时间收取差额，并在下个续费日按新价格计费。你可以在 Pullwise 账单页取消续订。",
   "Pullwise shows listed plan prices only. Taxes, prorations, credits, and the final charge are calculated by Creem.":
     "Pullwise 仅显示套餐标价。税费、按比例计费、抵扣和最终扣款由 Creem 计算。",
   "Confirm change": "确认变更",
@@ -80,18 +76,8 @@ export const PHRASES = {
   "API contract": "API 契约",
   "Unable to connect GitHub repository access.": "无法连接 GitHub 仓库访问。",
   "GitHub repository authorization": "GitHub 仓库授权",
-  "Authentication is unavailable. Check the backend auth service.":
-    "认证不可用。请检查后端认证服务。",
-  "This GitHub App is owner-only right now. Make the GitHub App Public / Any account so users can install it on their own account or organization, then try again.":
-    "此 GitHub App 当前仅所有者可安装。请将 GitHub App 设为公开（任何账户），以便用户可在自己的账户或组织中安装后再试。",
-  "Pullwise could not verify this GitHub App is public. Try again after GitHub API access is available.":
-    "Pullwise 无法验证此 GitHub App 是否公开。请在 GitHub API 可用后再试。",
   "GitHub did not install the app. If you chose an organization, an organization owner may need to approve the request before repositories can be connected.":
     "GitHub 未完成 App 安装。如果你选择了组织，组织所有者可能需要先批准请求，然后才能连接仓库。",
-  "GitHub returned without an installation id. Check that the GitHub App setup URL points to the Pullwise backend callback, then try installing the app again.":
-    "GitHub 返回时未携带 installation id。请检查 GitHub App 设置 URL 是否指向 Pullwise 后端回调，然后再试安装。",
-  "Pullwise found the GitHub App installation, but the backend cannot sync repositories because the GitHub App private key is missing or invalid. Set PULLWISE_GITHUB_APP_ID plus PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH or PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64, then restart the backend.":
-    "Pullwise 已找到 GitHub App 安装，但后端无法同步仓库，因为 GitHub App 私钥缺失或无效。请设置 PULLWISE_GITHUB_APP_ID 和 PULLWISE_GITHUB_APP_PRIVATE_KEY_PATH 或 PULLWISE_GITHUB_APP_PRIVATE_KEY_BASE64，然后重启后端。",
   "Restoring your account.": "正在恢复你的账户。",
   "Continue from your account.": "从你的账户继续。",
   "Continue with GitHub": "使用 GitHub 继续",
@@ -116,7 +102,6 @@ export const PHRASES = {
   Service: "服务",
   "Account and GitHub access": "账户与 GitHub 访问",
   "API use": "API 使用",
-  "configured backend": "已配置后端",
   "Last checked": "最近检查",
   "Initial check, then refresh manually": "首次检查后，请手动刷新",
   "Refresh status": "刷新状态",
@@ -128,7 +113,6 @@ export const PHRASES = {
   Spanish: "西班牙语",
   French: "法语",
   API: "API",
-  "Account overview": "账户总览",
   "Add account or organization": "添加账号或组织",
   "API docs": "API 文档",
   "API Keys": "API 密钥",
@@ -181,13 +165,8 @@ export const PHRASES = {
   Product: "产品",
   "API reachable": "API 可访问",
   "API unreachable": "API 不可访问",
-  "Live components": "实时组件",
   "Web app": "Web 应用",
   "REST API": "REST API",
-  "State database": "状态数据库",
-  "Waiting for backend health.": "等待后端健康检查。",
-  "Backend readiness": "后端就绪状态",
-  "Configuration visible from safe /health fields": "从安全的 /health 字段可见的配置",
   "GitHub integration": "GitHub 集成",
   "Billing provider": "支付提供方",
   "OAuth configured": "OAuth 已配置",
@@ -200,10 +179,8 @@ export const PHRASES = {
   "Visibility check off": "可见性检查关",
   enabled: "已启用",
   "not enabled": "未启用",
-  "Configured in provider": "在提供方配置",
   "Switch to yearly": "切换为按年",
   "View pricing": "查看价格",
-  "Billing is not configured on the backend yet.": "后端尚未配置支付功能。",
   Monthly: "按月",
   Yearly: "按年",
   save: "节省",

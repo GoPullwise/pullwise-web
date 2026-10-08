@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Pullwise project expense ledger</title>
-  <desc id="desc">A dark editorial graphic showing Pullwise project expenses, shared costs, and an expense audit trail.</desc>
+  <desc id="desc">Pullwise project and shared expense tracking for developers and teams.</desc>
   <rect width="1200" height="630" fill="#0b0d12" />
   <path d="M0 96H1200M0 534H1200M88 0V630M1112 0V630" fill="none" stroke="#2b303b" />
   <rect x="88" y="96" width="1024" height="438" fill="none" stroke="#454c5c" />
@@ -18,7 +18,7 @@
     Keep shared costs clear.
   </text>
   <text x="128" y="374" fill="#8a93a6" font-family="Geist, Arial, sans-serif" font-size="20">
-    A GitHub-connected expense ledger
+    A project expense ledger for developers and teams
   </text>
 
   <g transform="translate(128 424)">
@@ -28,7 +28,7 @@
       PROJECT + SHARED EXPENSES
     </text>
     <text x="52" y="51" fill="#8a93a6" font-family="Geist Mono, Consolas, monospace" font-size="13">
-      purpose  /  category  /  date  /  currency  /  audit history
+      purpose  /  category  /  date  /  currency  /  expense history
     </text>
     <path d="M760 35h132" stroke="#454c5c" />
     <path d="m886 29 8 6-8 6" fill="none" stroke="#6366f1" stroke-width="2" />

@@ -2,6 +2,51 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Product copy, translations and subscription policies (2026-10-08)
+
+Pullwise / pull-wise.com now consistently describes a project expense ledger
+for developers and teams. The landing page, login, docs/API help, console copy,
+pricing, metadata and social card explain named standalone projects, optional
+GitHub repository links, shared-ledger access and separate currency totals.
+Platform subscriptions remain separate from entered expenses. Plan capacities
+are shared by the Owner's members/API keys; archived projects and removed
+expenses still count. Jev assistance allowances have no cash/payment value.
+
+Terms preserve the two previously reviewed Creem billing paragraphs in full.
+One additional paragraph states that paid subscription fees are non-refundable
+except where applicable law requires otherwise, and that cancelling renewal
+keeps access until the paid period ends without refunding that period.
+No refund request workflow or unimplemented refund endpoint is promised.
+The operator is identified as Pullwise, without invented company or address
+details. Billing explanations tie upgrades to verified payment confirmation.
+
+Privacy now covers actual identity/token, ledger, subscription and membership
+data, Cloudflare/GitHub/Creem/TypeSafe processing, Google Fonts requests,
+browser storage, model inputs and soft-removal retention. Invitation access
+includes all current/future ledger data, while personal billing stays separate.
+Status labels report browser loading, API reachability and configuration flags;
+they do not assert end-to-end payment, authorization or database availability.
+All five non-English catalogs cover the current public/console descriptions
+and policies, including previously untranslated interface text.
+
+The final copy commit incorporates the latest main console/financial layout
+updates rather than replacing them. `npm run check` passes lint, **38 test files
+/ 535 tests** and the build. Worker configuration/syntax checks, whitespace
+checks and pinned Wrangler 4.136.3 Preview packaging pass. The accepted build
+uses the Preview app URL, same-origin API base and Preview GitHub App slug.
+
+Built-browser acceptance passes **96 route/language/viewport cases**: eight
+public routes in en/zh/ja/ko/fr/es at 1440px and 320px. Legal anchors,
+translation fallback checks, document overflow and script errors pass. Touch
+media/events are asserted and restored after Chromium screenshots. Twenty
+English/Chinese captures include the home, privacy, terms, pricing and status
+pages; sampled mobile terms/pricing and desktop privacy pass visual review.
+All 45 built artifacts remain identical throughout acceptance. The 132 API
+requests are intercepted local fixtures, with no mutations; font CSS uses an
+empty local fixture, so these captures verify fallback-font layouts without
+contacting Google. No remote business request or real payment is part of this
+audit. Preview publication is recorded separately below.
+
 ## Shared console interactions and financial hierarchy (2026-10-08)
 
 The frontend goals are now recorded in `AGENTS.md`: simple layouts, prominent
