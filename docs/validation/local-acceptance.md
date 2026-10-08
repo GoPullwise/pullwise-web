@@ -2,6 +2,54 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Safari date-field sizing and shared ledger picker (2026-10-08)
+
+Shared date fields now fill shrinkable single-column field tracks with explicit
+border-box bounds and normalized native date appearance. Filters, one-time
+expense create/edit and recurring start/end fields retain their native picker,
+date contracts and 16px column gaps. Narrow/coarse input text correctly uses
+16px and touch controls retain a 44px minimum. A supplementary narrow API Keys
+check found a real shared topbar overflow: the label/native ledger selector now
+use an explicit horizontal grid, retain the arrow and ownership prefixes, and
+allow the outer actions to wrap naturally. No API form-specific grid or global
+overflow clipping was added.
+
+[Local evidence](date-field-width-local-2026-10-08.json) records lint,
+**43 files / 727 tests**, config/syntax, owned formatting, whitespace,
+explicit preview build and pinned Wrangler packaging. The persistent
+`npm run test:layout` check passes **228 states in eight contexts** across
+Chromium 151 and Linux WebKit 26: desktop, Chinese touch landscape,
+iPhone-sized 390→320 and Android-sized 412→360 widths. It checks empty/populated
+dates, ordinary/recurring editors, actual mouse-driven 260/520px rails, sibling
+boundaries/gaps, long ledger options and API name/scopes controls. A controlled
+24px injected overflow is rejected and restored in every context.
+
+Independent native WebKit acceptance passes three complete contexts and
+47 states with six newly captured, Root-reviewed original viewport PNGs.
+Desktop/live1180 and 260/356/520px panes, Chinese/dark 1280px landscape and
+mobile390/live320 retain correct date boundaries and peer alignment. The 320px
+Date/Amount capture sits below the measured sticky header/navigation. Members
+role-editor open/cancel and API scopes provide supplementary shared-form smoke.
+PNG hashes/dimensions and full before/after metadata match; all 46 artifact,
+70 runtime source and three validation-source hashes remain stable. Accepted
+native traffic is 168 interceptions / 89 synthetic GETs, at most57 of100 per
+context; three font attempts are blocked, with no writes or external delivery.
+Six earlier native attempts and two diagnostic contexts are retained separately
+and excluded, including the real topbar failure repaired before this freeze.
+
+Actual rendered border-box bounds and document/body overflow determine escape.
+WebKit native options can report a larger internal ancestor scroll extent;
+those raw values remain diagnostic and are not equated with visible overflow.
+An initial stricter persistent assertion was corrected and excluded, followed
+by complete passing runs of both engines. Date value changes are explicitly
+programmatic; native trusted focus/picker affordance is recorded separately.
+Linux WebKit and emulated touch do not establish actual iOS/Android device or
+UIKit picker acceptance. Local Firefox launch was blocked before any page by
+the managed sandbox/SWGL environment and is not counted as passed. CI is
+configured to install and check all three engines on ordinary Ubuntu;
+remote execution is unverified (runs query returned empty and Actions settings
+read returned integration403). No repository settings were changed.
+
 ## Shared expense toolbar and chart-only Reports (2026-10-08)
 
 Project expenses and shared pool now use one view toolbar for collapsible

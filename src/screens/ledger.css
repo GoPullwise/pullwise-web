@@ -409,15 +409,13 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 16px;
 }
-.ledger-screen .ledger-fields > label {
-  grid-template-columns: minmax(0, 1fr);
-}
 .ledger-screen .disclosure .ledger-fields {
   margin-bottom: 16px;
 }
 .ledger-screen .main .ledger-field,
 .ledger-screen .main label {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   min-width: 0;
 }
@@ -428,8 +426,10 @@
 .ledger-screen .main input:not([type="checkbox"]),
 .ledger-screen .main select,
 .ledger-screen .main textarea {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
+  max-inline-size: 100%;
   border: 1px solid var(--border-strong);
   padding: 10px 12px;
   background: var(--bg-elev);
@@ -439,10 +439,18 @@
   transition: border-color 160ms ease;
 }
 .ledger-screen .main input[type="date"] {
+  /* WebKit's native date appearance can add padding outside its declared width. */
+  -webkit-appearance: none;
+  appearance: none;
   display: block;
+  inline-size: 100%;
   min-inline-size: 0;
   max-width: 100%;
   max-inline-size: 100%;
+}
+.ledger-screen .main input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
 }
 .ledger-screen textarea {
   min-height: 94px;
@@ -553,9 +561,9 @@
   }
 }
 @media (max-width: 760px) {
-  .ledger-screen input:not([type="checkbox"]),
-  .ledger-screen select,
-  .ledger-screen textarea {
+  .ledger-screen .main input:not([type="checkbox"]),
+  .ledger-screen .main select,
+  .ledger-screen .main textarea {
     font-size: var(--fs-2xl);
   }
   .ledger-screen .ledger-categories .page-h {
@@ -628,6 +636,11 @@
   .ledger-screen .main select,
   .ledger-screen .btn {
     min-height: 44px;
+  }
+  .ledger-screen .main input:not([type="checkbox"]),
+  .ledger-screen .main select,
+  .ledger-screen .main textarea {
+    font-size: var(--fs-2xl);
   }
   .ledger-screen .main .api-scope-row {
     min-height: 44px;

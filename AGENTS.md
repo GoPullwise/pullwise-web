@@ -1,5 +1,28 @@
 # Pullwise Web
 
+## Safari date-field sizing (2026-10-08)
+
+Fix overlapping filter dates and expense date inputs wider than sibling fields,
+including one/two-column resizable entry panes and recurring start/end dates.
+Keep native date inputs and picker behavior. Shared fields use shrinkable single
+grid tracks; control widths include padding/borders, and date appearance must
+not reintroduce WebKit intrinsic width. Preserve visible 16px field gaps, native
+editing/selection, focus, date bounds, fixed expense targets and the original
+theme. Touch controls use at least 44px height and 16px input text. Check analogous
+date fields across project/shared views and recurring editors, then push main
+and publish only Web preview. Report browser-engine/device evidence accurately.
+The shared topbar ledger picker uses an explicit label/selector grid with a
+shrinkable selector track. Preserve the native arrow, ownership prefixes and
+horizontal label/selector layout; long option names must not create horizontal
+overflow on short-breadcrumb pages. Check both long and short breadcrumbs at
+mobile widths, including API Keys and its name/scopes form.
+Run the persistent `npm run test:layout` browser geometry check after building;
+CI exercises Chromium, WebKit and Firefox at desktop, tablet, iPhone-sized and
+Android-sized widths with isolated local GET fixtures. A shared input/container
+change must keep field boundary, gap and long-ledger picker checks passing.
+Emulation and Linux browser engines do not establish actual iOS/Android device
+acceptance.
+
 ## Shared expense toolbar (2026-10-08)
 
 After publishing the simplified Projects list, redesign the large totals/filter

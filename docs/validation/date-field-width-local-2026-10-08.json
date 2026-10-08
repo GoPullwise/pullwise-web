@@ -1,0 +1,1302 @@
+{
+  "date": "2026-10-08",
+  "scope": "Shared Safari date-field bounds/gaps and native Ledger picker overflow; Web preview only.",
+  "baseCommit": "91d355f1a1f5c50527095332a4031dc8aac3058b",
+  "checks": {
+    "testFiles": 43,
+    "testsPassed": 727,
+    "lint": true,
+    "workerConfig": true,
+    "workerSyntax": true,
+    "ownedFormatting": true,
+    "whitespace": true,
+    "explicitPreviewBuild": true,
+    "wranglerDryRun": "4.136.3"
+  },
+  "changes": [
+    "Shared shrinkable field tracks and explicit border-box bounds; native date host appearance normalized without replacing input type=date.",
+    "Narrow/coarse input font specificity corrected to16px; touch controls retain44px minimum.",
+    "Shared Ledger label/native-selector grid preserves horizontal layout, ownership prefixes and arrow; topbar wraps naturally when space is insufficient.",
+    "Pinned Playwright geometry regressions persist in scripts and the existing CI workflow with local GET-only fixtures."
+  ],
+  "persistentBrowserRegression": {
+    "status": "passed",
+    "results": [
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "contexts": 4,
+        "states": 114,
+        "profiles": [
+          {
+            "profile": {
+              "name": "desktop-1440",
+              "width": 1440,
+              "height": 1000,
+              "lang": "en",
+              "touch": false
+            },
+            "states": 30,
+            "requests": {
+              "total": 75,
+              "api": 51,
+              "static": 23,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 1440,
+                "documentWidth": 1440,
+                "bodyWidth": 1440,
+                "scopeRows": 11,
+                "keyNameInputWidth": 876,
+                "pickerWidth": 280,
+                "selectWidth": 233.296875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          },
+          {
+            "profile": {
+              "name": "tablet-1280-zh",
+              "width": 1280,
+              "height": 900,
+              "lang": "zh",
+              "touch": true
+            },
+            "states": 30,
+            "requests": {
+              "total": 82,
+              "api": 51,
+              "static": 30,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 1280,
+                "documentWidth": 1280,
+                "bodyWidth": 1280,
+                "scopeRows": 11,
+                "keyNameInputWidth": 716,
+                "pickerWidth": 280,
+                "selectWidth": 248.265625,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          },
+          {
+            "profile": {
+              "name": "phone-390-to-320",
+              "width": 390,
+              "narrow": 320,
+              "height": 844,
+              "lang": "en",
+              "touch": true
+            },
+            "states": 27,
+            "requests": {
+              "total": 75,
+              "api": 51,
+              "static": 23,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 390,
+                "documentWidth": 390,
+                "bodyWidth": 390,
+                "scopeRows": 11,
+                "keyNameInputWidth": 310,
+                "pickerWidth": 280,
+                "selectWidth": 233.296875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              },
+              {
+                "name": "api-keys-live-narrow-scope-and-name-bounds",
+                "viewport": 320,
+                "documentWidth": 320,
+                "bodyWidth": 320,
+                "scopeRows": 11,
+                "keyNameInputWidth": 240,
+                "pickerWidth": 240,
+                "selectWidth": 193.296875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          },
+          {
+            "profile": {
+              "name": "android-size-412-to-360",
+              "width": 412,
+              "narrow": 360,
+              "height": 844,
+              "lang": "en",
+              "touch": true
+            },
+            "states": 27,
+            "requests": {
+              "total": 75,
+              "api": 51,
+              "static": 23,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 412,
+                "documentWidth": 412,
+                "bodyWidth": 412,
+                "scopeRows": 11,
+                "keyNameInputWidth": 332,
+                "pickerWidth": 280,
+                "selectWidth": 233.296875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              },
+              {
+                "name": "api-keys-live-narrow-scope-and-name-bounds",
+                "viewport": 360,
+                "documentWidth": 360,
+                "bodyWidth": 360,
+                "scopeRows": 11,
+                "keyNameInputWidth": 280,
+                "pickerWidth": 280,
+                "selectWidth": 233.296875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          }
+        ],
+        "rawPath": "/workspace/work/date-field-width-2026-10-08/layout-chromium-final-results.json",
+        "rawSha256": "5d7ad3a6fea34c2a300c564fd1776502ae157b31b15f3d5ad042bdae3a91d2e6"
+      },
+      {
+        "engine": "webkit",
+        "version": "26.0",
+        "contexts": 4,
+        "states": 114,
+        "profiles": [
+          {
+            "profile": {
+              "name": "desktop-1440",
+              "width": 1440,
+              "height": 1000,
+              "lang": "en",
+              "touch": false
+            },
+            "states": 30,
+            "requests": {
+              "total": 75,
+              "api": 51,
+              "static": 23,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 1440,
+                "documentWidth": 1440,
+                "bodyWidth": 1440,
+                "scopeRows": 11,
+                "keyNameInputWidth": 876,
+                "pickerWidth": 280,
+                "selectWidth": 233.921875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          },
+          {
+            "profile": {
+              "name": "tablet-1280-zh",
+              "width": 1280,
+              "height": 900,
+              "lang": "zh",
+              "touch": true
+            },
+            "states": 30,
+            "requests": {
+              "total": 82,
+              "api": 51,
+              "static": 30,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 1280,
+                "documentWidth": 1280,
+                "bodyWidth": 1280,
+                "scopeRows": 11,
+                "keyNameInputWidth": 716,
+                "pickerWidth": 280,
+                "selectWidth": 248.265625,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          },
+          {
+            "profile": {
+              "name": "phone-390-to-320",
+              "width": 390,
+              "narrow": 320,
+              "height": 844,
+              "lang": "en",
+              "touch": true
+            },
+            "states": 27,
+            "requests": {
+              "total": 75,
+              "api": 51,
+              "static": 23,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 390,
+                "documentWidth": 390,
+                "bodyWidth": 390,
+                "scopeRows": 11,
+                "keyNameInputWidth": 310,
+                "pickerWidth": 280,
+                "selectWidth": 233.921875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              },
+              {
+                "name": "api-keys-live-narrow-scope-and-name-bounds",
+                "viewport": 320,
+                "documentWidth": 320,
+                "bodyWidth": 320,
+                "scopeRows": 11,
+                "keyNameInputWidth": 240,
+                "pickerWidth": 240,
+                "selectWidth": 193.921875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          },
+          {
+            "profile": {
+              "name": "android-size-412-to-360",
+              "width": 412,
+              "narrow": 360,
+              "height": 844,
+              "lang": "en",
+              "touch": true
+            },
+            "states": 27,
+            "requests": {
+              "total": 75,
+              "api": 51,
+              "static": 23,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "negativeControl": "24px injected overflow rejected; inline style restored",
+            "apiLayoutStates": [
+              {
+                "name": "api-keys-scope-and-name-bounds",
+                "viewport": 412,
+                "documentWidth": 412,
+                "bodyWidth": 412,
+                "scopeRows": 11,
+                "keyNameInputWidth": 332,
+                "pickerWidth": 280,
+                "selectWidth": 233.921875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              },
+              {
+                "name": "api-keys-live-narrow-scope-and-name-bounds",
+                "viewport": 360,
+                "documentWidth": 360,
+                "bodyWidth": 360,
+                "scopeRows": 11,
+                "keyNameInputWidth": 280,
+                "pickerWidth": 280,
+                "selectWidth": 233.921875,
+                "activeLedger": "usr_date_layout",
+                "renderedBoundaryAndGapAssertionsPassed": true
+              }
+            ]
+          }
+        ],
+        "rawPath": "/workspace/work/date-field-width-2026-10-08/layout-webkit-final-results.json",
+        "rawSha256": "856ed15514e7dd8a7ad738e922eaf8a7a3b2827717999b281dca71511c56f00b"
+      }
+    ],
+    "contexts": 8,
+    "states": 228,
+    "validationSources": [
+      {
+        "path": "scripts/check-date-layout.mjs",
+        "sha256": "af9849b5ba102f6facf6609b5266e5b7b7c0874434c310d028305cbd628aca36"
+      },
+      {
+        "path": "scripts/date-layout-fixtures.mjs",
+        "sha256": "0b104ce59134fdc6ed5c10382a25903c575ab68d14f989531626a4e1e26ff1a9"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "a4ff8dfa5823b9c01db1184f8dc6046b5815475d58205eeddaf3b7f117755be7"
+      }
+    ],
+    "nativeInternalScrollClassification": "Linux WebKit can include native-option intrinsic extent in ancestor scrollWidth. Raw values remain recorded; rendered control/label border-box bounds, gaps and document/body overflow are asserted. The initial desktop own-scroll assertion failure is preserved and excluded; final corrected checks pass both engines.",
+    "earlierSameArtifactChecks": {
+      "chromium": "114 states passed before diagnostic-only assertion correction; excluded from final counts.",
+      "webkit": "Desktop API picker internal-scroll diagnostic falsely classified as a rendered-box escape; excluded.",
+      "webkitFailureLog": "/workspace/work/date-field-width-2026-10-08/layout-webkit-final.log",
+      "webkitFailureLogSha256": "76c8a466d66620506886f715bc3f8373a0ef60383e2c66ccbe4a7a5dc0eee1ee"
+    },
+    "firefox": {
+      "ready": false,
+      "module": "/opt/codex/runtimes/cua/lib/node_modules/playwright-core",
+      "playwrightVersion": "1.57.0",
+      "browserVersion": "144.0.2",
+      "revision": "1497",
+      "executablePath": "/workspace/work/date-field-width-2026-10-08/browser-cache/firefox-1497/firefox/firefox",
+      "download": {
+        "count": 1,
+        "approxMiB": 98.4
+      },
+      "hostDependencies": "Existing isolated WebKit libraries reused; installer reported no missing Firefox libraries",
+      "systemPackageInstallation": false,
+      "successfulContexts": 0,
+      "successfulPages": 0,
+      "successfulScreenshots": 0,
+      "blockedAt": "browserType.launch, Juggler ready pipe timeout before context creation",
+      "limitation": "Managed sandbox reports /proc/self/uid_map EROFS. Last compatible isolated process configuration removed that warning but Firefox still times out with headless SWGL framebuffer warning. Not a passed Firefox browser test.",
+      "lastAttempt": {
+        "timeoutMs": 15000,
+        "additionalNetworkPermission": true,
+        "log": "/workspace/work/date-field-width-2026-10-08/firefox-preflight-final.log",
+        "cleanup": "Playwright log confirms spawned process killed and temporary directories cleanup"
+      },
+      "noAppURLsRequested": true,
+      "webkitReadyUnchanged": "/workspace/work/date-field-width-2026-10-08/webkit-runtime-ready.json"
+    },
+    "ci": {
+      "configuredEngines": ["chromium", "webkit", "firefox"],
+      "workflow": ".github/workflows/ci.yml",
+      "remoteRunVerified": false,
+      "observation": "Read-only Actions runs query returned []; Actions permissions read returned integration HTTP403. No repository settings changed."
+    },
+    "limits": "Browser-engine checks with simulated widths, not physical iOS/Android acceptance. No actual session/account/provider, saves or CSV download proof."
+  },
+  "browserAcceptance": {
+    "status": "passed",
+    "phase": "Final Linux WebKit date-field and shared workspace-picker acceptance",
+    "rawWorkPath": "/workspace/work/date-field-width-2026-10-08",
+    "rawEvidence": {
+      "path": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+      "sha256": "8900e4c00ebc49c3d12fd3ad8516357bebb9179ba7d524a695226c4134cc9960"
+    },
+    "plan": "/workspace/work/date-field-width-2026-10-08/plan-final-7.md",
+    "engine": {
+      "name": "Linux WebKit",
+      "version": "26.0",
+      "playwright": "1.57.0",
+      "runtimeReceipt": "/workspace/work/date-field-width-2026-10-08/webkit-runtime-ready.json",
+      "limits": [
+        "Linux WebKit is not iPad/iOS Safari/UIKit; actual iOS native date picker acceptance is not claimed.",
+        "Touch contexts have hasTouch:true and coarse media:true but measured navigator.maxTouchPoints0; metadata is not spoofed.",
+        "Closed native select host may report hidden UA ancestor scroll extent larger than its box. Acceptance checks actual rendered boxes and document/body overflow; does not claim picker internal scrollWidth equals clientWidth."
+      ]
+    },
+    "freeze": {
+      "artifactEntry": "/assets/index-CHtFcbLY.js",
+      "artifactFiles": 46,
+      "sourceFiles": 70,
+      "artifactManifestSha256": "9301bd6d04a063531eb07626f34ef1c190db7c65a13b9398f9d54626e182b507",
+      "sourceManifestSha256": "b98892728ae1de68d77862da2b28ed373d163d786546b034bb4463966e48f9c0",
+      "buildEnvironment": {
+        "VITE_APP_URL": "https://preview.pull-wise.com",
+        "VITE_API_BASE_URL": "/api",
+        "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+      },
+      "artifactsRechecked": 46,
+      "sourcesRechecked": 70,
+      "artifactStable": true,
+      "sourceStable": true,
+      "sourceArtifactEntryMatched": true,
+      "harness": "/workspace/work/date-field-width-2026-10-08/capture-final-7.mjs",
+      "harnessSha256": "7b394220d6418732b9a90720582784f0048fcb0b063f8082bd06928ed572f115",
+      "measure": "/workspace/work/date-field-width-2026-10-08/date-measure.mjs",
+      "measureSha256": "3f03c2ec1758954bdb66d6152323be34aefce4880c0bfac8d421eb37188e68f6",
+      "oldFreezeExcluded": "/workspace/work/date-field-width-2026-10-08/original-date-freeze"
+    },
+    "counts": {
+      "contexts": 3,
+      "states": 47,
+      "captures": 6,
+      "intercepted": 168,
+      "fixtureGET": 89,
+      "maxRequestsPerContext": 57,
+      "blockedExternalAttempts": 3,
+      "externalDelivered": 0,
+      "businessWrites": 0,
+      "summaryAttempts": 0,
+      "fullyPassedContexts": 3,
+      "retainedCaptures": 0,
+      "allSixNewOriginalsViewedByRoot": true,
+      "summaryGET": 0
+    },
+    "profiles": [
+      {
+        "profile": {
+          "key": "webkit-desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "target": "project",
+          "path": "/projects/prj_1"
+        },
+        "intercepted": 57,
+        "fixtureGET": 32,
+        "states": 18,
+        "captures": 2,
+        "filterDateChanges": 2,
+        "filterClears": 1,
+        "sharedMemberSmoke": true,
+        "sharedAPISmoke": true,
+        "nativeEventCount": 29,
+        "trustedNativeEvents": 24,
+        "programmaticDateEvents": 5,
+        "dividerPaneWidths": [
+          {
+            "state": "secondary260-empty-date-layout",
+            "width": 260,
+            "key": "Home"
+          },
+          {
+            "state": "secondary356-one-column",
+            "width": 356,
+            "key": "six ArrowLeft"
+          },
+          {
+            "state": "secondary-max-up-to520-two-columns",
+            "width": 520,
+            "key": "End"
+          },
+          {
+            "state": "recurring-max520-two-columns",
+            "width": 520,
+            "key": "End"
+          }
+        ],
+        "pickerProbeResults": [
+          {
+            "type": "date",
+            "disabled": false,
+            "readOnly": false,
+            "value": "",
+            "showPickerAvailable": true,
+            "trustedClick": true,
+            "showPickerReturned": true
+          },
+          {
+            "type": "date",
+            "disabled": false,
+            "readOnly": false,
+            "value": "2026-10-08",
+            "showPickerAvailable": true,
+            "trustedClick": true,
+            "showPickerReturned": true
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "webkit-landscape-1280-zh-dark",
+          "width": 1280,
+          "height": 800,
+          "lang": "zh",
+          "theme": "dark",
+          "target": "shared",
+          "path": "/shared",
+          "coarse": true
+        },
+        "intercepted": 57,
+        "fixtureGET": 27,
+        "states": 14,
+        "captures": 2,
+        "filterDateChanges": 2,
+        "filterClears": 1,
+        "sharedMemberSmoke": true,
+        "sharedAPISmoke": false,
+        "nativeEventCount": 30,
+        "trustedNativeEvents": 24,
+        "programmaticDateEvents": 6,
+        "dividerPaneWidths": [
+          {
+            "state": "secondary260-empty-date-layout",
+            "width": 260,
+            "key": "Home"
+          },
+          {
+            "state": "secondary356-one-column",
+            "width": 356,
+            "key": "six ArrowLeft"
+          },
+          {
+            "state": "secondary-max-up-to520-two-columns",
+            "width": 520,
+            "key": "End"
+          }
+        ],
+        "pickerProbeResults": [
+          {
+            "type": "date",
+            "disabled": false,
+            "readOnly": false,
+            "value": "",
+            "showPickerAvailable": true,
+            "trustedClick": true,
+            "showPickerReturned": true
+          },
+          {
+            "type": "date",
+            "disabled": false,
+            "readOnly": false,
+            "value": "2026-10-08",
+            "showPickerAvailable": true,
+            "trustedClick": true,
+            "showPickerReturned": true
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "webkit-mobile-390-en-light",
+          "width": 390,
+          "height": 844,
+          "lang": "en",
+          "theme": "light",
+          "target": "project",
+          "path": "/projects/prj_1",
+          "coarse": true,
+          "mobile": true
+        },
+        "intercepted": 54,
+        "fixtureGET": 30,
+        "states": 15,
+        "captures": 2,
+        "filterDateChanges": 2,
+        "filterClears": 1,
+        "sharedMemberSmoke": false,
+        "sharedAPISmoke": true,
+        "nativeEventCount": 27,
+        "trustedNativeEvents": 21,
+        "programmaticDateEvents": 6,
+        "dividerPaneWidths": [],
+        "pickerProbeResults": [
+          {
+            "type": "date",
+            "disabled": false,
+            "readOnly": false,
+            "value": "",
+            "showPickerAvailable": true,
+            "trustedClick": true,
+            "showPickerReturned": true
+          },
+          {
+            "type": "date",
+            "disabled": false,
+            "readOnly": false,
+            "value": "2026-10-08",
+            "showPickerAvailable": true,
+            "trustedClick": true,
+            "showPickerReturned": true
+          }
+        ]
+      }
+    ],
+    "network": {
+      "allInterceptedRequestsCappedPerContext": 100,
+      "blockedExternalAttempts": [
+        {
+          "profile": "webkit-desktop-1440-en-light",
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET"
+        },
+        {
+          "profile": "webkit-landscape-1280-zh-dark",
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET"
+        },
+        {
+          "profile": "webkit-mobile-390-en-light",
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET"
+        }
+      ],
+      "externalDelivered": [],
+      "businessWrites": [],
+      "unknownAPI": [],
+      "pageErrors": [],
+      "summaryGET": 0,
+      "summaryGuardEvidence": {
+        "hardRejectBeforeFixture": true,
+        "attempts": [],
+        "recordedSummaryPaths": []
+      }
+    },
+    "interactionEvidence": {
+      "nativeTrusted": "Actual clicks/taps, keyboard select events, open/Cancel/Clear and divider Home/ArrowLeft/End. No form submissions, external links or CSV activation.",
+      "dateValues": "Programmatic native value setter + untrusted change for From/Before, Expense Date and Recurring Start/End. No native date-entry claim.",
+      "fixedTargets": "Project/shared form target fixed; no project options exposed; both page scopes checked.",
+      "coreGeometry": "Date and peer controls fill their own allocated field borderboxes. No overlap or document/body horizontal overflow through desktop/live1180, coarse1280,390/live320; actual pane260/356/520 checked.",
+      "mobileCapture": "320\u00d71100 native screenshot shows empty one-time Date and Amount below actual sticky chrome. Recurring Start/End populated geometry checked at390/320; not claimed present in this screenshot.",
+      "nativeSelect": "Shared workspace native select appearance/arrow preserved; grid label and control remain horizontal. Workspace selection not changed.",
+      "readonlySmoke": "Desktop Members role editor open/Cancel and API checkbox/copy bounds; tablet Members; mobile API scopes; page overflow included."
+    },
+    "captures": [
+      {
+        "profile": "webkit-desktop-1440-en-light",
+        "state": "filters-populated",
+        "path": "/workspace/work/date-field-width-2026-10-08/final-7/webkit-desktop-1440-en-light-filters-populated.png",
+        "sha256": "0b2b35e7f63146333641f55b4f183fd1f99bfdad0bbc5e8e097a4c309bbd1f59",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "width": 1440,
+        "height": 1000,
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000,
+          "clientWidth": 1440,
+          "clientHeight": 1000,
+          "visualWidth": 1440,
+          "visualHeight": 1000,
+          "coarse": false
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0
+        },
+        "coarse": false,
+        "maxTouchPoints": 0,
+        "beforeAfterMetadataEqual": true,
+        "stickyChrome": [
+          {
+            "selector": "topbar",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "left": 0,
+              "right": 1440,
+              "top": 0,
+              "bottom": 54,
+              "width": 1440,
+              "height": 54
+            },
+            "position": "sticky"
+          },
+          {
+            "selector": "side",
+            "rect": {
+              "x": 0,
+              "y": 54,
+              "left": 0,
+              "right": 220,
+              "top": 54,
+              "bottom": 484,
+              "width": 220,
+              "height": 430
+            },
+            "position": "sticky"
+          }
+        ],
+        "fullMetadataEvidence": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+        "rootOriginalViewed": true
+      },
+      {
+        "profile": "webkit-desktop-1440-en-light",
+        "state": "recurring-start-end-populated",
+        "path": "/workspace/work/date-field-width-2026-10-08/final-7/webkit-desktop-1440-en-light-recurring-start-end-populated.png",
+        "sha256": "d8115d47ee2e671d8137f7dcbf5c087070cca2c70bedfb767b29eeb2e2ac7d5e",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "width": 1440,
+        "height": 1000,
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000,
+          "clientWidth": 1440,
+          "clientHeight": 1000,
+          "visualWidth": 1440,
+          "visualHeight": 1000,
+          "coarse": false
+        },
+        "scroll": {
+          "x": 0,
+          "y": 247
+        },
+        "coarse": false,
+        "maxTouchPoints": 0,
+        "beforeAfterMetadataEqual": true,
+        "stickyChrome": [
+          {
+            "selector": "topbar",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "left": 0,
+              "right": 1440,
+              "top": 0,
+              "bottom": 54,
+              "width": 1440,
+              "height": 54
+            },
+            "position": "sticky"
+          },
+          {
+            "selector": "side",
+            "rect": {
+              "x": 0,
+              "y": 54,
+              "left": 0,
+              "right": 220,
+              "top": 54,
+              "bottom": 484,
+              "width": 220,
+              "height": 430
+            },
+            "position": "sticky"
+          }
+        ],
+        "fullMetadataEvidence": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+        "rootOriginalViewed": true
+      },
+      {
+        "profile": "webkit-landscape-1280-zh-dark",
+        "state": "filters-populated",
+        "path": "/workspace/work/date-field-width-2026-10-08/final-7/webkit-landscape-1280-zh-dark-filters-populated.png",
+        "sha256": "c11a3366ddb4daa9dc1235f20a616009577091cf47066307190453471444e618",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "width": 1280,
+        "height": 800,
+        "actualViewport": {
+          "width": 1280,
+          "height": 800,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "visualWidth": 1280,
+          "visualHeight": 800,
+          "coarse": true
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0
+        },
+        "coarse": true,
+        "maxTouchPoints": 0,
+        "beforeAfterMetadataEqual": true,
+        "stickyChrome": [
+          {
+            "selector": "topbar",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "left": 0,
+              "right": 1280,
+              "top": 0,
+              "bottom": 54,
+              "width": 1280,
+              "height": 54
+            },
+            "position": "sticky"
+          },
+          {
+            "selector": "side",
+            "rect": {
+              "x": 0,
+              "y": 54,
+              "left": 0,
+              "right": 220,
+              "top": 54,
+              "bottom": 526,
+              "width": 220,
+              "height": 472
+            },
+            "position": "sticky"
+          }
+        ],
+        "fullMetadataEvidence": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+        "rootOriginalViewed": true
+      },
+      {
+        "profile": "webkit-landscape-1280-zh-dark",
+        "state": "one-time-date-empty-vs-amount",
+        "path": "/workspace/work/date-field-width-2026-10-08/final-7/webkit-landscape-1280-zh-dark-one-time-date-empty-vs-amount.png",
+        "sha256": "a4f9e68825c3dfe72d541ecb8369565935d179520b68acb287758be69db49d45",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "width": 1280,
+        "height": 800,
+        "actualViewport": {
+          "width": 1280,
+          "height": 800,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "visualWidth": 1280,
+          "visualHeight": 800,
+          "coarse": true
+        },
+        "scroll": {
+          "x": 0,
+          "y": 188
+        },
+        "coarse": true,
+        "maxTouchPoints": 0,
+        "beforeAfterMetadataEqual": true,
+        "stickyChrome": [
+          {
+            "selector": "topbar",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "left": 0,
+              "right": 1280,
+              "top": 0,
+              "bottom": 54,
+              "width": 1280,
+              "height": 54
+            },
+            "position": "sticky"
+          },
+          {
+            "selector": "side",
+            "rect": {
+              "x": 0,
+              "y": 54,
+              "left": 0,
+              "right": 220,
+              "top": 54,
+              "bottom": 526,
+              "width": 220,
+              "height": 472
+            },
+            "position": "sticky"
+          }
+        ],
+        "fullMetadataEvidence": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+        "rootOriginalViewed": true
+      },
+      {
+        "profile": "webkit-mobile-390-en-light",
+        "state": "filters-populated",
+        "path": "/workspace/work/date-field-width-2026-10-08/final-7/webkit-mobile-390-en-light-filters-populated.png",
+        "sha256": "e468764ef093ff9ae9788fbd858e34d1173bbebb5cbd3c4e6c5755423da488a0",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "width": 390,
+        "height": 844,
+        "actualViewport": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844,
+          "visualWidth": 390,
+          "visualHeight": 844,
+          "coarse": true
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0
+        },
+        "coarse": true,
+        "maxTouchPoints": 0,
+        "beforeAfterMetadataEqual": true,
+        "stickyChrome": [
+          {
+            "selector": "topbar",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "left": 0,
+              "right": 390,
+              "top": 0,
+              "bottom": 105,
+              "width": 390,
+              "height": 105
+            },
+            "position": "sticky"
+          },
+          {
+            "selector": "side",
+            "rect": {
+              "x": 0,
+              "y": 105,
+              "left": 0,
+              "right": 390,
+              "top": 105,
+              "bottom": 166,
+              "width": 390,
+              "height": 61
+            },
+            "position": "sticky"
+          }
+        ],
+        "fullMetadataEvidence": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+        "rootOriginalViewed": true
+      },
+      {
+        "profile": "webkit-mobile-390-en-light",
+        "state": "one-time-date-empty-vs-amount-320",
+        "path": "/workspace/work/date-field-width-2026-10-08/final-7/webkit-mobile-390-en-light-one-time-date-empty-vs-amount-320.png",
+        "sha256": "47fe538744e0a71a45de19f6c05cc97a8f911e6de394ef9b522397e5332efad4",
+        "nativeUnedited": true,
+        "fullPage": false,
+        "width": 320,
+        "height": 1100,
+        "actualViewport": {
+          "width": 320,
+          "height": 1100,
+          "clientWidth": 320,
+          "clientHeight": 1100,
+          "visualWidth": 320,
+          "visualHeight": 1100,
+          "coarse": true
+        },
+        "scroll": {
+          "x": 0,
+          "y": 656
+        },
+        "coarse": true,
+        "maxTouchPoints": 0,
+        "beforeAfterMetadataEqual": true,
+        "stickyChrome": [
+          {
+            "selector": "topbar",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "left": 0,
+              "right": 320,
+              "top": 0,
+              "bottom": 105,
+              "width": 320,
+              "height": 105
+            },
+            "position": "sticky"
+          },
+          {
+            "selector": "side",
+            "rect": {
+              "x": 0,
+              "y": 105,
+              "left": 0,
+              "right": 320,
+              "top": 105,
+              "bottom": 218,
+              "width": 320,
+              "height": 113
+            },
+            "position": "sticky"
+          }
+        ],
+        "fullMetadataEvidence": "/workspace/work/date-field-width-2026-10-08/final-7/evidence.json",
+        "rootOriginalViewed": true
+      }
+    ],
+    "cleanup": {
+      "browserClosed": true,
+      "ownedContextsClosed": true,
+      "previewPortFree": true
+    },
+    "historicalExcluded": {
+      "scratchFailures": 5,
+      "attempts": 6,
+      "contextsStarted": 8,
+      "intercepted": 388,
+      "fixtureGET": 195,
+      "states": 82,
+      "nativeCaptures": 6,
+      "blockedExternalAttempts": 8,
+      "externalDelivered": 0,
+      "businessWrites": 0,
+      "runs": [
+        {
+          "attempt": "final",
+          "path": "/workspace/work/date-field-width-2026-10-08/final/evidence.json",
+          "sha256": "cf2dbd17da3ccda3ec2eb96bbe701f2fd064b027ed4bc2674a85afe4a394b4f4",
+          "status": "failed",
+          "reason": "Scratch measurement/selector/optional-copy harness failure; superseded, excluded from final acceptance",
+          "error": "page.evaluate: TypeError: undefined is not an object (evaluating 'fieldData.content')\n    at measureDateFields (/workspace/work/date-field-width-2026-10-08/date-measure.mjs:13:29)\n    at record (/workspace/work/date-field-width-2026-10-08/capture.mjs:37:62)\n    at /workspace/work/date-field-width-2026-10-08/capture.mjs:44:127",
+          "contextsStarted": 1,
+          "passedProfilesBeforeLaterFailure": 0,
+          "intercepted": 31,
+          "fixtureGET": 9,
+          "states": 0,
+          "nativeCaptures": 0,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "ownedContextsClosed": true,
+            "previewPortFree": true
+          },
+          "finalAcceptanceIncluded": false
+        },
+        {
+          "attempt": "final-2",
+          "path": "/workspace/work/date-field-width-2026-10-08/final-2/evidence.json",
+          "sha256": "f4c7884e5663895b4239b89dc4256f2f7873910d2276d0d6f0da934c7ace3234",
+          "status": "failed",
+          "reason": "Scratch measurement/selector/optional-copy harness failure; superseded, excluded from final acceptance",
+          "error": "locator.evaluate: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ledger-filter-strip label:first-child input')\u001b[22m\n\n    at picker (/workspace/work/date-field-width-2026-10-08/capture.mjs:42:64)\n    at /workspace/work/date-field-width-2026-10-08/capture.mjs:44:168",
+          "contextsStarted": 1,
+          "passedProfilesBeforeLaterFailure": 0,
+          "intercepted": 31,
+          "fixtureGET": 9,
+          "states": 1,
+          "nativeCaptures": 0,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "ownedContextsClosed": true,
+            "previewPortFree": true
+          },
+          "finalAcceptanceIncluded": false
+        },
+        {
+          "attempt": "final-3",
+          "path": "/workspace/work/date-field-width-2026-10-08/final-3/evidence.json",
+          "sha256": "b26d62ad16807ba2ebf8cd150b63281d7919794b3138a2d319262f244f685a90",
+          "status": "failed",
+          "reason": "Scratch measurement/selector/optional-copy harness failure; superseded, excluded from final acceptance",
+          "error": "locator.inputValue: Error: strict mode violation: locator('#expense-form .ledger-fields>label:first-child input') resolved to 2 elements:\n    1) <input type=\"date\" required=\"\" value=\"2026-10-08\"/> aka getByRole('textbox', { name: 'Date' })\n    2) <input value=\"\" inputmode=\"decimal\"/> aka getByLabel('Quantity (optional)')\n\nCall log:\n\u001b[2m  - waiting for locator('#expense-form .ledger-fields>label:first-child input')\u001b[22m\n\n    at setDate (/workspace/work/date-field-width-2026-10-08/capture.mjs:40:334)\n    at async file:///workspace/work/date-field-width-2026-10-08/capture.mjs:45:156",
+          "contextsStarted": 1,
+          "passedProfilesBeforeLaterFailure": 0,
+          "intercepted": 50,
+          "fixtureGET": 28,
+          "states": 5,
+          "nativeCaptures": 1,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "ownedContextsClosed": true,
+            "previewPortFree": true
+          },
+          "finalAcceptanceIncluded": false
+        },
+        {
+          "attempt": "final-4",
+          "path": "/workspace/work/date-field-width-2026-10-08/final-4/evidence.json",
+          "sha256": "053d4db0a95e06d8b1d267c4e66dfb3541d04ecdaee1faf077b2bc848ff9a138",
+          "status": "failed",
+          "reason": "Scratch measurement/selector/optional-copy harness failure; superseded, excluded from final acceptance",
+          "error": "page.evaluate: TypeError: null is not an object (evaluating 'n.getBoundingClientRect')\n    at align (/workspace/work/date-field-width-2026-10-08/capture.mjs:35:45)\n    at click (/workspace/work/date-field-width-2026-10-08/capture.mjs:36:40)\n    at /workspace/work/date-field-width-2026-10-08/capture.mjs:51:89",
+          "contextsStarted": 1,
+          "passedProfilesBeforeLaterFailure": 0,
+          "intercepted": 53,
+          "fixtureGET": 30,
+          "states": 15,
+          "nativeCaptures": 1,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "ownedContextsClosed": true,
+            "previewPortFree": true
+          },
+          "finalAcceptanceIncluded": false
+        },
+        {
+          "attempt": "final-5",
+          "path": "/workspace/work/date-field-width-2026-10-08/final-5/evidence.json",
+          "sha256": "a8fbbdc4a28451cb55948b1c2b67fe524dfb726da8d98656497c0ef130258a0a",
+          "status": "failed",
+          "reason": "Scratch measurement/selector/optional-copy harness failure; superseded, excluded from final acceptance",
+          "error": "page.evaluate: TypeError: null is not an object (evaluating 'n.getBoundingClientRect')\n    at /workspace/work/date-field-width-2026-10-08/capture.mjs:53:107",
+          "contextsStarted": 1,
+          "passedProfilesBeforeLaterFailure": 0,
+          "intercepted": 56,
+          "fixtureGET": 31,
+          "states": 17,
+          "nativeCaptures": 0,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "ownedContextsClosed": true,
+            "previewPortFree": true
+          },
+          "finalAcceptanceIncluded": false
+        },
+        {
+          "attempt": "final-6",
+          "path": "/workspace/work/date-field-width-2026-10-08/final-6/evidence.json",
+          "sha256": "57e402d919e374a782eaf7a7594e85a5f546aad4ff1d361b2be1ae867c4fcf25",
+          "status": "failed",
+          "reason": "Actual shared topbar document overflow on mobile API page; prior date core passed, superseded after product repair/new freeze",
+          "error": "Error: Date field geometry failed (1 checks):\n- no-global-horizontal-overflow: Document width 427px exceeds its 390px viewport allocation, or the body overflows horizontally.\n    at measureDateFields (file:///workspace/work/date-field-width-2026-10-08/date-measure.mjs:286:21)\n    at async record (file:///workspace/work/date-field-width-2026-10-08/capture.mjs:38:56)\n    at async file:///workspace/work/date-field-width-2026-10-08/capture.mjs:53:828",
+          "contextsStarted": 3,
+          "passedProfilesBeforeLaterFailure": 2,
+          "intercepted": 167,
+          "fixtureGET": 88,
+          "states": 44,
+          "nativeCaptures": 4,
+          "blockedExternalAttempts": 3,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "ownedContextsClosed": true,
+            "previewPortFree": true
+          },
+          "finalAcceptanceIncluded": false
+        }
+      ],
+      "diagnosticContexts": 2,
+      "diagnoses": [
+        {
+          "path": "/workspace/work/date-field-width-2026-10-08/diagnostic-api-overflow.json",
+          "sha256": "63a566598d99f29bd70ddd899089416a309fd4e8226acf340cde9570c7016b37",
+          "status": "diagnostic-complete",
+          "cap": 35,
+          "intercepted": 22,
+          "fixtureGET": 3,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "captures": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "contextClosed": true,
+            "previewPortFree": true
+          },
+          "transientCSSRemoved": true,
+          "baselineDocumentWidth": 427,
+          "restoredDocumentWidth": 427,
+          "candidates": [
+            {
+              "css": ".api-key-create-main {grid-template-columns:minmax(0,1fr)!important;}",
+              "documentWidth": 427,
+              "restoredDocumentWidth": 427
+            },
+            {
+              "css": ".api-key-create {grid-template-columns:minmax(0,1fr)!important;}",
+              "documentWidth": 427,
+              "restoredDocumentWidth": 427
+            },
+            {
+              "css": ".api-key-create-main>.auth-field {min-width:0!important;}",
+              "documentWidth": 427,
+              "restoredDocumentWidth": 427
+            }
+          ],
+          "acceptanceIncluded": false
+        },
+        {
+          "path": "/workspace/work/date-field-width-2026-10-08/diagnostic-workspace-select-overflow.json",
+          "sha256": "af42c1206053be6eebd74ebe81bc67bb99f41c5c978976316c65326ac638ef58",
+          "status": "diagnostic-complete",
+          "cap": 35,
+          "intercepted": 22,
+          "fixtureGET": 3,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "businessWrites": 0,
+          "captures": 0,
+          "cleanup": {
+            "browserClosed": true,
+            "contextClosed": true,
+            "previewPortFree": true
+          },
+          "transientCSSRemoved": true,
+          "baselineDocumentWidth": 427,
+          "restoredDocumentWidth": 427,
+          "candidates": [
+            {
+              "css": ".workspace-picker select{max-inline-size:100%;min-inline-size:0;overflow:hidden;text-overflow:ellipsis}",
+              "documentWidth": 427,
+              "restoredDocumentWidth": 427
+            },
+            {
+              "css": ".workspace-picker{display:grid;grid-template-columns:auto minmax(0,1fr)} .workspace-picker select{width:100%;min-inline-size:0;max-inline-size:100%}",
+              "documentWidth": 390,
+              "restoredDocumentWidth": 427
+            },
+            {
+              "css": ".workspace-picker select{appearance:none;-webkit-appearance:none;max-inline-size:100%;min-inline-size:0}",
+              "documentWidth": 422,
+              "restoredDocumentWidth": 427
+            }
+          ],
+          "acceptanceIncluded": false
+        }
+      ],
+      "allExcludedFromFinalCounts": true
+    },
+    "notRun": "No additional Chromium native captures, actual iOS/Android device, or Firefox local acceptance. Root separately owns persistent cross-engine validation and deployment."
+  },
+  "freeze": {
+    "artifactEntry": "/assets/index-CHtFcbLY.js",
+    "artifactFiles": 46,
+    "sourceFiles": 70,
+    "artifactManifestSha256": "9301bd6d04a063531eb07626f34ef1c190db7c65a13b9398f9d54626e182b507",
+    "sourceManifestSha256": "b98892728ae1de68d77862da2b28ed373d163d786546b034bb4463966e48f9c0",
+    "buildEnvironment": {
+      "VITE_APP_URL": "https://preview.pull-wise.com",
+      "VITE_API_BASE_URL": "/api",
+      "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+    }
+  },
+  "rootReview": {
+    "originalNativeCapturesViewed": 6,
+    "visualPass": true,
+    "pngHashesAndDimensionsVerified": true,
+    "rawBeforeAfterMetadataVerified": true,
+    "allRuntimeSourceArtifactAndValidationHashesReverified": true
+  },
+  "unchangedScope": [
+    "Server runtime",
+    "D1 schema/data",
+    "recurring scheduling",
+    "production deployment"
+  ]
+}

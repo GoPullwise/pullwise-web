@@ -360,7 +360,8 @@ select {
   gap: 12px;
 }
 .workspace-picker {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -372,8 +373,9 @@ select {
   flex: 0 0 auto;
 }
 .workspace-picker select {
-  flex: 1 1 auto;
-  width: 180px;
+  width: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   min-height: 32px;
   padding: 6px 10px;
   border: 1px solid var(--border);
@@ -1104,9 +1106,6 @@ details.panel[open] > summary.panel-h::after,
   }
   .workspace-picker {
     max-width: min(280px, calc(100vw - 80px));
-  }
-  .workspace-picker select {
-    width: 140px;
   }
   .topbar-location {
     gap: 8px;

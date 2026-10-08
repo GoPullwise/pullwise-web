@@ -67,6 +67,18 @@ The development server runs at `http://localhost:5173`. Set `VITE_API_BASE_URL=/
 
 `npm run check` runs lint, Vitest, and the production build. `npm run check:workers` checks the Worker configuration without publishing. `npm run deploy:workers` publishes and must be used only after the Server preview configuration and S17 local checks pass.
 
+`npm run test:layout` checks the built app in Chromium, WebKit and Firefox with
+local read-only fixtures at desktop, tablet, iPhone-sized and Android-sized
+widths. It verifies input boundaries and gaps across filter dates, expense
+entry/editing and recurring start/end dates, including resized split panes.
+It also checks the shared ledger picker with long option names and the API key
+name/scopes form, including narrow mobile widths.
+CI installs all three engines and runs this check after the build. For local
+setup, run `PLAYWRIGHT_BROWSERS_PATH=node_modules/.cache/ms-playwright npx playwright install --with-deps chromium firefox webkit`; use
+`npm run test:layout -- --browser=webkit` to inspect one engine. Layout changes
+must pass these checks as well as the unit suite. Emulation is separate from
+real iOS/Android device verification.
+
 ## Cloudflare configuration
 
 `wrangler.jsonc` currently maps `pull-wise.com` and `www.pull-wise.com` to the Web Worker and sends API traffic to `https://api.pull-wise.com`. Coordinate the Server custom domain, OAuth callback, Cookie domain/SameSite, and allowed origins before preview or production deployment. Do not put secrets in `wrangler.jsonc`.
