@@ -1,0 +1,262 @@
+{
+  "date": "2026-10-08",
+  "completedAt": "2026-10-08T15:38:03.119618+00:00",
+  "scope": "Shared Safari date-field and Ledger picker layout fixes; Web preview only",
+  "repository": "https://github.com/GoPullwise/pullwise-web",
+  "sourceCommit": "5da9481506543506aea14296008abbe6d54a35ed",
+  "worker": "pullwise-web-preview",
+  "domain": "https://preview.pull-wise.com",
+  "previousManagement": {
+    "deployment": {
+      "id": "dd933e0d-53b3-4de5-94be-2a7839431ec0",
+      "created_on": "2026-10-08T14:22:41.386111Z",
+      "versions": [
+        {
+          "version_id": "fcc51071-03bb-432b-90e0-73f6ee126c36",
+          "percentage": 100
+        }
+      ],
+      "annotations": {
+        "workers/message": "Chart-only reports and shared expense toolbar; source aa56e8f; accepted preview artifact",
+        "workers/triggered_by": "deployment"
+      }
+    },
+    "settings": {
+      "compatibility_date": "2026-05-25",
+      "annotations": {
+        "workers/message": "Chart-only reports and shared expense toolbar; source aa56e8f; accepted preview artifact",
+        "workers/tag": "expense-views-aa56e8f",
+        "workers/triggered_by": "version_upload"
+      },
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ]
+    },
+    "statuses": {
+      "deployments": 200,
+      "settings": 200
+    }
+  },
+  "publishedManagement": {
+    "deployment": {
+      "id": "b761f645-0446-437c-8e68-e390d72b4e14",
+      "created_on": "2026-10-08T15:36:06.788023Z",
+      "versions": [
+        {
+          "version_id": "43c5b8a6-b9e9-4ab6-8dbf-91edd9a0370e",
+          "percentage": 100
+        }
+      ],
+      "annotations": {
+        "workers/message": "Safari date field sizing and browser layout regressions; source 5da9481; accepted preview artifact",
+        "workers/triggered_by": "deployment"
+      }
+    },
+    "settings": {
+      "compatibility_date": "2026-05-25",
+      "annotations": {
+        "workers/message": "Safari date field sizing and browser layout regressions; source 5da9481; accepted preview artifact",
+        "workers/tag": "date-fields-5da9481",
+        "workers/triggered_by": "version_upload"
+      },
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ]
+    },
+    "statuses": {
+      "deployments": 200,
+      "settings": 200
+    }
+  },
+  "freeze": {
+    "artifactEntry": "/assets/index-CHtFcbLY.js",
+    "artifactFiles": 46,
+    "sourceFiles": 70,
+    "artifactManifestSha256": "9301bd6d04a063531eb07626f34ef1c190db7c65a13b9398f9d54626e182b507",
+    "sourceManifestSha256": "b98892728ae1de68d77862da2b28ed373d163d786546b034bb4463966e48f9c0",
+    "buildEnvironment": {
+      "VITE_APP_URL": "https://preview.pull-wise.com",
+      "VITE_API_BASE_URL": "/api",
+      "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+    }
+  },
+  "checks": {
+    "testFiles": 43,
+    "testsPassed": 727,
+    "lint": true,
+    "workerConfig": true,
+    "workerSyntax": true,
+    "ownedFormatting": true,
+    "whitespace": true,
+    "explicitPreviewBuild": true,
+    "wranglerDryRun": "4.136.3"
+  },
+  "persistentBrowserRegression": {
+    "status": "passed",
+    "engines": [
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "contexts": 4,
+        "states": 114
+      },
+      {
+        "engine": "webkit",
+        "version": "26.0",
+        "contexts": 4,
+        "states": 114
+      }
+    ],
+    "contexts": 8,
+    "states": 228,
+    "validationSources": [
+      {
+        "path": "scripts/check-date-layout.mjs",
+        "sha256": "af9849b5ba102f6facf6609b5266e5b7b7c0874434c310d028305cbd628aca36"
+      },
+      {
+        "path": "scripts/date-layout-fixtures.mjs",
+        "sha256": "0b104ce59134fdc6ed5c10382a25903c575ab68d14f989531626a4e1e26ff1a9"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "a4ff8dfa5823b9c01db1184f8dc6046b5815475d58205eeddaf3b7f117755be7"
+      }
+    ],
+    "firefoxLocalPassed": false,
+    "physicalDeviceAcceptance": false
+  },
+  "nativeAcceptance": {
+    "contexts": 3,
+    "states": 47,
+    "captures": 6,
+    "intercepted": 168,
+    "fixtureGET": 89,
+    "maxRequestsPerContext": 57,
+    "blockedExternalAttempts": 3,
+    "externalDelivered": 0,
+    "businessWrites": 0,
+    "summaryAttempts": 0,
+    "fullyPassedContexts": 3,
+    "retainedCaptures": 0,
+    "allSixNewOriginalsViewedByRoot": true,
+    "summaryGET": 0
+  },
+  "rootReviewedNativeCaptures": 6,
+  "localEvidence": "date-field-width-local-2026-10-08.json",
+  "staticReadback": {
+    "startedAt": "2026-10-08T15:36:57.458329+00:00",
+    "artifactEntry": "/assets/index-CHtFcbLY.js",
+    "requestCap": 4,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "credentials": 0,
+    "businessApiRequests": 0,
+    "pageJavaScriptExecuted": false,
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 5117,
+        "sha256": "95e70d6382f37cee437931902cabc93e2021dc02393194de20bd040dd0204ce0",
+        "contentType": "text/html",
+        "robotsTag": "noindex, nofollow",
+        "at": "2026-10-08T15:36:57.739347+00:00",
+        "referencesAcceptedEntry": true,
+        "previewNoindex": true
+      },
+      {
+        "path": "/assets/index-CHtFcbLY.js",
+        "status": 200,
+        "bytes": 42022,
+        "sha256": "006893322f53164b8fdca08ad68895e81008742bf30c1f30a68546ec62e27404",
+        "contentType": "text/javascript",
+        "robotsTag": null,
+        "at": "2026-10-08T15:36:57.922415+00:00",
+        "expectedSha256": "006893322f53164b8fdca08ad68895e81008742bf30c1f30a68546ec62e27404",
+        "matchesAcceptedAsset": true
+      },
+      {
+        "path": "/assets/ledger-D0c_tmnp.css",
+        "status": 200,
+        "bytes": 12762,
+        "sha256": "960f55487989ee5a7cf9dca32691b4f1f074a7e023ccc58ee27ca84e19053bb2",
+        "contentType": "text/css",
+        "robotsTag": null,
+        "at": "2026-10-08T15:36:58.102576+00:00",
+        "expectedSha256": "960f55487989ee5a7cf9dca32691b4f1f074a7e023ccc58ee27ca84e19053bb2",
+        "matchesAcceptedAsset": true
+      },
+      {
+        "path": "/assets/ledger-B7udPg0b.js",
+        "status": 200,
+        "bytes": 79995,
+        "sha256": "0c270ff66fd23190fc2dfc406c27606936f5027b258ec78813d8501d90477f06",
+        "contentType": "text/javascript",
+        "robotsTag": null,
+        "at": "2026-10-08T15:36:58.335651+00:00",
+        "expectedSha256": "0c270ff66fd23190fc2dfc406c27606936f5027b258ec78813d8501d90477f06",
+        "matchesAcceptedAsset": true
+      }
+    ],
+    "passed": true
+  },
+  "githubActionsSourceReadback": {
+    "runs": [],
+    "actualRunVerified": false,
+    "workflowConfiguredFor": ["chromium", "webkit", "firefox"]
+  },
+  "postPublishHashProof": {
+    "committedRuntimeSourceFiles": 70,
+    "workingRuntimeSourceFiles": 70,
+    "artifactFiles": 46,
+    "validationSourceFiles": 3,
+    "allMatchAcceptedFreeze": true
+  },
+  "operations": {
+    "webPreviewDeployments": 1,
+    "serverDeployments": 0,
+    "d1Commands": 0,
+    "productionDeployments": 0,
+    "remoteBusinessApiRequests": 0
+  },
+  "documentationFollowup": "Publication records only; no runtime rebuild or second deployment."
+}

@@ -50,6 +50,16 @@ configured to install and check all three engines on ordinary Ubuntu;
 remote execution is unverified (runs query returned empty and Actions settings
 read returned integration403). No repository settings were changed.
 
+[Preview publication](date-field-width-preview-release-2026-10-08.json)
+publishes source `5da9481` as version `43c5b8a6-b9e9-4ab6-8dbf-91edd9a0370e`
+at 100% preview traffic. Management confirms the preview asset/Server bindings;
+one homepage and three exact accepted hashed assets return200 and match,
+with noindex HTML referencing `/assets/index-CHtFcbLY.js`. All local source,
+artifact and persistent-validation hashes match the committed accepted freeze.
+The post-push Actions run query is empty, so remote CI success is not claimed.
+No business API, Server/D1 or production operation occurred. This publication
+record needs no further build or deployment.
+
 ## Shared expense toolbar and chart-only Reports (2026-10-08)
 
 Project expenses and shared pool now use one view toolbar for collapsible
