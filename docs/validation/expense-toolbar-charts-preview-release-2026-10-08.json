@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-08",
+  "completedAt": "2026-10-08T14:24:17.516277+00:00",
+  "scope": "Shared project/pool toolbar and chart-only Reports without standalone currency totals; Web preview only",
+  "repository": "https://github.com/GoPullwise/pullwise-web",
+  "sourceCommit": "aa56e8f12f64dd3e1bf36ab5ac0e73d3068463f1",
+  "worker": "pullwise-web-preview",
+  "domain": "https://preview.pull-wise.com",
+  "previousManagement": {
+    "deployment": {
+      "id": "8e7dffd5-a6db-4ab2-a762-f8fecd4aaceb",
+      "created_on": "2026-10-08T13:48:43.442926Z",
+      "versions": [
+        {
+          "version_id": "75750bd8-4fea-48b7-81be-c09049075885",
+          "percentage": 100
+        }
+      ],
+      "annotations": {
+        "workers/message": "Projects product-only list and removed ledger overview; source fa33dbd; accepted preview artifact",
+        "workers/triggered_by": "deployment"
+      }
+    },
+    "settings": {
+      "compatibility_date": "2026-05-25",
+      "annotations": {
+        "workers/message": "Projects product-only list and removed ledger overview; source fa33dbd; accepted preview artifact",
+        "workers/tag": "projects-product-fa33dbd",
+        "workers/triggered_by": "version_upload"
+      },
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ]
+    },
+    "statuses": {
+      "deployments": 200,
+      "settings": 200
+    }
+  },
+  "publishedManagement": {
+    "deployment": {
+      "id": "dd933e0d-53b3-4de5-94be-2a7839431ec0",
+      "created_on": "2026-10-08T14:22:41.386111Z",
+      "versions": [
+        {
+          "version_id": "fcc51071-03bb-432b-90e0-73f6ee126c36",
+          "percentage": 100
+        }
+      ],
+      "annotations": {
+        "workers/message": "Chart-only reports and shared expense toolbar; source aa56e8f; accepted preview artifact",
+        "workers/triggered_by": "deployment"
+      }
+    },
+    "settings": {
+      "compatibility_date": "2026-05-25",
+      "annotations": {
+        "workers/message": "Chart-only reports and shared expense toolbar; source aa56e8f; accepted preview artifact",
+        "workers/tag": "expense-views-aa56e8f",
+        "workers/triggered_by": "version_upload"
+      },
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ]
+    },
+    "statuses": {
+      "deployments": 200,
+      "settings": 200
+    }
+  },
+  "freeze": {
+    "artifactEntry": "/assets/index-B3bUObTH.js",
+    "artifactFiles": 46,
+    "sourceFiles": 70,
+    "artifactManifestSha256": "1dbfa3372fffd15f7d07708b599cee9026f9b11e3b1f0ad580964af40995478b",
+    "sourceManifestSha256": "7c8559e139e71868ba4f00f3e7c07eb528db3f6a934788cd97cd627e32807134",
+    "buildEnvironment": {
+      "VITE_APP_URL": "https://preview.pull-wise.com",
+      "VITE_API_BASE_URL": "/api",
+      "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+    }
+  },
+  "checks": {
+    "testFiles": 43,
+    "testsPassed": 727,
+    "lint": true,
+    "workerConfig": true,
+    "workerSyntax": true,
+    "ownedFormatting": true,
+    "whitespace": true,
+    "explicitPreviewBuild": true,
+    "wranglerDryRun": "4.136.3"
+  },
+  "browserAcceptance": {
+    "contexts": 3,
+    "scenarios": 57,
+    "captures": 6,
+    "intercepted": 178,
+    "fixtureGET": 96,
+    "blockedExternalAttempts": 3,
+    "externalDelivered": 0,
+    "businessWrites": 0,
+    "providerDelivered": 0,
+    "realAccounts": 0,
+    "maxRequestsPerContext": 63
+  },
+  "rootReviewedNativeCaptures": 6,
+  "localEvidence": "expense-toolbar-charts-local-2026-10-08.json",
+  "staticReadback": {
+    "startedAt": "2026-10-08T14:23:14.231347+00:00",
+    "artifactEntry": "/assets/index-B3bUObTH.js",
+    "requestCap": 4,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "credentials": 0,
+    "businessApiRequests": 0,
+    "pageJavaScriptExecuted": false,
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 5117,
+        "sha256": "49cfa58343ecfe0e0c0fcc6c6f026b74ea013b8ba3c3d159e1f4cc82d3c127d0",
+        "contentType": "text/html",
+        "robotsTag": "noindex, nofollow",
+        "at": "2026-10-08T14:23:14.705233+00:00",
+        "referencesAcceptedEntry": true,
+        "previewNoindex": true
+      },
+      {
+        "path": "/assets/index-B3bUObTH.js",
+        "status": 200,
+        "bytes": 42022,
+        "sha256": "9b491195a135c36b822f1b38638eca0306a23f47a7d97bcf9ded587b4e8159c3",
+        "contentType": "text/javascript",
+        "robotsTag": null,
+        "at": "2026-10-08T14:23:14.978471+00:00",
+        "expectedSha256": "9b491195a135c36b822f1b38638eca0306a23f47a7d97bcf9ded587b4e8159c3",
+        "matchesAcceptedAsset": true
+      },
+      {
+        "path": "/assets/ledger-C38clHol.css",
+        "status": 200,
+        "bytes": 12463,
+        "sha256": "adce8662c5d66bcf3e7b9a9979572050f6fced0892037dc5de3b07a7aa61b360",
+        "contentType": "text/css",
+        "robotsTag": null,
+        "at": "2026-10-08T14:23:15.258502+00:00",
+        "expectedSha256": "adce8662c5d66bcf3e7b9a9979572050f6fced0892037dc5de3b07a7aa61b360",
+        "matchesAcceptedAsset": true
+      },
+      {
+        "path": "/assets/ledger-BW1QU7mj.js",
+        "status": 200,
+        "bytes": 79995,
+        "sha256": "dacd9363601362ffa13c453a5ab2e4326ed7994fd207040b040bc5ffff23ac32",
+        "contentType": "text/javascript",
+        "robotsTag": null,
+        "at": "2026-10-08T14:23:15.330890+00:00",
+        "expectedSha256": "dacd9363601362ffa13c453a5ab2e4326ed7994fd207040b040bc5ffff23ac32",
+        "matchesAcceptedAsset": true
+      }
+    ],
+    "passed": true
+  },
+  "postPublishHashProof": {
+    "committedRuntimeSourceFiles": 70,
+    "workingRuntimeSourceFiles": 70,
+    "artifactFiles": 46,
+    "allMatchAcceptedFreeze": true
+  },
+  "operations": {
+    "webPreviewDeployments": 1,
+    "serverDeployments": 0,
+    "d1Commands": 0,
+    "productionDeployments": 0,
+    "remoteBusinessApiRequests": 0
+  },
+  "documentationFollowup": "Publication records only; no runtime rebuild or second deployment."
+}

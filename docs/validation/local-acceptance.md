@@ -34,6 +34,15 @@ native CSV downloads or OS clipboard contents. The earlier passed design with
 totals in Reports was superseded by the user's follow-up before any commit or
 deployment; its six retained images contribute nothing to final acceptance.
 
+[Preview publication](expense-toolbar-charts-preview-release-2026-10-08.json)
+publishes source `aa56e8f` as version `fcc51071-03bb-432b-90e0-73f6ee126c36`
+at 100% preview traffic. Management confirms the preview asset/Server bindings;
+one homepage and three exact hashed asset GETs return 200, with noindex HTML
+referencing `/assets/index-B3bUObTH.js`. All sampled assets and all local runtime
+source/artifact hashes match the accepted freeze. No retry, redirect, credential,
+page JavaScript, business API, Server deployment, D1 command or production
+deployment is involved. Publication-record commits need no extra deployment.
+
 ## Projects product-only list (2026-10-08)
 
 The latest user request replaces the earlier all-link list design. Projects
