@@ -17,6 +17,10 @@ const api = vi.hoisted(() => ({
   createExpense: vi.fn(),
   updateExpense: vi.fn(),
   removeExpense: vi.fn(),
+  recurringRules: vi.fn(),
+  createRecurringRule: vi.fn(),
+  updateRecurringRule: vi.fn(),
+  removeRecurringRule: vi.fn(),
   reportSummary: vi.fn(),
   reportTimeseries: vi.fn(),
   reportCategories: vi.fn(),
@@ -37,6 +41,7 @@ beforeEach(() => {
   api.projects.mockResolvedValue({ items: [], nextCursor: null });
   api.categories.mockResolvedValue([]);
   api.expenses.mockResolvedValue({ items: [], nextCursor: null });
+  api.recurringRules.mockResolvedValue({ items: [], nextCursor: null });
   api.createExpense.mockResolvedValue({ id: "exp_saved", categoryId: "cat_1" });
   api.reportSummary.mockResolvedValue({ groups: [] });
   api.reportTimeseries.mockResolvedValue({ groups: [] });
@@ -182,8 +187,9 @@ describe("ledger screens", () => {
       />
     );
     fireEvent.click(await screen.findByRole("tab", { name: "Project settings" }));
-    expect(screen.getByText("team/api")).toBeVisible();
-    expect(screen.getByText("Repository #202")).toBeVisible();
+    const settings = within(screen.getByRole("tabpanel", { name: "Project settings" }));
+    expect(settings.getByText("team/api")).toBeVisible();
+    expect(settings.getByText("Repository #202")).toBeVisible();
     expect(screen.queryByText("hidden/old-private-name")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save project" })).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();

@@ -61,6 +61,48 @@ describe("ledger REST paths", () => {
     expect(send.mock.calls[2][0].responseType).toBe("blob");
   });
 
+  it("keeps recurring rule paths, scope, abort and concurrency headers on the real API", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: {} });
+    const api = createLedgerApi("team");
+    const controller = new AbortController();
+    await api.recurringRules(
+      { target: "project", projectId: "prj_1" },
+      { signal: controller.signal }
+    );
+    await api.createRecurringRule(
+      { target: { kind: "shared" }, schedule: { frequency: "monthly" } },
+      "rule-1"
+    );
+    await api.updateRecurringRule("rul/1", 4, { status: "paused" });
+    await api.removeRecurringRule("rul/1", 5);
+    expect(send.mock.calls[0][0]).toMatchObject({
+      url: "/api/v1/expense-recurring-rules",
+      params: { target: "project", projectId: "prj_1" },
+      signal: controller.signal,
+    });
+    expect(send.mock.calls[1][0]).toMatchObject({
+      method: "POST",
+      headers: { "Idempotency-Key": "rule-1" },
+      data: { target: { kind: "shared" }, schedule: { frequency: "monthly" } },
+    });
+    expect(send.mock.calls[2][0]).toMatchObject({
+      url: "/api/v1/expense-recurring-rules/rul%2F1",
+      method: "PATCH",
+      headers: { "If-Match": '"4"' },
+      data: { status: "paused" },
+    });
+    expect(send.mock.calls[3][0]).toMatchObject({
+      method: "DELETE",
+      headers: { "If-Match": '"5"' },
+    });
+    expect(send.mock.calls.map(([call]) => call.headers["X-Pullwise-Workspace"])).toEqual([
+      "team",
+      "team",
+      "team",
+      "team",
+    ]);
+  });
+
   it("keeps pending reads bound to their captured ledger and preserves abort signals", async () => {
     let finishFirst;
     const first = new Promise((resolve) => {

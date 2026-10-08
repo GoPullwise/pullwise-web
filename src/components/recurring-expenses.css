@@ -1,0 +1,40 @@
+.ledger-screen .recurring-expenses-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: center;
+  align-items: center;
+  gap: 16px 24px;
+}
+.recurring-expenses-row > * {
+  min-width: 0;
+}
+.recurring-expenses-side {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+  min-width: 0;
+}
+.recurring-expenses-side .panel-actions {
+  justify-content: flex-end;
+}
+.recurring-expenses-editor,
+.recurring-expenses-row > .notice {
+  grid-column: 1 / -1;
+}
+.ledger-screen .recurring-expenses-editor .ledger-form {
+  margin: 0;
+}
+.recurring-expenses-row > .notice {
+  margin: 0;
+}
+@container (max-width: 560px) {
+  .ledger-screen .recurring-expenses-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .recurring-expenses-side {
+    justify-items: start;
+  }
+  .recurring-expenses-side .panel-actions {
+    justify-content: flex-start;
+  }
+}

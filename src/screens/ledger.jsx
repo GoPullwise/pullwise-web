@@ -4,6 +4,14 @@ import { SkeletonLine } from "../components/skeleton.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { FinancialValue } from "../components/financial-value.jsx";
+import { RecurringExpenses, RecurringScheduleFields } from "../components/recurring-expenses.jsx";
+import {
+  PROJECT_URL_MAX_BYTES,
+  githubOrganizationHref,
+  githubRepositoryHref,
+  normalizeProjectUrl,
+  projectUrlHref,
+} from "../lib/project-links.js";
 import { ExpenseCharts } from "../components/expense-charts.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
@@ -26,7 +34,11 @@ const emptyExpense = () => ({
 
 function isLedgerAccessFailure(failure) {
   const code = failure?.code || failure?.payload?.error?.code;
-  return [403, 404].includes(failure?.status) && !code?.startsWith("GITHUB_");
+  return (
+    [403, 404].includes(failure?.status) &&
+    !code?.startsWith("GITHUB_") &&
+    code !== "RECURRING_RULE_LIMIT"
+  );
 }
 
 function errorText(error) {
@@ -83,6 +95,10 @@ function errorText(error) {
     RECORD_LIMIT: T(
       "Expense record allowance reached. Existing records remain available.",
       "支出记录额度已用完，已有记录仍可访问。"
+    ),
+    RECURRING_RULE_LIMIT: T(
+      "Recurring schedule allowance reached. Existing schedules and expenses remain available.",
+      "周期计划额度已用完，已有计划和支出仍可访问。"
     ),
     WRITE_RATE_LIMIT: T(
       "Too many changes in a short time. Wait a minute before trying again.",
@@ -141,6 +157,12 @@ function LedgerTotal({ total }) {
       numeric={minorAmount(total.amountMinor) !== null && typeof total.currency === "string"}
     />
   );
+}
+
+function formatRecurringTotal(rule) {
+  return typeof rule.currency === "string" && typeof rule.amount === "string"
+    ? `${rule.currency} ${rule.amount}`
+    : T("Unavailable");
 }
 
 function LedgerFilters({ filters, onChange, categories = [] }) {
@@ -311,26 +333,114 @@ const projectLabel = (project) =>
   project.description ||
   T("Project", "项目");
 
-function ProjectListRow({ project, go }) {
-  const repositoryCount = new Set(boundRepositoryIds(project)).size;
-  const repositoryName =
-    project.repositories?.find(
-      (repository) => repository.githubAccess === "authorized" && repository.githubFullName
-    )?.githubFullName ||
-    (!project.repositories?.length &&
-      project.githubAccess === "authorized" &&
-      project.githubFullName);
-  const organizationName =
-    project.githubOrganization?.githubAccess === "authorized" && project.githubOrganization.login;
-
+function ProjectExternalLinks({ project }) {
+  const repositories = [...new Set(boundRepositoryIds(project))].map((id) => {
+    const repository = project.repositories?.find((item) => item.githubRepoId === id);
+    const metadata = repository || (!project.repositories?.length ? project : null);
+    const href = githubRepositoryHref(metadata);
+    return {
+      id,
+      href,
+      label: href ? metadata.githubFullName : `${T("Repository", "仓库")} #${id}`,
+    };
+  });
+  const organizationHref = githubOrganizationHref(project.githubOrganization);
+  const developmentHref =
+    project.githubAccess === "not_linked" ? projectUrlHref(project.developmentUrl) : null;
+  const productHref = projectUrlHref(project.productUrl);
+  const repositoryLink = ({ id, href, label }) =>
+    href ? (
+      <a key={id} href={href} target="_blank" rel="noopener noreferrer" draggable={false}>
+        {label}
+      </a>
+    ) : (
+      <span key={id}>{label}</span>
+    );
   return (
-    <a
-      className="ledger-project-row"
-      draggable={false}
-      {...screenLinkProps(go, "ledgerProject", { id: project.id })}
-    >
+    <div className="ledger-project-links">
+      {repositories.length > 1 ? (
+        <details className="disclosure ledger-project-repositories">
+          <summary>
+            {repositories.length} {T("repositories", "个仓库")}
+          </summary>
+          <div className="ledger-project-links">{repositories.map(repositoryLink)}</div>
+        </details>
+      ) : repositories.length === 1 ? (
+        repositoryLink(repositories[0])
+      ) : null}
+      {organizationHref && (
+        <a href={organizationHref} target="_blank" rel="noopener noreferrer" draggable={false}>
+          {project.githubOrganization.login}
+        </a>
+      )}
+      {developmentHref && (
+        <a href={developmentHref} target="_blank" rel="noopener noreferrer" draggable={false}>
+          {T("Development", "开发环境")}
+        </a>
+      )}
+      {productHref && (
+        <a href={productHref} target="_blank" rel="noopener noreferrer" draggable={false}>
+          {T("Product", "产品")}
+        </a>
+      )}
+    </div>
+  );
+}
+
+function ProjectLinkFields({ developmentUrl, productUrl, onChange, disabled }) {
+  const developmentId = useId();
+  const productId = useId();
+  return (
+    <>
+      <div className="ledger-field">
+        <label htmlFor={developmentId}>{T("Development URL (optional)", "开发网址（选填）")}</label>
+        <input
+          id={developmentId}
+          value={developmentUrl}
+          maxLength={PROJECT_URL_MAX_BYTES}
+          inputMode="url"
+          autoComplete="url"
+          disabled={disabled}
+          onChange={(event) => onChange("developmentUrl", event.target.value)}
+        />
+      </div>
+      <div className="ledger-field">
+        <label htmlFor={productId}>{T("Product URL (optional)", "产品网址（选填）")}</label>
+        <input
+          id={productId}
+          value={productUrl}
+          maxLength={PROJECT_URL_MAX_BYTES}
+          inputMode="url"
+          autoComplete="url"
+          disabled={disabled}
+          onChange={(event) => onChange("productUrl", event.target.value)}
+        />
+      </div>
+      <p className="ledger-help">
+        {T(
+          "Use an HTTP or HTTPS URL. A bare domain will use HTTPS.",
+          "使用 HTTP 或 HTTPS 网址，只填写域名时会使用 HTTPS。"
+        )}
+      </p>
+      <p className="ledger-help">
+        {T(
+          "Development links are shown only when no GitHub repositories are linked.",
+          "仅未关联 GitHub 仓库的项目显示开发链接。"
+        )}
+      </p>
+    </>
+  );
+}
+
+function ProjectListRow({ project, go }) {
+  return (
+    <article className="ledger-project-row">
       <div className="ledger-row-main">
-        <h2>{projectLabel(project)}</h2>
+        <h2>
+          <a draggable={false} {...screenLinkProps(go, "ledgerProject", { id: project.id })}>
+            {projectLabel(project)}
+          </a>
+        </h2>
         {project.description && projectLabel(project) !== project.description && (
           <p>{project.description}</p>
         )}
@@ -345,21 +455,11 @@ function ProjectListRow({ project, go }) {
           : T("No expenses")}
       </div>
       <div className="ledger-project-associations">
-        <span className="ledger-project-label">
-          {T("Repositories / organization", "仓库 / 组织")}
-        </span>
+        <span className="ledger-project-label">{T("Project links", "项目链接")}</span>
         {project.githubAccess === "not_linked" ? (
           <p>{T("No repositories linked", "未关联仓库")}</p>
-        ) : repositoryCount > 1 ? (
-          <p>
-            {repositoryCount} {T("repositories", "个仓库")}
-          </p>
-        ) : repositoryName ? (
-          <p>{repositoryName}</p>
-        ) : repositoryCount === 1 ? (
-          <p>{T("Repository", "仓库")}</p>
         ) : null}
-        {organizationName && <p>{organizationName}</p>}
+        <ProjectExternalLinks project={project} />
         {["lost", "reauthorization_required"].includes(project.githubAccess) && (
           <p className="ledger-access-lost">{T("GitHub access lost", "GitHub 授权已失效")}</p>
         )}
@@ -368,17 +468,48 @@ function ProjectListRow({ project, go }) {
         )}
       </div>
       <I.ArrowR size={16} aria-hidden="true" />
-    </a>
+    </article>
   );
 }
 
-function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api = ledgerApi }) {
+function ExpenseForm({
+  value,
+  recurrence = null,
+  categories,
+  target,
+  busy,
+  submitDisabled = false,
+  onSubmit,
+  onCancel,
+  api = ledgerApi,
+}) {
   const noteId = useId();
   const categoryFieldId = useId();
+  const expenseTypeId = useId();
+  const [expenseType, setExpenseType] = useState(recurrence ? "recurring" : "one-time");
+  const [schedule, setSchedule] = useState(() => {
+    const now = new Date();
+    let timezone = "UTC";
+    try {
+      timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    } catch {
+      /* UTC is a valid fallback for an older browser. */
+    }
+    return {
+      frequency: "monthly",
+      weekday: now.getDay() || 7,
+      day: now.getDate(),
+      quarterMonth: (now.getMonth() % 3) + 1,
+      month: now.getMonth() + 1,
+      timezone,
+      endOn: null,
+      ...recurrence,
+    };
+  });
   const [draft, setDraft] = useState(() =>
     value
       ? {
-          occurredOn: value.occurredOn,
+          occurredOn: value.occurredOn || recurrence?.startOn || "",
           amount: value.amount,
           currency: value.currency,
           categoryId: value.categoryId,
@@ -417,7 +548,9 @@ function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api 
       controller.abort();
     };
   }, [value, api]);
-  const categoryRequired = Boolean(value || !automaticCategory || requiresCategory);
+  const categoryRequired = Boolean(
+    value || expenseType === "recurring" || !automaticCategory || requiresCategory
+  );
   useEffect(() => {
     // Chrome ignores focus while a pending write still disables the select.
     if (requiresCategory && !busy && !draft.categoryId) categoryRef.current?.focus();
@@ -451,10 +584,27 @@ function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api 
       return;
     }
     setValidation("");
+    const recurringSchedule =
+      expenseType === "recurring"
+        ? {
+            frequency: schedule.frequency,
+            timezone: schedule.timezone.trim(),
+            startOn: draft.occurredOn,
+            endOn: schedule.endOn || null,
+            ...(schedule.frequency === "weekly" ? { weekday: Number(schedule.weekday) } : {}),
+            ...(["monthly", "quarterly", "yearly"].includes(schedule.frequency)
+              ? { day: Number(schedule.day) }
+              : {}),
+            ...(schedule.frequency === "quarterly"
+              ? { quarterMonth: Number(schedule.quarterMonth) }
+              : {}),
+            ...(schedule.frequency === "yearly" ? { month: Number(schedule.month) } : {}),
+          }
+        : null;
     const result = await onSubmit(
       {
         target: value?.target || target,
-        occurredOn: draft.occurredOn,
+        ...(recurringSchedule ? {} : { occurredOn: draft.occurredOn }),
         amount: draft.amount,
         currency: draft.currency.toUpperCase(),
         ...(draft.categoryId ? { categoryId: draft.categoryId } : {}),
@@ -463,7 +613,8 @@ function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api 
         quantity: draft.quantity || null,
         unit: draft.unit || null,
       },
-      createKey.current
+      createKey.current,
+      recurringSchedule
     );
     if (mounted.current && result?.error?.payload?.error?.code === "CATEGORY_REQUIRED") {
       setRequiresCategory(true);
@@ -477,8 +628,32 @@ function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api 
   };
   return (
     <form className="ledger-form" onSubmit={submit}>
+      {!value && (
+        <div className="ledger-field">
+          <label htmlFor={expenseTypeId}>{T("Expense type", "支出类型")}</label>
+          <select
+            id={expenseTypeId}
+            value={expenseType}
+            disabled={busy}
+            onChange={(event) => {
+              createKey.current = requestKey();
+              setValidation("");
+              setExpenseType(event.target.value);
+            }}
+          >
+            <option value="one-time">{T("One-time", "单次")}</option>
+            <option value="recurring">{T("Recurring", "周期")}</option>
+          </select>
+        </div>
+      )}
       <div className="ledger-fields">
-        {field("occurredOn", T("Date"), { type: "date", required: true })}
+        {field(
+          "occurredOn",
+          expenseType === "recurring"
+            ? T("Start date (on or after)", "起始日期（当日或之后）")
+            : T("Date"),
+          { type: "date", required: true }
+        )}
         {field("amount", T("Amount"), {
           inputMode: "decimal",
           required: true,
@@ -508,6 +683,49 @@ function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api 
           </select>
         </div>
       </div>
+      {expenseType === "recurring" && (
+        <>
+          <RecurringScheduleFields
+            schedule={{ ...schedule, startOn: draft.occurredOn }}
+            disabled={busy}
+            onChange={(next) => {
+              createKey.current = requestKey();
+              setValidation("");
+              setSchedule(next);
+            }}
+          />
+          {schedule.frequency !== "weekly" && (
+            <p className="ledger-help">
+              {T(
+                "If a month has fewer days, the schedule uses its last day.",
+                "当月不足所选日期时，使用当月最后一天。"
+              )}
+            </p>
+          )}
+          {schedule.frequency === "quarterly" && (
+            <p className="ledger-help">
+              {T(
+                "Quarterly dates use the selected month in each calendar quarter.",
+                "季度日期使用每个自然季度中所选的月份。"
+              )}
+            </p>
+          )}
+          <p className="ledger-help">
+            {T(
+              "This schedule records an expense on each due date.",
+              "此计划会在每个到期日记下一笔支出。"
+            )}
+          </p>
+          {!value && (
+            <p className="ledger-help">
+              {T(
+                "A past start date can create earlier expense records.",
+                "过去的起始日期可能补记之前的支出。"
+              )}
+            </p>
+          )}
+        </>
+      )}
       {!categoryRequired && (
         <p className="ledger-help">
           {T(
@@ -546,8 +764,8 @@ function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api 
       </details>
       {validation && <p role="alert">{validation}</p>}
       <div className="ledger-actions">
-        <button className="btn primary" type="submit" disabled={busy}>
-          {T("Save expense")}
+        <button className="btn primary" type="submit" disabled={busy || submitDisabled}>
+          {expenseType === "recurring" ? T("Save schedule", "保存周期计划") : T("Save expense")}
         </button>
         <button className="btn" type="button" disabled={busy} onClick={onCancel}>
           {T("Cancel")}
@@ -586,6 +804,7 @@ function ScopedLedgerScreen({
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [savedAssistance, setSavedAssistance] = useState(null);
+  const [savedSchedule, setSavedSchedule] = useState(null);
   const [revision, setRevision] = useState(0);
   const [loadedRequest, setLoadedRequest] = useState(0);
   const [filters, setFilters] = useState({ from: "", to: "", categoryId: "" });
@@ -593,6 +812,8 @@ function ScopedLedgerScreen({
   const [loadingMore, setLoadingMore] = useState(false);
   const [repositoryLoading, setRepositoryLoading] = useState(false);
   const [description, setDescription] = useState("");
+  const [developmentUrl, setDevelopmentUrl] = useState("");
+  const [productUrl, setProductUrl] = useState("");
   const [projectName, setProjectName] = useState("");
   const [projectStatus, setProjectStatus] = useState("active");
   const [selectedRepo, setSelectedRepo] = useState("");
@@ -642,7 +863,9 @@ function ScopedLedgerScreen({
   useEffect(() => {
     if (editing || creatingExpense) {
       const panel = expenseFormPanelRef.current;
-      const field = panel?.querySelector("input:not([disabled]), select:not([disabled])");
+      const field =
+        panel?.querySelector('input[type="date"]:not([disabled])') ||
+        panel?.querySelector("input:not([disabled]), select:not([disabled])");
       field?.scrollIntoView?.({ block: "center" });
       field?.focus({ preventScroll: true });
     }
@@ -686,6 +909,7 @@ function ScopedLedgerScreen({
     if (loadedScope.current !== scope) {
       setData(null);
       setSavedAssistance(null);
+      setSavedSchedule(null);
       setEditing(null);
       setCreatingExpense(false);
       setView("expenses");
@@ -694,6 +918,8 @@ function ScopedLedgerScreen({
       setProjectSearch("");
       setProjectName("");
       setProjectStatus("active");
+      setDevelopmentUrl("");
+      setProductUrl("");
       projectSettingsBase.current = null;
       projectSettingsDirty.current = false;
       setSelectedRepo("");
@@ -781,10 +1007,14 @@ function ScopedLedgerScreen({
               githubRepoIds: boundRepositoryIds(result.project),
               githubOrganizationId: String(result.project.githubOrganizationId || ""),
               status: result.project.status || "active",
+              developmentUrl: result.project.developmentUrl || null,
+              productUrl: result.project.productUrl || null,
             };
             setDescription(result.project?.description || "");
             setProjectName(result.project?.name || "");
             setProjectStatus(result.project?.status || "active");
+            setDevelopmentUrl(result.project?.developmentUrl || "");
+            setProductUrl(result.project?.productUrl || "");
             setProjectRepoIds(boundRepositoryIds(result.project));
             setOrganizationId(String(result.project?.githubOrganizationId || ""));
             setLinkRepositories(boundRepositoryIds(result.project).length > 0);
@@ -1020,22 +1250,30 @@ function ScopedLedgerScreen({
     }
   };
 
-  const saveExpense = async (fields, idempotencyKey) => {
+  const saveExpense = async (fields, idempotencyKey, recurringSchedule = null) => {
     const current = editing;
     let result;
     let failure;
     setSavedAssistance(null);
+    setSavedSchedule(null);
     const ok = await action(async () => {
       try {
         result = await (current
           ? api.updateExpense(current.id, current.revision, fields, {})
-          : api.createExpense(fields, idempotencyKey, {}));
+          : recurringSchedule
+            ? api.createRecurringRule(
+                { ...fields, schedule: recurringSchedule },
+                idempotencyKey,
+                {}
+              )
+            : api.createExpense(fields, idempotencyKey, {}));
       } catch (error) {
         failure = error;
         throw error;
       }
     });
     if (ok) {
+      if (recurringSchedule && result?.id) setSavedSchedule(result);
       setSavedAssistance(
         result?.assistance
           ? { ...result.assistance, savedTargetKind: result.target?.kind || fields.target?.kind }
@@ -1209,6 +1447,9 @@ function ScopedLedgerScreen({
               {mode === "project" && data?.project?.githubAccess === "not_linked" && (
                 <p className="ledger-meta">{T("No repositories linked", "未关联仓库")}</p>
               )}
+              {mode === "project" && data?.project && (
+                <ProjectExternalLinks project={data.project} />
+              )}
             </div>
             <div className="actions">
               {canManageProjects && mode === "projects" && data?.projects.items.length > 0 && (
@@ -1316,6 +1557,17 @@ function ScopedLedgerScreen({
                 "你对此账本只有查看权限，仍可查看报表和导出 CSV。"
               )}
             </p>
+          )}
+          {savedSchedule && (
+            <div className="notice" role="status">
+              <p>
+                {T("Schedule saved.", "周期计划已保存。")}: {savedSchedule.purpose}
+              </p>
+              <p>
+                {T("Next occurrence", "下一次发生日期")}:{" "}
+                {savedSchedule.nextOccurrenceOn || T("No next occurrence", "没有下一次发生日期")}
+              </p>
+            </div>
           )}
           {data && mode === "projects" && data.repositoryError && (
             <div role="alert" className="notice">
@@ -1460,7 +1712,7 @@ function ScopedLedgerScreen({
                         <span className="ledger-project-head-amount">
                           {T("Expense total", "支出合计")}
                         </span>
-                        <span>{T("Repositories / organization", "仓库 / 组织")}</span>
+                        <span>{T("Project links", "项目链接")}</span>
                       </div>
                     )}
                     <div className="ledger-list">
@@ -1507,12 +1759,26 @@ function ScopedLedgerScreen({
                         )
                           return;
                         const request = requestId.current;
+                        let links;
+                        try {
+                          links = {
+                            developmentUrl: normalizeProjectUrl(developmentUrl),
+                            productUrl: normalizeProjectUrl(productUrl),
+                          };
+                        } catch {
+                          setActionError(T("Invalid project URL.", "项目网址无效。"));
+                          return;
+                        }
                         action(async () => {
                           const project = await api.createProject(
                             {
                               name: projectName.trim(),
                               description,
                               githubRepoIds: linkRepositories ? selectedCreateIds : [],
+                              ...(links.developmentUrl
+                                ? { developmentUrl: links.developmentUrl }
+                                : {}),
+                              ...(links.productUrl ? { productUrl: links.productUrl } : {}),
                               ...(linkRepositories && organizationId
                                 ? { githubOrganizationId: Number(organizationId) }
                                 : {}),
@@ -1549,6 +1815,21 @@ function ScopedLedgerScreen({
                             )}
                             disabled={busy}
                             onChange={(event) => setDescription(event.target.value)}
+                          />
+                        </div>
+                      </details>
+                      <details className="disclosure">
+                        <summary>{T("Project links (optional)", "项目链接（选填）")}</summary>
+                        <div className="panel-body">
+                          <ProjectLinkFields
+                            developmentUrl={developmentUrl}
+                            productUrl={productUrl}
+                            disabled={busy}
+                            onChange={(field, value) =>
+                              field === "developmentUrl"
+                                ? setDevelopmentUrl(value)
+                                : setProductUrl(value)
+                            }
                           />
                         </div>
                       </details>
@@ -2297,6 +2578,24 @@ function ScopedLedgerScreen({
                     </section>
                   )}
                 </LedgerSplit>
+                <RecurringExpenses
+                  api={api}
+                  target={target}
+                  categories={data.categories}
+                  canManage={canWriteExpenses}
+                  disabled={busy || loading}
+                  reloadSignal={revision}
+                  onAccessChanged={onAccessChanged}
+                  formatTotal={formatRecurringTotal}
+                  renderExpenseForm={(props) => (
+                    <ExpenseForm
+                      {...props}
+                      api={api}
+                      target={target}
+                      categories={data.categories}
+                    />
+                  )}
+                />
               </div>
               <div
                 role="tabpanel"
@@ -2357,6 +2656,16 @@ function ScopedLedgerScreen({
                           return;
                         const base = projectSettingsBase.current;
                         if (!base) return;
+                        let links;
+                        try {
+                          links = {
+                            developmentUrl: normalizeProjectUrl(developmentUrl),
+                            productUrl: normalizeProjectUrl(productUrl),
+                          };
+                        } catch {
+                          setActionError(T("Invalid project URL.", "项目网址无效。"));
+                          return;
+                        }
                         const changedRepositories =
                           JSON.stringify([...projectRepoIds].sort()) !==
                           JSON.stringify([...base.githubRepoIds].sort());
@@ -2370,6 +2679,12 @@ function ScopedLedgerScreen({
                             base.revision,
                             {
                               description,
+                              ...(links.developmentUrl !== base.developmentUrl
+                                ? { developmentUrl: links.developmentUrl }
+                                : {}),
+                              ...(links.productUrl !== base.productUrl
+                                ? { productUrl: links.productUrl }
+                                : {}),
                               ...(projectName.trim() !== base.name
                                 ? { name: projectName.trim() }
                                 : {}),
@@ -2606,6 +2921,16 @@ function ScopedLedgerScreen({
                           </div>
                         </div>
                       </details>
+                      <ProjectLinkFields
+                        developmentUrl={developmentUrl}
+                        productUrl={productUrl}
+                        disabled={busy || loading}
+                        onChange={(field, value) => {
+                          projectSettingsDirty.current = true;
+                          if (field === "developmentUrl") setDevelopmentUrl(value);
+                          else setProductUrl(value);
+                        }}
+                      />
                       <div className="ledger-field">
                         <label htmlFor={projectDescriptionId}>{T("Description")}</label>
                         <textarea

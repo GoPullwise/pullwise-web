@@ -4,7 +4,7 @@ Pullwise is a project expense ledger for developers and teams at [pull-wise.com]
 
 **Track project and shared expenses. Keep every cost in view.**
 
-The shared pool records costs used across projects once in the selected ledger; it does not allocate or copy them into individual projects. Each currency is totaled separately, without currency conversion. Expenses are entered by users or authenticated API clients; linking a repository does not import bills or move money.
+The shared pool records costs used across projects once in the selected ledger; it does not allocate or copy them into individual projects. Each currency is totaled separately, without currency conversion. Expenses are entered by users, authenticated API clients or configured recurring rules; linking a repository does not import bills or move money.
 
 As of 2026-10-06, the new workspace/team and multi-repository version is implemented, verified and released to preview. Its separate local native/UI evidence and actual remote publication checks are in the latest acceptance record; the original release history remains separately dated.
 
@@ -17,6 +17,32 @@ Members supports invitations, acceptance, role changes, removal and invitation r
 Create a standalone project with a name and optional description; no GitHub App installation or repository authorization is needed for its expense entries. Optionally link 1–30 distinct stable GitHub repository IDs and a GitHub Organization. The chooser uses the acting member's current GitHub authorization, filters by the selected organization and revalidates selections after access changes. Project settings can add, change or remove these associations while preserving the project ID and expense history. A new expense in a linked project requires at least one linked repository authorized for the acting member; unavailable protected repository metadata stays hidden while permitted financial history remains accessible. Removing all repository links requires a nonempty project name and clears the Organization association.
 
 The Cloudflare static-asset Worker in `worker-entry.js` proxies `/api/*` to the Server Worker and streams its response body. The browser API helper uses `/api/v1/*` behind the configurable base URL; on the production domain the base URL is `/api`, so the proxy receives `/api/api/v1/*` and strips the first `/api`.
+
+## Project links and recurring expenses
+
+Project settings and creation accept optional product links and, for standalone
+projects, development links. The project list and detail header provide quick
+shortcuts. Linked projects expose only each acting member's authorized GitHub
+repository/Organization destinations. Domains and store links use validated
+HTTP(S) URLs; a bare domain is normalized to HTTPS. Financial data and link text
+remain selectable, while ordinary controls keep their shared interaction style.
+
+The project/shared-pool expense form can create a one-time expense or a weekly,
+monthly, calendar-quarterly or yearly rule for that page's fixed target. Rules
+store an IANA timezone, start date, optional end date and original day anchor.
+Short months clamp to their last day without changing later months' anchors.
+The separate recurring list shows the next date and supports editing,
+pause/resume and permanent cancellation according to ledger permissions.
+Resume skips paused periods. Planned costs remain outside reports until the
+Server atomically generates an actual expense. Recurring rules require a cookie
+session; API keys cannot establish a background execution grant.
+
+The Server checks due rules hourly in preview, with current membership, GitHub
+target access, category and owner quota checks, bounded catch-up and permanent
+period identity to prevent duplicate charges. The
+[feature contract](../pullwise-server/docs/planning/recurring-expenses-project-links.md)
+and current acceptance distinguish local/native tests from actual publication.
+Production D1 remains paused and has no recurring trigger.
 
 ## Local development
 

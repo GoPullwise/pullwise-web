@@ -1,5 +1,23 @@
 # Pullwise Web
 
+## Project links and recurring expenses (2026-10-08)
+
+Implement optional development/product links in project settings and shortcuts
+in the existing Projects layout. Linked GitHub destinations require per-item
+authorized metadata; manual development URLs appear only for true not_linked
+projects. Keep external anchors as siblings of internal project links, with
+safe absolute HTTP(S) normalization and native link/copy behavior.
+
+Project and shared-pool expense entry share one-time/recurring controls and keep
+the page's fixed target. Recurring rules use an explicit category, IANA timezone,
+start date and weekly/monthly/calendar-quarter/yearly selectors. Manage rules
+separately from actual expenses; show server-provided next occurrences, editing,
+pause/resume and cancel with the existing revision/permission guards. Preserve
+ordinary expense editing/drafts and charts; future costs do not count as spent.
+Keep all six locales, shared flat layouts, equal record rows and original theme.
+The latest user authorizes the required Server/schema/hourly scheduling changes,
+main pushes and deployment only to preview; production stays paused.
+
 ## Product UI goals
 
 The user defines the frontend goals as: simple layouts, prominent priorities,

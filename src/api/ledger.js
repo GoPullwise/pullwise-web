@@ -120,6 +120,29 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
         method: "DELETE",
         headers: { ...options?.headers, ...version(revision) },
       }),
+    recurringRules: (params, options) =>
+      ledgerRequest("/expense-recurring-rules", { ...options, params }),
+    recurringRule: (id, options) => ledgerRequest(resource("expense-recurring-rules", id), options),
+    createRecurringRule: (fields, idempotencyKey, options) =>
+      ledgerRequest("/expense-recurring-rules", {
+        ...options,
+        method: "POST",
+        headers: { ...options?.headers, "Idempotency-Key": idempotencyKey },
+        body: fields,
+      }),
+    updateRecurringRule: (id, revision, fields, options) =>
+      ledgerRequest(resource("expense-recurring-rules", id), {
+        ...options,
+        method: "PATCH",
+        headers: { ...options?.headers, ...version(revision) },
+        body: fields,
+      }),
+    removeRecurringRule: (id, revision, options) =>
+      ledgerRequest(resource("expense-recurring-rules", id), {
+        ...options,
+        method: "DELETE",
+        headers: { ...options?.headers, ...version(revision) },
+      }),
     exportExpenses: (params, options) =>
       ledgerRequest("/expenses/export", { ...options, params, responseType: "blob" }),
     reportSummary: (params, options) => ledgerRequest("/reports/summary", { ...options, params }),

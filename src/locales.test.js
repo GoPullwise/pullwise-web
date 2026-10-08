@@ -43,6 +43,79 @@ const LEDGER_COPY = [
   "No repositories linked", "Jev assistance allowance",
 ];
 
+const PROJECT_LINKS_AND_RECURRING_COPY = [
+  "Recurring schedule allowance reached. Existing schedules and expenses remain available.",
+  "Development",
+  "Development URL (optional)",
+  "Product URL (optional)",
+  "Use an HTTP or HTTPS URL. A bare domain will use HTTPS.",
+  "Development links are shown only when no GitHub repositories are linked.",
+  "Project links",
+  "Expense type",
+  "One-time",
+  "Recurring",
+  "Start date (on or after)",
+  "This schedule records an expense on each due date.",
+  "A past start date can create earlier expense records.",
+  "Save schedule",
+  "Schedule saved.",
+  "Next occurrence",
+  "No next occurrence",
+  "Invalid project URL.",
+  "Project links (optional)",
+  "Every week",
+  "Every quarter",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+  "Frequency",
+  "Weekday",
+  "Day of month",
+  "Month of quarter",
+  "First month",
+  "Second month",
+  "Third month",
+  "Month of year",
+  "Time zone",
+  "e.g. Europe/Paris",
+  "End date (optional)",
+  "Paused",
+  "Blocked",
+  "Completed",
+  "Canceled",
+  "More than 12 periods are overdue. Review this schedule and change its start date, or resume it for future occurrences.",
+  "This schedule’s category is unavailable. Choose an active category before resuming.",
+  "Project access changed. Review access before resuming this schedule.",
+  "Schedule access changed. Review your ledger permissions before resuming.",
+  "This schedule is blocked. Review its category and project access before resuming.",
+  "Pagination did not advance. Reload the schedules before continuing.",
+  "More schedules could not be loaded. Retry to continue.",
+  "Recurring schedules could not be loaded. Reload to try again.",
+  "Schedule conflict. Your draft is still here. Reload the schedules before retrying.",
+  "Recurring schedule could not be changed. Reload before retrying.",
+  "Recurring expenses",
+  "Reload recurring schedules",
+  "{count} recurring schedules",
+  "Loading recurring schedules…",
+  "No recurring schedules yet.",
+  "Resuming starts with future occurrences; paused or blocked periods are not backfilled.",
+  "Pause",
+  "Resume",
+  "Edit schedule",
+  "Delete schedule",
+  "Delete this schedule permanently? Already created expense records are retained.",
+  "Confirm delete schedule",
+  "Load more schedules",
+  "If a month has fewer days, the schedule uses its last day.",
+  "Quarterly dates use the selected month in each calendar quarter.",
+  "Every month",
+  "Every year",
+];
+
 describe("ledger locale copy", () => {
   afterEach(() => setLang("en"));
   for (const locale of ["zh", "ja", "ko", "fr", "es"]) {
@@ -52,6 +125,19 @@ describe("ledger locale copy", () => {
         expect(T(english), `${locale}: ${english}`).not.toBe(english);
         expect(T(english).trim()).not.toBe("");
       }
+    });
+    it(`${locale} translates project links and recurring schedules with intact placeholders`, async () => {
+      await setLang(locale);
+      for (const english of PROJECT_LINKS_AND_RECURRING_COPY) {
+        const translated = LEDGER_SCREEN_PHRASES[locale][english];
+        expect(translated, `${locale}: ${english}`).toBeTypeOf("string");
+        expect(translated.trim(), `${locale}: ${english}`).not.toBe("");
+        expect(translated, `${locale}: ${english}`).not.toBe(english);
+        expect(T(english), `${locale}: ${english}`).toBe(translated);
+        expect([...translated.matchAll(/\{[^{}]+\}/g)].map(([token]) => token).sort())
+          .toEqual([...english.matchAll(/\{[^{}]+\}/g)].map(([token]) => token).sort());
+      }
+      expect(T("{count} recurring schedules").replace("{count}", "3")).toContain("3");
     });
     it(`${locale} covers current screen, documentation and legal source keys`, async () => {
       await setLang(locale);

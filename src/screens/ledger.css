@@ -140,10 +140,38 @@
 .ledger-your-projects .ledger-project-head-amount {
   text-align: right;
 }
-.ledger-your-projects .ledger-project-row {
+.ledger-screen .ledger-your-projects .ledger-project-row {
   padding-block: 24px;
   border-bottom: 1px solid var(--border);
   transition: background 160ms ease;
+}
+.ledger-project-links {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.ledger-project-links > a,
+.ledger-row-main h2 > a {
+  user-select: text;
+  width: fit-content;
+  max-width: 100%;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+.ledger-project-links > a:hover,
+.ledger-row-main h2 > a:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+.ledger-project-repositories {
+  margin: 0;
+}
+.ledger-project-repositories > .ledger-project-links {
+  margin-top: 8px;
 }
 .ledger-your-projects .ledger-project-total {
   --financial-size: var(--fs-value-row);

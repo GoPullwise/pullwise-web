@@ -11,6 +11,7 @@ const api = vi.hoisted(() => ({
   project: vi.fn(),
   updateProject: vi.fn(),
   expenses: vi.fn(),
+  recurringRules: vi.fn(),
   reportTimeseries: vi.fn(),
   reportCategories: vi.fn(),
   me: vi.fn(),
@@ -33,6 +34,7 @@ beforeEach(() => {
   api.reportSummary.mockResolvedValue({ groups: [] });
   api.createProject.mockResolvedValue({ id: "prj_new" });
   api.expenses.mockResolvedValue({ items: [], nextCursor: null });
+  api.recurringRules.mockResolvedValue({ items: [], nextCursor: null });
   api.reportTimeseries.mockResolvedValue({ groups: [] });
   api.reportCategories.mockResolvedValue({ groups: [] });
   api.me.mockResolvedValue({ entitlements: { jev: { eligible: false, available: false } } });
