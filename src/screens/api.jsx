@@ -9,6 +9,7 @@ import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { API_KEY_SCOPES, API_KEY_SCOPE_VALUES, DEFAULT_SCOPE_VALUES } from "./ledger-api-scopes.js";
 import { Sidebar, Topbar } from "../shell.jsx";
+import { ConsoleLayout } from "../components/console-layout.jsx";
 
 function itemsFrom(payload, ...keys) {
   for (const key of keys) {
@@ -621,7 +622,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
           breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
           loading={loading || !currentScope}
         />
-        <div className="with-side">
+        <ConsoleLayout>
           <Sidebar section="apiKeys" go={go} />
           <div className="main" role="main">
             <div className="page-h">
@@ -729,11 +730,14 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                             </span>
                           </div>
                           <span className="tag api-scope-count">
-                            {
-                              selectedScopes.filter((scope) => allowedScopeValues.includes(scope))
-                                .length
-                            }{" "}
-                            / {allowedScopeValues.length} {T("selected", "已选择")}
+                            <span className="numeric-count">
+                              {
+                                selectedScopes.filter((scope) => allowedScopeValues.includes(scope))
+                                  .length
+                              }{" "}
+                              / {allowedScopeValues.length}
+                            </span>{" "}
+                            {T("selected", "已选择")}
                           </span>
                         </div>
                         <div className="api-scope-list">
@@ -1040,7 +1044,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
               )}
             </div>
           </div>
-        </div>
+        </ConsoleLayout>
       </div>
       <ConfirmDialog
         open={currentScope && Boolean(revokeTarget)}

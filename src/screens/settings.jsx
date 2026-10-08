@@ -5,6 +5,7 @@ import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { Sidebar, Topbar } from "../shell.jsx";
+import { ConsoleLayout } from "../components/console-layout.jsx";
 
 export function SettingsScreen({ go }) {
   useLang();
@@ -88,7 +89,7 @@ export function SettingsScreen({ go }) {
   return (
     <div className="app fade-in settings-screen">
       <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} loading={loading} />
-      <div className="with-side">
+      <ConsoleLayout>
         <Sidebar section="settings" go={go} />
         <main className="main">
           <div className="page-h">
@@ -200,7 +201,7 @@ export function SettingsScreen({ go }) {
             )}
           </section>
         </main>
-      </div>
+      </ConsoleLayout>
     </div>
   );
 }

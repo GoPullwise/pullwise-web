@@ -1,5 +1,7 @@
 // Short ledger API and key-management labels; technical identifiers remain unchanged.
 const rows = [
+  ["Resize navigation", "调整导航栏宽度", "ナビゲーションの幅を調整", "탐색 메뉴 너비 조절", "Ajuster la largeur de la navigation", "Ajustar el ancho de la navegación"],
+  ["Resize side panel", "调整侧栏宽度", "サイドパネルの幅を調整", "사이드 패널 너비 조절", "Ajuster la largeur du panneau latéral", "Ajustar el ancho del panel lateral"],
   ["Shared ledger", "共享账本", "共有台帳", "공유 장부", "Registre partagé", "Libro compartido"],
   ["Member management", "成员管理", "メンバー管理", "멤버 관리", "Gestion des membres", "Gestión de miembros"],
   ["Edit role", "编辑角色", "役割を編集", "역할 편집", "Modifier le rôle", "Editar rol"],

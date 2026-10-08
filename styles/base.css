@@ -44,8 +44,8 @@ input[type="checkbox"] {
     "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-display:
-    "Geist", "Inter", ui-sans-serif, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
-    "Noto Sans CJK SC", sans-serif;
+    "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --fs-micro: 10px;
   --fs-xs: 11px;
   --fs-sm: 12px;
@@ -55,6 +55,13 @@ input[type="checkbox"] {
   --fs-2xl: 16px;
   --fs-3xl: 18px;
   --fs-4xl: 22px;
+  --fs-value-primary: 32px;
+  --fs-value-primary-compact: 28px;
+  --fs-value-row: 22px;
+  --fs-value-row-compact: 20px;
+  --fs-value-secondary: 18px;
+  --fs-value-price: 40px;
+  --fs-value-count: 16px;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -127,6 +134,11 @@ a[href],
 summary,
 [role="button"] {
   cursor: pointer;
+}
+button,
+summary,
+[role="button"],
+a.btn {
   user-select: none;
 }
 button:disabled,
@@ -435,7 +447,7 @@ a.crumb-button:hover {
 }
 .with-side {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: var(--console-sidebar-width, 220px) minmax(0, 1fr);
   flex: 1;
   min-height: 0;
   position: relative;
@@ -445,11 +457,87 @@ a.crumb-button:hover {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 220px;
+  left: var(--console-sidebar-width, 220px);
   width: 1px;
   background: var(--border);
   pointer-events: none;
   z-index: var(--z-raised);
+}
+.ledger-split-resizer,
+.console-sidebar-resizer {
+  position: absolute;
+  width: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  z-index: var(--z-raised);
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer)::before,
+:is(.ledger-split-resizer, .console-sidebar-resizer)::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer)::before {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer)::after {
+  top: 50%;
+  width: 8px;
+  height: 28px;
+  border-inline: 2px solid var(--text-3);
+  background: var(--bg);
+  transform: translate(-50%, -50%);
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer):not([aria-disabled="true"]):hover::before,
+:is(.ledger-split-resizer, .console-sidebar-resizer):focus-visible::before,
+.is-resizing > :is(.ledger-split-resizer, .console-sidebar-resizer)::before {
+  background: var(--accent);
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer):not([aria-disabled="true"]):hover::after,
+:is(.ledger-split-resizer, .console-sidebar-resizer):focus-visible::after,
+.is-resizing > :is(.ledger-split-resizer, .console-sidebar-resizer)::after {
+  border-color: var(--accent);
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer):focus-visible {
+  outline: none;
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer):focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer)[aria-disabled="true"] {
+  cursor: default;
+}
+:is(.ledger-split-resizer, .console-sidebar-resizer)[aria-disabled="true"]::after {
+  display: none;
+}
+:is(.ledger-split, .with-side).is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+.console-sidebar-resizer {
+  top: 0;
+  left: calc(var(--console-sidebar-width, 220px) - 10px);
+  height: 100%;
+}
+.console-sidebar-resizer::before {
+  left: 10px;
+}
+.console-sidebar-resizer::after {
+  position: sticky;
+  display: block;
+  top: calc((100dvh + var(--workspace-header-height, 54px)) / 2);
+  left: auto;
+  margin-left: 6px;
+  transform: translateY(-50%);
 }
 .side {
   position: sticky;
@@ -740,6 +828,44 @@ a.crumb-button:hover {
   width: 36px;
   height: 36px;
 }
+/* Flat console records share insets in both idle and highlighted states. */
+.ledger-list > article,
+.ledger-list > .ledger-project-row,
+.key-list > .key-row,
+.sub-record-list > .sub-record-row,
+.gh-install-list > .gh-install-row {
+  padding-inline: 16px;
+}
+.ledger-list > a {
+  user-select: text;
+}
+
+/* Financial values share one hierarchy across records, reports and plans. */
+.financial-value,
+.numeric-count,
+.panel-h .count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.25;
+}
+.financial-value {
+  font-size: var(--financial-size, var(--fs-value-row));
+  letter-spacing: -0.025em;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.numeric-count,
+.panel-h .count {
+  font-size: var(--fs-value-count);
+}
+.financial-unavailable {
+  font: 400 var(--fs-lg)/1.6 var(--font-sans);
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+}
 .skeleton-row:hover {
   background: inherit;
 }
@@ -831,7 +957,6 @@ a.crumb-button:hover {
 }
 .panel-h .count {
   margin-left: auto;
-  font: var(--fs-sm) var(--font-mono);
   color: var(--text-3);
 }
 .panel-actions {
@@ -912,24 +1037,19 @@ details.panel[open] > summary.panel-h::after,
 .empty > :last-child {
   margin-bottom: 0;
 }
-/* Chrome where accidental text selection hurts interaction. Buttons, links
-   and summaries are already covered by the global rule above; container
-   selectors cover their descendants. Prose stays selectable. */
+/* Navigation and actions avoid accidental selection; record data and prose
+   remain selectable, including ordinary links and informational tags. */
 .topbar,
 .crumbs,
 .side,
-.page-h,
 .modal-h,
 .modal-foot,
 .lang-picker,
 .kbd,
-.tag,
 .sev,
 .badge,
 .dot,
-.key-row,
 .notfound-suggest-i,
-.gh-install-row,
 .seg-i,
 .pricing-toggle,
 .lp-top,
@@ -942,6 +1062,12 @@ details.panel[open] > summary.panel-h::after,
 .status-row-region,
 .status-row-pct {
   user-select: none;
+}
+
+@media (max-width: 899px) {
+  .console-sidebar-resizer {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {

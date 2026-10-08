@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { I } from "../icons.jsx";
+import { LedgerSplit } from "../components/ledger-split.jsx";
+import { ConsoleLayout } from "../components/console-layout.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 import "./ledger.css";
@@ -487,7 +489,7 @@ function MembersContent({
         breadcrumbs={[{ label: T("Members", "成员") }]}
         loading={loading || previewLoading}
       />
-      <div className="with-side">
+      <ConsoleLayout>
         <Sidebar section="ledgerMembers" go={go} />
         <main className="main">
           <div className="page-h">
@@ -610,7 +612,10 @@ function MembersContent({
             </p>
           )}
           {workspaceId && (
-            <div className={canManage ? "ledger-split" : undefined}>
+            <LedgerSplit
+              enabled={canManage}
+              scope={`${workspaceId}:${workspace?.memberRevision ?? workspace?.revision ?? 0}`}
+            >
               <section
                 className="panel member-directory"
                 aria-label={T("Ledger members", "账本成员")}
@@ -717,7 +722,7 @@ function MembersContent({
                               </div>
                               {editId === member.userId && (
                                 <form
-                                  className="notice member-controls"
+                                  className="member-controls"
                                   id={`member-editor-${member.userId}`}
                                   aria-label={T(
                                     "Edit role for {member}",
@@ -1055,10 +1060,10 @@ function MembersContent({
                   </section>
                 </aside>
               )}
-            </div>
+            </LedgerSplit>
           )}
         </main>
-      </div>
+      </ConsoleLayout>
     </div>
   );
 }

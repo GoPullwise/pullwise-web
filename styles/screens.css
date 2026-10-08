@@ -363,7 +363,7 @@
   gap: 12px;
   align-items: center;
   min-height: 52px;
-  padding: 10px 0;
+  padding-block: 10px;
   border-bottom: 1px solid var(--border);
 }
 .gh-install-row:last-child {
@@ -411,7 +411,7 @@
   grid-template-columns: 76px 150px minmax(0, 1fr) minmax(64px, auto);
   gap: 14px;
   align-items: center;
-  padding: 20px 0;
+  padding-block: 20px;
   border: 0;
   border-bottom: 1px solid var(--border);
   background: transparent;
@@ -419,14 +419,14 @@
   font: inherit;
   text-align: left;
   width: 100%;
-  cursor: pointer;
+  cursor: default;
   min-width: 0;
   transition: background 100ms var(--ease-out);
 }
 .key-row:last-child {
   border-bottom: 0;
 }
-.key-row:hover {
+.key-row:not(.skeleton-row):hover {
   background: var(--bg-soft);
 }
 @container (max-width: 560px) {
@@ -690,7 +690,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
-  padding: 20px 0;
+  padding-block: 20px;
   border-bottom: 1px solid var(--border);
   min-width: 0;
 }
@@ -785,10 +785,7 @@
   grid-template-columns: minmax(0, 1fr) 100px 220px;
   align-items: center;
   gap: 16px 24px;
-  padding: 24px 0;
-}
-.members-screen .member-list .member-row:first-child {
-  padding-top: 0;
+  padding-block: 24px;
 }
 .members-screen .member-list[data-manage="false"] .member-row {
   grid-template-columns: minmax(0, 1fr) minmax(80px, 120px);
@@ -848,14 +845,22 @@
   justify-content: flex-start;
 }
 .member-controls {
+  display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(120px, 1fr) auto;
+  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);
   align-items: end;
   gap: 16px;
   min-width: 0;
-  max-width: 560px;
+  max-width: 640px;
   width: 100%;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
   margin: 0;
+}
+.member-controls > .panel-actions {
+  align-self: end;
+  min-width: 0;
 }
 .members-screen .main .member-controls select,
 .members-screen .member-row .btn {
@@ -894,13 +899,13 @@
     justify-content: flex-start;
     flex: 0 1 auto;
   }
-  .member-row > .notice {
+  .member-row > :is(.notice, .member-controls) {
     flex: 1 1 100%;
   }
 }
 @container (max-width: 560px) {
   .members-screen .member-list .member-row {
-    padding-bottom: 20px;
+    padding-block: 20px;
   }
   .member-controls {
     grid-template-columns: minmax(0, 1fr);
@@ -968,7 +973,7 @@
 .api-scope-count {
   flex: 0 0 auto;
   margin-top: 1px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 
 .api-scope-list {
@@ -1147,12 +1152,13 @@
   overflow-wrap: anywhere;
 }
 .billing-change-price {
+  --financial-size: var(--fs-value-row);
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
   color: var(--text);
-  font-size: var(--fs-3xl);
-  font-weight: 600;
+  font-size: var(--fs-md);
+  font-weight: 400;
   font-style: normal;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -1518,9 +1524,9 @@
   border-bottom: 1px solid var(--border);
 }
 .pricing-num {
-  font-family: var(--font-display);
-  font-size: 38px;
-  font-weight: 600;
+  --financial-size: var(--fs-value-price);
+  font-size: var(--fs-md);
+  font-weight: 400;
   letter-spacing: 0;
   display: flex;
   align-items: baseline;
@@ -1548,6 +1554,7 @@
 }
 
 .pricing-feats {
+  --financial-size: var(--fs-value-secondary);
   list-style: none;
   display: flex;
   flex-direction: column;
@@ -1562,6 +1569,9 @@
   align-items: flex-start;
   gap: 8px;
   line-height: 1.45;
+}
+.pricing-feats li > span {
+  min-width: 0;
 }
 .pricing-skeleton-feature {
   flex: 1;
@@ -2078,11 +2088,11 @@
   }
 
   .key-row {
-    padding: 16px 0;
+    padding-block: 16px;
   }
 
   .sub-record-row {
-    padding: 16px 0;
+    padding-block: 16px;
   }
 
   .set-side {

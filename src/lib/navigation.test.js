@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  pathFromScreen,
-  screenFromPath,
-  screenLinkProps,
-} from "./navigation.js";
+import { pathFromScreen, screenFromPath, screenLinkProps } from "./navigation.js";
 
 function fakeClick(overrides = {}) {
   return {
@@ -46,6 +42,37 @@ describe("screenLinkProps", () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { detail: 1, selectedInside: true, navigates: false },
+    { detail: 0, selectedInside: true, navigates: true },
+    { detail: 1, selectedInside: false, navigates: true },
+  ])("preserves text selection without blocking ordinary activation: %j", (scenario) => {
+    const link = document.createElement("a");
+    const other = document.createElement("p");
+    link.textContent = "Project name";
+    other.textContent = "Other readable content";
+    document.body.append(link, other);
+    const selection = document.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(scenario.selectedInside ? link : other);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    try {
+      const go = vi.fn();
+      const event = fakeClick({ detail: scenario.detail, currentTarget: link });
+      screenLinkProps(go, "ledgerProject", { id: "p1" }).onClick(event);
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
+      expect(go).toHaveBeenCalledTimes(scenario.navigates ? 1 : 0);
+      expect(selection.toString()).toBe(
+        scenario.selectedInside ? link.textContent : other.textContent
+      );
+    } finally {
+      selection.removeAllRanges();
+      link.remove();
+      other.remove();
+    }
   });
 });
 

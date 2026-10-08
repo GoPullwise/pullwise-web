@@ -857,14 +857,21 @@ describe("BillingScreen", () => {
     });
     const user = userEvent.setup();
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: false }} navigate={vi.fn()} />);
-    expect(await screen.findByText("Projects: 3")).toBeInTheDocument();
-    expect(screen.getAllByText("Projects: 100")).toHaveLength(2);
-    expect(screen.getByText("Expense records: 500")).toBeInTheDocument();
-    expect(screen.getAllByText("Expense records: 20,000")).toHaveLength(2);
-    expect(screen.getByText("Jev budget: $5.00 / month")).toBeInTheDocument();
+    const projectCopies = await screen.findAllByText("Projects:");
+    expect(projectCopies.map((node) => node.textContent)).toEqual([
+      "Projects: 3",
+      "Projects: 100",
+      "Projects: 100",
+    ]);
+    expect(screen.getAllByText("Expense records:").map((node) => node.textContent)).toEqual([
+      "Expense records: 500",
+      "Expense records: 20,000",
+      "Expense records: 20,000",
+    ]);
+    expect(screen.getByText(/Jev budget:/)).toHaveTextContent("Jev budget: $5.00 / month");
     expect(screen.getByText("Activation pending · no rollover")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /yearly/i }));
-    expect(screen.getByText("Jev budget: $5.00 / month")).toBeInTheDocument();
+    expect(screen.getByText(/Jev budget:/)).toHaveTextContent("Jev budget: $5.00 / month");
   });
 
   it("does not leak malformed billing price amounts", async () => {
@@ -891,7 +898,9 @@ describe("BillingScreen", () => {
 
     render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={vi.fn()} />);
 
-    expect(await screen.findAllByText("Configured in provider")).toHaveLength(3);
+    const unavailablePrices = await screen.findAllByText("Configured in provider");
+    expect(unavailablePrices).toHaveLength(3);
+    unavailablePrices.forEach((price) => expect(price).toHaveClass("financial-unavailable"));
     expect(document.body).not.toHaveTextContent("$-5");
     expect(document.body).not.toHaveTextContent("$not-a-number");
   });

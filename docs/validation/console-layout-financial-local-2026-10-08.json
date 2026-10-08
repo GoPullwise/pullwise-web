@@ -1,0 +1,995 @@
+{
+  "date": "2026-10-08",
+  "scope": "Web UI only; GitHub main; publish preview.pull-wise.com only",
+  "sourceBase": "0c52fd1160ae7e66a58844058525432273099630",
+  "frontendGoals": [
+    "Simple layouts / 布局简洁",
+    "Prominent priorities / 重点突出",
+    "Clear, understandable actions / 操作清晰明了"
+  ],
+  "implementation": {
+    "sharedRows": "Stable 16px inline insets and symmetric owner block padding; hover changes background only; skeletons excluded.",
+    "sharedLayout": "ConsoleLayout on all console screens; LedgerSplit on creation/entry rails; common useResizablePane lifecycle.",
+    "sidebarBounds": {
+      "default": 220,
+      "minimum": 180,
+      "maximum": 320,
+      "remainingMainMinimum": 660,
+      "viewportMinimum": 900
+    },
+    "secondaryBounds": {
+      "minimum": 260,
+      "maximum": 520,
+      "remainingPrimaryMinimum": 280,
+      "gap": 48,
+      "viewportMinimum": 900
+    },
+    "memberRoleEditor": "Neutral aligned fields/actions inside the full record row; container-based wrapping.",
+    "selection": "Readable data/selectable record links; navigation/action chrome unselectable. Native link text drag preserves its selection; ordinary, keyboard and modified clicks retain routing.",
+    "financialValues": "Shared FinancialValue; exact formatted text, 700 display/sans tabular figures; grouping-comma wbr preserves copy and precision. Explicit unavailable values stay 14px/400 body.",
+    "financialSizes": {
+      "primary": 32,
+      "primaryCompact": 28,
+      "row": 22,
+      "rowCompact": 20,
+      "secondary": 18,
+      "planPrice": 40,
+      "count": 16
+    },
+    "financialLayout": "Separate project currencies; full-width narrow amounts/actions; label/value/bar report rows; minimum 280px summary tracks; quiet dates/IDs/cadences.",
+    "dividerFocus": "44px hit targets, viewport-visible sticky grips and grip focus rings; pointer/keyboard/ARIA and scope cleanup preserved."
+  },
+  "checks": {
+    "npmRunCheck": {
+      "passed": true,
+      "lint": true,
+      "testFiles": 38,
+      "tests": 529,
+      "build": true
+    },
+    "workerConfigAndSyntax": true,
+    "previewWranglerDryRun": true,
+    "ownedSourceFormattingAndDiff": true,
+    "localeCatalog": "Retains established flat-row formatting; syntax/locales covered by the full test suite."
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "runtimeSourceHashes": [
+    {
+      "path": "src/App.jsx",
+      "sha256": "a7b586ec01fca0dba98437ec1e17f2a219bce576c9da7236a46086032a50d2b0"
+    },
+    {
+      "path": "src/app.css",
+      "sha256": "87697095d5b4a0ec033ec2015afd5d0a6bdc34ea324eeafb6b8842ec8bbee1f4"
+    },
+    {
+      "path": "src/lib/navigation.js",
+      "sha256": "d7a1ac6a1fcf77da0ec4046475169e949edc8113ac37cc94cf775aad1b675eee"
+    },
+    {
+      "path": "src/locales/ledger-ui.js",
+      "sha256": "231dcf7abd74bf8a7234c3447cebd0e5deffedde8c2c79b413006ffe697a21b9"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/financial-value.jsx",
+      "sha256": "47fcd46e8ee1971e6c868803784f1127c5f34977ededf81a9cd192340ef13a82"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/screens/api.jsx",
+      "sha256": "cf903c573fcd6b2e61293b1da1ee9adeddaa3c9d56125cf7aa8037a6aabed1c1"
+    },
+    {
+      "path": "src/screens/billing.jsx",
+      "sha256": "1cec385f1c420d15bbd655a1050e01bc3d2fbbf0e1a4dd71a142e6f53b5dc070"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "sha256": "660a09d139be63c62f4223a7a081c51aa09840be7c60e15ff795f880426dcf4e"
+    },
+    {
+      "path": "src/screens/ledger.jsx",
+      "sha256": "dd5ef67036dd925e27f6933a9574b6f70ee289db3b785e6578b57ce253a98024"
+    },
+    {
+      "path": "src/screens/members.jsx",
+      "sha256": "71fdb74c5af60021b92f8a3a01f79d874ac0db1643d69d928ece6f3d225bdcde"
+    },
+    {
+      "path": "src/screens/settings.jsx",
+      "sha256": "69e39ce2d04f771372e2f8ab877d3a8666f0a11edee6a1ddf3230b8097eb3b3d"
+    },
+    {
+      "path": "src/shell.jsx",
+      "sha256": "80bbae94975b1ac904860e0952880535746a0e42b71566870a5e9d4493aa05f9"
+    },
+    {
+      "path": "styles/base.css",
+      "sha256": "123be075ce080a5d45ddf9cb5efa9410d0ab16236479cac75d98ed667079fd3d"
+    },
+    {
+      "path": "styles/screens.css",
+      "sha256": "c28dd29ebf8e655f3c0ee2e9444ef22fae9ef448b560ccae6c3a9e77be16bc67"
+    }
+  ],
+  "preNumericAcceptance": {
+    "status": "passed",
+    "acceptedContextCount": 8,
+    "acceptedStateCount": 151,
+    "acceptedScreenshotCount": 34,
+    "interceptedRequests": 418,
+    "fixtureGET": 91,
+    "blockedExternalRequests": 14,
+    "artifactStable": true,
+    "separateFullTitleSupplement": {
+      "path": "pre-numeric-full-title-supplement/evidence.json",
+      "contexts": 1,
+      "states": 1,
+      "captures": 0,
+      "requests": 26,
+      "fixtureGET": 5,
+      "blockedExternal": 1,
+      "selected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+      "selectionAtClick": [
+        {
+          "type": "click",
+          "detail": 1,
+          "buttons": 0,
+          "button": 0,
+          "x": 996,
+          "y": 109,
+          "target": "H3",
+          "targetClass": null,
+          "selection": "Hosting & infrastructure — International engineering collaboration and finance operations",
+          "collapsed": false,
+          "anchor": "H3",
+          "anchorClass": null,
+          "focus": "H3",
+          "insideAnchor": true,
+          "insideFocus": true,
+          "linkUserSelect": "text",
+          "targetUserSelect": "text",
+          "draggable": false
+        }
+      ],
+      "urlUnchanged": true,
+      "readsUnchanged": true,
+      "harnessPath": "selection-full-title.mjs",
+      "harnessSha256": "a09c369e99c8de616b4da24eed1d5b7cd0e9d952648c9028190bdea40e83a478",
+      "scope": "Real native full long title text selection only. No runtimeCSS or clipboard API, no write, no extra business context. Main matrix ordinary native click already passed."
+    }
+  },
+  "finalBrowserAcceptance": {
+    "phase": "final-numeric",
+    "status": "passed",
+    "accepted": {
+      "contexts": 12,
+      "states": 190,
+      "captures": 52,
+      "interceptedRequests": 465,
+      "fixtureGET": 122,
+      "blockedExternalRequests": 13
+    },
+    "mainAcceptance": {
+      "contexts": 8,
+      "states": 151,
+      "captures": 34,
+      "interceptedRequests": 305,
+      "fixtureGET": 81,
+      "blockedExternalRequests": 8
+    },
+    "numericAcceptance": {
+      "contexts": 4,
+      "states": 39,
+      "captures": 18,
+      "interceptedRequests": 160,
+      "fixtureGET": 41,
+      "blockedExternalRequests": 5
+    },
+    "requestCapPerContext": 120,
+    "maxAcceptedContextRequests": 48,
+    "browserVersion": "Chrome/151.0.7922.173",
+    "captureEnvironment": {
+      "nativeChromiumArgs": [
+        "--headless=new",
+        "--hide-scrollbars",
+        "--no-sandbox",
+        "--disable-dev-shm-usage"
+      ],
+      "externalOrigins": "All blocked; local synthetic GET only; no real auth/API/payment/provider requests",
+      "driverCorrection": "Held mouseMoved declares button:left/buttons1 for trusted native pointercapture; none/buttons1 failed a separate aboutblank control. Touch emulation changes only at mode/metrics/capture restoration, never during active pointer stream.",
+      "screenshotContract": "Native viewport/row capture, unchanged scroll/visualWidth/geometry/coarse/maxTouchPoints/background/hover before-after; allshots finite and dist unchanged."
+    },
+    "artifactStable": true,
+    "artifactManifestSha256": "b1aa21c1adbec6dec0a99fdb66593642c99d35bfca7ed8a65e42b4b4ee062235",
+    "artifactFileCount": 45,
+    "assetEntries": ["assets/index-D8er5OVt.css", "assets/index-HlLbD60P.js"],
+    "evidenceComposition": [
+      {
+        "path": "final-numeric-row-range-rejected/evidence.json",
+        "include": "completed Members profiles only",
+        "contexts": 2
+      },
+      {
+        "path": "final-numeric/evidence.json",
+        "include": "all six completed remaining profiles",
+        "contexts": 6
+      },
+      {
+        "path": "final-numeric-semantics/evidence.json",
+        "include": "all four numeric contexts",
+        "contexts": 4
+      }
+    ],
+    "harnessSnapshots": [
+      {
+        "path": "capture-final-numeric-row-range-rejected.mjs",
+        "sha256": "206c2b5a5c5c7b27b80d2814410ccdbec6d1e31cda5a1abc5d7bf31eb8815a21"
+      },
+      {
+        "path": "capture-final-accepted.mjs",
+        "sha256": "b8245c4ddd343e9cc954dc468d9ed2ca54a9ca147720bf1b0f3b4310b54a009e"
+      },
+      {
+        "path": "numeric-capture-final-accepted.mjs",
+        "sha256": "fabe029baf0374c1f311a4e4f1abc3729c7115978865467a1c21afc5294e211e"
+      },
+      {
+        "path": "fixtures.mjs",
+        "sha256": "caabb3db79aa0ecab9ce8e5b8dc93a9defc4864d620b803ef0bb63e194154cb4"
+      },
+      {
+        "path": "numeric-fixtures.mjs",
+        "sha256": "c258f269000fce2590f7d27d2ddaf8153ea6d8530dd116d46e7d6ec7bac962f4"
+      },
+      {
+        "path": "cdp.mjs",
+        "sha256": "2eb9b1e96f298ae486779c9f72b8dbc4fe60f76e4cfb1cf4b3335b541829538a"
+      }
+    ],
+    "profiles": [
+      {
+        "key": "members-1440-en-light",
+        "width": 1440,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": false,
+        "states": 27,
+        "captures": 7,
+        "interceptedRequests": 34,
+        "fixtureGET": 9
+      },
+      {
+        "key": "members-900-zh-dark",
+        "width": 900,
+        "language": "zh",
+        "theme": "dark",
+        "actualCoarse": true,
+        "states": 23,
+        "captures": 4,
+        "interceptedRequests": 31,
+        "fixtureGET": 4
+      },
+      {
+        "key": "projects-1440-en-light",
+        "width": 1440,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": false,
+        "states": 18,
+        "captures": 2,
+        "interceptedRequests": 43,
+        "fixtureGET": 17
+      },
+      {
+        "key": "projects-960-zh-dark-rail",
+        "width": 960,
+        "language": "zh",
+        "theme": "dark",
+        "actualCoarse": false,
+        "states": 20,
+        "captures": 5,
+        "interceptedRequests": 34,
+        "fixtureGET": 5
+      },
+      {
+        "key": "categories-1440-en-light",
+        "width": 1440,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": false,
+        "states": 17,
+        "captures": 2,
+        "interceptedRequests": 36,
+        "fixtureGET": 7
+      },
+      {
+        "key": "shared-1440-zh-dark",
+        "width": 1440,
+        "language": "zh",
+        "theme": "dark",
+        "actualCoarse": false,
+        "states": 14,
+        "captures": 2,
+        "interceptedRequests": 38,
+        "fixtureGET": 9
+      },
+      {
+        "key": "mobile-320-en-light",
+        "width": 320,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": true,
+        "states": 16,
+        "captures": 6,
+        "interceptedRequests": 41,
+        "fixtureGET": 15
+      },
+      {
+        "key": "mobile-390-zh-dark",
+        "width": 390,
+        "language": "zh",
+        "theme": "dark",
+        "actualCoarse": true,
+        "states": 16,
+        "captures": 6,
+        "interceptedRequests": 48,
+        "fixtureGET": 15
+      },
+      {
+        "key": "numeric-ledger-1440-en-light",
+        "width": 1440,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": false,
+        "states": 15,
+        "captures": 7,
+        "interceptedRequests": 39,
+        "fixtureGET": 15
+      },
+      {
+        "key": "numeric-ledger-320-en-light",
+        "width": 320,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": true,
+        "states": 7,
+        "captures": 3,
+        "interceptedRequests": 34,
+        "fixtureGET": 11
+      },
+      {
+        "key": "numeric-ledger-390-zh-dark",
+        "width": 390,
+        "language": "zh",
+        "theme": "dark",
+        "actualCoarse": true,
+        "states": 7,
+        "captures": 3,
+        "interceptedRequests": 41,
+        "fixtureGET": 11
+      },
+      {
+        "key": "numeric-pricing-1440-en-light",
+        "width": 1440,
+        "language": "en",
+        "theme": "light",
+        "actualCoarse": false,
+        "states": 10,
+        "captures": 5,
+        "interceptedRequests": 46,
+        "fixtureGET": 4
+      }
+    ],
+    "pageErrors": [],
+    "unexpectedRoutes": [],
+    "mutations": [],
+    "measurementMethod": "Keep raw element/text Range bboxes. Ordinary text must remain inside the real record row with>=16px visible inset and actual clipping ancestors; compare all child layout rectangles normal/hover/exit. Financial text fragments use Canvas fontBoundingBox/actualBoundingBox to distinguish invisible font metric extents from visible ink, after verifying Range height equals font bounding height within1.1px. Financial ink stays within real row/wrapper and clip boundaries; horizontal Range, fixed glyph tolerance1.5px,allocated sibling nonoverlap remain strict. NativecheckVisibility excludes closed native details content. No typography/CSS/assertion tolerance changed.",
+    "numericSemantics": "Exact above-safe aggregate18014398509481982 USD/JPY/KWD and separate currency exponents; safe integerExpense minor withrequired timestamps; successfulzero remainsnumeric; totals[] renders ordinary14px/400 hint(no numeric leaf), intentional malformedtotal and nullproviderannual price render14px/400 unavailable.32/28stats,22/20row/project,18report/secondary,40price,700font-display. Every visible financial leaf wholeSelection text equals authored exact text; commawbr adds no characters. Reports actual100%/0% percurrency.",
+    "nativeSelection": "Members and wrapped Projects full h3 text selected by true heldmouse drag; no routechange or newGET. Ordinary projectmouseclick afterward navigatesdetail with syntheticGET. Keyboard/modified navigation covered by root source tests.",
+    "scope": "Main8contexts: memberprimary/pending/neutraleditor normal-hover-exit pairs, flatrow16inline/fullhoverbox, actualcoarse44touch, sharedsplitdragmax/min(mouse and900x600tabletnativetouch), Home/Left/Right/End, sidebarmax/min+keyboard,900/2560/390/return live widths,draftretention/noGET,mobile4routesnohandle/noinlinewidth,sidewidthSPA persistence, API/Billing/GHstaticinsets. Numeric4contexts: Projects totals+accountoverview, Shared rows/stats/reports, primary280/right520 independentlimits,320/390en/zh/light/dark, publicmonth/year/missingannual prices+320/390pricingreflow.",
+    "manualReview": {
+      "status": "passed",
+      "images": [
+        "final-numeric/members-1440-en-light-members-editor-and-dividers-workspace.png",
+        "final-numeric/projects-1440-en-light-projects-project-hover.png",
+        "final-numeric/projects-960-zh-dark-rail-projects-editor-and-dividers-workspace.png",
+        "final-numeric/mobile-320-en-light-members-editor-hover.png",
+        "final-numeric/mobile-390-zh-dark-members-editor-hover.png",
+        "final-numeric-semantics/numeric-ledger-1440-en-light-primary-280.png",
+        "final-numeric-semantics/numeric-ledger-390-zh-dark-reports-precise-multicurrency.png",
+        "final-numeric-semantics/numeric-pricing-1440-en-light-missing-year-mobile-320.png"
+      ],
+      "verdict": "Full padded hover background remains quiet and content geometry stable; identity/role/actions and neutral editor readable; sticky grip target visible; long multicurrency values wrap without truncating decimals; dates/fields stay secondary; precise reports and unavailable prices readable."
+    },
+    "screenshots": [
+      {
+        "path": "final-numeric/members-1440-en-light-members-primary-normal.png",
+        "bytes": 9376,
+        "sha256": "305c02b4e82dce320b8296ad72a5f0c892be2fe8259f83d597a0edef1ae0766a"
+      },
+      {
+        "path": "final-numeric/members-1440-en-light-members-primary-hover.png",
+        "bytes": 9304,
+        "sha256": "7242efa765bffc935d7bf63ce846ecc3790c8465df30c2dba44ac379537b0f01"
+      },
+      {
+        "path": "final-numeric/members-1440-en-light-members-editor-normal.png",
+        "bytes": 13033,
+        "sha256": "cac1b79173298b3d54c2210871f40d17eb485bbb4100e52d60bc0e651f0ea0fa"
+      },
+      {
+        "path": "final-numeric/members-1440-en-light-members-editor-hover.png",
+        "bytes": 12981,
+        "sha256": "ae09d3dc51fc9dc843ea9512c1b29b5c47793d8c993a12076b88e7d096cb851a"
+      },
+      {
+        "path": "final-numeric/members-1440-en-light-members-editor-and-dividers-workspace.png",
+        "bytes": 119002,
+        "sha256": "e2d255609faa411891248b21c026770ade1d5ff1da7acb6238a9dddd122a067d"
+      },
+      {
+        "path": "final-numeric/members-1440-en-light-members-resize-max-workspace.png",
+        "bytes": 113703,
+        "sha256": "0f90f0ebe612947ddf34dd502a85cafc85a592cc31ba97b7afb2193b83ee37d2"
+      },
+      {
+        "path": "final-numeric/members-1440-en-light-members-resize-min-workspace.png",
+        "bytes": 117663,
+        "sha256": "c0fda4b2c8eeb9c8433db34f56be4bf00c050259a1e42f44fc3eed6d0d2febe9"
+      },
+      {
+        "path": "final-numeric/members-900-zh-dark-members-pending-normal.png",
+        "bytes": 8812,
+        "sha256": "d9294a404941ef8d3c98c7d5f49347d0ba5efa2079d38d0f07fcc73864c55c7d"
+      },
+      {
+        "path": "final-numeric/members-900-zh-dark-members-pending-hover.png",
+        "bytes": 8812,
+        "sha256": "da572568ad566999e4d52376e36fa66a977168bcaea471a043bd8d88b821d348"
+      },
+      {
+        "path": "final-numeric/members-900-zh-dark-members-editor-normal.png",
+        "bytes": 13383,
+        "sha256": "64885143d2db36c2f01b02a6cff95bab217a7e965747206888f767288d18ef01"
+      },
+      {
+        "path": "final-numeric/members-900-zh-dark-members-editor-hover.png",
+        "bytes": 13521,
+        "sha256": "0ad8f9dfe28e9eb5dfb544cdd1983af688f09aa42a593472991fe3a6773c6a6b"
+      },
+      {
+        "path": "final-numeric/projects-1440-en-light-projects-project-normal.png",
+        "bytes": 24292,
+        "sha256": "10ba6eed90c51f689efd27730f2bf541e4c2a8102929d0fbdb234d8591c4a78b"
+      },
+      {
+        "path": "final-numeric/projects-1440-en-light-projects-project-hover.png",
+        "bytes": 24317,
+        "sha256": "106b4e0996d232509d048b6deba9f0de7e25cf4e031449db452c33eeecf6a9a0"
+      },
+      {
+        "path": "final-numeric/projects-960-zh-dark-rail-projects-project-normal.png",
+        "bytes": 21304,
+        "sha256": "4bb92363d27c37838f64c18955650e31ebd9600eb5ed7597acb247888889719d"
+      },
+      {
+        "path": "final-numeric/projects-960-zh-dark-rail-projects-project-hover.png",
+        "bytes": 21328,
+        "sha256": "d330405607deba99f28e2d4110fc892e56b13964fdc3d4d23a99b06ba33d3539"
+      },
+      {
+        "path": "final-numeric/projects-960-zh-dark-rail-projects-editor-and-dividers-workspace.png",
+        "bytes": 92431,
+        "sha256": "12238e0d2f8a4ae710aea3c97fb51fe6fb2690a05f56a511582336d0f7b0f3fc"
+      },
+      {
+        "path": "final-numeric/projects-960-zh-dark-rail-projects-resize-max-workspace.png",
+        "bytes": 85523,
+        "sha256": "a11a372dcbafbb8b6424abf5e58be21ce49767f2c0c4f0f2871ac69aa854b3d8"
+      },
+      {
+        "path": "final-numeric/projects-960-zh-dark-rail-projects-resize-min-workspace.png",
+        "bytes": 92589,
+        "sha256": "c35d56757dd9ad4799e31f793f9d21d11ab2844fc3a8bfb6c08df5e5b3a59245"
+      },
+      {
+        "path": "final-numeric/categories-1440-en-light-categories-category-normal.png",
+        "bytes": 10022,
+        "sha256": "09f3c0c6de62da6e5941f5ff94963d4e71cd34556ff6c561fd7a04afe7956c94"
+      },
+      {
+        "path": "final-numeric/categories-1440-en-light-categories-category-hover.png",
+        "bytes": 10082,
+        "sha256": "eb37676bd158ba3e636b40028eab4a06f952dbc91c804b5956cc25db3f7bddfb"
+      },
+      {
+        "path": "final-numeric/shared-1440-zh-dark-shared-expense-normal.png",
+        "bytes": 19803,
+        "sha256": "4eeca9d65b1c7a2dd067d41f50b4381e5ee944361bb0cce9b494ef031f0d0a1f"
+      },
+      {
+        "path": "final-numeric/shared-1440-zh-dark-shared-expense-hover.png",
+        "bytes": 19827,
+        "sha256": "f0cb8c7f16400d443c728d1ce714dc180829b1d7cbf5541ba7cc3c5259c94996"
+      },
+      {
+        "path": "final-numeric/mobile-320-en-light-members-primary-normal.png",
+        "bytes": 9720,
+        "sha256": "9a2f2234c0a366d10226c15132329fe156cd1ff7295e1ac8ef74369d82098b4f"
+      },
+      {
+        "path": "final-numeric/mobile-320-en-light-members-primary-hover.png",
+        "bytes": 9751,
+        "sha256": "57979fc44b762e0fe5878ed973cbba0e13dbd8b54992b6a8d7c8402a85baa165"
+      },
+      {
+        "path": "final-numeric/mobile-320-en-light-members-editor-normal.png",
+        "bytes": 13466,
+        "sha256": "1200a75994c35a2d793ede872ce3928568f72a9eabef25e2395137eaf6e8d0a1"
+      },
+      {
+        "path": "final-numeric/mobile-320-en-light-members-editor-hover.png",
+        "bytes": 13517,
+        "sha256": "38c873a2aa284a59e5afe692c4e1097ffbdc0aceb3906ecb1375c79bb43fb39f"
+      },
+      {
+        "path": "final-numeric/mobile-320-en-light-projects-project-normal.png",
+        "bytes": 23555,
+        "sha256": "857462890490388077f45302eab62ab97b6a0a1b2dd8de71902bb9164bd83de2"
+      },
+      {
+        "path": "final-numeric/mobile-320-en-light-projects-project-hover.png",
+        "bytes": 23730,
+        "sha256": "47cb9318f4ee5d364c72e767ebb14367fde49352e7b1ad60bc95d387cf50bc0c"
+      },
+      {
+        "path": "final-numeric/mobile-390-zh-dark-members-primary-normal.png",
+        "bytes": 9233,
+        "sha256": "0ae2a5d95cc39c79792eadcac781f3b09486ff0bb8591ee64c0763c98a9c6850"
+      },
+      {
+        "path": "final-numeric/mobile-390-zh-dark-members-primary-hover.png",
+        "bytes": 9197,
+        "sha256": "73a6e3d6c04566358aa5e4cb80b07f8c1c7b01be036081aad8f1042c14bf9839"
+      },
+      {
+        "path": "final-numeric/mobile-390-zh-dark-members-editor-normal.png",
+        "bytes": 13387,
+        "sha256": "6ad854a6f3cbce41e274dafb4a0d51a5e86b58906c018ba649f0d2f55dcfd5b7"
+      },
+      {
+        "path": "final-numeric/mobile-390-zh-dark-members-editor-hover.png",
+        "bytes": 13383,
+        "sha256": "778ff1a7afc55712db0c7d467284cf03436075e4bae57a7208314f95ea3af511"
+      },
+      {
+        "path": "final-numeric/mobile-390-zh-dark-projects-project-normal.png",
+        "bytes": 20097,
+        "sha256": "bd5d6d5ba600b93aa8cc7711d02373042e285e7379aaabef55d94ec9174c190c"
+      },
+      {
+        "path": "final-numeric/mobile-390-zh-dark-projects-project-hover.png",
+        "bytes": 20148,
+        "sha256": "3374f8f467ecbdfda06623c6800f3439f7152ee4958bb1d587cfbd4d7d389151"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-projects-three-currencies.png",
+        "bytes": 100597,
+        "sha256": "b53492397486dda7d8370c834fd0a275842c941cebbe3721185804d794d079bd"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-account-overview.png",
+        "bytes": 135662,
+        "sha256": "cad4363fb89482333071536332f3136d78195ea5de5202f60add721fa511ecfe"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-shared-multicurrency-values.png",
+        "bytes": 168541,
+        "sha256": "1e7a209c3c7e71e21fc741f62407fbc33bd81712dc1d4e53d7f50712498b13b5"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-right-panel-520.png",
+        "bytes": 137387,
+        "sha256": "98e6dfa57ccb3d9e8381c0191bc4238499e5dc7fed6429676f140111182a2570"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-primary-280.png",
+        "bytes": 131712,
+        "sha256": "93c9edd84a799271614040405386d2d07238bb85b7b4db662f55f7663066a33c"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-reports-precise-multicurrency.png",
+        "bytes": 132943,
+        "sha256": "caccaf863cebf4d85ac7b15bbbabfbf300b83903a2c0c3fe1bddfeea9653c218"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-1440-en-light-intentional-unavailable.png",
+        "bytes": 107524,
+        "sha256": "ed6472071cb9003566836393b1bbf22cb3f4225ae88d7d1667bb27b926a9f4f4"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-320-en-light-projects-three-currencies.png",
+        "bytes": 51068,
+        "sha256": "162624def13159453a14ae6d2986d226305b5585b6c3a1a8cf06c41cf2da217f"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-320-en-light-shared-multicurrency-values.png",
+        "bytes": 57444,
+        "sha256": "423dc79997635a96f5618f80bed9936e1ce16cf2e8ab7ff82f75be18947b89ce"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-320-en-light-reports-precise-multicurrency.png",
+        "bytes": 44161,
+        "sha256": "1a16d6c76e38a3418e4836de80096dd01f3b2e804ef952b0d56e4bfbd598d1bb"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-390-zh-dark-projects-three-currencies.png",
+        "bytes": 52834,
+        "sha256": "a2140be1b46511d772c41c4c560481ec134cffbbdf2aad0344e95e3b38e2696e"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-390-zh-dark-shared-multicurrency-values.png",
+        "bytes": 54772,
+        "sha256": "72902d2a293350779e80b28ced6b8a4520be6d734c8b601946e6c572acee16dd"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-ledger-390-zh-dark-reports-precise-multicurrency.png",
+        "bytes": 50409,
+        "sha256": "2b9dadfb9c9675525b2acea45fab9ffc99c76b6e84bcd2f6e8eb0c3c871a31d6"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-pricing-1440-en-light-configured-month.png",
+        "bytes": 67873,
+        "sha256": "d6baebe1776edf0fc4e46f21c59d6f2031240dbea5219b959907f37108dc9c64"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-pricing-1440-en-light-configured-year.png",
+        "bytes": 62557,
+        "sha256": "5bf44a69791668a6ef90c0fcc834340ebcf5beae6ed27a8b10f9d05ee8a03412"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-pricing-1440-en-light-missing-year-price.png",
+        "bytes": 66561,
+        "sha256": "24069ce960d56f5f1add15bcc91993c07b1f028a5306bf21c1b4550ea8500576"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-pricing-1440-en-light-missing-year-mobile-320.png",
+        "bytes": 32807,
+        "sha256": "d4a2a7140d7a627a5142bb54ca1aaf4aa61ff1476817bd3c62b64a7769a69bc3"
+      },
+      {
+        "path": "final-numeric-semantics/numeric-pricing-1440-en-light-missing-year-mobile-390.png",
+        "bytes": 36164,
+        "sha256": "b3e6972dd5c5e1a1f836b3748ec54b15321cdec5b12012a633df3e8c795542dd"
+      }
+    ],
+    "excludedFinalDiagnostics": [
+      {
+        "path": "final-numeric-range-rejected/evidence.json",
+        "reason": "Old own-span font Range constraint mistaken for visible ink",
+        "contexts": 3,
+        "interceptedRequests": 92,
+        "fixtureGET": 18,
+        "statesBeforeStopped": 50,
+        "captures": 11,
+        "mutations": 0,
+        "unexpectedRoutes": 0
+      },
+      {
+        "path": "final-numeric-semantics-range-rejected/evidence.json",
+        "reason": "Same old Range font metric assumption",
+        "contexts": 1,
+        "interceptedRequests": 27,
+        "fixtureGET": 5,
+        "statesBeforeStopped": 0,
+        "captures": 0,
+        "mutations": 0,
+        "unexpectedRoutes": 0
+      },
+      {
+        "path": "numeric-font-metric-diagnostic/evidence.json",
+        "reason": "Closed native details layout rectangles mistaken for visible selectable content",
+        "contexts": 1,
+        "interceptedRequests": 27,
+        "fixtureGET": 5,
+        "statesBeforeStopped": 0,
+        "captures": 0,
+        "mutations": 0,
+        "unexpectedRoutes": 0
+      },
+      {
+        "path": "final-numeric-semantics-noexpense-class-rejected/evidence.json",
+        "reason": "Class-only Noexpenses hint assertion; source intentionally uses ordinary body text",
+        "contexts": 1,
+        "interceptedRequests": 27,
+        "fixtureGET": 5,
+        "statesBeforeStopped": 1,
+        "captures": 0,
+        "mutations": 0,
+        "unexpectedRoutes": 0
+      },
+      {
+        "path": "final-numeric-row-range-rejected/evidence.json",
+        "reason": "Only the activeProjects attempt excluded: font metric blank extents; first two completedMembers contexts accepted",
+        "contexts": 1,
+        "interceptedRequests": 43,
+        "fixtureGET": 17,
+        "statesBeforeStopped": 17,
+        "captures": 2,
+        "mutations": 0,
+        "unexpectedRoutes": 0
+      }
+    ],
+    "excludedFinalTotals": {
+      "contexts": 7,
+      "interceptedRequests": 216,
+      "fixtureGET": 50,
+      "statesBeforeStopped": 68,
+      "captures": 13,
+      "mutations": 0,
+      "unexpectedRoutes": 0
+    },
+    "preNumericStatus": "Separate acceptedpre-numeric151states +full-title1 supplemental; earlier native-driver,selection,CSSruntime diagnostic and125-request cold390attempt excluded, differentmanifest and neverfinalrelease. See pre-numeric-acceptance.json; not mixed here.",
+    "cleanup": {
+      "status": "completed",
+      "noLiveTaskViteChromiumCDP": true,
+      "noTemporaryChromiumProfiles": true,
+      "terminatedVite": "Exact config-path matched node process only; SIGTERM; no other source/build/deploy processes touched."
+    },
+    "artifactManifest": [
+      {
+        "path": "_headers",
+        "bytes": 270,
+        "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+      },
+      {
+        "path": "assets/api-DIkCTvhZ.js",
+        "bytes": 24196,
+        "sha256": "33d1d53cc0050d8709c18e21b150b72c35702c8df867232c14e76972cd8cf3d7"
+      },
+      {
+        "path": "assets/api-docs-Be9nLhdT.js",
+        "bytes": 14645,
+        "sha256": "c248f1a4147b789afb1a6173ce0ac1659bb870273b0814f54071be79102e5a9b"
+      },
+      {
+        "path": "assets/auth-X7HyjDUc.js",
+        "bytes": 8495,
+        "sha256": "58f574098265b534d2bdd047e9f8c13ae8b8be2f581ff1a39135a7e403991110"
+      },
+      {
+        "path": "assets/billing-Dg08UmUu.js",
+        "bytes": 32327,
+        "sha256": "951c971a4a84ddc8898ac989a4524ff766dc3e4a7b8c513694521be2197c0e9e"
+      },
+      {
+        "path": "assets/confirm-dialog-BaEzKDBn.js",
+        "bytes": 2992,
+        "sha256": "7837261f75111689c1f0197ba3da767892e1bbf5eaace68d7698e2bde8434daa"
+      },
+      {
+        "path": "assets/console-layout-b-HxRKjR.js",
+        "bytes": 4262,
+        "sha256": "d7c806f312703309ed26e4f8c3dac64dc4b25615a33e30ce32aef2241fe97ece"
+      },
+      {
+        "path": "assets/docs-D6ejjeCe.js",
+        "bytes": 6565,
+        "sha256": "29499b2a140be5f016bb448eb55dc25d9c70107fa31161726c2a194118b15213"
+      },
+      {
+        "path": "assets/dynamic-DCZrMema.js",
+        "bytes": 4150,
+        "sha256": "501dd5c94f8fbf844992a8bb94d3de3b267653e8cff8bdfe7e13b310d8c63dfc"
+      },
+      {
+        "path": "assets/es-683QKabM.js",
+        "bytes": 12961,
+        "sha256": "749d530105eaa50b1e5bb4e0faad2e4160511b335f73458be9174a260bb47130"
+      },
+      {
+        "path": "assets/financial-value-QxLZwFKp.js",
+        "bytes": 477,
+        "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+      },
+      {
+        "path": "assets/fr-DfZHQbgS.js",
+        "bytes": 13283,
+        "sha256": "db2319ec96719e64469b1f1c0191eecdd33a6ed88aefef054a7f206384a23019"
+      },
+      {
+        "path": "assets/index-D8er5OVt.css",
+        "bytes": 78694,
+        "sha256": "9ca47c108eaf5a2e285fdbf710288117bfb4e8baaa40e54ad31421f450b9dcb3"
+      },
+      {
+        "path": "assets/index-HlLbD60P.js",
+        "bytes": 42173,
+        "sha256": "23cd2f984a2f4b38f37580ff667aa33e77c59bce26ff5ad7ca717447a24a8ff5"
+      },
+      {
+        "path": "assets/ja-C8b4xV62.js",
+        "bytes": 13959,
+        "sha256": "514f4a4dc67d95220873faf28838651d4d465993c5b532894fdd469fea4c918b"
+      },
+      {
+        "path": "assets/ko-BUVTLl8w.js",
+        "bytes": 12762,
+        "sha256": "b8e2eb7689b5f3fb0c3f938cc36c239693737edf09d2e5b8dc6ba63cf1d6c2b5"
+      },
+      {
+        "path": "assets/ledger-Bg5eiPh6.js",
+        "bytes": 11492,
+        "sha256": "459cb36f8015f6974aa0fd5a3dc2216bbaa79baa2b8526cf114ae845622813e4"
+      },
+      {
+        "path": "assets/ledger-BUhPl98l.js",
+        "bytes": 1545,
+        "sha256": "7403ac1d12ee8ce358ef009ff132bf53aca443d6242c6ae0a72c2c440d6400d7"
+      },
+      {
+        "path": "assets/ledger-CLBSRrd9.js",
+        "bytes": 2925,
+        "sha256": "3a224701e39b0efa91dc975557e70614f3ea671e3be8474660920884063fffcb"
+      },
+      {
+        "path": "assets/ledger-D3MKKBM9.js",
+        "bytes": 56347,
+        "sha256": "5607c60f75e8aafaf7c2135f4ae0bd0201d1add925809052cba5f1e4f89eacb7"
+      },
+      {
+        "path": "assets/ledger-DK4AqPqz.css",
+        "bytes": 11877,
+        "sha256": "7e0eea563dc8382204a9125a010045feb42d17a0c4a9c439e90e61207bcfadf7"
+      },
+      {
+        "path": "assets/ledger-longform-DOxwwOdJ.js",
+        "bytes": 53941,
+        "sha256": "55a1d40a3b1c62fe6a5a7858e5485a8dbb5e0f0b01f1f5482a08a04d8795a9bd"
+      },
+      {
+        "path": "assets/ledger-scopes-B4otesy_.js",
+        "bytes": 3975,
+        "sha256": "a3afd12cc23a107eddb1efa9e97135d76ccff3b8222aae644bc8b9c39e2a155a"
+      },
+      {
+        "path": "assets/ledger-screen-BKfq9bfZ.js",
+        "bytes": 36222,
+        "sha256": "5240bf8e5edf0952d61f0a5e7a859a7af70ee3d590f24ba6cb3c2faae49311ee"
+      },
+      {
+        "path": "assets/ledger-ui-Dv-Tohwi.js",
+        "bytes": 36433,
+        "sha256": "ab2ef400baa6bd33669d65f634382920847176ffe44d4528336364c751c6e4fc"
+      },
+      {
+        "path": "assets/legal-ChXQsBBw.js",
+        "bytes": 17109,
+        "sha256": "a0f007895c4ff318e459bf9d60f2fe6175ccf088de7f5210c4bd1d3aa184092b"
+      },
+      {
+        "path": "assets/members-BmTgcqoh.js",
+        "bytes": 21574,
+        "sha256": "b8337827f8e9f462394939bcd4a611a5dc946bed07b42fd00812096ad49a83d5"
+      },
+      {
+        "path": "assets/navigation-CCTlDagU.js",
+        "bytes": 13292,
+        "sha256": "f4e53eab82f32345642ddd9ccfa6519e3f790b15f1b10f6a4cbb6a855a3ef0b3"
+      },
+      {
+        "path": "assets/notifications-D_wLsC2G.js",
+        "bytes": 2705,
+        "sha256": "1351f1ddee94b54899c61c505faa71a687ce2209950dd235a3f29aac66906e13"
+      },
+      {
+        "path": "assets/public-layout-DsFC51-1.js",
+        "bytes": 2431,
+        "sha256": "cac12c91f8c12d25b15d73a7144fdf3ed52df6f970ce7e9d3bd81a4dd17f98d0"
+      },
+      {
+        "path": "assets/pullwise-cI3w50zs.js",
+        "bytes": 1775,
+        "sha256": "e24218d95d576c6250d787e628746ca6d35ff258be85974a444d23bac78892a1"
+      },
+      {
+        "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+        "bytes": 567,
+        "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+      },
+      {
+        "path": "assets/settings-ECE4yPyI.js",
+        "bytes": 8184,
+        "sha256": "9be310709e1e7a37e8595c2ee6780bdaa79d7df7854ce055095eecd4c7648ecd"
+      },
+      {
+        "path": "assets/shell-C7yaF7f4.js",
+        "bytes": 5247,
+        "sha256": "d48afb72ba3ec9513459cf68f0e68c0e8d43df5365bd1d73720da2401591f8b7"
+      },
+      {
+        "path": "assets/skeleton-CeAkszC6.js",
+        "bytes": 206,
+        "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+      },
+      {
+        "path": "assets/vendor-CHwUWPSh.js",
+        "bytes": 56389,
+        "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+      },
+      {
+        "path": "assets/vendor-react-CIxRT3XZ.js",
+        "bytes": 139881,
+        "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+      },
+      {
+        "path": "assets/zh-CNi7RLYc.js",
+        "bytes": 11381,
+        "sha256": "ac3dbf8af423708c2f69750394465a4d9879e4022bc54b7e463d4dd5849b3d77"
+      },
+      {
+        "path": "brand-mark.png",
+        "bytes": 48301,
+        "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+      },
+      {
+        "path": "favicon.ico",
+        "bytes": 48323,
+        "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+      },
+      {
+        "path": "index.html",
+        "bytes": 4913,
+        "sha256": "992e817f3173a2cbc19ed946c88aff4cb2f7f66922f2fb3de2ccfa648925d8d0"
+      },
+      {
+        "path": "robots.txt",
+        "bytes": 323,
+        "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+      },
+      {
+        "path": "sitemap.xml",
+        "bytes": 1003,
+        "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+      },
+      {
+        "path": "social-card.png",
+        "bytes": 25866,
+        "sha256": "1b153369b7efe00a1322b4f75209cc0b5efce343af45b6a3acc3bf66ca330903"
+      },
+      {
+        "path": "social-card.svg",
+        "bytes": 2126,
+        "sha256": "50dcfe168f1ed22609b544e637ed2497d2f5c3749a6fc635f3da5c1724a03638"
+      }
+    ]
+  },
+  "rootVisualReview": {
+    "passed": true,
+    "sampledCaptures": [
+      "final-numeric/members-1440-en-light-members-editor-and-dividers-workspace.png",
+      "final-numeric/projects-960-zh-dark-rail-projects-editor-and-dividers-workspace.png",
+      "final-numeric/projects-1440-en-light-projects-project-hover.png",
+      "final-numeric-semantics/numeric-ledger-1440-en-light-primary-280.png",
+      "final-numeric-semantics/numeric-ledger-390-zh-dark-reports-precise-multicurrency.png",
+      "final-numeric-semantics/numeric-pricing-1440-en-light-missing-year-mobile-320.png"
+    ]
+  },
+  "limits": "All browser data is locally intercepted synthetic GET-only evidence; external origins blocked. No real login, payments, provider requests, Server/D1 operations or production deployment. Remote publication has its separate four-request static check."
+}

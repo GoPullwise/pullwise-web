@@ -433,8 +433,7 @@
   color: var(--text-3);
 }
 
-.key-id,
-.pricing-num {
+.key-id {
   font-variant-numeric: tabular-nums;
 }
 

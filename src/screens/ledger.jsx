@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { LedgerSplit } from "../components/ledger-split.jsx";
+import { ConsoleLayout } from "../components/console-layout.jsx";
+import { FinancialValue } from "../components/financial-value.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -130,6 +133,15 @@ function formatTotal({ currency, amountMinor }) {
   return `${currency} ${whole}${fraction}`;
 }
 
+function LedgerTotal({ total }) {
+  return (
+    <FinancialValue
+      value={formatTotal(total)}
+      numeric={minorAmount(total.amountMinor) !== null && typeof total.currency === "string"}
+    />
+  );
+}
+
 function LedgerFilters({ filters, onChange, categories = [] }) {
   const categoryFieldId = useId();
   const update = (name, value) => onChange((old) => ({ ...old, [name]: value }));
@@ -223,7 +235,9 @@ function ReportGroups({ title, groups, error, categories = [], dimension, icon: 
                     }}
                   />
                 </span>
-                <strong>{formatTotal(row)}</strong>
+                <strong>
+                  <LedgerTotal total={row} />
+                </strong>
               </div>
             ))}
           </div>
@@ -1158,7 +1172,7 @@ function ScopedLedgerScreen({
         }
         loading={loading}
       />
-      <div className="with-side">
+      <ConsoleLayout>
         <Sidebar
           go={go}
           section={
@@ -1388,10 +1402,9 @@ function ScopedLedgerScreen({
                   </ol>
                 </section>
               )}
-              <div
-                className={
-                  showProjectForm && data.projects.items.length > 0 ? "ledger-split" : undefined
-                }
+              <LedgerSplit
+                enabled={showProjectForm && data.projects.items.length > 0}
+                scope={`${workspaceScope}:projects`}
               >
                 {data.projects.items.length > 0 && (
                   <section className="panel ledger-your-projects">
@@ -1446,6 +1459,7 @@ function ScopedLedgerScreen({
                       {matchingProjects.map((project) => (
                         <a
                           className="ledger-project-row"
+                          draggable={false}
                           key={project.id}
                           {...screenLinkProps(go, "ledgerProject", { id: project.id })}
                         >
@@ -1493,7 +1507,11 @@ function ScopedLedgerScreen({
                             )}
                           </div>
                           <span className="ledger-project-total">
-                            {project.totals.map(formatTotal).join(" · ") || T("No expenses")}
+                            {project.totals.length
+                              ? project.totals.map((total) => (
+                                  <LedgerTotal key={total.currency} total={total} />
+                                ))
+                              : T("No expenses")}
                           </span>
                           <I.ArrowR size={16} />
                         </a>
@@ -1797,30 +1815,32 @@ function ScopedLedgerScreen({
                       .filter((group) => group.target === "account")
                       .map((group) => (
                         <article className="ledger-stat" key={group.currency}>
-                          <h3>{formatTotal(group)}</h3>
+                          <h3>
+                            <LedgerTotal total={group} />
+                          </h3>
                           <p>
                             {T("Projects")}:{" "}
-                            <span>
-                              {formatTotal(
+                            <LedgerTotal
+                              total={
                                 data.summary.groups.find(
                                   (item) =>
                                     item.target === "project" &&
                                     item.projectId == null &&
                                     item.currency === group.currency
                                 ) || { currency: group.currency, amountMinor: 0 }
-                              )}
-                            </span>
+                              }
+                            />
                           </p>
                           <p>
                             {T("Shared pool")}:{" "}
-                            <span>
-                              {formatTotal(
+                            <LedgerTotal
+                              total={
                                 data.summary.groups.find(
                                   (item) =>
                                     item.target === "shared" && item.currency === group.currency
                                 ) || { currency: group.currency, amountMinor: 0 }
-                              )}
-                            </span>
+                              }
+                            />
                           </p>
                         </article>
                       ))}
@@ -1831,11 +1851,11 @@ function ScopedLedgerScreen({
                     categories={data.categories}
                   />
                 </details>
-              </div>
+              </LedgerSplit>
             </>
           )}
           {data && mode === "categories" && (
-            <div className="ledger-split">
+            <LedgerSplit enabled={canManageCategories} scope={`${workspaceScope}:categories`}>
               <section className="panel">
                 <div className="panel-h">
                   <I.Layers size={20} />
@@ -2010,7 +2030,7 @@ function ScopedLedgerScreen({
                   </form>
                 </section>
               )}
-            </div>
+            </LedgerSplit>
           )}
           {data && (mode === "shared" || mode === "project") && (
             <>
@@ -2098,7 +2118,9 @@ function ScopedLedgerScreen({
                     )
                     .map((group) => (
                       <article className="ledger-stat" key={group.currency}>
-                        <h3>{formatTotal(group)}</h3>
+                        <h3>
+                          <LedgerTotal total={group} />
+                        </h3>
                       </article>
                     ))}
                 </div>
@@ -2140,7 +2162,11 @@ function ScopedLedgerScreen({
                 tabIndex={0}
                 hidden={view !== "expenses"}
               >
-                <div className={showExpenseForm ? "ledger-split ledger-entry" : undefined}>
+                <LedgerSplit
+                  enabled={showExpenseForm}
+                  className={showExpenseForm ? "ledger-entry" : ""}
+                  scope={`${workspaceScope}:${mode}:${projectId}:expenses`}
+                >
                   <section className="panel">
                     <div className="panel-h">
                       <I.Database size={20} />
@@ -2217,7 +2243,7 @@ function ScopedLedgerScreen({
                           </div>
                           <div className="ledger-row-side">
                             <strong className="ledger-amount">
-                              {expense.currency} {expense.amount}
+                              <FinancialValue value={`${expense.currency} ${expense.amount}`} />
                             </strong>
                             {canWriteExpenses && (
                               <div className="ledger-actions">
@@ -2323,7 +2349,7 @@ function ScopedLedgerScreen({
                       />
                     </section>
                   )}
-                </div>
+                </LedgerSplit>
               </div>
               <div
                 role="tabpanel"
@@ -2696,7 +2722,7 @@ function ScopedLedgerScreen({
             </>
           )}
         </main>
-      </div>
+      </ConsoleLayout>
     </div>
   );
 }

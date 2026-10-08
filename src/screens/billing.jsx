@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
+import { FinancialValue } from "../components/financial-value.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -10,6 +11,7 @@ import { formatBillingTimestamp } from "../lib/billing-date.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { useModalFocus } from "../lib/modal-focus.js";
 import { Sidebar, Topbar } from "../shell.jsx";
+import { ConsoleLayout } from "../components/console-layout.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const CHECKOUT_PENDING_TIMEOUT_MS = 15 * 1000;
@@ -741,7 +743,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     <div className="app fade-in">
       <div ref={billingBackgroundRef} className="billing-background">
         <Topbar go={go} breadcrumbs={[{ label: T("Billing", "Billing") }]} loading={loading} />
-        <div className="with-side">
+        <ConsoleLayout>
           <Sidebar section="billing" go={go} />
           <div className="main" role="main">
             <div className="page-h">
@@ -945,7 +947,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
               )}
             </div>
           </div>
-        </div>
+        </ConsoleLayout>
       </div>
       {changeDetails && (
         <div className="modal-back billing-change-back" onClick={closeChangeConfirmation}>
@@ -993,7 +995,16 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                   <span>{T("Current", "Current")}</span>
                   <b>{planName(changeDetails.currentPlan)}</b>
                   <em className="billing-change-price">
-                    {priceLabel(priceFor(changeDetails.currentPlan, changeDetails.currentInterval))}
+                    <FinancialValue
+                      value={priceLabel(
+                        priceFor(changeDetails.currentPlan, changeDetails.currentInterval)
+                      )}
+                      numeric={
+                        priceAmount(
+                          priceFor(changeDetails.currentPlan, changeDetails.currentInterval)?.amount
+                        ) !== null
+                      }
+                    />
                     <span className="billing-change-period">
                       {changeDetails.currentIntervalShort}
                     </span>
@@ -1005,7 +1016,16 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                   <span>{T("New", "New")}</span>
                   <b>{planName(changeDetails.targetPlan)}</b>
                   <em className="billing-change-price">
-                    {priceLabel(priceFor(changeDetails.targetPlan, changeDetails.targetInterval))}
+                    <FinancialValue
+                      value={priceLabel(
+                        priceFor(changeDetails.targetPlan, changeDetails.targetInterval)
+                      )}
+                      numeric={
+                        priceAmount(
+                          priceFor(changeDetails.targetPlan, changeDetails.targetInterval)?.amount
+                        ) !== null
+                      }
+                    />
                     <span className="billing-change-period">
                       {changeDetails.targetIntervalShort}
                     </span>
@@ -1433,7 +1453,10 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
             </>
           ) : (
             <>
-              <span>{priceLabel(price)}</span>
+              <FinancialValue
+                value={priceLabel(price)}
+                numeric={priceAmount(price?.amount) !== null}
+              />
               <span className="pricing-per">/{interval}</span>
             </>
           )}
@@ -1446,13 +1469,19 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
       <ul className="pricing-feats">
         {!loading && projects !== null && (
           <li>
-            <I.Check size={13} /> {T("Projects", "项目")}: {projects.toLocaleString("en-US")}
+            <I.Check size={13} />
+            <span>
+              {T("Projects", "项目")}: <FinancialValue value={projects.toLocaleString("en-US")} />
+            </span>
           </li>
         )}
         {!loading && records !== null && (
           <li>
-            <I.Check size={13} /> {T("Expense records", "支出记录")}:{" "}
-            {records.toLocaleString("en-US")}
+            <I.Check size={13} />
+            <span>
+              {T("Expense records", "支出记录")}:{" "}
+              <FinancialValue value={records.toLocaleString("en-US")} />
+            </span>
           </li>
         )}
         {!loading && jev?.eligible === false && (
@@ -1474,7 +1503,11 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
               )}
             </li>
             <li>
-              <I.Check size={13} /> {T("Jev budget", "Jev 预算")}: ${jevBudget} / {T("month", "月")}
+              <I.Check size={13} />
+              <span>
+                {T("Jev budget", "Jev 预算")}: <FinancialValue value={`$${jevBudget}`} /> /{" "}
+                {T("month", "月")}
+              </span>
             </li>
             <li>
               <I.Check size={13} />{" "}

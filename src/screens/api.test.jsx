@@ -500,7 +500,7 @@ describe("API screens", () => {
       screen.queryByText(/Choose only the REST scopes each key needs/i)
     ).not.toBeInTheDocument();
     expect(createForm).toContainElement(screen.getByRole("button", { name: /create key/i }));
-    expect(within(scopes).getByText("5 / 9 selected")).toBeInTheDocument();
+    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 9 selected");
     expect(within(scopes).getAllByRole("checkbox")).toHaveLength(9);
     expect(within(scopes).getAllByRole("checkbox", { checked: true })).toHaveLength(5);
   });

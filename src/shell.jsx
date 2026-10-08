@@ -120,7 +120,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
   );
 }
 
-export function Sidebar({ go, section = "ledgerProjects" }) {
+export function Sidebar({ go, section = "ledgerProjects", id }) {
   useLang();
   const ledger = [
     { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
@@ -134,7 +134,7 @@ export function Sidebar({ go, section = "ledgerProjects" }) {
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
   ];
   return (
-    <aside className="side">
+    <aside className="side" id={id}>
       <nav className="side-nav-landmark" aria-label={T("Navigation", "导航")}>
         <div className="side-group side-nav" role="group" aria-label={T("Ledger", "账本")}>
           <div className="side-h">{T("Ledger", "账本")}</div>

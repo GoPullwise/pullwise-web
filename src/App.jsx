@@ -3,6 +3,7 @@ import { pullwiseApi } from "./api/pullwise.js";
 import { createLedgerApi, ledgerApi } from "./api/ledger.js";
 import { WorkspaceContext } from "./components/workspace-context.jsx";
 import { NotificationProvider } from "./components/notifications.jsx";
+import { ConsoleLayoutProvider } from "./components/console-layout.jsx";
 import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
@@ -729,79 +730,81 @@ export function App() {
   }
   return (
     <NotificationProvider>
-      <WorkspaceContext.Provider
-        value={
-          scopedScreen && workspace
-            ? { items: workspaceState.items, workspace, onSelect: selectWorkspace }
-            : null
-        }
-      >
-        <div
-          className="screen-root"
-          ref={screenRootRef}
-          tabIndex={-1}
-          data-screen-label={screen}
-          key={screenKey}
+      <ConsoleLayoutProvider scope={identity}>
+        <WorkspaceContext.Provider
+          value={
+            scopedScreen && workspace
+              ? { items: workspaceState.items, workspace, onSelect: selectWorkspace }
+              : null
+          }
         >
-          <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
-        </div>
+          <div
+            className="screen-root"
+            ref={screenRootRef}
+            tabIndex={-1}
+            data-screen-label={screen}
+            key={screenKey}
+          >
+            <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
+          </div>
 
-        <button
-          type="button"
-          className={"back-to-top" + (showBackToTop ? " visible" : "")}
-          onClick={scrollToTop}
-          title={T("Back to top", "回到顶部")}
-          aria-label={T("Back to top", "回到顶部")}
-          tabIndex={showBackToTop ? 0 : -1}
-        >
-          <I.ArrowUp size={16} />
-        </button>
-        <div className="lang-picker" ref={languageMenuRef}>
-          {languageMenuOpen && (
-            <div className="lang-menu" role="menu" aria-label={T("Select language", "选择语言")}>
-              {LANGUAGES.map((language) => (
-                <button
-                  key={language.code}
-                  type="button"
-                  className={"lang-menu-i" + (lang === language.code ? " active" : "")}
-                  role="menuitemradio"
-                  aria-checked={lang === language.code}
-                  onClick={() => {
-                    setLang(language.code);
-                    setLanguageMenuOpen(false);
-                  }}
-                >
-                  <span className="lang-menu-code">{language.shortLabel}</span>
-                  <span>{language.nativeLabel}</span>
-                </button>
-              ))}
-            </div>
-          )}
           <button
             type="button"
-            className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
-            onClick={() => setLanguageMenuOpen((open) => !open)}
-            title={T("Select language", "选择语言")}
-            aria-label={T("Select language", "选择语言")}
-            aria-haspopup="menu"
-            aria-expanded={languageMenuOpen}
+            className={"back-to-top" + (showBackToTop ? " visible" : "")}
+            onClick={scrollToTop}
+            title={T("Back to top", "回到顶部")}
+            aria-label={T("Back to top", "回到顶部")}
+            tabIndex={showBackToTop ? 0 : -1}
           >
-            {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+            <I.ArrowUp size={16} />
           </button>
-        </div>
-        <button
-          className="theme-toggle"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          title={
-            theme === "light"
-              ? T("Switch to dark", "切换到暗色")
-              : T("Switch to light", "切换到亮色")
-          }
-          aria-label={T("Toggle theme", "切换主题")}
-        >
-          {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
-        </button>
-      </WorkspaceContext.Provider>
+          <div className="lang-picker" ref={languageMenuRef}>
+            {languageMenuOpen && (
+              <div className="lang-menu" role="menu" aria-label={T("Select language", "选择语言")}>
+                {LANGUAGES.map((language) => (
+                  <button
+                    key={language.code}
+                    type="button"
+                    className={"lang-menu-i" + (lang === language.code ? " active" : "")}
+                    role="menuitemradio"
+                    aria-checked={lang === language.code}
+                    onClick={() => {
+                      setLang(language.code);
+                      setLanguageMenuOpen(false);
+                    }}
+                  >
+                    <span className="lang-menu-code">{language.shortLabel}</span>
+                    <span>{language.nativeLabel}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
+              onClick={() => setLanguageMenuOpen((open) => !open)}
+              title={T("Select language", "选择语言")}
+              aria-label={T("Select language", "选择语言")}
+              aria-haspopup="menu"
+              aria-expanded={languageMenuOpen}
+            >
+              {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+            </button>
+          </div>
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            title={
+              theme === "light"
+                ? T("Switch to dark", "切换到暗色")
+                : T("Switch to light", "切换到亮色")
+            }
+            aria-label={T("Toggle theme", "切换主题")}
+          >
+            {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
+          </button>
+        </WorkspaceContext.Provider>
+      </ConsoleLayoutProvider>
     </NotificationProvider>
   );
 }

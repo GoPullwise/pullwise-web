@@ -2,6 +2,60 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Shared console interactions and financial hierarchy (2026-10-08)
+
+The frontend goals are now recorded in `AGENTS.md`: simple layouts, prominent
+priorities and clear, understandable actions. Console modules share
+`ConsoleLayout`, creation/entry rails share `LedgerSplit`, and both dividers
+use one `useResizablePane` lifecycle. Desktop/landscape layouts (>=900px)
+support pointer and keyboard resizing, with 180–320px navigation and
+260–520px secondary panes clamped to available space. Main/primary content
+minima, identity/scope cleanup, draft retention, mobile stacking and accessible
+separator values remain intact. Sticky grips and compact focus rings stay visible.
+
+Flat records share stable 16px inline insets in normal/hover states; owners
+set symmetric vertical density. Members uses a neutral aligned role editor.
+Real data remains selectable while navigation/action chrome avoids accidental
+selection. Explicit selectable record links and the shared navigation guard
+allow native project-name copying without triggering a route; ordinary,
+keyboard and modified activation remain available.
+
+`FinancialValue` shares bold display/sans tabular typography across totals,
+records, reports, plan prices and quota values. Primary totals use 32/28px,
+records 22/20px, secondary amounts 18px and plan prices 40px. Counts use 16px.
+Dates, IDs, plan names and cadence stay subordinate; empty/unavailable/missing
+prices retain body text. Original BigInt arithmetic, complete monetary text,
+currency exponents and source data stay unchanged. Grouping-comma soft breaks
+preserve exact copying. Separate currencies, full-width narrow amounts and
+three-row reports protect long values and actions.
+
+`npm run check` passes lint, **38 test files / 529 tests** and the build.
+Worker configuration/syntax, owned-source formatting/diff and Wrangler
+4.136.3 preview packaging checks pass. Locale catalogs retain their established
+flat-row style. A separate preview build uses the preview URL/API/App slug.
+
+[Final built-browser evidence](console-layout-financial-local-2026-10-08.json)
+passes **12 contexts / 190 state records / 52 captures**: 8 interaction
+contexts plus 4 financial semantics contexts. Normal/hover/exit geometry,
+mouse/touch capture, min/max and keyboard adjustments, live 900/2560/390px
+reflow, shared sidebar preferences, drafts, native text copying and ordinary
+click routing pass. Numeric checks cover precise above-safe USD/JPY/KWD totals,
+zero, unavailable/empty/missing prices, report scales, 280px primary panes and
+320/390px touch layouts. All 45 artifact files remain identical.
+
+Accepted contexts use **465 locally intercepted requests / 122 fixture GETs /
+0 mutations**, with a 120-request cap and a maximum of 48 per context.
+External origins are blocked. Seven final diagnostic contexts are excluded
+from accepted counts. Font Range metrics are retained separately from verified
+Canvas ink boundaries; invisible font extents are not treated as painted text.
+Native visibility excludes closed disclosure contents. Six final captures pass
+independent root review. Browser/CDP/Vite/profile cleanup is complete.
+
+The earlier layout phase passed 8 contexts/151 states before typography work,
+with its complete-title copy supplement recorded separately. These checks use
+synthetic local data; publication verification remains static-only. Production,
+Server/D1, real sessions, payments and provider operations are outside this release.
+
 ## Members directory and ledger ownership (2026-10-08)
 
 Members now uses the existing `.ledger-split`: the member directory is the

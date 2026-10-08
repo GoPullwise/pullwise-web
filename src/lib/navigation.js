@@ -65,6 +65,19 @@ export function screenLinkProps(go, screen, params = {}) {
     onClick: (event) => {
       if (typeof go !== "function") return;
       if (!shouldHandleScreenLinkClick(event)) return;
+      const link = event.currentTarget;
+      const selection = link?.ownerDocument?.getSelection?.();
+      // A mouse drag over readable link text can still end in a click. Keep
+      // that selection available for copying; keyboard activation stays normal.
+      if (
+        event.detail > 0 &&
+        selection &&
+        !selection.isCollapsed &&
+        (link.contains(selection.anchorNode) || link.contains(selection.focusNode))
+      ) {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault();
       if (hasRouteParams(params)) go(screen, params);
       else go(screen);

@@ -1,6 +1,52 @@
 # Pullwise Web
 
+## Product UI goals
+
+The user defines the frontend goals as: simple layouts, prominent priorities,
+and clear, understandable actions (布局简洁、重点突出、操作清晰明了).
+Use shared containers and interaction patterns across similar pages. Remove
+unnecessary visual competition; emphasize important financial values while
+keeping supporting labels readable. Give each area a clear purpose and make
+the next action easy to recognize. These goals guide future frontend work,
+including normal/hover states, responsive reflow and keyboard/touch behavior.
+
+## Financial typography follow-up (2026-10-08)
+
+Real financial values share `FinancialValue` and the `base.css` value-size
+tokens: bold display/sans tabular figures, with primary totals, row amounts,
+secondary subtotals and plan prices sized by context. Keep labels quiet and
+numeric counts distinct from their descriptions. Dates, IDs, plan names,
+cadences, missing prices and unavailable/empty states retain body typography.
+The renderer accepts already formatted text and explicit validity; it never
+changes monetary arithmetic, precision, currency or source data. Soft breaks
+after grouping commas preserve exact textContent and native copying. Show
+each project currency independently, keep full amounts in narrow panes and
+reflow labels, amounts, charts and actions by actual container width.
+Focus indicators belong to divider grips, with viewport-visible sticky grips;
+retain the shared hit area, bounds and keyboard behavior.
+
 ## Console layout follow-up (2026-10-08)
+
+Flat console records share stable 16px inline insets in `base.css`, including
+Projects, members/invitations, categories, expenses, keys, billing records and
+GitHub installations. Row owners set block density only; first rows retain
+their full vertical inset. Hover changes background only and excludes loading
+skeletons. Members role editors use a compact neutral nested control group,
+with aligned fields/actions and container-based mobile wrapping.
+All console screens use `ConsoleLayout`; its navigation width is shared within
+the signed-in tab, defaults to 220px, ranges from 180 to 320px and preserves at
+least 660px for main content. All creation/entry splits use `LedgerSplit`; the
+secondary width ranges from 260 to 520px while reserving a 280px primary pane
+and the shared 48px gap. Both dividers use `useResizablePane` for pointer,
+keyboard, bounds and cleanup, and appear only at viewport widths >=900px.
+Clamp to actual available width, cancel captures on scope/layout changes and
+retain the existing mobile navigation/stacking rules. Sidebar preferences
+reset with identity, while ledger split drafts remain local to their scope.
+Record names, descriptions, accounts, amounts, dates, key prefixes/scopes and
+ordinary links remain selectable. Navigation/actions/drag handles prevent
+accidental selection; drag suppression is temporary and released on every
+completion/cancellation path. Do not disable selection on complete data rows,
+informational tags or dynamic page headings.
 
 Projects search uses one square accent focus perimeter around the icon, input
 and clear action. The topbar Ledger label and picker stay side by side, with
@@ -274,9 +320,10 @@ for ledger resources and `src/api/pullwise.js` for account/payment operations.
   existing rule, edit the owning file (`base.css`/`screens.css`) in place;
   never re-declare the same property downstream. Keep `app.css` for
   app-shell patches, landing and overlays.
-- Keep prose selectable. `user-select: none` applies only to interactive
-  chrome containers (topbar, sidebars, `.page-h`, menus, clickable rows,
-  chips); buttons/links are already covered globally.
+- Keep prose and record data selectable, including ordinary links, tags and
+  dynamic page headings. `user-select: none` applies to navigation/action
+  chrome, buttons, button links and drag handles; avoid disabling whole data
+  rows. Project links permit native text selection without starting link drag.
 - Public pages share the 1240px frame, 40px desktop and 16px small-screen
   gutters. Preserve existing 760/761 and 899/900 breakpoint pairs and CSS
   source order (`base.css`, `screens.css`, `app.css`); do not impose new layers.
