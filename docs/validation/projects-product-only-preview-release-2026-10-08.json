@@ -1,0 +1,200 @@
+{
+  "date": "2026-10-08",
+  "completedAt": "2026-10-08T13:54:13.146197+00:00",
+  "scope": "Projects product-only list and removed ledger overview; Web preview only",
+  "repository": "https://github.com/GoPullwise/pullwise-web",
+  "sourceCommit": "fa33dbd7284a6e03daee29505fdf683ddcee3f01",
+  "worker": "pullwise-web-preview",
+  "domain": "https://preview.pull-wise.com",
+  "previousManagement": {
+    "deployment": {
+      "id": "00a6029e-2e11-4c12-b9f2-2fe6a10d3ff5",
+      "created_on": "2026-10-08T13:02:58.61614Z",
+      "source": "wrangler",
+      "versions": [
+        {
+          "version_id": "cd31aba4-195a-40e5-b2cc-3222bf6cea13",
+          "percentage": 100
+        }
+      ],
+      "annotations": {
+        "workers/message": "Project links and recurring expense management; source 6ae2a62; accepted frozen preview artifact",
+        "workers/triggered_by": "deployment"
+      }
+    },
+    "settings": {
+      "compatibility_date": "2026-05-25",
+      "annotations": {
+        "workers/message": "Project links and recurring expense management; source 6ae2a62; accepted frozen preview artifact",
+        "workers/tag": "recurring-links-6ae2a62",
+        "workers/triggered_by": "version_upload"
+      },
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ]
+    },
+    "statuses": {
+      "deployments": 200,
+      "settings": 200
+    }
+  },
+  "publishedManagement": {
+    "deployment": {
+      "id": "8e7dffd5-a6db-4ab2-a762-f8fecd4aaceb",
+      "created_on": "2026-10-08T13:48:43.442926Z",
+      "versions": [
+        {
+          "version_id": "75750bd8-4fea-48b7-81be-c09049075885",
+          "percentage": 100
+        }
+      ],
+      "annotations": {
+        "workers/message": "Projects product-only list and removed ledger overview; source fa33dbd; accepted preview artifact",
+        "workers/triggered_by": "deployment"
+      }
+    },
+    "settings": {
+      "compatibility_date": "2026-05-25",
+      "annotations": {
+        "workers/message": "Projects product-only list and removed ledger overview; source fa33dbd; accepted preview artifact",
+        "workers/tag": "projects-product-fa33dbd",
+        "workers/triggered_by": "version_upload"
+      },
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ]
+    },
+    "statuses": {
+      "deployments": 200,
+      "settings": 200
+    }
+  },
+  "freeze": {
+    "artifactEntry": "/assets/index-Crt2hYic.js",
+    "artifactFiles": 46,
+    "sourceFiles": 70,
+    "artifactManifestSha256": "9ea602c9c9101992f6a32bdf30f4d56b9ba8e84f0fbddfe37cfa0b27f82b40bd",
+    "sourceManifestSha256": "5649c4c4af07d88aac6944c65b569b0cbe6cf34c25d51142ae469d7eab65cdda",
+    "buildEnvironment": {
+      "VITE_APP_URL": "https://preview.pull-wise.com",
+      "VITE_API_BASE_URL": "/api",
+      "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+    }
+  },
+  "checks": {
+    "testFiles": 42,
+    "testsPassed": 703,
+    "localCompleteContexts": 3,
+    "localStates": 52,
+    "rootReviewedNativeCaptures": 4,
+    "maxInterceptedPerContext": 53,
+    "capPerContext": 100,
+    "overviewOnlyRequests": 0
+  },
+  "localEvidence": "projects-product-only-local-2026-10-08.json",
+  "staticReadback": {
+    "startedAt": "2026-10-08T13:49:50.079095+00:00",
+    "artifactEntry": "/assets/index-Crt2hYic.js",
+    "requestCap": 4,
+    "retries": 0,
+    "redirectsFollowed": 0,
+    "credentials": 0,
+    "businessApiRequests": 0,
+    "pageJavaScriptExecuted": false,
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 5117,
+        "sha256": "80d01f4d9ff2c5b739f0b5655140c5620231b35d4e45784e72d342db70fb72d6",
+        "contentType": "text/html",
+        "robotsTag": "noindex, nofollow",
+        "at": "2026-10-08T13:49:50.453001+00:00",
+        "referencesAcceptedEntry": true,
+        "previewNoindex": true
+      },
+      {
+        "path": "/assets/index-Crt2hYic.js",
+        "status": 200,
+        "bytes": 42022,
+        "sha256": "725766fe940a60a9518d1efc78b56db6727a9580137bdde692a7ecc4253e403e",
+        "contentType": "text/javascript",
+        "robotsTag": null,
+        "at": "2026-10-08T13:49:50.814570+00:00",
+        "expectedSha256": "725766fe940a60a9518d1efc78b56db6727a9580137bdde692a7ecc4253e403e",
+        "matchesAcceptedAsset": true
+      },
+      {
+        "path": "/assets/ledger-DFmVYTaM.css",
+        "status": 200,
+        "bytes": 12934,
+        "sha256": "0f25c2838734403a9fc4f145ad4f1df42069954083c1c7661edac6ffec7f0014",
+        "contentType": "text/css",
+        "robotsTag": null,
+        "at": "2026-10-08T13:49:51.298183+00:00",
+        "expectedSha256": "0f25c2838734403a9fc4f145ad4f1df42069954083c1c7661edac6ffec7f0014",
+        "matchesAcceptedAsset": true
+      },
+      {
+        "path": "/assets/ledger-DrJIX0RS.js",
+        "status": 200,
+        "bytes": 80813,
+        "sha256": "1c01712c2ff63c3f0132fa05a6e86313fd6261ec4c0bd036193c7041ae5d7e45",
+        "contentType": "text/javascript",
+        "robotsTag": null,
+        "at": "2026-10-08T13:49:51.558946+00:00",
+        "expectedSha256": "1c01712c2ff63c3f0132fa05a6e86313fd6261ec4c0bd036193c7041ae5d7e45",
+        "matchesAcceptedAsset": true
+      }
+    ],
+    "passed": true
+  },
+  "serverDeploymentPerformed": false,
+  "directD1Operations": 0,
+  "providerTests": 0,
+  "productionDeployments": 0,
+  "publicationLimitations": [
+    "Four unauthenticated static GETs execute no page JavaScript, send no credentials and make no business API request.",
+    "Synthetic browser evidence does not establish real-account/provider flows or OS clipboard contents.",
+    "This source is separately recorded from the subsequent requested expense toolbar redesign.",
+    "Receipt-only commits require no additional deployment."
+  ]
+}

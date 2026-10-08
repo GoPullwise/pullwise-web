@@ -32,6 +32,15 @@ navigation deadlock is excluded: one interception and no fixture, state or
 capture. Browsers/profiles are cleaned and ports are free. Local fixtures do
 not prove real-session/provider operations or OS clipboard contents.
 
+[Preview publication](projects-product-only-preview-release-2026-10-08.json)
+publishes source `fa33dbd` as version `75750bd8-4fea-48b7-81be-c09049075885`
+at 100% preview traffic. Management confirms the preview Server/asset bindings;
+one homepage and three exact hashed asset GETs return 200 and match the accepted
+build, with `/assets/index-Crt2hYic.js` referenced by noindex HTML. No credentials,
+page JavaScript, business API, Server deployment, D1 command or production
+deployment is involved. This release precedes the subsequently requested shared
+expense toolbar redesign; receipt-only follow-ups need no extra publication.
+
 ## Project links and recurring expenses (2026-10-08)
 
 Project creation/settings support optional product URLs and standalone
