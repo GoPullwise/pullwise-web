@@ -56,6 +56,17 @@ with its complete-title copy supplement recorded separately. These checks use
 synthetic local data; publication verification remains static-only. Production,
 Server/D1, real sessions, payments and provider operations are outside this release.
 
+[Preview publication](console-layout-financial-preview-release-2026-10-08.json)
+deploys runtime commit `b07fde59ddc4dfde4621856d1e0f529aede2cae0` as Web version
+`4e8bf287-3d8b-4063-b307-ab1a3c157cf1` at `preview.pull-wise.com`. The preview
+Server binding, SPA assets and HTML-first noindex routing pass configuration
+readback. Exactly one homepage GET and three hashed asset GETs return 200;
+the shared CSS, Members JavaScript and Ledger stylesheet match the accepted
+local build, and HTML references its exact entry. All 45 artifact files and
+17 runtime source hashes remain unchanged. Production, Server/D1, real
+sessions and remote business APIs remain untouched. This publication record
+is documentation-only and requires no further Web deployment.
+
 ## Members directory and ledger ownership (2026-10-08)
 
 Members now uses the existing `.ledger-split`: the member directory is the

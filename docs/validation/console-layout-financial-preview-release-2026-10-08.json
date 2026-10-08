@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-08",
+  "status": "Published preview and verified",
+  "source": {
+    "repository": "GoPullwise/pullwise-web",
+    "branch": "main",
+    "runtimeCommit": "b07fde59ddc4dfde4621856d1e0f529aede2cae0",
+    "localAcceptance": "console-layout-financial-local-2026-10-08.json",
+    "testFiles": 38,
+    "tests": 529,
+    "acceptedBrowserContexts": 12,
+    "acceptedBrowserStates": 190,
+    "acceptedCaptures": 52,
+    "sourceHashesAndBuildManifestStillMatch": true,
+    "qaProcessCleanupPassed": true
+  },
+  "target": {
+    "worker": "pullwise-web-preview",
+    "origin": "https://preview.pull-wise.com",
+    "account": "84e421f26c708c0cf437e287eed11fa1"
+  },
+  "publication": {
+    "tool": "Wrangler 4.136.3",
+    "config": "wrangler.preview.jsonc",
+    "version": "4e8bf287-3d8b-4063-b307-ab1a3c157cf1",
+    "createdAt": "2026-10-08T06:53:36.433061Z",
+    "tag": "console-20261008-b07fde5",
+    "message": "Unify console layouts, bounded resizing and financial hierarchy; source b07fde59ddc4dfde4621856d1e0f529aede2cae0",
+    "localBuildManifestCount": 45,
+    "localBuildManifestSha256": "b1aa21c1adbec6dec0a99fdb66593642c99d35bfca7ed8a65e42b4b4ee062235",
+    "newOrModifiedUploadedAssets": 24,
+    "reusedUploadedAssets": 20
+  },
+  "configuration": {
+    "readbackPassed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "compatibilityDate": "2026-05-25",
+    "assetNotFoundHandling": "single-page-application",
+    "runWorkerFirst": [
+      "/*",
+      "!/assets/*"
+    ],
+    "customDomain": "preview.pull-wise.com",
+    "productionConfigChanged": false
+  },
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4547,
+        "sha256": "c58bfbdb71c7b3ed4927fa4ee901d31ea84b5f2c03af1a0c00e8fbbc5e8e4205",
+        "noindex": true,
+        "builtEntryMatched": "/assets/index-HlLbD60P.js"
+      },
+      {
+        "path": "/assets/index-D8er5OVt.css",
+        "status": 200,
+        "bytes": 78694,
+        "sha256": "9ca47c108eaf5a2e285fdbf710288117bfb4e8baaa40e54ad31421f450b9dcb3",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-BmTgcqoh.js",
+        "status": 200,
+        "bytes": 21574,
+        "sha256": "b8337827f8e9f462394939bcd4a611a5dc946bed07b42fd00812096ad49a83d5",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-DK4AqPqz.css",
+        "status": 200,
+        "bytes": 11877,
+        "sha256": "7e0eea563dc8382204a9125a010045feb42d17a0c4a9c439e90e61207bcfadf7",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false
+  },
+  "scope": {
+    "webOnly": true,
+    "serverDeployment": false,
+    "productionDeployment": false,
+    "productionMutations": false,
+    "d1Commands": 0,
+    "businessApiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "realSessionsUsed": false,
+    "paymentsMade": false
+  },
+  "limitations": [
+    "Browser UI checks use locally intercepted synthetic fixtures; remote publication verification consists only of four unauthenticated static GETs.",
+    "No new authenticated preview, OAuth, member/invitation mutation, provider delivery or payment acceptance was performed remotely."
+  ]
+}
