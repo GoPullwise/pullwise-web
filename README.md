@@ -20,6 +20,10 @@ The Cloudflare static-asset Worker in `worker-entry.js` proxies `/api/*` to the 
 
 ## Project links and recurring expenses
 
+Implemented and published to `preview.pull-wise.com` on 2026-10-08; both Web and
+Server changes are on GitHub main. See the current acceptance for separate
+local/native and actual publication evidence.
+
 Project settings and creation accept optional product links and, for standalone
 projects, development links. The project list and detail header provide quick
 shortcuts. Linked projects expose only each acting member's authorized GitHub

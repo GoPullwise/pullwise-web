@@ -2,6 +2,59 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Project links and recurring expenses (2026-10-08)
+
+Project creation/settings support optional product URLs and standalone
+development URLs; list and detail shortcuts expose only currently authorized
+GitHub repository/Organization metadata. External links remain separate from
+the project entry, use safe HTTP(S) destinations and preserve native text
+selection. Native dragging caught an internal-anchor selection regression;
+the scoped data-link selection fix and two focused regressions pass.
+
+The shared project/pool form creates one-time costs or weekly, monthly,
+calendar-quarterly and yearly rules for its fixed page target, with IANA
+timezone, original day anchor, inclusive start and optional end. A separate
+equal-row list presents next dates, active/paused/blocked/completed states and
+role-aware edit, pause/resume and cancellation. Completed rules can be canceled
+without an edit/resume control. Cookie sessions manage background grants;
+future planned costs enter reports only after actual Server generation.
+
+[Local receipt](recurring-links-local-2026-10-08.json) records lint,
+**42 files / 700 tests**, Worker config/syntax, owned-source formatting,
+whitespace, explicit preview build and pinned packaging checks. Native browser
+acceptance passes **3 complete contexts / 102 scenarios**, desktop English/light,
+actual-touch Chinese/dark landscape and actual-touch mobile with live 320px.
+Eight routes, fluid/live widths, safe URL attributes, native name/amount/input
+selection, shared controls/dividers/reports, fixed-target frequencies and
+edit/confirmation/cancel/viewer/workspace-reset states pass. Browser submits no
+business mutation; payloads and real scheduled generation have separate unit
+and native Server evidence. Traffic is 273 interceptions / 158 synthetic GETs,
+maximum 97 of 120 per context, with no runtime errors, unknown routes or
+external delivery. Three font attempts are intercepted and blocked.
+
+Root views and verifies all **8 unique native unedited captures**: seven in
+the accepted contexts and one retained from a separately recorded partial
+context, using the same accepted artifact. PNG hashes, actual viewport sizes
+and matching before/after scroll metadata pass. Two earlier failures, one
+selection diagnostic and the partial context remain excluded from the three
+complete contexts; no request or screenshot is double-counted. Initial failed
+cross-target external-delivery observation is unavailable and remains null.
+Owned browsers/profiles are cleaned and ports are free. Native selected strings
+are not OS clipboard evidence; synthetic fixtures are not real-session or
+provider acceptance. All 46 artifact / 66 runtime source hashes remain stable.
+
+[Preview publication](recurring-links-preview-release-2026-10-08.json) publishes
+Web source `6ae2a6284dc70edb58cce65809f9d010ef19b175` as version
+`cd31aba4-195a-40e5-b2cc-3222bf6cea13` at `preview.pull-wise.com`, after Server
+source `200a987955c1545f0542a4e30424967c85f70d66` is published and the original
+preview database reaches schema7/storage1 with a healthy cumulative journal.
+Management confirms the preview service/asset bindings and Server hourly cron.
+Exactly one homepage and three exact asset GETs return 200; sampled assets
+match the accepted build, HTML references `/assets/index-BeSRqE0G.js` and
+retains noindex. No retry, redirect, credential, page JavaScript, provider test
+or forced remote tick is involved. Production receives no deployment or D1
+activation for this release. Receipt commits change documentation only.
+
 ## Equal records, contextual expense entry and visual Reports (2026-10-08)
 
 Console record lists share naturally sized equal CSS grid tracks with compact,

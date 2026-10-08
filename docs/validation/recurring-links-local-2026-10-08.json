@@ -1,0 +1,823 @@
+{
+  "date": "2026-10-08",
+  "scope": "Project links and recurring expense UI; synthetic local browser acceptance, distinct from actual publication",
+  "checks": {
+    "vitestFiles": 42,
+    "vitestTestsPassed": 700,
+    "lint": true,
+    "workerConfig": true,
+    "workerSyntax": true,
+    "ownedSourceFormatting": true,
+    "diffWhitespace": true,
+    "previewBuild": true,
+    "previewPackaging": "Wrangler 4.136.3"
+  },
+  "formattingScope": "Existing flat translation catalog formatting remains unchanged; owned new UI and selection-fix files pass formatting.",
+  "browserAcceptance": {
+    "status": "accepted",
+    "artifactEntry": "/assets/index-BeSRqE0G.js",
+    "artifactFiles": 46,
+    "sourceFiles": 66,
+    "artifactManifestSha256": "146b8333a3cb973a838ed1c82caad31fe520befdc18ab7f5c7c8ff9127ffefe2",
+    "sourceManifestSha256": "3583ca706f17422cd1a590b52113891f8c2ff93d44d9217f3cbc06d85c1e30b7",
+    "acceptedEvidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json",
+    "acceptedEvidenceSha256": "665d9bf07585833f90a8c6cf13467971debb81763d6dc2c4a4aac2d100938093",
+    "accepted": {
+      "contexts": 3,
+      "scenarios": 102,
+      "captures": 8,
+      "newCaptures": 7,
+      "retainedCaptures": 1,
+      "intercepted": 273,
+      "fixtureGET": 158,
+      "blockedExternalAttempts": 3,
+      "externalDelivered": 0,
+      "businessWrites": 0,
+      "providerDelivered": 0,
+      "realAccounts": 0,
+      "maxRequestsPerContext": 97
+    },
+    "profiles": [
+      {
+        "profile": "desktop-1440-en-light",
+        "routes": 8,
+        "scenarios": 34,
+        "intercepted": 88,
+        "fixtureGET": 52,
+        "captures": 2,
+        "blockedExternalAttempts": 1
+      },
+      {
+        "profile": "tablet-900-zh-dark",
+        "routes": 8,
+        "scenarios": 35,
+        "intercepted": 97,
+        "fixtureGET": 54,
+        "captures": 2,
+        "blockedExternalAttempts": 1
+      },
+      {
+        "profile": "mobile-390-en-light",
+        "routes": 8,
+        "scenarios": 33,
+        "intercepted": 88,
+        "fixtureGET": 52,
+        "captures": 3,
+        "blockedExternalAttempts": 1
+      }
+    ],
+    "captures": [
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-3/desktop-1440-en-light-project-links.png",
+        "sha256": "75bc572d9d026c4a99c3a75ceb94a0229881e1993961e9597e6566453d6d5b47",
+        "profile": "desktop-1440-en-light",
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "scrollY": 0,
+        "route": "/projects",
+        "retainedFromPartialContext": true,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-3/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/desktop-1440-en-light-recurring-controls.png",
+        "sha256": "b671e22722de3dbda02178a4ca15748aa59396d9c85a084a9a48620f7f356bf6",
+        "profile": "desktop-1440-en-light",
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "scrollY": 418,
+        "route": "/shared",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/desktop-1440-en-light-recurring-rules.png",
+        "sha256": "ee3538eebc458a6776c334a044fedcd76ae1e19116c1386c4b06d48a13bdba4f",
+        "profile": "desktop-1440-en-light",
+        "actualViewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "scrollY": 2657,
+        "route": "/shared",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/mobile-390-en-light-project-links.png",
+        "sha256": "efbeaf0c377c35b79d7076cc952d43067b31d70a5416f87966c7c5ed974eb7fc",
+        "profile": "mobile-390-en-light",
+        "actualViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scrollY": 0,
+        "route": "/projects",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/mobile-390-en-light-recurring-controls.png",
+        "sha256": "76c41b8c2a1f4d20615fd921f4f8d8f8cbb1a7419a2a1a858e470286531453f7",
+        "profile": "mobile-390-en-light",
+        "actualViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scrollY": 633,
+        "route": "/shared",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/mobile-390-en-light-recurring-long-rule-320.png",
+        "sha256": "683a4985b9e104a87fc313820a8d71ca03a3a91367f0faa5c336e791db1e78ae",
+        "profile": "mobile-390-en-light",
+        "actualViewport": {
+          "width": 320,
+          "height": 844
+        },
+        "scrollY": 6798,
+        "route": "/shared",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/tablet-900-zh-dark-project-links.png",
+        "sha256": "8835e8df3b48fe3ae439f2702ab8790981b81ba3e87d04603b35fccaf82f08b6",
+        "profile": "tablet-900-zh-dark",
+        "actualViewport": {
+          "width": 900,
+          "height": 600
+        },
+        "scrollY": 0,
+        "route": "/projects",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      },
+      {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/tablet-900-zh-dark-recurring-rules.png",
+        "sha256": "9f7ee8115746841848524cc74dced5d90756d9f1d2840bfb3b7db7c367b316c6",
+        "profile": "tablet-900-zh-dark",
+        "actualViewport": {
+          "width": 900,
+          "height": 600
+        },
+        "scrollY": 5900,
+        "route": "/shared",
+        "retainedFromPartialContext": false,
+        "nativeUnedited": true,
+        "fullPage": false,
+        "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-4/evidence.json"
+      }
+    ],
+    "retainedCaptureSource": {
+      "evidencePath": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-3/evidence.json",
+      "evidenceSha256": "19096f9492735566190e15163085f03ff9b18723b521bc2c1f2bd935d47556a5",
+      "sourceContextStatus": "partial, not counted among the three complete accepted contexts",
+      "sourceArtifactEntry": "/assets/index-BeSRqE0G.js"
+    },
+    "excluded": {
+      "sandboxPreflight": {
+        "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/excluded-sandbox-preflight.json",
+        "contexts": 0,
+        "httpRequests": 0,
+        "screenshots": 0
+      },
+      "runs": [
+        {
+          "type": "failed before capture",
+          "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final/evidence.json",
+          "sha256": "e1b0727b46922ca6b124512861b6beb7dfa101bcdf78c24fc5c9f9edf8e6e4c0",
+          "status": "failed",
+          "contexts": 1,
+          "intercepted": 28,
+          "fixtureGET": 5,
+          "businessWrites": 0,
+          "screenshots": 0,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": null,
+          "unexpectedTargets": null,
+          "cleanup": {
+            "previewPortFree": true,
+            "debugPortFree": true,
+            "ownedProfileRemoved": true
+          },
+          "error": "Error: CDP timeout Runtime.evaluate\n    at Timeout._onTimeout (file:///workspace/work/console-rows-charts-2026-10-08/cdp.mjs:4:270)\n    at listOnTimeout (node:internal/timers:635:17)\n    at process.processTimers (node:internal/timers:571:7)"
+        },
+        {
+          "type": "failed before capture",
+          "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-2/evidence.json",
+          "sha256": "cf89417015d3e1ce15564c5b73581d108918ace1daa232d94ea55061b25be3c6",
+          "status": "failed",
+          "contexts": 1,
+          "intercepted": 37,
+          "fixtureGET": 13,
+          "businessWrites": 0,
+          "screenshots": 0,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "unexpectedTargets": 0,
+          "cleanup": {
+            "previewPortFree": true,
+            "debugPortFree": true,
+            "ownedProfileRemoved": true
+          },
+          "error": "Error: Native exact copy/navigation/read: {\"target\":{\"expected\":\"Infrastructure and product operations\",\"url\":\"http://127.0.0.1:4227/projects\",\"x\":272.5,\"y\":88.921875,\"firstRight\":553.84375,\"endX\":553.34375,\"endY\":88.921875},\"result\":{\"selected\":\"\",\"url\":\"http://127.0.0.1:4227/projects/prj_1\"},\"reads\":5,\"now\":13}\n    at assert (file:///workspace/work/recurring-url-local-2026-10-08/web-acceptance/capture.mjs:11:39)\n    at select (file:///workspace/work/recurring-url-local-2026-10-08/web-acceptance/capture.mjs:47:1633)\n    at async file:///workspace/work/recurring-url-local-2026-10-08/web-acceptance/capture.mjs:59:161"
+        },
+        {
+          "type": "diagnostic only",
+          "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/diagnostic-selection/evidence.json",
+          "sha256": "5caa3b4d44c109efbbb6fafe592bc4803745d4295feeb91ebe7b174f2b279d93",
+          "status": "diagnostic only",
+          "contexts": 1,
+          "intercepted": 41,
+          "fixtureGET": 16,
+          "businessWrites": 0,
+          "screenshots": 0,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "unexpectedTargets": 0,
+          "cleanup": {
+            "previewPortFree": true,
+            "debugPortFree": true,
+            "ownedProfileRemoved": true
+          },
+          "error": null
+        },
+        {
+          "type": "partial context, retained verified screenshot",
+          "path": "/workspace/work/recurring-url-local-2026-10-08/web-acceptance/final-3/evidence.json",
+          "sha256": "19096f9492735566190e15163085f03ff9b18723b521bc2c1f2bd935d47556a5",
+          "status": "failed",
+          "contexts": 1,
+          "intercepted": 28,
+          "fixtureGET": 5,
+          "businessWrites": 0,
+          "screenshots": 1,
+          "blockedExternalAttempts": 1,
+          "externalDelivered": 0,
+          "unexpectedTargets": 0,
+          "cleanup": {
+            "previewPortFree": true,
+            "debugPortFree": true,
+            "ownedProfileRemoved": true
+          },
+          "error": "Error: Native click hit blocked/offscreen: {\"x\":1304.328125,\"y\":98,\"hitOk\":false,\"target\":\"<button class=\\\"btn primary\\\" aria-expanded=\\\"true\\\" aria-controls=\\\"add-repository\\\" disabled=\\\"\\\"><svg width=\\\"14\\\" height=\\\"14\\\" viewBox=\\\"0 0 24 24\\\" fill=\\\"none\\\" stroke=\\\"currentColor\\\" stroke-width=\\\"1.6\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\"><path d=\\\"M12 5v14\\\"></path><path d=\\\"M5 12h14\\\"></path></svg> Add project</button>\",\"hit\":\"<div class=\\\"actions\\\"><button class=\\\"btn primary\\\" aria-expanded=\\\"true\\\" aria-controls=\\\"add-repository\\\" disabled=\\\"\\\"><svg width=\\\"14\\\" height=\\\"14\\\" viewBox=\\\"0 0 24 24\\\" fill=\\\"none\\\" stroke=\\\"currentColor\\\" stroke-width=\\\"1.6\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\"><path d=\\\"M12 5v14\\\"></path><path d=\\\"M5 12h14\\\"></path></svg> Add project</button><button class=\\\"btn ghost\\\" aria-label=\\\"Reload\\\" title=\\\"Reload\\\"><svg width=\\\"14\\\" height=\\\"14\\\" viewBox=\\\"0 0 24 24\\\" fill=\\\"none\\\" stroke=\\\"currentColor\\\" stroke-width=\\\"1.6\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\"><path d=\\\"M21 12a9 9 0 1 1-3-6.7L21 8\\\"></path><path d=\\\"M21 3v5h-5\\\"></path></svg></button></div>\",\"scrollY\":5}\n    at assert (file:///workspace/work/recurring-url-local-2026-10-08/web-acceptance/capture.mjs:11:39)\n    at click (file:///workspace/work/recurring-url-local-2026-10-08/web-acceptance/capture.mjs:40:739)\n    at async file:///workspace/work/recurring-url-local-2026-10-08/web-acceptance/capture.mjs:59:781"
+        }
+      ],
+      "totals": {
+        "contexts": 4,
+        "intercepted": 134,
+        "fixtureGET": 39,
+        "businessWrites": 0,
+        "screenshots": 1,
+        "retainedAcceptedScreenshots": 1,
+        "blockedExternalAttempts": 4,
+        "fullyInstrumentedExternalDelivered": 0,
+        "initialRunExternalDeliveryObservation": "Unavailable across potential extra targets in the initial excluded harness; do not infer global zero."
+      }
+    },
+    "cleanup": {
+      "previewPortFree": true,
+      "debugPortFree": true,
+      "ownedProfileRemoved": true
+    },
+    "limitations": [
+      "Synthetic GET-only UI; no expense/rule/project submission or pause/resume mutation is claimed. Payload and native Server scheduler evidence is separate.",
+      "Native selected strings and native input selection only; no OS clipboard evidence.",
+      "Every observed external font attempt was intercepted and blocked; the accepted contexts delivered no external/provider requests.",
+      "Three complete accepted contexts plus one retained screenshot from a separate partial context. Failed/diagnostic contexts are excluded from acceptance totals."
+    ],
+    "uniquePhysicalCaptureCount": 8,
+    "countingNote": "The retained capture is the same physical PNG in accepted captures and the partial-context record; do not add it twice."
+  },
+  "rootReview": {
+    "allEightNativeCapturesViewed": true,
+    "pngHashesAndActualViewportDimensionsVerified": true,
+    "beforeAfterViewportScrollMetadataEqual": true,
+    "date": "2026-10-08"
+  },
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-Cxg7Apf2.js",
+      "bytes": 24404,
+      "sha256": "4f672fb05737cfaa8958f55d6149d5f7d4db42aff64bce3cba0e80e5b64ad3f4"
+    },
+    {
+      "path": "assets/api-docs-CRgFczPk.js",
+      "bytes": 14737,
+      "sha256": "62111e96f2265b93eec8fd12f351a2055d872cd24a00c73a0818c2309ebf9b92"
+    },
+    {
+      "path": "assets/auth-BaUs_ASJ.js",
+      "bytes": 8495,
+      "sha256": "d090bf0d1fece310fac264391721829efd8736463c7860dc60439b69aa394529"
+    },
+    {
+      "path": "assets/billing-BaY5nErV.js",
+      "bytes": 32978,
+      "sha256": "1f1a34474cbf90530ce44467f1e282c8f8195e00d24987fe4b8aa301b6f71043"
+    },
+    {
+      "path": "assets/confirm-dialog-x82iPBxC.js",
+      "bytes": 2992,
+      "sha256": "54655664d2b5297989a7d7707d00d4760dc46b68d45a8242950f0242e767ed3d"
+    },
+    {
+      "path": "assets/console-layout-vMoHrMZd.js",
+      "bytes": 4262,
+      "sha256": "b84161b2c43e1ba007fb4e9469e95070412a21833c827136bdea02f078c7b9a8"
+    },
+    {
+      "path": "assets/docs-Bd6UjGa4.js",
+      "bytes": 6830,
+      "sha256": "be96644a82f14ad4c69cd8af12475d9f2c868f14251ccd2d72bfe05995067824"
+    },
+    {
+      "path": "assets/dynamic-CqKDyOhl.js",
+      "bytes": 5542,
+      "sha256": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae"
+    },
+    {
+      "path": "assets/es-jfEriZci.js",
+      "bytes": 10179,
+      "sha256": "5a532468b44449d47a5c6b767d58ae7066d7327dc81b9351926f3b35a932fe60"
+    },
+    {
+      "path": "assets/financial-value-QxLZwFKp.js",
+      "bytes": 477,
+      "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+    },
+    {
+      "path": "assets/fr-BcJKfRKG.js",
+      "bytes": 10444,
+      "sha256": "6b804a4b8b8e63ec0b48b7cb420ad9a8f77bfd936968c00ed4fd8a1cee360413"
+    },
+    {
+      "path": "assets/index-BeSRqE0G.js",
+      "bytes": 42022,
+      "sha256": "e2606af9763520f3bedc59e3133929fc8cc97fc07948fef2dcec426ad50bcf1d"
+    },
+    {
+      "path": "assets/index-CJ4tQ_YI.css",
+      "bytes": 78945,
+      "sha256": "8394f7031eed3b7ceedc1ad17956b670ee4a6c48765fd170c73b86bf7947af2c"
+    },
+    {
+      "path": "assets/ja-aFH0VZEy.js",
+      "bytes": 10906,
+      "sha256": "fbb951eff269a558dfd70a98a4455181e2f76ff507032a43b791b24ee809cc95"
+    },
+    {
+      "path": "assets/ko-Yj9J4J2H.js",
+      "bytes": 9973,
+      "sha256": "4b3685077de1723eaa8167073d4dc94ee067825b9cd88eebfa4b297414821a76"
+    },
+    {
+      "path": "assets/ledger-BLDXOA05.css",
+      "bytes": 13090,
+      "sha256": "f0a7314ad549be49547e60c88678c23da17576e70279faccb0233dcc50cfc352"
+    },
+    {
+      "path": "assets/ledger-BNWI6OcZ.js",
+      "bytes": 82732,
+      "sha256": "82052ab75bf81ba4e5bcf2f8f33161f04d27334267dd30748e06cb330da86f51"
+    },
+    {
+      "path": "assets/ledger-CIWwQYwV.js",
+      "bytes": 10698,
+      "sha256": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3"
+    },
+    {
+      "path": "assets/ledger-D81dDDlj.js",
+      "bytes": 1545,
+      "sha256": "f1cd9dd2ea1151e63096e45cc94ff3f60361e5f8c1884062813d2cde2a41cbed"
+    },
+    {
+      "path": "assets/ledger-Db8zsyMv.js",
+      "bytes": 3425,
+      "sha256": "17d34c513fa7cd84410aadfcbb2d5b6bc158a56bbdfea94ddd3f5120b225ad75"
+    },
+    {
+      "path": "assets/ledger-Ggb9TufF.css",
+      "bytes": 2999,
+      "sha256": "3ed88e9da440220b75c8881d4176113b1f42174dbd87c99fa87b49c58d266c16"
+    },
+    {
+      "path": "assets/ledger-longform-CcLR1b--.js",
+      "bytes": 92564,
+      "sha256": "a9be02edfc674bf49997b6439c49c76d553b6b3cfd057985924878007c09a5b3"
+    },
+    {
+      "path": "assets/ledger-scopes-eTtBJDmQ.js",
+      "bytes": 3115,
+      "sha256": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369"
+    },
+    {
+      "path": "assets/ledger-screen-BAQvqB9C.js",
+      "bytes": 114792,
+      "sha256": "42fa9294f3d2a3c6d0a9bb3d7119130a3901cfa4da0f4edb48ae3210e711ee47"
+    },
+    {
+      "path": "assets/ledger-ui-ydcEM64p.js",
+      "bytes": 34050,
+      "sha256": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+    },
+    {
+      "path": "assets/legal-BrG44dAu.js",
+      "bytes": 25361,
+      "sha256": "6add436dcbeb68dfe5bd53acea12a0cbc6c23055bd2fd9079cec1600b63892ba"
+    },
+    {
+      "path": "assets/members-BLI81_yj.js",
+      "bytes": 21574,
+      "sha256": "a341f65b5faa29567a247844e9b4a789bbc16f7177b144c22450f1de2092025e"
+    },
+    {
+      "path": "assets/navigation-Dr-Yt2se.js",
+      "bytes": 13292,
+      "sha256": "00300fb542b1a9e2033f1d3ebd5c5d31878fb9e4a531a80b43a77a21c72c547f"
+    },
+    {
+      "path": "assets/notifications-DMziu8RR.js",
+      "bytes": 2705,
+      "sha256": "4b685558986abcfd22d0b93e4d65cc78fe668e34d19973157b08930cdef125a7"
+    },
+    {
+      "path": "assets/public-layout-QbHognJw.js",
+      "bytes": 2431,
+      "sha256": "ee56b98d8458e1979d02c2974c225b098f283d0a22822dbc881473fa5b2cfa59"
+    },
+    {
+      "path": "assets/pullwise-CFmNbjo3.js",
+      "bytes": 1775,
+      "sha256": "b61fe63f7075902080b860bacdbabd2e2710f576c8e5f30b06ffeff961779070"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-BSwlvBSH.js",
+      "bytes": 8320,
+      "sha256": "7ac5210920e5933f216fda657cfd5efe35464afbbfa74df559bf93a1abfe4dcc"
+    },
+    {
+      "path": "assets/shell-BbXjjrqB.js",
+      "bytes": 5247,
+      "sha256": "4f3f6a17a7874c4eb747349842ff4a71418c005a071b374d3ccca77f19f65f55"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/zh-DAknT88L.js",
+      "bytes": 8981,
+      "sha256": "88c39be45a80e310b8089dde1ef8419f4c6aa6c4ee94556ff88ac08b6b9f9fe1"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 5088,
+      "sha256": "55259edb02877455bc802ad2cf466897acdc0fb59c66864956d5df088268c8e9"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 50268,
+      "sha256": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2113,
+      "sha256": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+    }
+  ],
+  "runtimeSourceHashes": [
+    {
+      "path": "package-lock.json",
+      "sha256": "d88a2b5af463a78e8725f16c15a0afc49481c6c4cf28e91651efd2f151211fec"
+    },
+    {
+      "path": "package.json",
+      "sha256": "27efb3cf47bd91a0158596ff046ede36920fd850228191c964096ad7611dbb62"
+    },
+    {
+      "path": "src/App.jsx",
+      "sha256": "a7b586ec01fca0dba98437ec1e17f2a219bce576c9da7236a46086032a50d2b0"
+    },
+    {
+      "path": "src/api/http.js",
+      "sha256": "56c8af5b62c17a08cda0e118a97d0363ca3664c0a7863be461f19231a2224afd"
+    },
+    {
+      "path": "src/api/ledger.js",
+      "sha256": "53b927bd1cc8d3ccb47d448adee1113eb4c08b978bf04321ad1e1e5c21484d09"
+    },
+    {
+      "path": "src/api/pullwise.js",
+      "sha256": "9a86202fba60e6ff1f418bd6ee68835483647067ebed4ed2826acea415dd9942"
+    },
+    {
+      "path": "src/app.css",
+      "sha256": "87697095d5b4a0ec033ec2015afd5d0a6bdc34ea324eeafb6b8842ec8bbee1f4"
+    },
+    {
+      "path": "src/components/confirm-dialog.jsx",
+      "sha256": "71c5e071a3b03eb8ca57728debe31323a9fbc0958b01ad18bd1b096749bfc3a8"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/expense-charts.css",
+      "sha256": "db738bee4faeb391ba2df5ef25fdf6d2725e60d77c71d2194d38dd9dc3a825a4"
+    },
+    {
+      "path": "src/components/expense-charts.jsx",
+      "sha256": "292a4fc4c09ee2719cd3c7ffb9fcd5d5b8810e1531ca25b7fdb3074c2e8cd302"
+    },
+    {
+      "path": "src/components/financial-value.jsx",
+      "sha256": "47fcd46e8ee1971e6c868803784f1127c5f34977ededf81a9cd192340ef13a82"
+    },
+    {
+      "path": "src/components/github-installations.jsx",
+      "sha256": "86babff5f8879950ff26e8485b1748924cd4e86dd07ce239d11f4290c9692904"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    },
+    {
+      "path": "src/components/notifications.jsx",
+      "sha256": "eba13f9a2bc9b5370f86885d1d9da79831baa053be0025412c73345c99c0881b"
+    },
+    {
+      "path": "src/components/recurring-expenses.css",
+      "sha256": "94751eafc3c03cb3b5b224e19decd307b452ea997f8be6d57ed6747ef690310a"
+    },
+    {
+      "path": "src/components/recurring-expenses.jsx",
+      "sha256": "02aa463ae09a8cd65403ae58c114bd81adb81149d8184083d247a0871a635bb7"
+    },
+    {
+      "path": "src/components/skeleton.jsx",
+      "sha256": "319c95c7393fa06746398c9b4e790cee03aec75913953802842f596e7326fe17"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/components/workspace-context.jsx",
+      "sha256": "22e065840ff1c221720a63e427eb1006433d0eaa53ce7a5950f908d23af22882"
+    },
+    {
+      "path": "src/config/env.js",
+      "sha256": "73c8f422d5443ad25fe89e43a529929acf910b4e25b27dfb9e1c81935d7e45d2"
+    },
+    {
+      "path": "src/i18n.jsx",
+      "sha256": "a22bb8b3990a85782448ed368051b24497aaa780c2f67828f1541e9ba0c38a0a"
+    },
+    {
+      "path": "src/icons.jsx",
+      "sha256": "9975b66413205365817776a0c57510f7b14fe6b31b0c06eb8383777acf357651"
+    },
+    {
+      "path": "src/landing-seo.css",
+      "sha256": "8c052180cc9a1317b17ff9f042b767fc2ece0fd099cb37190bb6c2fbf33b0d2f"
+    },
+    {
+      "path": "src/lib/auth.js",
+      "sha256": "354fda5f62d7e53e6f3ac1b45a6e41a3d97a6840d19e2adc0bdae0215833c62d"
+    },
+    {
+      "path": "src/lib/billing-date.js",
+      "sha256": "8c10748f8744015b3edb8292c67c7a62e6e284239cf329591fcd4d418eec012f"
+    },
+    {
+      "path": "src/lib/browser-storage.js",
+      "sha256": "296e4dcf00ddb06a03a40402c249fc536b3d97bfe106b97221dbdfb00f5fa6e7"
+    },
+    {
+      "path": "src/lib/github-repository-access-refresh.js",
+      "sha256": "8d21a1d42c33cebf5fda99ac10408c80d59b124ed8219833c74b064e2e5b4ae0"
+    },
+    {
+      "path": "src/lib/install-popup.js",
+      "sha256": "4776c8a5252d1678fdae1fcda5f80c8679f83c527e737867c78b9418343031c6"
+    },
+    {
+      "path": "src/lib/modal-focus.js",
+      "sha256": "7c48aa3ec77ced09bb68310cee849f9e3b24ea79be5640a770053b926c32300e"
+    },
+    {
+      "path": "src/lib/navigation.js",
+      "sha256": "d7a1ac6a1fcf77da0ec4046475169e949edc8113ac37cc94cf775aad1b675eee"
+    },
+    {
+      "path": "src/lib/project-links.js",
+      "sha256": "72a9073453b47b02c991940b437e855dcdb5d9bc227ed5d6ec9318ed3e557f89"
+    },
+    {
+      "path": "src/lib/seo-client.js",
+      "sha256": "f64d4711c859a73bcca137c590f5e97705919fdecae5e0b5c08ae43b909078dd"
+    },
+    {
+      "path": "src/lib/seo.js",
+      "sha256": "40fe3c7717752be5617f81ba5bc15a679cd75fa6ccb22890ce6128f2250f9352"
+    },
+    {
+      "path": "src/lib/trusted-redirects.js",
+      "sha256": "f73ef90ec19ed5cc3905a0387a474af38b8d9ebe215f0747bb46e6115fc85208"
+    },
+    {
+      "path": "src/locales/dynamic.js",
+      "sha256": "6d89b95747eedc8a1cfcb322ca9935f5cf191f43c5ea645adece7f0ccb9ffbb1"
+    },
+    {
+      "path": "src/locales/es.js",
+      "sha256": "c6e2447ccbdcc7c14012645405088c3094ee825229a1fd3f9b16dfdd2a573702"
+    },
+    {
+      "path": "src/locales/fr.js",
+      "sha256": "086f0aa7ca775f089dafd8c235c4a9431d79f68a2aeb74438508dad2c64e869b"
+    },
+    {
+      "path": "src/locales/ja.js",
+      "sha256": "738807a706f3dbdd204448295486822a18c2dc15e5d394015227c8be6ad68a86"
+    },
+    {
+      "path": "src/locales/ko.js",
+      "sha256": "ce1c64e4036e14dadc76b747b4d787c4e56e2de0dfa0cd781c42ae92c20aa4b2"
+    },
+    {
+      "path": "src/locales/ledger-longform.js",
+      "sha256": "d92ec3b0c7de651d2073db559d9698bcaf28491827cb443d69979fb19c7e9b15"
+    },
+    {
+      "path": "src/locales/ledger-scopes.js",
+      "sha256": "98d6ee3795238b64fac8eb9e6ece2f2c186e04497793eef370664e75e8651638"
+    },
+    {
+      "path": "src/locales/ledger-screen.js",
+      "sha256": "d2d25da119ed7f077bc15211782e477495e330952c748a935be734869500706b"
+    },
+    {
+      "path": "src/locales/ledger-ui.js",
+      "sha256": "df52f42935c3b9b875bfea6f9ab29258b1c9504130dcbb041fd150c090d20873"
+    },
+    {
+      "path": "src/locales/ledger.js",
+      "sha256": "d890fa276280bcf1ff2779bdd37cc282b768a1e0c5334485066ed15e34a59b0f"
+    },
+    {
+      "path": "src/locales/zh.js",
+      "sha256": "9bbbb3487f87dc42d6ea41882b5c9f3b4ddf5adbd21607deb785bdd840815e32"
+    },
+    {
+      "path": "src/main.jsx",
+      "sha256": "c2af2fef64188a78efb75381252e6b510024c3e8992e553a812dd83757a149d1"
+    },
+    {
+      "path": "src/screens/api-docs.jsx",
+      "sha256": "4f59009b09fd406cb744f86296df24af377ac76eb5e979269cede1840fe0911d"
+    },
+    {
+      "path": "src/screens/api.jsx",
+      "sha256": "bf6e52c221bdf2c7aa92fa4a6ad7aa2b18ae56181f33704039898890e138cde0"
+    },
+    {
+      "path": "src/screens/billing.jsx",
+      "sha256": "835904d1fa67b41265d5a48e12c4b7588d728451efa81385c42707d969ad1997"
+    },
+    {
+      "path": "src/screens/docs.jsx",
+      "sha256": "5734d3a95a8b7e498f52fdffbcfb18a9f2a395fcbaa404901f52d2dbdb2072c0"
+    },
+    {
+      "path": "src/screens/error.jsx",
+      "sha256": "591d11605e238394716213590f0b977e1eefe89a10807f768d3335895e24e3cf"
+    },
+    {
+      "path": "src/screens/ledger-api-scopes.js",
+      "sha256": "c592817cb22363936632903722d925edd65b892208c2b0245166e519ff195168"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "sha256": "eef27567a0776152ed01121d9f2093183412be60049cd05ed5ebb38bd511f361"
+    },
+    {
+      "path": "src/screens/ledger.jsx",
+      "sha256": "98fa135844b729b0eeb9878a36a9c63612211c7e6db3437911e9202dd7afeaa3"
+    },
+    {
+      "path": "src/screens/legal.jsx",
+      "sha256": "e68680edbe63c66f712046af44ee4a2205c41a01497f0075878918a1489be22e"
+    },
+    {
+      "path": "src/screens/members.jsx",
+      "sha256": "71fdb74c5af60021b92f8a3a01f79d874ac0db1643d69d928ece6f3d225bdcde"
+    },
+    {
+      "path": "src/screens/public-layout.jsx",
+      "sha256": "10fdb963b3b23a458a1aac6baf7e818d1d32109bc73eb15f1f5ef14e4d8c6df3"
+    },
+    {
+      "path": "src/screens/public.jsx",
+      "sha256": "8459d769b4c81e53b0022fde7ab870d1b2e952488ba200840591673932fdcc5e"
+    },
+    {
+      "path": "src/screens/settings.jsx",
+      "sha256": "0842971e89f5ec1a2712d04b9629e2116c5fb3821a7fdc25da885bc008b833f7"
+    },
+    {
+      "path": "src/shell.jsx",
+      "sha256": "80bbae94975b1ac904860e0952880535746a0e42b71566870a5e9d4493aa05f9"
+    },
+    {
+      "path": "src/test/setup.js",
+      "sha256": "7894fa38ddbdb13ee313e6d1afbb474165a6ca0885da574546d9c5e446b36e6d"
+    },
+    {
+      "path": "vite.config.js",
+      "sha256": "dbf375b9e067e0d630b4835a5682aabd9b7599569c12f3187dc9ba8929f3afe2"
+    },
+    {
+      "path": "worker-entry.js",
+      "sha256": "9d1c0e7d44ddc2fa67bead2e85300495ec9f59030a118d868f5d41144fe5e721"
+    },
+    {
+      "path": "worker.js",
+      "sha256": "319cd0910ab001ec8c92ee552b6459ba64c828de29becfc4916b5c9a4c41dc2d"
+    },
+    {
+      "path": "wrangler.preview.jsonc",
+      "sha256": "4428e61c06ea9074bfff4f1d6d107df0b865ba949d834cef161a9c1453290f96"
+    }
+  ],
+  "serverEvidence": "https://github.com/GoPullwise/pullwise-server/blob/main/docs/validation/recurring-links-local-2026-10-08.json",
+  "limitations": [
+    "Synthetic GET-only UI; no expense/rule/project submission or pause/resume mutation is claimed. Payload and native Server scheduler evidence is separate.",
+    "Native selected strings and native input selection only; no OS clipboard evidence.",
+    "Every observed external font attempt was intercepted and blocked; the accepted contexts delivered no external/provider requests.",
+    "Three complete accepted contexts plus one retained screenshot from a separate partial context. Failed/diagnostic contexts are excluded from acceptance totals."
+  ]
+}
