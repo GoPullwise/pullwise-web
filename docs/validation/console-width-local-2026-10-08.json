@@ -1,0 +1,274 @@
+{
+  "date": "2026-10-08",
+  "status": "Local console width acceptance passed",
+  "sourceBaseCommit": "2b3730a7afb0d5ff73c14140741a4aa2092726a3",
+  "change": "Settings and Members reuse main wide so their entire right-hand pane fills the available sidebar grid column, matching Projects/Billing/API Keys.",
+  "sourceSha256": {
+    "src/screens/settings.jsx": "f5983f3b9c4c696bc815c96ec08548a6e4182f863e1c9e6b62026ac7a5f6241b",
+    "src/screens/members.jsx": "e6b00b892e33f743b96d9af02fde9f938394c98a31cbccd3a242e2f63ca08f16"
+  },
+  "checks": {
+    "lint": true,
+    "testFiles": 36,
+    "tests": 476,
+    "build": true,
+    "workerConfiguration": true,
+    "workerSyntax": true,
+    "wranglerPreviewDryRun": true
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "browser": "Chrome/151.0.7922.173",
+  "harnessSha256": "3bb4d8f353a82ced43fb6cb4f7e8ebdc56ea8c9931e71b909569da3ff1c2a4fe",
+  "startedAt": "2026-10-08T04:16:13.163Z",
+  "completedAt": "2026-10-08T04:16:25.173Z",
+  "scope": "Finite built local Chromium UI checks; every API is fulfilled from synthetic fixtures; external requests blocked; no real accounts, remote API calls, provider calls or auth tokens.",
+  "localRequestCapPerContext": 120,
+  "contexts": 9,
+  "geometryStates": 27,
+  "screenshots": 9,
+  "allScreenshotsManuallyReviewed": true,
+  "measurements": [
+    {
+      "page": "settings",
+      "language": "en",
+      "theme": "light",
+      "viewportWidthsPx": [
+        1280,
+        1600,
+        1920,
+        2560,
+        1920,
+        1600,
+        1280
+      ],
+      "mainWidthsPx": [
+        1060,
+        1380,
+        1700,
+        2340,
+        1700,
+        1380,
+        1060
+      ],
+      "contentWidthsPx": [
+        988,
+        1308,
+        1628,
+        2268,
+        1628,
+        1308,
+        988
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "members",
+      "language": "en",
+      "theme": "light",
+      "viewportWidthsPx": [
+        1280,
+        1600,
+        1920,
+        2560,
+        1920,
+        1600,
+        1280
+      ],
+      "mainWidthsPx": [
+        1050,
+        1370,
+        1690,
+        2330,
+        1690,
+        1370,
+        1050
+      ],
+      "contentWidthsPx": [
+        978,
+        1298,
+        1618,
+        2258,
+        1618,
+        1298,
+        978
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "projects",
+      "language": "en",
+      "theme": "light",
+      "viewportWidthsPx": [
+        1280,
+        1600,
+        1920,
+        2560,
+        1920,
+        1600,
+        1280
+      ],
+      "mainWidthsPx": [
+        1050,
+        1370,
+        1690,
+        2330,
+        1690,
+        1370,
+        1050
+      ],
+      "contentWidthsPx": [
+        978,
+        1298,
+        1618,
+        2258,
+        1618,
+        1298,
+        978
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "settings",
+      "language": "en",
+      "theme": "light",
+      "viewportWidthsPx": [
+        320
+      ],
+      "mainWidthsPx": [
+        310
+      ],
+      "contentWidthsPx": [
+        278
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "members",
+      "language": "en",
+      "theme": "light",
+      "viewportWidthsPx": [
+        320
+      ],
+      "mainWidthsPx": [
+        310
+      ],
+      "contentWidthsPx": [
+        278
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "projects",
+      "language": "en",
+      "theme": "light",
+      "viewportWidthsPx": [
+        320
+      ],
+      "mainWidthsPx": [
+        310
+      ],
+      "contentWidthsPx": [
+        278
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "settings",
+      "language": "zh",
+      "theme": "dark",
+      "viewportWidthsPx": [
+        390
+      ],
+      "mainWidthsPx": [
+        380
+      ],
+      "contentWidthsPx": [
+        348
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "members",
+      "language": "zh",
+      "theme": "dark",
+      "viewportWidthsPx": [
+        390
+      ],
+      "mainWidthsPx": [
+        380
+      ],
+      "contentWidthsPx": [
+        348
+      ],
+      "apiRequestsOnResize": 0
+    },
+    {
+      "page": "projects",
+      "language": "zh",
+      "theme": "dark",
+      "viewportWidthsPx": [
+        390
+      ],
+      "mainWidthsPx": [
+        380
+      ],
+      "contentWidthsPx": [
+        348
+      ],
+      "apiRequestsOnResize": 0
+    }
+  ],
+  "acceptance": {
+    "mainEqualsAvailableGridColumn": true,
+    "panelsAndHeadingSpanContentWidth": true,
+    "normalizedWidthParityWithProjects": true,
+    "samePageExpansionAndContraction": true,
+    "memberInvitationDraftSurvivesResize": true,
+    "resizeApiRequests": 0,
+    "mobileOverflow": false,
+    "coarsePointerAndTouchVerifiedAfterCapture": true
+  },
+  "localRequests": 228,
+  "syntheticGetRequests": 36,
+  "externalFontRequestsBlocked": 9,
+  "pageErrors": [],
+  "unknownApis": [],
+  "mutations": [],
+  "buildArtifacts": {
+    "stable": true,
+    "count": 43,
+    "manifestSha256": "ee73fabf858fa7bb58b87d3632fbecfe700b07a70d0d1b29ba950ab43ef64830",
+    "changedPageAndEntryArtifacts": [
+      {
+        "path": "assets/index-BKRC-5UO.js",
+        "bytes": 42055,
+        "sha256": "58b68b42d000d3f9c795956cf614d654efa8aad74ee46f6a91e64f17a6fff867"
+      },
+      {
+        "path": "assets/members-CCLOEX-h.js",
+        "bytes": 18700,
+        "sha256": "fa34d2c7b114481f140257823d1b44b2caa8a52cf17619ee3ccd58fdef1c16b6"
+      },
+      {
+        "path": "assets/settings-f4eBU27T.js",
+        "bytes": 8166,
+        "sha256": "c60db33d5197d13ab94a1a565729e4c596612a16029a9bcdcd977b8ac468be47"
+      }
+    ]
+  },
+  "limitations": [
+    "Local synthetic fixtures and blocked external fonts do not establish authenticated remote OAuth/API acceptance.",
+    "Members and Projects have a 10px native vertical scrollbar; width comparison accounts for document client width."
+  ],
+  "scopeLimits": {
+    "webOnly": true,
+    "remoteBusinessApiRequests": 0,
+    "serverDeployment": false,
+    "productionDeployment": false,
+    "d1Commands": 0
+  }
+}

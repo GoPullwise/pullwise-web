@@ -9,6 +9,10 @@ back-to-top controls stay at the bottom right on all pages; reserve content
 clearance below console modules and bound the language menu above its opener.
 Member rows separate identity and role from aligned, wrapping management
 controls. Preserve hard edges, permission checks and identity/revision isolation.
+All authenticated console modules use the shared `main wide` content container,
+including Settings and Members, so their right-hand panels track the available
+workspace width. Verify live resizing beyond 1440px rather than checking only
+one desktop viewport; keep bounded individual inputs and readable prose.
 The current release is Web-only: push main and publish preview.pull-wise.com.
 Production deployment and Server/D1 operations are outside this task.
 

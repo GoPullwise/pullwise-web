@@ -90,7 +90,7 @@ export function SettingsScreen({ go }) {
       <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} loading={loading} />
       <div className="with-side">
         <Sidebar section="settings" go={go} />
-        <main className="main">
+        <main className="main wide">
           <div className="page-h">
             <div>
               <h1>{T("Settings", "设置")}</h1>

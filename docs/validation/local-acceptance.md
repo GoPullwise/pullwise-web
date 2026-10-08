@@ -2,6 +2,30 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Fluid Settings and Members content width (2026-10-08)
+
+Settings and Members now use the shared `main wide` container, as Projects,
+API Keys and Billing already do. Both previously inherited `.main`'s 1200px
+maximum, which stopped the whole right-hand content area from expanding on
+wide desktop windows. The page heading, panels, member rows and GitHub access
+records now follow their available grid column. Individual form/control and
+prose limits remain in place for readability; permissions and API behavior
+are unchanged.
+
+`npm run check` passes lint, **36 test files / 476 tests** and the build.
+Worker configuration/syntax checks and the Wrangler preview packaging dry run
+pass. Local acceptance explicitly compares same-page expansion and contraction
+at 1280, 1600, 1920 and 2560px, plus 320/390px touch layouts, against Projects.
+Publication remains limited to the Web Worker/assets at `preview.pull-wise.com`.
+
+[Focused browser acceptance](console-width-local-2026-10-08.json) passes nine
+contexts and 27 measured states with nine manually reviewed screenshots. In
+the same mounted page, Settings expands from 1060px at a 1280px viewport to
+2340px at 2560px, then contracts back. Members and Projects follow the same
+available-column widths after accounting for their 10px native scrollbar.
+All panels and heading rows fill the main content width; mobile overflow/touch
+checks pass, resize makes no API call and the member invitation draft survives.
+
 ## Projects and Members layout refinement (2026-10-08)
 
 Projects search now highlights the entire square control, including its search
