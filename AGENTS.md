@@ -22,9 +22,11 @@ changes monetary arithmetic, precision, currency or source data. Soft breaks
 after grouping commas preserve exact textContent and native copying. Show
 each project currency independently, keep full amounts in narrow panes and
 reflow labels, amounts, charts and actions by actual container width.
-Focus indicators belong to divider grips. Both navigation and secondary-pane
-grips stay at the midpoint of their own divider and scroll with it; do not pin
-them to the viewport. Retain the shared hit area, bounds and keyboard behavior.
+Focus indicators belong to divider grips. The navigation divider stays fixed
+below the measured workspace header; its grip is centered in that visible
+area and does not move on document scroll. Secondary-pane grips stay at the
+midpoint of their own divider and scroll with it. Retain the shared hit area,
+bounds and keyboard behavior.
 
 ## Console layout follow-up (2026-10-08)
 

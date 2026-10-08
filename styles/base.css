@@ -524,9 +524,11 @@ a.crumb-button:hover {
   user-select: none;
 }
 .console-sidebar-resizer {
-  top: 0;
+  position: fixed;
+  top: var(--workspace-header-height, 54px);
+  bottom: 0;
   left: calc(var(--console-sidebar-width, 220px) - 10px);
-  height: 100%;
+  height: auto;
 }
 .console-sidebar-resizer::before {
   left: 10px;
