@@ -852,43 +852,45 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                 </div>
                               )}
                               {matchingProjects.length > 0 && (
-                                <div className="api-scope-list">
-                                  {matchingProjects.map((project) => {
-                                    const checked = selectedProjectIds.includes(project.id);
-                                    return (
-                                      <label
-                                        key={project.id}
-                                        className={"api-scope-row" + (checked ? " selected" : "")}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          aria-label={project.label}
-                                          checked={checked}
-                                          disabled={
-                                            Boolean(pending) ||
-                                            (!checked && selectedProjectIds.length >= 100)
-                                          }
-                                          onChange={() => toggleProject(project.id)}
-                                        />
-                                        <span className="api-scope-copy">
-                                          <b>{project.label}</b>
-                                          {project.description &&
-                                            project.description !== project.label && (
-                                              <span>{project.description}</span>
-                                            )}
-                                          {project.repository &&
-                                            project.repository !== project.label && (
-                                              <span>{project.repository}</span>
-                                            )}
-                                        </span>
-                                        {project.archived && (
-                                          <span className="api-scope-value">
-                                            {T("Archived", "已归档")}
+                                <div className="api-project-options">
+                                  <div className="api-scope-list">
+                                    {matchingProjects.map((project) => {
+                                      const checked = selectedProjectIds.includes(project.id);
+                                      return (
+                                        <label
+                                          key={project.id}
+                                          className={"api-scope-row" + (checked ? " selected" : "")}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            aria-label={project.label}
+                                            checked={checked}
+                                            disabled={
+                                              Boolean(pending) ||
+                                              (!checked && selectedProjectIds.length >= 100)
+                                            }
+                                            onChange={() => toggleProject(project.id)}
+                                          />
+                                          <span className="api-scope-copy">
+                                            <b>{project.label}</b>
+                                            {project.description &&
+                                              project.description !== project.label && (
+                                                <span>{project.description}</span>
+                                              )}
+                                            {project.repository &&
+                                              project.repository !== project.label && (
+                                                <span>{project.repository}</span>
+                                              )}
                                           </span>
-                                        )}
-                                      </label>
-                                    );
-                                  })}
+                                          {project.archived && (
+                                            <span className="api-scope-value">
+                                              {T("Archived", "已归档")}
+                                            </span>
+                                          )}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               )}
                               {projectPage.loaded &&

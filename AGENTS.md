@@ -10,6 +10,42 @@ keeping supporting labels readable. Give each area a clear purpose and make
 the next action easy to recognize. These goals guide future frontend work,
 including normal/hover states, responsive reflow and keyboard/touch behavior.
 
+## Equal record rows and terminal dividers (2026-10-08)
+
+Every record in the same console list has equal outer height. Shared natural
+CSS grid tracks handle wrapping, filtering, pagination and inline editing;
+avoid fixed pixel heights, clipping and JavaScript height measurement. Keep
+headers, empty states, helpers and pagination outside record-only grids, and
+put bounded scrolling on an outer wrapper so equal tracks retain natural
+height. This applies to projects, members/invitations, categories, expenses,
+keys, billing/GitHub records and selection lists. Each independent
+list sizes to its own content; preserve complete text, money and hover insets.
+Center each row's natural content group so surplus height surrounds it rather
+than stretching internal track spacing.
+Remove terminal decoration lines, including beneath parallel report panels
+and before a trailing availability note. Keep genuine following sections,
+stacked report boundaries, record separators and tab/control borders. Preserve
+Pullwise's original visual style and publish Web preview only.
+
+## Expense entry and visual reports follow-up (2026-10-08)
+
+Project expense creation belongs to the current project; shared-pool creation
+belongs to the shared pool. Remove the target chooser and its mutable state,
+submit the explicit page target for new expenses and preserve the original
+record target on edits. Open entry with Date focused, retain draft/category,
+permission, identity, idempotency and revision guards.
+Project and shared-pool Reports share real responsive charts rather than row
+lists: a chronological expense trend and category columns with an inspectable
+exact amount. Keep currencies on independent scales and all arithmetic in
+BigInt until the bounded visual ratio; do not convert currencies, invent
+missing-day zeros or turn unavailable values into zero. Mouse, keyboard and
+touch must reveal complete data in a persistent readout. Preserve report error,
+empty, filter and export behavior, Pullwise tokens and flat sections. The newer
+ZIP may inform report hierarchy only; do not import income/profit features or
+its theme. These charts replace the earlier report-row equal-height rule.
+Inspect hover through non-touch pointer movement only; compatibility mouse
+enter events after a touch tap must never replace the tapped value.
+
 ## Projects reference follow-up (2026-10-08)
 
 The newer DevLedger ZIP is a layout reference for `/projects` only. Keep

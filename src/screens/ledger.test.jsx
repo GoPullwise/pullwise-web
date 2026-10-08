@@ -87,6 +87,8 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="project" projectId={project.id} />);
     expect(await screen.findByText("No repositories linked")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
+    expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveFocus();
     fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-07" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "4.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
@@ -106,6 +108,49 @@ describe("ledger screens", () => {
     expect(github.connect).not.toHaveBeenCalled();
     expect(github.login).not.toHaveBeenCalled();
   });
+
+  it.each([
+    { mode: "project", target: { kind: "project", projectId: "prj_1" } },
+    { mode: "shared", target: { kind: "shared" } },
+  ])(
+    "creates only in the current $mode scope with other projects available",
+    async ({ mode, target }) => {
+      api.projects.mockResolvedValue({
+        items: [
+          { id: "prj_1", name: "Current project", totals: [] },
+          { id: "prj_other", name: "Other project", totals: [] },
+        ],
+        nextCursor: null,
+      });
+      api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+      api.me.mockResolvedValue({ entitlements: { jev: { eligible: false, available: false } } });
+      render(
+        <LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} />
+      );
+      fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+      expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
+      expect(screen.queryByRole("option", { name: "Other project" })).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Date")).toHaveFocus();
+      fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-08" } });
+      fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "9.25" } });
+      fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+      fireEvent.change(screen.getByLabelText("What did you pay for?"), {
+        target: { value: "Scoped hosting" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+      await waitFor(() => expect(api.createExpense).toHaveBeenCalledTimes(1));
+      expect(api.createExpense.mock.calls[0][0]).toMatchObject({
+        target,
+        occurredOn: "2026-10-08",
+        amount: "9.25",
+        currency: "USD",
+        categoryId: "cat_1",
+        purpose: "Scoped hosting",
+      });
+      expect(api.createExpense.mock.calls[0][1]).toMatch(/^[a-f0-9]{32}$/);
+      expect(api.updateExpense).not.toHaveBeenCalled();
+    }
+  );
 
   it("shows actor-visible repository metadata to a Viewer without exposing lost names or project write controls", async () => {
     api.project.mockResolvedValue({
@@ -810,7 +855,8 @@ describe("ledger screens", () => {
     expect(screen.queryByLabelText("Amount")).not.toBeInTheDocument();
     fireEvent.click(add);
     expect(add).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByLabelText("Project or shared cost")).toHaveFocus();
+    expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveFocus();
     fireEvent.click(screen.getByText("More details (optional)"));
     fireEvent.change(screen.getByLabelText("Note (optional)"), {
       target: { value: "Manual draft" },
@@ -1178,6 +1224,8 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     expect(await screen.findByText("Hosting")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Edit Hosting/i }));
+    expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveFocus();
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting edited" },
     });
@@ -1186,7 +1234,7 @@ describe("ledger screens", () => {
       expect(api.updateExpense).toHaveBeenCalledWith(
         "exp_1",
         1,
-        expect.objectContaining({ purpose: "Hosting edited" }),
+        expect.objectContaining({ purpose: "Hosting edited", target: { kind: "shared" } }),
         expect.anything()
       )
     );
@@ -1196,6 +1244,57 @@ describe("ledger screens", () => {
     await waitFor(() =>
       expect(api.removeExpense).toHaveBeenCalledWith("exp_1", 1, expect.anything())
     );
+  });
+
+  it("preserves a historical project expense target and revision when editing", async () => {
+    api.projects.mockResolvedValue({
+      items: [
+        { id: "prj_1", name: "Current project", totals: [] },
+        { id: "prj_other", name: "Other project", totals: [] },
+      ],
+      nextCursor: null,
+    });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    const expense = {
+      id: "exp_project",
+      target: { kind: "project", projectId: "prj_1" },
+      occurredOn: "2026-09-27",
+      amount: "12.00",
+      amountMinor: 1200,
+      currency: "USD",
+      categoryId: "cat_1",
+      purpose: "Project hosting",
+      revision: 7,
+    };
+    api.expenses.mockResolvedValue({ items: [expense], nextCursor: null });
+    api.updateExpense.mockResolvedValue({
+      ...expense,
+      purpose: "Project hosting edited",
+      revision: 8,
+    });
+    render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit Project hosting" }));
+    expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Other project" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveFocus();
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
+      target: { value: "Project hosting edited" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    await waitFor(() =>
+      expect(api.updateExpense).toHaveBeenCalledWith(
+        "exp_project",
+        7,
+        expect.objectContaining({
+          target: { kind: "project", projectId: "prj_1" },
+          purpose: "Project hosting edited",
+          categoryId: "cat_1",
+          amount: "12.00",
+        }),
+        expect.anything()
+      )
+    );
+    expect(api.createExpense).not.toHaveBeenCalled();
   });
 
   it("manages categories and requires confirmation before archive", async () => {
@@ -1354,12 +1453,21 @@ describe("ledger screens", () => {
     expect(within(totals).getByText("USD 180,143,985,094,819.82")).toBeVisible();
     fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
     const chart = screen.getByRole("heading", { name: "Expenses over time" }).closest("section");
-    expect(within(chart).getByText("USD 180,143,985,094,819.82")).toBeVisible();
-    const bars = chart.querySelectorAll(".ledger-chart-track > span");
-    expect([...bars].map((bar) => bar.style.width)).toEqual(["100%", "50%", "0%"]);
+    const currencyChart = chart.querySelector('figure.expense-chart[data-currency="USD"]');
+    fireEvent.click(within(currencyChart).getByRole("button", { name: /2026-09-01/ }));
+    expect(
+      within(currencyChart).getByText("USD 180,143,985,094,819.82", {
+        selector: ".financial-value",
+      })
+    ).toBeVisible();
+    expect(
+      [...currencyChart.querySelectorAll(".expense-chart-point")].map((point) =>
+        Number(point.dataset.y)
+      )
+    ).toEqual([12, 100, 188]);
   });
 
-  it("scales report bars within each currency while retaining exact integer totals", async () => {
+  it("scales each currency independently in trend and category charts", async () => {
     api.reportTimeseries.mockResolvedValue({
       groups: [
         { bucket: "2026-09-01", currency: "USD", amountMinor: "18014398509481982" },
@@ -1385,18 +1493,26 @@ describe("ledger screens", () => {
     const categories = screen
       .getByRole("heading", { name: "Expenses by category" })
       .closest("section");
+    expect(within(timeseries).getByText("Each currency has its own scale.")).toBeVisible();
+    expect(within(categories).getByText("Each currency has its own scale.")).toBeVisible();
+    for (const currency of ["USD", "JPY"]) {
+      const trend = timeseries.querySelector(`figure.expense-chart[data-currency="${currency}"]`);
+      const category = categories.querySelector(
+        `figure.expense-chart[data-currency="${currency}"]`
+      );
+      expect(
+        [...trend.querySelectorAll(".expense-chart-point")].map((point) => Number(point.dataset.y))
+      ).toEqual([12, 100]);
+      expect(
+        [...category.querySelectorAll(".expense-chart-bar")].map((bar) =>
+          Number(bar.getAttribute("height"))
+        )
+      ).toEqual([176, 44]);
+    }
     expect(
-      within(timeseries).getByText("Bars are scaled separately for each currency.")
-    ).toBeVisible();
-    expect(
-      within(categories).getByText("Bars are scaled separately for each currency.")
-    ).toBeVisible();
-    expect(
-      [...timeseries.querySelectorAll(".ledger-chart-track > span")].map((bar) => bar.style.width)
-    ).toEqual(["100%", "50%", "100%", "50%", "0%"]);
-    expect(
-      [...categories.querySelectorAll(".ledger-chart-track > span")].map((bar) => bar.style.width)
-    ).toEqual(["100%", "25%", "100%", "25%"]);
+      timeseries.querySelector('figure.expense-chart[data-currency="KRW"] .expense-chart-point')
+        .dataset.y
+    ).toBe("188");
   });
 
   it("uses Max automatic categorization through ordinary saving without a suggestion action", async () => {

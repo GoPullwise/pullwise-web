@@ -31,6 +31,7 @@ const CURRENT_COPY = [...new Set(sources.flatMap((source) =>
 const LEDGER_COPY = [
   "Projects", "Project", "Project expenses", "Shared expense pool", "Ledger overview", "Totals by currency",
   "Expense total", "Repositories / organization",
+  "Each currency has its own scale.", "Use arrow keys to inspect values.", "Some report amounts are unavailable.",
   "From date", "Export CSV", "Automatic", "Save expense", "Automatic Max assistance",
   "Jev categorized this expense", "This expense may duplicate an existing entry. Review your records.",
   "Choose a category to finish saving. Your draft is still here.",

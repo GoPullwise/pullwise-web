@@ -132,7 +132,7 @@
 }
 .ledger-your-projects .ledger-project-head {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
   color: var(--text-3);
   font-size: var(--fs-sm);
   line-height: 1.6;
@@ -267,7 +267,6 @@
   padding-top: var(--ledger-split-header-gap);
 }
 .ledger-screen .ledger-list {
-  display: grid;
   container-type: inline-size;
 }
 .ledger-screen .ledger-list > article {
@@ -494,48 +493,13 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 0 48px;
   align-items: start;
+  container: ledger-reports / inline-size;
 }
-.ledger-screen .ledger-chart {
-  display: grid;
-  gap: 16px;
-  container-type: inline-size;
-}
-.ledger-screen .ledger-chart-row {
-  display: grid;
-  grid-template-columns: minmax(110px, 1fr) minmax(60px, 2fr) auto;
-  align-items: center;
-  gap: 16px;
-  font-size: var(--fs-md);
-}
-.ledger-screen .ledger-chart-row > span:first-child {
-  overflow-wrap: anywhere;
-}
-.ledger-screen .ledger-chart-row > strong {
-  --financial-size: var(--fs-value-secondary);
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-@container (max-width: 440px) {
-  .ledger-screen .ledger-chart-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+/* Two 300px report columns and their 48px gap share one terminal section. */
+@container ledger-reports (min-width: 648px) {
+  .ledger-screen .ledger-reports > .panel {
+    border-bottom: 0;
   }
-  .ledger-screen .ledger-chart-row > strong {
-    grid-row: 2;
-  }
-  .ledger-screen .ledger-chart-track {
-    grid-column: 1 / -1;
-    grid-row: 3;
-  }
-}
-.ledger-screen .ledger-chart-track {
-  height: 8px;
-  background: var(--bg-soft);
-}
-.ledger-screen .ledger-chart-track > span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
 }
 .ledger-screen .notice-grid h3,
 .ledger-screen .notice-grid p {
@@ -633,17 +597,6 @@
   }
   .setup-steps strong {
     font-size: var(--fs-md);
-  }
-  .ledger-screen .ledger-chart-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-  }
-  .ledger-screen .ledger-chart-row > strong {
-    grid-row: 2;
-  }
-  .ledger-screen .ledger-chart-track {
-    grid-column: 1 / -1;
-    grid-row: 3;
   }
   .ledger-screen .ledger-category-row,
   .ledger-screen .ledger-expense-row {

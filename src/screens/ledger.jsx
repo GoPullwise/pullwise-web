@@ -4,6 +4,7 @@ import { SkeletonLine } from "../components/skeleton.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { FinancialValue } from "../components/financial-value.jsx";
+import { ExpenseCharts } from "../components/expense-charts.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -185,12 +186,6 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
 
 function ReportGroups({ title, groups, error, categories = [], dimension, icon: IconComponent }) {
   const rows = groups || [];
-  const largestByCurrency = rows.reduce((totals, row) => {
-    const amount = minorAmount(row.amountMinor);
-    const largest = totals.get(row.currency) ?? 1n;
-    if (amount !== null && amount > largest) totals.set(row.currency, amount);
-    return totals;
-  }, new Map());
   return (
     <section className="panel">
       {IconComponent ? (
@@ -211,37 +206,14 @@ function ReportGroups({ title, groups, error, categories = [], dimension, icon: 
       ) : rows.length === 0 ? (
         <p>{T("No expenses in this range.")}</p>
       ) : (
-        <>
-          <p className="ledger-help">
-            {T("Bars are scaled separately for each currency.", "条形比例按各币种分别计算。")}
-          </p>
-          <div className="ledger-chart">
-            {rows.map((row) => (
-              <div
-                className="ledger-chart-row"
-                key={`${row.target}:${row.projectId}:${row.categoryId}:${row.bucket}:${row.currency}`}
-              >
-                <span>
-                  {dimension === "bucket"
-                    ? row.bucket
-                    : categories.find((category) => category.id === row.categoryId)?.name ||
-                      T("Archived category")}{" "}
-                  · {row.currency}
-                </span>
-                <span className="ledger-chart-track">
-                  <span
-                    style={{
-                      width: `${Number(((minorAmount(row.amountMinor) ?? 0n) * 10000n) / (largestByCurrency.get(row.currency) ?? 1n)) / 100}%`,
-                    }}
-                  />
-                </span>
-                <strong>
-                  <LedgerTotal total={row} />
-                </strong>
-              </div>
-            ))}
-          </div>
-        </>
+        <ExpenseCharts
+          title={title}
+          groups={rows}
+          categories={categories}
+          dimension={dimension}
+          formatTotal={formatTotal}
+          minorAmount={minorAmount}
+        />
       )}
     </section>
   );
@@ -400,18 +372,8 @@ function ProjectListRow({ project, go }) {
   );
 }
 
-function ExpenseForm({
-  value,
-  categories,
-  projects,
-  target,
-  busy,
-  onSubmit,
-  onCancel,
-  api = ledgerApi,
-}) {
+function ExpenseForm({ value, categories, target, busy, onSubmit, onCancel, api = ledgerApi }) {
   const noteId = useId();
-  const targetFieldId = useId();
   const categoryFieldId = useId();
   const [draft, setDraft] = useState(() =>
     value
@@ -428,7 +390,6 @@ function ExpenseForm({
       : emptyExpense()
   );
   const [validation, setValidation] = useState("");
-  const [selectedTarget, setSelectedTarget] = useState(value?.target || target);
   const [automaticCategory, setAutomaticCategory] = useState(false);
   const [requiresCategory, setRequiresCategory] = useState(false);
   const categoryRef = useRef(null);
@@ -492,7 +453,7 @@ function ExpenseForm({
     setValidation("");
     const result = await onSubmit(
       {
-        target: selectedTarget,
+        target: value?.target || target,
         occurredOn: draft.occurredOn,
         amount: draft.amount,
         currency: draft.currency.toUpperCase(),
@@ -516,34 +477,6 @@ function ExpenseForm({
   };
   return (
     <form className="ledger-form" onSubmit={submit}>
-      <div className="ledger-field">
-        <label htmlFor={targetFieldId}>{T("Project or shared cost", "归到项目还是公共支出")}</label>
-        <select
-          id={targetFieldId}
-          value={selectedTarget.kind === "shared" ? "shared" : selectedTarget.projectId}
-          disabled={busy}
-          onChange={(event) => {
-            createKey.current = requestKey();
-            setValidation("");
-            setSelectedTarget(
-              event.target.value === "shared"
-                ? { kind: "shared" }
-                : { kind: "project", projectId: event.target.value }
-            );
-          }}
-        >
-          <option value="shared">{T("Shared expense pool")}</option>
-          {projects.map((project) => (
-            <option
-              key={project.id}
-              value={project.id}
-              disabled={!value && project.canCreateExpense === false}
-            >
-              {projectLabel(project)}
-            </option>
-          ))}
-        </select>
-      </div>
       <div className="ledger-fields">
         {field("occurredOn", T("Date"), { type: "date", required: true })}
         {field("amount", T("Amount"), {
@@ -709,9 +642,9 @@ function ScopedLedgerScreen({
   useEffect(() => {
     if (editing || creatingExpense) {
       const panel = expenseFormPanelRef.current;
-      const picker = panel?.querySelector("select");
-      picker?.scrollIntoView?.({ block: "center" });
-      picker?.focus({ preventScroll: true });
+      const field = panel?.querySelector("input:not([disabled]), select:not([disabled])");
+      field?.scrollIntoView?.({ block: "center" });
+      field?.focus({ preventScroll: true });
     }
   }, [editing, creatingExpense]);
   useEffect(() => {
@@ -1521,16 +1454,16 @@ function ScopedLedgerScreen({
                         </p>
                       </div>
                     )}
+                    {matchingProjects.length > 0 && (
+                      <div className="ledger-project-head" aria-hidden="true">
+                        <span>{T("Project", "项目")}</span>
+                        <span className="ledger-project-head-amount">
+                          {T("Expense total", "支出合计")}
+                        </span>
+                        <span>{T("Repositories / organization", "仓库 / 组织")}</span>
+                      </div>
+                    )}
                     <div className="ledger-list">
-                      {matchingProjects.length > 0 && (
-                        <div className="ledger-project-head" aria-hidden="true">
-                          <span>{T("Project", "项目")}</span>
-                          <span className="ledger-project-head-amount">
-                            {T("Expense total", "支出合计")}
-                          </span>
-                          <span>{T("Repositories / organization", "仓库 / 组织")}</span>
-                        </div>
-                      )}
                       {matchingProjects.map((project) => (
                         <ProjectListRow key={project.id} project={project} go={go} />
                       ))}
@@ -1697,35 +1630,37 @@ function ScopedLedgerScreen({
                                   <legend>
                                     {T("Additional repositories (optional)", "其他仓库（选填）")}
                                   </legend>
-                                  {availableRepos
-                                    .filter(
-                                      (repo) =>
-                                        repo.githubRepoId !== selectedRepository.githubRepoId
-                                    )
-                                    .map((repo) => (
-                                      <label className="api-scope-row" key={repo.githubRepoId}>
-                                        <input
-                                          type="checkbox"
-                                          checked={additionalRepoIds.includes(repo.githubRepoId)}
-                                          disabled={
-                                            busy ||
-                                            repositoryLoading ||
-                                            (selectedCreateIds.length >= 30 &&
-                                              !additionalRepoIds.includes(repo.githubRepoId))
-                                          }
-                                          onChange={(event) =>
-                                            setAdditionalRepoIds((old) =>
-                                              event.target.checked
-                                                ? [...old, repo.githubRepoId]
-                                                : old.filter((id) => id !== repo.githubRepoId)
-                                            )
-                                          }
-                                        />
-                                        <span className="api-scope-copy">
-                                          <span>{repo.fullName}</span>
-                                        </span>
-                                      </label>
-                                    ))}
+                                  <div className="api-scope-list">
+                                    {availableRepos
+                                      .filter(
+                                        (repo) =>
+                                          repo.githubRepoId !== selectedRepository.githubRepoId
+                                      )
+                                      .map((repo) => (
+                                        <label className="api-scope-row" key={repo.githubRepoId}>
+                                          <input
+                                            type="checkbox"
+                                            checked={additionalRepoIds.includes(repo.githubRepoId)}
+                                            disabled={
+                                              busy ||
+                                              repositoryLoading ||
+                                              (selectedCreateIds.length >= 30 &&
+                                                !additionalRepoIds.includes(repo.githubRepoId))
+                                            }
+                                            onChange={(event) =>
+                                              setAdditionalRepoIds((old) =>
+                                                event.target.checked
+                                                  ? [...old, repo.githubRepoId]
+                                                  : old.filter((id) => id !== repo.githubRepoId)
+                                              )
+                                            }
+                                          />
+                                          <span className="api-scope-copy">
+                                            <span>{repo.fullName}</span>
+                                          </span>
+                                        </label>
+                                      ))}
+                                  </div>
                                   <p className="ledger-help">
                                     {selectedCreateIds.length} / 30 {T("repositories", "个仓库")}
                                   </p>
@@ -2350,12 +2285,6 @@ function ScopedLedgerScreen({
                         key={editing?.id || "new"}
                         value={editing}
                         target={target}
-                        projects={
-                          mode === "project" &&
-                          !data.projects.items.some((item) => item.id === projectId)
-                            ? [data.project, ...data.projects.items]
-                            : data.projects.items
-                        }
                         categories={data.categories}
                         busy={busy}
                         onSubmit={saveExpense}
@@ -2575,64 +2504,67 @@ function ScopedLedgerScreen({
                           )}
                           <fieldset className="api-scope-panel">
                             <legend>{T("Project repositories", "项目仓库")}</legend>
-                            {[
-                              ...boundRepositoryIds(data.project)
-                                .map((id) => {
-                                  const repository = data.project.repositories?.find(
-                                    (repo) => repo.githubRepoId === id
-                                  );
-                                  return {
-                                    githubRepoId: id,
-                                    fullName:
-                                      repository?.githubAccess === "authorized"
-                                        ? repository.githubFullName
-                                        : !repository && data.project.githubAccess === "authorized"
-                                          ? data.project.githubFullName
-                                          : null,
-                                    account: repository?.account,
-                                  };
-                                })
-                                .filter(
-                                  (repo) =>
-                                    !organizationId ||
-                                    String(repo.account?.id) === organizationId ||
-                                    projectRepoIds.includes(repo.githubRepoId)
-                                ),
-                              ...availableRepos.filter(
-                                (repo) =>
-                                  !boundRepositoryIds(data.project).includes(repo.githubRepoId)
-                              ),
-                            ].map((repo) => (
-                              <label className="api-scope-row" key={repo.githubRepoId}>
-                                <input
-                                  type="checkbox"
-                                  checked={projectRepoIds.includes(repo.githubRepoId)}
-                                  disabled={
-                                    busy ||
-                                    loading ||
-                                    (!projectRepoIds.includes(repo.githubRepoId) &&
-                                      (repositoryLoading ||
-                                        !data.repositories ||
-                                        needsGitHubReconnect ||
-                                        projectRepoIds.length >= 30))
-                                  }
-                                  onChange={(event) => {
-                                    projectSettingsDirty.current = true;
-                                    setProjectRepoIds((old) =>
-                                      event.target.checked
-                                        ? [...old, repo.githubRepoId]
-                                        : old.filter((id) => id !== repo.githubRepoId)
+                            <div className="api-scope-list">
+                              {[
+                                ...boundRepositoryIds(data.project)
+                                  .map((id) => {
+                                    const repository = data.project.repositories?.find(
+                                      (repo) => repo.githubRepoId === id
                                     );
-                                  }}
-                                />
-                                <span className="api-scope-copy">
-                                  <span>
-                                    {repo.fullName ||
-                                      `${T("Repository", "仓库")} #${repo.githubRepoId}`}
+                                    return {
+                                      githubRepoId: id,
+                                      fullName:
+                                        repository?.githubAccess === "authorized"
+                                          ? repository.githubFullName
+                                          : !repository &&
+                                              data.project.githubAccess === "authorized"
+                                            ? data.project.githubFullName
+                                            : null,
+                                      account: repository?.account,
+                                    };
+                                  })
+                                  .filter(
+                                    (repo) =>
+                                      !organizationId ||
+                                      String(repo.account?.id) === organizationId ||
+                                      projectRepoIds.includes(repo.githubRepoId)
+                                  ),
+                                ...availableRepos.filter(
+                                  (repo) =>
+                                    !boundRepositoryIds(data.project).includes(repo.githubRepoId)
+                                ),
+                              ].map((repo) => (
+                                <label className="api-scope-row" key={repo.githubRepoId}>
+                                  <input
+                                    type="checkbox"
+                                    checked={projectRepoIds.includes(repo.githubRepoId)}
+                                    disabled={
+                                      busy ||
+                                      loading ||
+                                      (!projectRepoIds.includes(repo.githubRepoId) &&
+                                        (repositoryLoading ||
+                                          !data.repositories ||
+                                          needsGitHubReconnect ||
+                                          projectRepoIds.length >= 30))
+                                    }
+                                    onChange={(event) => {
+                                      projectSettingsDirty.current = true;
+                                      setProjectRepoIds((old) =>
+                                        event.target.checked
+                                          ? [...old, repo.githubRepoId]
+                                          : old.filter((id) => id !== repo.githubRepoId)
+                                      );
+                                    }}
+                                  />
+                                  <span className="api-scope-copy">
+                                    <span>
+                                      {repo.fullName ||
+                                        `${T("Repository", "仓库")} #${repo.githubRepoId}`}
+                                    </span>
                                   </span>
-                                </span>
-                              </label>
-                            ))}
+                                </label>
+                              ))}
+                            </div>
                             <p className="ledger-help">
                               {projectRepoIds.length} / 30 {T("repositories", "个仓库")}
                             </p>

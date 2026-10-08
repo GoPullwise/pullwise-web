@@ -825,6 +825,25 @@ a.crumb-button:hover {
   width: 36px;
   height: 36px;
 }
+/* Natural-height grid tracks keep every record in a list equally tall,
+   including after wrapping, filtering, pagination and inline editing. */
+.ledger-list,
+.key-list,
+.sub-record-list,
+.gh-install-list,
+.api-scope-list {
+  display: grid;
+  grid-auto-rows: 1fr;
+}
+/* Extra row height surrounds the content instead of stretching its gaps. */
+.ledger-list > article,
+.ledger-list > .ledger-project-row,
+.key-list > .key-row,
+.sub-record-list > .sub-record-row,
+.gh-install-list > .gh-install-row,
+.api-scope-list > .api-scope-row {
+  align-content: center;
+}
 /* Flat console records share insets in both idle and highlighted states. */
 .ledger-list > article,
 .ledger-list > .ledger-project-row,
