@@ -766,39 +766,65 @@
 .members-screen .panel-body > .notice {
   margin-bottom: 0;
 }
-
+.members-screen .main .member-directory {
+  padding-top: 0;
+}
+.members-screen .member-management > .panel:first-child {
+  padding-top: 0;
+}
+.members-screen .member-management > .panel:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
 .member-list {
   min-width: 0;
   container-type: inline-size;
 }
 .members-screen .member-list .member-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  grid-template-columns: minmax(0, 1fr) 100px 220px;
   align-items: center;
-  gap: 16px 32px;
+  gap: 16px 24px;
   padding: 24px 0;
 }
 .members-screen .member-list .member-row:first-child {
   padding-top: 0;
+}
+.members-screen .member-list[data-manage="false"] .member-row {
+  grid-template-columns: minmax(0, 1fr) minmax(80px, 120px);
+}
+.members-screen .member-invites .member-row {
+  grid-template-columns: minmax(0, 1fr);
 }
 .member-row > * {
   min-width: 0;
 }
 .member-identity {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+.member-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-2);
+  font: 600 var(--fs-lg)/1 var(--font-mono);
+}
+.member-identity-copy {
+  display: grid;
+  gap: 4px;
   min-width: 0;
 }
 .members-screen .member-identity h3,
 .members-screen .member-identity p {
   margin: 0;
-}
-.member-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  min-width: 0;
 }
 .member-login {
   min-width: 0;
@@ -806,15 +832,29 @@
   font: var(--fs-md)/1.5 var(--font-mono);
   overflow-wrap: anywhere;
 }
-.member-meta .tag {
-  flex: 0 0 auto;
+.members-screen .member-row .member-role {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.member-actions {
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
+}
+.member-invites .member-actions {
+  justify-content: flex-start;
 }
 .member-controls {
-  display: grid;
+  grid-column: 1 / -1;
   grid-template-columns: minmax(120px, 1fr) auto;
   align-items: end;
   gap: 16px;
   min-width: 0;
+  max-width: 560px;
+  width: 100%;
   margin: 0;
 }
 .members-screen .main .member-controls select,
@@ -839,15 +879,26 @@
   margin: 0;
 }
 @container (max-width: 720px) {
-  .members-screen .member-list .member-row {
-    grid-template-columns: minmax(0, 1fr);
+  .members-screen .member-list:not(.member-invites) .member-row {
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
   }
-  .member-controls {
-    max-width: 560px;
+  .member-row > .member-identity {
+    flex: 1 0 100%;
+  }
+  .member-row > .member-role {
+    flex: 1 1 80px;
+  }
+  .member-actions {
+    justify-content: flex-start;
+    flex: 0 1 auto;
+  }
+  .member-row > .notice {
+    flex: 1 1 100%;
   }
 }
-@container (max-width: 420px) {
+@container (max-width: 560px) {
   .members-screen .member-list .member-row {
     padding-bottom: 20px;
   }

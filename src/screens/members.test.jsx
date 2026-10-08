@@ -40,6 +40,11 @@ function show(props = {}) {
   return render(<MembersScreen go={vi.fn()} api={api} workspace={workspace} {...props} />);
 }
 
+async function openRole(login = "bob") {
+  fireEvent.click(await screen.findByRole("button", { name: `Edit role for ${login}` }));
+  return screen.getByRole("combobox", { name: `Role for ${login}` });
+}
+
 beforeEach(() => {
   window.history.replaceState(null, "", "/members");
   api = Object.fromEntries(
@@ -93,7 +98,7 @@ describe("Members screen", () => {
     expect(api.invites).not.toHaveBeenCalled();
     expect(screen.queryByLabelText("GitHub username")).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Save role|Remove|Revoke|Create invitation/ })
+      screen.queryByRole("button", { name: /Edit role|Save role|Remove|Revoke|Create invitation/ })
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: /Role for/ })).not.toBeInTheDocument();
     for (const method of ["updateMember", "removeMember", "inviteMember", "revokeInvite"]) {
@@ -107,7 +112,9 @@ describe("Members screen", () => {
     const ownerRow = (await screen.findByText("Alice")).closest("article");
     expect(within(ownerRow).queryByRole("button")).not.toBeInTheDocument();
     expect(within(ownerRow).queryByRole("combobox")).not.toBeInTheDocument();
-    const role = screen.getByRole("combobox", { name: "Role for bob" });
+    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    const role = await openRole();
+    expect(role).toHaveFocus();
     expect(within(role).queryByRole("option", { name: "Owner" })).not.toBeInTheDocument();
     fireEvent.change(role, { target: { value: "viewer" } });
     expect(api.updateMember).not.toHaveBeenCalled();
@@ -116,6 +123,9 @@ describe("Members screen", () => {
       expect(api.updateMember).toHaveBeenCalledWith("ws_owner", "bob", 3, { role: "viewer" }, {})
     );
     await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus()
+    );
   });
 
   it("allows an Admin to manage Editor/Viewer access while keeping Admin members and invitations read-only", async () => {
@@ -143,7 +153,7 @@ describe("Members screen", () => {
     const row = (await screen.findByText("Carol")).closest("article");
     expect(within(row).queryByRole("combobox")).not.toBeInTheDocument();
     expect(within(row).queryByRole("button")).not.toBeInTheDocument();
-    const memberRole = screen.getByRole("combobox", { name: "Role for bob" });
+    const memberRole = await openRole();
     expect(within(memberRole).queryByRole("option", { name: "Admin" })).not.toBeInTheDocument();
     expect(within(memberRole).getByRole("option", { name: "Viewer" })).toBeInTheDocument();
     const inviteRole = screen.getByRole("combobox", { name: "Invitation role" });
@@ -195,7 +205,7 @@ describe("Members screen", () => {
   it("requires a manual reload after a revision conflict instead of repeating the stale write", async () => {
     api.updateMember.mockRejectedValueOnce(error(412));
     show();
-    fireEvent.change(await screen.findByRole("combobox", { name: "Role for bob" }), {
+    fireEvent.change(await openRole(), {
       target: { value: "viewer" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
@@ -206,7 +216,7 @@ describe("Members screen", () => {
     api.members.mockResolvedValueOnce({ items: [owner, { ...editor, revision: 4 }] });
     fireEvent.click(screen.getByRole("button", { name: "Reload" }));
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-    fireEvent.change(screen.getByRole("combobox", { name: "Role for bob" }), {
+    fireEvent.change(await openRole(), {
       target: { value: "viewer" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
@@ -219,6 +229,111 @@ describe("Members screen", () => {
         {}
       )
     );
+  });
+
+  it("opens a single role editor, discards canceled drafts and returns focus without writing", async () => {
+    api.members.mockResolvedValue({
+      items: [owner, editor, { ...editor, userId: "dave", name: "Dave", githubLogin: "dave" }],
+    });
+    show();
+    const role = await openRole();
+    fireEvent.change(role, { target: { value: "viewer" } });
+    expect(screen.getByRole("button", { name: "Save role for bob" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Edit role for bob" }));
+    expect(role).toHaveValue("viewer");
+    expect(role).toHaveFocus();
+    expect(
+      screen.getByText("Bob").closest("article").querySelector(".member-role")
+    ).toHaveTextContent("Editor");
+    expect(api.updateMember).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel role editing for bob" }));
+    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus();
+    expect(api.updateMember).not.toHaveBeenCalled();
+    expect(await openRole()).toHaveValue("editor");
+    const secondRole = await openRole("dave");
+    expect(secondRole).toHaveFocus();
+    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(secondRole).toHaveValue("editor");
+    expect(api.updateMember).not.toHaveBeenCalled();
+  });
+
+  it("keeps role editing and removal confirmation exclusive and restores the removal opener on cancel", async () => {
+    show();
+    await openRole();
+    fireEvent.click(screen.getByRole("button", { name: "Remove bob" }));
+    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirm remove bob" })).toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel removing bob" }));
+    expect(screen.queryByRole("button", { name: "Confirm remove bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove bob" })).toHaveFocus();
+    expect(api.removeMember).not.toHaveBeenCalled();
+    expect(await openRole()).toHaveValue("editor");
+    expect(api.updateMember).not.toHaveBeenCalled();
+  });
+
+  it("returns focus to the member heading after a removed row no longer exists", async () => {
+    api.members
+      .mockResolvedValueOnce({ items: [owner, editor] })
+      .mockResolvedValue({ items: [owner] });
+    show();
+    fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm remove bob" }));
+    await waitFor(() => expect(screen.queryByText("Bob")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Ledger members" })).toHaveFocus()
+    );
+    expect(api.removeMember).toHaveBeenCalledTimes(1);
+  });
+
+  it("focuses the member heading after a successful role save whose follow-up read fails, then recovers only on reload", async () => {
+    api.members
+      .mockResolvedValueOnce({ items: [owner, editor] })
+      .mockRejectedValueOnce(error(503))
+      .mockResolvedValue({ items: [owner, { ...editor, role: "viewer", revision: 4 }] });
+    show();
+    fireEvent.change(await openRole(), { target: { value: "viewer" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Request rejected");
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Ledger members" })).toHaveFocus()
+    );
+    expect(api.members).toHaveBeenCalledTimes(2);
+    expect(api.updateMember).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    await screen.findByText("Bob");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Bob").closest("article").querySelector(".member-role")
+    ).toHaveTextContent("Viewer");
+    expect(api.members).toHaveBeenCalledTimes(3);
+    expect(api.updateMember).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears an open role draft when changing ledgers and rejects a late save without restoring old focus", async () => {
+    const pending = deferred();
+    api.updateMember.mockReturnValue(pending.promise);
+    const changed = vi.fn();
+    const view = show({ onMembershipChanged: changed });
+    fireEvent.change(await openRole(), { target: { value: "viewer" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
+    expect(api.updateMember).toHaveBeenCalledTimes(1);
+    api.members.mockResolvedValue({ items: [{ ...owner, name: "Other ledger owner" }] });
+    view.rerender(
+      <MembersScreen
+        go={vi.fn()}
+        api={api}
+        workspace={{ ...workspace, id: "ws_other" }}
+        onMembershipChanged={changed}
+      />
+    );
+    await screen.findByText("Other ledger owner");
+    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    await act(async () => pending.resolve({ ...editor, role: "viewer", revision: 4 }));
+    expect(changed).not.toHaveBeenCalled();
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+    expect(api.members).toHaveBeenCalledTimes(2);
   });
 
   it.each([

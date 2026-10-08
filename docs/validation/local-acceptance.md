@@ -2,6 +2,58 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Members directory and ledger ownership (2026-10-08)
+
+Members now uses the existing `.ledger-split`: the member directory is the
+primary area, while invitation creation and pending invitations share the
+secondary management area. Read-only users see a full-width directory. The
+outer container continues to inherit the same fluid `.main` as all other
+authenticated screens; no separate page width or split breakpoint is added.
+
+Member rows separate square local initials, name/GitHub identity, one current
+role and concise Edit role/Remove actions. Desktop roles/actions align across
+editable and protected rows; narrower list containers wrap these tracks.
+Only explicit editing opens the inline role form. Editing and removal
+confirmation are mutually exclusive, repeated Edit preserves the draft, and
+cancel/save returns focus to the originating row. If a successful mutation's
+follow-up read fails, focus falls back to the directory heading and the real
+error requires manual recovery. Owner/Admin guards, original workspace IDs,
+member revisions and stale-response isolation remain intact.
+
+Pending invitations use the same identity layout with complete expiry and
+permission-aware revoke actions. Invitation and acceptance warnings retain
+all current/future ledger sharing details in every supported locale.
+The topbar native Ledger selector prefixes real workspace names with
+translated Your ledger/Shared ledger labels from the current actor's role.
+Ownership remains visible before long names truncate, and switching continues
+to use the original workspace ID without extra owner-identity reads.
+
+`npm run check` passes lint, **36 test files / 499 tests** and the build.
+Worker configuration/syntax checks, changed-file formatting and the Wrangler
+4.136.3 preview packaging dry run pass. The separate preview build uses the
+preview app URL, same-origin API base and preview GitHub App slug.
+
+[Built-browser acceptance](members-redesign-local-2026-10-08.json) passes
+**16 contexts / 86 measured states / 25 captures**, covering 900/960/1440/1920/
+2560px desktop allocation, 320/390px English/Chinese touch layouts in both
+themes, 320px French long labels and owner/admin/read-only permissions.
+Native ledger option/selected-title ownership labels, one role per idle row,
+protected-row alignment, edit/draft/cancel/save focus, removal confirmation,
+loading/503/manual recovery, complete invitation metadata and created-link
+controls pass. Nine purposefully sampled whole-page and whole-row captures
+pass visual review. Exactly three role PATCHs and one invitation POST are
+fully intercepted local synthetic operations, with no real member/invite
+mutation or provider/session request. The 43-file artifact manifest remains
+identical throughout acceptance.
+
+The final capture environment consistently hides native scrollbars before
+both baseline and capture while retaining functional scrolling and strict
+viewport/scroll/coarse-pointer/touch equality. Two GET-only capture diagnostics
+that failed when Chromium temporarily removed its 10px scrollbar gutter are
+excluded from the accepted counts; they required no product source change.
+These are local synthetic checks; preview publication verification remains
+static-only and production/Server/D1 operations are outside this release.
+
 ## Shared console containers and named project selection (2026-10-08)
 
 All authenticated modules inherit full available width, gutters and bottom

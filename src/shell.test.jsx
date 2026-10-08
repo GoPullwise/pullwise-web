@@ -3,9 +3,75 @@ import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { WorkspaceContext } from "./components/workspace-context.jsx";
 import { Sidebar, Topbar } from "./shell.jsx";
 
 describe("Topbar navigation", () => {
+  it.each(["admin", "editor", "viewer"])(
+    "distinguishes your ledger from a shared ledger for a current %s role without changing selection IDs",
+    async (role) => {
+      const own = {
+        id: "user_alice",
+        ownerId: "user_alice",
+        name: "Same ledger name",
+        role: "owner",
+      };
+      const shared = {
+        id: "user_bob",
+        ownerId: "user_bob",
+        name: "Same ledger name",
+        role,
+      };
+      const onSelect = vi.fn();
+      const go = vi.fn();
+      const user = userEvent.setup();
+      const view = render(
+        <WorkspaceContext.Provider value={{ items: [own, shared], workspace: shared, onSelect }}>
+          <Topbar go={go} />
+        </WorkspaceContext.Provider>
+      );
+      const selector = screen.getByRole("combobox", { name: "Select ledger" });
+      expect(selector).toHaveValue("user_bob");
+      expect(selector).toHaveAttribute("title", "Shared ledger · Same ledger name");
+      expect(
+        within(selector).getByRole("option", { name: "Your ledger · Same ledger name" })
+      ).toHaveValue("user_alice");
+      expect(
+        within(selector).getByRole("option", { name: "Shared ledger · Same ledger name" })
+      ).toHaveProperty("selected", true);
+      await user.selectOptions(selector, "user_alice");
+      expect(onSelect).toHaveBeenCalledWith("user_alice");
+      view.rerender(
+        <WorkspaceContext.Provider value={{ items: [own, shared], workspace: own, onSelect }}>
+          <Topbar go={go} />
+        </WorkspaceContext.Provider>
+      );
+      expect(selector).toHaveValue("user_alice");
+      expect(selector).toHaveAttribute("title", "Your ledger · Same ledger name");
+      expect(
+        within(selector).getByRole("option", { name: "Your ledger · Same ledger name" })
+      ).toHaveProperty("selected", true);
+      expect(go).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not label an unknown ledger role as owned or shared", () => {
+    const workspace = { id: "user_unknown", ownerId: "user_unknown", name: "Unknown ledger" };
+    render(
+      <WorkspaceContext.Provider value={{ items: [workspace], workspace, onSelect: vi.fn() }}>
+        <Topbar go={vi.fn()} />
+      </WorkspaceContext.Provider>
+    );
+    const selector = screen.getByRole("combobox", { name: "Select ledger" });
+    expect(within(selector).getByRole("option", { name: "Unknown ledger" })).toHaveProperty(
+      "selected",
+      true
+    );
+    expect(selector).toHaveAttribute("title", "Unknown ledger");
+    expect(selector).not.toHaveTextContent("Your ledger");
+    expect(selector).not.toHaveTextContent("Shared ledger");
+  });
+
   it("renders the current breadcrumb with the same base styling as clickable breadcrumbs", () => {
     render(<Topbar go={vi.fn()} breadcrumbs={[{ label: "Overview" }]} />);
 

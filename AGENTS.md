@@ -4,11 +4,22 @@
 
 Projects search uses one square accent focus perimeter around the icon, input
 and clear action. The topbar Ledger label and picker stay side by side, with
-long ledger names constrained inside the native selector. Language, theme and
+long ledger names constrained inside the native selector. Prefix each option
+with the translated Your ledger/Shared ledger label from its actual workspace
+role, so ownership stays visible before long names truncate. Keep the real
+workspace ID as the option value and avoid extra owner-identity queries.
+Language, theme and
 back-to-top controls stay at the bottom right on all pages; reserve content
 clearance below console modules and bound the language menu above its opener.
-Member rows separate identity and role from aligned, wrapping management
-controls. Preserve hard edges, permission checks and identity/revision isolation.
+Members uses the shared `.ledger-split`: the member roster is primary, and
+invitation creation/pending invitations share the secondary management area.
+Read-only views keep the roster full-width. Member rows show local square
+initials, name/login, a single current role and explicit Edit role/Remove
+actions. Show the role form only on editing intent; do not repeat the role
+badge alongside an idle selector and disabled Save button. Editing and removal
+confirmation are mutually exclusive. Restore the row action's focus after
+cancel/save, including after row reload, and reflow by actual list width.
+Preserve hard edges, permission checks and identity/revision isolation.
 All authenticated console modules use the shared `.main` content container.
 `base.css` owns its full available width, gutters and bottom clearance; there
 is no per-page width opt-in or `.wide` modifier. Settings, Members, Ledger,

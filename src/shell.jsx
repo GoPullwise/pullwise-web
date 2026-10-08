@@ -4,6 +4,16 @@ import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
 import { useWorkspace } from "./components/workspace-context.jsx";
 
+function ledgerLabel(workspace) {
+  const ownership =
+    workspace.role === "owner"
+      ? T("Your ledger", "你的账本")
+      : ["admin", "editor", "viewer"].includes(workspace.role)
+        ? T("Shared ledger", "共享账本")
+        : "";
+  return ownership ? `${ownership} · ${workspace.name}` : workspace.name;
+}
+
 export function Topbar({ go, breadcrumbs, loading = false }) {
   useLang();
   const ledgers = useWorkspace();
@@ -76,12 +86,13 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
             <select
               id="workspace-select"
               aria-label={T("Select ledger", "选择账本")}
+              title={ledgerLabel(ledgers.workspace)}
               value={ledgers.workspace.id}
               onChange={(event) => ledgers.onSelect(event.target.value)}
             >
               {ledgers.items.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.name}
+                  {ledgerLabel(item)}
                 </option>
               ))}
             </select>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
+import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { Sidebar, Topbar } from "../shell.jsx";
 import "./ledger.css";
@@ -34,6 +35,22 @@ function roleName(role) {
 
 function memberName(member) {
   return member.githubLogin || member.name || member.userId;
+}
+
+function MemberIdentity({ name, login, children }) {
+  const initial = Array.from(String(name || login || "?").trim())[0]?.toLocaleUpperCase() || "?";
+  return (
+    <div className="member-identity">
+      <span className="member-avatar" aria-hidden="true">
+        {initial}
+      </span>
+      <div className="member-identity-copy">
+        <h3>{name || login}</h3>
+        {login && <span className="member-login">@{login}</span>}
+        {children}
+      </div>
+    </div>
+  );
 }
 
 function items(result) {
@@ -178,7 +195,13 @@ function MembersContent({
   const [conflict, setConflict] = useState(false);
   const [accessLost, setAccessLost] = useState(false);
   const [roles, setRoles] = useState({});
+  const [editId, setEditId] = useState("");
   const [removeId, setRemoveId] = useState("");
+  const roleInput = useRef(null);
+  const editOpeners = useRef(new Map());
+  const removeOpeners = useRef(new Map());
+  const focusAction = useRef(null);
+  const memberHeading = useRef(null);
   const [githubLogin, setGithubLogin] = useState("");
   const inviteLoginInput = useRef(null);
   const [inviteRole, setInviteRole] = useState("viewer");
@@ -247,6 +270,7 @@ function MembersContent({
     setConflict(false);
     setAccessLost(false);
     setRoles({});
+    setEditId("");
     setRemoveId("");
     accessNotified.current = false;
     // StrictMode's first setup is cancelled before dispatch, rather than
@@ -359,6 +383,26 @@ function MembersContent({
   };
 
   const disabled = busy || loading || !members || conflict || accessLost;
+  useEffect(() => {
+    if (loading || busy || !current(lifecycle.current)) return;
+    if (focusAction.current) {
+      const { action, userId } = focusAction.current;
+      focusAction.current = null;
+      const openers = action === "edit" ? editOpeners : removeOpeners;
+      const opener = openers.current.get(userId);
+      if (opener) opener.focus();
+      else memberHeading.current?.focus();
+    } else if (members && editId && !disabled) {
+      roleInput.current?.focus();
+    }
+  }, [editId, removeId, loading, busy, members, disabled, current]);
+
+  const closeRole = (userId) => {
+    if (!current(lifecycle.current) || actionPending.current) return;
+    focusAction.current = { action: "edit", userId };
+    setEditId("");
+    setRoles({});
+  };
   const createInvite = (event) => {
     event.preventDefault();
     if (!canManage) return;
@@ -566,338 +610,452 @@ function MembersContent({
             </p>
           )}
           {workspaceId && (
-            <section
-              className="panel"
-              aria-label={T("Ledger members", "账本成员")}
-              aria-busy={loading}
-            >
-              <div className="panel-h">
-                <h2>{T("Ledger members", "账本成员")}</h2>
-              </div>
-              {loading && <p role="status">{T("Loading members…", "正在加载成员…")}</p>}
-              {members && (
-                <div className="ledger-list member-list">
-                  {members.map((member) => {
-                    const label = memberName(member);
-                    const editable =
-                      canManage &&
-                      member.role !== "owner" &&
-                      EDITABLE_ROLES.includes(member.role) &&
-                      (canManageAdmins || member.role !== "admin");
-                    return (
-                      <article key={member.userId} className="member-row">
-                        <div className="member-identity">
-                          <h3>{member.name || label}</h3>
-                          <div className="member-meta">
-                            {member.githubLogin && (
-                              <span className="member-login">@{member.githubLogin}</span>
+            <div className={canManage ? "ledger-split" : undefined}>
+              <section
+                className="panel member-directory"
+                aria-label={T("Ledger members", "账本成员")}
+                aria-busy={loading}
+              >
+                <div className="panel-h">
+                  <I.User size={20} aria-hidden="true" />
+                  <h2 ref={memberHeading} tabIndex={-1}>
+                    {T("Ledger members", "账本成员")}
+                  </h2>
+                  {members && <span className="count">{members.length}</span>}
+                </div>
+                {loading && <p role="status">{T("Loading members…", "正在加载成员…")}</p>}
+                {members && (
+                  <div className="ledger-list member-list" data-manage={canManage}>
+                    {members.map((member) => {
+                      const label = memberName(member);
+                      const editable =
+                        canManage &&
+                        member.role !== "owner" &&
+                        EDITABLE_ROLES.includes(member.role) &&
+                        (canManageAdmins || member.role !== "admin");
+                      return (
+                        <article key={member.userId} className="member-row">
+                          <MemberIdentity name={member.name || label} login={member.githubLogin}>
+                            {member.role === "owner" && (
+                              <p className="ledger-meta">
+                                {T(
+                                  "Owner access cannot be changed here.",
+                                  "此处不能变更所有者权限。"
+                                )}
+                              </p>
                             )}
-                            <span className="tag">{roleName(member.role)}</span>
-                          </div>
-                          {member.role === "owner" && (
-                            <p className="ledger-meta">
-                              {T(
-                                "Owner access cannot be changed here.",
-                                "此处不能变更所有者权限。"
-                              )}
-                            </p>
-                          )}
-                          {canManage && member.role === "admin" && !canManageAdmins && (
-                            <p className="ledger-meta">
-                              {T(
-                                "Admin access cannot be changed here.",
-                                "此处不能变更管理员权限。"
-                              )}
-                            </p>
-                          )}
-                        </div>
-                        {editable && (
-                          <>
-                            <form
-                              className="member-controls"
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                const role = roles[member.userId] || member.role;
-                                if (
-                                  !canManage ||
-                                  role === member.role ||
-                                  !grantableRoles.includes(role)
-                                )
-                                  return;
-                                runAction(() =>
-                                  api.updateMember(
-                                    workspaceId,
-                                    member.userId,
-                                    member.revision,
-                                    { role },
-                                    {}
-                                  )
-                                );
-                              }}
-                            >
-                              <div className="ledger-field">
-                                <label htmlFor={`role-${member.userId}`}>{T("Role", "角色")}</label>
-                                <select
-                                  id={`role-${member.userId}`}
-                                  aria-label={T("Role for {member}", "{member} 的角色").replace(
-                                    "{member}",
-                                    label
-                                  )}
-                                  value={roles[member.userId] || member.role}
-                                  disabled={disabled}
-                                  onChange={(event) =>
-                                    setRoles((values) => ({
-                                      ...values,
-                                      [member.userId]: event.target.value,
-                                    }))
-                                  }
-                                >
-                                  {grantableRoles.map((role) => (
-                                    <option key={role} value={role}>
-                                      {roleName(role)}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div className="panel-actions">
+                            {canManage && member.role === "admin" && !canManageAdmins && (
+                              <p className="ledger-meta">
+                                {T(
+                                  "Admin access cannot be changed here.",
+                                  "此处不能变更管理员权限。"
+                                )}
+                              </p>
+                            )}
+                          </MemberIdentity>
+                          <p className="member-role">{roleName(member.role)}</p>
+                          {editable && (
+                            <>
+                              <div className="panel-actions member-actions">
                                 <button
                                   className="btn"
-                                  type="submit"
+                                  type="button"
+                                  ref={(element) => {
+                                    if (element) editOpeners.current.set(member.userId, element);
+                                    else editOpeners.current.delete(member.userId);
+                                  }}
                                   aria-label={T(
-                                    "Save role for {member}",
-                                    "保存 {member} 的角色"
+                                    "Edit role for {member}",
+                                    "编辑 {member} 的角色"
                                   ).replace("{member}", label)}
-                                  disabled={
-                                    disabled ||
-                                    !roles[member.userId] ||
-                                    roles[member.userId] === member.role
+                                  aria-expanded={editId === member.userId}
+                                  aria-controls={
+                                    editId === member.userId
+                                      ? `member-editor-${member.userId}`
+                                      : undefined
                                   }
+                                  disabled={disabled}
+                                  onClick={() => {
+                                    if (disabled || !current(lifecycle.current)) return;
+                                    if (editId === member.userId) {
+                                      roleInput.current?.focus();
+                                      return;
+                                    }
+                                    focusAction.current = null;
+                                    setRemoveId("");
+                                    setRoles({ [member.userId]: member.role });
+                                    setEditId(member.userId);
+                                  }}
                                 >
-                                  {T("Save role", "保存角色")}
+                                  {T("Edit role", "编辑角色")}
                                 </button>
                                 {removeId !== member.userId && (
                                   <button
                                     className="btn ghost"
                                     type="button"
+                                    ref={(element) => {
+                                      if (element)
+                                        removeOpeners.current.set(member.userId, element);
+                                      else removeOpeners.current.delete(member.userId);
+                                    }}
                                     aria-label={T("Remove {member}", "移除 {member}").replace(
                                       "{member}",
                                       label
                                     )}
                                     disabled={disabled}
-                                    onClick={() => setRemoveId(member.userId)}
+                                    onClick={() => {
+                                      if (disabled || !current(lifecycle.current)) return;
+                                      focusAction.current = null;
+                                      setEditId("");
+                                      setRoles({});
+                                      setRemoveId(member.userId);
+                                    }}
                                   >
                                     {T("Remove", "移除")}
                                   </button>
                                 )}
                               </div>
-                            </form>
-                            {removeId === member.userId && (
-                              <div className="notice">
-                                <p>
-                                  {T(
-                                    "Removing this member ends their ledger access.",
-                                    "移除此成员后，对方将失去账本权限。"
-                                  )}
-                                </p>
-                                <div className="panel-actions">
-                                  <button
-                                    className="btn"
-                                    disabled={disabled}
-                                    onClick={() => {
-                                      if (canManage && member.role !== "owner")
-                                        runAction(() =>
-                                          api.removeMember(
-                                            workspaceId,
-                                            member.userId,
-                                            member.revision,
-                                            {}
-                                          )
-                                        );
-                                    }}
-                                  >
-                                    {T(`Confirm remove ${label}`, `确认移除 ${label}`)}
-                                  </button>
-                                  <button
-                                    className="btn ghost"
-                                    disabled={busy}
-                                    onClick={() => setRemoveId("")}
-                                  >
-                                    {T("Cancel", "取消")}
-                                  </button>
+                              {editId === member.userId && (
+                                <form
+                                  className="notice member-controls"
+                                  id={`member-editor-${member.userId}`}
+                                  aria-label={T(
+                                    "Edit role for {member}",
+                                    "编辑 {member} 的角色"
+                                  ).replace("{member}", label)}
+                                  onSubmit={(event) => {
+                                    event.preventDefault();
+                                    const role = roles[member.userId] || member.role;
+                                    if (
+                                      editId !== member.userId ||
+                                      !canManage ||
+                                      role === member.role ||
+                                      !grantableRoles.includes(role)
+                                    )
+                                      return;
+                                    runAction(
+                                      () =>
+                                        api.updateMember(
+                                          workspaceId,
+                                          member.userId,
+                                          member.revision,
+                                          { role },
+                                          {}
+                                        ),
+                                      () => {
+                                        focusAction.current = {
+                                          action: "edit",
+                                          userId: member.userId,
+                                        };
+                                      }
+                                    );
+                                  }}
+                                >
+                                  <div className="ledger-field">
+                                    <label htmlFor={`role-${member.userId}`}>
+                                      {T("Role", "角色")}
+                                    </label>
+                                    <select
+                                      id={`role-${member.userId}`}
+                                      ref={roleInput}
+                                      aria-label={T("Role for {member}", "{member} 的角色").replace(
+                                        "{member}",
+                                        label
+                                      )}
+                                      value={roles[member.userId] || member.role}
+                                      disabled={disabled}
+                                      onChange={(event) =>
+                                        setRoles((values) => ({
+                                          ...values,
+                                          [member.userId]: event.target.value,
+                                        }))
+                                      }
+                                    >
+                                      {grantableRoles.map((role) => (
+                                        <option key={role} value={role}>
+                                          {roleName(role)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div className="panel-actions">
+                                    <button
+                                      className="btn"
+                                      type="submit"
+                                      aria-label={T(
+                                        "Save role for {member}",
+                                        "保存 {member} 的角色"
+                                      ).replace("{member}", label)}
+                                      disabled={
+                                        disabled ||
+                                        !roles[member.userId] ||
+                                        roles[member.userId] === member.role
+                                      }
+                                    >
+                                      {T("Save role", "保存角色")}
+                                    </button>
+                                    <button
+                                      className="btn ghost"
+                                      type="button"
+                                      aria-label={T(
+                                        "Cancel role editing for {member}",
+                                        "取消编辑 {member} 的角色"
+                                      ).replace("{member}", label)}
+                                      disabled={busy}
+                                      onClick={() => closeRole(member.userId)}
+                                    >
+                                      {T("Cancel", "取消")}
+                                    </button>
+                                  </div>
+                                </form>
+                              )}
+                              {removeId === member.userId && (
+                                <div className="notice">
+                                  <p>
+                                    {T(
+                                      "Removing this member ends their ledger access.",
+                                      "移除此成员后，对方将失去账本权限。"
+                                    )}
+                                  </p>
+                                  <div className="panel-actions">
+                                    <button
+                                      className="btn"
+                                      autoFocus
+                                      disabled={disabled}
+                                      onClick={() => {
+                                        if (canManage && member.role !== "owner")
+                                          runAction(
+                                            () =>
+                                              api.removeMember(
+                                                workspaceId,
+                                                member.userId,
+                                                member.revision,
+                                                {}
+                                              ),
+                                            () => {
+                                              focusAction.current = {
+                                                action: "remove",
+                                                userId: member.userId,
+                                              };
+                                            }
+                                          );
+                                      }}
+                                    >
+                                      {T("Confirm remove {member}", "确认移除 {member}").replace(
+                                        "{member}",
+                                        label
+                                      )}
+                                    </button>
+                                    <button
+                                      className="btn ghost"
+                                      disabled={busy}
+                                      aria-label={T(
+                                        "Cancel removing {member}",
+                                        "取消移除 {member}"
+                                      ).replace("{member}", label)}
+                                      onClick={() => {
+                                        if (!current(lifecycle.current) || actionPending.current)
+                                          return;
+                                        focusAction.current = {
+                                          action: "remove",
+                                          userId: member.userId,
+                                        };
+                                        setRemoveId("");
+                                      }}
+                                    >
+                                      {T("Cancel", "取消")}
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          )}
-          {workspaceId && canManage && (
-            <>
-              <section className="panel" aria-label={T("Invite member", "邀请成员")}>
-                <div className="panel-h">
-                  <h2>{T("Invite member", "邀请成员")}</h2>
-                </div>
-                <div className="panel-body">
-                  <p className="notice">
-                    {T(
-                      "Inviting shares all existing and future ledger data, including projects, categories, shared expenses and reports.",
-                      "邀请成员将按所授角色共享此所有者账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
-                    )}
-                  </p>
-                  <form className="ledger-form" onSubmit={createInvite}>
-                    <div className="ledger-field">
-                      <label htmlFor="invite-github-login">
-                        {T("GitHub username", "GitHub 用户名")}
-                      </label>
-                      <input
-                        id="invite-github-login"
-                        className="auth-input"
-                        ref={inviteLoginInput}
-                        aria-describedby="invite-github-help"
-                        value={githubLogin}
-                        required
-                        maxLength={100}
-                        disabled={disabled}
-                        autoComplete="off"
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        placeholder="octocat / @octocat / https://github.com/octocat"
-                        onChange={(event) => setGithubLogin(event.target.value)}
-                      />
-                      <p className="ledger-help" id="invite-github-help">
-                        {T(
-                          "Use a username, @username or GitHub profile URL. Only that GitHub account can accept the link.",
-                          "支持用户名、@用户名或 GitHub 个人主页链接，只有对应的 GitHub 账户可以接受邀请。"
-                        )}
-                      </p>
-                    </div>
-                    <div className="ledger-field">
-                      <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
-                      <select
-                        id="invite-role"
-                        className="auth-input"
-                        value={inviteRole}
-                        disabled={disabled}
-                        onChange={(event) => setInviteRole(event.target.value)}
-                      >
-                        {grantableRoles.map((role) => (
-                          <option value={role} key={role}>
-                            {roleName(role)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="panel-actions">
-                      <button className="btn primary" type="submit" disabled={disabled}>
-                        {T("Create invitation", "创建邀请")}
-                      </button>
-                    </div>
-                  </form>
-                  {createdInvite && (
-                    <div className="notice" role="status">
-                      <div className="panel-body">
-                        <p>
-                          {T("GitHub account", "GitHub 账户")}: {createdInvite.recipient.login} ·{" "}
-                          {roleName(createdInvite.role)}
-                        </p>
-                        <p>
-                          {T(
-                            "Send this link to @{username}. Only that GitHub account can accept it.",
-                            "请将此链接发送给 @{username}，只有该 GitHub 账户可以接受邀请。"
-                          ).replace("{username}", createdInvite.recipient.login)}
-                        </p>
-                        <p>
-                          {T("Expires", "有效期至")}: {createdInvite.expiresAt}
-                        </p>
-                        <p>
-                          {T(
-                            "This link is shown only now. Copy it before leaving this page.",
-                            "此链接只在本次创建后显示，请在离开页面前复制。"
+                              )}
+                            </>
                           )}
-                        </p>
-                        <div className="ledger-field">
-                          <label htmlFor="new-invitation-link">
-                            {T("New invitation link", "新邀请链接")}
-                          </label>
-                          <input
-                            id="new-invitation-link"
-                            value={createdInvite.link}
-                            readOnly
-                            onFocus={(event) => event.target.select()}
-                          />
-                        </div>
-                        <div className="panel-actions">
-                          <button
-                            className="btn"
-                            onClick={copyInvite}
-                            disabled={copied || copying}
-                            aria-busy={copying}
-                          >
-                            {copied
-                              ? T("Copied", "已复制")
-                              : T("Copy invitation link", "复制邀请链接")}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-              <section
-                className="panel"
-                aria-label={T("Pending invitations", "待接受邀请")}
-                aria-busy={loading}
-              >
-                <div className="panel-h">
-                  <h2>{T("Pending invitations", "待接受邀请")}</h2>
-                </div>
-                {invites && invites.length === 0 && (
-                  <p>{T("No pending invitations.", "没有待接受的邀请。")}</p>
-                )}
-                {invites && (
-                  <div className="ledger-list">
-                    {invites.map((invite) => (
-                      <article key={invite.id}>
-                        <h3>{invite.recipient?.login}</h3>
-                        <p>
-                          {roleName(invite.role)} · {T("Expires", "有效期至")}: {invite.expiresAt}
-                        </p>
-                        {(canManageAdmins || invite.role !== "admin") && (
-                          <button
-                            className="btn"
-                            aria-label={T(
-                              "Revoke invitation for {member}",
-                              "撤销 {member} 的邀请"
-                            ).replace("{member}", invite.recipient?.login)}
-                            disabled={disabled}
-                            onClick={() => {
-                              if (canManage && (canManageAdmins || invite.role !== "admin"))
-                                runAction(
-                                  () =>
-                                    api.revokeInvite(workspaceId, invite.id, invite.revision, {}),
-                                  () => {
-                                    if (createdInvite?.id === invite.id) {
-                                      inviteVersion.current += 1;
-                                      setCreatedInvite(null);
-                                    }
-                                  }
-                                );
-                            }}
-                          >
-                            {T("Revoke invitation", "撤销邀请")}
-                          </button>
-                        )}
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </section>
-            </>
+              {canManage && (
+                <aside
+                  className="panel member-management"
+                  aria-label={T("Member management", "成员管理")}
+                >
+                  <section className="panel" aria-label={T("Invite member", "邀请成员")}>
+                    <div className="panel-h">
+                      <I.Plus size={20} aria-hidden="true" />
+                      <h2>{T("Invite member", "邀请成员")}</h2>
+                    </div>
+                    <div className="panel-body">
+                      <p className="notice">
+                        {T(
+                          "Inviting shares all existing and future ledger data, including projects, categories, shared expenses and reports.",
+                          "邀请成员将按所授角色共享此所有者账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
+                        )}
+                      </p>
+                      <form className="ledger-form" onSubmit={createInvite}>
+                        <div className="ledger-field">
+                          <label htmlFor="invite-github-login">
+                            {T("GitHub username", "GitHub 用户名")}
+                          </label>
+                          <input
+                            id="invite-github-login"
+                            className="auth-input"
+                            ref={inviteLoginInput}
+                            aria-describedby="invite-github-help"
+                            value={githubLogin}
+                            required
+                            maxLength={100}
+                            disabled={disabled}
+                            autoComplete="off"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            placeholder="octocat / @octocat / https://github.com/octocat"
+                            onChange={(event) => setGithubLogin(event.target.value)}
+                          />
+                          <p className="ledger-help" id="invite-github-help">
+                            {T(
+                              "Use a username, @username or GitHub profile URL. Only that GitHub account can accept the link.",
+                              "支持用户名、@用户名或 GitHub 个人主页链接，只有对应的 GitHub 账户可以接受邀请。"
+                            )}
+                          </p>
+                        </div>
+                        <div className="ledger-field">
+                          <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
+                          <select
+                            id="invite-role"
+                            className="auth-input"
+                            value={inviteRole}
+                            disabled={disabled}
+                            onChange={(event) => setInviteRole(event.target.value)}
+                          >
+                            {grantableRoles.map((role) => (
+                              <option value={role} key={role}>
+                                {roleName(role)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="panel-actions">
+                          <button className="btn primary" type="submit" disabled={disabled}>
+                            {T("Create invitation", "创建邀请")}
+                          </button>
+                        </div>
+                      </form>
+                      {createdInvite && (
+                        <div className="notice" role="status">
+                          <div className="panel-body">
+                            <p>
+                              {T("GitHub account", "GitHub 账户")}: {createdInvite.recipient.login}{" "}
+                              · {roleName(createdInvite.role)}
+                            </p>
+                            <p>
+                              {T(
+                                "Send this link to @{username}. Only that GitHub account can accept it.",
+                                "请将此链接发送给 @{username}，只有该 GitHub 账户可以接受邀请。"
+                              ).replace("{username}", createdInvite.recipient.login)}
+                            </p>
+                            <p>
+                              {T("Expires", "有效期至")}: {createdInvite.expiresAt}
+                            </p>
+                            <p>
+                              {T(
+                                "This link is shown only now. Copy it before leaving this page.",
+                                "此链接只在本次创建后显示，请在离开页面前复制。"
+                              )}
+                            </p>
+                            <div className="ledger-field">
+                              <label htmlFor="new-invitation-link">
+                                {T("New invitation link", "新邀请链接")}
+                              </label>
+                              <input
+                                id="new-invitation-link"
+                                value={createdInvite.link}
+                                readOnly
+                                onFocus={(event) => event.target.select()}
+                              />
+                            </div>
+                            <div className="panel-actions">
+                              <button
+                                className="btn"
+                                onClick={copyInvite}
+                                disabled={copied || copying}
+                                aria-busy={copying}
+                              >
+                                {copied
+                                  ? T("Copied", "已复制")
+                                  : T("Copy invitation link", "复制邀请链接")}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                  <section
+                    className="panel"
+                    aria-label={T("Pending invitations", "待接受邀请")}
+                    aria-busy={loading}
+                  >
+                    <div className="panel-h">
+                      <I.Mail size={20} aria-hidden="true" />
+                      <h2>{T("Pending invitations", "待接受邀请")}</h2>
+                      {invites && <span className="count">{invites.length}</span>}
+                    </div>
+                    {invites && invites.length === 0 && (
+                      <p>{T("No pending invitations.", "没有待接受的邀请。")}</p>
+                    )}
+                    {invites && (
+                      <div className="ledger-list member-list member-invites">
+                        {invites.map((invite) => (
+                          <article key={invite.id} className="member-row">
+                            <MemberIdentity name={invite.recipient?.login}>
+                              <span className="member-role">{roleName(invite.role)}</span>
+                              <p className="ledger-meta">
+                                {T("Expires", "有效期至")}:{" "}
+                                <time dateTime={invite.expiresAt}>{invite.expiresAt}</time>
+                              </p>
+                            </MemberIdentity>
+                            {(canManageAdmins || invite.role !== "admin") && (
+                              <div className="panel-actions member-actions">
+                                <button
+                                  className="btn"
+                                  aria-label={T(
+                                    "Revoke invitation for {member}",
+                                    "撤销 {member} 的邀请"
+                                  ).replace("{member}", invite.recipient?.login)}
+                                  disabled={disabled}
+                                  onClick={() => {
+                                    if (canManage && (canManageAdmins || invite.role !== "admin"))
+                                      runAction(
+                                        () =>
+                                          api.revokeInvite(
+                                            workspaceId,
+                                            invite.id,
+                                            invite.revision,
+                                            {}
+                                          ),
+                                        () => {
+                                          if (createdInvite?.id === invite.id) {
+                                            inviteVersion.current += 1;
+                                            setCreatedInvite(null);
+                                          }
+                                        }
+                                      );
+                                  }}
+                                >
+                                  {T("Revoke invitation", "撤销邀请")}
+                                </button>
+                              </div>
+                            )}
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </aside>
+              )}
+            </div>
           )}
         </main>
       </div>

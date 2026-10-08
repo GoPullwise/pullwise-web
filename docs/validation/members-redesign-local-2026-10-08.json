@@ -1,0 +1,2967 @@
+{
+  "date": "2026-10-08",
+  "status": "Local Members redesign and ledger ownership acceptance passed",
+  "sourceBaseCommit": "e877a833645e977fe137dbae40b36ce97371fbff",
+  "sourceSha256": {
+    "styles/base.css": "d9c363c963a8c48927de2ce1bfa1300a270c43545c1681c140e88a2b2949b361",
+    "styles/screens.css": "1965b074fb0caa4f59de93021e032105c4ea00fd5a152ece8f4f01e6307a47f9",
+    "src/app.css": "c294513398b4b9820f9fd7daa462bdd6159b6161d824663edfac331b7a4c86dd",
+    "src/screens/members.jsx": "3fbf48e741a5308026830e648b6726b01ea0eba2a325e789a824c5cbb3f2e04e",
+    "src/screens/members.test.jsx": "dad010ea8529271ba2496e13eb249ec1b8ee8b73fe1dfc576be5cdc59a342313",
+    "src/shell.jsx": "632370fc502f4b77d9f021ea4ebcdfd09ef252cebd8b0973cc04749abf3c00e6",
+    "src/shell.test.jsx": "a17e89e7b9d5ce032da9649e92e0b940e4839caa7a27644dcb80df8da4d6b9e6",
+    "src/locales/ledger-ui.js": "0c8f545936dbbdd7efe33b04a0239f919da8882ee0692cd7bce693f5f06f9299"
+  },
+  "changes": [
+    "Members reuses the shared fluid main and ledger-split for the primary directory and secondary invitation management; read-only views retain the full-width directory.",
+    "Member rows separate local square initials, identity, one current role and explicit edit/remove actions. One inline role editor opens on intent with revision/permission/focus guards.",
+    "Topbar ledger options prefix actual workspace names with translated Your ledger or Shared ledger based on current actor role, preserving original selection IDs.",
+    "Complete current/future ledger sharing warnings are translated in every supported locale."
+  ],
+  "checks": {
+    "lint": true,
+    "testFiles": 36,
+    "tests": 499,
+    "build": true,
+    "workerConfiguration": true,
+    "workerSyntax": true,
+    "changedFileFormatting": true,
+    "wranglerPreviewDryRun": true
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "architectureReview": {
+    "mainWidthOwner": "styles/base.css",
+    "splitOwner": "src/screens/ledger.css",
+    "sharedPanelsAndActionsReused": true,
+    "noNewPageWidthOrSplitBreakpoint": true,
+    "memberContainerReflow": true,
+    "roleActionsAlignAcrossProtectedAndEditableRows": true,
+    "ownerAdminRevisionScopeGuardsRetained": true,
+    "noAdditionalOwnershipApiReads": true
+  },
+  "browser": "Chrome/151.0.7922.173",
+  "localScope": "Finite built native Chromium local fixture-only Members redesign acceptance. Shared split directory/management hierarchy, identity/avatar/currentrole/actions, explicit role editors, permissions/focus/removecancel, held loading/503 recovery; no real auth/provider/business API. All external origins blocked, cap120/context. Exactly3 planned synthetic localPATCHs andone900px authorizedsynthetic invitationPOST (smoke900only haszeroPATCHs); everyothermutationblocked. Wholepage1440/1920 andwhole-row mobile captures use native clip, actual sticky chrome offset and before/after viewport/touch/scroll checks.",
+  "requestCapPerContext": 120,
+  "browserAcceptance": {
+    "harnessSha256": "e0243b5b410290df0b908e54bf586391f2d696d535aca83ad9922149239267e0",
+    "startedAt": "2026-10-08T05:21:49.450Z",
+    "completedAt": "2026-10-08T05:23:13.559Z",
+    "contexts": 16,
+    "geometryStates": 86,
+    "captures": 25,
+    "interceptedRequests": 482,
+    "syntheticGetRequests": 87,
+    "syntheticPatches": [
+      {
+        "key": "members-owner-960-en-light",
+        "path": "/api/api/v1/workspaces/ws_fixture/members/u_editor",
+        "method": "PATCH",
+        "body": {
+          "role": "viewer"
+        },
+        "ifMatch": "\"3\"",
+        "workspace": "ws_fixture"
+      },
+      {
+        "key": "members-owner-320-en-light",
+        "path": "/api/api/v1/workspaces/ws_fixture/members/u_editor",
+        "method": "PATCH",
+        "body": {
+          "role": "viewer"
+        },
+        "ifMatch": "\"3\"",
+        "workspace": "ws_fixture"
+      },
+      {
+        "key": "members-owner-390-zh-dark",
+        "path": "/api/api/v1/workspaces/ws_fixture/members/u_editor",
+        "method": "PATCH",
+        "body": {
+          "role": "viewer"
+        },
+        "ifMatch": "\"3\"",
+        "workspace": "ws_fixture"
+      }
+    ],
+    "syntheticInvitationPosts": [
+      {
+        "key": "members-owner-900-en-light",
+        "path": "/api/api/v1/workspaces/ws_fixture/invites",
+        "body": {
+          "githubLogin": "fixture-invite-account",
+          "role": "viewer"
+        },
+        "fixtureOnly": true
+      }
+    ],
+    "externalRequestsBlocked": 18,
+    "pageErrors": [],
+    "unknownApis": [],
+    "blockedMutations": [],
+    "frenchSharingWarning": {
+      "localized": true,
+      "expectedText": "Inviter un membre partage toutes les données actuelles et futures de ce registre, y compris les projets, les catégories, les dépenses partagées et les rapports, selon le rôle attribué.",
+      "source": "ledger-ui French catalog"
+    },
+    "profiles": [
+      {
+        "profile": {
+          "width": 900,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner",
+          "coarse": true
+        },
+        "requests": 27,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 900,
+            "mainWidth": 680,
+            "directoryWidth": 300,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-900-en-light-default-page.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 900,
+            "mainWidth": 680,
+            "directoryWidth": 300,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 900,
+            "mainWidth": 680,
+            "directoryWidth": 300,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 900,
+            "mainWidth": 680,
+            "directoryWidth": 300,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 900,
+            "mainWidth": 680,
+            "directoryWidth": 300,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "invitation-created",
+            "viewportWidth": 900,
+            "mainWidth": 680,
+            "directoryWidth": 300,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-900-en-light-invitation-created-page.png"]
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 960,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner",
+          "coarse": false
+        },
+        "requests": 52,
+        "states": [
+          {
+            "name": "loading",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-960-en-light-loading-viewport.png"]
+          },
+          {
+            "name": "default",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-960-en-light-default-viewport.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-960-en-light-editor-open-row.png"]
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "saving-held",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "saved",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-960-en-light-remove-confirm-row.png"]
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "error",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-960-en-light-error-viewport.png"]
+          },
+          {
+            "name": "recovered",
+            "viewportWidth": 960,
+            "mainWidth": 740,
+            "directoryWidth": 360,
+            "managementWidth": 260,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 1440,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner",
+          "coarse": false
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-1440-en-light-default-page.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 1920,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner",
+          "coarse": false
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 1920,
+            "mainWidth": 1700,
+            "directoryWidth": 1240,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-1920-en-light-default-page.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 1920,
+            "mainWidth": 1700,
+            "directoryWidth": 1240,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 1920,
+            "mainWidth": 1700,
+            "directoryWidth": 1240,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 1920,
+            "mainWidth": 1700,
+            "directoryWidth": 1240,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 1920,
+            "mainWidth": 1700,
+            "directoryWidth": 1240,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 2560,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner",
+          "coarse": false
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "directoryWidth": 1880,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-2560-en-light-default-row.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "directoryWidth": 1880,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "directoryWidth": 1880,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "directoryWidth": 1880,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 2560,
+            "mainWidth": 2340,
+            "directoryWidth": 1880,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 320,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner"
+        },
+        "requests": 27,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": [
+              "members-owner-320-en-light-default-row.png",
+              "members-owner-320-en-light-default-row-fallback.png"
+            ]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-320-en-light-editor-open-row.png"]
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "saving-held",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "saved",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-320-en-light-remove-confirm-row.png"]
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 320,
+          "lang": "en",
+          "theme": "dark",
+          "actor": "owner"
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 320,
+          "lang": "zh",
+          "theme": "light",
+          "actor": "owner"
+        },
+        "requests": 30,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 320,
+          "lang": "zh",
+          "theme": "dark",
+          "actor": "owner"
+        },
+        "requests": 30,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-320-zh-dark-default-row.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 390,
+          "lang": "en",
+          "theme": "light",
+          "actor": "owner"
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 390,
+          "lang": "en",
+          "theme": "dark",
+          "actor": "owner"
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-390-en-dark-default-row.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Your ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Your ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Your ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "light",
+          "actor": "owner"
+        },
+        "requests": 30,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-390-zh-light-default-row.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "dark",
+          "actor": "owner"
+        },
+        "requests": 66,
+        "states": [
+          {
+            "name": "loading",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "default",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-390-zh-dark-default-row.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-390-zh-dark-editor-open-row.png"]
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "saving-held",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "saved",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-390-zh-dark-remove-confirm-row.png"]
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "error",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "recovered",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": 358,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "你的账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "你的账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "你的账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 1440,
+          "lang": "en",
+          "theme": "light",
+          "actor": "admin"
+        },
+        "requests": 23,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Shared ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Shared ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Shared ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-admin-1440-en-light-default-page.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Shared ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Shared ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Shared ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-admin-1440-en-light-editor-open-row.png"]
+          },
+          {
+            "name": "editor-cancel",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Shared ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Shared ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Shared ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-confirm",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Shared ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Shared ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Shared ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          },
+          {
+            "name": "remove-cancel",
+            "viewportWidth": 1440,
+            "mainWidth": 1220,
+            "directoryWidth": 760,
+            "managementWidth": 340,
+            "mainMaxWidth": "none",
+            "coarse": false,
+            "touchPoints": 0,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Shared ledger · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Shared ledger · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Shared ledger · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Shared ledger · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": []
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 390,
+          "lang": "zh",
+          "theme": "dark",
+          "actor": "viewer"
+        },
+        "requests": 29,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 390,
+            "mainWidth": 390,
+            "directoryWidth": 358,
+            "managementWidth": null,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "共享账本 · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "共享账本 · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "共享账本 · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "共享账本 · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-viewer-390-zh-dark-default-page.png"]
+          }
+        ]
+      },
+      {
+        "profile": {
+          "width": 320,
+          "lang": "fr",
+          "theme": "light",
+          "actor": "owner"
+        },
+        "requests": 30,
+        "states": [
+          {
+            "name": "default",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Votre registre · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Votre registre · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Votre registre · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Registre partagé · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-320-fr-light-default-row.png"]
+          },
+          {
+            "name": "editor-open",
+            "viewportWidth": 320,
+            "mainWidth": 320,
+            "directoryWidth": 288,
+            "managementWidth": 288,
+            "mainMaxWidth": "none",
+            "coarse": true,
+            "touchPoints": 1,
+            "overflow": [],
+            "overlap": [],
+            "ledger": {
+              "title": "Votre registre · Pullwise preview team ledger",
+              "value": "ws_fixture",
+              "selectedText": "Votre registre · Pullwise preview team ledger",
+              "options": [
+                {
+                  "value": "ws_fixture",
+                  "text": "Votre registre · Pullwise preview team ledger"
+                },
+                {
+                  "value": "ws_fixture_long",
+                  "text": "Registre partagé · Shared operational ledger with a longer workspace name"
+                }
+              ]
+            },
+            "captures": ["members-owner-320-fr-light-editor-open-row.png"]
+          }
+        ]
+      }
+    ],
+    "captureEnvironment": {
+      "nativeBrowserFlags": ["--headless=new", "--hide-scrollbars"],
+      "scrollbars": "Native scrollbars hidden consistently before baseline and screenshot; scrolling remains enabled",
+      "postCaptureRestore": "Touch emulation restored then two animation frames and 100ms settle before strict geometry comparison"
+    },
+    "visualReview": {
+      "passed": true,
+      "reviewedCaptures": [
+        "members-owner-900-en-light-invitation-created-page.png",
+        "members-owner-1440-en-light-default-page.png",
+        "members-owner-1920-en-light-default-page.png",
+        "members-owner-320-en-light-editor-open-row.png",
+        "members-owner-390-zh-dark-editor-open-row.png",
+        "members-owner-390-zh-light-default-row.png",
+        "members-owner-320-fr-light-editor-open-row.png",
+        "members-admin-1440-en-light-default-page.png",
+        "members-viewer-390-zh-dark-default-page.png"
+      ]
+    },
+    "excludedCaptureDiagnostics": {
+      "runs": 2,
+      "fixtureGetOnly": true,
+      "productSourceChanged": false,
+      "remoteApplicationRequests": 0,
+      "reason": "Native full-page capture temporarily removed its 10px scrollbar gutter; width consistency failed while scroll, coarse pointer and maxTouchPoints remained unchanged. Final baselines and captures uniformly use native --hide-scrollbars and retain strict viewport/scroll/touch assertions."
+    }
+  },
+  "buildArtifact": {
+    "manifestCount": 43,
+    "manifestSha256": "1000a1cb2c99fac0963f2969503ba42dc25c048e307feb57f21e26a9252a72a5",
+    "stableAcrossBrowserAcceptance": true,
+    "manifest": [
+      {
+        "path": "_headers",
+        "bytes": 270,
+        "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+      },
+      {
+        "path": "assets/api-docs-Ceg7di_H.js",
+        "bytes": 14645,
+        "sha256": "6dbf4d78bf16a32b10a86c45abf333391746347b076a8d77ea69951b8ccbbd7b"
+      },
+      {
+        "path": "assets/api-DXj3-iSA.js",
+        "bytes": 24112,
+        "sha256": "8e7186c1219d594b8b75f06346a677e1b34d08294bd36e5d2ededb440366a679"
+      },
+      {
+        "path": "assets/auth-DMYWn6Zf.js",
+        "bytes": 8495,
+        "sha256": "fdf3db1274979fb767567646cd6bad960830fc5fe1d4739c3221e67eaf869d3a"
+      },
+      {
+        "path": "assets/billing-wo9l23AL.js",
+        "bytes": 31908,
+        "sha256": "2ddf882485f050a9a6bdfda1e06b5f36818ce839e101ab95b7d206d139be09ac"
+      },
+      {
+        "path": "assets/confirm-dialog-DrMiyYri.js",
+        "bytes": 2992,
+        "sha256": "22bb43d6c9228fc2b2c48e139f60a18eedf90d3bc3654b913cc094a1ed1f9e0f"
+      },
+      {
+        "path": "assets/docs-D6fQMM8r.js",
+        "bytes": 6565,
+        "sha256": "4c7115ead94bd8aa5c2c7d1bb14a99b55cac0a9e859b289a7a1be68982218a6c"
+      },
+      {
+        "path": "assets/dynamic-DCZrMema.js",
+        "bytes": 4150,
+        "sha256": "501dd5c94f8fbf844992a8bb94d3de3b267653e8cff8bdfe7e13b310d8c63dfc"
+      },
+      {
+        "path": "assets/es-683QKabM.js",
+        "bytes": 12961,
+        "sha256": "749d530105eaa50b1e5bb4e0faad2e4160511b335f73458be9174a260bb47130"
+      },
+      {
+        "path": "assets/fr-DfZHQbgS.js",
+        "bytes": 13283,
+        "sha256": "db2319ec96719e64469b1f1c0191eecdd33a6ed88aefef054a7f206384a23019"
+      },
+      {
+        "path": "assets/index-BT4Ptylr.js",
+        "bytes": 42061,
+        "sha256": "3fc537b004911cdfd4e80f2733c858e1d90bed42cab03df09b43011e6dfe7176"
+      },
+      {
+        "path": "assets/index-Dvt-9UPF.css",
+        "bytes": 75426,
+        "sha256": "39e1b613359eaaa615d83de4ccc116c15a06f108ce818dd885d83fc1995fb93a"
+      },
+      {
+        "path": "assets/ja-C8b4xV62.js",
+        "bytes": 13959,
+        "sha256": "514f4a4dc67d95220873faf28838651d4d465993c5b532894fdd469fea4c918b"
+      },
+      {
+        "path": "assets/ko-BUVTLl8w.js",
+        "bytes": 12762,
+        "sha256": "b8e2eb7689b5f3fb0c3f938cc36c239693737edf09d2e5b8dc6ba63cf1d6c2b5"
+      },
+      {
+        "path": "assets/ledger-Bg5eiPh6.js",
+        "bytes": 11492,
+        "sha256": "459cb36f8015f6974aa0fd5a3dc2216bbaa79baa2b8526cf114ae845622813e4"
+      },
+      {
+        "path": "assets/ledger-CGClZRN6.js",
+        "bytes": 2925,
+        "sha256": "53f0b5137acbb950e9310dd62bf3d974489854d4c16ed3a06d8e346a5f96f414"
+      },
+      {
+        "path": "assets/ledger-D4KDF3QE.css",
+        "bytes": 10667,
+        "sha256": "ed7306d1537a74fba25d383eb73f959049fa505993bb855d9a21f28b9545988a"
+      },
+      {
+        "path": "assets/ledger-DbIg1MCD.js",
+        "bytes": 55996,
+        "sha256": "30e067b4caa810ad9f2416f78d10155213699b4b49f87d75962d305294a2ad58"
+      },
+      {
+        "path": "assets/ledger-longform-DOxwwOdJ.js",
+        "bytes": 53941,
+        "sha256": "55a1d40a3b1c62fe6a5a7858e5485a8dbb5e0f0b01f1f5482a08a04d8795a9bd"
+      },
+      {
+        "path": "assets/ledger-scopes-B4otesy_.js",
+        "bytes": 3975,
+        "sha256": "a3afd12cc23a107eddb1efa9e97135d76ccff3b8222aae644bc8b9c39e2a155a"
+      },
+      {
+        "path": "assets/ledger-screen-BKfq9bfZ.js",
+        "bytes": 36222,
+        "sha256": "5240bf8e5edf0952d61f0a5e7a859a7af70ee3d590f24ba6cb3c2faae49311ee"
+      },
+      {
+        "path": "assets/ledger-ui-ul7Ew0jV.js",
+        "bytes": 36053,
+        "sha256": "47a5a0b8db9b1511f32e541de13633ebff722fd7f89e6604afa81fefc1b90ffa"
+      },
+      {
+        "path": "assets/legal-Dyb2A7yY.js",
+        "bytes": 17109,
+        "sha256": "4bd7020a8e606147493b2aadf84dc9137c38b462169eb891bb6bc7a7c1929692"
+      },
+      {
+        "path": "assets/members-eghCfmml.js",
+        "bytes": 21517,
+        "sha256": "e43cd953f9cdabf896ef5e22fef627a52d39cf9c0044bb1b20a45db26dc667b4"
+      },
+      {
+        "path": "assets/navigation-BdXWWjmu.js",
+        "bytes": 13112,
+        "sha256": "c9744ffe05b1a3d0a5971d5395d826a477698da21964eb06341c1f4427ed67f1"
+      },
+      {
+        "path": "assets/notifications-rSuykcpg.js",
+        "bytes": 2705,
+        "sha256": "9586dd2b7161bc65a55c86531440882d96806d93fcb7326e1a922b6c65c25eac"
+      },
+      {
+        "path": "assets/public-layout-DVGv5sgT.js",
+        "bytes": 2431,
+        "sha256": "5ef85df6831c2aa1d81e225210579e3b5a856b3e03aaadb9da0420d31abd4f17"
+      },
+      {
+        "path": "assets/pullwise-Byns04Eu.js",
+        "bytes": 1775,
+        "sha256": "c73536f7bc724e2653b25a599df77b1110ef59a9236d18960fe39a2968245017"
+      },
+      {
+        "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+        "bytes": 567,
+        "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+      },
+      {
+        "path": "assets/settings-BMlL0W9y.js",
+        "bytes": 8161,
+        "sha256": "ca4a50071dc27d09c354ab44aa178a99f7276e2ffeeca302dcf1bcbcc00e88b7"
+      },
+      {
+        "path": "assets/shell-BcQHBWq4.js",
+        "bytes": 5240,
+        "sha256": "a8c0d4f1f7886c37dc30922473b609af0dd2853e6e3b46537b81113d672b0d73"
+      },
+      {
+        "path": "assets/skeleton-CeAkszC6.js",
+        "bytes": 206,
+        "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+      },
+      {
+        "path": "assets/vendor-CHwUWPSh.js",
+        "bytes": 56389,
+        "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+      },
+      {
+        "path": "assets/vendor-react-CIxRT3XZ.js",
+        "bytes": 139881,
+        "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+      },
+      {
+        "path": "assets/workspace-context-CLsmFTwk.js",
+        "bytes": 202,
+        "sha256": "5a7a3bb35582e68ab0642cac15a33a3c9c3851bae90ce8c33c29a165fc934e1d"
+      },
+      {
+        "path": "assets/zh-CNi7RLYc.js",
+        "bytes": 11381,
+        "sha256": "ac3dbf8af423708c2f69750394465a4d9879e4022bc54b7e463d4dd5849b3d77"
+      },
+      {
+        "path": "brand-mark.png",
+        "bytes": 48301,
+        "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+      },
+      {
+        "path": "favicon.ico",
+        "bytes": 48323,
+        "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+      },
+      {
+        "path": "index.html",
+        "bytes": 4916,
+        "sha256": "cc2a2a0d37fa620410a4c07c83d07cbde0d9815cc6877a9bd62e440109fd9b1a"
+      },
+      {
+        "path": "robots.txt",
+        "bytes": 323,
+        "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+      },
+      {
+        "path": "sitemap.xml",
+        "bytes": 1003,
+        "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+      },
+      {
+        "path": "social-card.png",
+        "bytes": 25866,
+        "sha256": "1b153369b7efe00a1322b4f75209cc0b5efce343af45b6a3acc3bf66ca330903"
+      },
+      {
+        "path": "social-card.svg",
+        "bytes": 2126,
+        "sha256": "50dcfe168f1ed22609b544e637ed2497d2f5c3749a6fc635f3da5c1724a03638"
+      }
+    ]
+  },
+  "scope": {
+    "webOnly": true,
+    "productionDeployment": false,
+    "serverDeployment": false,
+    "businessApiRequests": 0,
+    "d1RowsRead": 0,
+    "d1RowsWritten": 0,
+    "realSessionsUsed": false,
+    "paymentsMade": false
+  },
+  "limitations": [
+    "Browser checks use entirely intercepted loopback synthetic fixtures with external fonts blocked. They do not establish real authenticated preview, OAuth, invitation delivery or payment acceptance.",
+    "Publication verification is preview-only with one homepage GET and three exact hashed asset GETs; no remote page JavaScript or business API runs."
+  ]
+}
