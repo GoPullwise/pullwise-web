@@ -1,0 +1,2811 @@
+{
+  "date": "2026-10-08",
+  "scope": "Projects list only; retain original Pullwise visual style. Web preview only; no production or Server/D1 operations.",
+  "implementation": [
+    "Project identity/description, expense total, repository/organization regions align using one shared row/header grid.",
+    "Compact loaded-count/search toolbar replaces the duplicate large list title; remove generic per-row icon frames.",
+    "Actual container queries at 759/419px reflow rows to identity, money and associations, then stack the toolbar.",
+    "Retain shared 16px hover insets, complete multi-currency amounts and native copying, normal link navigation, bounded resize grips and existing authorization/state guidance."
+  ],
+  "checks": {
+    "lint": true,
+    "testFiles": 38,
+    "tests": 536,
+    "build": true,
+    "workerConfigurationAndSyntax": true,
+    "prettierAndWhitespace": true,
+    "wranglerPreviewDryRun": "4.136.3",
+    "independentSourceReview": "passed; paragraph cascade corrected before accepted build"
+  },
+  "buildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise-preview"
+  },
+  "artifactEntry": "/assets/index-BMePTPOr.js",
+  "artifactManifest": [
+    {
+      "path": "_headers",
+      "bytes": 270,
+      "sha256": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96"
+    },
+    {
+      "path": "assets/api-9g3vFXhu.js",
+      "bytes": 24344,
+      "sha256": "f92792a285936bf323d2bbd9e0f27ee1cb927bfcc200cc02fbae1cec2c83be59"
+    },
+    {
+      "path": "assets/api-docs-DYfVnVwX.js",
+      "bytes": 14737,
+      "sha256": "16548976dc1ec63f1bf2e37e2650ff4ca36f9dd0f68dbc270b4207a556d9f8d1"
+    },
+    {
+      "path": "assets/auth-DhtustcY.js",
+      "bytes": 8495,
+      "sha256": "c42be799f324279156bc438d2ca61a12479d253e9b638e978fded18bf6c2be9d"
+    },
+    {
+      "path": "assets/billing-DGpbwYkP.js",
+      "bytes": 32978,
+      "sha256": "f82b4101e3d9fb5bf96c231da9578126bf3f9bb155b151ef0e6107214b9453de"
+    },
+    {
+      "path": "assets/confirm-dialog-DVwK8EH2.js",
+      "bytes": 2992,
+      "sha256": "b428645283fcf023a0302f84871c0d2f6baad25f695542d7cd9f92766d7f744b"
+    },
+    {
+      "path": "assets/console-layout-ChPWmq0-.js",
+      "bytes": 4262,
+      "sha256": "f87af4d0297189b370c6a10082cbba867b7961dfad610a307da50465536fe894"
+    },
+    {
+      "path": "assets/docs-CYgo6ftJ.js",
+      "bytes": 6830,
+      "sha256": "1e1d38c79994a5d84852dcbfeadde5e44d7528c55addbaaae765c2d83cf54a47"
+    },
+    {
+      "path": "assets/dynamic-CqKDyOhl.js",
+      "bytes": 5542,
+      "sha256": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae"
+    },
+    {
+      "path": "assets/es-jfEriZci.js",
+      "bytes": 10179,
+      "sha256": "5a532468b44449d47a5c6b767d58ae7066d7327dc81b9351926f3b35a932fe60"
+    },
+    {
+      "path": "assets/financial-value-QxLZwFKp.js",
+      "bytes": 477,
+      "sha256": "f2f47f9e2f93c74e85e69045a8c4c4bc45c4706e52ae3bb0c5002df95e27b0b7"
+    },
+    {
+      "path": "assets/fr-BcJKfRKG.js",
+      "bytes": 10444,
+      "sha256": "6b804a4b8b8e63ec0b48b7cb420ad9a8f77bfd936968c00ed4fd8a1cee360413"
+    },
+    {
+      "path": "assets/index-BMePTPOr.js",
+      "bytes": 41990,
+      "sha256": "f0cc7f561cf83a3c552bac6f7fcd18939eb806ed0ae7e51ad3af0fe3c5831771"
+    },
+    {
+      "path": "assets/index-D3DJvA40.css",
+      "bytes": 78731,
+      "sha256": "e9e1ecd313c50bb86527cd6d87587ffc14862942ef9fcfd9998fd66473e98d1c"
+    },
+    {
+      "path": "assets/ja-aFH0VZEy.js",
+      "bytes": 10906,
+      "sha256": "fbb951eff269a558dfd70a98a4455181e2f76ff507032a43b791b24ee809cc95"
+    },
+    {
+      "path": "assets/ko-Yj9J4J2H.js",
+      "bytes": 9973,
+      "sha256": "4b3685077de1723eaa8167073d4dc94ee067825b9cd88eebfa4b297414821a76"
+    },
+    {
+      "path": "assets/ledger-BQMdp6O3.js",
+      "bytes": 1545,
+      "sha256": "a57b862daf0d1763388ff588fe4ca49eda20a0fa5e58b8c52d2000c5f879d52c"
+    },
+    {
+      "path": "assets/ledger-CIWwQYwV.js",
+      "bytes": 10698,
+      "sha256": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3"
+    },
+    {
+      "path": "assets/ledger-D-jJ0921.css",
+      "bytes": 13345,
+      "sha256": "782da5e693b1a001968b80b1334055c1415aed157a1421ae57ac0ebb9aa51229"
+    },
+    {
+      "path": "assets/ledger-DEFhccnD.js",
+      "bytes": 57424,
+      "sha256": "8c3ca18654a07f687c76404abb62e584bf2b01eab9e7c4e25c278091595aa1e4"
+    },
+    {
+      "path": "assets/ledger-DygqvFu3.js",
+      "bytes": 2925,
+      "sha256": "501f02a91a1731bbefa86681926a840950ee286c35ee75041650e956c403b81d"
+    },
+    {
+      "path": "assets/ledger-longform-CcLR1b--.js",
+      "bytes": 92564,
+      "sha256": "a9be02edfc674bf49997b6439c49c76d553b6b3cfd057985924878007c09a5b3"
+    },
+    {
+      "path": "assets/ledger-scopes-eTtBJDmQ.js",
+      "bytes": 3115,
+      "sha256": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369"
+    },
+    {
+      "path": "assets/ledger-screen-qTi3YC0U.js",
+      "bytes": 96794,
+      "sha256": "b4f40ed77fd6d347c5a642bb9a8b31ac9abf19f8e35fa1d5be4f93b115c93824"
+    },
+    {
+      "path": "assets/ledger-ui-ydcEM64p.js",
+      "bytes": 34050,
+      "sha256": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+    },
+    {
+      "path": "assets/legal-C60d5IST.js",
+      "bytes": 25361,
+      "sha256": "a059d70951925a1da74e390b0328da1811f7b2aacd6861c801dbfd62d00df8a6"
+    },
+    {
+      "path": "assets/members-C4ML1aYj.js",
+      "bytes": 21574,
+      "sha256": "3e498476f4e4543d459a7e446b932985acd72865379b839aa68ad386033f852c"
+    },
+    {
+      "path": "assets/navigation-BoWlH7-3.js",
+      "bytes": 13292,
+      "sha256": "5d5e437ecbcb736933cc8b5b76549a8e9c1215b0367e3ecb3c8d69f089eb5161"
+    },
+    {
+      "path": "assets/notifications-radg8bRG.js",
+      "bytes": 2705,
+      "sha256": "67b2060ee2731175f88ae1cde34b15f9edb568050240352e2d7d3eaf09fe7e3a"
+    },
+    {
+      "path": "assets/public-layout-FYS1PqAE.js",
+      "bytes": 2431,
+      "sha256": "4b215a0c7e33e226cf7a056e4c964325001a2065c9fd06ef7cff46cdd13c9122"
+    },
+    {
+      "path": "assets/pullwise-C1dAxX5f.js",
+      "bytes": 1775,
+      "sha256": "2ac34cff2be345f722ce82966f42594bd1ac8ab958070d97e6abb7aa5967f068"
+    },
+    {
+      "path": "assets/rolldown-runtime-Bh1tDfsg.js",
+      "bytes": 567,
+      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+    },
+    {
+      "path": "assets/settings-CIZoOmgo.js",
+      "bytes": 8320,
+      "sha256": "f17bf3153f17f46613900fbf9c8767bc2a99ee322cf034d296ad83b0c51561fc"
+    },
+    {
+      "path": "assets/shell-BAAnVbo1.js",
+      "bytes": 5247,
+      "sha256": "88d31810f406480dca7eca4735318258b87b5b8f88cd2167fddbdfb22e861fb7"
+    },
+    {
+      "path": "assets/skeleton-CeAkszC6.js",
+      "bytes": 206,
+      "sha256": "72698a0ce9f5b1e9a2a154f2de594ccaa639c83f9839ce927208fc70c8690e56"
+    },
+    {
+      "path": "assets/vendor-CHwUWPSh.js",
+      "bytes": 56389,
+      "sha256": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1"
+    },
+    {
+      "path": "assets/vendor-react-CIxRT3XZ.js",
+      "bytes": 139881,
+      "sha256": "fabbd4ae4283cbacf940dcd9617fd419292b1372bcd636008b65e97f5a604684"
+    },
+    {
+      "path": "assets/zh-DAknT88L.js",
+      "bytes": 8981,
+      "sha256": "88c39be45a80e310b8089dde1ef8419f4c6aa6c4ee94556ff88ac08b6b9f9fe1"
+    },
+    {
+      "path": "brand-mark.png",
+      "bytes": 48301,
+      "sha256": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 48323,
+      "sha256": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 5088,
+      "sha256": "6f3250d0b9ad737eaadd5056bfd7ee1ab4831292ecc91f616e5e9b54b7ea130a"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 323,
+      "sha256": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 1003,
+      "sha256": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c"
+    },
+    {
+      "path": "social-card.png",
+      "bytes": 50268,
+      "sha256": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077"
+    },
+    {
+      "path": "social-card.svg",
+      "bytes": 2113,
+      "sha256": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+    }
+  ],
+  "runtimeSourceHashes": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 32091,
+      "sha256": "44d0e34ed53e9f7c02abf8440ae490b6d0bfb69a14c61e75952e445a2aa8d4e7"
+    },
+    {
+      "path": "src/screens/ledger.jsx",
+      "bytes": 119030,
+      "sha256": "85589b9b0ae2418b030b0431325b2aed66225cbb2926f8cae161cb84c071c310"
+    },
+    {
+      "path": "src/screens/ledger.css",
+      "bytes": 16223,
+      "sha256": "631acd3120f561dc5ee1f7cf12abba26714998bb3130118602f7e29f906c75b4"
+    },
+    {
+      "path": "src/screens/ledger.test.jsx",
+      "bytes": 74925,
+      "sha256": "ff929d807c722cd9d2136856c9d5f58f4876fdec2fca53f8c784c519cfde29b8"
+    },
+    {
+      "path": "src/locales/ledger-screen.js",
+      "bytes": 98456,
+      "sha256": "a5d4f4a5314ddf16fe4a5fcac78d77c992f27a01d0c4276b370d7c471d568139"
+    },
+    {
+      "path": "src/locales.test.js",
+      "bytes": 4606,
+      "sha256": "b840d21670b87b2d5999eea36811e0bee85ff8b3119ea46f44ab20f52eba2974"
+    },
+    {
+      "path": "styles/base.css",
+      "bytes": 24607,
+      "sha256": "b31a58ce2ec8f7699cc2f449328c79fb199506e80a47beb10a7c1ac3cfe645f7"
+    },
+    {
+      "path": "src/components/financial-value.jsx",
+      "bytes": 803,
+      "sha256": "47fcd46e8ee1971e6c868803784f1127c5f34977ededf81a9cd192340ef13a82"
+    },
+    {
+      "path": "src/components/console-layout.jsx",
+      "bytes": 2516,
+      "sha256": "8438ff71e3ef35239bc307b92fd74f0efe3d25cd33872b1d2a0d17768e89551f"
+    },
+    {
+      "path": "src/components/ledger-split.jsx",
+      "bytes": 2737,
+      "sha256": "4da70ef7e1509730beadcd61ebe112e1fde27aae76a6c04a1333b4ec387198d8"
+    },
+    {
+      "path": "src/components/use-resizable-pane.js",
+      "bytes": 5920,
+      "sha256": "936a8e75be515c9ace5caa29725160fd65a9a292f8f464e13144058248c799c5"
+    },
+    {
+      "path": "src/lib/navigation.js",
+      "bytes": 2714,
+      "sha256": "d7a1ac6a1fcf77da0ec4046475169e949edc8113ac37cc94cf775aad1b675eee"
+    },
+    {
+      "path": "src/shell.jsx",
+      "bytes": 7671,
+      "sha256": "80bbae94975b1ac904860e0952880535746a0e42b71566870a5e9d4493aa05f9"
+    },
+    {
+      "path": "worker-entry.js",
+      "bytes": 1902,
+      "sha256": "9d1c0e7d44ddc2fa67bead2e85300495ec9f59030a118d868f5d41144fe5e721"
+    },
+    {
+      "path": "worker.js",
+      "bytes": 8627,
+      "sha256": "319cd0910ab001ec8c92ee552b6459ba64c828de29becfc4916b5c9a4c41dc2d"
+    },
+    {
+      "path": "wrangler.preview.jsonc",
+      "bytes": 663,
+      "sha256": "4428e61c06ea9074bfff4f1d6d107df0b865ba949d834cef161a9c1453290f96"
+    }
+  ],
+  "artifactManifestSha256": "9cb890bf774e0f2cbeeffebd779f8c4185dfd0c106dd8dc074b2d104e30a1727",
+  "sourceManifestSha256": "869d552d6f8e41acc3d3f91a48c2a267dd2014cc3748a6397edff2ff11b0dafb",
+  "limitations": [
+    "Local GET-only fixtures establish layout and interaction evidence, not real-user OAuth or payment acceptance.",
+    "Native pointer selections preserve the exact complete name and amounts without route navigation; OS clipboard contents were not inspected.",
+    "External font origins are blocked in local fixtures; native captures use the installed fallback fonts."
+  ],
+  "productionDeployed": false,
+  "serverDeployed": false,
+  "d1Operations": 0,
+  "sourceCommit": "be413ef57d783f32c6b35630cb5de1afaa039a3b",
+  "browser": {
+    "status": "passed",
+    "counts": {
+      "contexts": 3,
+      "scenarios": 55,
+      "captures": 6,
+      "intercepted": 110,
+      "fixtureGET": 28,
+      "blockedExternal": 3,
+      "maxRequestsPerContext": 40
+    },
+    "browserVersion": "Chrome/151.0.7922.173",
+    "requestCapPerContext": 120,
+    "rawReportSha256": "ec913a5d6d3cc4d18910791bff4e3a3c9a514061ab7d8c905af649a33e9deef9",
+    "harnessSha256": "f8bf030a846e072095a499113e29fcf39174bb6ea8c12a7d876f8bab501745ce",
+    "fixturesSha256": "a23c805878e84135efd1ae58de3abf06a7524400cd1b6ff7b15331eafeddf4da",
+    "baseFixturesSha256": "caabb3db79aa0ecab9ce8e5b8dc93a9defc4864d620b803ef0bb63e194154cb4",
+    "cdpSha256": "2eb9b1e96f298ae486779c9f72b8dbc4fe60f76e4cfb1cf4b3335b541829538a",
+    "profiles": [
+      {
+        "profile": {
+          "key": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light"
+        },
+        "intercepted": 40,
+        "fixtureGET": 16,
+        "scenarios": [
+          "loaded-without-creation-rail",
+          "register-wide",
+          "register-native-hover-unchanged",
+          "native-name-copy-no-navigation",
+          "native-USD-copy-no-navigation",
+          "native-JPY-copy-no-navigation",
+          "search-loaded-name",
+          "search-does-not-expose-inaccessible-repositories",
+          "search-clear-restores-list-focus",
+          "load-more-explicit-intent",
+          "creation-rail-explicit-open",
+          "live2560-fluid-wide-register",
+          "navigation-native-key-bounds",
+          "navigation-native-mouse-to-max",
+          "right-native-key-bounds",
+          "right-native-mouse-to-max-narrow",
+          "desktop-actual-primary280-stack",
+          "narrow-register-native-hover-unchanged",
+          "narrow-USD-exact-native-copy",
+          "rail-primary280",
+          "creation-rail-dismiss-restores-fullwidth",
+          "ordinary-project-detail-link",
+          "project-detail-back-link"
+        ],
+        "nativeCopy": [
+          {
+            "state": "native-name-copy-no-navigation",
+            "selector": ".ledger-project-row .ledger-row-main h2",
+            "target": {
+              "expected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 272.5,
+              "y": 89.390625,
+              "firstRight": 666.78125,
+              "endX": 542.984375,
+              "endY": 111.890625,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "native-USD-copy-no-navigation",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(2)",
+            "target": {
+              "expected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 754.125,
+              "y": 91.28125,
+              "firstRight": 826.25,
+              "endX": 998.859375,
+              "endY": 118.78125,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "native-JPY-copy-no-navigation",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(3)",
+            "target": {
+              "expected": "JPY 123,456,789,012,345,678,901",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 752.296875,
+              "y": 91.28125,
+              "firstRight": 826.25,
+              "endX": 998.859375,
+              "endY": 118.78125,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "JPY 123,456,789,012,345,678,901",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "narrow-USD-exact-native-copy",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(2)",
+            "target": {
+              "expected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 372.5,
+              "y": 90.453125,
+              "firstRight": 438.03125,
+              "endX": 507.46875,
+              "endY": 115.453125,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          }
+        ],
+        "layoutSamples": [
+          {
+            "state": "register-wide",
+            "geometry": {
+              "viewport": {
+                "width": 1440,
+                "height": 1000,
+                "scrollY": 0,
+                "docWidth": 1440,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 1148,
+              "headDisplay": "grid",
+              "toolbar": {
+                "x": 256,
+                "y": 169.09375,
+                "right": 1404,
+                "bottom": 213.09375,
+                "width": 1148,
+                "height": 44
+              },
+              "search": {
+                "x": 1004,
+                "y": 169.09375,
+                "right": 1404,
+                "bottom": 213.09375,
+                "width": 400,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 278.28125,
+                  "right": 1404,
+                  "bottom": 441.28125,
+                  "width": 1148,
+                  "height": 163
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 272,
+                  "y": 312.390625,
+                  "right": 704.828125,
+                  "bottom": 406.171875,
+                  "width": 432.828125,
+                  "height": 93.78125
+                },
+                "amount": {
+                  "x": 728.828125,
+                  "y": 302.28125,
+                  "right": 999.359375,
+                  "bottom": 416.28125,
+                  "width": 270.53125,
+                  "height": 114
+                },
+                "association": {
+                  "x": 1023.359375,
+                  "y": 325.078125,
+                  "right": 1348,
+                  "bottom": 393.46875,
+                  "width": 324.640625,
+                  "height": 68.390625
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": false,
+                    "rect": {
+                      "x": 728.828125,
+                      "y": 302.28125,
+                      "right": 729.828125,
+                      "bottom": 303.28125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": false,
+                    "rect": {
+                      "x": 1023.359375,
+                      "y": 325.078125,
+                      "right": 1024.359375,
+                      "bottom": 326.078125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 22,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 22,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "live2560-fluid-wide-register",
+            "geometry": {
+              "viewport": {
+                "width": 2560,
+                "height": 1000,
+                "scrollY": 0,
+                "docWidth": 2560,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 1880,
+              "headDisplay": "grid",
+              "toolbar": {
+                "x": 256,
+                "y": 169.09375,
+                "right": 2136,
+                "bottom": 213.09375,
+                "width": 1880,
+                "height": 44
+              },
+              "search": {
+                "x": 1736,
+                "y": 169.09375,
+                "right": 2136,
+                "bottom": 213.09375,
+                "width": 400,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 278.28125,
+                  "right": 2136,
+                  "bottom": 386.28125,
+                  "width": 1880,
+                  "height": 108
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 272,
+                  "y": 307.328125,
+                  "right": 1013.046875,
+                  "bottom": 356.21875,
+                  "width": 741.046875,
+                  "height": 48.890625
+                },
+                "amount": {
+                  "x": 1037.046875,
+                  "y": 302.28125,
+                  "right": 1500.203125,
+                  "bottom": 361.28125,
+                  "width": 463.15625,
+                  "height": 59
+                },
+                "association": {
+                  "x": 1524.203125,
+                  "y": 307.984375,
+                  "right": 2080,
+                  "bottom": 355.578125,
+                  "width": 555.796875,
+                  "height": 47.59375
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": false,
+                    "rect": {
+                      "x": 1037.046875,
+                      "y": 302.28125,
+                      "right": 1038.046875,
+                      "bottom": 303.28125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": false,
+                    "rect": {
+                      "x": 1524.203125,
+                      "y": 307.984375,
+                      "right": 1525.203125,
+                      "bottom": 308.984375,
+                      "width": 1,
+                      "height": 1
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 22,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 22,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "desktop-actual-primary280-stack",
+            "geometry": {
+              "viewport": {
+                "width": 1180,
+                "height": 1000,
+                "scrollY": 780,
+                "docWidth": 1180,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 280,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 356,
+                "y": -610.90625,
+                "right": 636,
+                "bottom": -535.40625,
+                "width": 280,
+                "height": 75.5
+              },
+              "search": {
+                "x": 356,
+                "y": -579.40625,
+                "right": 636,
+                "bottom": -535.40625,
+                "width": 280,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 356,
+                  "y": -514.40625,
+                  "right": 636,
+                  "bottom": -51.46875,
+                  "width": 280,
+                  "height": 462.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 372,
+                  "y": -490.40625,
+                  "right": 588,
+                  "bottom": -329.234375,
+                  "width": 216,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 372,
+                  "y": -313.234375,
+                  "right": 620,
+                  "bottom": -186.046875,
+                  "width": 248,
+                  "height": 127.1875
+                },
+                "association": {
+                  "x": 372,
+                  "y": -170.046875,
+                  "right": 620,
+                  "bottom": -76.46875,
+                  "width": 248,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": -313.234375,
+                      "right": 620,
+                      "bottom": -294.046875,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": -170.046875,
+                      "right": 620,
+                      "bottom": -150.859375,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "rail-primary280",
+            "geometry": {
+              "viewport": {
+                "width": 1180,
+                "height": 1000,
+                "scrollY": 0,
+                "docWidth": 1180,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 280,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 356,
+                "y": 169.09375,
+                "right": 636,
+                "bottom": 244.59375,
+                "width": 280,
+                "height": 75.5
+              },
+              "search": {
+                "x": 356,
+                "y": 200.59375,
+                "right": 636,
+                "bottom": 244.59375,
+                "width": 280,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 356,
+                  "y": 265.59375,
+                  "right": 636,
+                  "bottom": 728.53125,
+                  "width": 280,
+                  "height": 462.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 372,
+                  "y": 289.59375,
+                  "right": 588,
+                  "bottom": 450.765625,
+                  "width": 216,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 372,
+                  "y": 466.765625,
+                  "right": 620,
+                  "bottom": 593.953125,
+                  "width": 248,
+                  "height": 127.1875
+                },
+                "association": {
+                  "x": 372,
+                  "y": 609.953125,
+                  "right": 620,
+                  "bottom": 703.53125,
+                  "width": 248,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": 466.765625,
+                      "right": 620,
+                      "bottom": 485.953125,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": 609.953125,
+                      "right": 620,
+                      "bottom": 629.140625,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "hover": [
+          {
+            "state": "register-native-hover-unchanged",
+            "before": {
+              "viewport": {
+                "width": 1440,
+                "height": 1000,
+                "scrollY": 200,
+                "docWidth": 1440,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 1148,
+              "headDisplay": "grid",
+              "toolbar": {
+                "x": 256,
+                "y": -30.90625,
+                "right": 1404,
+                "bottom": 13.09375,
+                "width": 1148,
+                "height": 44
+              },
+              "search": {
+                "x": 1004,
+                "y": -30.90625,
+                "right": 1404,
+                "bottom": 13.09375,
+                "width": 400,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 78.28125,
+                  "right": 1404,
+                  "bottom": 241.28125,
+                  "width": 1148,
+                  "height": 163
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 272,
+                  "y": 112.390625,
+                  "right": 704.828125,
+                  "bottom": 206.171875,
+                  "width": 432.828125,
+                  "height": 93.78125
+                },
+                "amount": {
+                  "x": 728.828125,
+                  "y": 102.28125,
+                  "right": 999.359375,
+                  "bottom": 216.28125,
+                  "width": 270.53125,
+                  "height": 114
+                },
+                "association": {
+                  "x": 1023.359375,
+                  "y": 125.078125,
+                  "right": 1348,
+                  "bottom": 193.46875,
+                  "width": 324.640625,
+                  "height": 68.390625
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": false,
+                    "rect": {
+                      "x": 728.828125,
+                      "y": 102.28125,
+                      "right": 729.828125,
+                      "bottom": 103.28125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": false,
+                    "rect": {
+                      "x": 1023.359375,
+                      "y": 125.078125,
+                      "right": 1024.359375,
+                      "bottom": 126.078125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 22,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 22,
+                    "weight": "700"
+                  }
+                ]
+              }
+            },
+            "after": {
+              "viewport": {
+                "width": 1440,
+                "height": 1000,
+                "scrollY": 200,
+                "docWidth": 1440,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 1148,
+              "headDisplay": "grid",
+              "toolbar": {
+                "x": 256,
+                "y": -30.90625,
+                "right": 1404,
+                "bottom": 13.09375,
+                "width": 1148,
+                "height": 44
+              },
+              "search": {
+                "x": 1004,
+                "y": -30.90625,
+                "right": 1404,
+                "bottom": 13.09375,
+                "width": 400,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 78.28125,
+                  "right": 1404,
+                  "bottom": 241.28125,
+                  "width": 1148,
+                  "height": 163
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0.02)",
+                "hovered": true,
+                "identity": {
+                  "x": 272,
+                  "y": 112.390625,
+                  "right": 704.828125,
+                  "bottom": 206.171875,
+                  "width": 432.828125,
+                  "height": 93.78125
+                },
+                "amount": {
+                  "x": 728.828125,
+                  "y": 102.28125,
+                  "right": 999.359375,
+                  "bottom": 216.28125,
+                  "width": 270.53125,
+                  "height": 114
+                },
+                "association": {
+                  "x": 1023.359375,
+                  "y": 125.078125,
+                  "right": 1348,
+                  "bottom": 193.46875,
+                  "width": 324.640625,
+                  "height": 68.390625
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": false,
+                    "rect": {
+                      "x": 728.828125,
+                      "y": 102.28125,
+                      "right": 729.828125,
+                      "bottom": 103.28125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": false,
+                    "rect": {
+                      "x": 1023.359375,
+                      "y": 125.078125,
+                      "right": 1024.359375,
+                      "bottom": 126.078125,
+                      "width": 1,
+                      "height": 1
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 22,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 22,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "narrow-register-native-hover-unchanged",
+            "before": {
+              "viewport": {
+                "width": 1180,
+                "height": 1000,
+                "scrollY": 188,
+                "docWidth": 1180,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 280,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 356,
+                "y": -18.90625,
+                "right": 636,
+                "bottom": 56.59375,
+                "width": 280,
+                "height": 75.5
+              },
+              "search": {
+                "x": 356,
+                "y": 12.59375,
+                "right": 636,
+                "bottom": 56.59375,
+                "width": 280,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 356,
+                  "y": 77.59375,
+                  "right": 636,
+                  "bottom": 540.53125,
+                  "width": 280,
+                  "height": 462.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 372,
+                  "y": 101.59375,
+                  "right": 588,
+                  "bottom": 262.765625,
+                  "width": 216,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 372,
+                  "y": 278.765625,
+                  "right": 620,
+                  "bottom": 405.953125,
+                  "width": 248,
+                  "height": 127.1875
+                },
+                "association": {
+                  "x": 372,
+                  "y": 421.953125,
+                  "right": 620,
+                  "bottom": 515.53125,
+                  "width": 248,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": 278.765625,
+                      "right": 620,
+                      "bottom": 297.953125,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": 421.953125,
+                      "right": 620,
+                      "bottom": 441.140625,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            },
+            "after": {
+              "viewport": {
+                "width": 1180,
+                "height": 1000,
+                "scrollY": 188,
+                "docWidth": 1180,
+                "coarse": false,
+                "touchPoints": 0
+              },
+              "listWidth": 280,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 356,
+                "y": -18.90625,
+                "right": 636,
+                "bottom": 56.59375,
+                "width": 280,
+                "height": 75.5
+              },
+              "search": {
+                "x": 356,
+                "y": 12.59375,
+                "right": 636,
+                "bottom": 56.59375,
+                "width": 280,
+                "height": 44
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 356,
+                  "y": 77.59375,
+                  "right": 636,
+                  "bottom": 540.53125,
+                  "width": 280,
+                  "height": 462.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0.02)",
+                "hovered": true,
+                "identity": {
+                  "x": 372,
+                  "y": 101.59375,
+                  "right": 588,
+                  "bottom": 262.765625,
+                  "width": 216,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 372,
+                  "y": 278.765625,
+                  "right": 620,
+                  "bottom": 405.953125,
+                  "width": 248,
+                  "height": 127.1875
+                },
+                "association": {
+                  "x": 372,
+                  "y": 421.953125,
+                  "right": 620,
+                  "bottom": 515.53125,
+                  "width": 248,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": 278.765625,
+                      "right": 620,
+                      "bottom": 297.953125,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 372,
+                      "y": 421.953125,
+                      "right": 620,
+                      "bottom": 441.140625,
+                      "width": 248,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "tablet-900-zh-dark",
+          "width": 900,
+          "height": 600,
+          "lang": "zh",
+          "theme": "dark",
+          "coarse": true
+        },
+        "intercepted": 35,
+        "fixtureGET": 6,
+        "scenarios": [
+          "loaded-without-creation-rail",
+          "register-no-rail",
+          "register-native-hover-unchanged",
+          "native-name-copy-no-navigation",
+          "native-USD-copy-no-navigation",
+          "native-JPY-copy-no-navigation",
+          "search-loaded-name",
+          "search-does-not-expose-inaccessible-repositories",
+          "search-clear-restores-list-focus",
+          "load-more-explicit-intent",
+          "creation-rail-explicit-open",
+          "tablet-navigation-key-bounds",
+          "tablet-navigation-native-touch",
+          "tablet-right-key-bounds",
+          "tablet-right-native-touch",
+          "tablet-rail-actual-container-stack",
+          "rail-touch"
+        ],
+        "nativeCopy": [
+          {
+            "state": "native-name-copy-no-navigation",
+            "selector": ".ledger-project-row .ledger-row-main h2",
+            "target": {
+              "expected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 272.5,
+              "y": 89.09375,
+              "firstRight": 800.25,
+              "endX": 409.515625,
+              "endY": 111.59375,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "native-USD-copy-no-navigation",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(2)",
+            "target": {
+              "expected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 272.5,
+              "y": 90.5625,
+              "firstRight": 338.03125,
+              "endX": 630.828125,
+              "endY": 90.5625,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "native-JPY-copy-no-navigation",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(3)",
+            "target": {
+              "expected": "JPY 123,456,789,012,345,678,901",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 272.5,
+              "y": 90.5625,
+              "firstRight": 339.6875,
+              "endX": 567.375,
+              "endY": 90.5625,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "JPY 123,456,789,012,345,678,901",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          }
+        ],
+        "layoutSamples": [
+          {
+            "state": "register-no-rail",
+            "geometry": {
+              "viewport": {
+                "width": 900,
+                "height": 600,
+                "scrollY": 0,
+                "docWidth": 900,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 608,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 256,
+                "y": 229.09375,
+                "right": 864,
+                "bottom": 275.09375,
+                "width": 608,
+                "height": 46
+              },
+              "search": {
+                "x": 464,
+                "y": 229.09375,
+                "right": 864,
+                "bottom": 275.09375,
+                "width": 400,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 296.09375,
+                  "right": 864,
+                  "bottom": 620.84375,
+                  "width": 608,
+                  "height": 324.75
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 272,
+                  "y": 320.09375,
+                  "right": 816,
+                  "bottom": 413.875,
+                  "width": 544,
+                  "height": 93.78125
+                },
+                "amount": {
+                  "x": 272,
+                  "y": 429.875,
+                  "right": 848,
+                  "bottom": 507.0625,
+                  "width": 576,
+                  "height": 77.1875
+                },
+                "association": {
+                  "x": 272,
+                  "y": 523.0625,
+                  "right": 848,
+                  "bottom": 595.84375,
+                  "width": 576,
+                  "height": 72.78125
+                },
+                "labels": [
+                  {
+                    "text": "支出合计",
+                    "visible": true,
+                    "rect": {
+                      "x": 272,
+                      "y": 429.875,
+                      "right": 848,
+                      "bottom": 449.0625,
+                      "width": 576,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "仓库 / 组织",
+                    "visible": true,
+                    "rect": {
+                      "x": 272,
+                      "y": 523.0625,
+                      "right": 848,
+                      "bottom": 542.25,
+                      "width": 576,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "tablet-rail-actual-container-stack",
+            "geometry": {
+              "viewport": {
+                "width": 900,
+                "height": 600,
+                "scrollY": 1147,
+                "docWidth": 900,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 328,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 216,
+                "y": -917.90625,
+                "right": 544,
+                "bottom": -840.40625,
+                "width": 328,
+                "height": 77.5
+              },
+              "search": {
+                "x": 216,
+                "y": -886.40625,
+                "right": 544,
+                "bottom": -840.40625,
+                "width": 328,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 216,
+                  "y": -819.40625,
+                  "right": 544,
+                  "bottom": -381.46875,
+                  "width": 328,
+                  "height": 437.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 232,
+                  "y": -795.40625,
+                  "right": 496,
+                  "bottom": -634.234375,
+                  "width": 264,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 232,
+                  "y": -618.234375,
+                  "right": 528,
+                  "bottom": -516.046875,
+                  "width": 296,
+                  "height": 102.1875
+                },
+                "association": {
+                  "x": 232,
+                  "y": -500.046875,
+                  "right": 528,
+                  "bottom": -406.46875,
+                  "width": 296,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "支出合计",
+                    "visible": true,
+                    "rect": {
+                      "x": 232,
+                      "y": -618.234375,
+                      "right": 528,
+                      "bottom": -599.046875,
+                      "width": 296,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "仓库 / 组织",
+                    "visible": true,
+                    "rect": {
+                      "x": 232,
+                      "y": -500.046875,
+                      "right": 528,
+                      "bottom": -480.859375,
+                      "width": 296,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "rail-touch",
+            "geometry": {
+              "viewport": {
+                "width": 900,
+                "height": 600,
+                "scrollY": 0,
+                "docWidth": 900,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 328,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 216,
+                "y": 229.09375,
+                "right": 544,
+                "bottom": 306.59375,
+                "width": 328,
+                "height": 77.5
+              },
+              "search": {
+                "x": 216,
+                "y": 260.59375,
+                "right": 544,
+                "bottom": 306.59375,
+                "width": 328,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 216,
+                  "y": 327.59375,
+                  "right": 544,
+                  "bottom": 765.53125,
+                  "width": 328,
+                  "height": 437.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 232,
+                  "y": 351.59375,
+                  "right": 496,
+                  "bottom": 512.765625,
+                  "width": 264,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 232,
+                  "y": 528.765625,
+                  "right": 528,
+                  "bottom": 630.953125,
+                  "width": 296,
+                  "height": 102.1875
+                },
+                "association": {
+                  "x": 232,
+                  "y": 646.953125,
+                  "right": 528,
+                  "bottom": 740.53125,
+                  "width": 296,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "支出合计",
+                    "visible": true,
+                    "rect": {
+                      "x": 232,
+                      "y": 528.765625,
+                      "right": 528,
+                      "bottom": 547.953125,
+                      "width": 296,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "仓库 / 组织",
+                    "visible": true,
+                    "rect": {
+                      "x": 232,
+                      "y": 646.953125,
+                      "right": 528,
+                      "bottom": 666.140625,
+                      "width": 296,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "hover": [
+          {
+            "state": "register-native-hover-unchanged",
+            "before": {
+              "viewport": {
+                "width": 900,
+                "height": 600,
+                "scrollY": 218,
+                "docWidth": 900,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 608,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 256,
+                "y": 11.09375,
+                "right": 864,
+                "bottom": 57.09375,
+                "width": 608,
+                "height": 46
+              },
+              "search": {
+                "x": 464,
+                "y": 11.09375,
+                "right": 864,
+                "bottom": 57.09375,
+                "width": 400,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 78.09375,
+                  "right": 864,
+                  "bottom": 402.84375,
+                  "width": 608,
+                  "height": 324.75
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 272,
+                  "y": 102.09375,
+                  "right": 816,
+                  "bottom": 195.875,
+                  "width": 544,
+                  "height": 93.78125
+                },
+                "amount": {
+                  "x": 272,
+                  "y": 211.875,
+                  "right": 848,
+                  "bottom": 289.0625,
+                  "width": 576,
+                  "height": 77.1875
+                },
+                "association": {
+                  "x": 272,
+                  "y": 305.0625,
+                  "right": 848,
+                  "bottom": 377.84375,
+                  "width": 576,
+                  "height": 72.78125
+                },
+                "labels": [
+                  {
+                    "text": "支出合计",
+                    "visible": true,
+                    "rect": {
+                      "x": 272,
+                      "y": 211.875,
+                      "right": 848,
+                      "bottom": 231.0625,
+                      "width": 576,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "仓库 / 组织",
+                    "visible": true,
+                    "rect": {
+                      "x": 272,
+                      "y": 305.0625,
+                      "right": 848,
+                      "bottom": 324.25,
+                      "width": 576,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            },
+            "after": {
+              "viewport": {
+                "width": 900,
+                "height": 600,
+                "scrollY": 218,
+                "docWidth": 900,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 608,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 256,
+                "y": 11.09375,
+                "right": 864,
+                "bottom": 57.09375,
+                "width": 608,
+                "height": 46
+              },
+              "search": {
+                "x": 464,
+                "y": 11.09375,
+                "right": 864,
+                "bottom": 57.09375,
+                "width": 400,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 256,
+                  "y": 78.09375,
+                  "right": 864,
+                  "bottom": 402.84375,
+                  "width": 608,
+                  "height": 324.75
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(255, 255, 255, 0.02)",
+                "hovered": true,
+                "identity": {
+                  "x": 272,
+                  "y": 102.09375,
+                  "right": 816,
+                  "bottom": 195.875,
+                  "width": 544,
+                  "height": 93.78125
+                },
+                "amount": {
+                  "x": 272,
+                  "y": 211.875,
+                  "right": 848,
+                  "bottom": 289.0625,
+                  "width": 576,
+                  "height": 77.1875
+                },
+                "association": {
+                  "x": 272,
+                  "y": 305.0625,
+                  "right": 848,
+                  "bottom": 377.84375,
+                  "width": 576,
+                  "height": 72.78125
+                },
+                "labels": [
+                  {
+                    "text": "支出合计",
+                    "visible": true,
+                    "rect": {
+                      "x": 272,
+                      "y": 211.875,
+                      "right": 848,
+                      "bottom": 231.0625,
+                      "width": 576,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "仓库 / 组织",
+                    "visible": true,
+                    "rect": {
+                      "x": 272,
+                      "y": 305.0625,
+                      "right": 848,
+                      "bottom": 324.25,
+                      "width": 576,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "profile": {
+          "key": "mobile-390-en-light",
+          "width": 390,
+          "height": 844,
+          "lang": "en",
+          "theme": "light",
+          "coarse": true
+        },
+        "intercepted": 35,
+        "fixtureGET": 6,
+        "scenarios": [
+          "loaded-without-creation-rail",
+          "register-390",
+          "register-native-hover-unchanged",
+          "native-name-copy-no-navigation",
+          "native-USD-copy-no-navigation",
+          "native-JPY-copy-no-navigation",
+          "search-loaded-name",
+          "search-does-not-expose-inaccessible-repositories",
+          "search-clear-restores-list-focus",
+          "load-more-explicit-intent",
+          "creation-rail-explicit-open",
+          "mobile-creation-stacked-no-dividers",
+          "live320-French-label-toolbar-reflow",
+          "French320-name-exact-native-copy",
+          "register-320-fr"
+        ],
+        "nativeCopy": [
+          {
+            "state": "native-name-copy-no-navigation",
+            "selector": ".ledger-project-row .ledger-row-main h2",
+            "target": {
+              "expected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 32.5,
+              "y": 148.6875,
+              "firstRight": 230.859375,
+              "endX": 201.265625,
+              "endY": 193.6875,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "native-USD-copy-no-navigation",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(2)",
+            "target": {
+              "expected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 32.5,
+              "y": 150.046875,
+              "firstRight": 98.03125,
+              "endX": 91.40625,
+              "endY": 175.046875,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "USD 90,071,992,547,409,911,234,567.89",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "native-JPY-copy-no-navigation",
+            "selector": ".ledger-project-row .financial-value:nth-of-type(3)",
+            "target": {
+              "expected": "JPY 123,456,789,012,345,678,901",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 32.5,
+              "y": 150.046875,
+              "firstRight": 99.6875,
+              "endX": 327.375,
+              "endY": 150.046875,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "JPY 123,456,789,012,345,678,901",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          },
+          {
+            "state": "French320-name-exact-native-copy",
+            "selector": ".ledger-project-row .ledger-row-main h2",
+            "target": {
+              "expected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "x": 32.5,
+              "y": 252.6875,
+              "firstRight": 230.859375,
+              "endX": 111,
+              "endY": 320.1875,
+              "userSelect": "text",
+              "draggable": false
+            },
+            "result": {
+              "selected": "Hosting & infrastructure — International engineering collaboration and finance operations",
+              "url": "http://127.0.0.1:4199/projects",
+              "resizing": false
+            },
+            "fixtureGETUnchanged": true
+          }
+        ],
+        "layoutSamples": [
+          {
+            "state": "register-390",
+            "geometry": {
+              "viewport": {
+                "width": 390,
+                "height": 844,
+                "scrollY": 0,
+                "docWidth": 390,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 358,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 16,
+                "y": 289.1875,
+                "right": 374,
+                "bottom": 366.6875,
+                "width": 358,
+                "height": 77.5
+              },
+              "search": {
+                "x": 16,
+                "y": 320.6875,
+                "right": 374,
+                "bottom": 366.6875,
+                "width": 358,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 16,
+                  "y": 387.6875,
+                  "right": 374,
+                  "bottom": 803.125,
+                  "width": 358,
+                  "height": 415.4375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 32,
+                  "y": 411.6875,
+                  "right": 326,
+                  "bottom": 550.359375,
+                  "width": 294,
+                  "height": 138.671875
+                },
+                "amount": {
+                  "x": 32,
+                  "y": 566.359375,
+                  "right": 358,
+                  "bottom": 668.546875,
+                  "width": 326,
+                  "height": 102.1875
+                },
+                "association": {
+                  "x": 32,
+                  "y": 684.546875,
+                  "right": 358,
+                  "bottom": 778.125,
+                  "width": 326,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 566.359375,
+                      "right": 358,
+                      "bottom": 585.546875,
+                      "width": 326,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 684.546875,
+                      "right": 358,
+                      "bottom": 703.734375,
+                      "width": 326,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "live320-French-label-toolbar-reflow",
+            "geometry": {
+              "viewport": {
+                "width": 320,
+                "height": 844,
+                "scrollY": 540,
+                "docWidth": 320,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 288,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 16,
+                "y": -146.8125,
+                "right": 304,
+                "bottom": -69.3125,
+                "width": 288,
+                "height": 77.5
+              },
+              "search": {
+                "x": 16,
+                "y": -115.3125,
+                "right": 304,
+                "bottom": -69.3125,
+                "width": 288,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 16,
+                  "y": -48.3125,
+                  "right": 304,
+                  "bottom": 414.625,
+                  "width": 288,
+                  "height": 462.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 32,
+                  "y": -24.3125,
+                  "right": 256,
+                  "bottom": 136.859375,
+                  "width": 224,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 32,
+                  "y": 152.859375,
+                  "right": 288,
+                  "bottom": 280.046875,
+                  "width": 256,
+                  "height": 127.1875
+                },
+                "association": {
+                  "x": 32,
+                  "y": 296.046875,
+                  "right": 288,
+                  "bottom": 389.625,
+                  "width": 256,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Total des dépenses",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 152.859375,
+                      "right": 288,
+                      "bottom": 172.046875,
+                      "width": 256,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Dépôts / organisation",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 296.046875,
+                      "right": 288,
+                      "bottom": 315.234375,
+                      "width": 256,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "state": "register-320-fr",
+            "geometry": {
+              "viewport": {
+                "width": 320,
+                "height": 844,
+                "scrollY": 0,
+                "docWidth": 320,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 288,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 16,
+                "y": 393.1875,
+                "right": 304,
+                "bottom": 470.6875,
+                "width": 288,
+                "height": 77.5
+              },
+              "search": {
+                "x": 16,
+                "y": 424.6875,
+                "right": 304,
+                "bottom": 470.6875,
+                "width": 288,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 16,
+                  "y": 491.6875,
+                  "right": 304,
+                  "bottom": 954.625,
+                  "width": 288,
+                  "height": 462.9375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 32,
+                  "y": 515.6875,
+                  "right": 256,
+                  "bottom": 676.859375,
+                  "width": 224,
+                  "height": 161.171875
+                },
+                "amount": {
+                  "x": 32,
+                  "y": 692.859375,
+                  "right": 288,
+                  "bottom": 820.046875,
+                  "width": 256,
+                  "height": 127.1875
+                },
+                "association": {
+                  "x": 32,
+                  "y": 836.046875,
+                  "right": 288,
+                  "bottom": 929.625,
+                  "width": 256,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Total des dépenses",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 692.859375,
+                      "right": 288,
+                      "bottom": 712.046875,
+                      "width": 256,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Dépôts / organisation",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 836.046875,
+                      "right": 288,
+                      "bottom": 855.234375,
+                      "width": 256,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "hover": [
+          {
+            "state": "register-native-hover-unchanged",
+            "before": {
+              "viewport": {
+                "width": 390,
+                "height": 844,
+                "scrollY": 250,
+                "docWidth": 390,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 358,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 16,
+                "y": 39.1875,
+                "right": 374,
+                "bottom": 116.6875,
+                "width": 358,
+                "height": 77.5
+              },
+              "search": {
+                "x": 16,
+                "y": 70.6875,
+                "right": 374,
+                "bottom": 116.6875,
+                "width": 358,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 16,
+                  "y": 137.6875,
+                  "right": 374,
+                  "bottom": 553.125,
+                  "width": 358,
+                  "height": 415.4375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0)",
+                "hovered": false,
+                "identity": {
+                  "x": 32,
+                  "y": 161.6875,
+                  "right": 326,
+                  "bottom": 300.359375,
+                  "width": 294,
+                  "height": 138.671875
+                },
+                "amount": {
+                  "x": 32,
+                  "y": 316.359375,
+                  "right": 358,
+                  "bottom": 418.546875,
+                  "width": 326,
+                  "height": 102.1875
+                },
+                "association": {
+                  "x": 32,
+                  "y": 434.546875,
+                  "right": 358,
+                  "bottom": 528.125,
+                  "width": 326,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 316.359375,
+                      "right": 358,
+                      "bottom": 335.546875,
+                      "width": 326,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 434.546875,
+                      "right": 358,
+                      "bottom": 453.734375,
+                      "width": 326,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            },
+            "after": {
+              "viewport": {
+                "width": 390,
+                "height": 844,
+                "scrollY": 250,
+                "docWidth": 390,
+                "coarse": true,
+                "touchPoints": 1
+              },
+              "listWidth": 358,
+              "headDisplay": "none",
+              "toolbar": {
+                "x": 16,
+                "y": 39.1875,
+                "right": 374,
+                "bottom": 116.6875,
+                "width": 358,
+                "height": 77.5
+              },
+              "search": {
+                "x": 16,
+                "y": 70.6875,
+                "right": 374,
+                "bottom": 116.6875,
+                "width": 358,
+                "height": 46
+              },
+              "firstRow": {
+                "rect": {
+                  "x": 16,
+                  "y": 137.6875,
+                  "right": 374,
+                  "bottom": 553.125,
+                  "width": 358,
+                  "height": 415.4375
+                },
+                "padding": {
+                  "left": 16,
+                  "right": 16,
+                  "top": 24,
+                  "bottom": 24
+                },
+                "headingTag": "H2",
+                "draggable": false,
+                "userSelect": "text",
+                "background": "rgba(0, 0, 0, 0.02)",
+                "hovered": true,
+                "identity": {
+                  "x": 32,
+                  "y": 161.6875,
+                  "right": 326,
+                  "bottom": 300.359375,
+                  "width": 294,
+                  "height": 138.671875
+                },
+                "amount": {
+                  "x": 32,
+                  "y": 316.359375,
+                  "right": 358,
+                  "bottom": 418.546875,
+                  "width": 326,
+                  "height": 102.1875
+                },
+                "association": {
+                  "x": 32,
+                  "y": 434.546875,
+                  "right": 358,
+                  "bottom": 528.125,
+                  "width": 326,
+                  "height": 93.578125
+                },
+                "labels": [
+                  {
+                    "text": "Expense total",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 316.359375,
+                      "right": 358,
+                      "bottom": 335.546875,
+                      "width": 326,
+                      "height": 19.1875
+                    }
+                  },
+                  {
+                    "text": "Repositories / organization",
+                    "visible": true,
+                    "rect": {
+                      "x": 32,
+                      "y": 434.546875,
+                      "right": 358,
+                      "bottom": 453.734375,
+                      "width": 326,
+                      "height": 19.1875
+                    }
+                  }
+                ],
+                "financial": [
+                  {
+                    "text": "USD 90,071,992,547,409,911,234,567.89",
+                    "size": 20,
+                    "weight": "700"
+                  },
+                  {
+                    "text": "JPY 123,456,789,012,345,678,901",
+                    "size": 20,
+                    "weight": "700"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "captures": [
+      {
+        "path": "/workspace/work/projects-register-2026-10-08/final/desktop-1440-en-light-register-wide.png",
+        "sha256": "7714ad7e3e0198d844324f5ee926c4bb05745f9058804c8bb4174faa1889f58d"
+      },
+      {
+        "path": "/workspace/work/projects-register-2026-10-08/final/desktop-1440-en-light-rail-primary280.png",
+        "sha256": "f0651b82cef2d08e65040c79fa8fa6a9d015cb1450d8fe26b166342ce741eedc"
+      },
+      {
+        "path": "/workspace/work/projects-register-2026-10-08/final/tablet-900-zh-dark-register-no-rail.png",
+        "sha256": "9e768d58546f8f325ee8043f8806053f13a555ae34d3dfd9706fb6ca636d044d"
+      },
+      {
+        "path": "/workspace/work/projects-register-2026-10-08/final/tablet-900-zh-dark-rail-touch.png",
+        "sha256": "3095b030e0c2f3243652db6e477000a21934a1c541403e7db7d239fd03fc40f7"
+      },
+      {
+        "path": "/workspace/work/projects-register-2026-10-08/final/mobile-390-en-light-register-390.png",
+        "sha256": "e4397ee6f1457d75da2fb3b80440b432dca95a98015727786787abc965f2b26e"
+      },
+      {
+        "path": "/workspace/work/projects-register-2026-10-08/final/mobile-390-en-light-register-320-fr.png",
+        "sha256": "629e94184bbd88d776bda25aff015e491b4faa702ec8a5e76bbc6f4f990162df"
+      }
+    ],
+    "rootVisualReview": {
+      "status": "passed",
+      "nativeCapturesReviewed": 6
+    },
+    "businessWrites": 0,
+    "unknownRoutes": 0,
+    "pageErrors": 0,
+    "realExternalCalls": 0,
+    "excludedDiagnostics": [],
+    "cleanup": {
+      "ownedPreviewBrowserCDPProcessesRemaining": 0,
+      "ownedProfilesRemaining": [],
+      "ports": {
+        "4199": "free/reusable",
+        "9229": "free/reusable"
+      }
+    },
+    "postRunConnectionDiagnostic": {
+      "purpose": "Requested additional association p margin/color metadata after accepted runner already completed",
+      "result": "ECONNREFUSED 127.0.0.1:9229: owned browser/CDP already cleaned",
+      "createdBrowserContexts": 0,
+      "businessAPICalls": 0,
+      "captures": 0,
+      "acceptedCountContribution": 0,
+      "computedMarginColor": "Not captured; parent source/cascade audit and six capture visual review accepted this without restarting"
+    },
+    "existingGeometryPostCheck": {
+      "fixedNavigationMidpointGeometrySamples": 79,
+      "visibleRightOwnMidpointSamples": 40,
+      "additionalBrowserScenarios": 0,
+      "disabledRightGripExcluded": "disabled=true hides pseudo grip"
+    }
+  },
+  "artifactAndSourceHashesRemainUnchanged": true
+}

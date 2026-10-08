@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-08",
+  "scope": "Projects list only; retain original Pullwise visual style. Web preview only; no production or Server/D1 operations.",
+  "sourceCommit": "be413ef57d783f32c6b35630cb5de1afaa039a3b",
+  "worker": "pullwise-web-preview",
+  "config": "wrangler.preview.jsonc",
+  "versionId": "f86b2c01-b149-486c-a658-dce04c6ee0ef",
+  "createdOn": "2026-10-08T09:07:49.723134Z",
+  "annotations": {
+    "workers/message": "Projects list layout; source be413ef57d783f32c6b35630cb5de1afaa039a3b",
+    "workers/tag": "projects-20261008-be413ef",
+    "workers/triggered_by": "version_upload"
+  },
+  "customDomainTrigger": "preview.pull-wise.com",
+  "managementReadback": {
+    "passed": true,
+    "bindings": [
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "PULLWISE_API_ORIGIN",
+        "text": "https://preview-api.pull-wise.com",
+        "type": "plain_text"
+      },
+      {
+        "name": "PULLWISE_MODE",
+        "text": "preview",
+        "type": "plain_text"
+      },
+      {
+        "environment": "production",
+        "name": "PULLWISE_SERVER",
+        "service": "pullwise-server-preview",
+        "type": "service"
+      }
+    ],
+    "assets": {
+      "notFoundHandling": "single-page-application",
+      "runWorkerFirst": ["/*", "!/assets/*"]
+    },
+    "compatibilityDate": "2026-05-25"
+  },
+  "localAcceptance": "projects-register-local-2026-10-08.json",
+  "tests": 536,
+  "testFiles": 38,
+  "browserCounts": {
+    "contexts": 3,
+    "scenarios": 55,
+    "captures": 6,
+    "intercepted": 110,
+    "fixtureGET": 28,
+    "blockedExternal": 3,
+    "maxRequestsPerContext": 40
+  },
+  "maximumRequestsPerContext": 40,
+  "rawBrowserReportSha256": "ec913a5d6d3cc4d18910791bff4e3a3c9a514061ab7d8c905af649a33e9deef9",
+  "artifactEntry": "/assets/index-BMePTPOr.js",
+  "artifactFiles": 45,
+  "runtimeSourceFiles": 16,
+  "artifactManifestSha256": "9cb890bf774e0f2cbeeffebd779f8c4185dfd0c106dd8dc074b2d104e30a1727",
+  "artifactAndSourceHashesRemainUnchanged": true,
+  "staticVerification": {
+    "passed": true,
+    "origin": "https://preview.pull-wise.com",
+    "requests": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4750,
+        "sha256": "b42320838adfc19d2ba70ff3fbdc7981ee2023731f7668382a4afa37cb2c3881",
+        "noindex": true,
+        "expectedBuiltEntry": "/assets/index-BMePTPOr.js",
+        "builtEntryMatched": "/assets/index-BMePTPOr.js"
+      },
+      {
+        "path": "/assets/index-D3DJvA40.css",
+        "status": 200,
+        "bytes": 78731,
+        "sha256": "e9e1ecd313c50bb86527cd6d87587ffc14862942ef9fcfd9998fd66473e98d1c",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/members-C4ML1aYj.js",
+        "status": 200,
+        "bytes": 21574,
+        "sha256": "3e498476f4e4543d459a7e446b932985acd72865379b839aa68ad386033f852c",
+        "matchesLocalArtifact": true
+      },
+      {
+        "path": "/assets/ledger-D-jJ0921.css",
+        "status": 200,
+        "bytes": 13345,
+        "sha256": "782da5e693b1a001968b80b1334055c1415aed157a1421ae57ac0ebb9aa51229",
+        "matchesLocalArtifact": true
+      }
+    ],
+    "httpRequests": 4,
+    "apiRequests": 0,
+    "javascriptExecuted": false,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "credentialsProvided": false,
+    "failures": []
+  },
+  "productionDeployed": false,
+  "serverDeployed": false,
+  "d1Operations": 0,
+  "documentationOnlyNoRedeploy": true
+}

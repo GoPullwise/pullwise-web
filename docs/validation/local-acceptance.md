@@ -2,6 +2,48 @@
 
 Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Projects list information hierarchy (2026-10-08)
+
+The approved newer ZIP informs `/projects` only. Pullwise keeps its original
+palette, typography, hard edges, financial tokens and shared layout containers.
+Rows now align project name/description, expense totals and repository/organization
+metadata in three regions. A compact loaded-count/search toolbar replaces the
+duplicate large list heading; repetitive generic icon frames are removed.
+Queries use actual list/container width: below 760px each row follows project,
+amounts and associations; below 420px the toolbar stacks. Complete currencies,
+native text copying, authorized metadata, local search, explicit pagination and
+shared hover/resize behavior are preserved. Other page and detail styles are
+unchanged. Independent review caught and corrected a paragraph cascade before
+freezing the accepted preview build.
+
+`npm run check` passes lint, **38 files / 536 tests** and build. Worker
+configuration/syntax, source formatting/whitespace and Wrangler 4.136.3 preview
+packaging pass. The preview entry is `/assets/index-BMePTPOr.js`; all **45
+artifact / 16 source** hashes remain unchanged after acceptance and publication.
+
+[Local evidence](projects-register-local-2026-10-08.json) passes **3 physical
+contexts / 55 targeted scenarios / 6 native unedited viewport captures**, all
+reviewed by Root: 1440px English/light desktop, actual-touch 900px Chinese/dark
+landscape, and actual-touch 390px English/light mobile with live 320px French.
+Live 2560/1180px resizing, a 280px primary list, wide/narrow hover, native exact
+name and huge USD/JPY selections without navigation, search clear, one explicit
+pagination read, mouse/keyboard/touch dividers and one ordinary detail roundtrip
+pass. Traffic is **110 intercepted / 28 local fixture GETs / 0 writes**, maximum
+40 of 120 per context, with zero unknown routes, page errors or real external
+calls. External font origins are blocked; captures therefore prove the native
+fallback-font layout. Owned browsers/CDP/Vite/profiles are cleaned and ports are
+free. These fixtures do not establish real-session or payment acceptance.
+
+[Preview publication](projects-register-preview-release-2026-10-08.json)
+publishes runtime `be413ef57d783f32c6b35630cb5de1afaa039a3b` as Web version
+`f86b2c01-b149-486c-a658-dce04c6ee0ef` at `preview.pull-wise.com`.
+Management readback confirms preview bindings, SPA assets and HTML-first
+noindex routing. Exactly one homepage and three exact hashed asset GETs return
+200; remote assets match the accepted build and HTML references its exact entry.
+No retries, redirects, page JavaScript, credentials or business API are used.
+Production and Server/D1 are untouched. This evidence follow-up is
+documentation-only and requires no redeploy.
+
 ## Navigation grip fixed in the visible sidebar (2026-10-08)
 
 The latest user instruction supersedes the earlier document-centered navigation
