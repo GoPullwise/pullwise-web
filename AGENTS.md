@@ -1,5 +1,18 @@
 # Pullwise Web
 
+## Invitation approval (2026-10-09)
+
+Invite member selects a role and creates a link without a username. Preserve
+the invitation hash across sign-in, submit a pending request with actual account
+identity, and offer manual status recovery. Pending/rejected applicants gain no
+ledger selection/access; switch only after current approved membership is read.
+Original inviters review applicant identity in the scoped Members list and
+global inbox. Refresh notifications at login/navigation/focus/explicit intent,
+without interval polling. Preserve account isolation, bounded hasMore lists,
+version guards and the latest native role selector/lock and busy navigation.
+Required Server/schema work uses the same preview database and journal with
+native validation. Keep publication preview-only and production D1 paused.
+
 ## Pending operations and member role controls (2026-10-09)
 
 Project, Shared Pool, Categories and Projects mutations keep conflicting

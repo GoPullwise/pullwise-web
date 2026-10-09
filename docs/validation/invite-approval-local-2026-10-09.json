@@ -1,0 +1,1424 @@
+{
+  "kind": "isolated-local-browser-acceptance",
+  "date": "2026-10-09",
+  "source": "built dist",
+  "engine": "Chromium",
+  "fixtures": "Synthetic local A/B/C accounts; no OAuth, provider, D1, email, or remote account calls",
+  "states": [
+    {
+      "name": "busy-invitation-creation-blocks-topbar-and-toast-review-navigation",
+      "memberReadsUnchanged": true
+    },
+    {
+      "name": "inviter-role-only-form-and-copyable-link",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 49.5625,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "AdminEditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        },
+        {
+          "text": "Copy invitation link",
+          "width": 135.796875,
+          "height": 34
+        },
+        {
+          "text": "Approve request from local-carol",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-carol",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_approval",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_rejection",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_created",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "invite-owner-desktop-after-capture",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 49.5625,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "AdminEditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        },
+        {
+          "text": "Copy invitation link",
+          "width": 135.796875,
+          "height": 34
+        },
+        {
+          "text": "Approve request from local-carol",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-carol",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_approval",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_rejection",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_created",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "applicant-pending-no-membership",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 36,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "Check status",
+          "width": 103.59375,
+          "height": 34
+        },
+        {
+          "text": "AdminEditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        }
+      ]
+    },
+    {
+      "name": "invite-applicant-pending-after-capture",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 36,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "Check status",
+          "width": 103.59375,
+          "height": 34
+        },
+        {
+          "text": "AdminEditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        }
+      ]
+    },
+    {
+      "name": "invite-inbox-desktop-after-capture",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 49.5625,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "AdminEditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        },
+        {
+          "text": "Copy invitation link",
+          "width": 135.796875,
+          "height": 34
+        },
+        {
+          "text": "Approve request from local-carol",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-carol",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_approval",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_rejection",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_created",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Close",
+          "width": 44,
+          "height": 34
+        },
+        {
+          "text": "Review request",
+          "width": 103.03125,
+          "height": 28
+        },
+        {
+          "text": "Review request",
+          "width": 103.03125,
+          "height": 28
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        }
+      ]
+    },
+    {
+      "name": "inviter-approved-B-rejected-C",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 36,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "AdminEditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        },
+        {
+          "text": "Revoke invitation link win_rejection",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_created",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "applicant-approved-open-shared-ledger-no-replay",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 36,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        }
+      ]
+    },
+    {
+      "name": "first-inbox-navigation-selects-shared-admin-ledger",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 49.5625,
+          "height": 28
+        },
+        {
+          "text": "Select ledger",
+          "width": 233.296875,
+          "height": 33
+        },
+        {
+          "text": "Reload",
+          "width": 70.421875,
+          "height": 34
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 307,
+          "height": 43
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 34
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "touch-390-members-role-only-approval",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 207.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 358,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 358,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "invite-mobile-390-after-capture",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 207.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 358,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 358,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "touch-390-inbox-modal",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 207.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 358,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 358,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Close",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Review request",
+          "width": 103.03125,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 324,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "touch-live-320-inbox-modal",
+      "viewport": 320,
+      "documentWidth": 320,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 137.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 288,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 288,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Close",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Review request",
+          "width": 103.03125,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 254,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "invite-mobile-320-inbox-after-capture",
+      "viewport": 320,
+      "documentWidth": 320,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 137.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 288,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 288,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        },
+        {
+          "text": "Close",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Review request",
+          "width": 103.03125,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 254,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "touch-live-320-members",
+      "viewport": 320,
+      "documentWidth": 320,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 137.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 288,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 288,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "invite-mobile-320-after-capture",
+      "viewport": 320,
+      "documentWidth": 320,
+      "coarse": true,
+      "touchPoints": 1,
+      "controls": [
+        {
+          "text": "Join requests",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Select ledger",
+          "width": 137.296875,
+          "height": 44
+        },
+        {
+          "text": "Account & tools",
+          "width": 90,
+          "height": 44
+        },
+        {
+          "text": "Reload",
+          "width": 288,
+          "height": 44
+        },
+        {
+          "text": "Edit role for local-applicant",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "Remove local-applicant",
+          "width": 73.640625,
+          "height": 44
+        },
+        {
+          "text": "EditorViewer",
+          "width": 288,
+          "height": 46
+        },
+        {
+          "text": "Create invitation",
+          "width": 121.734375,
+          "height": 44
+        },
+        {
+          "text": "Approve request from local-applicant",
+          "width": 73.515625,
+          "height": 44
+        },
+        {
+          "text": "Reject request from local-applicant",
+          "width": 62.078125,
+          "height": 44
+        },
+        {
+          "text": "Revoke invitation link win_admin",
+          "width": 122.796875,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "login-keeps-invite-return-and-authenticated-login-auto-members",
+      "simulatedOAuth": true
+    }
+  ],
+  "contexts": [
+    {
+      "actorId": "usr_fixture_owner",
+      "width": 1440,
+      "touch": false,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites/win_approval/requests/wjr_approval/approve",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites/win_rejection/requests/wjr_rejection/reject",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        }
+      ],
+      "externalBlocked": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "unexpected": [],
+      "cap": 80
+    },
+    {
+      "actorId": "usr_fixture_applicant",
+      "width": 1440,
+      "touch": false,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspace-invitations/preview",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/members",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/invites",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/join-requests",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspace-invitations/accept",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspace-invitations/preview",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/members",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/invites",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/join-requests",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        }
+      ],
+      "externalBlocked": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "unexpected": [],
+      "cap": 80
+    },
+    {
+      "actorId": "usr_fixture_admin",
+      "width": 1440,
+      "touch": false,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/integrations",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        }
+      ],
+      "externalBlocked": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "unexpected": [],
+      "cap": 80
+    },
+    {
+      "actorId": "usr_fixture_admin",
+      "width": 390,
+      "touch": true,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_admin/members",
+          "workspace": "usr_fixture_admin"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_admin/invites",
+          "workspace": "usr_fixture_admin"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_admin/join-requests",
+          "workspace": "usr_fixture_admin"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/members",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/invites",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_owner/join-requests",
+          "workspace": "usr_fixture_owner"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        }
+      ],
+      "externalBlocked": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "unexpected": [],
+      "cap": 80
+    },
+    {
+      "actorId": "usr_fixture_applicant",
+      "width": 1440,
+      "touch": false,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/auth/github/authorize",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "workspace": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/workspace-invitations/preview",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/members",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/invites",
+          "workspace": "usr_fixture_applicant"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces/usr_fixture_applicant/join-requests",
+          "workspace": "usr_fixture_applicant"
+        }
+      ],
+      "externalBlocked": [
+        "https://fonts.googleapis.com/css2",
+        "https://github.com/login/oauth/authorize",
+        "https://fonts.googleapis.com/css2"
+      ],
+      "unexpected": [],
+      "cap": 80
+    }
+  ],
+  "screenshots": [
+    "/workspace/work/invite-owner-desktop.png",
+    "/workspace/work/invite-applicant-pending.png",
+    "/workspace/work/invite-inbox-desktop.png",
+    "/workspace/work/invite-mobile-390.png",
+    "/workspace/work/invite-mobile-320-inbox.png",
+    "/workspace/work/invite-mobile-320.png"
+  ],
+  "failed": false,
+  "artifact": {
+    "indexHtmlSha256": "55f45c669d83195d2fe87a45cc56eec2801239dcfb6a5597c5c279ab59dd41e5",
+    "assets": [
+      "index-BIBADjXE.js",
+      "members-CyufGyzq.js"
+    ]
+  },
+  "diagnosticAttempts": [
+    {
+      "evidence": "/workspace/work/invite-browser-diagnostic-1.json",
+      "reason": "Harness localStorage initScript ran on the intentionally blocked GitHub error document; corrected to run on exact loopback origin only. Earlier product assertions passed."
+    }
+  ],
+  "browserVersion": "151.0.7922.173",
+  "apiRequests": 72,
+  "remoteRequestsDelivered": 0,
+  "externalRequestsBlocked": 7,
+  "errors": [],
+  "persistentLayout": {
+    "command": "npm run test:layout -- --browser=chromium",
+    "passed": true,
+    "engine": "Chromium only; WebKit/Firefox executables unavailable",
+    "contexts": 4,
+    "states": 250,
+    "profileStates": [
+      {
+        "profile": "desktop-1440",
+        "states": 79
+      },
+      {
+        "profile": "tablet-1280-zh",
+        "states": 79
+      },
+      {
+        "profile": "phone-390-to-320",
+        "states": 46
+      },
+      {
+        "profile": "android-size-412-to-360",
+        "states": 46
+      }
+    ],
+    "scope": "Local GET-only fixtures; browser engines and simulated viewports, not physical devices. No save, CSV download, external delivery or screenshots.",
+    "log": "/workspace/work/invite-layout-final.log",
+    "priorDiagnostic": "/workspace/work/invite-layout.log",
+    "priorDiagnosticReason": "Strict fixture initially lacked the new global inbox GET; root added empty pending list and final rerun passed.",
+    "requestCounts": {
+      "total": 314,
+      "syntheticApi": 215,
+      "externalFontsBlocked": 4,
+      "violations": 0,
+      "remoteDelivered": 0
+    }
+  }
+}

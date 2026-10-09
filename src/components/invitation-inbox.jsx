@@ -54,8 +54,8 @@ export function InvitationInboxProvider({
 
   const review = useCallback((item, owner = current.current.identity) => {
     if (!current.current.enabled || current.current.identity !== owner) return;
+    if (current.current.onReview(item) === false) return;
     setOpen(false);
-    current.current.onReview(item);
   }, []);
 
   const refresh = useCallback(

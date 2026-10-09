@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App.jsx";
@@ -551,6 +551,52 @@ it("opens the requested ledger when inbox review is the first navigation into a 
   expect(harness.apis.alice.members).not.toHaveBeenCalled();
   expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
   expect(window.location.pathname).toBe("/members");
+});
+
+it("keeps notification review in the current ledger during a member write and allows inbox review afterward", async () => {
+  window.history.replaceState({}, "", "/members");
+  const managedTeam = {
+    ...team,
+    role: "admin",
+    permissions: { manageMembers: true, manageAdmins: false },
+  };
+  authenticatedLedgers([personal, managedTeam]);
+  const creating = pending();
+  harness.apis.alice = membersApi({
+    inviteMember: vi.fn().mockReturnValue(creating.promise),
+  });
+  harness.apis.team = membersApi({
+    workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [joinRequest] }),
+  });
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+  render(<App />);
+  const create = await screen.findByRole("button", { name: "Create invitation" });
+  await waitFor(() => expect(create).toBeEnabled());
+  expect(await screen.findByRole("alert")).toHaveTextContent("Bob");
+  fireEvent.submit(create.closest("form"));
+  expect(harness.apis.alice.inviteMember).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("link", { name: "Go to Pullwise home" })).toHaveAttribute(
+    "aria-disabled",
+    "true"
+  );
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Review request" }));
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("alice");
+  expect(harness.apis.team.members).not.toHaveBeenCalled();
+  expect(harness.apis.alice.members).toHaveBeenCalledTimes(1);
+  expect(window.location.pathname).toBe("/members");
+  await act(async () => {
+    creating.resolve({ ...invite, token: inviteToken });
+  });
+  await waitFor(() => expect(screen.getByRole("button", { name: "Join requests" })).toBeEnabled());
+  expect(screen.getByRole("button", { name: "Join requests" })).toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
+  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  fireEvent.click(within(inbox).getByRole("button", { name: "Review request" }));
+  expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+  expect(harness.apis.team.members).toHaveBeenCalledWith("team", expect.any(Object));
+  expect(inbox).not.toBeInTheDocument();
 });
 
 it("keeps pending requests available without repeating their notifications on focus refresh", async () => {

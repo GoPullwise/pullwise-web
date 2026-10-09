@@ -247,6 +247,10 @@ function payloadFor(path, params) {
     assertQuery(params, []);
     return { items: [workspace, sharedWorkspace] };
   }
+  if (path === "/api/v1/workspace-invitation-requests") {
+    assertQuery(params, []);
+    return { items: [], hasMore: false };
+  }
   if (path === "/api/v1/projects") {
     assertQuery(params, ["limit", "cursor"]);
     return { items: [project], nextCursor: null };

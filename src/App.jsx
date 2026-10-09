@@ -741,6 +741,7 @@ export function App() {
         enabled={auth.status === "ready" && auth.authenticated}
         navigationKey={navigationKey}
         onReview={(request) => {
+          if (screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]')) return false;
           selectWorkspace(request.workspaceId);
           go("ledgerMembers");
         }}
