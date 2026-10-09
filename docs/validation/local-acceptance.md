@@ -66,6 +66,17 @@ Linux WebKit reports its unmodified maxTouchPoints=0 with coarse media enabled.
 Firefox remains unavailable under the previously recorded managed-runtime
 uid-mapping/SWGL limitation; its workflow layout checks remain configured.
 
+Source `29456ae` is published on GitHub main and deployed as Web preview version
+`19ae73c0-364d-414f-906d-a91bb0d900e3`; deployment metadata confirms 100% traffic.
+The publication used a fast-forward update with an expected-head lease, and the
+complete remote Git tree matches the verified local source tree. One homepage
+and three exact hashed-asset GETs all return 200. The noindex homepage references
+`/assets/index-HqtUu9hl.js`; the requested `/assets/ledger-Dg8cmCDd.js`,
+`/assets/members-BxUhIBHI.js` and `/assets/index-CiNwg8Wz.css` match the accepted
+local build byte for byte. No redirects, retries, page JavaScript, business API,
+Server/D1 or production operation occurred. This publication record is a
+documentation-only follow-up and needs no additional deployment.
+
 ## Currency identity colors (2026-10-09)
 
 The shared `CurrencyBadge` now gives USD, CNY, JPY, EUR, GBP, AUD, CAD, CHF,
