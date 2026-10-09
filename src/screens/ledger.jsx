@@ -19,6 +19,11 @@ import { ActivityLog } from "../components/activity-log.jsx";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { ExpenseReviewDialog } from "../components/expense-review-dialog.jsx";
 import { env } from "../config/env.js";
+import {
+  categoryDisplayName,
+  isActiveCategory,
+  isRemovedCategory,
+} from "../lib/category-label.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
 import { connectGitHubRepositories, startGitHubLogin } from "../lib/auth.js";
@@ -124,8 +129,16 @@ function errorText(error) {
       "请选择类别后保存，已填写的内容已保留。"
     ),
     CATEGORY_IN_USE: T(
-      "Categories referenced by expense history, recurring schedules or saved Jev suggestions cannot be removed. You can archive active categories instead.",
-      "支出历史、周期计划或已保存的 Jev 建议引用的类别不能移除。仍在启用的类别可以改为归档。"
+      "Category removal could not be completed. Reload and try again.",
+      "未能完成类别移除，请重新加载后重试。",
+    ),
+    INVALID_CATEGORY: T(
+      "Choose an active category and retry. Your draft is still here.",
+      "请选择启用的类别后重试，已填写的内容已保留。",
+    ),
+    CATEGORY_REMOVED: T(
+      "This category was removed. Reload to update your choices.",
+      "此类别已移除，请重新加载以更新选项。",
     ),
   };
   if (allowanceErrors[code]) return allowanceErrors[code];
@@ -230,7 +243,11 @@ function LedgerFilters({ filters, onChange, categories = [], disabled = false })
           <option value="">{T("All categories")}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.name}
+              {categoryDisplayName(
+                category,
+                T("Removed", "已移除"),
+                T("Category not loaded", "类别尚未加载"),
+              )}
             </option>
           ))}
         </select>
@@ -793,10 +810,19 @@ function ExpenseForm({
               {categoryRequired ? T("Select category") : T("Automatic", "自动分类")}
             </option>
             {categories
-              .filter((category) => !category.archivedAt || category.id === value?.categoryId)
+              .filter(
+                (category) =>
+                  isActiveCategory(category) ||
+                  (category.id === value?.categoryId &&
+                    (!isRemovedCategory(category) || !recurrence)),
+              )
               .map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.name}
+                  {categoryDisplayName(
+                    category,
+                    T("Removed", "已移除"),
+                    T("Category not loaded", "类别尚未加载"),
+                  )}
                 </option>
               ))}
           </select>
@@ -1249,15 +1275,23 @@ function ScopedLedgerScreen({
             return { failure };
           }
         );
-      const [categories, expenses, project, projects, timeseries, categoryReport] =
-        await Promise.all([
-          api.categories(options),
-          api.expenses(detailQuery, options),
-          mode === "project" ? api.project(projectId, options) : Promise.resolve(null),
-          api.projects({}, options),
-          optionalReport(api.reportTimeseries(detailQuery, options)),
-          optionalReport(api.reportCategories(detailQuery, options)),
-        ]);
+      const [
+        categories,
+        expenses,
+        project,
+        projects,
+        timeseries,
+        categoryReport,
+      ] = await Promise.all([
+        api.categories({ ...options, params: { includeRemoved: true } }),
+        api.expenses(detailQuery, options),
+        mode === "project"
+          ? api.project(projectId, options)
+          : Promise.resolve(null),
+        api.projects({}, options),
+        optionalReport(api.reportTimeseries(detailQuery, options)),
+        optionalReport(api.reportCategories(detailQuery, options)),
+      ]);
       return {
         categories,
         expenses,
@@ -1745,7 +1779,9 @@ function ScopedLedgerScreen({
             "这笔支出可能仅属于某个项目，请核对归属。"
           )
       : "";
-  const activeCategories = data?.categories?.filter((category) => !category.archivedAt) || [];
+  const managedCategories =
+    data?.categories?.filter((category) => !isRemovedCategory(category)) || [];
+  const activeCategories = data?.categories?.filter(isActiveCategory) || [];
   const canAddExpense = Boolean(
     canWriteExpenses &&
     activeCategories.length > 0 &&
@@ -2047,9 +2083,14 @@ function ScopedLedgerScreen({
                 {savedAssistance.categorySource === "jev" && (
                   <p>
                     {T("Jev categorized this expense", "Jev 已自动为这笔支出分类")}:{" "}
-                    {data?.categories?.find(
-                      (item) => item.id === savedAssistance.suggestions?.categoryId
-                    )?.name || T("Saved", "已保存")}
+                    {categoryDisplayName(
+                      data?.categories?.find(
+                        (item) =>
+                          item.id === savedAssistance.suggestions?.categoryId,
+                      ),
+                      T("Removed", "已移除"),
+                      T("Saved", "已保存"),
+                    )}
                     .
                   </p>
                 )}
@@ -2548,17 +2589,17 @@ function ScopedLedgerScreen({
                   <h2 ref={categoryHeadingRef} tabIndex={-1}>
                     {T("Your categories")}
                   </h2>
-                  <span className="count">{data.categories.length}</span>
+                  <span className="count">{managedCategories.length}</span>
                 </div>
-                {canManageCategories && data.categories.length > 0 && (
+                {canManageCategories && managedCategories.length > 0 && (
                   <p className="ledger-help">
                     {T(
-                      "Remove unused categories; archive categories referenced by saved records or schedules.",
-                      "未使用的类别可以移除；已保存的记录或计划引用的类别请归档。"
+                      "Removing a category hides it from management and new choices. Saved expenses keep its name; blocked schedules need an active category and explicit Resume. Archive keeps the category in this list.",
+                      "移除类别后，它会从管理列表和新建选项中消失。已保存支出保留其名称；被阻止的周期计划须换用启用类别并主动恢复。归档会将类别保留在此列表中。",
                     )}
                   </p>
                 )}
-                {data.categories.length === 0 && (
+                {managedCategories.length === 0 && (
                   <div className="empty">
                     <I.Folder size={28} />
                     <h3>{T("Give your expenses a home", "先为支出建个分类")}</h3>
@@ -2571,7 +2612,7 @@ function ScopedLedgerScreen({
                   </div>
                 )}
                 <div className="ledger-list">
-                  {data.categories.map((category) => (
+                  {managedCategories.map((category) => (
                     <article
                       className={
                         canManageCategories && categoryEdit?.id === category.id
@@ -2968,9 +3009,14 @@ function ScopedLedgerScreen({
                             <h3>{expense.purpose}</h3>
                             <p className="ledger-meta">
                               {expense.occurredOn} ·{" "}
-                              {data.categories.find(
-                                (category) => category.id === expense.categoryId
-                              )?.name || T("Archived category")}
+                              {categoryDisplayName(
+                                data.categories.find(
+                                  (category) =>
+                                    category.id === expense.categoryId,
+                                ),
+                                T("Removed", "已移除"),
+                                T("Category not loaded", "类别尚未加载"),
+                              )}
                             </p>
                             {expense.note && <p>{expense.note}</p>}
                           </div>
@@ -3508,8 +3554,8 @@ function ScopedLedgerScreen({
                       <h3>{T("Remove project", "移除项目")}</h3>
                       <p>
                         {T(
-                          "Remove this project and its expenses from lists and reports.",
-                          "从列表和报表中移除此项目及其支出。"
+                          "Permanently delete this project, its current expenses, all its recurring schedules and related business history.",
+                          "永久删除此项目、当前归属于它的支出、全部周期计划及相关业务历史。",
                         )}
                       </p>
                       <button
@@ -3559,8 +3605,8 @@ function ScopedLedgerScreen({
                 <strong>{projectRemoval.name}</strong>
                 <span>
                   {T(
-                    "Removing this project hides it and its expenses from lists and reports, stops its recurring schedules, and keeps its history in the background.",
-                    "移除此项目后，它及其支出将不再显示在列表和报表中，周期计划会停止，后台历史记录将保留。"
+                    "This permanently deletes the project, expenses currently assigned to it, all its recurring schedules in any state, and related business history. Expenses already moved to another project or the shared pool remain. This cannot be undone.",
+                    "此操作会永久删除项目、当前归属于它的支出、所有状态的周期计划及相关业务历史。已移到其他项目或公共池的现存支出将保留。此操作无法撤销。",
                   )}
                 </span>
                 {projectRemovalError && (

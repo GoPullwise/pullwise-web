@@ -243,6 +243,30 @@ describe("ExpenseCharts", () => {
     expect(chart("USD").querySelectorAll(".expense-chart-zero")).toHaveLength(1);
   });
 
+  it("labels removed category metadata without changing its historical totals", () => {
+    render(
+      fixture({
+        dimension: "category",
+        categories: [
+          {
+            id: "cat_removed",
+            name: "Past tools",
+            removedAt: "2026-10-08T00:00:00Z",
+          },
+        ],
+        groups: [
+          { categoryId: "cat_removed", currency: "USD", amountMinor: "123" },
+        ],
+      }),
+    );
+    expect(readout("USD")).toHaveTextContent("Past tools (Removed)");
+    expect(readout("USD")).toHaveTextContent("1.23");
+    expect(points("USD")[0]).toHaveAttribute(
+      "data-label",
+      "Past tools (Removed)",
+    );
+  });
+
   it("uses an archived category fallback without inventing a category or amount", () => {
     render(
       fixture({

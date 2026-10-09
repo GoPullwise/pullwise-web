@@ -577,6 +577,14 @@ describe("RecurringExpenses", () => {
     render(fixture(api));
     await loaded();
     fireEvent.click(button("Delete schedule"));
+    const confirmation = screen.getByRole("group", { name: "Confirm delete schedule" });
+    expect(row().querySelector(".recurring-expenses-side")).toContainElement(confirmation);
+    expect(row().querySelector(":scope > .notice")).toBeNull();
+    expect(
+      within(confirmation).getByRole("button", { name: "Confirm delete schedule" })
+    ).toHaveAccessibleDescription(
+      "Delete this schedule permanently? Already created expense records are retained."
+    );
     expect(
       screen.getByText(
         "Delete this schedule permanently? Already created expense records are retained."
@@ -597,6 +605,67 @@ describe("RecurringExpenses", () => {
     expect(screen.getByText("No recurring schedules yet.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reload recurring schedules" })).toHaveFocus();
     expect(api.recurringRules).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels same-row deletion with Escape and restores the original action", async () => {
+    const api = client();
+    render(fixture(api));
+    await loaded();
+    const opener = button("Delete schedule");
+    fireEvent.click(opener);
+    const confirm = screen.getByRole("button", { name: "Confirm delete schedule" });
+    expect(confirm).toHaveFocus();
+    fireEvent.keyDown(confirm, { key: "Escape" });
+    expect(screen.queryByRole("group", { name: "Confirm delete schedule" })).toBeNull();
+    expect(opener).toBeVisible();
+    expect(opener).toHaveFocus();
+    expect(api.removeRecurringRule).not.toHaveBeenCalled();
+  });
+
+  it("keeps the historical category name visible when its configuration was removed", async () => {
+    const api = client([rule({ status: "blocked", blockedCode: "INVALID_CATEGORY" })]);
+    render(
+      fixture(api, {
+        categories: [
+          {
+            id: "cat_one",
+            name: "Infrastructure",
+            archivedAt: "2026-10-09T00:00:00Z",
+            removedAt: "2026-10-09T00:00:00Z",
+          },
+        ],
+      })
+    );
+    await loaded();
+    expect(row()).toHaveTextContent("Infrastructure (Removed)");
+    expect(api.removeRecurringRule).not.toHaveBeenCalled();
+    expect(api.updateRecurringRule).not.toHaveBeenCalled();
+  });
+
+  it("keeps deletion in its action slot during a write and blocks retries after an uncertain result", async () => {
+    const api = client();
+    const write = pending();
+    api.removeRecurringRule.mockReturnValue(write.promise);
+    render(fixture(api));
+    await loaded();
+    fireEvent.click(button("Delete schedule"));
+    const confirm = screen.getByRole("button", { name: "Confirm delete schedule" });
+    fireEvent.click(confirm);
+    expect(confirm).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    fireEvent.keyDown(confirm, { key: "Escape" });
+    expect(screen.getByRole("group", { name: "Confirm delete schedule" })).toBeInTheDocument();
+    await act(async () => write.reject(error(503)));
+    await screen.findByRole("alert");
+    expect(confirm).toBeDisabled();
+    fireEvent.click(confirm);
+    expect(api.removeRecurringRule).toHaveBeenCalledOnce();
+    expect(api.recurringRules).toHaveBeenCalledOnce();
+    expect(row().querySelector(":scope > .notice")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("group", { name: "Confirm delete schedule" })).toBeNull();
+    expect(button("Delete schedule")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload recurring schedules" })).toHaveFocus();
   });
 
   it("retains known rows on availability failures and only retries on explicit intent", async () => {

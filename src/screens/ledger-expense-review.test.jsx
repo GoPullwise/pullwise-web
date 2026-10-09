@@ -160,6 +160,31 @@ describe("explicit inspection of selected saved expenses", () => {
     }
   );
 
+  it("shows a removed category label in structured results without assigning it or writing an expense", async () => {
+    const f = fixture({ count: 1 });
+    f.api.categories.mockResolvedValue([
+      { ...f.categories[0], removedAt: "2026-10-09T00:00:00Z" },
+      f.categories[1],
+    ]);
+    render(view(f));
+    await screen.findByRole("heading", { name: "Hosting 0" });
+    fireEvent.click(screen.getByRole("button", { name: "Expense review" }));
+    const dialog = screen.getByRole("dialog", { name: "Expense review" });
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole("button", { name: "Start review" }),
+      ).toBeEnabled(),
+    );
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Start review" }),
+    );
+    expect(
+      await within(dialog).findByText("Current: Hosting (Removed)"),
+    ).toBeInTheDocument();
+    expect(f.api.updateExpense).not.toHaveBeenCalled();
+    expect(f.api.createExpense).not.toHaveBeenCalled();
+  });
+
   it("runs sequentially, keeps the page locked until aborted work settles, and retains partial results", async () => {
     const f = fixture();
     const first = deferred();

@@ -1915,7 +1915,7 @@ describe("ledger screens", () => {
     expect(api.removeCategory).toHaveBeenCalledTimes(1);
   });
 
-  it("retains a referenced category and offers Archive after CATEGORY_IN_USE without retrying", async () => {
+  it("retains the category and confirmation after a legacy removal rejection without retrying", async () => {
     api.categories.mockResolvedValue([
       { id: "cat_1", name: "Tools", revision: 1, archivedAt: null },
     ]);
@@ -1928,8 +1928,8 @@ describe("ledger screens", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirm remove Tools" }));
     expect(
       await screen.findByText(
-        "Categories referenced by expense history, recurring schedules or saved Jev suggestions cannot be removed. You can archive active categories instead."
-      )
+        "Category removal could not be completed. Reload and try again.",
+      ),
     ).toBeVisible();
     expect(screen.getByRole("heading", { name: "Tools" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Confirm remove Tools" })).toHaveFocus();

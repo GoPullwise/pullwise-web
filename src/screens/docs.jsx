@@ -25,6 +25,14 @@ const SECTIONS = [
     text: DOCS_GUIDE.categories,
   },
   {
+    id: "project-removal",
+    title: ["Permanently remove a project", "永久移除项目"],
+    text: [
+      "Only the ledger Owner can permanently remove a project from Project settings. Confirming deletes the project, expenses currently assigned to it, all its recurring schedules in every state and related business history. Existing expenses already moved to another project or the shared pool remain. This cannot be undone. Archive is a separate action that preserves the project and its records.",
+      "只有账本 Owner 可以在项目设置中永久移除项目。确认后会删除项目、当前归属于它的支出、所有状态的周期计划及相关业务历史。已移到其他项目或公共池的现存支出保留。此操作无法撤销。归档是独立操作，会保留项目和账目。",
+    ],
+  },
+  {
     id: "expenses",
     title: ["Record expenses", "记录支出"],
     text: DOCS_GUIDE.expenses,
@@ -43,8 +51,8 @@ const SECTIONS = [
     id: "jev-settings",
     title: ["Jev settings", "Jev 设置"],
     text: [
-      "In Settings, Pro and Max account owners can enable or disable Jev for their own ledger and its shared members. The preference belongs to your account, regardless of the selected shared ledger; that ledger follows its own Owner's preference. Free accounts display a disabled Off switch. Turning Jev off stops model choices and scores without changing saved expenses, resetting used allowance or removing paid local duplicate checks. A saved On preference stays On when the service is temporarily unavailable. Changes are confirmed by the server; after a conflict or refresh failure, reload explicitly before choosing again.",
-      "在设置中，Pro 和 Max 账户所有者可以为自己的账本及其共享成员启用或关闭 Jev。偏好属于你的账户，与当前选中的共享账本无关；共享账本遵循其自身 Owner 的偏好。Free 账户显示禁用的关闭开关。关闭 Jev 会停止模型选项和评分，不会修改已保存支出、重置已使用额度，也不会移除付费账本的本地疑似重复检查。服务暂不可用时，已保存的开启偏好仍保持开启。改动由服务端确认；发生冲突或刷新失败后，请手动重新加载再选择。",
+      "In Settings, Pro and Max account owners can enable or disable Jev for their own ledger and its shared members. The preference belongs to your account, regardless of the selected shared ledger; that ledger follows its own Owner's preference. Free accounts display a disabled Off switch. Turning Jev off stops model choices and scores without changing saved expenses, resetting used allowance or removing paid local duplicate checks. A saved On preference stays On when the service is temporarily unavailable. Changes are confirmed by the server; after a conflict or refresh failure, reload explicitly before choosing again. Free cannot run model checks even if its saved preference is On; an effective Pro or Max plan is required to use them again.",
+      "在设置中，Pro 和 Max 账户所有者可以为自己的账本及其共享成员启用或关闭 Jev。偏好属于你的账户，与当前选中的共享账本无关；共享账本遵循其自身 Owner 的偏好。Free 账户显示禁用的关闭开关。关闭 Jev 会停止模型选项和评分，不会修改已保存支出、重置已使用额度，也不会移除付费账本的本地疑似重复检查。服务暂不可用时，已保存的开启偏好仍保持开启。改动由服务端确认；发生冲突或刷新失败后，请手动重新加载再选择。 即使保存的偏好为开启，Free 仍不能运行模型检查；重新使用需要有效的 Pro 或 Max 套餐。",
     ],
   },
   {

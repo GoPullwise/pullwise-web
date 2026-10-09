@@ -180,12 +180,22 @@ describe("Owner project removal", () => {
       expect(background.inert).toBe(true);
       expect(within(dialog).getByText("Current & <reserved> project")).toBeInTheDocument();
       expect(dialog).toHaveAccessibleDescription(
-        expect.stringContaining("stops its recurring schedules")
+        expect.stringContaining("all its recurring schedules in any state"),
       );
       expect(dialog).toHaveAccessibleDescription(
-        expect.stringContaining("keeps its history in the background")
+        expect.stringContaining("related business history"),
       );
-      const cancel = within(dialog).getAllByRole("button", { name: "Cancel" })[0];
+      expect(dialog).toHaveAccessibleDescription(
+        expect.stringContaining(
+          "Expenses already moved to another project or the shared pool remain",
+        ),
+      );
+      expect(dialog).toHaveAccessibleDescription(
+        expect.stringContaining("This cannot be undone"),
+      );
+      const cancel = within(dialog).getAllByRole("button", {
+        name: "Cancel",
+      })[0];
       await waitFor(() => expect(cancel).toHaveFocus());
       await user.keyboard("{Shift>}{Tab}{/Shift}");
       expect(within(dialog).getByRole("button", { name: "Confirm remove project" })).toHaveFocus();

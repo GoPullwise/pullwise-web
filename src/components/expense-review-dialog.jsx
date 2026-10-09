@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { FinancialValue } from "./financial-value.jsx";
 import { useModalFocus } from "../lib/modal-focus.js";
+import { categoryDisplayName } from "../lib/category-label.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
 import "./expense-review-dialog.css";
@@ -115,8 +116,13 @@ function ReviewChecks({ result, expense, records, categories }) {
   const target = result.checks.target;
   const duplicate = result.checks.duplicate;
   const categoryName = (id) =>
-    categories.find((item) => item.id === id)?.name || T("Category not loaded", "类别尚未加载");
-  const targetName = (kind) => (kind === "shared" ? T("Shared expense pool") : T("Project"));
+    categoryDisplayName(
+      categories.find((item) => item.id === id),
+      T("Removed", "已移除"),
+      T("Category not loaded", "类别尚未加载"),
+    );
+  const targetName = (kind) =>
+    kind === "shared" ? T("Shared expense pool") : T("Project");
   const candidate =
     duplicate.candidate &&
     records.find(

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
+import { I } from "../icons.jsx";
+import { categoryDisplayName } from "../lib/category-label.js";
 import { EXPENSE_CAPACITY_COPY, EXPENSE_CAPACITY_ERRORS } from "../locales/expense-capacity.js";
 import { FinancialValue } from "./financial-value.jsx";
 import { LedgerSplit } from "./ledger-split.jsx";
@@ -234,6 +236,7 @@ export function RecurringExpenses({
   formatTotal,
 }) {
   useLang();
+  const deleteDescriptionId = useId();
   const key = scopeKey(target);
   const live = useRef(null);
   live.current = { api, key, canManage, disabled, onAccessChanged, beginOperation };
@@ -588,7 +591,12 @@ export function RecurringExpenses({
                   <div className="ledger-row-main">
                     <h3>{rule.purpose}</h3>
                     <p>
-                      {category?.name || T("Archived category")} ·{" "}
+                      {categoryDisplayName(
+                        category,
+                        T("Removed", "已移除"),
+                        T("Archived category")
+                      )}{" "}
+                      ·{" "}
                       {frequencies().find(([value]) => value === rule.schedule?.frequency)?.[1] ||
                         T("Unavailable")}
                     </p>
@@ -659,57 +667,81 @@ export function RecurringExpenses({
                           </>
                         )}
                         {deletable && (
-                          <button
-                            className="btn ghost"
-                            type="button"
-                            ref={ref(rule.id, "delete")}
-                            disabled={blocked || needsReload.current}
-                            onClick={() => {
-                              if (
-                                actionPending.current ||
-                                readPending.current ||
-                                live.current.disabled
-                              )
-                                return;
-                              pendingFocus.current = null;
-                              setEditor(null);
-                              setConfirmation(rule);
+                          <div
+                            className="recurring-delete-action"
+                            onKeyDown={(event) => {
+                              if (event.key === "Escape" && confirmation?.id === rule.id) {
+                                event.preventDefault();
+                                close(rule, "delete");
+                              }
                             }}
                           >
-                            {T("Delete schedule")}
-                          </button>
+                            <button
+                              className="btn ghost"
+                              type="button"
+                              ref={ref(rule.id, "delete")}
+                              hidden={confirmation?.id === rule.id}
+                              disabled={blocked || needsReload.current}
+                              onClick={() => {
+                                if (
+                                  actionPending.current ||
+                                  readPending.current ||
+                                  live.current.disabled
+                                )
+                                  return;
+                                pendingFocus.current = null;
+                                setEditor(null);
+                                setConfirmation(rule);
+                              }}
+                            >
+                              {T("Delete schedule")}
+                            </button>
+                            {confirmation?.id === rule.id && (
+                              <div
+                                className="recurring-delete-confirmation"
+                                role="group"
+                                aria-label={T("Confirm delete schedule")}
+                                aria-busy={busy}
+                              >
+                                <span
+                                  className="recurring-delete-description"
+                                  id={`${deleteDescriptionId}-${rule.id}`}
+                                >
+                                  {T(
+                                    "Delete this schedule permanently? Already created expense records are retained."
+                                  )}
+                                </span>
+                                <button
+                                  className="btn ghost"
+                                  type="button"
+                                  autoFocus
+                                  aria-label={T("Confirm delete schedule")}
+                                  aria-describedby={`${deleteDescriptionId}-${rule.id}`}
+                                  title={T(
+                                    "Delete this schedule permanently? Already created expense records are retained."
+                                  )}
+                                  disabled={blocked || needsReload.current}
+                                  onClick={() => mutate(confirmation, "delete")}
+                                >
+                                  <I.Check size={16} aria-hidden="true" />
+                                </button>
+                                <button
+                                  className="btn ghost"
+                                  type="button"
+                                  aria-label={T("Cancel")}
+                                  title={T("Cancel")}
+                                  disabled={blocked}
+                                  onClick={() => close(rule, "delete")}
+                                >
+                                  <I.X size={16} aria-hidden="true" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
                   </div>
-                  {confirmation?.id === rule.id && (
-                    <div className="notice">
-                      <p>
-                        {T(
-                          "Delete this schedule permanently? Already created expense records are retained."
-                        )}
-                      </p>
-                      <div className="panel-actions">
-                        <button
-                          className="btn"
-                          type="button"
-                          autoFocus
-                          disabled={blocked || needsReload.current}
-                          onClick={() => mutate(confirmation, "delete")}
-                        >
-                          {T("Confirm delete schedule")}
-                        </button>
-                        <button
-                          className="btn ghost"
-                          type="button"
-                          disabled={blocked}
-                          onClick={() => close(rule, "delete")}
-                        >
-                          {T("Cancel")}
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </article>
               );
             })}

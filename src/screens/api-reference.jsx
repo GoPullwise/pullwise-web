@@ -382,10 +382,10 @@ function groupName(path, operation) {
   return operation.tags?.[0] || "Account";
 }
 
-function FieldsTable({ rows }) {
+function FieldsTable({ rows, label = copy("field") }) {
   if (!rows.length) return <p>{copy("none")}</p>;
   return (
-    <div className="api-reference-table-wrap">
+    <div className="api-reference-table-wrap" tabIndex={0} role="region" aria-label={label}>
       <table className="api-reference-table">
         <thead>
           <tr>
@@ -413,11 +413,11 @@ function FieldsTable({ rows }) {
   );
 }
 
-function Schema({ schema, document }) {
+function Schema({ schema, document, label }) {
   const [showJson, setShowJson] = useState(false);
   return (
     <>
-      <FieldsTable rows={schemaRows(schema, document)} />
+      <FieldsTable rows={schemaRows(schema, document)} label={label} />
       <details
         className="api-reference-schema"
         onToggle={(event) => {
@@ -425,19 +425,25 @@ function Schema({ schema, document }) {
         }}
       >
         <summary>{copy("resolved")}</summary>
-        {showJson && <pre lang="en">{JSON.stringify(resolvedTree(schema, document), null, 2)}</pre>}
+        {showJson && (
+          <pre lang="en" tabIndex={0} role="region" aria-label={`${label} · ${copy("resolved")}`}>
+            {JSON.stringify(resolvedTree(schema, document), null, 2)}
+          </pre>
+        )}
       </details>
     </>
   );
 }
 
-function Content({ content, document }) {
+function Content({ content, document, label }) {
   return Object.entries(content || {}).map(([mediaType, media]) => (
     <div key={mediaType}>
       <p>
         <code>{mediaType}</code>
       </p>
-      {media.schema !== undefined && <Schema schema={media.schema} document={document} />}
+      {media.schema !== undefined && (
+        <Schema schema={media.schema} document={document} label={`${label} · ${mediaType}`} />
+      )}
       {media.example !== undefined && <pre>{JSON.stringify(media.example, null, 2)}</pre>}
       {media.examples && (
         <pre>{JSON.stringify(resolvedTree(media.examples, document), null, 2)}</pre>
@@ -488,6 +494,7 @@ function Endpoint({ entry, document }) {
           {operation.deprecated && <p>{copy("deprecated")}</p>}
           <h4>{copy("parameters")}</h4>
           <FieldsTable
+            label={`${method} ${path} · ${copy("parameters")}`}
             rows={parameters.flatMap((parameter) => {
               const rows = schemaRows(
                 parameter.schema,
@@ -514,7 +521,11 @@ function Endpoint({ entry, document }) {
                 {copy("request")} · {request.required ? copy("required") : copy("optional")}
               </h4>
               {request.description && <p lang="en">{request.description}</p>}
-              <Content content={request.content} document={document} />
+              <Content
+                content={request.content}
+                document={document}
+                label={`${method} ${path} · ${copy("request")}`}
+              />
             </>
           )}
           <h4>{copy("responses")}</h4>
@@ -530,6 +541,7 @@ function Endpoint({ entry, document }) {
                   <>
                     <h5>{copy("headers")}</h5>
                     <FieldsTable
+                      label={`${method} ${path} · ${status} · ${copy("headers")}`}
                       rows={Object.entries(response.headers).flatMap(([name, header]) => {
                         const resolved = resolve(header, document);
                         const rows = schemaRows(resolved.schema, document, name, resolved.required);
@@ -544,7 +556,11 @@ function Endpoint({ entry, document }) {
                   </>
                 )}
                 {response.content ? (
-                  <Content content={response.content} document={document} />
+                  <Content
+                    content={response.content}
+                    document={document}
+                    label={`${method} ${path} · ${copy("responses")} ${status}`}
+                  />
                 ) : (
                   <p>{copy("noBody")}</p>
                 )}

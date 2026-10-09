@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
 import { CurrencyBadge, FinancialValue } from "./financial-value.jsx";
+import { categoryDisplayName } from "../lib/category-label.js";
 import "./expense-charts.css";
 
 const PLOT_HEIGHT = 200;
@@ -16,7 +17,14 @@ function bucketTime(bucket) {
     : null;
 }
 
-function currencySeries(groups, dimension, categories, minorAmount, archivedLabel) {
+function currencySeries(
+  groups,
+  dimension,
+  categories,
+  minorAmount,
+  archivedLabel,
+  removedLabel,
+) {
   const series = new Map();
   let unavailable = false;
   for (const row of Array.isArray(groups) ? groups : []) {
@@ -36,9 +44,7 @@ function currencySeries(groups, dimension, categories, minorAmount, archivedLabe
     const label =
       dimension === "bucket"
         ? row.bucket
-        : typeof category?.name === "string" && category.name
-          ? category.name
-          : archivedLabel;
+        : categoryDisplayName(category, removedLabel, archivedLabel);
     const points = series.get(row.currency) || [];
     points.push({
       row,
@@ -301,9 +307,18 @@ export function ExpenseCharts({
 }) {
   useLang();
   const archivedLabel = T("Archived category");
+  const removedLabel = T("Removed", "已移除");
   const { series, unavailable } = useMemo(
-    () => currencySeries(groups, dimension, categories, minorAmount, archivedLabel),
-    [groups, dimension, categories, minorAmount, archivedLabel]
+    () =>
+      currencySeries(
+        groups,
+        dimension,
+        categories,
+        minorAmount,
+        archivedLabel,
+        removedLabel,
+      ),
+    [groups, dimension, categories, minorAmount, archivedLabel, removedLabel],
   );
   if (!series.length) {
     return (

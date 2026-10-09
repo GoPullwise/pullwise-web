@@ -45,7 +45,7 @@ export function integrationSections(base) {
         ["categories:read / categories:write", "categoryScope"], ["expenses:read / expenses:write", "expenseScope"],
         ["reports:read", "reportScope"], ["members:read / members:write", "memberScope"],
         ["suggestions:use", "suggestionScope"],
-      ]}, paragraph("memberKey"), paragraph("workspace") ]},
+      ]}, paragraph("memberKey"), paragraph("memberAuthority"), paragraph("workspace") ]},
     { id: "writes", title: "writes", blocks: [paragraph("revision"),
       code("editExpense", [
         'CURRENT=$(api "/api/v1/expenses/$EXPENSE_ID") || exit 1',

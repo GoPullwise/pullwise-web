@@ -215,6 +215,59 @@ describe("complete OpenAPI reference", () => {
     ).toHaveTextContent("Cookie session (pw_session) OR Bearer API key");
   });
 
+  it("offers named keyboard focus for each horizontally scrollable table and expanded schema", async () => {
+    render(<ApiReference contract={fixture} />);
+    const details = await openEndpoint("/api/v1/expenses/{id}");
+    const parameters = within(details).getByRole("region", {
+      name: "GET /api/v1/expenses/{id} · Parameters",
+    });
+    expect(parameters).toHaveAttribute("tabindex", "0");
+    parameters.focus();
+    expect(document.activeElement).toBe(parameters);
+
+    const request = within(details).getByRole("region", {
+      name: "GET /api/v1/expenses/{id} · Request body · application/json",
+    });
+    request.focus();
+    expect(document.activeElement).toBe(request);
+    const schema = request.nextElementSibling;
+    schema.open = true;
+    fireEvent(schema, new Event("toggle", { bubbles: true }));
+    const json = await within(schema).findByRole("region", {
+      name: "GET /api/v1/expenses/{id} · Request body · application/json · Resolved schema (JSON)",
+    });
+    expect(json).toHaveAttribute("tabindex", "0");
+    json.focus();
+    expect(document.activeElement).toBe(json);
+    expect(json).toHaveTextContent('"additionalProperties": false');
+  });
+
+  it("publishes permanent Owner deletion and historical removed-category metadata from the combined contract", async () => {
+    render(<ApiReference />);
+    const deletion = await openEndpoint("/api/v1/projects/{id}", "DELETE");
+    expect(deletion).toHaveTextContent("Current actual Owner");
+    expect(deletion).toHaveTextContent("projects:write");
+    expect(deletion).toHaveTextContent("If-Match");
+    expect(deletion).toHaveTextContent(
+      "Moved-out current expenses and unrelated schedules survive"
+    );
+    expect(deletion).toHaveTextContent("cumulative project capacity");
+    expect(deletion).toHaveTextContent("Active expense capacity is released");
+    expect(deletion).toHaveTextContent("Cookie session (pw_session) OR Bearer API key");
+    const categories = await openEndpoint("/api/v1/categories");
+    expect(categories).toHaveTextContent("query: includeRemoved");
+    expect(categories).toHaveTextContent("removedAt");
+    expect(categories).toHaveTextContent(
+      "Present only for a removed row requested with includeRemoved=true"
+    );
+    const removal = await openEndpoint("/api/v1/categories/{id}/remove", "POST");
+    expect(removal).toHaveTextContent(
+      "Existing expense edits may explicitly retain their original removed category"
+    );
+    expect(removal).toHaveTextContent("INVALID_CATEGORY");
+    expect(removal).not.toHaveTextContent("CATEGORY_IN_USE");
+  });
+
   it("copies every operation and resolves request, response and parameter references without recursive expansion", () => {
     const markdown = referenceMarkdown(fixture);
     expect(markdown).toContain("### GET /api/v1/expenses/{id}");

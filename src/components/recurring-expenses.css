@@ -17,14 +17,47 @@
 .recurring-expenses-side .panel-actions {
   justify-content: flex-end;
 }
-.recurring-expenses-row > .notice {
-  grid-column: 1 / -1;
-}
 .ledger-screen .recurring-expenses-editor .ledger-form {
   margin: 0;
 }
-.recurring-expenses-row > .notice {
-  margin: 0;
+.recurring-delete-action {
+  display: inline-grid;
+  min-inline-size: 96px;
+}
+.recurring-delete-action > button,
+.recurring-delete-confirmation {
+  grid-area: 1 / 1;
+}
+.recurring-delete-action > button {
+  min-height: 44px;
+}
+.recurring-delete-action > button[hidden] {
+  display: inline-flex;
+  visibility: hidden;
+  pointer-events: none;
+}
+.recurring-delete-confirmation {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.recurring-delete-confirmation > .btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+.recurring-delete-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 @container (max-width: 560px) {
   .ledger-screen .recurring-expenses-row {

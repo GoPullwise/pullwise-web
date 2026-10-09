@@ -3,7 +3,7 @@
   "info": {
     "title": "Pullwise Project Expense Ledger API",
     "version": "0.9.0",
-    "description": "Current ledger contract for Pullwise, the project expense tracker for\ndevelopers and teams at pull-wise.com. Users and authorized API clients\nenter expenses; bank or vendor transactions are not imported. Platform\nsubscription payments remain separate from ledger expenses.\nWeb uses its same-origin /api proxy; direct\nclients call these paths on the Server Worker. All private responses are\nCache-Control: no-store. Money is grouped by currency without conversion.\nEach user's existing personal ledger is an immutable workspace. Explicit\ninvitations share all existing and future ledger data after the original\ninviter approves the authenticated applicant. Links do not require a named\nrecipient. Pending or rejected requests grant no ledger access. Invitations\ndo not grant GitHub organization or repository access. Select a ledger with\nX-Pullwise-Workspace, or workspaceId on CSV links. Conflicting selectors are\nrejected. API keys are permanently bound to one ledger and intersect the\nissuing member's current role; membership revision changes invalidate team\nkeys. All members use the ledger owner's plan, capacity and model budget.\nAccount billing remains the signed-in user's own account service.\nProjects can be standalone with a nonblank name and no GitHub repository or\norganization association. Connecting repositories is optional and continues\nto require the current actor's GitHub authorization. The shared expense pool\nis shared across projects in a ledger, never publicly accessible. AI assistance\ndepends on the ledger owner's Pro or Max plan, current activation and usage budget;\nan explicit category permits manual entry when assistance is unavailable.\nProject development and product links are optional absolute HTTP(S) URLs.\nOnly the selected ledger Owner using a current cookie session or an API key\nwith projects:write and permission for that project may remove a\nproject. Removal is a soft tombstone, distinct from reversible archiving:\nthe project and its expenses disappear from resource reads, reports and\nexports, and its recurring plans cannot generate further expenses. Stored\nfinancial records, audit history and commercial capacity accounting remain\nintact. Repository associations are released atomically; removed projects\ncannot be restored through PATCH.\nRecurring expense rules use the same REST resource for browser sessions and\nAPI keys with explicit expense authority. A key-created or key-resumed rule\nretains only a credential hash; execution rechecks its current key scopes,\nexpiration, revocation, ledger binding and target restrictions. Each\ngenerated occurrence uses the current ledger owner's plan and the rule\nsaved execution actor's current membership and GitHub access. A rule records one ordinary\nexpense per calendar period without making a payment or extending a\nsubscription. Stopping a rule preserves its previously recorded expenses.\nEmail verification codes provide independent registration and sign-in.\nGitHub identity and repository connections are optional. Verified email and\nexplicit GitHub links preserve the immutable account ID, personal ledger,\nmemberships and billing. Matching provider or billing contact emails never\nmerge accounts. Authentication endpoints do not grant API-key scopes.\nProject and shared-pool activity records identify the authenticated actor,\noperation time and exact changed record. Only the latest rolling 24 hours\nare visible, using the Server clock. History starts when activity logging\nis enabled; old financial audit events are not backfilled or deleted.\nMember governance requires explicit members:read or members:write scopes.\nGovernance keys must omit projectIds, and every key remains bound to its\none ledger and issuer's current role. Owner/Admin can manage members; only\nOwner can manage Admin, and only an invitation's original inviter can review\nits applicants. Previewing or applying to an invitation uses the applicant's\nbrowser account session rather than a ledger-bound key.\n"
+    "description": "Current ledger contract for Pullwise, the project expense tracker for\ndevelopers and teams at pull-wise.com. Users and authorized API clients\nenter expenses; bank or vendor transactions are not imported. Platform\nsubscription payments remain separate from ledger expenses.\nWeb uses its same-origin /api proxy; direct\nclients call these paths on the Server Worker. All private responses are\nCache-Control: no-store. Money is grouped by currency without conversion.\nEach user's existing personal ledger is an immutable workspace. Explicit\ninvitations share all existing and future ledger data after the original\ninviter approves the authenticated applicant. Links do not require a named\nrecipient. Pending or rejected requests grant no ledger access. Invitations\ndo not grant GitHub organization or repository access. Select a ledger with\nX-Pullwise-Workspace, or workspaceId on CSV links. Conflicting selectors are\nrejected. API keys are permanently bound to one ledger and intersect the\nissuing member's current role; membership revision changes invalidate team\nkeys. All members use the ledger owner's plan, capacity and model budget.\nAccount billing remains the signed-in user's own account service.\nProjects can be standalone with a nonblank name and no GitHub repository or\norganization association. Connecting repositories is optional and continues\nto require the current actor's GitHub authorization. The shared expense pool\nis shared across projects in a ledger, never publicly accessible. AI assistance\ndepends on the ledger owner's Pro or Max plan, current activation and usage budget;\nan explicit category permits manual entry when assistance is unavailable.\nProject development and product links are optional absolute HTTP(S) URLs.\nOnly the selected ledger Owner using a current cookie session or an API key\nwith projects:write and permission for that project may remove a\nproject. Removal permanently erases that project, its current expenses,\nrecurring plans and attributable business history. Archived projects remain\nrecoverable until explicitly removed. Current expenses already moved to\nanother project or Shared pool survive, while their erased-project snapshots\ndisappear. Unrelated schedules retain consumed-period fences without a\nremoved expense identifier. Active expense capacity is released;\ncumulative project capacity is retained;\nprior write and model-fee counters remain charged. Ledger-wide categories,\naccount identity, billing and membership remain.\nRecurring expense rules use the same REST resource for browser sessions and\nAPI keys with explicit expense authority. A key-created or key-resumed rule\nretains only a credential hash; execution rechecks its current key scopes,\nexpiration, revocation, ledger binding and target restrictions. Each\n\ngenerated occurrence uses the current ledger owner's plan and the rule\nsaved execution actor's current membership and GitHub access. A rule records one ordinary\nexpense per calendar period without making a payment or extending a\nsubscription. Stopping a rule preserves its previously recorded expenses.\nEmail verification codes provide independent registration and sign-in.\nGitHub identity and repository connections are optional. Verified email and\nexplicit GitHub links preserve the immutable account ID, personal ledger,\nmemberships and billing. Matching provider or billing contact emails never\nmerge accounts. Authentication endpoints do not grant API-key scopes.\nProject and shared-pool activity records identify the authenticated actor,\noperation time and exact changed record. Only the latest rolling 24 hours\nare visible, using the Server clock. History starts when activity logging\nis enabled; old financial audit events are not backfilled or deleted.\nMember governance requires explicit members:read or members:write scopes.\nGovernance keys must omit projectIds, and every key remains bound to its\none ledger and issuer's current role. Owner/Admin can manage members; only\nOwner can manage Admin, and only an invitation's original inviter can review\nits applicants. Previewing or applying to an invitation uses the applicant's\nbrowser account session rather than a ledger-bound key.\n"
   },
   "servers": [
     {
@@ -2195,7 +2195,7 @@
             "bearerKey": []
           }
         ],
-        "description": "Current Owner of the selected ledger only. An Owner API key requires projects:write and permission for this project; Admin, Editor and Viewer cannot remove projects. Cookie writes require a trusted app Origin. Both forms require the current If-Match revision. Atomically tombstones the project, releases at most 30 repository associations and records the actual actor. Retains all financial, recurring and audit rows without a bulk cascade. The removed project's expenses and recurring rules become inaccessible, leave list/report/export results and cannot generate new expenses. Shared-pool expenses are unchanged. Capacity totals are not reclaimed. Repeating removal of the same authorized tombstone is read-only; PATCH cannot resurrect it.",
+        "description": "Current actual Owner of the selected ledger only. Owner API keys require projects:write and current permission for this project; Admin, Editor and Viewer are rejected. Cookie writes require a trusted app Origin; both forms require current If-Match revision. One atomic closed transaction erases the project, repository bindings, all currently assigned expenses including soft-deleted rows, its recurring rules and attributable financial/replay/Jev/activity history. Moved-out current expenses and unrelated schedules survive; external consumed periods retain a fence with no erased expense ID. Ledger-wide categories, identity, billing, membership, cumulative project capacity and prior fee/usage counters remain. Active expense capacity is released, and the accepted erasure counts as one ordinary write. An absent project is an explicitly empty outcome in the authorized Owner scope; an existing foreign project is hidden. No deletion activity snapshot is recreated. PATCH cannot restore a physically removed project.",
         "parameters": [
           {
             "$ref": "#/components/parameters/IfMatch"
@@ -2221,7 +2221,7 @@
             "$ref": "#/components/responses/NotFound"
           },
           "409": {
-            "description": "Revision or repository-binding limit reached",
+            "description": "QUOTA_WINDOW_CHANGED; request clock precedes persisted usage window",
             "content": {
               "application/json": {
                 "schema": {
@@ -2257,13 +2257,22 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/WorkspaceHeader"
+          },
+          {
+            "name": "includeRemoved",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include removed category metadata for existing expense/history labels; accepts one literal true or false"
           }
         ],
         "operationId": "listExpenseCategories",
         "x-pullwise-scope": "categories:read",
         "responses": {
           "200": {
-            "description": "Selected ledger categories including archived entries",
+            "description": "Selected ledger categories including archived entries; removed entries appear only with includeRemoved=true",
             "content": {
               "application/json": {
                 "schema": {
@@ -2274,6 +2283,9 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
           }
         }
       },
@@ -2402,7 +2414,7 @@
       "post": {
         "operationId": "removeExpenseCategory",
         "x-pullwise-scope": "categories:write",
-        "description": "Permanently remove an unused active or archived category. Any reference\nin expenses (including deleted entries), durable expense history,\noriginal creation responses, recurring rules or chosen/accepted Jev\nsuggestions prevents removal. Evaluated candidate probabilities alone\ndo not prevent removal.\nReferenced categories must be archived instead; removal never deletes\nor rewrites expenses, schedules, history or idempotency responses.\n",
+        "description": "Remove an active or archived category from management and new choices\nwith a permanent tombstone, even if it has historical references.\nExisting expenses, audit/replay rows and names remain unchanged;\nincludeRemoved=true supplies metadata for those historical labels.\nExisting expense edits may explicitly retain their original removed\ncategory, but new assignments and model choices require an active one.\nReferencing recurring rules are blocked with INVALID_CATEGORY at their\nnext due run until explicitly updated and resumed; removal itself does\nnot rewrite their schedule or consumed periods. Removed categories\ncannot be renamed or restored. Repeating with the current removed\nrevision is read-only.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/IfMatch"
@@ -2424,10 +2436,11 @@
         },
         "responses": {
           "204": {
-            "description": "Removed unused category"
+            "description": "Category removed from management/new choices",
+            "or already removed at the supplied current revision": null
           },
           "409": {
-            "description": "CATEGORY_IN_USE; archive this category to retain its history",
+            "description": "REVISION_LIMIT; the tombstone would exceed the safe revision limit",
             "content": {
               "application/json": {
                 "schema": {
@@ -5023,7 +5036,7 @@
           "projects",
           "expenseRecords"
         ],
-        "description": "Read-only selected-ledger capacity. Project counts retain archived and removed projects. Expense counts include undeleted Shared pool expenses and undeleted expenses in nonremoved projects, including archived projects and recurring-generated expenses. Soft deletion and project removal release expense capacity while preserving financial audit and replay history. Current effective plan and operator configuration set the limits.",
+        "description": "Read-only selected-ledger capacity. Cumulative project counts retain archived and removed projects. Expense counts include undeleted Shared pool expenses and undeleted expenses in nonremoved projects, including archived projects and recurring-generated expenses. Soft deletion releases expense capacity while preserving financial audit and replay history. Permanent project removal releases its active expense places and erases its attributable business history. Current effective plan and operator configuration set the limits.",
         "properties": {
           "workspaceId": {
             "type": "string"
@@ -5813,6 +5826,11 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "removedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Present only for a removed row requested with includeRemoved=true"
           }
         }
       },
@@ -7017,5 +7035,5 @@
       }
     }
   },
-  "x-pullwise-source-sha256": "4fb4268d37b9363d1726a02e573e9534a82d0bdb378fabdc919aad14697ca42c"
+  "x-pullwise-source-sha256": "db04bafdb9192ed7926eade57cd903ecb77a40d6a131b2ade386a012f95d8c75"
 }

@@ -5,6 +5,29 @@ import { createLedgerApi, ledgerApi } from "./ledger.js";
 afterEach(() => vi.restoreAllMocks());
 
 describe("ledger REST paths", () => {
+  it("includes removed category metadata only when explicitly requested for scoped history", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: [] });
+    const api = createLedgerApi("ledger_current");
+    const controller = new AbortController();
+    await api.categories({ signal: controller.signal });
+    await api.categories({
+      signal: controller.signal,
+      params: { includeRemoved: true },
+    });
+    const calls = send.mock.calls.map(([call]) => call);
+    expect(calls.map((call) => call.url)).toEqual([
+      "/api/v1/categories",
+      "/api/v1/categories",
+    ]);
+    expect(calls[0].params).toBeUndefined();
+    expect(calls[1].params).toEqual({ includeRemoved: true });
+    for (const call of calls) {
+      expect(call.signal).toBe(controller.signal);
+      expect(call.headers["X-Pullwise-Workspace"]).toBe("ledger_current");
+      expect(call.method).toBe("GET");
+      expect(call.data).toBeUndefined();
+    }
+  });
   it("reviews a saved expense with an empty body and captured workspace, revision and abort signal", async () => {
     const result = {
       expenseId: "exp_1",
@@ -186,7 +209,7 @@ describe("ledger REST paths", () => {
     expect(send.mock.calls[2][0].responseType).toBe("blob");
   });
 
-  it("removes an unused category without changing the existing archive resource", async () => {
+  it("removes a category without changing the existing archive resource", async () => {
     const send = vi.spyOn(http, "request").mockResolvedValue({ data: null });
     const api = createLedgerApi("team/1");
     const controller = new AbortController();

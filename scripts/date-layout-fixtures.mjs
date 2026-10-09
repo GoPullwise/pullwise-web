@@ -260,7 +260,9 @@ function payloadFor(path, params) {
     return project;
   }
   if (path === "/api/v1/categories") {
-    assertQuery(params, []);
+    assertQuery(params, ["includeRemoved"]);
+    if (params.has("includeRemoved") && params.get("includeRemoved") !== "true")
+      throw new Error("Layout category history reads require includeRemoved=true.");
     return categories;
   }
   if (path === "/api/v1/activity") {

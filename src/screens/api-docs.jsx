@@ -59,7 +59,7 @@ const REVIEW_RESPONSE =
 const EXACT_TOTALS =
   "Single expense amountMinor values are safe integers. Aggregate amountMinor totals are numbers up to 9007199254740991 and exact decimal integer strings above that boundary; parse large totals with BigInt or decimal arithmetic.";
 const ACCOUNT_JEV =
-  "GET and PATCH /api/v1/account/jev require a cookie session and operate on the signed-in account's own ledger preference, independently of workspace selection. API keys cannot use these endpoints. The response contains enabled, revision, eligible, available and monthlyBudgetUsd. enabled is the stored preference; available also requires an effective Pro or Max plan and runtime availability. PATCH accepts only {enabled: boolean} and requires If-Match with the preference revision; Free accounts cannot write. A 412 conflict requires an explicit GET before another user choice. These endpoints do not run model checks, change expenses or reset used allowance. Shared ledger members inherit their ledger Owner's preference; paid local duplicate checks remain possible when model checks are off.";
+  "GET and PATCH /api/v1/account/jev require a cookie session and operate on the signed-in account's own ledger preference, independently of workspace selection. API keys cannot use these endpoints. The response contains enabled, revision, eligible, available and monthlyBudgetUsd. enabled is the stored preference; available also requires an effective Pro or Max plan and runtime availability. PATCH accepts only {enabled: boolean} and requires If-Match with the preference revision; Free accounts cannot write. A 412 conflict requires an explicit GET before another user choice. These endpoints do not run model checks, change expenses or reset used allowance. Shared ledger members inherit their ledger Owner's preference; paid local duplicate checks remain possible when model checks are off. Free cannot run model checks even if its saved preference is On; an effective Pro or Max plan is required to use them again.";
 
 function markdown(base, example, createExample, projectExample, reviewExample) {
   return [
@@ -285,7 +285,7 @@ export function ApiDocsScreen({ go, auth }) {
           <p>
             {T(
               ACCOUNT_JEV,
-              "GET 和 PATCH /api/v1/account/jev 需要 Cookie 会话，操作当前登录账户自己账本的偏好，与工作区选择无关。API 密钥不能使用这些接口。响应包含 enabled、revision、eligible、available 和 monthlyBudgetUsd。enabled 是已保存偏好；available 还要求 Pro 或 Max 权益有效且运行时可用。PATCH 仅接受 {enabled: boolean}，并须使用偏好版本传入 If-Match；Free 账户不能写入。412 冲突后须先主动 GET，再由用户重新选择。这些接口不会运行模型检查、修改支出或重置已使用额度。共享账本成员继承各自账本 Owner 的偏好；模型关闭时，付费账本仍可进行本地疑似重复检查。"
+              "GET 和 PATCH /api/v1/account/jev 需要 Cookie 会话，操作当前登录账户自己账本的偏好，与工作区选择无关。API 密钥不能使用这些接口。响应包含 enabled、revision、eligible、available 和 monthlyBudgetUsd。enabled 是已保存偏好；available 还要求 Pro 或 Max 权益有效且运行时可用。PATCH 仅接受 {enabled: boolean}，并须使用偏好版本传入 If-Match；Free 账户不能写入。412 冲突后须先主动 GET，再由用户重新选择。这些接口不会运行模型检查、修改支出或重置已使用额度。共享账本成员继承各自账本 Owner 的偏好；模型关闭时，付费账本仍可进行本地疑似重复检查。 即使保存的偏好为开启，Free 仍不能运行模型检查；重新使用需要有效的 Pro 或 Max 套餐。"
             )}
           </p>
           <h2 id="filters" className="docs-h2">
