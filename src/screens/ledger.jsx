@@ -1782,19 +1782,39 @@ function ScopedLedgerScreen({
   const managedCategories =
     data?.categories?.filter((category) => !isRemovedCategory(category)) || [];
   const activeCategories = data?.categories?.filter(isActiveCategory) || [];
-  const canAddExpense = Boolean(
-    canWriteExpenses &&
-    activeCategories.length > 0 &&
-    (mode === "shared" ||
-      (mode === "project" &&
-        data?.project?.status !== "archived" &&
-        (typeof data?.project?.canCreateExpense === "boolean"
-          ? data.project.canCreateExpense
-          : data?.project?.githubAccess === "authorized")))
+  const canCreateExpenseForTarget = Boolean(
+    data &&
+      canWriteExpenses &&
+      (mode === "shared" ||
+        (mode === "project" &&
+          data?.project?.status !== "archived" &&
+          (typeof data?.project?.canCreateExpense === "boolean"
+            ? data.project.canCreateExpense
+            : data?.project?.githubAccess === "authorized")))
   );
+  const canAddExpense = canCreateExpenseForTarget && activeCategories.length > 0;
   const showExpenseForm = Boolean(
     canWriteExpenses && (editing || (canAddExpense && creatingExpense))
   );
+  const needsExpenseCategory = canCreateExpenseForTarget && activeCategories.length === 0;
+  const showCategoryGuide = needsExpenseCategory && !showExpenseForm;
+  const categoryGuideTitle = canManageCategories
+    ? T("Add a category to record expenses", "先添加类别，再记录支出")
+    : T("No active expense categories", "暂无可用的支出类别");
+  const categoryGuideDescription = canManageCategories
+    ? T(
+        "Create a category such as Hosting, Domains or AI tools. Categories work across projects and the shared pool in this ledger.",
+        "先创建「托管」「域名」或「AI 工具」等类别。同一账本中的项目和公共支出池都可以使用。"
+      )
+    : T(
+        "Ask an Owner or Admin to add a category before recording an expense.",
+        "请先让所有者或管理员添加一个分类，再记录支出。"
+      );
+  const categoryGuideAction = canManageCategories ? (
+    <button className="btn primary" disabled={writing} onClick={() => go("ledgerCategories")}>
+      {T("Add category")} <I.ArrowR size={14} />
+    </button>
+  ) : null;
   const closeInspection = () => {
     inspectionOpenRef.current = false;
     setInspectionOpen(false);
@@ -2945,36 +2965,29 @@ function ScopedLedgerScreen({
                         {data.expenses.nextCursor ? "+" : ""}
                       </span>
                     </div>
-                    {canManageCategories && !showExpenseForm && activeCategories.length === 0 && (
-                      <p className="ledger-help">
-                        {T(
-                          "Start by adding a category, such as Hosting or AI tools.",
-                          "先添加一个分类，比如「托管」或「AI 工具」。"
-                        )}{" "}
-                        <button
-                          className="btn"
-                          disabled={writing}
-                          onClick={() => go("ledgerCategories")}
-                        >
-                          {T("Manage categories")}
-                        </button>
-                      </p>
-                    )}
-                    {!canManageCategories && canWriteExpenses && activeCategories.length === 0 && (
-                      <p className="ledger-help">
-                        {T(
-                          "Ask an Owner or Admin to add a category before recording an expense.",
-                          "请先让所有者或管理员添加一个分类，再记录支出。"
-                        )}
-                      </p>
-                    )}
+                    {showCategoryGuide &&
+                      (expenses.length > 0 || Object.keys(filtered).length > 0) && (
+                        <div className="notice notice-action ledger-help">
+                          <div>
+                            <h3>{categoryGuideTitle}</h3>
+                            <p>{categoryGuideDescription}</p>
+                          </div>
+                          {categoryGuideAction}
+                        </div>
+                      )}
                     {expenses.length === 0 && (
                       <div className="empty">
-                        <I.Database size={28} />
+                        {showCategoryGuide && !Object.keys(filtered).length ? (
+                          <I.Layers size={28} />
+                        ) : (
+                          <I.Database size={28} />
+                        )}
                         <h3>
                           {Object.keys(filtered).length
                             ? T("No expenses match these filters", "没有符合筛选条件的支出")
-                            : T("No expenses for this target yet.")}
+                            : showCategoryGuide
+                              ? categoryGuideTitle
+                              : T("No expenses for this target yet.")}
                         </h3>
                         <p>
                           {Object.keys(filtered).length
@@ -2982,11 +2995,14 @@ function ScopedLedgerScreen({
                                 "Adjust the date range or category to see other expenses.",
                                 "调整日期范围或分类，查看其他支出。"
                               )
-                            : T(
-                                "Record hosting, a domain, or a tool subscription to get started.",
-                                "从托管、域名或工具订阅开始，记下第一笔支出。"
-                              )}
+                            : showCategoryGuide
+                              ? categoryGuideDescription
+                              : T(
+                                  "Record hosting, a domain, or a tool subscription to get started.",
+                                  "从托管、域名或工具订阅开始，记下第一笔支出。"
+                                )}
                         </p>
+                        {showCategoryGuide && !Object.keys(filtered).length && categoryGuideAction}
                         {canAddExpense && !showExpenseForm && !Object.keys(filtered).length && (
                           <button
                             className="btn primary"
@@ -3089,30 +3105,17 @@ function ScopedLedgerScreen({
                         <I.Plus size={20} />
                         <h2>{editing ? T("Edit expense") : T("Add expense")}</h2>
                       </div>
-                      {activeCategories.length === 0 ? (
-                        <p>
-                          {T(
-                            "Start by adding a category, such as Hosting or AI tools.",
-                            "先添加一个分类，比如「托管」或「AI 工具」。"
-                          )}{" "}
-                          {canManageCategories && (
-                            <button
-                              className="btn"
-                              disabled={writing}
-                              onClick={() => go("ledgerCategories")}
-                            >
-                              {T("Manage categories")}
-                            </button>
-                          )}
-                        </p>
-                      ) : (
-                        <p className="ledger-help">
-                          {T(
+                      <p className="ledger-help">
+                        {activeCategories.length === 0 && editing
+                          ? T(
+                              "You can keep this expense's original category when editing.",
+                              "编辑时可以保留这笔支出原来的类别。"
+                            )
+                          : T(
                             "What did you pay for? Add the amount, date and a category below.",
                             "这笔钱花在哪儿了？在下面填好金额、日期和分类。"
                           )}
-                        </p>
-                      )}
+                      </p>
                       <ExpenseForm
                         api={api}
                         key={editing?.id || "new"}

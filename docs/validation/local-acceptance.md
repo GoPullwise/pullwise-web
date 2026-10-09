@@ -1,5 +1,23 @@
 # Current local acceptance
 
+## Expense category guidance (2026-10-09)
+
+Project and Shared Pool expense pages now explain the next step when no active
+category exists: the shared empty state combines a concrete explanation with
+one primary Add category action. That action opens Categories. After a category
+is available, the usual Add expense entry remains available. Historical records
+and filtered empty results retain their own content, with compact setup guidance
+before them. Editors ask an Owner/Admin to add a category; Viewers and projects
+that cannot accept new expenses do not receive a setup action. Historical edits
+can keep the expense's original archived or removed category.
+
+[Local validation](category-guidance-local-2026-10-09.json) records the complete
+pipeline, six-language browser checks and shared layout verification. The original
+theme and shared empty/notice components remain, with 44px actions on simulated
+touch screens. Browser evidence uses finite local GET fixtures, with no external
+delivery or writes; it does not establish physical-device or live-account
+acceptance. Screenshots and temporary B/C prototypes remain outside the repository.
+
 [Billing usage preview publication](billing-usage-preview-release-2026-10-09.json)
 records the new two-value usage presentation, Web preview version and exact
 homepage/three-asset static readback. The matching Billing/CSS/index assets

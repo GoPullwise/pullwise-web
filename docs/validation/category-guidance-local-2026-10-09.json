@@ -1,0 +1,413 @@
+{
+  "date": "2026-10-09",
+  "passed": true,
+  "scope": "Selected proposal A: active-category setup guidance on project and Shared Pool expenses",
+  "checks": {
+    "lint": true,
+    "testFiles": 64,
+    "tests": 1217,
+    "categoryGuidanceTests": 11,
+    "productionBuild": true,
+    "explicitPreviewBuild": true,
+    "offlineWorkerConfig": true,
+    "previewWorkerDryRun": true
+  },
+  "previewBuildEnvironment": {
+    "VITE_APP_URL": "https://preview.pull-wise.com",
+    "VITE_API_BASE_URL": "/api",
+    "VITE_GITHUB_APP_SLUG": "gopullwise"
+  },
+  "sourceSha256": {
+    "src/screens/ledger.jsx": "ec3ddff30f28428a4e9fc5cf795b6f174687dcfa9e1b82cc179ebfc2a5425cba",
+    "src/screens/ledger-category-guidance.test.jsx": "0de71c1509ed23d34d64bb526ed3bbf22acdf1a9728d30cd92747ffb520dc2ae",
+    "src/locales/ledger-ui.js": "1cfa305c1eb7e077f680cc9ae63ab8e7d33487c53f1fb5db0baa1912a9902ff1",
+    "src/locales/ledger-screen.js": "9a77f94746938f08e13fb5e638b4f09174035cae352e12830451dbd51b48a652",
+    "styles/base.css": "be7594c3243f6805b7a613bda91d4681f59f4fa038713123653932c780859ed5"
+  },
+  "browser": {
+    "engine": "chromium",
+    "version": "151.0.7922.173",
+    "scope": "Finite loopback synthetic GET fixtures; no external delivery, no mutations, no physical-device acceptance",
+    "contexts": 28,
+    "states": 63,
+    "requests": 2018,
+    "requestCapPerContext": 100,
+    "writes": 0,
+    "violations": 0,
+    "externalDelivered": 0,
+    "locales": [
+      "en",
+      "zh",
+      "ja",
+      "ko",
+      "fr",
+      "es"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "touchActionMinHeight": 44,
+    "checks": [
+      "Project and Shared Pool use one category CTA in the empty state",
+      "Desktop click and mobile tap navigate to Categories without writes",
+      "Historical records remain visible; edits retain their original archived category",
+      "Editor guidance requests Owner/Admin; Viewer and archived project have no setup action",
+      "Normal Add expense opens ordinary entry; filtered empty results keep filtering guidance",
+      "No document or guidance text overflow across all tested locales and widths"
+    ],
+    "evidence": "/workspace/work/category-guidance-browser-report.json",
+    "recovery": "A temporary ambiguous .empty locator was scoped to ordinary expenses. Completed first-run 22 contexts are retained in the original success log; only the remaining six contexts were run after the harness correction. First-run per-state geometry was not retained; pass summaries and screenshots remain.",
+    "results": [
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 1440
+        },
+        "scenario": "no-categories",
+        "states": 4,
+        "requests": 69
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "dark",
+          "width": 1440
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "dark",
+          "width": 390
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "dark",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "zh",
+          "theme": "light",
+          "width": 1440
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "zh",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "zh",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 4,
+        "requests": 83
+      },
+      {
+        "profile": {
+          "lang": "zh",
+          "theme": "dark",
+          "width": 1440
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "zh",
+          "theme": "dark",
+          "width": 390
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "zh",
+          "theme": "dark",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "ja",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "ja",
+          "theme": "dark",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "ko",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "ko",
+          "theme": "dark",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "fr",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "fr",
+          "theme": "dark",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "es",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "es",
+          "theme": "dark",
+          "width": 320
+        },
+        "scenario": "no-categories",
+        "states": 2,
+        "requests": 79
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 320
+        },
+        "scenario": "archived-categories-empty",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "archived-categories-history",
+        "states": 4,
+        "requests": 67
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "editor",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "viewer",
+        "states": 2,
+        "requests": 65
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "archived-project",
+        "states": 1,
+        "requests": 33
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "normal",
+        "states": 2,
+        "requests": 67
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "filtered",
+        "states": 2,
+        "requests": 76
+      },
+      {
+        "profile": {
+          "lang": "en",
+          "theme": "light",
+          "width": 390
+        },
+        "scenario": "filtered-no-categories",
+        "states": 4,
+        "requests": 76
+      }
+    ]
+  },
+  "sharedLayout": {
+    "command": "node --loader /workspace/work/playwright-resolver.mjs scripts/check-date-layout.mjs --browser=chromium",
+    "states": 258,
+    "profiles": [
+      {
+        "profile": {
+          "name": "desktop-1440",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "touch": false
+        },
+        "states": 81,
+        "requests": 86,
+        "violations": 0,
+        "externalDelivered": 0
+      },
+      {
+        "profile": {
+          "name": "tablet-1280-zh",
+          "width": 1280,
+          "height": 900,
+          "lang": "zh",
+          "touch": true
+        },
+        "states": 81,
+        "requests": 93,
+        "violations": 0,
+        "externalDelivered": 0
+      },
+      {
+        "profile": {
+          "name": "phone-390-to-320",
+          "width": 390,
+          "narrow": 320,
+          "height": 844,
+          "lang": "en",
+          "touch": true
+        },
+        "states": 48,
+        "requests": 84,
+        "violations": 0,
+        "externalDelivered": 0
+      },
+      {
+        "profile": {
+          "name": "android-size-412-to-360",
+          "width": 412,
+          "narrow": 360,
+          "height": 844,
+          "lang": "en",
+          "touch": true
+        },
+        "states": 48,
+        "requests": 83,
+        "violations": 0,
+        "externalDelivered": 0
+      }
+    ]
+  },
+  "limitations": "Synthetic local GET fixtures and browser emulation; no real devices, remote business APIs, writes, provider or payment acceptance. Temporary proposals and screenshots remain outside the repository.",
+  "serverChanges": false,
+  "databaseChanges": false,
+  "productionDeployment": false
+}

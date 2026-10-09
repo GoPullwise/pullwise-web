@@ -1029,6 +1029,21 @@ a.crumb-button:where(:not([aria-disabled="true"])):hover {
   background: var(--accent-soft);
   line-height: 1.5;
 }
+.notice-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.notice-action > div {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.notice-action h3 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
 .notice-grid {
   display: grid;
   gap: 10px;

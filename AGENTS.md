@@ -1,5 +1,20 @@
 # Pullwise Web
 
+## Expense category guidance (2026-10-09)
+
+The user selected proposal A after reviewing temporary A/B/C screenshots.
+When an otherwise writable project or Shared Pool has no active categories,
+combine the empty-state explanation and primary Add category navigation in
+one shared `.empty`. State the actual next step and give Hosting, Domains and
+AI tools as examples. Do not substitute a category redirect behind Add expense.
+Historical records and filtered empty results remain visible; place compact
+guidance before them using shared `.notice-action` and the 16px `.ledger-help`
+gap. Editors ask an Owner/Admin to add a category; Viewers, archived projects
+and unavailable project access do not receive a misleading setup action.
+Historical edits can retain their own original archived/removed category.
+Keep six locales, the original theme, and 44px touch actions. Complete local
+checks, push main and publish only the Web preview through the existing workflow.
+
 ## Shared REST API, integration docs and capacity (2026-10-09)
 
 The user requires Web ledger actions and external API keys to use the same REST
@@ -632,9 +647,10 @@ the owner's platform subscription and payment history. Use the public slogan
   On mobile, keep Categories' reload beside its title, preserve the entry-first
   section spacing, and size sidebar links by their labels rather than equal
   columns so the Shared Pool label remains readable at 320px.
-- Use `.ledger-help` for the no-active-category guidance in Shared Pool and
-  project detail so Manage categories keeps a 16px gap before empty states
-  or expense records, including when its inline button wraps on narrow screens.
+- No-active-category guidance belongs inside the shared expense `.empty` when
+  there are no records or filters. Compact guidance before records or filtered
+  empty results uses `.notice-action.ledger-help`, preserving the 16px gap and
+  a separate wrapping primary Add category action.
 - Keep select and controlled textarea labels separate with `htmlFor`/`id`:
   wrapping these controls can make their labels include option/current values.
 - Loading skeletons use the same `.panel` sections as loaded content
