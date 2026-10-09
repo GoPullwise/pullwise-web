@@ -1,6 +1,7 @@
 import { StrictMode, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MembersScreen } from "./members.jsx";
 
 const workspace = {
@@ -60,6 +61,13 @@ async function openRole(login = "bob") {
   return screen.getByRole("combobox", { name: `Role for ${login}` });
 }
 
+async function openInvitations() {
+  const toggle = await screen.findByRole("button", { name: "Invite member", exact: true });
+  await waitFor(() => expect(toggle).toBeEnabled());
+  if (toggle.getAttribute("aria-expanded") !== "true") fireEvent.click(toggle);
+  return screen.findByRole("complementary", { name: "Member management" });
+}
+
 beforeEach(() => {
   window.history.replaceState(null, "", "/members");
   api = Object.fromEntries(
@@ -99,6 +107,138 @@ afterEach(() => {
 });
 
 describe("Members screen", () => {
+  it("keeps management closed by default and opens it from the keyboard without additional reads", async () => {
+    const user = userEvent.setup();
+    show();
+    await screen.findByText("Bob");
+    const toggle = screen.getByRole("button", { name: "Invite member", exact: true });
+    const reload = screen.getByRole("button", { name: "Reload" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle.compareDocumentPosition(reload) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Create invitation" })).not.toBeInTheDocument();
+    const reads = [
+      api.members.mock.calls.length,
+      api.invites.mock.calls.length,
+      api.workspaceInvitationRequests.mock.calls.length,
+    ];
+    toggle.focus();
+    await user.keyboard("{Enter}");
+    const rail = await screen.findByRole("complementary", { name: "Member management" });
+    expect(rail.id).toBe(toggle.getAttribute("aria-controls"));
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() =>
+      expect(screen.getByRole("combobox", { name: "Invitation role" })).toHaveFocus()
+    );
+    toggle.focus();
+    await user.keyboard(" ");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(rail).not.toBeInTheDocument();
+    expect(toggle).toHaveFocus();
+    expect([
+      api.members.mock.calls.length,
+      api.invites.mock.calls.length,
+      api.workspaceInvitationRequests.mock.calls.length,
+    ]).toEqual(reads);
+    expect(api.inviteMember).not.toHaveBeenCalled();
+  });
+
+  it("retains the selected invitation role and newly issued link when management is closed and reopened", async () => {
+    show();
+    await openInvitations();
+    fireEvent.change(screen.getByRole("combobox", { name: "Invitation role" }), {
+      target: { value: "editor" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
+    const link = await screen.findByLabelText("New invitation link");
+    const issuedLink = link.value;
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Invite member", exact: true })).toBeEnabled()
+    );
+    const reads = [
+      api.members.mock.calls.length,
+      api.invites.mock.calls.length,
+      api.workspaceInvitationRequests.mock.calls.length,
+    ];
+    const toggle = screen.getByRole("button", { name: "Invite member", exact: true });
+    fireEvent.click(toggle);
+    expect(screen.queryByLabelText("New invitation link")).not.toBeInTheDocument();
+    expect(toggle).toHaveFocus();
+    await openInvitations();
+    expect(screen.getByRole("combobox", { name: "Invitation role" })).toHaveValue("editor");
+    expect(screen.getByLabelText("New invitation link")).toHaveValue(issuedLink);
+    expect(api.inviteMember).toHaveBeenCalledTimes(1);
+    expect([
+      api.members.mock.calls.length,
+      api.invites.mock.calls.length,
+      api.workspaceInvitationRequests.mock.calls.length,
+    ]).toEqual(reads);
+  });
+
+  it("starts a different ledger with management closed and discards the previous invitation draft and link", async () => {
+    const view = show();
+    await openInvitations();
+    fireEvent.change(screen.getByRole("combobox", { name: "Invitation role" }), {
+      target: { value: "editor" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
+    await screen.findByLabelText("New invitation link");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Invite member", exact: true })).toBeEnabled()
+    );
+    view.rerender(
+      <MembersScreen
+        go={vi.fn()}
+        api={api}
+        workspace={{ ...workspace, id: "ws_other", name: "Other ledger" }}
+      />
+    );
+    const toggle = screen.getByRole("button", { name: "Invite member", exact: true });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("New invitation link")).not.toBeInTheDocument();
+    await openInvitations();
+    expect(screen.getByRole("combobox", { name: "Invitation role" })).toHaveValue("viewer");
+    expect(screen.queryByLabelText("New invitation link")).not.toBeInTheDocument();
+    expect(api.inviteMember).toHaveBeenCalledTimes(1);
+  });
+
+  it("cannot open a closed management rail during a role write or its required member read", async () => {
+    const write = deferred();
+    const read = deferred();
+    api.updateMember.mockReturnValueOnce(write.promise);
+    api.members.mockResolvedValueOnce({ items: [owner, editor] }).mockReturnValueOnce(read.promise);
+    show();
+    const role = await openRole();
+    const toggle = screen.getByRole("button", { name: "Invite member", exact: true });
+    fireEvent.change(role, { target: { value: "viewer" } });
+    expect(toggle).toBeDisabled();
+    fireEvent.click(toggle);
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    await act(async () => write.resolve({ ...editor, role: "viewer", revision: 4 }));
+    await waitFor(() => expect(api.members).toHaveBeenCalledTimes(2));
+    expect(toggle).toBeDisabled();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await act(async () =>
+      read.resolve({ items: [owner, { ...editor, role: "viewer", revision: 4 }] })
+    );
+    await waitFor(() => expect(toggle).toBeEnabled());
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    expect(api.updateMember).toHaveBeenCalledTimes(1);
+    expect(api.inviteMember).not.toHaveBeenCalled();
+  });
+
   it("shows only current-ledger requests, identifies applicants and approves one with its request revision", async () => {
     api.workspaceInvitationRequests.mockResolvedValueOnce({
       items: [
@@ -114,6 +254,7 @@ describe("Members screen", () => {
     const changed = vi.fn();
     const inboxChanged = vi.fn();
     show({ onMembershipChanged: changed, onInvitationRequestsChanged: inboxChanged });
+    await openInvitations();
     const approve = await screen.findByRole("button", { name: "Approve request from carol" });
     expect(api.workspaceInvitationRequests).toHaveBeenCalledWith(
       "ws_owner",
@@ -141,6 +282,7 @@ describe("Members screen", () => {
   it("shows a bounded request count as a minimum and explains how further requests become visible", async () => {
     api.workspaceInvitationRequests.mockResolvedValue({ items: [joinRequest], hasMore: true });
     show();
+    await openInvitations();
     const section = await screen.findByRole("region", { name: "Join requests" });
     expect(
       await within(section).findByText("More requests will appear as you review these.")
@@ -154,6 +296,7 @@ describe("Members screen", () => {
   it("does not turn failed request data into an empty inbox or disable otherwise loaded member controls", async () => {
     api.workspaceInvitationRequests.mockResolvedValue({ unavailable: true });
     show();
+    await openInvitations();
     expect(await screen.findByRole("alert")).toHaveTextContent("Member data unavailable.");
     expect(screen.queryByText("No pending join requests.")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Edit role for bob" })).toBeEnabled();
@@ -164,6 +307,7 @@ describe("Members screen", () => {
     api.workspaceInvitationRequests.mockResolvedValueOnce({ items: [joinRequest] });
     const changed = vi.fn();
     show({ onInvitationRequestsChanged: changed });
+    await openInvitations();
     fireEvent.click(await screen.findByRole("button", { name: "Reject request from carol" }));
     await waitFor(() =>
       expect(api.rejectInviteRequest).toHaveBeenCalledWith("ws_owner", "inv_1", "req_1", 3, {})
@@ -179,6 +323,7 @@ describe("Members screen", () => {
       .mockResolvedValue({ items: [{ ...joinRequest, revision: 4 }] });
     api.approveInviteRequest.mockRejectedValueOnce(error(412));
     show();
+    await openInvitations();
     fireEvent.click(await screen.findByRole("button", { name: "Approve request from carol" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Reload members");
     expect(screen.getByRole("button", { name: "Approve request from carol" })).toBeDisabled();
@@ -199,6 +344,7 @@ describe("Members screen", () => {
     const changed = vi.fn();
     const inboxChanged = vi.fn();
     const view = show({ onMembershipChanged: changed, onInvitationRequestsChanged: inboxChanged });
+    await openInvitations();
     fireEvent.click(await screen.findByRole("button", { name: "Approve request from carol" }));
     view.rerender(
       <MembersScreen
@@ -259,7 +405,7 @@ describe("Members screen", () => {
     expect(window.location.hash).toBe("");
   });
 
-  it("reveals the member list and invitation rail together only after all initial management reads settle", async () => {
+  it("enables explicit invitation opening only after all initial management reads settle", async () => {
     const membersRead = deferred();
     const invitesRead = deferred();
     const requestsRead = deferred();
@@ -267,6 +413,9 @@ describe("Members screen", () => {
     api.invites.mockReturnValueOnce(invitesRead.promise);
     api.workspaceInvitationRequests.mockReturnValueOnce(requestsRead.promise);
     show();
+    const toggle = screen.getByRole("button", { name: "Invite member", exact: true });
+    expect(toggle).toBeDisabled();
+    fireEvent.click(toggle);
     expect(screen.getByText("Loading members…")).toBeVisible();
     expect(
       screen.queryByRole("complementary", { name: "Member management" })
@@ -281,6 +430,12 @@ describe("Members screen", () => {
     expect(screen.queryByRole("heading", { name: "Invite member" })).not.toBeInTheDocument();
     await act(async () => requestsRead.resolve({ items: [] }));
     expect(await screen.findByText("Bob")).toBeVisible();
+    expect(toggle).toBeEnabled();
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    await openInvitations();
     expect(screen.getByRole("complementary", { name: "Member management" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Invite member" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled();
@@ -289,6 +444,7 @@ describe("Members screen", () => {
   it("hides the invitation rail while a manual member reload is pending", async () => {
     show();
     await screen.findByText("Bob");
+    await openInvitations();
     const pending = deferred();
     api.members.mockReturnValueOnce(pending.promise);
     fireEvent.click(screen.getByRole("button", { name: "Reload" }));
@@ -308,6 +464,7 @@ describe("Members screen", () => {
       .mockResolvedValueOnce({ items: [owner, editor] })
       .mockReturnValueOnce(pending.promise);
     show();
+    await openInvitations();
     fireEvent.change(await openRole(), { target: { value: "viewer" } });
     await waitFor(() => expect(api.members).toHaveBeenCalledTimes(2));
     expect(screen.queryByText("Bob")).not.toBeInTheDocument();
@@ -344,6 +501,9 @@ describe("Members screen", () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
     expect(api.invites).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: "Invite member", exact: true })
+    ).not.toBeInTheDocument();
     expect(screen.queryByLabelText("GitHub username")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Edit role|Save role|Remove|Revoke|Create invitation/ })
@@ -410,6 +570,7 @@ describe("Members screen", () => {
       },
     });
     const row = (await screen.findByText("Carol")).closest("article");
+    await openInvitations();
     expect(within(row).queryByRole("combobox")).not.toBeInTheDocument();
     expect(within(row).queryByRole("button")).not.toBeInTheDocument();
     const memberRole = await openRole();
@@ -428,6 +589,7 @@ describe("Members screen", () => {
     api.members.mockResolvedValue({ items: [owner, { ...editor, role: "admin" }] });
     show({ workspace: { ...workspace, permissions: { manageMembers: true } } });
     const row = (await screen.findByText("Bob")).closest("article");
+    await openInvitations();
     expect(within(row).queryByRole("button")).not.toBeInTheDocument();
     expect(within(row).queryByRole("combobox")).not.toBeInTheDocument();
     expect(
@@ -455,7 +617,8 @@ describe("Members screen", () => {
     fireEvent.click(confirm);
     expect(api.removeMember).toHaveBeenCalledTimes(1);
     expect(api.removeMember).toHaveBeenCalledWith("ws_owner", "bob", 3, {});
-    expect(screen.getByRole("button", { name: "Create invitation" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Invite member", exact: true })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Create invitation" })).not.toBeInTheDocument();
     await act(async () => {
       pending.resolve(null);
     });
@@ -477,7 +640,10 @@ describe("Members screen", () => {
     expect([...row.children]).toEqual(rowChildren);
     expect(actions.children).toHaveLength(2);
     expect(row.querySelector(".notice")).toBeNull();
-    for (const [button, name] of [[confirm, "Confirm remove bob"], [cancel, "Cancel removing bob"]]) {
+    for (const [button, name] of [
+      [confirm, "Confirm remove bob"],
+      [cancel, "Cancel removing bob"],
+    ]) {
       expect(button).toHaveAttribute("type", "button");
       expect(button).toHaveAttribute("title", name);
       expect(button).toHaveTextContent("");
@@ -524,7 +690,9 @@ describe("Members screen", () => {
     const write = deferred();
     const refresh = deferred();
     api.removeMember.mockReturnValue(write.promise);
-    api.members.mockResolvedValueOnce({ items: [owner, editor] }).mockReturnValueOnce(refresh.promise);
+    api.members
+      .mockResolvedValueOnce({ items: [owner, editor] })
+      .mockReturnValueOnce(refresh.promise);
     const go = vi.fn();
     show({ go });
     fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
@@ -556,7 +724,9 @@ describe("Members screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
     const oldConfirm = screen.getByRole("button", { name: "Confirm remove bob" });
     api.members.mockResolvedValue({ items: [owner, editor] });
-    view.rerender(<MembersScreen go={vi.fn()} api={api} workspace={{ ...workspace, id: "ws_other" }} />);
+    view.rerender(
+      <MembersScreen go={vi.fn()} api={api} workspace={{ ...workspace, id: "ws_other" }} />
+    );
     await screen.findByRole("button", { name: "Remove bob" });
     fireEvent.click(oldConfirm);
     expect(api.removeMember).not.toHaveBeenCalled();
@@ -633,6 +803,7 @@ describe("Members screen", () => {
     api.updateMember.mockReturnValue(pending.promise);
     const go = vi.fn();
     show({ go });
+    await openInvitations();
     const role = await openRole();
     fireEvent.change(role, { target: { value: "viewer" } });
     fireEvent.change(role, { target: { value: "admin" } });
@@ -765,6 +936,7 @@ describe("Members screen", () => {
 
   it("creates an unbound invitation with only the selected role", async () => {
     show();
+    await openInvitations();
     const role = await screen.findByLabelText("Invitation role");
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
@@ -805,6 +977,7 @@ describe("Members screen", () => {
       api.inviteMember.mockRejectedValue(error(status, code));
       const accessChanged = vi.fn();
       show({ onAccessChanged: accessChanged });
+      await openInvitations();
       const revoke = await screen.findByRole("button", { name: "Revoke invitation link inv_1" });
       await waitFor(() => expect(revoke).toBeEnabled());
       fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
@@ -831,6 +1004,7 @@ describe("Members screen", () => {
       api.inviteMember.mockRejectedValue(error(status));
       const accessChanged = vi.fn();
       show({ onAccessChanged: accessChanged });
+      await openInvitations();
       const revoke = await screen.findByRole("button", { name: "Revoke invitation link inv_1" });
       await waitFor(() => expect(revoke).toBeEnabled());
       fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
@@ -851,6 +1025,7 @@ describe("Members screen", () => {
     });
     const changed = vi.fn();
     show({ onMembershipChanged: changed });
+    await openInvitations();
     expect(await screen.findByLabelText("Invitation role")).toBeVisible();
     expect(
       screen.getByText(/Inviting shares all existing and future ledger data/)
@@ -874,6 +1049,7 @@ describe("Members screen", () => {
     api.invites.mockResolvedValue({ items: [invitation] });
     const changed = vi.fn();
     show({ onMembershipChanged: changed });
+    await openInvitations();
     fireEvent.click(await screen.findByRole("button", { name: "Revoke invitation link inv_1" }));
     await waitFor(() => expect(api.revokeInvite).toHaveBeenCalledWith("ws_owner", "inv_1", 1, {}));
     expect(changed).toHaveBeenCalledTimes(1);
@@ -899,6 +1075,7 @@ describe("Members screen", () => {
       );
     }
     render(<RefreshingPicker />);
+    await openInvitations();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
     );
@@ -923,6 +1100,7 @@ describe("Members screen", () => {
         token: "second-token",
       });
     show();
+    await openInvitations();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
     );
@@ -978,6 +1156,7 @@ describe("Members screen", () => {
     api.inviteMember.mockReturnValue(pending.promise);
     const changed = vi.fn();
     const view = show({ onMembershipChanged: changed });
+    await openInvitations();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
     );

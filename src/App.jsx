@@ -128,6 +128,8 @@ export function App() {
   const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
   const [screen, setScreen] = useState(getInitialScreen);
   const [routeVersion, setRouteVersion] = useState(0);
+  const [reviewIntent, setReviewIntent] = useState(null);
+  const reviewNonceRef = useRef(0);
   const pageOperationRef = useRef(null);
   const [reportedNavigation, setReportedNavigation] = useState({ owner: "", active: false });
   const [renderedNavigation, setRenderedNavigation] = useState({ owner: "", active: false });
@@ -157,6 +159,21 @@ export function App() {
     workspaceState.identity === identity && workspaceState.status === "ready"
       ? workspaceState.items.find((item) => item.id === workspaceState.selectedId)
       : null;
+  useEffect(() => {
+    if (
+      reviewIntent &&
+      (reviewIntent.identity !== identity ||
+        screen !== "ledgerMembers" ||
+        (workspace &&
+          (reviewIntent.workspaceId !== workspace.id ||
+            workspace.permissions?.manageMembers !== true)))
+    ) {
+      setReviewIntent(null);
+    }
+  }, [reviewIntent, identity, screen, workspace]);
+  const onReviewHandled = useCallback((handled) => {
+    setReviewIntent((current) => (current?.nonce === handled?.nonce ? null : current));
+  }, []);
   const selectedWorkspaceRef = useRef("");
   const workspaceIdentityRef = useRef("");
   const workspaceReloading = useRef(false);
@@ -761,6 +778,12 @@ export function App() {
             onAccessChanged={onAccessChanged}
             onMembershipChanged={onMembershipChanged}
             onInvitationRequestsChanged={onInvitationRequestsChanged}
+            reviewIntent={
+              reviewIntent?.identity === identity && reviewIntent.workspaceId === workspace?.id
+                ? reviewIntent
+                : null
+            }
+            onReviewHandled={onReviewHandled}
           />
         );
         break;
@@ -840,6 +863,12 @@ export function App() {
         onReview={(request) => {
           if (pageOperationRef.current === currentScreenKeyRef.current) return false;
           if (screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]')) return false;
+          setReviewIntent({
+            identity,
+            workspaceId: request.workspaceId,
+            requestId: request.id,
+            nonce: ++reviewNonceRef.current,
+          });
           selectWorkspace(request.workspaceId);
           go("ledgerMembers");
         }}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { I } from "../icons.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
@@ -109,10 +109,7 @@ function failureMessage(failure) {
       "此邀请已过期，请向账本所有者索取新链接。"
     );
   if (failure?.code === "ALREADY_MEMBER")
-    return T(
-      "That account is already a member of this ledger.",
-      "此账户已经是此账本的成员。"
-    );
+    return T("That account is already a member of this ledger.", "此账户已经是此账本的成员。");
   if (failure?.code === "INVITATION_REQUEST_REJECTED")
     return T(
       "Your request was rejected. Ask the inviter for a new link.",
@@ -149,6 +146,8 @@ export function MembersScreen({
   onMembershipChanged,
   onAccessChanged,
   onInvitationRequestsChanged,
+  reviewIntent,
+  onReviewHandled,
 }) {
   useLang();
   const [token, setToken] = useState(invitationToken);
@@ -184,6 +183,8 @@ export function MembersScreen({
       onMembershipChanged={onMembershipChanged}
       onAccessChanged={onAccessChanged}
       onInvitationRequestsChanged={onInvitationRequestsChanged}
+      reviewIntent={reviewIntent}
+      onReviewHandled={onReviewHandled}
       clearInvitation={clearInvitation}
     />
   );
@@ -197,6 +198,8 @@ function MembersContent({
   onMembershipChanged,
   onAccessChanged,
   onInvitationRequestsChanged,
+  reviewIntent,
+  onReviewHandled,
   clearInvitation,
 }) {
   const workspaceId = workspace?.id || "";
@@ -216,6 +219,12 @@ function MembersContent({
   const [roles, setRoles] = useState({});
   const [editId, setEditId] = useState("");
   const [removeId, setRemoveId] = useState("");
+  const [managementOpen, setManagementOpen] = useState(false);
+  const managementId = useId();
+  const inviteOpener = useRef(null);
+  const inviteRoleInput = useRef(null);
+  const focusManagement = useRef("");
+  const handledReview = useRef(null);
   const roleInput = useRef(null);
   const removeConfirm = useRef(null);
   const editOpeners = useRef(new Map());
@@ -247,6 +256,7 @@ function MembersContent({
     onMembershipChanged,
     onAccessChanged,
     onInvitationRequestsChanged,
+    onReviewHandled,
     clearInvitation,
   };
 
@@ -419,10 +429,21 @@ function MembersContent({
   };
 
   const disabled = busy || loading || !members || conflict || accessLost;
-  const showManagement = canManage && !loading && members !== null;
+  const showManagement = managementOpen && canManage && !loading && members !== null;
+  const toggleManagement = () => {
+    if (disabled || actionPending.current || !canManage || !current(lifecycle.current)) return;
+    focusManagement.current = managementOpen ? "close" : "open";
+    setManagementOpen(!managementOpen);
+  };
   useEffect(() => {
     if (loading || busy || !current(lifecycle.current)) return;
-    if (focusReview.current) {
+    if (focusManagement.current === "close") {
+      focusManagement.current = "";
+      inviteOpener.current?.focus();
+    } else if (focusManagement.current === "open" && showManagement) {
+      focusManagement.current = "";
+      inviteRoleInput.current?.focus();
+    } else if (focusReview.current) {
       focusReview.current = false;
       requestHeading.current?.focus();
     } else if (focusAction.current) {
@@ -437,7 +458,29 @@ function MembersContent({
     } else if (members && removeId && !disabled) {
       removeConfirm.current?.focus();
     }
-  }, [editId, removeId, loading, busy, members, disabled, current]);
+  }, [editId, removeId, loading, busy, members, disabled, current, showManagement]);
+
+  useEffect(() => {
+    if (
+      !reviewIntent ||
+      !reviewIntent.nonce ||
+      reviewIntent.workspaceId !== workspaceId ||
+      handledReview.current === reviewIntent.nonce ||
+      !canManage ||
+      disabled ||
+      !current(lifecycle.current)
+    )
+      return;
+    handledReview.current = reviewIntent.nonce;
+    focusManagement.current = "";
+    focusReview.current = true;
+    setManagementOpen(true);
+    if (requestHeading.current) {
+      focusReview.current = false;
+      requestHeading.current.focus();
+    }
+    callbacks.current.onReviewHandled?.(reviewIntent);
+  }, [reviewIntent, workspaceId, canManage, disabled, current]);
 
   const closeRole = (userId) => {
     if (!current(lifecycle.current) || actionPending.current) return;
@@ -597,9 +640,25 @@ function MembersContent({
               <p className="sub">{workspace?.name || T("Ledger access", "账本权限")}</p>
             </div>
             {workspaceId && (
-              <button className="btn" onClick={load} disabled={loading || busy}>
-                {T("Reload", "重新加载")}
-              </button>
+              <div className="actions">
+                {canManage && (
+                  <button
+                    className="btn primary"
+                    type="button"
+                    ref={inviteOpener}
+                    aria-expanded={showManagement}
+                    aria-controls={managementId}
+                    onClick={toggleManagement}
+                    disabled={disabled}
+                  >
+                    <I.Plus size={16} aria-hidden="true" />
+                    {T("Invite member", "邀请成员")}
+                  </button>
+                )}
+                <button className="btn" onClick={load} disabled={loading || busy}>
+                  {T("Reload", "重新加载")}
+                </button>
+              </div>
             )}
           </div>
           {error && (
@@ -867,14 +926,14 @@ function MembersContent({
                                     className="btn ghost member-remove-confirm"
                                     type="button"
                                     ref={removeConfirm}
-                                    aria-label={T("Confirm remove {member}", "确认移除 {member}").replace(
-                                      "{member}",
-                                      label
-                                    )}
-                                    title={T("Confirm remove {member}", "确认移除 {member}").replace(
-                                      "{member}",
-                                      label
-                                    )}
+                                    aria-label={T(
+                                      "Confirm remove {member}",
+                                      "确认移除 {member}"
+                                    ).replace("{member}", label)}
+                                    title={T(
+                                      "Confirm remove {member}",
+                                      "确认移除 {member}"
+                                    ).replace("{member}", label)}
                                     disabled={disabled}
                                     onClick={() => confirmRemoval(member)}
                                   >
@@ -883,14 +942,14 @@ function MembersContent({
                                   <button
                                     className="btn ghost member-remove-cancel"
                                     type="button"
-                                    aria-label={T("Cancel removing {member}", "取消移除 {member}").replace(
-                                      "{member}",
-                                      label
-                                    )}
-                                    title={T("Cancel removing {member}", "取消移除 {member}").replace(
-                                      "{member}",
-                                      label
-                                    )}
+                                    aria-label={T(
+                                      "Cancel removing {member}",
+                                      "取消移除 {member}"
+                                    ).replace("{member}", label)}
+                                    title={T(
+                                      "Cancel removing {member}",
+                                      "取消移除 {member}"
+                                    ).replace("{member}", label)}
                                     disabled={busy || loading}
                                     onClick={() => closeRemoval(member.userId)}
                                   >
@@ -931,6 +990,7 @@ function MembersContent({
               </section>
               {showManagement && (
                 <aside
+                  id={managementId}
                   className="panel member-management"
                   aria-label={T("Member management", "成员管理")}
                 >
@@ -957,6 +1017,7 @@ function MembersContent({
                           <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
                           <select
                             id="invite-role"
+                            ref={inviteRoleInput}
                             className="auth-input"
                             value={inviteRole}
                             disabled={disabled}

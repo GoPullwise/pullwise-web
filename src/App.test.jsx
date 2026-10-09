@@ -120,6 +120,16 @@ async function enterEmailCode(email = "alice@example.com") {
   return code;
 }
 
+async function openMembersManagement() {
+  const toggle = await screen.findByRole("button", { name: "Invite member", exact: true });
+  await waitFor(() => expect(toggle).toBeEnabled());
+  if (toggle.getAttribute("aria-expanded") !== "true") fireEvent.click(toggle);
+  await waitFor(() => expect(toggle).toHaveAttribute("aria-expanded", "true"));
+  const create = await screen.findByRole("button", { name: "Create invitation", exact: true });
+  await waitFor(() => expect(create).toBeEnabled());
+  return create;
+}
+
 it("accepts an email session directly, aborts a stale session read and opens Projects without a focus event", async () => {
   window.history.replaceState({}, "", "/login");
   const staleSession = pending();
@@ -737,8 +747,7 @@ it("preserves the real Members screen's one-time invitation link throughout soft
   const copy = vi.fn().mockResolvedValue(undefined);
   vi.stubGlobal("navigator", { clipboard: { writeText: copy } });
   render(<App />);
-  const create = await screen.findByRole("button", { name: "Create invitation" });
-  await waitFor(() => expect(create).toBeEnabled());
+  const create = await openMembersManagement();
   fireEvent.submit(create.closest("form"));
   const link = await screen.findByLabelText("New invitation link");
   expect(link).toHaveValue(`${window.location.origin}/members#invite=${inviteToken}`);
@@ -915,6 +924,130 @@ it("opens the requested ledger when inbox review is the first navigation into a 
   expect(window.location.pathname).toBe("/members");
 });
 
+it("opens review in the current Members ledger once and keeps ordinary returns collapsed", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([personal]);
+  const ownRequest = {
+    ...joinRequest,
+    workspaceId: personal.id,
+    workspace: { id: personal.id, name: personal.name },
+  };
+  harness.apis.alice = membersApi({
+    workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [ownRequest] }),
+  });
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [ownRequest] });
+  render(<App />);
+  const initialToggle = await screen.findByRole("button", { name: "Invite member", exact: true });
+  await waitFor(() => expect(initialToggle).toBeEnabled());
+  expect(initialToggle).toHaveAttribute("aria-expanded", "false");
+  expect(
+    screen.queryByRole("button", { name: "Approve request from bob" })
+  ).not.toBeInTheDocument();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Review request" }));
+  expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
+  const reviewedToggle = screen.getByRole("button", { name: "Invite member", exact: true });
+  expect(reviewedToggle).toHaveAttribute("aria-expanded", "true");
+  fireEvent.click(reviewedToggle);
+  expect(reviewedToggle).toHaveAttribute("aria-expanded", "false");
+  expect(
+    screen.queryByRole("button", { name: "Approve request from bob" })
+  ).not.toBeInTheDocument();
+
+  act(() => {
+    window.history.pushState({}, "", "/projects");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await screen.findByRole("heading", { name: "Projects" });
+  act(() => {
+    window.history.pushState({}, "", "/members");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  const returnedToggle = await screen.findByRole("button", { name: "Invite member", exact: true });
+  await waitFor(() => expect(returnedToggle).toBeEnabled());
+  expect(returnedToggle).toHaveAttribute("aria-expanded", "false");
+  expect(
+    screen.queryByRole("button", { name: "Approve request from bob" })
+  ).not.toBeInTheDocument();
+  expect(harness.apis.alice.approveInviteRequest).not.toHaveBeenCalled();
+  expect(harness.apis.alice.inviteMember).not.toHaveBeenCalled();
+});
+
+it.each(["route", "ledger", "account"])(
+  "discards a pending review intent after its %s changes before members settle",
+  async (change) => {
+    window.history.replaceState({}, "", "/projects");
+    const managedTeam = {
+      ...team,
+      role: "admin",
+      permissions: { manageMembers: true, manageAdmins: false },
+    };
+    authenticatedLedgers([personal, managedTeam]);
+    harness.enabled = true;
+    const originalMembers = pending();
+    harness.apis.alice = {
+      ...membersApi(),
+      projects: vi.fn().mockResolvedValue({ items: [{ name: "Personal project" }] }),
+    };
+    harness.apis.team = {
+      ...membersApi({
+        workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [joinRequest] }),
+      }),
+      projects: vi.fn().mockResolvedValue({ items: [{ name: "Team project" }] }),
+    };
+    harness.apis.team.members.mockReturnValueOnce(originalMembers.promise);
+    ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+    render(<App />);
+    await screen.findByText("Personal project");
+    fireEvent.click(await screen.findByRole("button", { name: "Review request" }));
+    await waitFor(() => expect(harness.apis.team.members).toHaveBeenCalledTimes(1));
+    const originalSignal = harness.apis.team.members.mock.calls[0][1].signal;
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+    expect(screen.getByRole("button", { name: "Invite member", exact: true })).toBeDisabled();
+
+    if (change === "route") {
+      fireEvent.click(screen.getByRole("link", { name: "Projects", exact: true }));
+      await screen.findByText("Team project");
+      act(() => {
+        window.history.pushState({}, "", "/members");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      });
+    } else if (change === "ledger") {
+      fireEvent.change(screen.getByRole("combobox", { name: "Select ledger" }), {
+        target: { value: "alice" },
+      });
+      const ownToggle = await screen.findByRole("button", { name: "Invite member", exact: true });
+      await waitFor(() => expect(ownToggle).toBeEnabled());
+      expect(ownToggle).toHaveAttribute("aria-expanded", "false");
+      fireEvent.change(screen.getByRole("combobox", { name: "Select ledger" }), {
+        target: { value: "team" },
+      });
+    } else {
+      pullwiseApi.auth.getSession.mockResolvedValue({
+        authenticated: true,
+        user: { id: "actor-two" },
+      });
+      ledgerApi.workspaces.mockResolvedValue({ items: [managedTeam] });
+      ledgerApi.invitationRequests.mockResolvedValue({ items: [] });
+      act(() => window.dispatchEvent(new Event("focus")));
+      await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
+    }
+
+    await waitFor(() => expect(harness.apis.team.members).toHaveBeenCalledTimes(2));
+    const toggle = await screen.findByRole("button", { name: "Invite member", exact: true });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    expect(originalSignal.aborted).toBe(true);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await act(async () => originalMembers.resolve({ items: [] }));
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("button", { name: "Approve request from bob" })
+    ).not.toBeInTheDocument();
+    expect(harness.apis.team.approveInviteRequest).not.toHaveBeenCalled();
+    expect(harness.apis.team.inviteMember).not.toHaveBeenCalled();
+  }
+);
+
 it("keeps notification review in the current ledger during a member write and allows inbox review afterward", async () => {
   window.history.replaceState({}, "", "/members");
   const managedTeam = {
@@ -932,8 +1065,7 @@ it("keeps notification review in the current ledger during a member write and al
   });
   ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
   render(<App />);
-  const create = await screen.findByRole("button", { name: "Create invitation" });
-  await waitFor(() => expect(create).toBeEnabled());
+  const create = await openMembersManagement();
   expect(await screen.findByRole("alert")).toHaveTextContent("Bob");
   fireEvent.submit(create.closest("form"));
   expect(harness.apis.alice.inviteMember).toHaveBeenCalledTimes(1);
