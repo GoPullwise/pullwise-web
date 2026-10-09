@@ -247,6 +247,11 @@ describe("API screens", () => {
       });
     });
     expect(await screen.findByText("pwk_live_secret")).toBeInTheDocument();
+    await user.click(
+      within(screen.getByRole("dialog", { name: "New key created" })).getAllByRole("button", {
+        name: "Close",
+      })[1]
+    );
 
     await user.click(screen.getAllByRole("button", { name: /revoke/i })[0]);
     await user.click(await screen.findByRole("button", { name: /confirm revoke/i }));
@@ -290,7 +295,7 @@ describe("API screens", () => {
     expect(await screen.findByText("pwk_keyboard_local")).toBeInTheDocument();
   });
 
-  it("keeps a newly created token visible when an unrelated key is revoked", async () => {
+  it("keeps newly created key metadata after closing its one-time token and revoking an unrelated key", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({
       apiKeys: [{ id: "key_old", name: "Old key", prefix: "pwk_old" }],
     });
@@ -308,6 +313,8 @@ describe("API screens", () => {
     const oldKey = await screen.findByText("Old key");
     await user.click(screen.getByRole("button", { name: /create key/i }));
     expect(await screen.findByText("pwk_live_new_secret")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByText("pwk_live_new_secret")).not.toBeInTheDocument();
 
     await user.click(within(oldKey.closest(".key-row")).getByRole("button", { name: /revoke/i }));
     await user.click(await screen.findByRole("button", { name: /confirm revoke/i }));
@@ -315,9 +322,168 @@ describe("API screens", () => {
     await waitFor(() => {
       expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledWith("key_old");
     });
-    expect(screen.getByText("pwk_live_new_secret")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^copy$/i })).toBeInTheDocument();
+    expect(screen.getByText("New key")).toBeInTheDocument();
+    expect(screen.queryByText("pwk_live_new_secret")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^copy$/i })).not.toBeInTheDocument();
   });
+
+  it.each(["button", "Escape", "backdrop"])(
+    "discards the one-time token when closed by %s without creating or reading another key",
+    async (method) => {
+      pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+      pullwiseApi.apiKeys.create.mockResolvedValue({
+        apiKey: { id: "key_once", name: "Once key", prefix: "pwk_once" },
+        token: "pwk_local_one_time_001234",
+      });
+      const user = userEvent.setup();
+      render(<ApiKeysScreen go={vi.fn()} />);
+      const create = await screen.findByRole("button", { name: "Create key" });
+      await user.click(create);
+      const dialog = await screen.findByRole("dialog", { name: "New key created" });
+      const background = document.querySelector(".api-keys-background");
+      expect(background.inert).toBe(true);
+      expect(within(dialog).getByLabelText("Bearer token").textContent).toBe(
+        "pwk_local_one_time_001234"
+      );
+      if (method === "button")
+        await user.click(within(dialog).getAllByRole("button", { name: "Close" })[1]);
+      else if (method === "Escape") await user.keyboard("{Escape}");
+      else await user.click(dialog.closest(".modal-back"));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(screen.queryByText("pwk_local_one_time_001234")).not.toBeInTheDocument();
+      expect(background.inert).toBe(false);
+      await waitFor(() => expect(create).toHaveFocus());
+      expect(screen.getByText("Once key")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledOnce();
+      expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
+      expect(pullwiseApi.apiKeys.revoke).not.toHaveBeenCalled();
+    }
+  );
+
+  it("returns focus to the creating button after an allowed preference action during creation", async () => {
+    const creation = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockReturnValueOnce(creation.promise);
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Theme preference</button>
+        <ApiKeysScreen go={vi.fn()} />
+      </>
+    );
+    const create = await screen.findByRole("button", { name: "Create key" });
+    await user.click(create);
+    await user.click(screen.getByRole("button", { name: "Theme preference" }));
+    await act(async () => creation.resolve({ id: "key_focus", token: "pwk_local_focus" }));
+    const dialog = screen.getByRole("dialog", { name: "New key created" });
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Copy" })).toHaveFocus());
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(create).toHaveFocus());
+  });
+
+  it("keeps creation and revocation dialogs mutually exclusive even for synthetic background events", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_old", name: "Existing key" }],
+    });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_once", token: "pwk_local_exclusive" });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    const create = await screen.findByRole("button", { name: "Create key" });
+    const form = create.closest("form");
+    const revoke = within(screen.getByText("Existing key").closest(".key-row")).getByRole(
+      "button",
+      { name: "Revoke" }
+    );
+    await user.click(create);
+    const dialog = await screen.findByRole("dialog", { name: "New key created" });
+    // jsdom does not suppress events on inert elements; the synchronous guards still must.
+    fireEvent.submit(form);
+    fireEvent.click(revoke);
+    expect(screen.getAllByRole("dialog")).toEqual([dialog]);
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledOnce();
+    expect(pullwiseApi.apiKeys.revoke).not.toHaveBeenCalled();
+    await user.keyboard("{Escape}");
+    await user.click(revoke);
+    const confirmation = screen.getByRole("dialog", { name: "Revoke API key?" });
+    fireEvent.submit(form);
+    expect(screen.getAllByRole("dialog")).toEqual([confirmation]);
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledOnce();
+  });
+
+  it("does not reveal a dismissed token again when key metadata is explicitly reloaded", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValueOnce({ apiKeys: [] }).mockResolvedValueOnce({
+      apiKeys: [
+        {
+          id: "key_once",
+          name: "Once key",
+          prefix: "pwk_once",
+          token: "pwk_local_dismissed",
+          key: "pwk_local_dismissed",
+        },
+      ],
+    });
+    pullwiseApi.apiKeys.create
+      .mockResolvedValueOnce({ id: "key_once", name: "Once key", token: "pwk_local_dismissed" })
+      .mockRejectedValueOnce(new Error("Creation unavailable"));
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    const create = await screen.findByRole("button", { name: "Create key" });
+    await user.click(create);
+    await screen.findByRole("dialog", { name: "New key created" });
+    await user.keyboard("{Escape}");
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
+    await user.click(create);
+    await user.click(await screen.findByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Once key")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("pwk_local_dismissed")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy" })).not.toBeInTheDocument();
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["resolve", "reject"])(
+    "ignores a clipboard %s after switching ledger and opening a different token",
+    async (completion) => {
+      const copying = deferredPromise();
+      const user = userEvent.setup();
+      const writeText = vi
+        .spyOn(navigator.clipboard, "writeText")
+        .mockReturnValueOnce(copying.promise);
+      pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+      pullwiseApi.apiKeys.create
+        .mockResolvedValueOnce({ id: "key_a", token: "pwk_local_ledger_a" })
+        .mockResolvedValueOnce({ id: "key_b", token: "pwk_local_ledger_b" });
+      const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_a")} />);
+      await user.click(await screen.findByRole("button", { name: "Create key" }));
+      const oldDialog = await screen.findByRole("dialog", { name: "New key created" });
+      await user.click(within(oldDialog).getByRole("button", { name: "Copy" }));
+      view.rerender(
+        <NotificationProvider>
+          <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_b")} />
+        </NotificationProvider>
+      );
+      expect(screen.queryByText("pwk_local_ledger_a")).not.toBeInTheDocument();
+      await user.click(await screen.findByRole("button", { name: "Create key" }));
+      const newDialog = await screen.findByRole("dialog", { name: "New key created" });
+      await act(async () =>
+        completion === "resolve"
+          ? copying.resolve()
+          : copying.reject(new Error("Late clipboard denial"))
+      );
+      expect(within(newDialog).getByLabelText("Bearer token").textContent).toBe(
+        "pwk_local_ledger_b"
+      );
+      expect(within(newDialog).getByRole("button", { name: "Copy" })).toBeEnabled();
+      expect(within(newDialog).queryByRole("status")).not.toBeInTheDocument();
+      expect(within(newDialog).queryByRole("alert")).not.toBeInTheDocument();
+      expect(writeText).toHaveBeenCalledOnce();
+      expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(2);
+      expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(2);
+      writeText.mockRestore();
+    }
+  );
 
   it("serializes API key mutations before React pending state is committed", async () => {
     const creation = deferredPromise();
@@ -454,60 +620,40 @@ describe("API screens", () => {
     expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
   });
 
-  it("keeps revocation locked against Escape and read retries while token copying stays available", async () => {
+  it("keeps revocation locked against Escape, backdrop dismissal and stale read retries", async () => {
     const revocation = deferredPromise();
     pullwiseApi.apiKeys.list.mockResolvedValue({
       apiKeys: [{ id: "key_existing", name: "Existing key", prefix: "pwk_existing" }],
     });
-    pullwiseApi.apiKeys.create.mockResolvedValue({
-      id: "key_created",
-      name: "Created key",
-      prefix: "pwk_created",
-      key: "pwk_visible_secret",
-    });
+    pullwiseApi.apiKeys.create.mockRejectedValue(new Error("Creation unavailable"));
     pullwiseApi.apiKeys.revoke.mockReturnValue(revocation.promise);
     const user = userEvent.setup();
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText: vi.fn().mockRejectedValue(new Error("Clipboard unavailable")) },
-    });
-    try {
-      render(<ApiKeysScreen go={vi.fn()} />);
-      await user.click(await screen.findByRole("button", { name: "Create key" }));
-      await screen.findByText("pwk_visible_secret");
-      const existing = screen.getByText("Existing key").closest(".key-row");
-      await user.click(within(existing).getByRole("button", { name: "Revoke" }));
-      const dialog = await screen.findByRole("dialog", { name: "Revoke API key?" });
-      await user.click(within(dialog).getByRole("button", { name: "Confirm revoke" }));
-      for (const cancel of within(dialog).getAllByRole("button", { name: "Cancel" }))
-        expect(cancel).toBeDisabled();
-      fireEvent.keyDown(document, { key: "Escape" });
-      expect(dialog).toBeInTheDocument();
-      const copy = screen.getByRole("button", { name: "Copy" });
-      expect(copy).toBeEnabled();
-      await user.click(copy);
-      const retry = await screen.findByRole("button", { name: "Retry" });
-      expect(retry).toBeDisabled();
-      fireEvent.click(retry);
-      expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
-      expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "Create key" }));
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    const existing = screen.getByText("Existing key").closest(".key-row");
+    await user.click(within(existing).getByRole("button", { name: "Revoke" }));
+    const dialog = await screen.findByRole("dialog", { name: "Revoke API key?" });
+    await user.click(within(dialog).getByRole("button", { name: "Confirm revoke" }));
+    for (const cancel of within(dialog).getAllByRole("button", { name: "Cancel" }))
+      expect(cancel).toBeDisabled();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(dialog).toBeInTheDocument();
+    fireEvent.click(dialog.parentElement);
+    expect(dialog).toBeInTheDocument();
+    expect(retry).not.toBeInTheDocument();
+    fireEvent.click(retry);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
 
-      await act(async () => revocation.resolve());
-      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-      expect(screen.getByRole("button", { name: "Create key" })).toBeEnabled();
-      expect(screen.getByRole("link", { name: "API docs" })).toHaveAttribute(
-        "href",
-        "/developers/api"
-      );
-      expect(screen.getByText("pwk_visible_secret")).toBeInTheDocument();
-      expect(screen.queryByText("Existing key")).not.toBeInTheDocument();
-    } finally {
-      Object.defineProperty(navigator, "clipboard", {
-        configurable: true,
-        value: originalClipboard,
-      });
-    }
+    await act(async () => revocation.resolve());
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Create key" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "API docs" })).toHaveAttribute(
+      "href",
+      "/developers/api"
+    );
+    expect(screen.queryByText("Existing key")).not.toBeInTheDocument();
   });
 
   it("retains malformed created-key metadata for revocation when the one-time token is missing", async () => {
@@ -791,7 +937,7 @@ describe("API screens", () => {
     expect(await screen.findByText("pwk_current_b")).toBeInTheDocument();
   });
 
-  it("clears an exposed token, confirmation and write selections when membership revision changes", async () => {
+  it("clears an exposed token and write selections when membership revision changes", async () => {
     const workspace = workspaceFixture("wsp_team", {
       permissions: { manageProjects: true, manageCategories: true, writeExpenses: true },
       scopes: [
@@ -809,8 +955,7 @@ describe("API screens", () => {
     await user.click(await screen.findByRole("checkbox", { name: /manage expenses/i }));
     await user.click(screen.getByRole("button", { name: "Create key" }));
     expect(await screen.findByText("pwk_once_local")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Revoke" }));
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "New key created" })).toBeInTheDocument();
     view.rerender(
       <NotificationProvider>
         <ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_team", { revision: 4 })} />
@@ -888,7 +1033,7 @@ describe("API screens", () => {
     expect(onAccessChanged).not.toHaveBeenCalled();
   });
 
-  it("removes exposed credentials and refreshes access when a current revocation is denied", async () => {
+  it("keeps a dismissed credential cleared and refreshes access when a current revocation is denied", async () => {
     const onAccessChanged = vi.fn();
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
     pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_team", token: "pwk_revoked_scope" });
@@ -906,6 +1051,7 @@ describe("API screens", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: "Create key" }));
     expect(await screen.findByText("pwk_revoked_scope")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
     await user.click(screen.getByRole("button", { name: "Revoke" }));
     await user.click(await screen.findByRole("button", { name: "Confirm revoke" }));
     expect(

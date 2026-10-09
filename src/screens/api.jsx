@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { createLedgerApi } from "../api/ledger.js";
 import { pullwiseApi } from "../api/pullwise.js";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
+import { ApiKeyCreatedDialog } from "../components/api-key-created-dialog.jsx";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { I } from "../icons.jsx";
@@ -42,7 +43,9 @@ function formatDate(value) {
 
 function normalizeApiKey(key = {}) {
   if (!objectRecord(key)) return null;
-  const record = key;
+  const record = { ...key };
+  delete record.token;
+  delete record.key;
   const id = textValue(record.id, record.keyId, record.key_id);
   if (!id) return null;
   const scopes = Array.isArray(record.scopes) ? record.scopes.map(textValue).filter(Boolean) : [];
@@ -264,6 +267,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const projectSearchId = useId();
   const accessChangedRef = useRef(onAccessChanged);
   const revokeBackgroundRef = useRef(null);
+  const createOpenerRef = useRef(null);
   activeScopeRef.current = scopeKey;
   accessChangedRef.current = onAccessChanged;
   const currentScope = renderedScope === scopeKey;
@@ -416,6 +420,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     setRenderedScope(scopeKey);
     setKeys([]);
     setCreatedCredential(null);
+    createOpenerRef.current = null;
     setRevokeTarget(null);
     setLoadedOnce(false);
     setPending("");
@@ -483,6 +488,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     event.preventDefault();
     if (
       !currentScope ||
+      createdCredential?.token ||
+      revokeTarget ||
       mutationInFlightRef.current ||
       loading ||
       !loadedOnce ||
@@ -499,6 +506,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       return;
     }
     const mutation = {};
+    createOpenerRef.current =
+      event.nativeEvent?.submitter || event.currentTarget.querySelector('button[type="submit"]');
     mutationInFlightRef.current = mutation;
     const current = () =>
       mountedRef.current &&
@@ -564,7 +573,15 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const revokeKey = async (keyId) => {
-    if (!currentScope || loading || !loadedOnce || !keyId || mutationInFlightRef.current) return;
+    if (
+      !currentScope ||
+      createdCredential?.token ||
+      loading ||
+      !loadedOnce ||
+      !keyId ||
+      mutationInFlightRef.current
+    )
+      return;
     const mutation = {};
     mutationInFlightRef.current = mutation;
     const current = () =>
@@ -592,36 +609,28 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const requestRevokeKey = (key) => {
-    if (!currentScope || loading || !loadedOnce || !key?.id || mutationInFlightRef.current) return;
+    if (
+      !currentScope ||
+      createdCredential?.token ||
+      loading ||
+      !loadedOnce ||
+      !key?.id ||
+      mutationInFlightRef.current
+    )
+      return;
     setRevokeTarget(key);
   };
 
-  const copyToken = async () => {
-    if (!currentScope || !createdCredential?.token) return;
-    const credential = createdCredential;
-    const current = () => mountedRef.current && activeScopeRef.current === scopeKey;
-    setError("");
-    if (!navigator.clipboard) {
-      setError(
-        T(
-          "Unable to copy API key. Select and copy the token manually.",
-          "无法复制 API key，请手动选择并复制令牌。"
-        )
-      );
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(credential.token);
-    } catch {
-      if (!current()) return;
-      setError(
-        T(
-          "Unable to copy API key. Select and copy the token manually.",
-          "无法复制 API key，请手动选择并复制令牌。"
-        )
-      );
-    }
-  };
+  const restoreCreateFocus = useCallback(() => {
+    const opener = createOpenerRef.current;
+    if (
+      mountedRef.current &&
+      activeScopeRef.current === scopeKey &&
+      opener?.isConnected &&
+      !opener.closest("[inert]")
+    )
+      opener.focus({ preventScroll: true });
+  }, [scopeKey]);
 
   return (
     <div className="app fade-in">
@@ -651,30 +660,6 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                 </a>
               </div>
             </div>
-
-            {currentScope && createdCredential?.token && (
-              <div className="auth-success" role="status" style={{ marginBottom: 12 }}>
-                <I.Check size={14} />
-                <div>
-                  <b>{T("New key created", "已创建新密钥")}</b>
-                  <span>
-                    {T(
-                      "Copy it now. The full token is only shown once.",
-                      "请立即复制。完整令牌只显示一次。"
-                    )}
-                  </span>
-                  <div className="docs-code" style={{ marginBottom: 0 }}>
-                    <div className="docs-code-h">
-                      <span>{T("Bearer token", "Bearer 令牌")}</span>
-                      <button className="docs-code-copy" type="button" onClick={copyToken}>
-                        <I.Copy size={12} /> {T("Copy", "复制")}
-                      </button>
-                    </div>
-                    <pre>{createdCredential.token}</pre>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className="set-shell">
               <aside className="set-side">
@@ -1072,6 +1057,19 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
           </div>
         </ConsoleLayout>
       </div>
+      {currentScope && createdCredential?.token && (
+        <ApiKeyCreatedDialog
+          key={scopeKey}
+          credential={createdCredential}
+          backgroundRef={revokeBackgroundRef}
+          onRestoreFocus={restoreCreateFocus}
+          busy={writing}
+          onClose={() => {
+            if (!mutationInFlightRef.current && activeScopeRef.current === scopeKey)
+              setCreatedCredential(null);
+          }}
+        />
+      )}
       <ConfirmDialog
         open={currentScope && Boolean(revokeTarget)}
         title={T("Revoke API key?", "Revoke API key?")}
