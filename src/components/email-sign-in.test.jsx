@@ -67,6 +67,25 @@ describe("EmailSignIn", () => {
     vi.useRealTimers();
   });
 
+  it.each(["login", "link"])(
+    "rejects empty or malformed %s email input before requesting a code",
+    async (purpose) => {
+      const onBusy = vi.fn();
+      render(<EmailSignIn purpose={purpose} onBusy={onBusy} />);
+      const email = screen.getByRole("textbox", { name: "Email" });
+      for (const value of ["", "not-an-email"]) {
+        fireEvent.change(email, { target: { value } });
+        expect(email).toBeInvalid();
+        await submit(email);
+        expect(pullwiseApi.auth.requestEmailCode).not.toHaveBeenCalled();
+        expect(pullwiseApi.auth.verifyEmailCode).not.toHaveBeenCalled();
+        expect(onBusy).not.toHaveBeenCalled();
+        expect(email).toBeEnabled();
+        expect(screen.queryByRole("textbox", { name: "6-digit code" })).not.toBeInTheDocument();
+      }
+    }
+  );
+
   it.each([
     [undefined, "login", "Verify and sign in"],
     ["link", "link", "Verify and link email"],
@@ -293,6 +312,124 @@ describe("EmailSignIn", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it.each(["send", "verify"])(
+    "restores failed %s focus only after both local and parent disabled controls are enabled",
+    async (stage) => {
+      const request = deferred();
+      const onBusy = vi.fn();
+      const props = { purpose: "link", onBusy };
+      const view = render(<EmailSignIn {...props} />);
+      let field;
+      if (stage === "send") {
+        field = screen.getByRole("textbox", { name: "Email" });
+        fireEvent.change(field, { target: { value: EMAIL } });
+        pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(request.promise);
+      } else {
+        await issueCode({ retryAfter: 0 });
+        field = enterCode();
+        pullwiseApi.auth.verifyEmailCode.mockReturnValueOnce(request.promise);
+      }
+      field.focus();
+      // jsdom does not blur an already-disabled input like a native browser.
+      // Model the browser's resulting body focus before disabling it.
+      field.blur();
+      expect(document.body).toHaveFocus();
+      fireEvent.submit(field.closest("form"));
+      expect(field).toBeDisabled();
+      view.rerender(<EmailSignIn {...props} disabled />);
+
+      const focus = vi.spyOn(field, "focus");
+      await act(async () =>
+        request.reject(
+          new ApiError("Rejected by the server.", {
+            status: stage === "send" ? 409 : 400,
+            payload: {
+              error: { code: stage === "send" ? "EMAIL_ALREADY_LINKED" : "EMAIL_CODE_INVALID" },
+            },
+          })
+        )
+      );
+      await advance(0);
+      expect(screen.getByRole("alert")).toBeVisible();
+      expect(field).toBeDisabled();
+      expect(document.body).toHaveFocus();
+      expect(focus).not.toHaveBeenCalled();
+
+      view.rerender(<EmailSignIn {...props} />);
+      expect(field).toBeEnabled();
+      expect(field).toHaveFocus();
+      expect(focus).toHaveBeenCalledOnce();
+      focus.mockRestore();
+    }
+  );
+
+  it.each(["before", "after"])(
+    "keeps a user-selected outside control focused when it is selected %s the failed request settles",
+    async (when) => {
+      const request = deferred();
+      pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(request.promise);
+      const fixture = (disabled = false) => (
+        <>
+          <button type="button">Theme</button>
+          <EmailSignIn purpose="link" disabled={disabled} />
+        </>
+      );
+      const view = render(fixture());
+      const email = screen.getByRole("textbox", { name: "Email" });
+      fireEvent.change(email, { target: { value: EMAIL } });
+      fireEvent.submit(email.closest("form"));
+      email.blur();
+      view.rerender(fixture(true));
+      const outside = screen.getByRole("button", { name: "Theme" });
+      if (when === "before") outside.focus();
+      await act(async () =>
+        request.reject(
+          new ApiError("Already linked.", {
+            status: 409,
+            payload: { error: { code: "EMAIL_ALREADY_LINKED" } },
+          })
+        )
+      );
+      await advance(0);
+      if (when === "after") outside.focus();
+      expect(outside).toHaveFocus();
+      view.rerender(fixture());
+      expect(email).toBeEnabled();
+      expect(outside).toHaveFocus();
+    }
+  );
+
+  it("does not carry deferred failure focus into a replacement form after unmount", async () => {
+    const request = deferred();
+    pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(request.promise);
+    const view = render(<EmailSignIn purpose="link" />);
+    const email = screen.getByRole("textbox", { name: "Email" });
+    fireEvent.change(email, { target: { value: EMAIL } });
+    fireEvent.submit(email.closest("form"));
+    view.rerender(<EmailSignIn purpose="link" disabled />);
+    await act(async () =>
+      request.reject(
+        new ApiError("Already linked.", {
+          status: 409,
+          payload: { error: { code: "EMAIL_ALREADY_LINKED" } },
+        })
+      )
+    );
+    view.unmount();
+    render(
+      <>
+        <button type="button">Theme</button>
+        <EmailSignIn />
+      </>
+    );
+    const outside = screen.getByRole("button", { name: "Theme" });
+    outside.focus();
+    await advance(0);
+    expect(outside).toHaveFocus();
+    expect(screen.getByRole("textbox", { name: "Email" })).toHaveValue("");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("rejects an email belonging to another account and requires a new email challenge", async () => {
     const onVerified = vi.fn();
     render(<EmailSignIn purpose="link" onVerified={onVerified} />);
@@ -511,6 +648,43 @@ describe("EmailSignIn", () => {
     rerender(<EmailSignIn disabled />);
     for (const control of [code, ...screen.getAllByRole("button")]) expect(control).toBeDisabled();
     await submit(code);
+    expect(pullwiseApi.auth.verifyEmailCode).not.toHaveBeenCalled();
+  });
+
+  it("keeps the user's outside focus when an existing challenge is enabled after a parent operation", async () => {
+    const fixture = (disabled = false) => (
+      <>
+        <button type="button">Language</button>
+        <EmailSignIn disabled={disabled} />
+      </>
+    );
+    const view = render(fixture());
+    const code = await issueCode({ retryAfter: 0 });
+    expect(code).toHaveFocus();
+    view.rerender(fixture(true));
+    const outside = screen.getByRole("button", { name: "Language" });
+    outside.focus();
+    view.rerender(fixture());
+    expect(code).toBeEnabled();
+    expect(outside).toHaveFocus();
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledOnce();
+    expect(pullwiseApi.auth.verifyEmailCode).not.toHaveBeenCalled();
+  });
+
+  it("does not replay a completed challenge's initial focus when unrelated parent locking ends", async () => {
+    const view = render(<EmailSignIn />);
+    const code = await issueCode({ retryAfter: 0 });
+    expect(code).toHaveFocus();
+    code.blur();
+    expect(document.body).toHaveFocus();
+    const focus = vi.spyOn(code, "focus");
+    view.rerender(<EmailSignIn disabled />);
+    view.rerender(<EmailSignIn />);
+    expect(code).toBeEnabled();
+    expect(document.body).toHaveFocus();
+    expect(focus).not.toHaveBeenCalled();
+    focus.mockRestore();
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledOnce();
     expect(pullwiseApi.auth.verifyEmailCode).not.toHaveBeenCalled();
   });
 

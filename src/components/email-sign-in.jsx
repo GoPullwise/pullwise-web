@@ -74,6 +74,8 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
   const busyRef = useRef(false);
   const onBusyRef = useRef(onBusy);
   onBusyRef.current = onBusy;
+  const containerRef = useRef(null);
+  const pendingFocusRef = useRef(null);
   const emailRef = useRef(null);
   const codeRef = useRef(null);
   const retryRemaining = Math.max(0, Math.ceil((retryAt - now) / 1000));
@@ -86,6 +88,7 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
       mountedRef.current = false;
       controllerRef.current?.abort();
       controllerRef.current = null;
+      pendingFocusRef.current = null;
       if (busyRef.current) {
         busyRef.current = false;
         onBusyRef.current?.(false);
@@ -100,12 +103,26 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
   }, [retryAt, challenge, now]);
 
   useEffect(() => {
-    if (challenge && !busy) codeRef.current?.focus();
-  }, [challenge, busy]);
+    if (busy || disabled || !pendingFocusRef.current) return;
+    const pending = pendingFocusRef.current;
+    pendingFocusRef.current = null;
+    if (!mountedRef.current || pending.controller.signal.aborted || controllerRef.current) return;
+    const field = pending.ref.current;
+    const active = document.activeElement;
+    if (
+      field?.isConnected &&
+      !field.disabled &&
+      !field.closest("[inert]") &&
+      pending.restore &&
+      (active === document.body || active === field || active === pending.origin)
+    )
+      field.focus();
+  }, [busy, disabled, challenge, error]);
 
   const begin = (action) => {
     if (busyRef.current || disabled || !mountedRef.current) return null;
     if (onBusyRef.current?.(true) === false) return null;
+    pendingFocusRef.current = null;
     busyRef.current = true;
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -120,8 +137,22 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
     onBusyRef.current?.(false);
     if (mountedRef.current) setBusy("");
   };
+  const requestFocus = (controller, focusRef) => {
+    const active = document.activeElement;
+    pendingFocusRef.current = {
+      controller,
+      ref: focusRef,
+      origin: active,
+      restore:
+        active === document.body ||
+        containerRef.current?.contains(active) ||
+        active?.matches(':disabled, [aria-disabled="true"]'),
+    };
+  };
   const showFailure = (failure, controller, focusRef) => {
-    if (controller.signal.aborted || !mountedRef.current) return;
+    if (controller.signal.aborted || !mountedRef.current || controllerRef.current !== controller)
+      return;
+    requestFocus(controller, focusRef);
     setError(emailErrorMessage(failure));
     const retry = retrySeconds(failure);
     if (retry) {
@@ -129,9 +160,6 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
       setNow(time);
       setRetryAt(time + retry * 1000);
     }
-    window.setTimeout(() => {
-      if (mountedRef.current && !busyRef.current) focusRef.current?.focus();
-    }, 0);
   };
 
   const sendCode = async (event) => {
@@ -157,6 +185,7 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
       setNow(time);
       setEmail(requestedEmail);
       setRetryAt(time + Math.max(0, Number(response.retryAfter) || 0) * 1000);
+      requestFocus(controller, codeRef);
       setChallenge({
         id: response.challengeId,
         email: requestedEmail,
@@ -218,6 +247,7 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
 
   const editEmail = () => {
     if (busyRef.current || disabled) return;
+    pendingFocusRef.current = null;
     setChallenge(null);
     setCode("");
     setError("");
@@ -225,7 +255,7 @@ export function EmailSignIn({ purpose = "login", disabled = false, onBusy, onVer
   };
 
   return (
-    <div className="email-sign-in">
+    <div className="email-sign-in" ref={containerRef}>
       {error && (
         <p className="notice notice-error" role="alert">
           {error}

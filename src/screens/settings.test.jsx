@@ -1,5 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "../api/http.js";
 import { pullwiseApi } from "../api/pullwise.js";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { WorkspaceContext } from "../components/workspace-context.jsx";
@@ -167,6 +169,96 @@ describe("product settings", () => {
     expect(email).toBeEnabled();
     expect(screen.getByRole("button", { name: "Connect repositories" })).toBeEnabled();
     expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeEnabled();
+  });
+
+  it("rejects an email already linked elsewhere before code entry and lets the user explicitly request a code for another email", async () => {
+    const user = userEvent.setup();
+    const request = deferred();
+    pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(request.promise);
+    const go = vi.fn();
+    const selectLedger = vi.fn();
+    withLedgers(go, selectLedger);
+    const email = await screen.findByRole("textbox", { name: "Email" });
+    await user.type(email, "linked@example.com");
+    await user.click(screen.getByRole("button", { name: "Send code" }));
+
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledExactlyOnceWith(
+      { email: "linked@example.com", purpose: "link" },
+      { signal: expect.any(AbortSignal) }
+    );
+    expect(email).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sending code..." })).toBeDisabled();
+    const reload = screen.getByRole("button", { name: "Reload" });
+    const github = screen.getByRole("button", { name: "Connect repositories" });
+    const signout = screen.getByRole("button", { name: "Sign out" });
+    const picker = screen.getByRole("combobox", { name: "Select ledger" });
+    const projects = screen.getByRole("link", { name: "Projects", exact: true });
+    for (const control of [reload, github, signout, picker]) expect(control).toBeDisabled();
+    expect(projects).toHaveAttribute("aria-disabled", "true");
+    expect(projects).not.toHaveAttribute("href");
+    await user.click(github);
+    await user.click(signout);
+    await user.click(reload);
+    await user.click(projects);
+    expect(go).not.toHaveBeenCalled();
+    expect(selectLedger).not.toHaveBeenCalled();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
+
+    await act(async () =>
+      request.reject(
+        new ApiError("Email is already linked to another account.", {
+          status: 409,
+          payload: { error: { code: "EMAIL_ALREADY_LINKED" } },
+        })
+      )
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This email belongs to another account. Use a different email."
+    );
+    await waitFor(() => expect(email).toHaveFocus());
+    expect(email).toHaveValue("linked@example.com");
+    expect(email).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Send code" })).toBeEnabled();
+    expect(screen.queryByText("Code sent to")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "6-digit code" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Verify and link email" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/You can request another code in/)).not.toBeInTheDocument();
+    for (const control of [reload, github, signout, picker]) expect(control).toBeEnabled();
+    expect(projects).toHaveAttribute("href", "/projects");
+    expect(projects).not.toHaveAttribute("aria-disabled");
+    expect(pullwiseApi.auth.verifyEmailCode).not.toHaveBeenCalled();
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledOnce();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
+
+    await user.clear(email);
+    await user.type(email, "available@example.com");
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("textbox", { name: "6-digit code" })).not.toBeInTheDocument();
+    pullwiseApi.auth.requestEmailCode.mockResolvedValueOnce({
+      challengeId: "available_email_challenge",
+      expiresIn: 600,
+      retryAfter: 60,
+    });
+    await user.click(screen.getByRole("button", { name: "Send code" }));
+    const code = await screen.findByRole("textbox", { name: "6-digit code" });
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledTimes(2);
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenLastCalledWith(
+      { email: "available@example.com", purpose: "link" },
+      { signal: expect.any(AbortSignal) }
+    );
+    expect(code).toHaveValue("");
+    expect(code).toHaveFocus();
+    expect(screen.getByText("Code sent to")).toBeVisible();
+    expect(screen.getByText("available@example.com")).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Resend code" })).toBeDisabled();
+    expect(screen.getByText("You can request another code in 60s.")).toBeVisible();
+    expect(pullwiseApi.auth.verifyEmailCode).not.toHaveBeenCalled();
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledOnce();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
   });
 
   it("disables email binding during GitHub changes and preserves its draft through the account refresh", async () => {
