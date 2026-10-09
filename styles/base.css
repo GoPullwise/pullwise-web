@@ -62,7 +62,8 @@ input[type="checkbox"] {
   --fs-value-secondary: 18px;
   --fs-value-price: 40px;
   --fs-value-count: 16px;
-  --financial-currency-bg: rgba(79, 70, 229, 0.08);
+  --financial-currency-fg-lightness: 27%;
+  --financial-currency-bg-lightness: 95%;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -96,7 +97,8 @@ input[type="checkbox"] {
   --accent-fg: #080808;
   --accent-soft: color-mix(in oklch, var(--accent) 15%, transparent);
   --accent-glow: color-mix(in oklch, var(--accent) 30%, transparent);
-  --financial-currency-bg: rgba(129, 140, 248, 0.12);
+  --financial-currency-fg-lightness: 75%;
+  --financial-currency-bg-lightness: 15%;
 
   --sev-critical: #f87171;
   --sev-high: #fb923c;
@@ -881,15 +883,80 @@ a.crumb-button:hover {
   color: var(--text);
 }
 .financial-value-currency {
+  --financial-currency-hue: 0;
+  --financial-currency-saturation: 0%;
   display: inline-block;
   padding: 3px 5px;
   margin-inline-end: 0.12em;
-  background: var(--financial-currency-bg);
-  color: var(--accent);
+  background: hsl(
+    var(--financial-currency-hue),
+    var(--financial-currency-saturation),
+    var(--financial-currency-bg-lightness)
+  );
+  color: hsl(
+    var(--financial-currency-hue),
+    var(--financial-currency-saturation),
+    var(--financial-currency-fg-lightness)
+  );
   font: 600 var(--fs-xs)/1.2 var(--font-mono);
   letter-spacing: 0.04em;
   vertical-align: 0.18em;
   white-space: nowrap;
+}
+/* Fixed currency identity colors; unsupported codes retain the neutral badge. */
+.financial-value-currency[data-currency="USD"],
+.financial-value-currency[data-currency="CNY"],
+.financial-value-currency[data-currency="JPY"],
+.financial-value-currency[data-currency="EUR"],
+.financial-value-currency[data-currency="GBP"],
+.financial-value-currency[data-currency="AUD"],
+.financial-value-currency[data-currency="CAD"],
+.financial-value-currency[data-currency="CHF"],
+.financial-value-currency[data-currency="HKD"],
+.financial-value-currency[data-currency="KRW"],
+.financial-value-currency[data-currency="SGD"],
+.financial-value-currency[data-currency="NZD"],
+.financial-value-currency[data-currency="INR"] {
+  --financial-currency-saturation: 70%;
+}
+.financial-value-currency[data-currency="USD"] {
+  --financial-currency-hue: 142;
+}
+.financial-value-currency[data-currency="CNY"] {
+  --financial-currency-hue: 0;
+}
+.financial-value-currency[data-currency="JPY"] {
+  --financial-currency-hue: 340;
+}
+.financial-value-currency[data-currency="EUR"] {
+  --financial-currency-hue: 217;
+}
+.financial-value-currency[data-currency="GBP"] {
+  --financial-currency-hue: 262;
+}
+.financial-value-currency[data-currency="AUD"] {
+  --financial-currency-hue: 174;
+}
+.financial-value-currency[data-currency="CAD"] {
+  --financial-currency-hue: 20;
+}
+.financial-value-currency[data-currency="CHF"] {
+  --financial-currency-hue: 195;
+}
+.financial-value-currency[data-currency="HKD"] {
+  --financial-currency-hue: 310;
+}
+.financial-value-currency[data-currency="KRW"] {
+  --financial-currency-hue: 239;
+}
+.financial-value-currency[data-currency="SGD"] {
+  --financial-currency-hue: 95;
+}
+.financial-value-currency[data-currency="NZD"] {
+  --financial-currency-hue: 158;
+}
+.financial-value-currency[data-currency="INR"] {
+  --financial-currency-hue: 37;
 }
 .financial-value-number {
   overflow-wrap: anywhere;

@@ -2,6 +2,41 @@
 
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Currency identity colors (2026-10-09)
+
+The shared `CurrencyBadge` now gives USD, CNY, JPY, EUR, GBP, AUD, CAD, CHF,
+HKD, KRW, SGD, NZD and INR stable, distinct identity colors. Unknown currency
+codes retain a neutral gray label. Ordinary/recurring amounts, project totals,
+report readouts and chart captions share the same explicit code attribute and
+palette. ISO text, exact monetary precision, native copying, number emphasis
+and badge geometry are preserved; currency is never inferred or normalized.
+The palette uses traditional HSL/custom properties with explicit light/dark
+colors, independent of the global action accent.
+
+`npm run check` passes lint, **44 files / 742 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass.
+The persistent browser check passes **500 states in eight contexts**, using
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Actual expense/recurring badges keep
+their displayed currency identity; an isolated clone of a rendered badge probes
+all 13 built-in colors and the neutral fallback in both themes. It requires
+distinct color pairs and at least 4.5:1 text contrast, composes actual ancestor
+backgrounds, then removes the probe and restores the theme without API traffic.
+Both engines measure a minimum 5.18:1 in light mode and 6.73:1 in dark mode.
+
+Four frozen-build captures cover five real synthetic currencies (USD/CNY/JPY/
+EUR/GBP) in project ordinary/recurring rows, project totals, 320px Shared Pool
+and WebKit dark chart captions/readouts. Exact amounts, color consistency and
+badge/number boundaries pass; Root reviewed three of the captures. Three local
+contexts made 148 interceptions: 29 synthetic GETs, 115 static requests and four
+blocked fonts, at most 72/100 requests each, with no writes, external delivery,
+violations or page errors. Chromium touch remains coarse=true/points=1 before
+and after capture; all 46 built artifact hashes are stable.
+
+These are local browser-engine and emulation checks, not physical-device or
+live-account acceptance. Firefox remains unavailable under the previously
+recorded managed-runtime uid-mapping/SWGL limitation; its CI checks stay enabled.
+
 ## Expense action stacks and category title rename (2026-10-09)
 
 Ordinary project and Shared Pool expense rows now place the exact amount above

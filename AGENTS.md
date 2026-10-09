@@ -1,5 +1,18 @@
 # Pullwise Web
 
+## Currency identity colors (2026-10-09)
+
+All ISO currency badges share `CurrencyBadge`, including financial values and
+report captions. Fixed common-code colors live in `styles/base.css`; retain
+stable code identity across expense, recurring, project-total and report views.
+Unknown codes use a neutral label. Keep plain currency text, monetary precision,
+native copying and numeric emphasis unchanged; do not infer or normalize codes
+from formatted text or localize provider values. Use explicit light/dark badge
+colors with at least 4.5:1 text contrast and broadly supported CSS syntax.
+The persistent layout check verifies actual code attributes plus every built-in
+palette and neutral fallback in both themes without additional API requests.
+Publish Web preview only after the shared layout and mixed-currency checks.
+
 ## Category title rename (2026-10-09)
 
 Ordinary project and Shared Pool expense rows place their exact amount above a

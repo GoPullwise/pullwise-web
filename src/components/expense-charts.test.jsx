@@ -92,6 +92,13 @@ describe("ExpenseCharts", () => {
     expect(points("JPY").map((mark) => Number(mark.dataset.y))).toEqual([12, 144]);
     expect(readout("USD")).toHaveTextContent("USD 1.00");
     expect(readout("JPY")).toHaveTextContent("JPY 25,000");
+    for (const currency of ["USD", "JPY"]) {
+      const caption = chart(currency).querySelector("figcaption .financial-value-currency");
+      const amountLabel = readout(currency).querySelector(".financial-value-currency");
+      expect(caption.textContent).toBe(currency);
+      expect(caption).toHaveAttribute("data-currency", currency);
+      expect(amountLabel).toHaveAttribute("data-currency", currency);
+    }
     expect(formatter.mock.calls.every(([row]) => groups.includes(row))).toBe(true);
   });
 

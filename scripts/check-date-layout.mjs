@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +43,19 @@ assert(
   "Usage: node scripts/check-date-layout.mjs [--browser=chromium|webkit|firefox]"
 );
 const engines = requested.length ? [requested[0].split("=")[1]] : ["chromium", "webkit", "firefox"];
+const currencyStyles = await readFile(join(root, "styles", "base.css"), "utf8");
+const currencyCodes = [
+  ...new Set(
+    Array.from(
+      currencyStyles.matchAll(
+        /\.financial-value-currency\[data-currency="([A-Z]{3})"\]\s*\{\s*--financial-currency-hue:\s*[\d.]+\s*;/g
+      ),
+      ([, code]) => code
+    )
+  ),
+].sort();
+assert(currencyCodes.length > 1, "No distinct currency color rules were found in base.css");
+assert(!currencyCodes.includes("ZZZ"), "ZZZ must remain an unsupported neutral currency probe");
 
 async function exists(path) {
   try {
@@ -216,6 +229,151 @@ function overlaps(left, right) {
   );
 }
 
+function computedRgb(value) {
+  const match = /^rgba?\((.+)\)$/.exec(value);
+  assert(match, `Unsupported computed RGB color: ${value}`);
+  const parts = match[1].trim().split(/[\s,/]+/);
+  assert([3, 4].includes(parts.length), `Invalid computed RGB color: ${value}`);
+  const channels = parts
+    .slice(0, 3)
+    .map((part) => (part.endsWith("%") ? (Number.parseFloat(part) * 255) / 100 : Number(part)));
+  const alpha =
+    parts.length === 3
+      ? 1
+      : parts[3].endsWith("%")
+        ? Number.parseFloat(parts[3]) / 100
+        : Number(parts[3]);
+  assert(
+    channels.every((channel) => Number.isFinite(channel) && channel >= 0 && channel <= 255) &&
+      Number.isFinite(alpha) &&
+      alpha >= 0 &&
+      alpha <= 1,
+    `Invalid computed RGB channels: ${value}`
+  );
+  return [...channels, alpha];
+}
+
+function compositeRgb(foreground, background) {
+  const alpha = foreground[3] + background[3] * (1 - foreground[3]);
+  if (alpha === 0) return [0, 0, 0, 0];
+  return [
+    ...foreground
+      .slice(0, 3)
+      .map(
+        (channel, index) =>
+          (channel * foreground[3] + background[index] * background[3] * (1 - foreground[3])) /
+          alpha
+      ),
+    alpha,
+  ];
+}
+
+function rgbLuminance(rgb) {
+  const linear = rgb.slice(0, 3).map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+}
+
+function currencyContrast(palette) {
+  // Fold every actual ancestor background into the badge background so an
+  // alpha color is checked against its rendered surface, not transparent black.
+  const background = palette.backgrounds.reduce(
+    (surface, color) => compositeRgb(computedRgb(color), surface),
+    [255, 255, 255, 1]
+  );
+  const foreground = compositeRgb(computedRgb(palette.foreground), background);
+  const luminances = [rgbLuminance(foreground), rgbLuminance(background)].sort((a, b) => a - b);
+  return (luminances[1] + 0.05) / (luminances[0] + 0.05);
+}
+
+async function checkCurrencyPalette(page) {
+  const measured = await page.evaluate((codes) => {
+    const source = document.querySelector(".ledger-expense-row .financial-value-money");
+    if (!source) throw new Error("Currency contrast probe has no actual expense value to clone");
+    const probe = source.cloneNode(true);
+    const badge = probe.querySelector(".financial-value-currency");
+    if (!badge) throw new Error("Currency contrast probe has no currency badge");
+    const previousTheme = document.documentElement.getAttribute("data-theme");
+    probe.setAttribute("aria-hidden", "true");
+    Object.assign(probe.style, {
+      position: "fixed",
+      left: "-10000px",
+      top: "0",
+      visibility: "hidden",
+      pointerEvents: "none",
+    });
+    source.parentElement.append(probe);
+    const palettes = [];
+    try {
+      for (const theme of ["light", "dark"]) {
+        document.documentElement.setAttribute("data-theme", theme);
+        for (const code of [...codes, "ZZZ"]) {
+          badge.setAttribute("data-currency", code);
+          badge.textContent = code;
+          const style = getComputedStyle(badge);
+          const backgrounds = [];
+          for (let element = badge; element; element = element.parentElement)
+            backgrounds.unshift(getComputedStyle(element).backgroundColor);
+          palettes.push({
+            theme,
+            currency: code,
+            foreground: style.color,
+            background: style.backgroundColor,
+            backgrounds,
+          });
+        }
+      }
+      return palettes;
+    } finally {
+      probe.remove();
+      if (previousTheme === null) document.documentElement.removeAttribute("data-theme");
+      else document.documentElement.setAttribute("data-theme", previousTheme);
+    }
+  }, currencyCodes);
+  assert.equal(
+    measured.length,
+    (currencyCodes.length + 1) * 2,
+    "Currency palette probe is incomplete"
+  );
+  const themes = [];
+  for (const theme of ["light", "dark"]) {
+    const palettes = measured.filter((palette) => palette.theme === theme);
+    const contrasts = palettes.map((palette) => {
+      const contrast = currencyContrast(palette);
+      assert(
+        contrast >= 4.5,
+        `${theme}/${palette.currency}: currency badge contrast ${contrast.toFixed(2)} is below 4.5:1 ${JSON.stringify(palette)}`
+      );
+      return contrast;
+    });
+    const signatures = new Set(
+      palettes.map((palette) => `${palette.foreground}/${palette.background}`)
+    );
+    assert.equal(
+      signatures.size,
+      palettes.length,
+      `${theme}: built-in currencies and neutral fallback do not have distinct palettes`
+    );
+    const unknown = palettes.find((palette) => palette.currency === "ZZZ");
+    for (const color of [unknown.foreground, unknown.background]) {
+      const [red, green, blue] = computedRgb(color);
+      assert(
+        red === green && green === blue,
+        `${theme}: unsupported currency is not neutral ${color}`
+      );
+    }
+    themes.push({
+      theme,
+      minimumContrast: Number(Math.min(...contrasts).toFixed(2)),
+      distinctPalettes: signatures.size,
+      neutral: { foreground: unknown.foreground, background: unknown.background },
+    });
+  }
+  return { currencies: currencyCodes, unsupportedCurrency: "ZZZ", themes };
+}
+
 async function checkPresentation(page, name) {
   const measured = await page.evaluate(() => {
     const rect = (element) => {
@@ -239,6 +397,7 @@ async function checkPresentation(page, name) {
             bottom: bounds.bottom,
           })),
         fontSize: Number.parseFloat(style.fontSize),
+        currencyCode: element.getAttribute("data-currency"),
         overflowX: style.overflowX,
         overflowY: style.overflowY,
         textOverflow: style.textOverflow,
@@ -273,6 +432,12 @@ async function checkPresentation(page, name) {
     const shortcuts = identity?.querySelector(".ledger-project-shortcuts");
     return {
       rows,
+      projectCurrencies: Array.from(
+        document.querySelectorAll(".ledger-project-total .financial-value-currency")
+      ).map((badge) => ({
+        text: badge.textContent,
+        currencyCode: badge.getAttribute("data-currency"),
+      })),
       header: header
         ? {
             rect: rect(header),
@@ -316,6 +481,11 @@ async function checkPresentation(page, name) {
       `${name}: displayed financial text changed precision`
     );
     assert.equal(row.currency.text, "USD", `${name}: currency text changed`);
+    assert.equal(
+      row.currency.currencyCode,
+      row.currency.text,
+      `${name}: ordinary/recurring currency color does not identify its displayed code`
+    );
     assert.equal(
       row.number.text,
       expected.get(row.purpose)?.slice(4),
@@ -385,6 +555,13 @@ async function checkPresentation(page, name) {
         }
       }
     }
+  }
+  for (const badge of measured.projectCurrencies) {
+    assert.equal(
+      badge.currencyCode,
+      badge.text,
+      `${name}: project total currency color does not identify its displayed code`
+    );
   }
   if (measured.header) {
     const header = measured.header;
@@ -1311,6 +1488,7 @@ try {
             errors.push(`External response delivered: ${response.url()}`);
         });
         await checkScope(page, report, "project");
+        if (profile === profiles[0]) report.currencyPalette = await checkCurrencyPalette(page);
         await checkScope(page, report, "shared");
         await checkApiKeys(page, report);
         await checkCategories(page, report);

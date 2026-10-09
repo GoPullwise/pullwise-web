@@ -27,12 +27,6 @@
   font-weight: 600;
   margin-bottom: 12px;
 }
-.expense-chart-caption::before {
-  content: "";
-  width: 12px;
-  height: 3px;
-  background: var(--accent);
-}
 .expense-chart-readout {
   display: grid;
   gap: 6px;

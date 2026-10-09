@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
-import { FinancialValue } from "./financial-value.jsx";
+import { CurrencyBadge, FinancialValue } from "./financial-value.jsx";
 import "./expense-charts.css";
 
 const PLOT_HEIGHT = 200;
@@ -159,7 +159,9 @@ function CurrencyChart({ currency, points, dimension, formatTotal, title }) {
 
   return (
     <figure className="expense-chart" data-currency={currency} data-dimension={dimension}>
-      <figcaption className="expense-chart-caption">{currency}</figcaption>
+      <figcaption className="expense-chart-caption">
+        <CurrencyBadge currency={currency} />
+      </figcaption>
       <div className="expense-chart-readout" aria-live="polite" aria-atomic="true">
         <span className="expense-chart-selected-label">{selected.label}</span>
         <FinancialValue

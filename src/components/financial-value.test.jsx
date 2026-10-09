@@ -13,6 +13,10 @@ describe("FinancialValue", () => {
     const money = container.querySelector(".financial-value-money");
     expect(money.textContent).toBe(value);
     expect(money.querySelector(".financial-value-currency")).toHaveTextContent(currency);
+    expect(money.querySelector(".financial-value-currency")).toHaveAttribute(
+      "data-currency",
+      currency
+    );
     expect(money.querySelector(".financial-value-number").textContent).toBe(
       value.slice(currency.length + 1)
     );
