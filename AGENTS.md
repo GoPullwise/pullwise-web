@@ -14,13 +14,23 @@ If-Match, idempotency, scopes/roles and actionable error recovery in six locales
 After a contract change regenerate and check both distributed JSON artifacts.
 
 Default limits are Free 3 projects/100 expense records, Pro 20/20,000 and Max
-100/100,000. Billing displays actual configured used/limit/remaining charts from
+100/100,000. Billing displays actual configured usage and total allowance from
 the existing /billing/plan read for the account's personal ledger. Retain owner
 quota pooling, unavailable-data honesty, manual
 refresh without polling, workspace isolation and mutation/refresh guards.
 Complete local/native/browser verification, push main and publish preview;
 preserve the original database/journal and production pause. This current
 authorization supersedes older generic Wrangler-paused notes below.
+
+The latest Billing presentation request removes the usage charts, remaining
+capacity and difference calculations. Show only Used and Total allowance for
+projects and expense records, with larger tabular usage numbers and quieter
+totals. Validate those two Server fields independently of remaining; retain
+exact over-limit usage and unavailable states. Preserve manual refresh and
+the personal-ledger scope. Keep the flat original theme and reflow by the
+available settings-body width.
+Run `npm run test:billing-layout -- --browser=chromium` after building for
+bounded local Billing layout, exact-count and personal-ledger scope checks.
 
 The user's subsequent capacity policy supersedes cumulative expense slots:
 count undeleted shared expenses and undeleted expenses in non-removed projects,

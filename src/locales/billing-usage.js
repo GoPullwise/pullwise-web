@@ -24,26 +24,14 @@ export const BILLING_USAGE_COPY = {
     },
   ],
   used: ["Used", { zh: "已使用", ja: "使用済み", ko: "사용됨", fr: "Utilisé", es: "Usado" }],
-  limit: ["Limit", { zh: "上限", ja: "上限", ko: "한도", fr: "Limite", es: "Límite" }],
-  remaining: ["Remaining", { zh: "剩余", ja: "残り", ko: "남음", fr: "Restant", es: "Restante" }],
-  reached: [
-    "Limit reached",
+  total: [
+    "Total allowance",
     {
-      zh: "已达到上限",
-      ja: "上限に到達",
-      ko: "한도 도달",
-      fr: "Limite atteinte",
-      es: "Límite alcanzado",
-    },
-  ],
-  over: [
-    "Over limit by",
-    {
-      zh: "超出上限",
-      ja: "上限超過",
-      ko: "한도 초과",
-      fr: "Dépassement de la limite",
-      es: "Exceso sobre el límite",
+      zh: "总额度",
+      ja: "合計枠",
+      ko: "총 한도",
+      fr: "Quota total",
+      es: "Cupo total",
     },
   ],
   unavailable: [

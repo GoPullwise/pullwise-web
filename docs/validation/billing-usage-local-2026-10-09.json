@@ -1,0 +1,618 @@
+{
+  "date": "2026-10-09",
+  "passed": true,
+  "scope": "Billing personal-ledger usage presentation: exact Used and Total allowance only",
+  "checks": {
+    "lint": true,
+    "testFiles": 63,
+    "tests": 1206,
+    "previewBuild": true,
+    "offlineWorkerConfig": true,
+    "billingTests": 88
+  },
+  "browser": {
+    "scope": "Local GET-only fixtures; simulated browser engines/viewports, not physical iOS/Android devices. No writes, remote delivery or polling. Screenshots only with --screenshots.",
+    "contexts": 24,
+    "states": 36,
+    "results": [
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "desktop-1906",
+        "lang": "en",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 1390,
+            "rows": [
+              671,
+              671
+            ]
+          }
+        ],
+        "apiReads": 6,
+        "totalRequests": 30,
+        "selectedShared": true
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "desktop-1906",
+        "lang": "en",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 1390,
+            "rows": [
+              671,
+              671
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 23,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "desktop-1906",
+        "lang": "zh",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 1390,
+            "rows": [
+              671,
+              671
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 30,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "desktop-1906",
+        "lang": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 1390,
+            "rows": [
+              671,
+              671
+            ]
+          }
+        ],
+        "screenshot": "/workspace/work/billing-usage-layout/chromium-zh-dark-1906.png",
+        "apiReads": 3,
+        "totalRequests": 30,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "intermediate-1024",
+        "lang": "en",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 508,
+            "rows": [
+              508,
+              508
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 23,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "intermediate-1024",
+        "lang": "en",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 508,
+            "rows": [
+              508,
+              508
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 23,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "intermediate-1024",
+        "lang": "zh",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 508,
+            "rows": [
+              508,
+              508
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 30,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "intermediate-1024",
+        "lang": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 508,
+            "rows": [
+              508,
+              508
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 30,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-390",
+        "lang": "en",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 358,
+            "rows": [
+              358,
+              358
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 23,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-390",
+        "lang": "en",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 358,
+            "rows": [
+              358,
+              358
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 23,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-390",
+        "lang": "zh",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 358,
+            "rows": [
+              358,
+              358
+            ]
+          }
+        ],
+        "apiReads": 3,
+        "totalRequests": 30,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-390",
+        "lang": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 358,
+            "rows": [
+              358,
+              358
+            ]
+          }
+        ],
+        "screenshot": "/workspace/work/billing-usage-layout/chromium-zh-dark-390.png",
+        "apiReads": 3,
+        "totalRequests": 30,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "en",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 24,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "en",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 24,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "zh",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "zh",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "ja",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "ja",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "ko",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "ko",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "fr",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "fr",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "es",
+        "theme": "light",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": "phone-320",
+        "lang": "es",
+        "theme": "dark",
+        "states": [
+          {
+            "name": "used-and-total",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          },
+          {
+            "name": "max-safe-integers",
+            "bodyWidth": 288,
+            "rows": [
+              288,
+              288
+            ]
+          }
+        ],
+        "apiReads": 4,
+        "totalRequests": 31,
+        "selectedShared": false
+      }
+    ]
+  },
+  "behavior": {
+    "fields": [
+      "used",
+      "limit"
+    ],
+    "remainingRequired": false,
+    "remainingDisplayed": false,
+    "progressOrDifferenceCalculation": false,
+    "exactOverLimitUsage": true,
+    "manualRefreshPreserved": true,
+    "personalLedgerScopePreserved": true,
+    "billingMutationLocksPreserved": true
+  },
+  "limits": {
+    "simulatedChromiumOnly": true,
+    "realDevices": false,
+    "realProviderCalls": 0,
+    "remoteBusinessRequests": 0,
+    "serverOrDatabaseChanges": false
+  }
+}

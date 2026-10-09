@@ -14,6 +14,7 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run --passWithNoTests",
     "test:layout": "node scripts/check-date-layout.mjs",
+    "test:billing-layout": "node scripts/check-billing-usage-layout.mjs",
     "test:watch": "vitest --passWithNoTests",
     "preview:workers": "npm run build && npx wrangler dev --var PULLWISE_API_ORIGIN:http://localhost:8080",
     "check:workers": "node scripts/check-cloudflare-config.mjs",

@@ -6,6 +6,28 @@ and preserved database, journal, hourly schedule and production D1 pause. No
 remote business mutation, forced tick, provider call or real payment is performed
 by this publication check. Local fixture acceptance is recorded separately below.
 
+
+## Billing usage simplification (2026-10-09)
+
+Billing now presents two flat usage groups for Projects and Expense records.
+Each has only Used and Total allowance, with larger tabular usage figures and
+quieter totals. The progress bars, remaining fields and difference/status
+arithmetic are removed, including the decorative usage-heading icon. The
+Server's valid used/limit values display independently of any legacy remaining
+field, retaining exact over-limit counts and honest unavailable states.
+Personal-ledger scope, explicit refresh and subscription mutation locks remain.
+Loading placeholders follow the same two-value layout.
+
+[Local validation](billing-usage-local-2026-10-09.json) records lint,
+63 test files / 1,206 tests, the preview build and offline Worker guard.
+`npm run test:billing-layout -- --browser=chromium --screenshots` passed
+24 contexts / 36 states across light/dark, 1906/1024/390/320 widths and six
+locales, including full safe-integer values, narrow actual settings-body reflow
+and a foreign selected ledger. Captures were visually inspected. Requests were
+intercepted local GET fixtures (at most 6 API / 31 total per context), with no
+remote business calls or writes. This is Chromium 151 emulation and fallback
+font evidence, not real devices or live account/provider acceptance.
+
 ## Opt-in expense replacement at capacity (2026-10-09)
 
 Settings adds a personal-account expense retention switch for every plan, with

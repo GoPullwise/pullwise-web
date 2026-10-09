@@ -394,9 +394,7 @@ function usageMetric(usage, key) {
   const metric = usage[key];
   if (
     !Number.isSafeInteger(metric?.used) || metric.used < 0 ||
-    !Number.isSafeInteger(metric?.limit) || metric.limit <= 0 ||
-    !Number.isSafeInteger(metric?.remaining) || metric.remaining < 0 ||
-    metric.remaining !== Math.max(0, metric.limit - metric.used)
+    !Number.isSafeInteger(metric?.limit) || metric.limit <= 0
   ) return null;
   return metric;
 }
@@ -406,7 +404,6 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
   return (
     <section className="panel" aria-labelledby="billing-usage-title">
       <div className="panel-h billing-usage-heading">
-        <I.Trend size={20} />
         <h2 id="billing-usage-title">{usageText("title")}</h2>
         <button className="btn sm" type="button" disabled={busy} onClick={onRefresh}>
           <I.Refresh size={14} /> {usageText("refresh")}
@@ -417,44 +414,21 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
         {["projects", "expenseRecords"].map((key) => {
           const metric = usageMetric(usage, key);
           const label = usageText(key);
-          const overLimit = metric && metric.used > metric.limit;
-          const reached = metric && metric.used === metric.limit;
-          const status = overLimit
-            ? `${usageText("over")}: ${number(metric.used - metric.limit)}`
-            : reached ? usageText("reached") : "";
-          const description = metric
-            ? ["used", "limit", "remaining"].map((field) =>
-                `${usageText(field)}: ${number(metric[field])}`
-              ).concat(status || []).join(". ")
-            : "";
+          const titleId = `billing-usage-${key}`;
           return (
-            <article className="billing-usage-row" key={key} data-over-limit={overLimit || undefined}>
-              <div className="billing-usage-row-heading">
-                <h3>{label}</h3>
-                {status && <span className="tag">{status}</span>}
-              </div>
+            <article className="billing-usage-row" key={key} aria-labelledby={titleId}>
+              <h3 id={titleId}>{label}</h3>
               {metric ? (
-                <>
-                  <dl className="billing-usage-values">
-                    {["used", "limit", "remaining"].map((field) => (
-                      <div key={field}>
-                        <dt>{usageText(field)}</dt>
-                        <dd>{number(metric[field])}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <div
-                    className="billing-usage-track"
-                    role="meter"
-                    aria-label={label}
-                    aria-valuemin={0}
-                    aria-valuemax={metric.limit}
-                    aria-valuenow={Math.min(metric.used, metric.limit)}
-                    aria-valuetext={description}
-                  >
-                    <span aria-hidden="true" style={{ width: `${Math.min(100, metric.used / metric.limit * 100)}%` }} />
+                <dl className="billing-usage-values">
+                  <div className="billing-usage-used">
+                    <dt>{usageText("used")}</dt>
+                    <dd><FinancialValue value={number(metric.used)} /></dd>
                   </div>
-                </>
+                  <div className="billing-usage-total">
+                    <dt>{usageText("total")}</dt>
+                    <dd><FinancialValue value={number(metric.limit)} /></dd>
+                  </div>
+                </dl>
               ) : <p className="muted">{usageText("unavailable")}</p>}
             </article>
           );
@@ -489,8 +463,14 @@ function BillingSkeleton() {
           {["projects", "expenses"].map((key) => (
             <div className="billing-usage-row" key={key}>
               <SkeletonLine className="sk-line sk-w-26" />
-              <SkeletonLine className="sk-line sk-w-52 sk-h-16" />
-              <SkeletonLine className="sk-line sk-h-12" />
+              <dl className="billing-usage-values">
+                {["used", "total"].map((field) => (
+                  <div key={field} className={`billing-usage-${field}`}>
+                    <dt><SkeletonLine className="sk-line sk-w-70" /></dt>
+                    <dd><SkeletonLine className={`sk-line sk-w-52 ${field === "used" ? "sk-h-40" : "sk-h-28"}`} /></dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           ))}
         </div>
