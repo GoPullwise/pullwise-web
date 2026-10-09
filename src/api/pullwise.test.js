@@ -70,6 +70,54 @@ describe("pullwiseApi current product endpoints", () => {
     expect(request).toHaveBeenCalledWith("/integrations", { signal: controller.signal });
   });
 
+  it("reads personal Jev settings without a selected workspace or authorization override", async () => {
+    const preference = {
+      enabled: true,
+      revision: 7,
+      eligible: true,
+      available: false,
+      monthlyBudgetUsd: "3",
+    };
+    request.mockResolvedValueOnce(preference);
+    const controller = new AbortController();
+    await expect(
+      pullwiseApi.account.getJev({
+        signal: controller.signal,
+        workspaceId: "someone_else",
+        headers: { "X-Pullwise-Workspace": "someone_else" },
+      }),
+    ).resolves.toBe(preference);
+    expect(request).toHaveBeenCalledWith("/api/v1/account/jev", {
+      signal: controller.signal,
+    });
+  });
+
+  it.each([true, false])(
+    "writes only the explicit enabled=%s preference with its quoted revision",
+    async (enabled) => {
+      request.mockResolvedValue({});
+      const controller = new AbortController();
+      await pullwiseApi.account.updateJev(7, enabled, {
+        signal: controller.signal,
+        workspaceId: "someone_else",
+        headers: { "If-Match": '"999"' },
+      });
+      expect(request).toHaveBeenCalledExactlyOnceWith("/api/v1/account/jev", {
+        method: "PATCH",
+        headers: { "If-Match": '"7"' },
+        body: { enabled },
+        signal: controller.signal,
+      });
+    },
+  );
+
+  it("propagates a preference revision conflict without retrying or refreshing automatically", async () => {
+    const conflict = Object.assign(new Error("conflict"), { status: 412 });
+    request.mockRejectedValueOnce(conflict);
+    await expect(pullwiseApi.account.updateJev(7, false)).rejects.toBe(conflict);
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it.each(["login", "link"])("requests an email code for the explicit %s purpose", async (purpose) => {
     const challenge = { challengeId: "challenge_1", expiresIn: 600, retryAfter: 60 };
     request.mockResolvedValueOnce(challenge);

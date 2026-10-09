@@ -41,6 +41,17 @@ export const pullwiseApi = {
       }),
   },
 
+  account: {
+    getJev: (options = {}) => getRequest("/api/v1/account/jev", options),
+    updateJev: (revision, enabled, options = {}) =>
+      request("/api/v1/account/jev", {
+        method: "PATCH",
+        headers: { "If-Match": `"${revision}"` },
+        body: { enabled },
+        signal: options.signal,
+      }),
+  },
+
   repositories: {
     list: (params = {}, options = {}) =>
       getRequest(withSearchParams("/repositories", params), options),
