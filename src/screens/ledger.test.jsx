@@ -13,6 +13,7 @@ const api = vi.hoisted(() => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   archiveCategory: vi.fn(),
+  removeCategory: vi.fn(),
   project: vi.fn(),
   expenses: vi.fn(),
   createExpense: vi.fn(),
@@ -41,6 +42,7 @@ beforeEach(() => {
   api.repositories.mockResolvedValue({ items: [{ githubRepoId: 202, fullName: "alice/project" }] });
   api.projects.mockResolvedValue({ items: [], nextCursor: null });
   api.categories.mockResolvedValue([]);
+  api.removeCategory.mockResolvedValue(null);
   api.expenses.mockResolvedValue({ items: [], nextCursor: null });
   api.recurringRules.mockResolvedValue({ items: [], nextCursor: null });
   api.createExpense.mockResolvedValue({ id: "exp_saved", categoryId: "cat_1" });
@@ -701,6 +703,7 @@ describe("ledger screens", () => {
     expect(await screen.findByText("Tools")).toBeVisible();
     expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove Tools" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Category name")).not.toBeInTheDocument();
   });
 
@@ -1810,6 +1813,139 @@ describe("ledger screens", () => {
     expect(input).toHaveValue("  Software  ");
     expect(input).toHaveFocus();
     expect(screen.getByRole("button", { name: "Save category" })).toBeEnabled();
+  });
+
+  it.each([null, 1791450000])(
+    "removes an unused category after confirmation, including archived categories (%s)",
+    async (archivedAt) => {
+      const category = { id: "cat_unused", name: "Unused tools", revision: 7, archivedAt };
+      api.categories.mockResolvedValueOnce([category]).mockResolvedValue([]);
+      render(<LedgerScreen go={vi.fn()} mode="categories" />);
+      fireEvent.click(await screen.findByRole("button", { name: "Remove Unused tools" }));
+      const confirm = screen.getByRole("button", { name: "Confirm remove Unused tools" });
+      expect(confirm).toHaveFocus();
+      expect(api.removeCategory).not.toHaveBeenCalled();
+      expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
+      fireEvent.click(confirm);
+      await waitFor(() => expect(api.removeCategory).toHaveBeenCalledWith("cat_unused", 7, {}));
+      await waitFor(() =>
+        expect(screen.queryByRole("heading", { name: "Unused tools" })).not.toBeInTheDocument()
+      );
+      expect(screen.getByRole("heading", { name: "Your categories" })).toHaveFocus();
+      expect(api.archiveCategory).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(["cancel", "escape"])(
+    "restores the category Remove opener after %s without sending a write",
+    async (intent) => {
+      api.categories.mockResolvedValue([
+        { id: "cat_1", name: "Tools", revision: 1, archivedAt: null },
+      ]);
+      render(<LedgerScreen go={vi.fn()} mode="categories" />);
+      fireEvent.click(await screen.findByRole("button", { name: "Remove Tools" }));
+      const confirm = screen.getByRole("button", { name: "Confirm remove Tools" });
+      if (intent === "cancel")
+        fireEvent.click(screen.getByRole("button", { name: "Cancel removing Tools" }));
+      else fireEvent.keyDown(confirm, { key: "Escape" });
+      expect(
+        screen.queryByRole("button", { name: "Confirm remove Tools" })
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Remove Tools" })).toHaveFocus();
+      expect(screen.getByRole("button", { name: "Archive" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Rename" })).toBeEnabled();
+      expect(api.removeCategory).not.toHaveBeenCalled();
+    }
+  );
+
+  it("locks category removal through its required refresh and never repeats a pending write", async () => {
+    const category = { id: "cat_1", name: "Tools", revision: 5, archivedAt: null };
+    const write = deferred();
+    const refresh = deferred();
+    api.categories.mockResolvedValueOnce([category]).mockReturnValueOnce(refresh.promise);
+    api.removeCategory.mockReturnValueOnce(write.promise);
+    render(<LedgerScreen go={vi.fn()} mode="categories" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Remove Tools" }));
+    const confirm = screen.getByRole("button", { name: "Confirm remove Tools" });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
+    expect(api.removeCategory).toHaveBeenCalledTimes(1);
+    expect(confirm).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel removing Tools" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByLabelText("Category name")).toBeDisabled();
+    fireEvent.keyDown(confirm, { key: "Escape" });
+    expect(confirm).toBeInTheDocument();
+    await act(async () => write.resolve(null));
+    await waitFor(() => expect(api.categories).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("button", { name: "Remove Tools" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByLabelText("Category name")).toBeDisabled();
+    await act(async () => refresh.resolve([]));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
+    expect(screen.getByRole("heading", { name: "Your categories" })).toHaveFocus();
+    expect(api.removeCategory).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains a referenced category and offers Archive after CATEGORY_IN_USE without retrying", async () => {
+    api.categories.mockResolvedValue([
+      { id: "cat_1", name: "Tools", revision: 1, archivedAt: null },
+    ]);
+    api.removeCategory.mockRejectedValueOnce({
+      status: 409,
+      payload: { error: { code: "CATEGORY_IN_USE" } },
+    });
+    render(<LedgerScreen go={vi.fn()} mode="categories" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Remove Tools" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm remove Tools" }));
+    expect(
+      await screen.findByText(
+        "Categories referenced by expense history, recurring schedules or saved Jev suggestions cannot be removed. You can archive active categories instead."
+      )
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Tools" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Confirm remove Tools" })).toHaveFocus();
+    expect(api.categories).toHaveBeenCalledTimes(1);
+    expect(api.removeCategory).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel removing Tools" }));
+    expect(screen.getByRole("button", { name: "Archive" })).toBeEnabled();
+    expect(api.archiveCategory).not.toHaveBeenCalled();
+  });
+
+  it("clears category removal intent across workspace changes and ignores an old successful write", async () => {
+    const pending = deferred();
+    const owner = { id: "usr_owner", revision: 1, permissions: { manageCategories: true } };
+    const oldApi = {
+      ...api,
+      categories: vi.fn().mockResolvedValue([{ id: "cat_old", name: "Old category", revision: 2 }]),
+      removeCategory: vi.fn().mockReturnValue(pending.promise),
+    };
+    const nextApi = {
+      ...api,
+      categories: vi.fn().mockResolvedValue([{ id: "cat_new", name: "New category", revision: 1 }]),
+      removeCategory: vi.fn(),
+    };
+    const view = render(
+      <LedgerScreen go={vi.fn()} mode="categories" workspace={owner} api={oldApi} />
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Remove Old category" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm remove Old category" }));
+    view.rerender(
+      <LedgerScreen
+        go={vi.fn()}
+        mode="categories"
+        workspace={{ ...owner, id: "usr_next" }}
+        api={nextApi}
+      />
+    );
+    expect(await screen.findByRole("heading", { name: "New category" })).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Confirm remove Old category" })
+    ).not.toBeInTheDocument();
+    await act(async () => pending.resolve(null));
+    expect(nextApi.categories).toHaveBeenCalledTimes(1);
+    expect(nextApi.removeCategory).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "New category" })).toBeVisible();
   });
 
   it("saves the project description with its revision", async () => {

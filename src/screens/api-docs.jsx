@@ -21,6 +21,7 @@ const ENDPOINTS = [
   ["POST", "/api/v1/categories", "categories:write", "Create category"],
   ["PATCH", "/api/v1/categories/{id}", "categories:write", "Rename with If-Match"],
   ["DELETE", "/api/v1/categories/{id}", "categories:write", "Archive with If-Match"],
+  ["POST", "/api/v1/categories/{id}/remove", "categories:write", "Remove unused category with If-Match"],
   ["GET", "/api/v1/expenses", "expenses:read", "Filtered expense detail"],
   ["POST", "/api/v1/expenses", "expenses:write", "Create with Idempotency-Key"],
   ["GET", "/api/v1/expenses/{id}", "expenses:read", "One expense"],

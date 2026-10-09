@@ -71,6 +71,28 @@ describe("ledger REST paths", () => {
     expect(send.mock.calls[2][0].responseType).toBe("blob");
   });
 
+  it("removes an unused category without changing the existing archive resource", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: null });
+    const api = createLedgerApi("team/1");
+    const controller = new AbortController();
+    const options = { signal: controller.signal, headers: { "X-Trace": "category" } };
+    await api.removeCategory("cat/2", 7, options);
+    await api.archiveCategory("cat/2", 8, options);
+    expect(
+      send.mock.calls.map(([call]) => [call.method, call.url, call.headers["If-Match"]])
+    ).toEqual([
+      ["POST", "/api/v1/categories/cat%2F2/remove", '"7"'],
+      ["DELETE", "/api/v1/categories/cat%2F2", '"8"'],
+    ]);
+    for (const [call] of send.mock.calls) {
+      expect(call.signal).toBe(controller.signal);
+      expect(call.headers["X-Pullwise-Workspace"]).toBe("team/1");
+      expect(call.headers["X-Trace"]).toBe("category");
+    }
+    expect(send.mock.calls[0][0].data).toEqual({});
+    expect(options.headers).toEqual({ "X-Trace": "category" });
+  });
+
   it("keeps recurring rule paths, scope, abort and concurrency headers on the real API", async () => {
     const send = vi.spyOn(http, "request").mockResolvedValue({ data: {} });
     const api = createLedgerApi("team");

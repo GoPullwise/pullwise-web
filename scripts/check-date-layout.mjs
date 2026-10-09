@@ -1257,6 +1257,12 @@ async function measureCategories(page, report, name) {
               ["Rename", "重命名"].includes(button.textContent.trim())
           ),
           buttons: row.querySelectorAll("button").length,
+          actions: Array.from(row.querySelectorAll(":scope > .ledger-actions button")).map(
+            (button) => ({
+              rect: rect(button),
+              label: button.getAttribute("aria-label") || button.textContent.trim(),
+            })
+          ),
           editor: editor
             ? {
                 rect: rect(editor),
@@ -1283,6 +1289,19 @@ async function measureCategories(page, report, name) {
       `${name}: category record overflows ${details}`
     );
     assert(!row.rightRename, `${name}: Rename remains in the right-hand actions ${details}`);
+    for (let index = 0; index < row.actions.length; index += 1) {
+      const control = row.actions[index];
+      assert(inside(control.rect, row.row), `${name}: category action escapes its row ${details}`);
+      assert(
+        row.actions.slice(index + 1).every((other) => !overlaps(control.rect, other.rect)),
+        `${name}: category actions overlap ${details}`
+      );
+      if (measured.coarse)
+        assert(
+          control.rect.height >= 44 - tolerance,
+          `${name}: category action has no 44px touch target ${details}`
+        );
+    }
     if (row.opener) {
       assert(
         row.heading && row.title && row.opener.svg && !row.opener.text.trim(),
@@ -1365,7 +1384,19 @@ async function measureCategories(page, report, name) {
     ARCHIVED_CATEGORY_NAME,
     `${name}: archived category name is unavailable`
   );
-  assert.equal(archived.buttons, 0, `${name}: archived category exposes mutation controls`);
+  assert(!archived.opener && !archived.editor, `${name}: archived category exposes renaming`);
+  assert(
+    archived.actions.every((action) => !["Archive", "归档"].includes(action.label)),
+    `${name}: archived category exposes Archive again`
+  );
+  const confirmingRemoval = archived.actions.some((action) =>
+    /^(Confirm remove |确认移除 )/.test(action.label)
+  );
+  assert.equal(
+    archived.buttons,
+    confirmingRemoval ? 2 : 1,
+    `${name}: archived category lacks its Remove or confirmation controls`
+  );
   report.states.push({ name, categories: measured });
 }
 
@@ -1430,6 +1461,26 @@ async function checkCategories(page, report) {
   await measureCategories(page, report, "categories-inline-cancel-restored-title");
   await page.setViewportSize({ width: narrow, height: report.profile.height });
   await measureCategories(page, report, `categories-long-title-pencil-live-${narrow}`);
+  await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+  const archivedRemoveLabel = `${report.profile.lang === "zh" ? "移除" : "Remove"} ${ARCHIVED_CATEGORY_NAME}`;
+  const archivedRemove = rows.nth(2).getByRole("button", { name: archivedRemoveLabel, exact: true });
+  await archivedRemove.click();
+  const confirmRemoveLabel = `${report.profile.lang === "zh" ? "确认移除" : "Confirm remove"} ${ARCHIVED_CATEGORY_NAME}`;
+  const confirmRemove = rows.nth(2).getByRole("button", { name: confirmRemoveLabel, exact: true });
+  await confirmRemove.waitFor();
+  assert(
+    await confirmRemove.evaluate((element) => document.activeElement === element),
+    "categories: Remove confirmation did not receive focus"
+  );
+  await measureCategories(page, report, "categories-archived-remove-confirmation");
+  await page.setViewportSize({ width: narrow, height: report.profile.height });
+  await measureCategories(page, report, `categories-archived-remove-confirmation-live-${narrow}`);
+  await confirmRemove.press("Escape");
+  await archivedRemove.waitFor();
+  assert(
+    await archivedRemove.evaluate((element) => document.activeElement === element),
+    "categories: cancel did not restore archived Remove focus"
+  );
   await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
 }
 

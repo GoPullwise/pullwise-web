@@ -127,6 +127,13 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
         method: "DELETE",
         headers: { ...options?.headers, ...version(revision) },
       }),
+    removeCategory: (id, revision, options) =>
+      ledgerRequest(`${resource("categories", id)}/remove`, {
+        ...options,
+        method: "POST",
+        headers: { ...options?.headers, ...version(revision) },
+        body: {},
+      }),
     expenses: (params, options) => ledgerRequest("/expenses", { ...options, params }),
     expense: (id, options) => ledgerRequest(resource("expenses", id), options),
     createExpense: (fields, idempotencyKey, options) =>

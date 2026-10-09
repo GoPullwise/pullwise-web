@@ -115,6 +115,10 @@ function errorText(error) {
       "Choose a category to finish saving. Your draft is still here.",
       "请选择类别后保存，已填写的内容已保留。"
     ),
+    CATEGORY_IN_USE: T(
+      "Categories referenced by expense history, recurring schedules or saved Jev suggestions cannot be removed. You can archive active categories instead.",
+      "支出历史、周期计划或已保存的 Jev 建议引用的类别不能移除。仍在启用的类别可以改为归档。"
+    ),
   };
   if (allowanceErrors[code]) return allowanceErrors[code];
   if (error?.status === 412) return T("Save conflict. Reload the latest record before retrying.");
@@ -904,7 +908,7 @@ function ScopedLedgerScreen({
   const [projectRepoIds, setProjectRepoIds] = useState([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryEdit, setCategoryEdit] = useState(null);
-  const [confirmCategoryId, setConfirmCategoryId] = useState("");
+  const [categoryAction, setCategoryAction] = useState(null);
   const [editing, setEditing] = useState(null);
   const [creatingExpense, setCreatingExpense] = useState(false);
   const [confirmId, setConfirmId] = useState("");
@@ -942,6 +946,10 @@ function ScopedLedgerScreen({
   const categoryEditorInputRef = useRef(null);
   const restoreCategoryDraftFocus = useRef(false);
   const restoreCategoryFocus = useRef(false);
+  const categoryHeadingRef = useRef(null);
+  const categoryActionOpeners = useRef(new Map());
+  const categoryActionConfirm = useRef(null);
+  const restoreCategoryActionFocus = useRef(null);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -984,6 +992,18 @@ function ScopedLedgerScreen({
       restoreCategoryFocus.current = false;
     }
   }, [categoryEdit, blocked]);
+  useEffect(() => {
+    if (blocked) return;
+    if (restoreCategoryActionFocus.current) {
+      const { id, kind } = restoreCategoryActionFocus.current;
+      restoreCategoryActionFocus.current = null;
+      const opener = categoryActionOpeners.current.get(`${id}:${kind}`);
+      if (opener && !opener.disabled) opener.focus({ preventScroll: true });
+      else categoryHeadingRef.current?.focus({ preventScroll: true });
+    } else if (categoryAction) {
+      categoryActionConfirm.current?.focus({ preventScroll: true });
+    }
+  }, [categoryAction, blocked, data]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -1041,10 +1061,11 @@ function ScopedLedgerScreen({
       projectOpenerRef.current = null;
       restoreProjectFocus.current = false;
       setCategoryEdit(null);
-      setConfirmCategoryId("");
+      setCategoryAction(null);
       categoryEditorRowRef.current = null;
       restoreCategoryDraftFocus.current = false;
       restoreCategoryFocus.current = false;
+      restoreCategoryActionFocus.current = null;
     }
     loadedScope.current = scope;
     const options = { signal: controller.signal };
@@ -1292,6 +1313,8 @@ function ScopedLedgerScreen({
           setEditing(null);
           setCreatingExpense(false);
           setCategoryEdit(null);
+          setCategoryAction(null);
+          restoreCategoryActionFocus.current = null;
           setConfirmId("");
           onAccessChanged?.(failure);
         }
@@ -1303,6 +1326,33 @@ function ScopedLedgerScreen({
         if (mounted.current) setBusy(false);
       }
     }
+  };
+
+  const closeCategoryAction = () => {
+    if (blocked || inFlight.current || readingGuard.current) return;
+    restoreCategoryActionFocus.current = categoryAction;
+    setCategoryAction(null);
+  };
+  const confirmCategoryAction = (category) => {
+    if (
+      blocked ||
+      !canManageCategories ||
+      categoryAction?.id !== category.id ||
+      categoryAction.scope !== loadedScope.current ||
+      !mounted.current
+    )
+      return;
+    const confirmation = categoryAction;
+    action(() =>
+      confirmation.kind === "remove"
+        ? api.removeCategory(category.id, category.revision, {})
+        : api.archiveCategory(category.id, category.revision, {})
+    ).then((ok) => {
+      if (ok && mounted.current && confirmation.scope === loadedScope.current) {
+        restoreCategoryActionFocus.current = confirmation;
+        setCategoryAction(null);
+      }
+    });
   };
 
   const reconnectGitHub = async () => {
@@ -2135,9 +2185,19 @@ function ScopedLedgerScreen({
               <section className="panel">
                 <div className="panel-h">
                   <I.Layers size={20} />
-                  <h2>{T("Your categories")}</h2>
+                  <h2 ref={categoryHeadingRef} tabIndex={-1}>
+                    {T("Your categories")}
+                  </h2>
                   <span className="count">{data.categories.length}</span>
                 </div>
+                {canManageCategories && data.categories.length > 0 && (
+                  <p className="ledger-help">
+                    {T(
+                      "Remove unused categories; archive categories referenced by saved records or schedules.",
+                      "未使用的类别可以移除；已保存的记录或计划引用的类别请归档。"
+                    )}
+                  </p>
+                )}
                 {data.categories.length === 0 && (
                   <div className="empty">
                     <I.Folder size={28} />
@@ -2226,7 +2286,7 @@ function ScopedLedgerScreen({
                             <h3 id={`${viewId}-category-${category.id}`}>{category.name}</h3>
                             {canManageCategories &&
                               !category.archivedAt &&
-                              confirmCategoryId !== category.id && (
+                              categoryAction?.id !== category.id && (
                                 <button
                                   className="btn ghost sm ledger-category-rename"
                                   type="button"
@@ -2238,7 +2298,8 @@ function ScopedLedgerScreen({
                                   onClick={(event) => {
                                     categoryEditorRowRef.current =
                                       event.currentTarget.closest("article");
-                                    setConfirmCategoryId("");
+                                    setCategoryAction(null);
+                                    restoreCategoryActionFocus.current = null;
                                     setCategoryEdit({ id: category.id, name: category.name });
                                   }}
                                 >
@@ -2256,41 +2317,108 @@ function ScopedLedgerScreen({
                             : T("Ready to use", "可用于记账")}
                         </p>
                       </div>
-                      {canManageCategories &&
-                        !category.archivedAt &&
-                        categoryEdit?.id !== category.id && (
-                          <div className="ledger-actions">
-                            {confirmCategoryId === category.id ? (
+                      {canManageCategories && categoryEdit?.id !== category.id && (
+                          <div
+                            className="ledger-actions"
+                            onKeyDown={(event) => {
+                              if (event.key === "Escape" && categoryAction?.id === category.id) {
+                                event.preventDefault();
+                                closeCategoryAction();
+                              }
+                            }}
+                          >
+                            {categoryAction?.id === category.id ? (
                               <>
                                 <button
                                   className="btn"
-                                  disabled={blocked}
-                                  onClick={() =>
-                                    action(() =>
-                                      api.archiveCategory(category.id, category.revision, {})
-                                    ).then((ok) => {
-                                      if (ok) setConfirmCategoryId("");
-                                    })
+                                  type="button"
+                                  ref={categoryActionConfirm}
+                                  aria-label={
+                                    categoryAction.kind === "remove"
+                                      ? T("Confirm remove {category}", "确认移除 {category}").replace(
+                                          "{category}",
+                                          category.name
+                                        )
+                                      : undefined
                                   }
+                                  disabled={blocked}
+                                  onClick={() => confirmCategoryAction(category)}
                                 >
-                                  {T("Confirm archive")}
+                                  {categoryAction.kind === "remove"
+                                    ? T("Confirm remove", "确认移除")
+                                    : T("Confirm archive")}
                                 </button>
                                 <button
                                   className="btn"
+                                  type="button"
+                                  aria-label={
+                                    categoryAction.kind === "remove"
+                                      ? T("Cancel removing {category}", "取消移除 {category}").replace(
+                                          "{category}",
+                                          category.name
+                                        )
+                                      : undefined
+                                  }
                                   disabled={blocked}
-                                  onClick={() => setConfirmCategoryId("")}
+                                  onClick={closeCategoryAction}
                                 >
                                   {T("Cancel")}
                                 </button>
                               </>
                             ) : (
-                              <button
-                                className="btn ghost sm"
-                                disabled={blocked}
-                                onClick={() => setConfirmCategoryId(category.id)}
-                              >
-                                {T("Archive")}
-                              </button>
+                              <>
+                                {!category.archivedAt && (
+                                  <button
+                                    className="btn ghost sm"
+                                    type="button"
+                                    ref={(element) => {
+                                      const key = `${category.id}:archive`;
+                                      if (element) categoryActionOpeners.current.set(key, element);
+                                      else categoryActionOpeners.current.delete(key);
+                                    }}
+                                    disabled={blocked}
+                                    onClick={() => {
+                                      if (blocked || inFlight.current || readingGuard.current)
+                                        return;
+                                      setCategoryEdit(null);
+                                      restoreCategoryActionFocus.current = null;
+                                      setCategoryAction({
+                                        id: category.id,
+                                        kind: "archive",
+                                        scope: loadedScope.current,
+                                      });
+                                    }}
+                                  >
+                                    {T("Archive")}
+                                  </button>
+                                )}
+                                <button
+                                  className="btn ghost sm"
+                                  type="button"
+                                  ref={(element) => {
+                                    const key = `${category.id}:remove`;
+                                    if (element) categoryActionOpeners.current.set(key, element);
+                                    else categoryActionOpeners.current.delete(key);
+                                  }}
+                                  aria-label={T("Remove {category}", "移除 {category}").replace(
+                                    "{category}",
+                                    category.name
+                                  )}
+                                  disabled={blocked}
+                                  onClick={() => {
+                                    if (blocked || inFlight.current || readingGuard.current) return;
+                                    setCategoryEdit(null);
+                                    restoreCategoryActionFocus.current = null;
+                                    setCategoryAction({
+                                      id: category.id,
+                                      kind: "remove",
+                                      scope: loadedScope.current,
+                                    });
+                                  }}
+                                >
+                                  {T("Remove")}
+                                </button>
+                              </>
                             )}
                           </div>
                         )}

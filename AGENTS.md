@@ -1,5 +1,16 @@
 # Pullwise Web
 
+## Category removal (2026-10-09)
+
+Categories adds Remove beside Archive for active categories and also on archived
+rows, using a named Confirm remove/Cancel flow. Only unused categories may be
+removed; Server CATEGORY_IN_USE keeps the row and explains Archive preserves
+history. Retain the title pencil, category-management permissions, account and
+workspace isolation, revision fences, draft/focus behavior and write locks
+through refresh. Use the shared row actions and all six locale catalogs.
+Complete local/browser verification and use the existing main/preview publication
+workflow; production remains paused.
+
 ## Recent operation history (2026-10-09)
 
 Project detail places Operation log after Expenses, Reports and Project settings;

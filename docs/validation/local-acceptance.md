@@ -1,5 +1,23 @@
 # Current local acceptance
 
+## Explicit category removal (2026-10-09)
+
+Categories offers Remove on active and archived rows with named confirmation,
+Cancel/Escape and focus restoration. Archive and the title pencil remain.
+Only unused configuration can be removed; expense history, recurring schedules
+and saved actual Jev selections return clear archival guidance. Permission,
+workspace and revision boundaries remain; writes and their required refresh
+keep conflicting controls locked. All six locales and public API docs are updated.
+
+Lint, **897 tests in 48 files**, build and offline Worker checks pass. The frozen
+preview-configured artifact passes local synthetic Chromium workflows in English
+and Chinese, both themes, 1440/390px and 320px reflow, including failure, focus,
+active/archived removal, held write/refresh, Viewer and scope-change checks.
+The persistent Chromium layout runner passes 258 states across four profiles,
+at most 87 fixture requests per context with a 100-request ceiling and no external
+delivery. The desktop and Chinese mobile screenshots were visually reviewed.
+This evidence does not claim real-account, Safari or physical-device acceptance.
+
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
 ## Recent operation history and topbar label (2026-10-09)

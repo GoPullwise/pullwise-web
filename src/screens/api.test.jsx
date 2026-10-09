@@ -82,6 +82,7 @@ describe("API screens", () => {
     expect(screen.getByRole("heading", { name: /pullwise ledger rest api/i })).toBeInTheDocument();
     expect(screen.getAllByText("/api/v1/expenses")).toHaveLength(2);
     expect(screen.getByText("/api/v1/reports/summary")).toBeInTheDocument();
+    expect(screen.getByText("/api/v1/categories/{id}/remove")).toBeInTheDocument();
     expect(
       screen.getByText(/Project allowlists do not grant shared-pool access/i)
     ).toBeInTheDocument();
@@ -103,6 +104,7 @@ describe("API screens", () => {
       expect(markdown).toContain("Idempotency-Key");
       expect(markdown).toContain("Automatic Max assistance");
       expect(markdown).toContain("CATEGORY_REQUIRED");
+      expect(markdown).toContain("### POST /api/v1/categories/{id}/remove");
       expect(markdown).toContain("categorySource");
       expect(markdown).toContain('-H "Authorization: Bearer $PULLWISE_API_KEY"');
       expect(markdown).not.toContain("-H 'Authorization: Bearer $PULLWISE_API_KEY'");
