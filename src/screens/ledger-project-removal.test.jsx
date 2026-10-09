@@ -75,7 +75,8 @@ function viewFor(
   selected = workspace(),
   projectId = "prj_current",
   go = vi.fn(),
-  onAccessChanged = vi.fn()
+  onAccessChanged = vi.fn(),
+  accessProps = {}
 ) {
   return (
     <WorkspaceContext.Provider
@@ -96,6 +97,7 @@ function viewFor(
         mode="project"
         projectId={projectId}
         workspace={selected}
+        {...accessProps}
       />
     </WorkspaceContext.Provider>
   );
@@ -347,6 +349,82 @@ describe("Owner project removal", () => {
     expect(api.removeProject).toHaveBeenNthCalledWith(2, "prj_current", 9, {
       signal: expect.any(AbortSignal),
     });
+    expect(api.project).toHaveBeenCalledTimes(2);
+  });
+
+  it("disables an open confirmation while current access is being checked", async () => {
+    const api = client();
+    const selected = workspace();
+    const go = vi.fn();
+    const onAccessChanged = vi.fn();
+    const view = render(viewFor(api, selected, "prj_current", go, onAccessChanged));
+    const { dialog } = await openRemoval();
+    view.rerender(
+      viewFor(api, selected, "prj_current", go, onAccessChanged, { accessRefreshing: true })
+    );
+    const confirm = within(dialog).getByRole("button", { name: "Confirm remove project" });
+    expect(confirm).toBeDisabled();
+    for (const cancel of within(dialog).getAllByRole("button", { name: "Cancel" }))
+      expect(cancel).toBeDisabled();
+    fireEvent.click(confirm);
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.click(dialog.closest(".modal-back"));
+    expect(dialog).toBeInTheDocument();
+    expect(api.removeProject).not.toHaveBeenCalled();
+    expect(api.project).toHaveBeenCalledOnce();
+    view.rerender(viewFor(api, selected, "prj_current", go, onAccessChanged));
+    expect(confirm).toBeEnabled();
+    await userEvent.setup().click(within(dialog).getAllByRole("button", { name: "Cancel" })[1]);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(api.removeProject).not.toHaveBeenCalled();
+  });
+
+  it("checks current access before a conflict reload and retains the loaded draft through both read stages", async () => {
+    const access = deferred();
+    const refreshing = deferred();
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    const api = client();
+    api.project.mockResolvedValueOnce(project()).mockReturnValueOnce(refreshing.promise);
+    api.removeProject.mockRejectedValueOnce({ status: 412 });
+    const user = userEvent.setup();
+    render(viewFor(api, workspace(), "prj_current", vi.fn(), vi.fn(), { onReloadAccess }));
+    const settings = await openSettings();
+    const name = within(settings).getByLabelText("Project name");
+    const description = within(settings).getByLabelText("Description");
+    fireEvent.change(name, { target: { value: "Draft project" } });
+    fireEvent.change(description, { target: { value: "Draft description" } });
+    await user.click(within(settings).getByRole("button", { name: "Remove project" }));
+    await user.click(screen.getByRole("button", { name: "Confirm remove project" }));
+    const dialog = screen.getByRole("dialog", { name: "Remove project?" });
+    await within(dialog).findByRole("alert");
+    await user.click(within(dialog).getByRole("button", { name: "Reload project" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(onReloadAccess).toHaveBeenCalledOnce();
+    expect(api.project).toHaveBeenCalledOnce();
+    expect(name).toBeDisabled();
+    expect(name).toHaveValue("Draft project");
+    expect(description).toBeDisabled();
+    expect(description).toHaveValue("Draft description");
+    fireEvent.click(within(settings).getByRole("button", { name: "Remove project" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(api.removeProject).toHaveBeenCalledOnce();
+    await act(async () => access.resolve(true));
+    await waitFor(() => expect(api.project).toHaveBeenCalledTimes(2));
+    expect(within(settings).getByLabelText("Project name")).toBe(name);
+    expect(name).toBeDisabled();
+    expect(name).toHaveValue("Draft project");
+    expect(description).toHaveValue("Draft description");
+    await act(async () => refreshing.resolve(project({ revision: 9 })));
+    await waitFor(() => expect(name).toBeEnabled());
+    expect(within(settings).getByLabelText("Project name")).toBe(name);
+    expect(name).toHaveValue("Draft project");
+    expect(description).toHaveValue("Draft description");
+    await user.click(within(settings).getByRole("button", { name: "Remove project" }));
+    await user.click(screen.getByRole("button", { name: "Confirm remove project" }));
+    expect(api.removeProject).toHaveBeenNthCalledWith(2, "prj_current", 9, {
+      signal: expect.any(AbortSignal),
+    });
+    expect(onReloadAccess).toHaveBeenCalledOnce();
     expect(api.project).toHaveBeenCalledTimes(2);
   });
 

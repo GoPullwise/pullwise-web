@@ -1034,13 +1034,15 @@ function ScopedLedgerScreen({
   }, [categoryAction, blocked, data]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
-  const reloadWithAccess = async () => {
+  const reloadWithAccess = async ({ preserveProjectDraft = false } = {}) => {
     if (inFlight.current || loading || accessRefreshing || !mounted.current) return;
     moreController.current?.abort();
     moreController.current = null;
     setLoadingMore(false);
-    projectSettingsBase.current = null;
-    projectSettingsDirty.current = false;
+    if (!preserveProjectDraft) {
+      projectSettingsBase.current = null;
+      projectSettingsDirty.current = false;
+    }
     if (!onReloadAccess) {
       reload();
       return;
@@ -1523,7 +1525,7 @@ function ScopedLedgerScreen({
     setProjectRemovalConflict(false);
   };
   const closeProjectRemoval = () => {
-    if (inFlight.current) return;
+    if (inFlight.current || accessRefreshing) return;
     projectRemovalRef.current = null;
     setProjectRemoval(null);
     setProjectRemovalError("");
@@ -3371,10 +3373,10 @@ function ScopedLedgerScreen({
               if (!projectRemovalConflict) removeCurrentProject();
               else if (!inFlight.current && !readingGuard.current) {
                 closeProjectRemoval();
-                reload();
+                reloadWithAccess({ preserveProjectDraft: true });
               }
             }}
-            busy={writing}
+            busy={writing || accessRefreshing}
             danger={!projectRemovalConflict}
             backgroundRef={removalBackgroundRef}
             dialogId="remove-ledger-project"
