@@ -1,5 +1,16 @@
 # Pullwise Web
 
+## Current membership permissions (2026-10-09)
+
+An accepted invitation's initial role does not own later page permissions.
+Read current Server workspace role, revision and permissions on explicit page
+reload, scoped navigation and confirmed session return. Refresh without polling
+or writes; defer checks while a page mutation and required refresh are pending.
+Preserve drafts when authority is unchanged, invalidate old protected state when
+role/access changes, and discard stale identity/ledger responses. Members' fresh
+roster role must agree with the application's current management controls.
+Verify promotion, downgrade, removal and scope races before preview publication.
+
 ## Category removal (2026-10-09)
 
 Categories adds Remove beside Archive for active categories and also on archived

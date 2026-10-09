@@ -1967,6 +1967,104 @@ describe("ledger screens", () => {
     );
   });
 
+  it("keeps an existing category draft locked through current-access and record refresh", async () => {
+    const access = deferred();
+    const records = deferred();
+    const category = { id: "cat_1", name: "Tools", revision: 1, archivedAt: null };
+    api.categories.mockResolvedValueOnce([category]).mockReturnValueOnce(records.promise);
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    render(<LedgerScreen go={vi.fn()} mode="categories" onReloadAccess={onReloadAccess} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    const input = screen.getByLabelText("New category name");
+    fireEvent.change(input, { target: { value: "Unsaved tools" } });
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    expect(api.categories).toHaveBeenCalledTimes(1);
+    expect(input).toBeDisabled();
+    expect(input).toHaveValue("Unsaved tools");
+    expect(screen.getByRole("button", { name: "Save category" })).toBeDisabled();
+    await act(async () => access.resolve(true));
+    await waitFor(() => expect(api.categories).toHaveBeenCalledTimes(2));
+    expect(input).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    await act(async () => records.resolve([category]));
+    await waitFor(() => expect(input).toBeEnabled());
+    expect(screen.getByLabelText("New category name")).toBe(input);
+    expect(input).toHaveValue("Unsaved tools");
+    expect(api.updateCategory).not.toHaveBeenCalled();
+  });
+
+  it("preserves category draft DOM during unchanged background access checks and reordered permission keys", async () => {
+    api.categories.mockResolvedValue([
+      { id: "cat_1", name: "Tools", revision: 1, archivedAt: null },
+    ]);
+    const workspace = {
+      id: "usr_owner",
+      revision: 1,
+      permissions: { manageCategories: true, writeExpenses: true },
+    };
+    const view = render(<LedgerScreen go={vi.fn()} mode="categories" workspace={workspace} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    const input = screen.getByLabelText("New category name");
+    fireEvent.change(input, { target: { value: "Category draft" } });
+    view.rerender(
+      <LedgerScreen go={vi.fn()} mode="categories" workspace={workspace} accessRefreshing />
+    );
+    expect(screen.getByLabelText("New category name")).toBe(input);
+    expect(input).toHaveValue("Category draft");
+    expect(input).toBeDisabled();
+    view.rerender(
+      <LedgerScreen
+        go={vi.fn()}
+        mode="categories"
+        workspace={{ ...workspace, permissions: { writeExpenses: true, manageCategories: true } }}
+      />
+    );
+    expect(screen.getByLabelText("New category name")).toBe(input);
+    expect(input).toBeEnabled();
+    expect(input).toHaveValue("Category draft");
+    expect(api.categories).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not continue an old record Reload after its workspace changes during access refresh", async () => {
+    const access = deferred();
+    const workspace = { id: "usr_owner", revision: 1, permissions: { manageCategories: true } };
+    const before = {
+      ...api,
+      categories: vi.fn().mockResolvedValue([{ id: "cat_1", name: "Before", revision: 1 }]),
+    };
+    const after = {
+      ...api,
+      categories: vi.fn().mockResolvedValue([{ id: "cat_2", name: "After", revision: 1 }]),
+    };
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    const view = render(
+      <LedgerScreen
+        go={vi.fn()}
+        mode="categories"
+        api={before}
+        workspace={workspace}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    await screen.findByRole("heading", { name: "Before" });
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    view.rerender(
+      <LedgerScreen
+        go={vi.fn()}
+        mode="categories"
+        api={after}
+        workspace={{ ...workspace, id: "usr_other" }}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    expect(await screen.findByRole("heading", { name: "After" })).toBeVisible();
+    await act(async () => access.resolve(true));
+    expect(before.categories).toHaveBeenCalledTimes(1);
+    expect(after.categories).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("heading", { name: "Before" })).not.toBeInTheDocument();
+  });
+
   it("keeps an empty shared pool usable and shows a save conflict", async () => {
     api.categories.mockResolvedValue([
       { id: "cat_1", name: "Tools", revision: 1, archivedAt: null },

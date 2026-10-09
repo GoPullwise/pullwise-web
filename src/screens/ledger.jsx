@@ -859,7 +859,7 @@ function ExpenseForm({
 export function LedgerScreen(props) {
   const workspace = props.workspace;
   const identity = workspace
-    ? `${workspace.id}:${workspace.revision}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(workspace.permissions)}`
+    ? `${workspace.id}:${workspace.revision}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(Object.entries(workspace.permissions || {}).sort(([left], [right]) => left.localeCompare(right)))}`
     : "personal";
   const scope = `${identity}:${props.mode || "projects"}:${props.projectId || ""}:${props.authorizationRevision || 0}`;
   return <ScopedLedgerScreen key={scope} {...props} />;
@@ -874,6 +874,8 @@ function ScopedLedgerScreen({
   api = ledgerApi,
   workspace = null,
   onAccessChanged,
+  onReloadAccess,
+  accessRefreshing = false,
 }) {
   useLang();
   const canManageProjects = workspace ? workspace.permissions?.manageProjects === true : true;
@@ -894,7 +896,7 @@ function ScopedLedgerScreen({
   const [recurringBusy, setRecurringBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const writing = parentBusy || recurringBusy;
-  const busy = writing || loadingMore;
+  const busy = writing || loadingMore || accessRefreshing;
   const blocked = busy || loading;
   const [repositoryLoading, setRepositoryLoading] = useState(false);
   const [description, setDescription] = useState("");
@@ -931,7 +933,7 @@ function ScopedLedgerScreen({
   const writeRefreshPending = useRef(false);
   const recurringOperation = useRef(null);
   const readingGuard = useRef(false);
-  readingGuard.current = loading || loadingMore;
+  readingGuard.current = loading || loadingMore || accessRefreshing;
   const requestId = useRef(0);
   const moreController = useRef(null);
   const repositoryController = useRef(null);
@@ -1006,6 +1008,32 @@ function ScopedLedgerScreen({
   }, [categoryAction, blocked, data]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
+  const reloadWithAccess = async () => {
+    if (inFlight.current || loading || accessRefreshing || !mounted.current) return;
+    moreController.current?.abort();
+    moreController.current = null;
+    setLoadingMore(false);
+    projectSettingsBase.current = null;
+    projectSettingsDirty.current = false;
+    if (!onReloadAccess) {
+      reload();
+      return;
+    }
+    const request = requestId.current;
+    readingGuard.current = true;
+    setLoading(true);
+    try {
+      const unchanged = await onReloadAccess();
+      if (!mounted.current || request !== requestId.current) return;
+      if (unchanged) reload();
+      else setLoading(false);
+    } catch (failure) {
+      if (mounted.current && request === requestId.current) {
+        setActionError(errorText(failure));
+        setLoading(false);
+      }
+    }
+  };
   const filtered = useMemo(
     () => Object.fromEntries(Object.entries(filters).filter(([, value]) => value)),
     [filters]
@@ -1648,12 +1676,8 @@ function ScopedLedgerScreen({
               )}
               <button
                 className="btn ghost"
-                onClick={() => {
-                  projectSettingsBase.current = null;
-                  projectSettingsDirty.current = false;
-                  reload();
-                }}
-                disabled={loading || writing}
+                onClick={reloadWithAccess}
+                disabled={loading || writing || accessRefreshing}
                 aria-label={T("Reload")}
                 title={T("Reload")}
               >
@@ -1669,7 +1693,7 @@ function ScopedLedgerScreen({
           {error && (
             <div role="alert" className="notice">
               {error}{" "}
-              <button className="btn" disabled={blocked} onClick={reload}>
+              <button className="btn" disabled={blocked} onClick={reloadWithAccess}>
                 {T("Retry")}
               </button>
             </div>
@@ -2728,7 +2752,7 @@ function ScopedLedgerScreen({
                   categories={data.categories}
                   canManage={canWriteExpenses}
                   beginOperation={beginRecurringOperation}
-                  disabled={parentBusy || loading || loadingMore}
+                  disabled={parentBusy || loading || loadingMore || accessRefreshing}
                   reloadSignal={revision}
                   onAccessChanged={onAccessChanged}
                   formatTotal={formatRecurringTotal}
@@ -3147,7 +3171,7 @@ function ScopedLedgerScreen({
                   api={api}
                   target={target}
                   active={view === "activity"}
-                  disabled={loading || writing}
+                  disabled={loading || writing || accessRefreshing}
                   reloadSignal={revision}
                   onAccessChanged={onAccessChanged}
                 />

@@ -62,6 +62,27 @@ function validInvitation(result) {
   );
 }
 
+function acceptedAccessChanged(invitation, workspace) {
+  const current = invitation.workspace;
+  if (
+    invitation.status !== "accepted" ||
+    !["owner", ...EDITABLE_ROLES].includes(current?.role) ||
+    !Number.isSafeInteger(current.revision) ||
+    !current.permissions ||
+    typeof current.permissions !== "object" ||
+    Array.isArray(current.permissions)
+  )
+    return false;
+  const permissions = (value) =>
+    JSON.stringify(Object.entries(value || {}).sort(([left], [right]) => left.localeCompare(right)));
+  return (
+    current.id !== workspace?.id ||
+    current.role !== workspace?.role ||
+    current.revision !== workspace?.revision ||
+    permissions(current.permissions) !== permissions(workspace?.permissions)
+  );
+}
+
 function failureMessage(failure) {
   if (failure?.code === "INVITATION_EXISTS")
     return T(
@@ -145,6 +166,8 @@ export function MembersScreen({
   workspace = null,
   onMembershipChanged,
   onAccessChanged,
+  onReloadAccess,
+  accessRefreshing = false,
   onInvitationRequestsChanged,
   reviewIntent,
   onReviewHandled,
@@ -182,6 +205,8 @@ export function MembersScreen({
       token={token}
       onMembershipChanged={onMembershipChanged}
       onAccessChanged={onAccessChanged}
+      onReloadAccess={onReloadAccess}
+      accessRefreshing={accessRefreshing}
       onInvitationRequestsChanged={onInvitationRequestsChanged}
       reviewIntent={reviewIntent}
       onReviewHandled={onReviewHandled}
@@ -197,6 +222,8 @@ function MembersContent({
   token,
   onMembershipChanged,
   onAccessChanged,
+  onReloadAccess,
+  accessRefreshing,
   onInvitationRequestsChanged,
   reviewIntent,
   onReviewHandled,
@@ -248,13 +275,16 @@ function MembersContent({
   const previewController = useRef(null);
   const previewId = useRef(0);
   const actionPending = useRef(false);
+  const accessReadPending = useRef(false);
   const copyPending = useRef(false);
   const inviteVersion = useRef(0);
   const accessNotified = useRef(false);
   const callbacks = useRef({});
   callbacks.current = {
+    workspace,
     onMembershipChanged,
     onAccessChanged,
+    onReloadAccess,
     onInvitationRequestsChanged,
     onReviewHandled,
     clearInvitation,
@@ -351,6 +381,29 @@ function MembersContent({
     }
   }, [api, workspaceId, canManage, current, failed]);
 
+  const reloadWithAccess = async () => {
+    if (loading || busy || accessRefreshing || actionPending.current || accessReadPending.current)
+      return;
+    if (!callbacks.current.onReloadAccess) {
+      load();
+      return;
+    }
+    const ticket = lifecycle.current;
+    if (!current(ticket)) return;
+    accessReadPending.current = true;
+    setLoading(true);
+    try {
+      if (await callbacks.current.onReloadAccess()) {
+        if (current(ticket)) await load();
+      }
+    } catch (failure) {
+      if (current(ticket)) failed(failure);
+    } finally {
+      accessReadPending.current = false;
+      if (current(ticket)) setLoading(false);
+    }
+  };
+
   const loadInvitation = useCallback(async () => {
     if (
       !token ||
@@ -378,6 +431,12 @@ function MembersContent({
       }
       setPreview(result);
       setAcceptAttempted(false);
+      if (acceptedAccessChanged(result, callbacks.current.workspace)) {
+        // The invitation's original role describes joining. Current confirmed
+        // membership refreshes the cached ledger capabilities without another
+        // acceptance write or selecting a ledger before Open shared ledger.
+        callbacks.current.onMembershipChanged?.();
+      }
     } catch (failure) {
       if (current(ticket) && !controller.signal.aborted && requestId === previewId.current)
         failed(failure, true);
@@ -406,7 +465,11 @@ function MembersContent({
   const runAction = async (operation, success, invitation = false) => {
     const ticket = lifecycle.current;
     if (!current(ticket)) return;
-    if (actionPending.current || (!invitation && (loading || !members || conflict || accessLost)))
+    if (
+      actionPending.current ||
+      accessRefreshing ||
+      (!invitation && (loading || !members || conflict || accessLost))
+    )
       return;
     actionPending.current = true;
     setBusy(true);
@@ -428,7 +491,7 @@ function MembersContent({
     }
   };
 
-  const disabled = busy || loading || !members || conflict || accessLost;
+  const disabled = busy || loading || accessRefreshing || !members || conflict || accessLost;
   const showManagement = managementOpen && canManage && !loading && members !== null;
   const toggleManagement = () => {
     if (disabled || actionPending.current || !canManage || !current(lifecycle.current)) return;
@@ -655,7 +718,11 @@ function MembersContent({
                     {T("Invite member", "邀请成员")}
                   </button>
                 )}
-                <button className="btn" onClick={load} disabled={loading || busy}>
+                <button
+                  className="btn"
+                  onClick={reloadWithAccess}
+                  disabled={loading || busy || accessRefreshing}
+                >
                   {T("Reload", "重新加载")}
                 </button>
               </div>
@@ -706,11 +773,9 @@ function MembersContent({
                   )}
                   <p>
                     {T("Role", "角色")}:{" "}
-                    {roleName(
-                      preview.status === "accepted"
-                        ? preview.workspace.role || preview.role
-                        : preview.role
-                    )}
+                    {preview.status === "accepted"
+                      ? roleName(preview.workspace.role) || T("Unavailable")
+                      : roleName(preview.role)}
                   </p>
                   {preview.status === "accepted" ? (
                     <p role="status">

@@ -123,6 +123,22 @@ function sessionIdentity(authenticated, session) {
   return identity ? `user:${String(identity)}` : `session:${sessionFingerprint(session)}`;
 }
 
+function workspaceAccessSignature(workspace) {
+  if (!workspace) return "unloaded";
+  return JSON.stringify([
+    workspace.id,
+    workspace.revision,
+    workspace.memberRevision,
+    workspace.permissionsRevision,
+    workspace.authorizationRevision,
+    workspace.role,
+    Object.entries(workspace.permissions || {}).sort(([left], [right]) =>
+      left.localeCompare(right)
+    ),
+    Array.isArray(workspace.scopes) ? [...workspace.scopes].sort() : null,
+  ]);
+}
+
 export function App() {
   const lang = useLang();
   const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
@@ -146,6 +162,7 @@ export function App() {
     error: "",
   });
   const [workspaceRefresh, setWorkspaceRefresh] = useState(0);
+  const [accessRefreshing, setAccessRefreshing] = useState(false);
   const scopedScreen = [
     "ledgerProjects",
     "ledgerCategories",
@@ -159,6 +176,7 @@ export function App() {
     workspaceState.identity === identity && workspaceState.status === "ready"
       ? workspaceState.items.find((item) => item.id === workspaceState.selectedId)
       : null;
+  const accessSignature = workspaceAccessSignature(workspace);
   useEffect(() => {
     if (
       reviewIntent &&
@@ -183,8 +201,7 @@ export function App() {
     auth.status,
     screen,
     routeVersion,
-    scopedScreen ? workspace?.id || "" : "",
-    scopedScreen ? workspace?.revision || 0 : 0,
+    scopedScreen ? accessSignature : "account",
   ]);
   const workspaceGeneration = useRef({ context: "", value: 0 });
   if (workspaceGeneration.current.context !== workspaceContext) {
@@ -237,6 +254,78 @@ export function App() {
     () => createLedgerApi(workspace?.id, onAccessChanged),
     [workspace?.id, onAccessChanged]
   );
+  const workspaceReadRef = useRef({ generation: 0, controller: null });
+  const accessRefreshRef = useRef(null);
+  const onReloadAccess = useCallback(() => {
+    if (currentWorkspaceScope.current !== workspaceScope || !workspace)
+      return Promise.resolve(false);
+    if (accessRefreshRef.current?.scope === workspaceScope) return accessRefreshRef.current.promise;
+    accessRefreshRef.current?.controller.abort();
+    workspaceReadRef.current.controller?.abort();
+    const controller = new AbortController();
+    const generation = workspaceReadRef.current.generation + 1;
+    workspaceReadRef.current = { generation, controller };
+    const refresh = { scope: workspaceScope, controller, promise: null };
+    accessRefreshRef.current = refresh;
+    setAccessRefreshing(true);
+    refresh.promise = ledgerApi
+      .workspaces({ signal: controller.signal })
+      .then((result) => {
+        if (
+          controller.signal.aborted ||
+          generation !== workspaceReadRef.current.generation ||
+          currentWorkspaceScope.current !== workspaceScope
+        )
+          return false;
+        const items = result?.items;
+        if (
+          !Array.isArray(items) ||
+          !items.length ||
+          items.some((item) => !item?.id || !item?.role)
+        )
+          throw new Error("Ledger access could not be loaded.");
+        const wanted = selectedWorkspaceRef.current;
+        const selected = items.find((item) => item.id === wanted) || items[0];
+        selectedWorkspaceRef.current = selected.id;
+        setWorkspaceState({ identity, status: "ready", items, selectedId: selected.id, error: "" });
+        // A changed role/revision remounts the protected view. Its initial read
+        // replaces the old view's pending Reload instead of continuing that read.
+        return workspaceAccessSignature(selected) === accessSignature;
+      })
+      .catch((error) => {
+        if (
+          !controller.signal.aborted &&
+          generation === workspaceReadRef.current.generation &&
+          currentWorkspaceScope.current === workspaceScope
+        ) {
+          setWorkspaceState({
+            identity,
+            status: "error",
+            items: [],
+            selectedId: "",
+            error: error?.message || "Ledger access could not be loaded.",
+          });
+        }
+        return false;
+      })
+      .finally(() => {
+        if (accessRefreshRef.current !== refresh) return;
+        accessRefreshRef.current = null;
+        setAccessRefreshing(false);
+      });
+    return refresh.promise;
+  }, [workspaceScope, workspace, identity, accessSignature]);
+  const refreshCurrentAccess = useRef(onReloadAccess);
+  refreshCurrentAccess.current = onReloadAccess;
+  useEffect(() => {
+    const refresh = accessRefreshRef.current;
+    if (refresh && refresh.scope !== workspaceScope) {
+      refresh.controller.abort();
+      accessRefreshRef.current = null;
+      setAccessRefreshing(false);
+    }
+  }, [workspaceScope]);
+  useEffect(() => () => accessRefreshRef.current?.controller.abort(), []);
   const selectWorkspace = useCallback(
     (selectedId) => {
       workspaceIdentityRef.current = identity;
@@ -255,6 +344,9 @@ export function App() {
       workspaceIdentityRef.current = identity;
     }
     const controller = new AbortController();
+    workspaceReadRef.current.controller?.abort();
+    const generation = workspaceReadRef.current.generation + 1;
+    workspaceReadRef.current = { generation, controller };
     const soft = softWorkspaceRefresh.current;
     softWorkspaceRefresh.current = false;
     setWorkspaceState((old) =>
@@ -271,7 +363,7 @@ export function App() {
     ledgerApi
       .workspaces({ signal: controller.signal })
       .then((result) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || generation !== workspaceReadRef.current.generation) return;
         const items = result?.items;
         if (
           !Array.isArray(items) ||
@@ -287,7 +379,7 @@ export function App() {
         workspaceReloading.current = false;
       })
       .catch((error) => {
-        if (!controller.signal.aborted) {
+        if (!controller.signal.aborted && generation === workspaceReadRef.current.generation) {
           workspaceReloading.current = false;
           setWorkspaceState({
             identity,
@@ -302,7 +394,7 @@ export function App() {
   }, [auth.status, auth.authenticated, identity, scopedScreen, workspaceRefresh]);
   const screenKey = PUBLIC_SCREENS.has(screen)
     ? screen
-    : `${screen}:${identity}:${routeVersion}:${scopedScreen ? `${workspace?.id || "unloaded"}:${workspace?.revision || 0}` : "account"}`;
+    : `${screen}:${identity}:${routeVersion}:${scopedScreen ? accessSignature : "account"}`;
   const navigationKey = `${screen}:${routeVersion}`;
   const currentScreenKeyRef = useRef(screenKey);
   currentScreenKeyRef.current = screenKey;
@@ -320,6 +412,24 @@ export function App() {
   const continuedRepositoryAuthorization = useRef(false);
   const languageMenuRef = useRef(null);
   const screenRootRef = useRef(null);
+  const deferredAccessRefresh = useRef("");
+  const focusAccessContext = useRef(null);
+  focusAccessContext.current = { identity, scopedScreen, scope: workspaceScope };
+  const previousWorkspaceNavigation = useRef(null);
+  useEffect(() => {
+    const previous = previousWorkspaceNavigation.current;
+    previousWorkspaceNavigation.current = { identity, scopedScreen, screen, routeVersion };
+    if (
+      !previous ||
+      previous.identity !== identity ||
+      !previous.scopedScreen ||
+      !scopedScreen ||
+      (previous.screen === screen && previous.routeVersion === routeVersion) ||
+      pageOperationRef.current === currentScreenKeyRef.current
+    )
+      return;
+    refreshCurrentAccess.current();
+  }, [identity, scopedScreen, screen, routeVersion]);
 
   useEffect(() => {
     if (pageOperationRef.current !== screenKey) pageOperationRef.current = null;
@@ -337,6 +447,11 @@ export function App() {
           ? previous
           : { owner: screenKey, active }
       );
+      if (!active && deferredAccessRefresh.current) {
+        const scope = deferredAccessRefresh.current;
+        deferredAccessRefresh.current = "";
+        if (scope === currentWorkspaceScope.current) refreshCurrentAccess.current();
+      }
     };
     syncNavigation();
     const observer = new MutationObserver(syncNavigation);
@@ -617,12 +732,33 @@ export function App() {
   useEffect(() => {
     const recheck = () => {
       if (document.visibilityState === "hidden") return;
+      const beforeIdentity = sessionIdentity(
+        authRef.current.authenticated,
+        authRef.current.session
+      );
       checkSession({
         isRetry: true,
         confirmUnauthenticated: true,
         preserveAuthenticatedOnError: true,
       }).then((result) => {
         if (result?.needsConfirmation) scheduleSignedOutConfirmation();
+        const context = focusAccessContext.current;
+        if (
+          !result?.authenticated ||
+          result?.preserved ||
+          sessionIdentity(true, result.payload) !== beforeIdentity ||
+          context?.identity !== beforeIdentity ||
+          !context.scopedScreen
+        )
+          return;
+        if (
+          pageOperationRef.current === currentScreenKeyRef.current ||
+          screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]')
+        ) {
+          deferredAccessRefresh.current = context.scope;
+          return;
+        }
+        refreshCurrentAccess.current();
       });
     };
     window.addEventListener("focus", recheck);
@@ -726,6 +862,8 @@ export function App() {
             api={api}
             workspace={workspace}
             onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
             authorizationError={repositoryAuthorizationError}
             authorizationRevision={repositoryAuthorizationRevision}
           />
@@ -739,6 +877,8 @@ export function App() {
             api={api}
             workspace={workspace}
             onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
           />
         );
         break;
@@ -750,6 +890,8 @@ export function App() {
             api={api}
             workspace={workspace}
             onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
           />
         );
         break;
@@ -762,12 +904,22 @@ export function App() {
             api={api}
             workspace={workspace}
             onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
             projectId={window.location.pathname.slice("/projects/".length)}
           />
         );
         break;
       case "apiKeys":
-        body = <ApiKeysScreen go={go} workspace={workspace} onAccessChanged={onAccessChanged} />;
+        body = (
+          <ApiKeysScreen
+            go={go}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
+          />
+        );
         break;
       case "ledgerMembers":
         body = (
@@ -776,6 +928,8 @@ export function App() {
             api={api}
             workspace={workspace}
             onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
             onMembershipChanged={onMembershipChanged}
             onInvitationRequestsChanged={onInvitationRequestsChanged}
             reviewIntent={

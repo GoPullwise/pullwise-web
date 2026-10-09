@@ -526,6 +526,250 @@ function membersApi(overrides = {}) {
   };
 }
 
+const adminTeam = () => ({
+  ...team,
+  role: "admin",
+  revision: 3,
+  permissions: {
+    manageMembers: true,
+    manageAdmins: false,
+    manageCategories: true,
+    manageProjects: true,
+    writeExpenses: true,
+  },
+});
+
+it("refreshes the selected member's effective access before Members Reload after a Viewer promotion", async () => {
+  window.history.replaceState({}, "", "/members");
+  const viewer = { ...team, revision: 1 };
+  const admin = { ...adminTeam(), revision: 2 };
+  authenticatedLedgers([viewer], "bob");
+  harness.apis.team = membersApi({
+    members: vi
+      .fn()
+      .mockResolvedValue({
+        items: [{ userId: "bob", githubLogin: "bob", role: "viewer", revision: 1 }],
+      }),
+  });
+  render(<App />);
+  expect(await screen.findByText("Viewer", { selector: ".member-role" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument();
+  ledgerApi.workspaces.mockResolvedValue({ items: [admin] });
+  harness.apis.team.members.mockResolvedValue({
+    items: [{ userId: "bob", githubLogin: "bob", role: "admin", revision: 2 }],
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+  expect(await screen.findByRole("button", { name: "Invite member" })).toBeEnabled();
+  expect(screen.getByText("Admin", { selector: ".member-role" })).toBeVisible();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+  expect(harness.apis.team.members).toHaveBeenCalledTimes(2);
+});
+
+it("drops Admin controls even when a changed permission response reuses the workspace revision", async () => {
+  window.history.replaceState({}, "", "/members");
+  const admin = adminTeam();
+  authenticatedLedgers([admin], "bob");
+  harness.apis.team = membersApi();
+  render(<App />);
+  expect(await screen.findByRole("button", { name: "Invite member" })).toBeEnabled();
+  const oldNotify = harness.captures.findLast((entry) => entry.id === "team").notify;
+  ledgerApi.workspaces.mockResolvedValue({ items: [{ ...team, revision: admin.revision }] });
+  fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+  await waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument()
+  );
+  await act(async () => oldNotify({ status: 403, code: "AUTHORIZATION_CHANGED" }));
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+});
+
+it("falls back to an accessible ledger when explicit Reload finds the selected membership removed", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([adminTeam(), personal], "bob");
+  harness.apis.team = membersApi();
+  harness.apis.alice = membersApi();
+  render(<App />);
+  await screen.findByRole("button", { name: "Invite member" });
+  ledgerApi.workspaces.mockResolvedValue({ items: [personal] });
+  fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+  await waitFor(() =>
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("alice")
+  );
+  expect(harness.apis.alice.members).toHaveBeenCalledTimes(1);
+  expect(harness.apis.team.members).toHaveBeenCalledTimes(1);
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+});
+
+it("reloads current permissions once on scoped navigation without polling after the response", async () => {
+  window.history.replaceState({}, "", "/projects");
+  authenticatedLedgers([team], "bob");
+  render(<App />);
+  await screen.findByRole("heading", { name: "Projects" });
+  ledgerApi.workspaces.mockResolvedValue({ items: [adminTeam()] });
+  harness.apis.team = membersApi();
+  act(() => {
+    window.history.pushState({}, "", "/members");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  expect(await screen.findByRole("button", { name: "Invite member" })).toBeEnabled();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+  await act(async () => Promise.resolve());
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+});
+
+it("waits for confirmed same-account focus before checking access and deduplicates concurrent focus", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([team], "bob");
+  harness.apis.team = membersApi();
+  render(<App />);
+  await screen.findByRole("button", { name: "Reload" });
+  const session = pending();
+  const access = pending();
+  pullwiseApi.auth.getSession.mockReturnValueOnce(session.promise);
+  ledgerApi.workspaces.mockReturnValueOnce(access.promise);
+  act(() => {
+    window.dispatchEvent(new Event("focus"));
+    window.dispatchEvent(new Event("focus"));
+  });
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+  await act(async () => session.resolve({ authenticated: true, user: { id: "bob" } }));
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
+  act(() => window.dispatchEvent(new Event("focus")));
+  await act(async () => Promise.resolve());
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+  await act(async () => access.resolve({ items: [adminTeam()] }));
+  expect(await screen.findByRole("button", { name: "Invite member" })).toBeEnabled();
+});
+
+it("preserves a one-time invitation link and draft when focused access is unchanged", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([personal]);
+  harness.apis.alice = membersApi();
+  render(<App />);
+  const create = await openMembersManagement();
+  fireEvent.submit(create.closest("form"));
+  const link = await screen.findByLabelText("New invitation link");
+  await waitFor(() => expect(screen.getByRole("button", { name: "Invite member" })).toBeEnabled());
+  const access = pending();
+  ledgerApi.workspaces.mockReturnValueOnce(access.promise);
+  const reads = ledgerApi.workspaces.mock.calls.length;
+  act(() => window.dispatchEvent(new Event("focus")));
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(reads + 1));
+  expect(screen.getByLabelText("New invitation link")).toBe(link);
+  expect(link).toHaveValue(`${window.location.origin}/members#invite=${inviteToken}`);
+  expect(screen.getByRole("button", { name: "Create invitation" })).toBeDisabled();
+  await act(async () =>
+    access.resolve({
+      items: [{ ...personal, permissions: { manageAdmins: true, manageMembers: true } }],
+    })
+  );
+  expect(screen.getByLabelText("New invitation link")).toBe(link);
+  expect(harness.apis.alice.inviteMember).toHaveBeenCalledTimes(1);
+});
+
+it("does not let an older membership-triggered access response restore Admin after a newer focus downgrade", async () => {
+  window.history.replaceState({}, "", "/members");
+  const admin = adminTeam();
+  authenticatedLedgers([admin], "bob");
+  harness.apis.team = membersApi();
+  const obsolete = pending();
+  ledgerApi.workspaces
+    .mockResolvedValueOnce({ items: [admin] })
+    .mockReturnValueOnce(obsolete.promise)
+    .mockResolvedValue({ items: [{ ...team, revision: 4 }] });
+  render(<App />);
+  const create = await openMembersManagement();
+  fireEvent.submit(create.closest("form"));
+  await screen.findByLabelText("New invitation link");
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Invite member" })).toBeEnabled());
+  const oldSignal = ledgerApi.workspaces.mock.calls[1][0].signal;
+  act(() => window.dispatchEvent(new Event("focus")));
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(3));
+  await waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument()
+  );
+  expect(oldSignal.aborted).toBe(true);
+  await act(async () => obsolete.resolve({ items: [admin] }));
+  expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(3);
+});
+
+it("clears protected cached access after an explicit access refresh fails without retrying", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([adminTeam()], "bob");
+  harness.apis.team = membersApi();
+  render(<App />);
+  await screen.findByRole("button", { name: "Invite member" });
+  ledgerApi.workspaces.mockRejectedValueOnce(new Error("Access unavailable"));
+  fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Access unavailable");
+  expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+});
+
+it("reopens an old Viewer invitation fragment with current Admin capabilities without accepting again", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([team], "bob");
+  const admin = adminTeam();
+  harness.apis.team = membersApi({
+    previewInvitation: vi.fn().mockResolvedValue({
+      ...invite,
+      role: "viewer",
+      status: "accepted",
+      request: { ...joinRequest, status: "approved" },
+      workspace: admin,
+    }),
+  });
+  render(<App />);
+  await screen.findByRole("button", { name: "Reload" });
+  expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument();
+  ledgerApi.workspaces.mockResolvedValue({ items: [admin] });
+  act(() => {
+    window.history.replaceState({}, "", `/members#invite=${inviteToken}`);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  });
+  expect(await screen.findByRole("button", { name: "Invite member" })).toBeEnabled();
+  const panel = screen.getByRole("heading", { name: "Ledger invitation" }).closest("section");
+  expect(within(panel).getByText("Role: Admin")).toBeVisible();
+  expect(within(panel).queryByText("Role: Viewer")).not.toBeInTheDocument();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+  expect(harness.apis.team.acceptInvitation).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Open shared ledger" }));
+  await waitFor(() => expect(window.location.hash).toBe(""));
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+  expect(screen.getByRole("button", { name: "Invite member" })).toBeEnabled();
+  expect(harness.apis.team.acceptInvitation).not.toHaveBeenCalled();
+});
+
+it("reopening an accepted Admin invitation respects a current Viewer downgrade", async () => {
+  window.history.replaceState({}, "", "/members");
+  const admin = adminTeam();
+  const viewer = { ...team, revision: admin.revision + 1 };
+  authenticatedLedgers([admin], "bob");
+  harness.apis.team = membersApi({
+    previewInvitation: vi.fn().mockResolvedValue({
+      ...invite,
+      role: "admin",
+      status: "accepted",
+      request: { ...joinRequest, status: "approved" },
+      workspace: viewer,
+    }),
+  });
+  render(<App />);
+  await screen.findByRole("button", { name: "Invite member" });
+  ledgerApi.workspaces.mockResolvedValue({ items: [viewer] });
+  act(() => {
+    window.history.replaceState({}, "", `/members#invite=${inviteToken}`);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  });
+  await waitFor(() => expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument());
+  const panel = screen.getByRole("heading", { name: "Ledger invitation" }).closest("section");
+  expect(within(panel).getByText("Role: Viewer")).toBeVisible();
+  expect(within(panel).queryByText("Role: Admin")).not.toBeInTheDocument();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2);
+  expect(harness.apis.team.acceptInvitation).not.toHaveBeenCalled();
+});
+
 it("retires legacy product routes", () => {
   expect(screenFromPath("/dashboard/overview")).toBeNull();
   expect(screenFromPath("/services")).toBeNull();

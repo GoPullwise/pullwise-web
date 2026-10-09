@@ -993,6 +993,264 @@ describe("API screens", () => {
     expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
   });
 
+  it("waits for an explicit access refresh and the following key read before enabling mutations", async () => {
+    const access = deferredPromise();
+    const keys = deferredPromise();
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    pullwiseApi.apiKeys.list
+      .mockRejectedValueOnce(new Error("Keys unavailable"))
+      .mockReturnValueOnce(keys.promise);
+    render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    expect(onReloadAccess).not.toHaveBeenCalled();
+    fireEvent.click(retry);
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Create key" })).not.toBeInTheDocument();
+    fireEvent.click(retry);
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    await act(async () => access.resolve(true));
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("button", { name: "Create key" })).not.toBeInTheDocument();
+    await act(async () => keys.resolve({ apiKeys: [] }));
+    expect(await screen.findByRole("button", { name: "Create key" })).toBeEnabled();
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+    expect(pullwiseApi.apiKeys.revoke).not.toHaveBeenCalled();
+  });
+
+  it("reloads current access and keys from the header while preserving an unchanged name draft", async () => {
+    const access = deferredPromise();
+    const keys = deferredPromise();
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    pullwiseApi.apiKeys.list
+      .mockResolvedValueOnce({ apiKeys: [] })
+      .mockReturnValueOnce(keys.promise);
+    render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    const name = await screen.findByRole("textbox", { name: "Key name" });
+    fireEvent.change(name, {
+      target: { value: "Unsubmitted header reload draft" },
+    });
+    const reload = screen.getByRole("button", { name: "Reload" });
+    expect(onReloadAccess).not.toHaveBeenCalled();
+    fireEvent.click(reload);
+    expect(reload).toBeDisabled();
+    expect(screen.getByRole("textbox", { name: "Key name" })).toBe(name);
+    expect(name).toHaveValue("Unsubmitted header reload draft");
+    expect(name).toBeDisabled();
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+    fireEvent.click(reload);
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    await act(async () => access.resolve(true));
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(2);
+    expect(reload).toBeDisabled();
+    expect(screen.getByRole("textbox", { name: "Key name" })).toBe(name);
+    expect(name).toHaveValue("Unsubmitted header reload draft");
+    expect(name).toBeDisabled();
+    await act(async () => keys.resolve({ apiKeys: [] }));
+    expect(await screen.findByRole("textbox", { name: "Key name" })).toHaveValue(
+      "Unsubmitted header reload draft"
+    );
+    expect(reload).toBeEnabled();
+    expect(screen.getByRole("textbox", { name: "Key name" })).toBe(name);
+    expect(name).toBeEnabled();
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+    expect(pullwiseApi.apiKeys.revoke).not.toHaveBeenCalled();
+  });
+
+  it("does not continue an old explicit reload after the same ledger's membership changes", async () => {
+    const access = deferredPromise();
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    pullwiseApi.apiKeys.list
+      .mockRejectedValueOnce(new Error("Keys unavailable"))
+      .mockResolvedValue({ apiKeys: [{ id: "key_current", name: "Current member key" }] });
+    const view = render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen
+          go={vi.fn()}
+          workspace={workspaceFixture("wsp_team", { memberRevision: 4 })}
+          onReloadAccess={onReloadAccess}
+        />
+      </NotificationProvider>
+    );
+    expect(await screen.findByText("Current member key")).toBeVisible();
+    await act(async () => access.resolve(true));
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(2);
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a permission reload failure recoverable without dispatching or retrying a key read", async () => {
+    const onReloadAccess = vi.fn().mockRejectedValueOnce(new Error("Access unavailable"));
+    pullwiseApi.apiKeys.list.mockRejectedValueOnce(new Error("Keys unavailable"));
+    render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("Access unavailable")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips the old key read when the central access refresh reports a changed scope", async () => {
+    const onReloadAccess = vi.fn().mockResolvedValue(false);
+    pullwiseApi.apiKeys.list.mockRejectedValueOnce(new Error("Keys unavailable"));
+    render(<ApiKeysScreen go={vi.fn()} onReloadAccess={onReloadAccess} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(onReloadAccess).toHaveBeenCalledTimes(1));
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole("heading", { name: "API keys are unavailable" })).toBeVisible();
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+  });
+
+  it("ignores an explicit access refresh completion after unmount", async () => {
+    const access = deferredPromise();
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    pullwiseApi.apiKeys.list.mockRejectedValueOnce(new Error("Keys unavailable"));
+    const view = render(<ApiKeysScreen go={vi.fn()} onReloadAccess={onReloadAccess} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    view.unmount();
+    await act(async () => access.resolve(true));
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves key drafts across a read-only access check without starting another key read", async () => {
+    const workspace = workspaceFixture("wsp_team");
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspace} />);
+    const name = await screen.findByRole("textbox", { name: "Key name" });
+    fireEvent.change(name, { target: { value: "Unsubmitted automation" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: /read expenses/i }));
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspace} accessRefreshing />
+      </NotificationProvider>
+    );
+    expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+    expect(screen.getByRole("textbox", { name: "Key name" })).toBe(name);
+    expect(name).toBeDisabled();
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspace} />
+      </NotificationProvider>
+    );
+    expect(await screen.findByRole("textbox", { name: "Key name" })).toHaveValue(
+      "Unsubmitted automation"
+    );
+    expect(screen.getByRole("checkbox", { name: /read expenses/i })).not.toBeChecked();
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+  });
+
+  it("retains the same one-time credential dialog during an unchanged access check", async () => {
+    const workspace = workspaceFixture("wsp_team");
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_once", token: "pwk_once_kept_local" });
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspace} />);
+    fireEvent.submit((await screen.findByRole("button", { name: "Create key" })).closest("form"));
+    const dialog = await screen.findByRole("dialog", { name: "New key created" });
+    const token = within(dialog).getByText("pwk_once_kept_local");
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspace} accessRefreshing />
+      </NotificationProvider>
+    );
+    expect(screen.getByRole("dialog", { name: "New key created" })).toBe(dialog);
+    expect(screen.getByText("pwk_once_kept_local")).toBe(token);
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen go={vi.fn()} workspace={workspace} />
+      </NotificationProvider>
+    );
+    expect(screen.getByText("pwk_once_kept_local")).toBe(token);
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps key drafts when an equivalent access response only reorders permissions and scopes", async () => {
+    const workspace = workspaceFixture("wsp_team");
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    const view = render(<ApiKeysScreen go={vi.fn()} workspace={workspace} />);
+    const name = await screen.findByRole("textbox", { name: "Key name" });
+    fireEvent.change(name, { target: { value: "Keep equivalent access draft" } });
+    view.rerender(
+      <NotificationProvider>
+        <ApiKeysScreen
+          go={vi.fn()}
+          workspace={{
+            ...workspace,
+            permissions: Object.fromEntries(Object.entries(workspace.permissions).reverse()),
+            scopes: [...workspace.scopes].reverse(),
+          }}
+        />
+      </NotificationProvider>
+    );
+    expect(screen.getByRole("textbox", { name: "Key name" })).toBe(name);
+    expect(name).toHaveValue("Keep equivalent access draft");
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes access only on an explicit project retry and retains its read lock through recovery", async () => {
+    const access = deferredPromise();
+    const page = deferredPromise();
+    const onReloadAccess = vi.fn().mockReturnValue(access.promise);
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    projects
+      .mockRejectedValueOnce(new Error("Projects unavailable"))
+      .mockReturnValueOnce(page.promise);
+    render(
+      <ApiKeysScreen
+        go={vi.fn()}
+        workspace={workspaceFixture("wsp_team")}
+        onReloadAccess={onReloadAccess}
+      />
+    );
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Limit to selected projects" }));
+    const retry = await screen.findByRole("button", { name: "Retry projects" });
+    expect(onReloadAccess).not.toHaveBeenCalled();
+    fireEvent.click(retry);
+    expect(onReloadAccess).toHaveBeenCalledTimes(1);
+    expect(projects).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+    await act(async () => access.resolve(true));
+    expect(projects).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+    await act(async () =>
+      page.resolve({
+        items: [projectFixture("prj_current", "Recovered project")],
+        nextCursor: null,
+      })
+    );
+    expect(await screen.findByRole("checkbox", { name: "Recovered project" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Create key" })).toBeEnabled();
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledTimes(1);
+  });
+
   it("does not refresh current access for an obsolete mutation rejection", async () => {
     const pending = deferredPromise();
     const onAccessChanged = vi.fn();

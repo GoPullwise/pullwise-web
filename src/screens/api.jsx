@@ -216,7 +216,13 @@ function ApiKeysLoadError({ error, onRetry, disabled = false }) {
   );
 }
 
-export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
+export function ApiKeysScreen({
+  go,
+  workspace = null,
+  onAccessChanged,
+  onReloadAccess,
+  accessRefreshing = false,
+}) {
   useLang();
   const allowedScopeValues = workspaceScopeValues(workspace);
   const workspaceId = workspace?.id;
@@ -227,7 +233,9 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     memberRevision,
     workspace?.permissionsRevision,
     workspace?.authorizationRevision,
-    workspace?.permissions,
+    Object.entries(workspace?.permissions || {}).sort(([left], [right]) =>
+      left.localeCompare(right)
+    ),
     allowedScopeValues,
   ]);
   const scopeValuesKey = allowedScopeValues.join(",");
@@ -248,14 +256,19 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const [projectPaginationBlocked, setProjectPaginationBlocked] = useState(false);
   const [allowShared, setAllowShared] = useState(false);
   const [createdCredential, setCreatedCredential] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [recordsLoading, setLoading] = useState(true);
+  const loading = recordsLoading || accessRefreshing;
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [renderedScope, setRenderedScope] = useState(scopeKey);
   const [pending, setPending] = useState("");
   const writing = Boolean(pending);
+  const controlsDisabled = writing || loading;
   const [error, setError] = useState("");
   const [revokeTarget, setRevokeTarget] = useState(null);
   const mutationInFlightRef = useRef(null);
+  const accessReloadRef = useRef(null);
+  const reloadAccessRef = useRef(onReloadAccess);
+  const accessRefreshingRef = useRef(accessRefreshing);
   const mountedRef = useRef(false);
   const activeScopeRef = useRef(scopeKey);
   const readControllerRef = useRef(null);
@@ -270,7 +283,11 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const createOpenerRef = useRef(null);
   activeScopeRef.current = scopeKey;
   accessChangedRef.current = onAccessChanged;
+  reloadAccessRef.current = onReloadAccess;
+  accessRefreshingRef.current = accessRefreshing;
   const currentScope = renderedScope === scopeKey;
+  const interactionBlocked = () =>
+    Boolean(mutationInFlightRef.current || accessReloadRef.current || accessRefreshingRef.current);
   const projectApi = useMemo(() => createLedgerApi(workspaceId), [workspaceId]);
   const matchingProjects = projectPage.items.filter((project) =>
     [project.label, project.description, project.repository]
@@ -314,41 +331,52 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     accessChangedRef.current?.(failure);
   }, []);
 
-  const load = useCallback(async () => {
-    if (!mountedRef.current || activeScopeRef.current !== scopeKey || mutationInFlightRef.current)
-      return;
-    readControllerRef.current?.abort();
-    const controller = new AbortController();
-    readControllerRef.current = controller;
-    const request = ++readRequestRef.current;
-    const current = () =>
-      mountedRef.current &&
-      !controller.signal.aborted &&
-      activeScopeRef.current === scopeKey &&
-      request === readRequestRef.current;
-    setLoading(true);
-    setError("");
-    try {
-      const payload = await pullwiseApi.apiKeys.list(workspaceId ? { workspaceId } : {}, {
-        signal: controller.signal,
-      });
-      if (!current()) return;
-      setKeys(itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey).filter(Boolean));
-      setLoadedOnce(true);
-    } catch (err) {
-      if (!current()) return;
-      handleAccessFailure(err);
-      setError(err?.message || T("Unable to load API keys.", "无法加载 API key。"));
-    } finally {
-      if (current()) setLoading(false);
-    }
-  }, [scopeKey, workspaceId, handleAccessFailure]);
+  const load = useCallback(
+    async (reloadTicket = null) => {
+      if (
+        !mountedRef.current ||
+        activeScopeRef.current !== scopeKey ||
+        mutationInFlightRef.current ||
+        (accessReloadRef.current && accessReloadRef.current !== reloadTicket)
+      )
+        return;
+      readControllerRef.current?.abort();
+      const controller = new AbortController();
+      readControllerRef.current = controller;
+      const request = ++readRequestRef.current;
+      const current = () =>
+        mountedRef.current &&
+        !controller.signal.aborted &&
+        activeScopeRef.current === scopeKey &&
+        request === readRequestRef.current;
+      setLoading(true);
+      setError("");
+      try {
+        const payload = await pullwiseApi.apiKeys.list(workspaceId ? { workspaceId } : {}, {
+          signal: controller.signal,
+        });
+        if (!current()) return;
+        setKeys(
+          itemsFrom(payload, "apiKeys", "keys", "items").map(normalizeApiKey).filter(Boolean)
+        );
+        setLoadedOnce(true);
+      } catch (err) {
+        if (!current()) return;
+        handleAccessFailure(err);
+        setError(err?.message || T("Unable to load API keys.", "无法加载 API key。"));
+      } finally {
+        if (current()) setLoading(false);
+      }
+    },
+    [scopeKey, workspaceId, handleAccessFailure]
+  );
 
-  const loadProjects = async (cursor = null) => {
+  const loadProjects = async (cursor = null, reloadTicket = null) => {
     if (
       !mountedRef.current ||
       activeScopeRef.current !== scopeKey ||
       mutationInFlightRef.current ||
+      (accessReloadRef.current && accessReloadRef.current !== reloadTicket) ||
       projectReadControllerRef.current
     )
       return;
@@ -414,9 +442,50 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     }
   };
 
+  const reloadWithAccess = async (read) => {
+    if (
+      !mountedRef.current ||
+      activeScopeRef.current !== scopeKey ||
+      mutationInFlightRef.current ||
+      accessReloadRef.current ||
+      accessRefreshingRef.current
+    )
+      return;
+    if (!reloadAccessRef.current) return read();
+    const ticket = {};
+    accessReloadRef.current = ticket;
+    const current = () =>
+      mountedRef.current &&
+      activeScopeRef.current === scopeKey &&
+      accessReloadRef.current === ticket;
+    // Cancel older page reads before checking membership. They must not
+    // restore protected rows or unlock the form while access is unknown.
+    readControllerRef.current?.abort();
+    readRequestRef.current += 1;
+    projectReadControllerRef.current?.abort();
+    projectReadRequestRef.current += 1;
+    projectReadControllerRef.current = null;
+    setProjectLoading(false);
+    setLoading(true);
+    try {
+      const unchanged = await reloadAccessRef.current();
+      if (!current() || unchanged !== true) return;
+      await read(ticket);
+    } catch (failure) {
+      if (current())
+        setError(failure?.message || T("Unable to load API keys.", "无法加载 API key。"));
+    } finally {
+      if (current()) {
+        accessReloadRef.current = null;
+        setLoading(false);
+      }
+    }
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     mutationInFlightRef.current = null;
+    accessReloadRef.current = null;
     setRenderedScope(scopeKey);
     setKeys([]);
     setCreatedCredential(null);
@@ -445,11 +514,12 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       projectReadControllerRef.current?.abort();
       projectReadControllerRef.current = null;
       mutationInFlightRef.current = null;
+      accessReloadRef.current = null;
     };
   }, [scopeKey, load, defaultScopes]);
 
   const toggleScope = (scopeValue) => {
-    if (mutationInFlightRef.current || !allowedScopeValues.includes(scopeValue)) return;
+    if (interactionBlocked() || !allowedScopeValues.includes(scopeValue)) return;
     setSelectedScopes((current) => {
       const next = current.includes(scopeValue)
         ? current.filter((scope) => scope !== scopeValue)
@@ -459,7 +529,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const toggleProjectRestriction = (checked) => {
-    if (mutationInFlightRef.current) return;
+    if (interactionBlocked()) return;
     setRestrictProjects(checked);
     if (checked) {
       if (!projectPage.loaded) loadProjects();
@@ -474,7 +544,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const toggleProject = (projectId) => {
     if (
       !currentScope ||
-      mutationInFlightRef.current ||
+      interactionBlocked() ||
       !projectPage.items.some((project) => project.id === projectId)
     )
       return;
@@ -491,6 +561,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       createdCredential?.token ||
       revokeTarget ||
       mutationInFlightRef.current ||
+      accessReloadRef.current ||
+      accessRefreshingRef.current ||
       loading ||
       !loadedOnce ||
       !allowedScopeValues.length
@@ -579,6 +651,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       loading ||
       !loadedOnce ||
       !keyId ||
+      accessReloadRef.current ||
+      accessRefreshingRef.current ||
       mutationInFlightRef.current
     )
       return;
@@ -615,6 +689,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       loading ||
       !loadedOnce ||
       !key?.id ||
+      accessReloadRef.current ||
+      accessRefreshingRef.current ||
       mutationInFlightRef.current
     )
       return;
@@ -643,7 +719,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
         />
         <ConsoleLayout>
           <Sidebar section="apiKeys" go={go} navigationDisabled={writing} />
-          <div className="main" role="main" aria-busy={writing}>
+          <div className="main" role="main" aria-busy={controlsDisabled}>
             <div className="page-h">
               <div>
                 <h1>{T("API Keys", "API 密钥")}</h1>
@@ -658,6 +734,16 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                 <a className="btn" {...screenLinkProps(go, "api", {}, writing)}>
                   <I.FileCode size={14} /> {T("API docs", "API 文档")}
                 </a>
+                <button
+                  className="btn ghost"
+                  type="button"
+                  aria-label={T("Reload")}
+                  title={T("Reload")}
+                  disabled={controlsDisabled || !currentScope}
+                  onClick={() => reloadWithAccess(load)}
+                >
+                  <I.Refresh size={14} aria-hidden="true" />
+                </button>
               </div>
             </div>
 
@@ -673,16 +759,25 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                 </a>
               </aside>
 
-              {loading || !currentScope ? (
+              {(recordsLoading && !loadedOnce) || !currentScope ? (
                 <ApiKeysSkeleton />
               ) : error && !loadedOnce ? (
-                <ApiKeysLoadError error={error} onRetry={load} disabled={writing} />
+                <ApiKeysLoadError
+                  error={error}
+                  onRetry={() => reloadWithAccess(load)}
+                  disabled={controlsDisabled}
+                />
               ) : (
                 <div className="set-body">
                   {error && (
                     <div className="notice notice-error" role="status" aria-live="polite">
                       <p>{error}</p>
-                      <button type="button" className="btn sm" onClick={load} disabled={writing}>
+                      <button
+                        type="button"
+                        className="btn sm"
+                        onClick={() => reloadWithAccess(load)}
+                        disabled={controlsDisabled}
+                      >
                         <I.Refresh size={12} /> {T("Retry", "Retry")}
                       </button>
                     </div>
@@ -705,9 +800,9 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           <I.Code size={14} />
                           <input
                             value={name}
-                            disabled={writing}
+                            disabled={controlsDisabled}
                             onChange={(event) => {
-                              if (!mutationInFlightRef.current) setName(event.target.value);
+                              if (!interactionBlocked()) setName(event.target.value);
                             }}
                             placeholder={T("Automation key", "自动化密钥")}
                           />
@@ -751,7 +846,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                 <input
                                   type="checkbox"
                                   checked={checked}
-                                  disabled={writing}
+                                  disabled={controlsDisabled}
                                   onChange={() => toggleScope(scope.value)}
                                 />
                                 <span className="api-scope-copy">
@@ -777,7 +872,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           <input
                             type="checkbox"
                             checked={restrictProjects}
-                            disabled={Boolean(pending)}
+                            disabled={controlsDisabled}
                             onChange={(event) => toggleProjectRestriction(event.target.checked)}
                           />
                           {T("Limit to selected projects", "仅允许所选项目")}
@@ -803,10 +898,10 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                     id={projectSearchId}
                                     type="search"
                                     value={projectQuery}
-                                    disabled={Boolean(pending)}
+                                    disabled={controlsDisabled}
                                     placeholder={T("Find a project", "查找项目")}
                                     onChange={(event) => {
-                                      if (!mutationInFlightRef.current)
+                                      if (!interactionBlocked())
                                         setProjectQuery(event.target.value);
                                     }}
                                   />
@@ -814,11 +909,11 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                     <button
                                       className="btn ghost sm"
                                       type="button"
-                                      disabled={Boolean(pending)}
+                                      disabled={controlsDisabled}
                                       aria-label={T("Clear search", "清除搜索")}
                                       title={T("Clear search", "清除搜索")}
                                       onClick={() => {
-                                        if (mutationInFlightRef.current) return;
+                                        if (interactionBlocked()) return;
                                         setProjectQuery("");
                                         projectSearchRef.current?.focus({ preventScroll: true });
                                       }}
@@ -840,10 +935,13 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                   <button
                                     className="btn"
                                     type="button"
-                                    disabled={projectLoading || Boolean(pending)}
+                                    disabled={projectLoading || controlsDisabled}
                                     onClick={() =>
-                                      loadProjects(
-                                        projectPaginationBlocked ? null : projectRetryCursor
+                                      reloadWithAccess((ticket) =>
+                                        loadProjects(
+                                          projectPaginationBlocked ? null : projectRetryCursor,
+                                          ticket
+                                        )
                                       )
                                     }
                                   >
@@ -869,7 +967,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                             aria-label={project.label}
                                             checked={checked}
                                             disabled={
-                                              Boolean(pending) ||
+                                              controlsDisabled ||
                                               (!checked && selectedProjectIds.length >= 100)
                                             }
                                             onChange={() => toggleProject(project.id)}
@@ -933,7 +1031,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                   <button
                                     className="btn"
                                     type="button"
-                                    disabled={projectLoading || Boolean(pending)}
+                                    disabled={projectLoading || controlsDisabled}
                                     onClick={() => loadProjects(projectPage.nextCursor)}
                                   >
                                     {T("Load more projects", "加载更多项目")}
@@ -966,10 +1064,9 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           <input
                             type="checkbox"
                             checked={allowShared}
-                            disabled={Boolean(pending)}
+                            disabled={controlsDisabled}
                             onChange={(event) => {
-                              if (!mutationInFlightRef.current)
-                                setAllowShared(event.target.checked);
+                              if (!interactionBlocked()) setAllowShared(event.target.checked);
                             }}
                           />
                           {T("Allow shared expense pool", "允许访问公共池")}
@@ -986,7 +1083,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           className="btn primary"
                           type="submit"
                           disabled={
-                            Boolean(pending) ||
+                            controlsDisabled ||
                             !allowedScopeValues.length ||
                             (restrictProjects &&
                               (!projectPage.loaded || projectLoading || Boolean(projectError)))
@@ -1034,7 +1131,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           </div>
                           <button
                             className="btn sm"
-                            disabled={Boolean(pending)}
+                            disabled={controlsDisabled}
                             onClick={() => requestRevokeKey(key)}
                           >
                             <I.X size={13} /> {T("Revoke", "吊销")}
@@ -1083,7 +1180,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
           if (!mutationInFlightRef.current) setRevokeTarget(null);
         }}
         onConfirm={() => revokeKey(revokeTarget?.id)}
-        busy={writing}
+        busy={controlsDisabled}
         danger
         backgroundRef={revokeBackgroundRef}
         dialogId="revoke-api-key"
