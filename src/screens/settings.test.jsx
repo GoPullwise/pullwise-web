@@ -10,6 +10,7 @@ import { SettingsScreen } from "./settings.jsx";
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     auth: { getSession: vi.fn(), requestEmailCode: vi.fn(), verifyEmailCode: vi.fn() },
+    account: { getJev: vi.fn(), updateJev: vi.fn() },
     integrations: { list: vi.fn() },
   },
 }));
@@ -65,6 +66,13 @@ describe("product settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     pullwiseApi.auth.getSession.mockResolvedValue(session);
+    pullwiseApi.account.getJev.mockResolvedValue({
+      enabled: true,
+      revision: 7,
+      eligible: true,
+      available: true,
+      monthlyBudgetUsd: "3",
+    });
     pullwiseApi.auth.requestEmailCode.mockResolvedValue({
       challengeId: "email_1",
       expiresIn: 600,

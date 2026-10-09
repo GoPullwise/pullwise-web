@@ -39,6 +39,14 @@ const SECTIONS = [
     ],
   },
   {
+    id: "jev-settings",
+    title: ["Jev settings", "Jev 设置"],
+    text: [
+      "In Settings, Pro and Max account owners can enable or disable Jev for their own ledger and its shared members. The preference belongs to your account, regardless of the selected shared ledger; that ledger follows its own Owner's preference. Free accounts display a disabled Off switch. Turning Jev off stops model choices and scores without changing saved expenses, resetting used allowance or removing paid local duplicate checks. A saved On preference stays On when the service is temporarily unavailable. Changes are confirmed by the server; after a conflict or refresh failure, reload explicitly before choosing again.",
+      "在设置中，Pro 和 Max 账户所有者可以为自己的账本及其共享成员启用或关闭 Jev。偏好属于你的账户，与当前选中的共享账本无关；共享账本遵循其自身 Owner 的偏好。Free 账户显示禁用的关闭开关。关闭 Jev 会停止模型选项和评分，不会修改已保存支出、重置已使用额度，也不会移除付费账本的本地疑似重复检查。服务暂不可用时，已保存的开启偏好仍保持开启。改动由服务端确认；发生冲突或刷新失败后，请手动重新加载再选择。",
+    ],
+  },
+  {
     id: "expense-review",
     title: ["Review saved expenses", "检查已保存支出"],
     text: [

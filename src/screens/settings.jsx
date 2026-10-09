@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
 import { EmailSignIn } from "../components/email-sign-in.jsx";
@@ -7,20 +7,46 @@ import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
+import "./settings.css";
+
+function validJevSettings(value) {
+  return (
+    value &&
+    typeof value.enabled === "boolean" &&
+    Number.isSafeInteger(value.revision) &&
+    value.revision > 0 &&
+    typeof value.eligible === "boolean" &&
+    typeof value.available === "boolean" &&
+    (!value.available || (value.eligible && value.enabled)) &&
+    typeof value.monthlyBudgetUsd === "string" &&
+    /^\d+(?:\.\d+)?$/.test(value.monthlyBudgetUsd)
+  );
+}
 
 export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   useLang();
+  const jevDescriptionId = useId();
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [managingInstallationId, setManagingInstallationId] = useState("");
+  const [jevSettings, setJevSettings] = useState(null);
+  const [jevReloadRequired, setJevReloadRequired] = useState(false);
   const requestRef = useRef(0);
   const actionRef = useRef(false);
   const emailActionRef = useRef(false);
   const mountedRef = useRef(false);
   const loadControllerRef = useRef(null);
+  const jevOperationRef = useRef(null);
+  const sessionRef = useRef(session);
+  const jevRef = useRef(jevSettings);
+  const jevSwitchRef = useRef(null);
+  const jevDescriptionRef = useRef(null);
+  const jevFocusRef = useRef(null);
+  sessionRef.current = session;
+  jevRef.current = jevSettings;
   const onOperationBusyRef = useRef(onOperationBusy);
   onOperationBusyRef.current = onOperationBusy;
 
@@ -32,19 +58,38 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     const requestId = ++requestRef.current;
     setLoading(true);
     setError("");
-    const [sessionResult, integrationsResult] = await Promise.allSettled([
+    const [sessionResult, integrationsResult, jevResult] = await Promise.allSettled([
       pullwiseApi.auth.getSession({ signal: controller.signal }),
       pullwiseApi.integrations.list({ signal: controller.signal }),
+      pullwiseApi.account.getJev({ signal: controller.signal }),
     ]);
     if (controller.signal.aborted || requestId !== requestRef.current) return;
     if (loadControllerRef.current === controller) loadControllerRef.current = null;
     setSession(sessionResult.status === "fulfilled" ? sessionResult.value : null);
     setIntegrations(integrationsResult.status === "fulfilled" ? integrationsResult.value : null);
+    const jevConfirmed =
+      sessionResult.status === "fulfilled" &&
+      sessionResult.value?.authenticated &&
+      sessionResult.value?.user?.id &&
+      jevResult.status === "fulfilled" &&
+      validJevSettings(jevResult.value);
+    setJevSettings(jevConfirmed ? jevResult.value : null);
+    setJevReloadRequired(!jevConfirmed);
     setError(
       [sessionResult, integrationsResult]
         .filter((result) => result.status === "rejected")
         .map(
           (result) => result.reason?.message || T("Account data unavailable.", "账户数据暂不可用。")
+        )
+        .concat(
+          jevConfirmed
+            ? []
+            : [
+                T(
+                  "Jev settings could not be loaded. Reload to try again.",
+                  "无法读取 Jev 设置，请重新加载后重试。"
+                ),
+              ]
         )
         .join(" ")
     );
@@ -58,6 +103,9 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
       mountedRef.current = false;
       requestRef.current += 1;
       loadControllerRef.current?.abort();
+      jevOperationRef.current?.controller.abort();
+      jevOperationRef.current = null;
+      jevFocusRef.current = null;
       onOperationBusyRef.current?.(false);
     };
   }, [load]);
@@ -106,6 +154,104 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     }
   };
   const controlsDisabled = busy || loading;
+
+  useEffect(() => {
+    if (controlsDisabled || !jevFocusRef.current) return;
+    const pending = jevFocusRef.current;
+    jevFocusRef.current = null;
+    if (session?.user?.id !== pending.identity) return;
+    if (document.activeElement !== jevDescriptionRef.current) return;
+    if (!jevReloadRequired && jevSettings?.eligible) jevSwitchRef.current?.focus();
+  }, [controlsDisabled, jevReloadRequired, jevSettings, session]);
+
+  const updateJev = async (enabled) => {
+    const current = jevRef.current;
+    const identity = sessionRef.current?.user?.id;
+    if (
+      !mountedRef.current ||
+      actionRef.current ||
+      loading ||
+      loadControllerRef.current ||
+      jevReloadRequired ||
+      !identity ||
+      !sessionRef.current?.authenticated ||
+      !validJevSettings(current) ||
+      !current.eligible ||
+      enabled === current.enabled ||
+      typeof enabled !== "boolean"
+    )
+      return;
+    if (onOperationBusyRef.current?.(true) === false) return;
+    const operation = {
+      controller: new AbortController(),
+      identity,
+      requestId: requestRef.current,
+    };
+    jevOperationRef.current = operation;
+    actionRef.current = true;
+    if (document.activeElement === jevSwitchRef.current) {
+      jevFocusRef.current = { identity };
+      jevDescriptionRef.current?.focus();
+    }
+    setBusy(true);
+    setError("");
+    const live = () =>
+      mountedRef.current &&
+      jevOperationRef.current === operation &&
+      !operation.controller.signal.aborted &&
+      requestRef.current === operation.requestId &&
+      sessionRef.current?.user?.id === identity;
+    let accepted = false;
+    try {
+      const confirmed = await pullwiseApi.account.updateJev(current.revision, enabled, {
+        signal: operation.controller.signal,
+      });
+      if (!live()) return;
+      if (
+        !validJevSettings(confirmed) ||
+        confirmed.enabled !== enabled ||
+        confirmed.revision !== current.revision + 1
+      )
+        throw new Error("Invalid Jev preference response");
+      accepted = true;
+      setJevSettings(confirmed);
+      const refreshed = await pullwiseApi.account.getJev({ signal: operation.controller.signal });
+      if (!live()) return;
+      if (!validJevSettings(refreshed) || refreshed.revision < confirmed.revision)
+        throw new Error("Invalid Jev preference refresh");
+      setJevSettings(refreshed);
+      setJevReloadRequired(false);
+    } catch (failure) {
+      if (!live()) return;
+      setJevReloadRequired(true);
+      if (failure?.status === 401 || failure?.status === 403) setJevSettings(null);
+      setError(
+        accepted
+          ? T(
+              "Jev preference was saved, but current status could not be refreshed. Reload before changing it again.",
+              "Jev 偏好已保存，但无法刷新当前状态。再次修改前请重新加载。"
+            )
+          : failure?.status === 412
+            ? T(
+                "Jev settings changed elsewhere. Reload and choose again.",
+                "Jev 设置已在其他位置更改，请重新加载后再选择。"
+              )
+            : failure?.code === "JEV_PLAN_REQUIRED"
+              ? T("Jev settings require Pro or Max.", "Jev 设置需要 Pro 或 Max 权益。")
+              : T(
+                  "Jev settings could not be saved. Reload before trying again.",
+                  "无法保存 Jev 设置，请重新加载后再试。"
+                )
+      );
+    } finally {
+      if (jevOperationRef.current === operation) {
+        jevOperationRef.current = null;
+        actionRef.current = false;
+        onOperationBusyRef.current?.(false);
+        if (mountedRef.current) setBusy(false);
+      }
+    }
+  };
 
   const emailBusy = (active) => {
     if (active) {
@@ -241,6 +387,83 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
                 </p>
               )
             )}
+          </section>
+          <section className="panel settings-jev-panel" aria-label={T("Jev settings", "Jev 设置")}>
+            <h2>{T("Jev settings", "Jev 设置")}</h2>
+            <p className="muted" id={jevDescriptionId} ref={jevDescriptionRef} tabIndex={0}>
+              {T(
+                "Controls Jev for your own ledger and its shared members. Other owners control their own ledgers.",
+                "此设置控制你自己的账本及其共享成员使用 Jev；其他所有者自行控制各自的账本。"
+              )}
+            </p>
+            <label
+              className={`settings-jev-control${controlsDisabled || jevReloadRequired || !jevSettings?.eligible ? " settings-jev-control-disabled" : ""}`}
+            >
+              <input
+                ref={jevSwitchRef}
+                type="checkbox"
+                role="switch"
+                aria-describedby={jevDescriptionId}
+                checked={jevSettings?.eligible === true && jevSettings.enabled === true}
+                disabled={controlsDisabled || jevReloadRequired || !jevSettings?.eligible}
+                onChange={(event) => updateJev(event.target.checked)}
+              />
+              <span>{T("Enable Jev", "启用 Jev")}</span>
+            </label>
+            {loading ? (
+              <p className="muted">{T("Loading...", "正在加载...")}</p>
+            ) : !jevSettings ? (
+              <p className="muted">
+                {T(
+                  "Jev settings are unavailable until reloaded.",
+                  "重新加载成功后才能使用 Jev 设置。"
+                )}
+              </p>
+            ) : !jevSettings.eligible ? (
+              <>
+                <p className="muted">
+                  {T("Jev settings require Pro or Max.", "Jev 设置需要 Pro 或 Max 权益。")}
+                </p>
+                <button
+                  className="btn sm"
+                  disabled={controlsDisabled}
+                  onClick={() => {
+                    if (!actionRef.current) go("pricing");
+                  }}
+                >
+                  {T("View plans", "查看套餐")}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="muted" role="status">
+                  {!jevSettings.enabled
+                    ? T(
+                        "Jev model checks are off. Local duplicate checks remain available.",
+                        "Jev 模型检查已关闭，仍可使用本地疑似重复检查。"
+                      )
+                    : jevSettings.available
+                      ? T(
+                          "Jev model choices and scores are enabled.",
+                          "已启用 Jev 模型选项和评分。"
+                        )
+                      : T(
+                          "Jev is currently unavailable. Your saved preference is on.",
+                          "Jev 当前暂不可用，你保存的偏好仍为开启。"
+                        )}
+                </p>
+                <p className="muted settings-jev-budget">
+                  {T("Monthly model allowance (USD)", "月度模型额度（美元）")}:{" "}
+                  {jevSettings.monthlyBudgetUsd}
+                </p>
+              </>
+            )}
+            <p className="muted">
+              {T(
+                "Turning Jev off stops model checks without changing saved expenses or resetting used allowance.",
+                "关闭 Jev 会停止模型检查，不会修改已保存的支出，也不会重置已使用的额度。"
+              )}
+            </p>
           </section>
           <section className="panel" aria-label={T("GitHub access", "GitHub 授权")}>
             <h2>{T("GitHub access", "GitHub 授权")}</h2>

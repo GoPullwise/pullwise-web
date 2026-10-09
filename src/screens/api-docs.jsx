@@ -58,6 +58,8 @@ const REVIEW_RESPONSE =
   "A review returns expenseId, revision, questionVersion, modelVersion, optional suggestionId and checks. Category and target checks use checked, issue, uncertain or unavailable, with current values and optional suggested values and confidence. Jev returns only predefined choices and scores. Optional reason values are fixed codes: disabled, provider_unavailable, no_categories or invalid_context. Duplicate checks use local rules on up to 30 other expenses with the same authorized target, amount and currency, a matching case-insensitive purpose and dates within seven days of the reviewed expense. The duplicate status is checked or issue; an issue may include candidate {id, revision}, without expense details. Local duplicate checks can remain available when the model is unavailable. Uncertain or unavailable does not mean a clear result. To edit, first GET the current expense with expenses:read, then explicitly PATCH it with expenses:write and the fresh If-Match revision.";
 const EXACT_TOTALS =
   "Single expense amountMinor values are safe integers. Aggregate amountMinor totals are numbers up to 9007199254740991 and exact decimal integer strings above that boundary; parse large totals with BigInt or decimal arithmetic.";
+const ACCOUNT_JEV =
+  "GET and PATCH /api/v1/account/jev require a cookie session and operate on the signed-in account's own ledger preference, independently of workspace selection. API keys cannot use these endpoints. The response contains enabled, revision, eligible, available and monthlyBudgetUsd. enabled is the stored preference; available also requires an effective Pro or Max plan and runtime availability. PATCH accepts only {enabled: boolean} and requires If-Match with the preference revision; Free accounts cannot write. A 412 conflict requires an explicit GET before another user choice. These endpoints do not run model checks, change expenses or reset used allowance. Shared ledger members inherit their ledger Owner's preference; paid local duplicate checks remain possible when model checks are off.";
 
 function markdown(base, example, createExample, projectExample, reviewExample) {
   return [
@@ -103,6 +105,10 @@ function markdown(base, example, createExample, projectExample, reviewExample) {
     CATEGORY_BEHAVIOR,
     "",
     ASSISTANCE_RESPONSE,
+    "",
+    "## Jev settings",
+    "",
+    ACCOUNT_JEV,
     "",
     "```sh",
     createExample,
@@ -165,6 +171,7 @@ export function ApiDocsScreen({ go, auth }) {
     ["reference", "Complete API reference"],
     ["filters", "Filters and writes"],
     ["max-assistance", "Automatic Jev assistance"],
+    ["jev-settings", "Jev settings"],
     ["expense-review", "Review saved expenses"],
     ["troubleshooting", "Error responses and recovery"],
   ];
@@ -265,6 +272,15 @@ export function ApiDocsScreen({ go, auth }) {
             {projectExample}
           </DocsCode>
           <ApiIntegrationGuide base={base} ids={["writes", "project-management", "recurring", "members", "activity"]} />
+          <h2 id="jev-settings" className="docs-h2">
+            {T("Jev settings", "Jev 设置")}
+          </h2>
+          <p>
+            {T(
+              ACCOUNT_JEV,
+              "GET 和 PATCH /api/v1/account/jev 需要 Cookie 会话，操作当前登录账户自己账本的偏好，与工作区选择无关。API 密钥不能使用这些接口。响应包含 enabled、revision、eligible、available 和 monthlyBudgetUsd。enabled 是已保存偏好；available 还要求 Pro 或 Max 权益有效且运行时可用。PATCH 仅接受 {enabled: boolean}，并须使用偏好版本传入 If-Match；Free 账户不能写入。412 冲突后须先主动 GET，再由用户重新选择。这些接口不会运行模型检查、修改支出或重置已使用额度。共享账本成员继承各自账本 Owner 的偏好；模型关闭时，付费账本仍可进行本地疑似重复检查。"
+            )}
+          </p>
           <h2 id="filters" className="docs-h2">
             {T("Filters and writes", "筛选与写入")}
           </h2>

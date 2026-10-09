@@ -15,6 +15,7 @@ vi.mock("./api/pullwise.js", () => ({
       requestEmailCode: vi.fn(),
       verifyEmailCode: vi.fn(),
     },
+    account: { getJev: vi.fn(), updateJev: vi.fn() },
     integrations: { list: vi.fn(), getGitHubAuthorizeUrl: vi.fn() },
   },
 }));
@@ -77,6 +78,13 @@ beforeEach(() => {
   });
   window.history.replaceState({}, "", "/");
   pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
+  pullwiseApi.account.getJev.mockResolvedValue({
+    enabled: true,
+    revision: 7,
+    eligible: true,
+    available: true,
+    monthlyBudgetUsd: "3",
+  });
   pullwiseApi.auth.requestEmailCode.mockResolvedValue({
     challengeId: "email_challenge",
     expiresIn: 600,
