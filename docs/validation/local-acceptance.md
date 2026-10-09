@@ -37,6 +37,16 @@ These are local browser-engine and emulation checks, not physical-device or
 live-account acceptance. Firefox remains unavailable under the previously
 recorded managed-runtime uid-mapping/SWGL limitation; its CI checks stay enabled.
 
+Source `a396e6e` was pushed to GitHub main and deployed as Web preview version
+`7e1d76f6-8a15-473e-86e2-d0992a806912`; deployment metadata confirms 100% traffic.
+One homepage and three exact hashed-asset GETs all returned 200. The noindex
+homepage references `/assets/index-B0LMEhSI.js`; that entry,
+`/assets/financial-value-Bbfxr_y0.js` and `/assets/index-CxZX2pQg.css` match the
+accepted local build byte for byte. No redirects, retries, page JavaScript,
+business API, Server/D1 or production operation occurred. The main Actions query
+failed with an HTTP 401 credential error; remote CI success is not claimed.
+This publication record changes documentation only and needs no extra deployment.
+
 ## Expense action stacks and category title rename (2026-10-09)
 
 Ordinary project and Shared Pool expense rows now place the exact amount above
