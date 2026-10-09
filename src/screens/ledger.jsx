@@ -580,6 +580,7 @@ function ExpenseForm({
   const noteId = useId();
   const categoryFieldId = useId();
   const expenseTypeId = useId();
+  const recurringDateHelpId = useId();
   const [expenseType, setExpenseType] = useState(recurrence ? "recurring" : "one-time");
   const [schedule, setSchedule] = useState(() => {
     const now = new Date();
@@ -747,7 +748,11 @@ function ExpenseForm({
           expenseType === "recurring"
             ? T("Start date (on or after)", "起始日期（当日或之后）")
             : T("Date"),
-          { type: "date", required: true }
+          {
+            type: "date",
+            required: true,
+            "aria-describedby": expenseType === "recurring" ? recurringDateHelpId : undefined,
+          }
         )}
         {field("amount", T("Amount"), {
           inputMode: "decimal",
@@ -789,6 +794,12 @@ function ExpenseForm({
               setSchedule(next);
             }}
           />
+          <p className="ledger-help" id={recurringDateHelpId}>
+            {T(
+              "The start date is the earliest date the schedule can run. Repeat dates follow the selected weekday or day of month; changing the start date does not change them. Save the schedule to apply changes.",
+              "起始日期是计划最早可执行的日期。重复日期由所选星期或每月几号决定，修改起始日期不会改变重复日期；保存周期计划后改动才会生效。"
+            )}
+          </p>
           {schedule.frequency !== "weekly" && (
             <p className="ledger-help">
               {T(
