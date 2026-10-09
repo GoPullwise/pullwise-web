@@ -18,6 +18,11 @@ at most 87 fixture requests per context with a 100-request ceiling and no extern
 delivery. The desktop and Chinese mobile screenshots were visually reviewed.
 This evidence does not claim real-account, Safari or physical-device acceptance.
 
+[Preview receipt](category-removal-preview-release-2026-10-09.json) records
+Web version `54bfb188-c016-4f96-9f35-0c8d576a20ae`. Four finite static GETs verify
+the homepage's frozen asset references and exact bytes of three hashed assets;
+the existing preview Server binding and schedules are preserved.
+
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
 ## Recent operation history and topbar label (2026-10-09)
