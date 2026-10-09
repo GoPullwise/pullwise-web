@@ -1,5 +1,39 @@
 # Current local acceptance
 
+## Current membership permissions and old invitation links (2026-10-09)
+
+Accepted invitation links display the current member role, not the link's initial
+role. Reopening a hash reconciles cached access from a confirmed membership;
+Open shared ledger selects from freshly read current workspaces and clears the
+hash without accepting again. Explicit Reload, scoped navigation and confirmed
+session return refresh authority. Changed role, revision or permissions remount
+protected views; stale identity/ledger responses cannot restore access.
+Read checks have no polling or business writes and defer through an existing
+mutation and required refresh. Unchanged authority preserves drafts and API-key
+form DOM; project-removal conflict Reload preserves unsaved settings and CAS.
+
+The complete suite passes **953 tests in 50 files**, lint, build and offline
+Worker checks at `a3afe7a`. After retaining concurrent main's recurring-date
+help update (`7e4bc44`), the final `f1133d6` artifact passes **164 integrated
+tests in four files**, lint and a preview-configured build. Both concurrent
+main features remain intact; no project-removal or recurring behavior was added
+by this permissions patch.
+
+The frozen final build passes **12 local Chromium contexts**, 478 intercepted
+requests, at most 72/context with a 100-request cap. Old Viewer links promoted
+to Admin, later downgrade/removal, same-hash reopening, hard reload from personal
+selection, stale responses, held write/read deferral and API Keys at 390px in both
+themes pass. Settled desktop and mobile screenshots were visually reviewed.
+Fixtures do not claim a real DF browser session, Safari or physical devices.
+A separate actual preview membership lookup confirms current Admin, with
+18 rows read and zero writes; private identity and invitation tokens are omitted.
+
+[Preview receipt](member-role-sync-preview-release-2026-10-09.json) records Web
+version `f622fa30-cfdf-480d-a9df-a349e94fc67a`. Four finite static GETs verify
+homepage asset references and exact bytes of three hashed assets. Server version,
+original database/journal, bindings and schedules are preserved. The live journal
+stays healthy; its window delta includes other traffic and is not deployment cost.
+
 ## Explicit category removal (2026-10-09)
 
 Categories offers Remove on active and archived rows with named confirmation,

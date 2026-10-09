@@ -1,0 +1,307 @@
+{
+  "date": "2026-10-09",
+  "passed": true,
+  "scope": "Current workspace permissions and accepted old invitation links; preview Web only",
+  "webSourceCommit": "f1133d690aecfa6d20f0f1df5f27cd836463578e",
+  "webVersion": "f622fa30-cfdf-480d-a9df-a349e94fc67a",
+  "serverVersionUnchanged": true,
+  "serverVersion": "012c2be6-2e25-4c58-9e2d-996b33bd35ef",
+  "schemaVersion": 10,
+  "bindingsPreserved": true,
+  "schedulesPreserved": true,
+  "productionD1Paused": true,
+  "remoteBusinessMutations": 0,
+  "remoteProviderCalls": 0,
+  "realAccountWorkflowAcceptance": false,
+  "actualMembershipReadback": {
+    "date": "2026-10-09",
+    "actualReadOnlyCheck": true,
+    "currentRole": "admin",
+    "currentMemberRevision": 15,
+    "originalInvitationRoles": [
+      "viewer",
+      "editor",
+      "admin"
+    ],
+    "meta": {
+      "rowsRead": 18,
+      "rowsWritten": 0,
+      "changedDb": false,
+      "totalAttempts": 1
+    }
+  },
+  "checks": {
+    "fullSuite": {
+      "sourceCommit": "a3afe7a",
+      "passed": 953,
+      "files": 50,
+      "lint": true,
+      "build": true,
+      "offlineWorker": true
+    },
+    "afterConcurrentRecurringHelpMerge": {
+      "sourceCommit": "f1133d6",
+      "passed": 164,
+      "files": 4,
+      "lint": true,
+      "previewBuild": true
+    },
+    "concurrentMainPreserved": [
+      "7372f4f",
+      "7e4bc44"
+    ]
+  },
+  "browserLocal": {
+    "passed": true,
+    "scope": "Loopback-only synthetic B membership fixtures; GET, read-only invitation-preview POST and one deliberately held synthetic category create; no remote/user/provider/D1 operations",
+    "engine": {
+      "name": "Chromium",
+      "version": "151.0.7922.173",
+      "playwright": "1.62.1",
+      "physicalDevice": false
+    },
+    "buildIndexSha256": "0590583ca099805c791a5d84c3aabb8ce94fc58c194632326469b5c9b212ab17",
+    "head": "f1133d690aecfa6d20f0f1df5f27cd836463578e",
+    "requestCapPerContext": 100,
+    "totalContexts": 12,
+    "totalRequests": 478,
+    "maxRequestsPerContext": 72,
+    "zeroFixtureViolations": true,
+    "capturesAreSettled": true,
+    "cases": [
+      {
+        "name": "viewer-to-admin-explicit-page-reload",
+        "requests": 38,
+        "violations": 0,
+        "checks": [
+          "Page Reload refreshes actual workspace membership revision1→2, replacing original invitation viewer role with current Admin permissions",
+          "Published category Remove confirmation/cancel remains available for Admin, no mutation",
+          "Promoted Admin can add project and shared expense after SPA navigation"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "viewer-to-admin-confirmed-auth-tab-return",
+        "requests": 30,
+        "violations": 0,
+        "checks": [
+          "Tab return confirms auth before bounded current-workspace refresh and displays promoted Admin controls"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "fresh-admin-members-key-scopes",
+        "requests": 36,
+        "violations": 0,
+        "checks": [
+          "Current Admin Members invite/editor management visible; owner/Admin management remains forbidden",
+          "Current Admin receives projects/categories/expenses write and suggestions scopes"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "admin-to-viewer-explicit-page-refresh",
+        "requests": 38,
+        "violations": 0,
+        "checks": [
+          "Explicit read refresh obtains current Viewer permission and drops destructive confirmation",
+          "Demoted Viewer remains read-only after project/shared navigation"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "admin-members-current-viewer-after-navigation",
+        "requests": 34,
+        "violations": 0,
+        "checks": [
+          "Navigation observes current Viewer role; Members administration and all write API-key scopes disappear"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "membership-revoked-falls-back-personal",
+        "requests": 29,
+        "violations": 0,
+        "checks": [
+          "Revoked shared membership triggers bounded descriptor refresh and removes shared data/selection"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "stale-inflight-old-ledger-cannot-invalidate-new-ledger",
+        "requests": 30,
+        "violations": 0,
+        "checks": [
+          "Read-only navigation remains available; stale shared-membership403 cannot invalidate newly selected personal ledger"
+        ],
+        "nonGet": []
+      },
+      {
+        "name": "confirmed-auth-permission-refresh-defers-during-write",
+        "requests": 32,
+        "violations": 0,
+        "checks": [
+          "Confirmed-auth refresh queues through independently held write and required read, preserves disabled draft view, then applies Viewer after both finish"
+        ],
+        "nonGet": [
+          {
+            "path": "/api/v1/categories",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      {
+        "name": "old-viewer-invite-hash-refresh-current-admin-and-downgrade",
+        "requests": 72,
+        "violations": 0,
+        "checks": [
+          "Same old accepted Viewer hash shows current Admin banner/management, opens shared ledger and clears hash without restoring invitation role; reuse after downgrade shows current Viewer; reuse after removal yields canonical410INVITATION_ACCEPTED with no Open/rejoin/shared selection or mutation"
+        ],
+        "nonGet": [
+          {
+            "path": "/api/v1/workspace-invitations/preview",
+            "method": "POST",
+            "status": 200,
+            "initialRole": "viewer",
+            "currentRole": "admin",
+            "currentRevision": 2
+          },
+          {
+            "path": "/api/v1/workspace-invitations/preview",
+            "method": "POST",
+            "status": 200,
+            "initialRole": "viewer",
+            "currentRole": "admin",
+            "currentRevision": 2
+          },
+          {
+            "path": "/api/v1/workspace-invitations/preview",
+            "method": "POST",
+            "status": 200,
+            "initialRole": "viewer",
+            "currentRole": "viewer",
+            "currentRevision": 3
+          },
+          {
+            "path": "/api/v1/workspace-invitations/preview",
+            "method": "POST",
+            "status": 410
+          }
+        ]
+      },
+      {
+        "name": "fresh-browser-old-viewer-invite-url-hard-reload-current-admin",
+        "requests": 69,
+        "violations": 0,
+        "checks": [
+          "Fresh hard reload of accepted old Viewer URL keeps current Admin banner; Open selects shared Admin ledger from initial personal selection without re-acceptance or role mutation"
+        ],
+        "nonGet": [
+          {
+            "path": "/api/v1/workspace-invitations/preview",
+            "method": "POST",
+            "status": 200,
+            "initialRole": "viewer",
+            "currentRole": "admin",
+            "currentRevision": 2
+          },
+          {
+            "path": "/api/v1/workspace-invitations/preview",
+            "method": "POST",
+            "status": 200,
+            "initialRole": "viewer",
+            "currentRole": "admin",
+            "currentRevision": 2
+          }
+        ]
+      },
+      {
+        "name": "api-keys-390-light-viewer-admin-refresh-locks",
+        "requests": 35,
+        "violations": 0,
+        "checks": [
+          "390px light API-key Reload upgrades Viewer to Admin scopes; has44px target, fits header, disables draft/scope/Create/Reload through access plus key read, keeps unchanged draft DOM"
+        ],
+        "reloadHitbox": {
+          "width": 145.875,
+          "height": 44,
+          "left": 228.125,
+          "right": 374,
+          "parentLeft": 16,
+          "parentRight": 374
+        },
+        "nonGet": []
+      },
+      {
+        "name": "api-keys-390-dark-viewer-admin-refresh-locks",
+        "requests": 35,
+        "violations": 0,
+        "checks": [
+          "390px dark API-key Reload upgrades Viewer to Admin scopes; has44px target, fits header, disables draft/scope/Create/Reload through access plus key read, keeps unchanged draft DOM"
+        ],
+        "reloadHitbox": {
+          "width": 145.875,
+          "height": 44,
+          "left": 228.125,
+          "right": 374,
+          "parentLeft": 16,
+          "parentRight": 374
+        },
+        "nonGet": []
+      }
+    ],
+    "failures": []
+  },
+  "staticReadback": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 4839,
+      "sha256": "87672b65620717b8e02f25ee2b86aadd6e1d73a9cb6d313dfe32e570fe854870",
+      "matchesBuiltArtifact": false,
+      "homepageAssetReferencesMatch": true
+    },
+    {
+      "path": "/assets/index-MqAkz8aR.js",
+      "status": 200,
+      "bytes": 47561,
+      "sha256": "c4cb2906aa54f5292831f286c4d48b6a59f7c9d7bcb510eea947048c9746140b",
+      "matchesBuiltArtifact": true,
+      "homepageAssetReferencesMatch": false
+    },
+    {
+      "path": "/assets/ledger-CpNjiYEy.js",
+      "status": 200,
+      "bytes": 97725,
+      "sha256": "522a35c540e7a4f02e329f70d7d3fcb2f365821c77d732a00cfc3864ef30baf5",
+      "matchesBuiltArtifact": true,
+      "homepageAssetReferencesMatch": false
+    },
+    {
+      "path": "/assets/email-sign-in-BbjG5AHR.css",
+      "status": 200,
+      "bytes": 848,
+      "sha256": "566b0d2cfb3ab9679d9c68ad5f5763232528b704353aafe82236f76eca9a7bf1",
+      "matchesBuiltArtifact": true,
+      "homepageAssetReferencesMatch": false
+    }
+  ],
+  "budgetJournal": {
+    "healthy": true,
+    "originalDatabaseAndSingletonPreserved": true,
+    "beforeObserved": {
+      "rowsRead": 93174,
+      "rowsWritten": 2595
+    },
+    "afterObserved": {
+      "rowsRead": 96439,
+      "rowsWritten": 2631
+    },
+    "liveWindowDelta": {
+      "rowsRead": 3265,
+      "rowsWritten": 36
+    },
+    "attribution": "Live journal snapshots include other traffic. Their delta is not a measurement of this Web deployment; release verification performed no remote business writes."
+  }
+}
