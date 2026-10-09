@@ -2,6 +2,70 @@
 
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Pending operation boundaries and member role locks (2026-10-09)
+
+Project and Shared Pool expense writes now share a synchronous operation guard
+with recurring schedule writes. Conflicting edit/remove/create, form fields,
+cancel, refresh/pagination, filters, CSV and internal navigation/ledger switching
+remain disabled and visibly muted until the write and any required refresh have
+finished. Recurring responses remain authoritative; the existing queued refresh
+is awaited without adding an unnecessary read after every schedule write.
+Pure view tabs/disclosures, scrolling/copying, theme/language, external new-tab
+links and pane resizing remain available. Ordinary read-only refreshes allow
+navigation and filter refinement while blocking mutations based on stale data;
+refresh can still cancel an outstanding read-only pagination request. Failed
+writes preserve drafts and restore controls without automatic retries.
+
+Projects and Categories use the same write/refresh boundary. API Keys also lock
+the submitted name, scopes and restrictions; one-time token handling is retained.
+Billing preserves its write-to-refresh lock and blocks Escape cancellation of
+pending dialogs. Pricing pauses the month/year choice during checkout creation.
+Settings tracks busy independently of installation ID, covering Connect/Add,
+installation management, sign-out and subsequent required account reads.
+Native disabled controls and disabled-link semantics share light/dark styling;
+disabled links have no href and reject modifier, auxiliary and keyboard activation.
+
+Members replaces the expanded row editor with the role-column native dropdown
+and lock icon. Roles default to locked; unlock enables selection, selection saves
+immediately and the completed member refresh locks it again. Failed saves retain
+the unlocked draft for explicit retry. Owner/admin, revision and access guards
+are preserved. Unlocking changes neither row height nor sibling geometry.
+Invitation management remains hidden until the member load completes, including
+initial reads, manual reloads and post-write reads; it stays hidden on roster
+read failure. The member and invitation reads settle together before that rail
+appears.
+
+`npm run check` passes lint, **44 files / 783 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass. Deferred
+integration tests separately verify pending writes and required reads, exact
+draft preservation on failure, role-lock admission, scope/unmount cleanup,
+stale-completion protection, modal Escape and safe browsing boundaries.
+
+The persistent browser check passes **500 layout states in eight contexts** with
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Previously requested project-header,
+financial-value/currency colors, category-pencil, expense action stacks and both
+recurring side editors continue passing at desktop/tablet/phone widths, live
+899/900px reflow and 260/520px pane limits.
+
+A separate finite local interaction check passes **88 states in eight contexts**
+across both engines at 1440px and 320px, light/dark and coarse-pointer profiles.
+It verifies muted native fields/actions through ordinary write and refresh,
+ordinary/recurring exclusion, retained browsing tabs, trusted native role changes
+with exactly one autosave, stable member rows and synchronized invitation rails.
+Its accepted run intercepts 336 requests: 100 synthetic GETs, 12 explicitly listed
+in-memory PATCHes, 216 static requests and eight blocked fonts. Each context stays
+below its 100-request cap (maximum 48); no API request continues to a real server,
+no external delivery, violation or page error occurs, and all 46 built artifact
+hashes plus the original GET-only fixture remain unchanged. Nine captures support
+the stage evidence; Root reviewed member desktop/touch and pending-state captures.
+
+These are local engine/emulation checks, not physical iOS/Android or live-account
+acceptance. Chromium touch remains coarse=true/maxTouchPoints=1 around captures;
+Linux WebKit reports its unmodified maxTouchPoints=0 with coarse media enabled.
+Firefox remains unavailable under the previously recorded managed-runtime
+uid-mapping/SWGL limitation; its workflow layout checks remain configured.
+
 ## Currency identity colors (2026-10-09)
 
 The shared `CurrencyBadge` now gives USD, CNY, JPY, EUR, GBP, AUD, CAD, CHF,

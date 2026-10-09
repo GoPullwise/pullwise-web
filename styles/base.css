@@ -146,6 +146,9 @@ a.btn {
   user-select: none;
 }
 button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
 a[aria-disabled="true"],
 [role="button"][aria-disabled="true"] {
   cursor: not-allowed;
@@ -161,6 +164,18 @@ select {
   color: inherit;
   cursor: text;
   user-select: text;
+}
+/* Native disabled state includes controls disabled by their parent fieldset. */
+:root :is(input, select, textarea):disabled:not([type="checkbox"]):not([type="radio"]) {
+  background: var(--bg-soft);
+  color: var(--text-3);
+  -webkit-text-fill-color: var(--text-3);
+  border-color: var(--border);
+  opacity: 1;
+}
+fieldset:disabled {
+  color: var(--text-3);
+  border-color: var(--border);
 }
 .btn {
   display: inline-flex;
@@ -183,14 +198,17 @@ select {
   position: relative;
   overflow: hidden;
 }
-.btn:hover {
+.btn:where(:not(:disabled):not([aria-disabled="true"])):hover {
   background: var(--bg-soft);
   border-color: var(--border-strong);
 }
-.btn:active {
+.btn:where(:not(:disabled):not([aria-disabled="true"])):active {
   background: var(--bg-soft);
 }
-.btn:disabled {
+.btn:disabled,
+button:disabled,
+.btn[aria-disabled="true"],
+a[aria-disabled="true"] {
   opacity: 0.4;
   pointer-events: none;
 }
@@ -201,7 +219,7 @@ select {
   border-color: var(--text);
   font-weight: 500;
 }
-.btn.primary:hover {
+.btn.primary:where(:not(:disabled):not([aria-disabled="true"])):hover {
   background: var(--text-2);
   border-color: var(--text-2);
 }
@@ -211,7 +229,7 @@ select {
   border-color: transparent;
   color: var(--text-2);
 }
-.btn.ghost:hover {
+.btn.ghost:where(:not(:disabled):not([aria-disabled="true"])):hover {
   background: var(--bg-soft);
   color: var(--text);
 }
@@ -400,8 +418,8 @@ select {
   background: transparent;
   border: 0;
 }
-.topbar nav button:hover,
-.topbar nav a:hover {
+.topbar nav button:where(:not(:disabled):not([aria-disabled="true"])):hover,
+.topbar nav a:where(:not([aria-disabled="true"])):hover {
   color: var(--text);
   background: var(--bg-soft);
 }
@@ -441,7 +459,7 @@ select {
   padding: 0;
   font: inherit;
 }
-a.crumb-button:hover {
+a.crumb-button:where(:not([aria-disabled="true"])):hover {
   color: var(--text);
 }
 .crumb-current {
@@ -597,7 +615,7 @@ a.crumb-button:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.side-i:hover {
+.side-i:where(:not([aria-disabled="true"])):hover {
   background: var(--bg-soft);
   color: var(--text);
 }

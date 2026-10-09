@@ -75,6 +75,65 @@ afterEach(() => {
 });
 
 describe("Members screen", () => {
+  it("reveals the member list and invitation rail together only after both initial reads settle", async () => {
+    const membersRead = deferred();
+    const invitesRead = deferred();
+    api.members.mockReturnValueOnce(membersRead.promise);
+    api.invites.mockReturnValueOnce(invitesRead.promise);
+    show();
+    expect(screen.getByText("Loading members…")).toBeVisible();
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Invite member" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("GitHub username")).not.toBeInTheDocument();
+    await act(async () => membersRead.resolve({ items: [owner, editor] }));
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Invite member" })).not.toBeInTheDocument();
+    await act(async () => invitesRead.resolve({ items: [] }));
+    expect(await screen.findByText("Bob")).toBeVisible();
+    expect(screen.getByRole("complementary", { name: "Member management" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Invite member" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled();
+  });
+
+  it("hides the invitation rail while a manual member reload is pending", async () => {
+    show();
+    await screen.findByText("Bob");
+    const pending = deferred();
+    api.members.mockReturnValueOnce(pending.promise);
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    expect(screen.getByText("Loading members…")).toBeVisible();
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("complementary", { name: "Member management" })
+    ).not.toBeInTheDocument();
+    await act(async () => pending.resolve({ items: [owner, editor] }));
+    expect(await screen.findByText("Bob")).toBeVisible();
+    expect(screen.getByRole("complementary", { name: "Member management" })).toBeVisible();
+  });
+
+  it("hides invitation management until the refreshed member role is known after a write", async () => {
+    const pending = deferred();
+    api.members
+      .mockResolvedValueOnce({ items: [owner, editor] })
+      .mockReturnValueOnce(pending.promise);
+    show();
+    fireEvent.change(await openRole(), { target: { value: "viewer" } });
+    await waitFor(() => expect(api.members).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Invite member" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("GitHub username")).not.toBeInTheDocument();
+    await act(async () =>
+      pending.resolve({ items: [owner, { ...editor, role: "viewer", revision: 4 }] })
+    );
+    expect(await screen.findByText("Bob")).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toHaveValue("viewer");
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
+    expect(screen.getByRole("heading", { name: "Invite member" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus();
+  });
+
   it("keeps a deleted invitation owner's error local while the current ledger remains accessible", async () => {
     window.history.replaceState(null, "", "/members#invite=deleted-owner-token");
     api.previewInvitation.mockRejectedValue(error(404, "WORKSPACE_NOT_FOUND"));
@@ -112,19 +171,30 @@ describe("Members screen", () => {
     const ownerRow = (await screen.findByText("Alice")).closest("article");
     expect(within(ownerRow).queryByRole("button")).not.toBeInTheDocument();
     expect(within(ownerRow).queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
+    const lock = screen.getByRole("button", { name: "Edit role for bob" });
+    expect(lock).toHaveAttribute("aria-pressed", "false");
+    expect(lock).toHaveTextContent("");
     const role = await openRole();
+    const control = role.closest(".member-role-control");
+    expect(role).toBeEnabled();
     expect(role).toHaveFocus();
+    expect(control).toHaveAttribute("data-unlocked", "true");
+    expect(control.closest("article").querySelector("form")).toBeNull();
     expect(within(role).queryByRole("option", { name: "Owner" })).not.toBeInTheDocument();
     fireEvent.change(role, { target: { value: "viewer" } });
-    expect(api.updateMember).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
+    expect(role).toBeDisabled();
     await waitFor(() =>
       expect(api.updateMember).toHaveBeenCalledWith("ws_owner", "bob", 3, { role: "viewer" }, {})
     );
     await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus()
+    );
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
     );
   });
 
@@ -208,7 +278,6 @@ describe("Members screen", () => {
     fireEvent.change(await openRole(), {
       target: { value: "viewer" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/Reload members/);
     expect(api.updateMember).toHaveBeenCalledTimes(1);
     expect(api.members).toHaveBeenCalledTimes(1);
@@ -219,7 +288,6 @@ describe("Members screen", () => {
     fireEvent.change(await openRole(), {
       target: { value: "viewer" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
     await waitFor(() =>
       expect(api.updateMember).toHaveBeenLastCalledWith(
         "ws_owner",
@@ -231,29 +299,100 @@ describe("Members screen", () => {
     );
   });
 
-  it("opens a single role editor, discards canceled drafts and returns focus without writing", async () => {
+  it("rejects locked role changes and allows Escape to relock an unchanged native selector", async () => {
+    show();
+    const locked = await screen.findByRole("combobox", { name: "Role for bob" });
+    fireEvent.change(locked, { target: { value: "viewer" } });
+    expect(locked).toHaveValue("editor");
+    expect(api.updateMember).not.toHaveBeenCalled();
+    const unlocked = await openRole();
+    expect(unlocked).toBe(locked);
+    expect(unlocked).toBeEnabled();
+    fireEvent.keyDown(unlocked, { key: "Escape" });
+    expect(unlocked).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus();
+    expect(api.updateMember).not.toHaveBeenCalled();
+  });
+
+  it("keeps a failed role draft unlocked and retries only when its lock action is explicitly clicked", async () => {
+    api.updateMember.mockRejectedValueOnce(new Error("Network unavailable"));
+    api.members.mockResolvedValueOnce({ items: [owner, editor] }).mockResolvedValue({
+      items: [owner, { ...editor, role: "viewer", revision: 4 }],
+    });
+    show();
+    fireEvent.change(await openRole(), { target: { value: "viewer" } });
+    expect(await screen.findByRole("alert")).toHaveTextContent("Network unavailable");
+    const draft = screen.getByRole("combobox", { name: "Role for bob" });
+    expect(draft).toHaveValue("viewer");
+    expect(draft).toBeEnabled();
+    expect(draft.closest(".member-role-control")).toHaveAttribute("data-unlocked", "true");
+    expect(api.updateMember).toHaveBeenCalledTimes(1);
+    expect(api.members).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
+    await waitFor(() => expect(api.updateMember).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus()
+    );
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toHaveValue("viewer");
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
+  });
+
+  it("blocks role, invitation and navigation changes during a pending role write", async () => {
+    const pending = deferred();
+    api.updateMember.mockReturnValue(pending.promise);
+    const go = vi.fn();
+    show({ go });
+    const role = await openRole();
+    fireEvent.change(role, { target: { value: "viewer" } });
+    fireEvent.change(role, { target: { value: "admin" } });
+    expect(api.updateMember).toHaveBeenCalledTimes(1);
+    expect(role).toHaveValue("viewer");
+    expect(role).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save role for bob" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Remove bob" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Create invitation" })).toBeDisabled();
+    expect(screen.getByLabelText("GitHub username")).toBeDisabled();
+    expect(screen.getByLabelText("Invitation role")).toBeDisabled();
+    const projects = screen.getByRole("link", { name: "Projects", exact: true });
+    expect(projects).toHaveAttribute("aria-disabled", "true");
+    expect(projects).not.toHaveAttribute("href");
+    fireEvent.click(projects);
+    expect(go).not.toHaveBeenCalled();
+    expect(screen.getByRole("combobox", { name: "Account & tools" })).toBeDisabled();
+    expect(screen.getByText("Bob")).toBeVisible();
+    expect(screen.getByText("Bob").closest("article")).not.toHaveAttribute("inert");
+    await act(async () => pending.resolve({ ...editor, role: "viewer", revision: 4 }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Edit role for bob" })).toBeEnabled()
+    );
+    expect(screen.getByRole("link", { name: "Projects", exact: true })).toHaveAttribute(
+      "href",
+      "/projects"
+    );
+  });
+
+  it("unlocks one existing role control at a time and relocks without writing or expanding the row", async () => {
     api.members.mockResolvedValue({
       items: [owner, editor, { ...editor, userId: "dave", name: "Dave", githubLogin: "dave" }],
     });
     show();
     const role = await openRole();
-    fireEvent.change(role, { target: { value: "viewer" } });
-    expect(screen.getByRole("button", { name: "Save role for bob" })).toBeEnabled();
-    fireEvent.click(screen.getByRole("button", { name: "Edit role for bob" }));
-    expect(role).toHaveValue("viewer");
+    const row = role.closest("article");
+    expect(row.querySelector("form")).toBeNull();
+    expect(role).toHaveValue("editor");
     expect(role).toHaveFocus();
-    expect(
-      screen.getByText("Bob").closest("article").querySelector(".member-role")
-    ).toHaveTextContent("Editor");
+    expect(screen.getByRole("combobox", { name: "Role for dave" })).toBeDisabled();
     expect(api.updateMember).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Cancel role editing for bob" }));
-    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBe(role);
+    expect(role).toBeDisabled();
     expect(screen.getByRole("button", { name: "Edit role for bob" })).toHaveFocus();
     expect(api.updateMember).not.toHaveBeenCalled();
     expect(await openRole()).toHaveValue("editor");
     const secondRole = await openRole("dave");
     expect(secondRole).toHaveFocus();
-    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
     expect(secondRole).toHaveValue("editor");
     expect(api.updateMember).not.toHaveBeenCalled();
   });
@@ -262,7 +401,7 @@ describe("Members screen", () => {
     show();
     await openRole();
     fireEvent.click(screen.getByRole("button", { name: "Remove bob" }));
-    expect(screen.queryByRole("combobox", { name: "Role for bob" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Confirm remove bob" })).toHaveFocus();
     fireEvent.click(screen.getByRole("button", { name: "Cancel removing bob" }));
     expect(screen.queryByRole("button", { name: "Confirm remove bob" })).not.toBeInTheDocument();
@@ -293,7 +432,6 @@ describe("Members screen", () => {
       .mockResolvedValue({ items: [owner, { ...editor, role: "viewer", revision: 4 }] });
     show();
     fireEvent.change(await openRole(), { target: { value: "viewer" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Request rejected");
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "Ledger members" })).toHaveFocus()
@@ -304,9 +442,8 @@ describe("Members screen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reload" }));
     await screen.findByText("Bob");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Bob").closest("article").querySelector(".member-role")
-    ).toHaveTextContent("Viewer");
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toHaveValue("viewer");
+    expect(screen.getByRole("combobox", { name: "Role for bob" })).toBeDisabled();
     expect(api.members).toHaveBeenCalledTimes(3);
     expect(api.updateMember).toHaveBeenCalledTimes(1);
   });
@@ -317,7 +454,6 @@ describe("Members screen", () => {
     const changed = vi.fn();
     const view = show({ onMembershipChanged: changed });
     fireEvent.change(await openRole(), { target: { value: "viewer" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save role for bob" }));
     expect(api.updateMember).toHaveBeenCalledTimes(1);
     api.members.mockResolvedValue({ items: [{ ...owner, name: "Other ledger owner" }] });
     view.rerender(
@@ -640,7 +776,7 @@ describe("Members screen", () => {
       expect(await screen.findByRole("alert")).toBeVisible();
       expect(changed).toHaveBeenCalledTimes(1);
       expect(screen.queryByText("Bob")).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Create invitation" })).toBeDisabled();
+      expect(screen.queryByRole("button", { name: "Create invitation" })).not.toBeInTheDocument();
       expect(api.inviteMember).not.toHaveBeenCalled();
     }
   );

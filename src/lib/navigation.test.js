@@ -45,6 +45,42 @@ describe("screenLinkProps", () => {
   });
 
   it.each([
+    ["primary", "onClick", {}],
+    ["Ctrl", "onClick", { ctrlKey: true }],
+    ["Command", "onClick", { metaKey: true }],
+    ["Shift", "onClick", { shiftKey: true }],
+    ["Alt", "onClick", { altKey: true }],
+    ["middle", "onAuxClick", { button: 1 }],
+    ["Enter", "onKeyDown", { key: "Enter" }],
+    ["Space", "onKeyDown", { key: " " }],
+  ])("blocks disabled navigation for %s activation", (_label, handler, overrides) => {
+    const go = vi.fn();
+    const props = screenLinkProps(go, "ledgerProject", { id: "p1" }, true);
+    const event = fakeClick(overrides);
+
+    expect(props).not.toHaveProperty("href");
+    expect(props).toMatchObject({ role: "link", "aria-disabled": true, tabIndex: -1 });
+    props[handler](event);
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(go).not.toHaveBeenCalled();
+  });
+
+  it("keeps ordinary link props unchanged when navigation is enabled", () => {
+    const go = vi.fn();
+    const props = screenLinkProps(go, "ledgerProject", { id: "p1" }, false);
+
+    expect(props.href).toBe("/projects/p1");
+    expect(props).not.toHaveProperty("role");
+    expect(props).not.toHaveProperty("aria-disabled");
+    expect(props).not.toHaveProperty("tabIndex");
+    expect(props).not.toHaveProperty("onAuxClick");
+    props.onClick(fakeClick({ detail: 0 }));
+
+    expect(go).toHaveBeenCalledWith("ledgerProject", { id: "p1" });
+  });
+
+  it.each([
     { detail: 1, selectedInside: true, navigates: false },
     { detail: 0, selectedInside: true, navigates: true },
     { detail: 1, selectedInside: false, navigates: true },

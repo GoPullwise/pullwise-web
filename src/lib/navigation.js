@@ -59,7 +59,20 @@ export function shouldHandleScreenLinkClick(event) {
   return !target || target === "_self";
 }
 
-export function screenLinkProps(go, screen, params = {}) {
+export function screenLinkProps(go, screen, params = {}, disabled = false) {
+  if (disabled) {
+    const blockNavigation = (event) => event.preventDefault();
+    return {
+      role: "link",
+      "aria-disabled": true,
+      tabIndex: -1,
+      onClick: blockNavigation,
+      onAuxClick: blockNavigation,
+      onKeyDown: (event) => {
+        if (event.key === "Enter" || event.key === " ") blockNavigation(event);
+      },
+    };
+  }
   return {
     href: screenHref(screen, params),
     onClick: (event) => {

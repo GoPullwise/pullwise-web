@@ -463,6 +463,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   });
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState("");
+  const writing = Boolean(pendingAction);
   const [changeDraft, setChangeDraft] = useState(null);
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
   const billingMutationRef = useRef("");
@@ -488,6 +489,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   }, []);
 
   const loadBillingPlan = useCallback(async () => {
+    if (billingMutationRef.current) return;
     setLoading(true);
     setError("");
     try {
@@ -618,6 +620,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     targetPlan = account.plan,
     targetInterval = subscriptionInterval,
   }) => {
+    if (billingMutationRef.current) return;
     setError("");
     const requestedPlan = paidPlanById[targetPlan] || currentPlan;
     if (
@@ -634,7 +637,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   };
 
   const closeChangeConfirmation = () => {
-    if (!pendingAction) setChangeDraft(null);
+    if (!billingMutationRef.current) setChangeDraft(null);
   };
 
   useModalFocus({
@@ -742,10 +745,15 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   return (
     <div className="app fade-in">
       <div ref={billingBackgroundRef} className="billing-background">
-        <Topbar go={go} breadcrumbs={[{ label: T("Billing", "Billing") }]} loading={loading} />
+        <Topbar
+          go={go}
+          breadcrumbs={[{ label: T("Billing", "Billing") }]}
+          loading={loading || writing}
+          navigationDisabled={writing}
+        />
         <ConsoleLayout>
-          <Sidebar section="billing" go={go} />
-          <div className="main" role="main">
+          <Sidebar section="billing" go={go} navigationDisabled={writing} />
+          <div className="main" role="main" aria-busy={writing}>
             <div className="page-h">
               <div>
                 <h1>{T("Billing", "Billing")}</h1>
@@ -757,7 +765,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                 </div>
               </div>
               <div className="actions">
-                <a className="btn" {...screenLinkProps(go, "pricing")}>
+                <a className="btn" {...screenLinkProps(go, "pricing", {}, writing)}>
                   <I.Trend size={14} /> {T("View pricing", "查看价格")}
                 </a>
               </div>
@@ -769,11 +777,11 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                   <I.Package size={14} />
                   <span>{T("Plan", "Plan")}</span>
                 </button>
-                <a className="set-side-i" {...screenLinkProps(go, "terms")}>
+                <a className="set-side-i" {...screenLinkProps(go, "terms", {}, writing)}>
                   <I.FileCode size={14} />
                   <span>{T("Terms", "Terms")}</span>
                 </a>
-                <a className="set-side-i" {...screenLinkProps(go, "privacy")}>
+                <a className="set-side-i" {...screenLinkProps(go, "privacy", {}, writing)}>
                   <I.Lock size={14} />
                   <span>{T("Privacy", "Privacy")}</span>
                 </a>
@@ -1143,7 +1151,9 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
         )}
         confirmLabel={T("Confirm cancellation", "Confirm cancellation")}
         cancelLabel={T("Cancel", "Cancel")}
-        onCancel={() => setCancelConfirmationOpen(false)}
+        onCancel={() => {
+          if (!billingMutationRef.current) setCancelConfirmationOpen(false);
+        }}
         onConfirm={cancelSubscription}
         busy={pendingAction === "cancel"}
         danger
@@ -1315,13 +1325,19 @@ export function PricingScreen({
         <div className="pricing-toggle" role="group" aria-label={T("Billing interval", "计费周期")}>
           <button
             className={"seg-i" + (interval === "month" ? " active" : "")}
-            onClick={() => setInterval("month")}
+            disabled={Boolean(pendingAction)}
+            onClick={() => {
+              if (!checkoutPendingRef.current) setInterval("month");
+            }}
           >
             <I.Clock size={13} /> {T("Monthly", "按月")}
           </button>
           <button
             className={"seg-i" + (interval === "year" ? " active" : "")}
-            onClick={() => setInterval("year")}
+            disabled={Boolean(pendingAction)}
+            onClick={() => {
+              if (!checkoutPendingRef.current) setInterval("year");
+            }}
           >
             <I.Package size={13} /> {T("Yearly", "按年")}{" "}
           </button>
@@ -1409,10 +1425,7 @@ export function PricingScreen({
           </p>
           {!billingEnabled && (
             <p className="muted">
-              {T(
-                "Paid subscriptions are currently unavailable.",
-                "付费订阅暂不可用。"
-              )}
+              {T("Paid subscriptions are currently unavailable.", "付费订阅暂不可用。")}
             </p>
           )}
         </div>
@@ -1519,8 +1532,8 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
             <li>
               <I.Check size={13} />
               <span>
-                {T("Jev assistance allowance", "Jev 辅助额度")}: <FinancialValue value={`$${jevBudget}`} /> /{" "}
-                {T("month", "月")}
+                {T("Jev assistance allowance", "Jev 辅助额度")}:{" "}
+                <FinancialValue value={`$${jevBudget}`} /> / {T("month", "月")}
               </span>
             </li>
             <li>

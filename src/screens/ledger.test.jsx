@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { WorkspaceContext } from "../components/workspace-context.jsx";
 import { LedgerScreen } from "./ledger.jsx";
 
 const api = vi.hoisted(() => ({
@@ -77,7 +78,308 @@ async function openFilters() {
   expect(document.getElementById(button.getAttribute("aria-controls"))).toBeVisible();
 }
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((finish, fail) => {
+    resolve = finish;
+    reject = fail;
+  });
+  return { promise, resolve, reject };
+}
+
+function operationRecords(target) {
+  return {
+    expense: {
+      id: "exp_busy",
+      target,
+      occurredOn: "2026-09-27",
+      amount: "12.00",
+      currency: "USD",
+      categoryId: "cat_1",
+      purpose: "Existing hosting",
+      revision: 4,
+    },
+    rule: {
+      id: "rr_busy",
+      target,
+      amount: "15.00",
+      currency: "USD",
+      categoryId: "cat_1",
+      purpose: "Monthly hosting",
+      status: "active",
+      revision: 3,
+      schedule: {
+        frequency: "monthly",
+        timezone: "Asia/Shanghai",
+        startOn: "2026-09-01",
+        endOn: null,
+        day: 1,
+      },
+      nextOccurrenceOn: "2026-10-01",
+    },
+  };
+}
+
+function renderOperationLedger(mode = "shared") {
+  const workspace = {
+    id: "usr_owner",
+    name: "Current ledger",
+    role: "owner",
+    revision: 1,
+    permissions: { manageProjects: true, manageCategories: true, writeExpenses: true },
+  };
+  const other = { ...workspace, id: "usr_other", name: "Other ledger" };
+  const go = vi.fn();
+  const onSelect = vi.fn();
+  const view = render(
+    <WorkspaceContext.Provider value={{ workspace, items: [workspace, other], onSelect }}>
+      <LedgerScreen
+        go={go}
+        mode={mode}
+        projectId={mode === "project" ? "prj_1" : ""}
+        workspace={workspace}
+      />
+    </WorkspaceContext.Provider>
+  );
+  return { ...view, go, onSelect };
+}
+
 describe("ledger screens", () => {
+  it.each([
+    { mode: "project", operation: "edit" },
+    { mode: "shared", operation: "create" },
+  ])(
+    "locks conflicting controls for an expense $operation in $mode until its required refresh settles",
+    async ({ mode, operation }) => {
+      const target =
+        mode === "project" ? { kind: "project", projectId: "prj_1" } : { kind: "shared" };
+      const { expense, rule } = operationRecords(target);
+      api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+      api.expenses.mockResolvedValue({ items: [expense], nextCursor: "next-expenses" });
+      api.recurringRules.mockResolvedValue({ items: [rule], nextCursor: null });
+      const { go, onSelect } = renderOperationLedger(mode);
+      await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
+      await waitFor(() => expect(screen.getByRole("button", { name: "Pause" })).toBeEnabled());
+      await openFilters();
+      fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
+      await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: operation === "edit" ? "Edit Existing hosting" : "Add expense",
+        })
+      );
+      const purpose = screen.getByLabelText("What did you pay for?");
+      fireEvent.change(purpose, { target: { value: "Saved hosting" } });
+      if (operation === "create") {
+        fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+        fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
+        fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+      }
+      const write = deferred();
+      const refresh = deferred();
+      const writeApi = operation === "edit" ? api.updateExpense : api.createExpense;
+      writeApi.mockImplementationOnce(() => write.promise);
+      api.expenses.mockImplementationOnce(() => refresh.promise);
+      const initialReads = api.expenses.mock.calls.length;
+      const form = purpose.closest("form");
+      fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+      expect(writeApi).toHaveBeenCalledTimes(1);
+      const assertOperationLocked = () => {
+        expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "true");
+        expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+        for (const name of [
+          "Edit Existing hosting",
+          "Remove Existing hosting",
+          "Pause",
+          "Edit schedule",
+          "Delete schedule",
+          "Reload",
+          "Reload recurring schedules",
+          "Load more expenses",
+          "Clear filters",
+        ]) {
+          expect(screen.getByRole("button", { name })).toBeDisabled();
+        }
+        for (const label of ["From date", "Before date", "Filter category", "Select ledger"]) {
+          expect(screen.getByLabelText(label)).toBeDisabled();
+        }
+        for (const name of [
+          "Export CSV",
+          "Go to Pullwise home",
+          "Open account settings",
+          "Projects",
+        ]) {
+          const link = screen.getByRole("link", { name });
+          expect(link).toHaveAttribute("aria-disabled", "true");
+          expect(link).not.toHaveAttribute("href");
+          expect(fireEvent.click(link, { ctrlKey: true })).toBe(false);
+        }
+        if (mode === "project") {
+          expect(screen.getByRole("link", { name: "Back to projects" })).not.toHaveAttribute(
+            "href"
+          );
+        }
+        expect(screen.getByRole("button", { name: /Filters/ })).toBeEnabled();
+        expect(screen.getByRole("tab", { name: "Reports" })).toBeEnabled();
+      };
+      assertOperationLocked();
+      for (const field of form.querySelectorAll("input, select, textarea"))
+        expect(field).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Save expense" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+      fireEvent.submit(form);
+      fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+      fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-08-01" } });
+      fireEvent.change(screen.getByLabelText("Select ledger"), { target: { value: "usr_other" } });
+      expect(screen.getByLabelText("From date")).toHaveValue("2026-09-01");
+      expect(writeApi).toHaveBeenCalledTimes(1);
+      expect(api.updateRecurringRule).not.toHaveBeenCalled();
+      expect(api.expenses).toHaveBeenCalledTimes(initialReads);
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(go).not.toHaveBeenCalled();
+      const filters = screen.getByRole("button", { name: /Filters/ });
+      fireEvent.click(filters);
+      expect(filters).toHaveAttribute("aria-expanded", "false");
+      fireEvent.click(filters);
+      expect(filters).toHaveAttribute("aria-expanded", "true");
+      fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+      expect(screen.getByRole("tabpanel", { name: "Reports" })).toBeVisible();
+      fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+
+      await act(async () => write.resolve({ ...expense, purpose: "Saved hosting", revision: 5 }));
+      await waitFor(() => expect(api.expenses).toHaveBeenCalledTimes(initialReads + 1));
+      expect(screen.queryByLabelText("What did you pay for?")).not.toBeInTheDocument();
+      assertOperationLocked();
+      await act(async () =>
+        refresh.resolve({
+          items: [{ ...expense, purpose: "Saved hosting", revision: 5 }],
+          nextCursor: "next-expenses",
+        })
+      );
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Edit Saved hosting" })).toBeEnabled()
+      );
+      expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "false");
+      expect(screen.getByLabelText("From date")).toBeEnabled();
+      expect(screen.getByLabelText("Select ledger")).toBeEnabled();
+      expect(screen.getByRole("link", { name: "Export CSV" })).toHaveAttribute("href");
+      expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute("href", "/projects");
+      expect(screen.getByRole("button", { name: "Pause" })).toBeEnabled();
+      expect(screen.queryByRole("status", { name: "Loading" })).not.toBeInTheDocument();
+    }
+  );
+
+  it("unlocks a rejected expense edit and keeps its exact draft without starting a refresh", async () => {
+    const { expense, rule } = operationRecords({ kind: "shared" });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({ items: [expense], nextCursor: null });
+    api.recurringRules.mockResolvedValue({ items: [rule], nextCursor: null });
+    const write = deferred();
+    api.updateExpense.mockImplementationOnce(() => write.promise);
+    renderOperationLedger();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Edit Existing hosting" })).toBeEnabled()
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Edit Existing hosting" }));
+    const purpose = screen.getByLabelText("What did you pay for?");
+    fireEvent.change(purpose, { target: { value: "  Keep this unsaved draft  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    expect(purpose).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await act(async () => write.reject({ status: 412 }));
+    expect(await screen.findByText(/Save conflict/i)).toBeVisible();
+    expect(purpose).toHaveValue("  Keep this unsaved draft  ");
+    expect(purpose).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save expense" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute("href", "/projects");
+    expect(screen.getByLabelText("Select ledger")).toBeEnabled();
+    expect(api.expenses).toHaveBeenCalledTimes(1);
+    expect(api.updateExpense).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows refining a pending read while pausing writes that depend on the replaced results", async () => {
+    const { expense } = operationRecords({ kind: "shared" });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({ items: [expense], nextCursor: null });
+    renderOperationLedger();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add expense" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), {
+      target: { value: "Read-safe draft" },
+    });
+    const first = deferred();
+    const refined = deferred();
+    api.expenses
+      .mockImplementationOnce(() => first.promise)
+      .mockImplementationOnce(() => refined.promise);
+    await openFilters();
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
+    await waitFor(() => expect(api.expenses).toHaveBeenCalledTimes(2));
+    const firstSignal = api.expenses.mock.calls[1][1].signal;
+    expect(screen.getByRole("button", { name: "Edit Existing hosting" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save expense" })).toBeDisabled();
+    expect(screen.getByLabelText("What did you pay for?")).toBeDisabled();
+    expect(screen.getByLabelText("From date")).toBeEnabled();
+    expect(screen.getByLabelText("Select ledger")).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute("href", "/projects");
+    expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "false");
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-15" } });
+    await waitFor(() => expect(api.expenses).toHaveBeenCalledTimes(3));
+    expect(firstSignal.aborted).toBe(true);
+    expect(api.expenses.mock.calls[2][0]).toMatchObject({ target: "shared", from: "2026-09-15" });
+    await act(async () => refined.resolve({ items: [], nextCursor: null }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save expense" })).toBeEnabled());
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Read-safe draft");
+    await act(async () => first.resolve({ items: [expense], nextCursor: null }));
+    expect(screen.queryByRole("heading", { name: "Existing hosting" })).not.toBeInTheDocument();
+    expect(api.createExpense).not.toHaveBeenCalled();
+  });
+
+  it("shares a schedule write lock with ordinary expenses and releases it after the authoritative response", async () => {
+    const { expense, rule } = operationRecords({ kind: "shared" });
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.expenses.mockResolvedValue({ items: [expense], nextCursor: null });
+    api.recurringRules.mockResolvedValue({ items: [rule], nextCursor: null });
+    const write = deferred();
+    api.updateRecurringRule.mockImplementationOnce(() => write.promise);
+    renderOperationLedger();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Pause" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
+    const purpose = screen.getByLabelText("What did you pay for?");
+    fireEvent.change(purpose, { target: { value: "Independent ordinary draft" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "6.00" } });
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    expect(api.updateRecurringRule).toHaveBeenCalledWith(
+      rule.id,
+      rule.revision,
+      { status: "paused" },
+      expect.anything()
+    );
+    expect(purpose).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save expense" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Edit Existing hosting" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Export CSV" })).not.toHaveAttribute("href");
+    expect(screen.getByRole("link", { name: "Projects" })).not.toHaveAttribute("href");
+    expect(screen.getByLabelText("Select ledger")).toBeDisabled();
+    fireEvent.submit(purpose.closest("form"));
+    expect(api.createExpense).not.toHaveBeenCalled();
+    await act(async () => write.resolve({ ...rule, status: "paused", revision: 4 }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Resume" })).toBeEnabled());
+    expect(purpose).toBeEnabled();
+    expect(purpose).toHaveValue("Independent ordinary draft");
+    expect(screen.getByRole("button", { name: "Save expense" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Edit Existing hosting" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute("href", "/projects");
+    expect(screen.getByLabelText("Select ledger")).toBeEnabled();
+    expect(api.expenses).toHaveBeenCalledTimes(1);
+  });
+
   it("records an expense in a standalone project without requesting GitHub repository access", async () => {
     const project = {
       id: "prj_blank",
@@ -572,7 +874,7 @@ describe("ledger screens", () => {
       { description: "", status: "active" },
       {}
     );
-    expect(screen.getByRole("button", { name: "Add expense" })).toBeEnabled();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add expense" })).toBeEnabled());
     expect(github.connect).not.toHaveBeenCalled();
   });
 
@@ -1281,6 +1583,7 @@ describe("ledger screens", () => {
         .querySelector(".financial-value").textContent
     ).toBe("USD 2.00");
     api.createProject.mockResolvedValue({ id: "prj_2" });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add project" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Add project" }));
     fireEvent.change(screen.getByLabelText("Project name"), { target: { value: "New project" } });
     await openGitHubLinks();
@@ -1288,6 +1591,9 @@ describe("ledger screens", () => {
     fireEvent.change(screen.getByLabelText(/Project description/i), {
       target: { value: "New project" },
     });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Create project/i })).toBeEnabled()
+    );
     fireEvent.click(screen.getByRole("button", { name: /Create project/i }));
     await waitFor(() =>
       expect(api.createProject).toHaveBeenCalledWith(
@@ -1335,6 +1641,9 @@ describe("ledger screens", () => {
         expect.objectContaining({ purpose: "Hosting edited", target: { kind: "shared" } }),
         expect.anything()
       )
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Remove Hosting/i })).toBeEnabled()
     );
     fireEvent.click(screen.getByRole("button", { name: /Remove Hosting/i }));
     expect(api.removeExpense).not.toHaveBeenCalled();
@@ -1409,6 +1718,7 @@ describe("ledger screens", () => {
     await waitFor(() =>
       expect(api.createCategory).toHaveBeenCalledWith({ name: "Hosting" }, expect.anything())
     );
+    await waitFor(() => expect(screen.getByRole("button", { name: "Rename" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Rename" }));
     fireEvent.change(screen.getByLabelText("New category name"), { target: { value: "Software" } });
     fireEvent.click(screen.getByRole("button", { name: "Save category" }));

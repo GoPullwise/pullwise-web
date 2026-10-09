@@ -24,10 +24,12 @@ function render(ui, options) {
 
 function deferred() {
   let resolve;
-  const promise = new Promise((resolvePromise) => {
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
     resolve = resolvePromise;
+    reject = rejectPromise;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 }
 
 describe("BillingScreen", () => {
@@ -373,6 +375,55 @@ describe("BillingScreen", () => {
     expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledTimes(1);
     expect(proButton).toBeDisabled();
   });
+
+  it.each(["success", "failure"])(
+    "keeps the checkout interval fixed until checkout %s settles",
+    async (outcome) => {
+      const checkout = deferred();
+      pullwiseApi.billing.getPlan.mockResolvedValue({
+        ...billingCatalog,
+        plans: [...billingCatalog.plans, maxPlan],
+        account: { status: "none", plan: "free" },
+      });
+      pullwiseApi.billing.createCheckoutSession.mockReturnValue(checkout.promise);
+      const navigate = vi.fn();
+      const user = userEvent.setup();
+      render(<PricingScreen go={vi.fn()} auth={{ authenticated: true }} navigate={navigate} />);
+      const pro = await screen.findByRole("button", { name: /start pro/i });
+      const max = screen.getByRole("button", { name: /start max/i });
+      const monthly = screen.getByRole("button", { name: "Monthly" });
+      const yearly = screen.getByRole("button", { name: "Yearly" });
+      await user.click(yearly);
+      await user.click(pro);
+      expect(monthly).toBeDisabled();
+      expect(yearly).toBeDisabled();
+      expect(pro).toBeDisabled();
+      expect(max).toBeDisabled();
+      fireEvent.click(monthly);
+      fireEvent.click(max);
+      expect(yearly).toHaveClass("active");
+      expect(monthly).not.toHaveClass("active");
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledOnce();
+      expect(pullwiseApi.billing.createCheckoutSession).toHaveBeenCalledWith(
+        expect.objectContaining({ plan: "pro", interval: "year" }),
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
+      await act(async () => {
+        if (outcome === "success") checkout.resolve({ url: "https://creem.io/checkout/yearly" });
+        else checkout.reject(new Error("Checkout unavailable"));
+      });
+      await waitFor(() => expect(pro).toBeEnabled());
+      expect(max).toBeEnabled();
+      expect(monthly).toBeEnabled();
+      expect(yearly).toBeEnabled();
+      expect(yearly).toHaveClass("active");
+      if (outcome === "success")
+        expect(navigate).toHaveBeenCalledWith("https://creem.io/checkout/yearly");
+      else expect(navigate).not.toHaveBeenCalled();
+      await user.click(monthly);
+      expect(monthly).toHaveClass("active");
+    }
+  );
   it("clears pricing checkout pending state before redirecting", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
@@ -868,12 +919,20 @@ describe("BillingScreen", () => {
       "Expense records: 20,000",
       "Expense records: 20,000",
     ]);
-    expect(screen.getByText(/Archived projects and removed expenses still count toward capacity/i)).toBeInTheDocument();
-    expect(screen.getByText(/monthly Jev allowance covers model assistance, has no cash value/i)).toBeInTheDocument();
-    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent("Jev assistance allowance: $5.00 / month");
+    expect(
+      screen.getByText(/Archived projects and removed expenses still count toward capacity/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/monthly Jev allowance covers model assistance, has no cash value/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent(
+      "Jev assistance allowance: $5.00 / month"
+    );
     expect(screen.getByText("Activation pending · no rollover")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /yearly/i }));
-    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent("Jev assistance allowance: $5.00 / month");
+    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent(
+      "Jev assistance allowance: $5.00 / month"
+    );
   });
 
   it("does not leak malformed billing price amounts", async () => {
@@ -1391,6 +1450,76 @@ describe("BillingScreen", () => {
     });
 
     expect(pullwiseApi.billing.resumeSubscription).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps billing navigation and actions locked through the required post-write read", async () => {
+    const resume = deferred();
+    const refresh = deferred();
+    const activeAccount = {
+      status: "active",
+      plan: "pro",
+      interval: "month",
+      cancelAtPeriodEnd: false,
+    };
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce({
+        ...billingCatalog,
+        account: { ...activeAccount, status: "canceling", cancelAtPeriodEnd: true },
+      })
+      .mockReturnValueOnce(refresh.promise);
+    pullwiseApi.billing.resumeSubscription.mockReturnValue(resume.promise);
+    const go = vi.fn();
+    const user = userEvent.setup();
+    render(<BillingScreen go={go} navigate={vi.fn()} />);
+    const resumeButton = await screen.findByRole("button", { name: "Resume renewal" });
+    const pricing = screen.getByRole("link", { name: "View pricing" });
+    expect(pricing).toHaveAttribute("href", "/pricing");
+    await user.click(resumeButton);
+    expect(resumeButton).toBeDisabled();
+    expect(pricing).toHaveAttribute("aria-disabled", "true");
+    expect(pricing).not.toHaveAttribute("href");
+    expect(document.querySelectorAll('.side-i[aria-disabled="true"]').length).toBeGreaterThan(0);
+    expect(screen.getByRole("status", { name: "Loading" })).toHaveClass("topbar-loading");
+    fireEvent.click(pricing);
+    fireEvent.click(resumeButton);
+    expect(go).not.toHaveBeenCalled();
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
+    await act(async () => resume.resolve(activeAccount));
+    await waitFor(() => expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2));
+    expect(pricing).not.toHaveAttribute("href");
+    expect(screen.getByRole("button", { name: "Cancel renewal" })).toBeDisabled();
+    expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+    await act(async () => refresh.resolve({ ...billingCatalog, account: activeAccount }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Cancel renewal" })).toBeEnabled()
+    );
+    expect(pricing).toHaveAttribute("href", "/pricing");
+    expect(screen.getByRole("button", { name: "Cancel renewal" })).toBeEnabled();
+    expect(screen.queryByRole("status", { name: "Loading" })).not.toBeInTheDocument();
+  });
+
+  it("does not dismiss a pending cancellation with Escape and restores controls after failure", async () => {
+    const cancellation = deferred();
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "active", plan: "pro", interval: "month" },
+    });
+    pullwiseApi.billing.cancelSubscription.mockReturnValue(cancellation.promise);
+    const user = userEvent.setup();
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "Cancel renewal" }));
+    await user.click(await screen.findByRole("button", { name: "Confirm cancellation" }));
+    const dialog = screen.getByRole("dialog", { name: "Cancel subscription renewal?" });
+    for (const cancel of screen.getAllByRole("button", { name: "Cancel" }))
+      expect(cancel).toBeDisabled();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View pricing" })).not.toHaveAttribute("href");
+    await act(async () => cancellation.reject(new Error("Cancellation unavailable")));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("link", { name: "View pricing" })).toHaveAttribute("href", "/pricing");
+    expect(screen.getByRole("button", { name: "Cancel renewal" })).toBeEnabled();
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
   });
 
   it("does not refresh billing after a pending resume completes post-unmount", async () => {

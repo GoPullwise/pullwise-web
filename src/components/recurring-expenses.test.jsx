@@ -160,6 +160,162 @@ describe("RecurringScheduleFields", () => {
 });
 
 describe("RecurringExpenses", () => {
+  it("does not start a recurring write when the parent operation boundary denies admission", async () => {
+    const api = client();
+    const beginOperation = vi.fn(() => false);
+    render(fixture(api, { beginOperation }));
+    await loaded();
+    fireEvent.click(button("Pause"));
+    expect(beginOperation).toHaveBeenCalledOnce();
+    expect(api.updateRecurringRule).not.toHaveBeenCalled();
+    expect(button("Pause")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Reload recurring schedules" })).toBeEnabled();
+  });
+
+  it("keeps the admitted parent operation and local controls locked until queued refreshes settle", async () => {
+    const api = client();
+    const write = pending();
+    const firstRefresh = pending();
+    const secondRefresh = pending();
+    const release = vi.fn();
+    const beginOperation = vi.fn(() => release);
+    api.updateRecurringRule.mockReturnValue(write.promise);
+    const view = render(fixture(api, { beginOperation, reloadSignal: 0 }));
+    await loaded();
+    api.recurringRules
+      .mockReturnValueOnce(firstRefresh.promise)
+      .mockReturnValueOnce(secondRefresh.promise);
+    fireEvent.click(button("Pause"));
+    view.rerender(fixture(api, { beginOperation, reloadSignal: 1 }));
+    expect(api.recurringRules).toHaveBeenCalledOnce();
+    await act(async () =>
+      write.resolve(rule({ status: "paused", revision: 3, nextOccurrenceOn: null }))
+    );
+    await waitFor(() => expect(api.recurringRules).toHaveBeenCalledTimes(2));
+    expect(beginOperation).toHaveBeenCalledOnce();
+    expect(release).not.toHaveBeenCalled();
+    expect(button("Resume")).toBeDisabled();
+    expect(button("Edit schedule")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload recurring schedules" })).toBeDisabled();
+    fireEvent.click(button("Resume"));
+    expect(api.updateRecurringRule).toHaveBeenCalledOnce();
+    view.rerender(fixture(api, { beginOperation, reloadSignal: 2 }));
+    await act(async () =>
+      firstRefresh.resolve({ items: [rule({ status: "paused", revision: 3 })], nextCursor: null })
+    );
+    await waitFor(() => expect(api.recurringRules).toHaveBeenCalledTimes(3));
+    expect(release).not.toHaveBeenCalled();
+    expect(button("Resume")).toBeDisabled();
+    await act(async () =>
+      secondRefresh.resolve({ items: [rule({ status: "paused", revision: 4 })], nextCursor: null })
+    );
+    expect(release).toHaveBeenCalledOnce();
+    expect(button("Resume")).toBeEnabled();
+    expect(button("Resume")).toHaveFocus();
+    expect(api.updateRecurringRule).toHaveBeenCalledOnce();
+  });
+
+  it("releases a failed write without discarding its conflicted draft or retry policy", async () => {
+    const api = client();
+    const release = vi.fn();
+    api.updateRecurringRule.mockRejectedValue(error(412));
+    render(fixture(api, { beginOperation: () => release }));
+    await loaded();
+    fireEvent.click(button("Edit schedule"));
+    fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "Keep my draft" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save schedule" }));
+    await screen.findByRole("alert");
+    expect(release).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Keep my draft");
+    expect(screen.getByRole("button", { name: "Save schedule" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload recurring schedules" })).toBeEnabled();
+    expect(api.recurringRules).toHaveBeenCalledOnce();
+  });
+
+  it("releases the admitted operation before notifying the parent of an access failure", async () => {
+    const api = client();
+    const release = vi.fn();
+    const onAccessChanged = vi.fn();
+    api.updateRecurringRule.mockRejectedValue(error(403));
+    render(fixture(api, { beginOperation: () => release, onAccessChanged }));
+    await loaded();
+    fireEvent.click(button("Pause"));
+    await screen.findByRole("alert");
+    expect(release).toHaveBeenCalledOnce();
+    expect(onAccessChanged).toHaveBeenCalledOnce();
+    expect(release.mock.invocationCallOrder[0]).toBeLessThan(
+      onAccessChanged.mock.invocationCallOrder[0]
+    );
+    expect(screen.queryByRole("heading", { name: "Hosting" })).not.toBeInTheDocument();
+  });
+
+  it("does not release a newer operation from an old scope's late finally and releases once on unmount", async () => {
+    const oldApi = client();
+    const newApi = client([rule({ purpose: "New schedule" })]);
+    const oldWrite = pending();
+    const newWrite = pending();
+    const oldRelease = vi.fn();
+    const newRelease = vi.fn();
+    const beginOperation = vi.fn().mockReturnValueOnce(oldRelease).mockReturnValueOnce(newRelease);
+    oldApi.updateRecurringRule.mockReturnValue(oldWrite.promise);
+    newApi.updateRecurringRule.mockReturnValue(newWrite.promise);
+    const view = render(fixture(oldApi, { beginOperation }));
+    await loaded();
+    fireEvent.click(button("Pause"));
+    view.rerender(fixture(newApi, { beginOperation }));
+    await screen.findByRole("heading", { name: "New schedule" });
+    expect(oldRelease).toHaveBeenCalledOnce();
+    fireEvent.click(button("Pause", "New schedule"));
+    await act(async () => oldWrite.resolve(rule({ status: "paused", revision: 3 })));
+    expect(oldRelease).toHaveBeenCalledOnce();
+    expect(newRelease).not.toHaveBeenCalled();
+    expect(button("Pause", "New schedule")).toBeDisabled();
+    view.unmount();
+    expect(newRelease).toHaveBeenCalledOnce();
+    expect(newApi.updateRecurringRule.mock.calls[0][3].signal.aborted).toBe(true);
+    await act(async () => newWrite.reject(error(403)));
+    expect(newRelease).toHaveBeenCalledOnce();
+  });
+
+  it("does not reset a mounted draft when the parent's admission callback changes", async () => {
+    const api = client();
+    const view = render(fixture(api, { beginOperation: vi.fn() }));
+    await loaded();
+    fireEvent.click(button("Edit schedule"));
+    fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "Mounted draft" } });
+    view.rerender(fixture(api, { beginOperation: () => false }));
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Mounted draft");
+    expect(api.recurringRules).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Save schedule" }));
+    expect(api.updateRecurringRule).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Mounted draft");
+  });
+
+  it("locks an existing draft during an ordinary read refresh without admitting a write or losing the draft", async () => {
+    const api = client();
+    const refresh = pending();
+    const beginOperation = vi.fn();
+    const view = render(fixture(api, { beginOperation, reloadSignal: 0 }));
+    await loaded();
+    fireEvent.click(button("Edit schedule"));
+    fireEvent.change(screen.getByLabelText("Purpose"), {
+      target: { value: "Draft during refresh" },
+    });
+    api.recurringRules.mockReturnValueOnce(refresh.promise);
+    view.rerender(fixture(api, { beginOperation, reloadSignal: 1 }));
+    expect(screen.getByLabelText("Purpose")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save schedule" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    fireEvent.submit(screen.getByRole("form", { name: "Expense editor" }));
+    expect(beginOperation).not.toHaveBeenCalled();
+    expect(api.updateRecurringRule).not.toHaveBeenCalled();
+    await act(async () => refresh.resolve({ items: [rule({ revision: 3 })], nextCursor: null }));
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Draft during refresh");
+    expect(screen.getByLabelText("Purpose")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save schedule" })).toBeEnabled();
+    expect(beginOperation).not.toHaveBeenCalled();
+  });
+
   it("allows a viewer to read the exact server date, timezone and decimal amount without mutation controls", async () => {
     const api = client([
       rule({ amount: "900719925474099312345.12345", nextOccurrenceOn: "2099-02-28" }),

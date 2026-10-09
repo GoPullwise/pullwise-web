@@ -198,7 +198,7 @@ function ApiKeysSkeleton() {
   );
 }
 
-function ApiKeysLoadError({ error, onRetry }) {
+function ApiKeysLoadError({ error, onRetry, disabled = false }) {
   return (
     <div className="notice notice-error" role="alert">
       <div className="panel-h">
@@ -206,7 +206,7 @@ function ApiKeysLoadError({ error, onRetry }) {
         <h2>{T("API keys are unavailable", "API keys are unavailable")}</h2>
       </div>
       <p>{error || T("Unable to load API keys.", "Unable to load API keys.")}</p>
-      <button type="button" className="btn" onClick={onRetry}>
+      <button type="button" className="btn" onClick={onRetry} disabled={disabled}>
         <I.Refresh size={13} /> {T("Retry", "Retry")}
       </button>
     </div>
@@ -249,6 +249,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [renderedScope, setRenderedScope] = useState(scopeKey);
   const [pending, setPending] = useState("");
+  const writing = Boolean(pending);
   const [error, setError] = useState("");
   const [revokeTarget, setRevokeTarget] = useState(null);
   const mutationInFlightRef = useRef(null);
@@ -310,7 +311,8 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   }, []);
 
   const load = useCallback(async () => {
-    if (!mountedRef.current || activeScopeRef.current !== scopeKey) return;
+    if (!mountedRef.current || activeScopeRef.current !== scopeKey || mutationInFlightRef.current)
+      return;
     readControllerRef.current?.abort();
     const controller = new AbortController();
     readControllerRef.current = controller;
@@ -342,6 +344,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
     if (
       !mountedRef.current ||
       activeScopeRef.current !== scopeKey ||
+      mutationInFlightRef.current ||
       projectReadControllerRef.current
     )
       return;
@@ -441,7 +444,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   }, [scopeKey, load, defaultScopes]);
 
   const toggleScope = (scopeValue) => {
-    if (!allowedScopeValues.includes(scopeValue)) return;
+    if (mutationInFlightRef.current || !allowedScopeValues.includes(scopeValue)) return;
     setSelectedScopes((current) => {
       const next = current.includes(scopeValue)
         ? current.filter((scope) => scope !== scopeValue)
@@ -451,6 +454,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const toggleProjectRestriction = (checked) => {
+    if (mutationInFlightRef.current) return;
     setRestrictProjects(checked);
     if (checked) {
       if (!projectPage.loaded) loadProjects();
@@ -463,7 +467,12 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const toggleProject = (projectId) => {
-    if (!currentScope || !projectPage.items.some((project) => project.id === projectId)) return;
+    if (
+      !currentScope ||
+      mutationInFlightRef.current ||
+      !projectPage.items.some((project) => project.id === projectId)
+    )
+      return;
     setSelectedProjectIds((selected) => {
       if (selected.includes(projectId)) return selected.filter((id) => id !== projectId);
       return selected.length < 100 ? [...selected, projectId] : selected;
@@ -555,7 +564,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const revokeKey = async (keyId) => {
-    if (!currentScope || !keyId || mutationInFlightRef.current) return;
+    if (!currentScope || loading || !loadedOnce || !keyId || mutationInFlightRef.current) return;
     const mutation = {};
     mutationInFlightRef.current = mutation;
     const current = () =>
@@ -583,7 +592,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
   };
 
   const requestRevokeKey = (key) => {
-    if (!currentScope || !key?.id || mutationInFlightRef.current || pending) return;
+    if (!currentScope || loading || !loadedOnce || !key?.id || mutationInFlightRef.current) return;
     setRevokeTarget(key);
   };
 
@@ -619,12 +628,13 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
       <div ref={revokeBackgroundRef} className="api-keys-background">
         <Topbar
           go={go}
+          navigationDisabled={writing}
           breadcrumbs={[{ label: T("API Keys", "API 密钥") }]}
-          loading={loading || !currentScope}
+          loading={loading || writing || !currentScope}
         />
         <ConsoleLayout>
-          <Sidebar section="apiKeys" go={go} />
-          <div className="main" role="main">
+          <Sidebar section="apiKeys" go={go} navigationDisabled={writing} />
+          <div className="main" role="main" aria-busy={writing}>
             <div className="page-h">
               <div>
                 <h1>{T("API Keys", "API 密钥")}</h1>
@@ -636,7 +646,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                 </div>
               </div>
               <div className="actions">
-                <a className="btn" {...screenLinkProps(go, "api")}>
+                <a className="btn" {...screenLinkProps(go, "api", {}, writing)}>
                   <I.FileCode size={14} /> {T("API docs", "API 文档")}
                 </a>
               </div>
@@ -672,7 +682,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                   <I.Code size={14} />
                   <span>{T("Keys", "密钥")}</span>
                 </button>
-                <a className="set-side-i" {...screenLinkProps(go, "api")}>
+                <a className="set-side-i" {...screenLinkProps(go, "api", {}, writing)}>
                   <I.FileCode size={14} />
                   <span>{T("Docs", "文档")}</span>
                 </a>
@@ -681,13 +691,13 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
               {loading || !currentScope ? (
                 <ApiKeysSkeleton />
               ) : error && !loadedOnce ? (
-                <ApiKeysLoadError error={error} onRetry={load} />
+                <ApiKeysLoadError error={error} onRetry={load} disabled={writing} />
               ) : (
                 <div className="set-body">
                   {error && (
                     <div className="notice notice-error" role="status" aria-live="polite">
                       <p>{error}</p>
-                      <button type="button" className="btn sm" onClick={load}>
+                      <button type="button" className="btn sm" onClick={load} disabled={writing}>
                         <I.Refresh size={12} /> {T("Retry", "Retry")}
                       </button>
                     </div>
@@ -710,7 +720,10 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                           <I.Code size={14} />
                           <input
                             value={name}
-                            onChange={(event) => setName(event.target.value)}
+                            disabled={writing}
+                            onChange={(event) => {
+                              if (!mutationInFlightRef.current) setName(event.target.value);
+                            }}
                             placeholder={T("Automation key", "自动化密钥")}
                           />
                         </div>
@@ -753,6 +766,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                 <input
                                   type="checkbox"
                                   checked={checked}
+                                  disabled={writing}
                                   onChange={() => toggleScope(scope.value)}
                                 />
                                 <span className="api-scope-copy">
@@ -806,7 +820,10 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                     value={projectQuery}
                                     disabled={Boolean(pending)}
                                     placeholder={T("Find a project", "查找项目")}
-                                    onChange={(event) => setProjectQuery(event.target.value)}
+                                    onChange={(event) => {
+                                      if (!mutationInFlightRef.current)
+                                        setProjectQuery(event.target.value);
+                                    }}
                                   />
                                   {projectQuery && (
                                     <button
@@ -816,6 +833,7 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                       aria-label={T("Clear search", "清除搜索")}
                                       title={T("Clear search", "清除搜索")}
                                       onClick={() => {
+                                        if (mutationInFlightRef.current) return;
                                         setProjectQuery("");
                                         projectSearchRef.current?.focus({ preventScroll: true });
                                       }}
@@ -916,7 +934,10 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                                           )}
                                     </p>
                                     {!projectPage.items.length && (
-                                      <a className="btn" {...screenLinkProps(go, "ledgerProjects")}>
+                                      <a
+                                        className="btn"
+                                        {...screenLinkProps(go, "ledgerProjects", {}, writing)}
+                                      >
                                         {T("Your projects", "你的项目")}
                                       </a>
                                     )}
@@ -961,7 +982,10 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
                             type="checkbox"
                             checked={allowShared}
                             disabled={Boolean(pending)}
-                            onChange={(event) => setAllowShared(event.target.checked)}
+                            onChange={(event) => {
+                              if (!mutationInFlightRef.current)
+                                setAllowShared(event.target.checked);
+                            }}
                           />
                           {T("Allow shared expense pool", "允许访问公共池")}
                         </label>
@@ -1057,9 +1081,11 @@ export function ApiKeysScreen({ go, workspace = null, onAccessChanged }) {
         )}
         confirmLabel={T("Confirm revoke", "Confirm revoke")}
         cancelLabel={T("Cancel", "Cancel")}
-        onCancel={() => setRevokeTarget(null)}
+        onCancel={() => {
+          if (!mutationInFlightRef.current) setRevokeTarget(null);
+        }}
         onConfirm={() => revokeKey(revokeTarget?.id)}
-        busy={Boolean(revokeTarget && pending === revokeTarget.id)}
+        busy={writing}
         danger
         backgroundRef={revokeBackgroundRef}
         dialogId="revoke-api-key"
