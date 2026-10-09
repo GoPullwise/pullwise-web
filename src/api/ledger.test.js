@@ -5,6 +5,85 @@ import { createLedgerApi, ledgerApi } from "./ledger.js";
 afterEach(() => vi.restoreAllMocks());
 
 describe("ledger REST paths", () => {
+  it("reviews a saved expense with an empty body and captured workspace, revision and abort signal", async () => {
+    const result = {
+      expenseId: "exp_1",
+      revision: 7,
+      questionVersion: "ledger-suggest-v2",
+      modelVersion: null,
+      checks: {
+        category: { status: "unavailable", current: "cat_1", reason: "disabled" },
+        target: { status: "unavailable", current: { kind: "shared" }, reason: "disabled" },
+        duplicate: { status: "issue", candidate: { id: "exp_2", revision: 3 } },
+      },
+    };
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: result });
+    const controller = new AbortController();
+    const options = {
+      signal: controller.signal,
+      headers: { "X-Pullwise-Workspace": "other", "If-Match": '"99"', "X-Trace": "review" },
+      body: { purpose: "Client text must not be sent", categoryId: "cat_other" },
+    };
+    await expect(createLedgerApi("owner/1").reviewExpense("exp/1", 7, options)).resolves.toBe(
+      result
+    );
+    expect(send).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        method: "POST",
+        url: "/api/v1/expenses/exp%2F1/review",
+        signal: controller.signal,
+        headers: { "X-Pullwise-Workspace": "owner/1", "If-Match": '"7"', "X-Trace": "review" },
+        data: {},
+      })
+    );
+    expect(send.mock.calls[0][0].headers).not.toHaveProperty("Idempotency-Key");
+    expect(options.headers).toEqual({
+      "X-Pullwise-Workspace": "other",
+      "If-Match": '"99"',
+      "X-Trace": "review",
+    });
+    expect(options.body).toEqual({
+      purpose: "Client text must not be sent",
+      categoryId: "cat_other",
+    });
+  });
+
+  it.each([
+    [412, "PRECONDITION_FAILED"],
+    [429, "SUGGESTION_LIMIT"],
+    [429, "JEV_BUDGET_LIMIT"],
+    [403, "JEV_PLAN_REQUIRED"],
+  ])("does not retry or write an expense after a review fails with %s %s", async (status, code) => {
+    const error = new ApiError("Review unavailable", { status, payload: { error: { code } } });
+    const send = vi.spyOn(http, "request").mockRejectedValue(error);
+    const accessChanged = vi.fn();
+    await expect(createLedgerApi("team", accessChanged).reviewExpense("exp_1", 2)).rejects.toBe(
+      error
+    );
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0]).toMatchObject({
+      url: "/api/v1/expenses/exp_1/review",
+      method: "POST",
+      headers: { "X-Pullwise-Workspace": "team", "If-Match": '"2"' },
+      data: {},
+    });
+    expect(accessChanged).not.toHaveBeenCalled();
+  });
+
+  it("uses the existing access-change callback for a revoked review permission", async () => {
+    const error = new ApiError("Role changed", {
+      status: 403,
+      payload: { error: { code: "ROLE_FORBIDDEN" } },
+    });
+    const send = vi.spyOn(http, "request").mockRejectedValue(error);
+    const accessChanged = vi.fn();
+    await expect(createLedgerApi("team", accessChanged).reviewExpense("exp_1", 2)).rejects.toBe(
+      error
+    );
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(accessChanged).toHaveBeenCalledExactlyOnceWith(error);
+  });
+
   it("removes one project with its captured ledger and revision without replaying the request", async () => {
     const send = vi.spyOn(http, "request").mockResolvedValue({ data: undefined });
     const controller = new AbortController();

@@ -16,6 +16,7 @@ import {
 import { ExpenseCharts } from "../components/expense-charts.jsx";
 import { ActivityLog } from "../components/activity-log.jsx";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
+import { ExpenseReviewDialog } from "../components/expense-review-dialog.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -251,6 +252,8 @@ function LedgerViewToolbar({
   exportHref,
   disabled = false,
   exportDisabled = false,
+  onReview = null,
+  reviewDisabled = false,
 }) {
   const filterCount = Object.values(filters).filter(Boolean).length;
   const filtersId = `${id}-filters`;
@@ -272,6 +275,16 @@ function LedgerViewToolbar({
           onChange={onViewChange}
         />
         <div className="ledger-view-controls" hidden={["settings", "activity"].includes(view)}>
+          {view === "expenses" && onReview && (
+            <button
+              className="btn ghost"
+              type="button"
+              disabled={reviewDisabled}
+              onClick={onReview}
+            >
+              <I.Check size={14} aria-hidden="true" /> {T("Expense review", "账目巡检")}
+            </button>
+          )}
           <button
             className="btn ghost"
             type="button"
@@ -927,8 +940,12 @@ function ScopedLedgerScreen({
   const [parentBusy, setBusy] = useState(false);
   const [recurringBusy, setRecurringBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const writing = parentBusy || recurringBusy;
-  const busy = writing || loadingMore || accessRefreshing;
+  const [inspection, setInspection] = useState(null);
+  const [inspectionOpen, setInspectionOpen] = useState(false);
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewReadBusy, setReviewReadBusy] = useState(false);
+  const writing = parentBusy || recurringBusy || reviewBusy || reviewReadBusy;
+  const busy = writing || loadingMore || accessRefreshing || reviewReadBusy;
   const blocked = busy || loading;
   const [repositoryLoading, setRepositoryLoading] = useState(false);
   const [description, setDescription] = useState("");
@@ -965,6 +982,13 @@ function ScopedLedgerScreen({
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
   const inFlight = useRef(false);
+  const inspectionRef = useRef(null);
+  const inspectionOpenRef = useRef(false);
+  const inspectionOpenerRef = useRef(null);
+  const restoreInspectionFocus = useRef(false);
+  const reviewOperationRef = useRef(null);
+  const reviewReadRef = useRef(null);
+  const pendingReviewEdit = useRef(null);
   const projectRemovalRef = useRef(null);
   const removalOperationRef = useRef(null);
   const removalControllerRef = useRef(null);
@@ -973,7 +997,7 @@ function ScopedLedgerScreen({
   const writeRefreshPending = useRef(false);
   const recurringOperation = useRef(null);
   const readingGuard = useRef(false);
-  readingGuard.current = loading || loadingMore || accessRefreshing;
+  readingGuard.current = loading || loadingMore || accessRefreshing || reviewReadBusy;
   const requestId = useRef(0);
   const moreController = useRef(null);
   const repositoryController = useRef(null);
@@ -998,10 +1022,19 @@ function ScopedLedgerScreen({
       mounted.current = false;
       removalOperationRef.current = null;
       removalControllerRef.current?.abort();
+      reviewOperationRef.current = null;
+      reviewReadRef.current = null;
+      pendingReviewEdit.current = null;
     };
   }, []);
   const beginRecurringOperation = useCallback(() => {
-    if (inFlight.current || readingGuard.current || projectRemovalRef.current || !mounted.current)
+    if (
+      inFlight.current ||
+      readingGuard.current ||
+      projectRemovalRef.current ||
+      inspectionOpenRef.current ||
+      !mounted.current
+    )
       return false;
     inFlight.current = true;
     const operation = {};
@@ -1014,6 +1047,46 @@ function ScopedLedgerScreen({
       if (mounted.current) setRecurringBusy(false);
     };
   }, []);
+  const beginReviewOperation = useCallback(() => {
+    if (
+      !canWriteExpenses ||
+      !inspectionOpenRef.current ||
+      inFlight.current ||
+      readingGuard.current ||
+      !mounted.current
+    )
+      return null;
+    const operation = {};
+    reviewOperationRef.current = operation;
+    inFlight.current = true;
+    setReviewBusy(true);
+    return () => {
+      if (reviewOperationRef.current !== operation) return;
+      reviewOperationRef.current = null;
+      inFlight.current = false;
+      if (mounted.current) setReviewBusy(false);
+    };
+  }, [canWriteExpenses]);
+  const beginReviewEditRead = useCallback(() => {
+    if (
+      !canWriteExpenses ||
+      !inspectionOpenRef.current ||
+      inFlight.current ||
+      readingGuard.current ||
+      !mounted.current
+    )
+      return null;
+    const read = {};
+    reviewReadRef.current = read;
+    readingGuard.current = true;
+    setReviewReadBusy(true);
+    return () => {
+      if (reviewReadRef.current !== read) return;
+      reviewReadRef.current = null;
+      readingGuard.current = false;
+      if (mounted.current) setReviewReadBusy(false);
+    };
+  }, [canWriteExpenses]);
   useEffect(() => {
     if (editing || creatingExpense) {
       const panel = expenseFormPanelRef.current;
@@ -1052,7 +1125,15 @@ function ScopedLedgerScreen({
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const reloadWithAccess = async ({ preserveProjectDraft = false } = {}) => {
-    if (inFlight.current || loading || accessRefreshing || !mounted.current) return;
+    if (
+      inFlight.current ||
+      reviewReadRef.current ||
+      inspectionOpenRef.current ||
+      loading ||
+      accessRefreshing ||
+      !mounted.current
+    )
+      return;
     moreController.current?.abort();
     moreController.current = null;
     setLoadingMore(false);
@@ -1104,6 +1185,11 @@ function ScopedLedgerScreen({
     moreController.current = null;
     setLoadingMore(false);
     const request = ++requestId.current;
+    inspectionRef.current = null;
+    inspectionOpenRef.current = false;
+    pendingReviewEdit.current = null;
+    setInspection(null);
+    setInspectionOpen(false);
     setLoading(true);
     setError("");
     projectRemovalRef.current = null;
@@ -1367,7 +1453,13 @@ function ScopedLedgerScreen({
   };
 
   const action = async (callback) => {
-    if (inFlight.current || readingGuard.current || projectRemovalRef.current) return false;
+    if (
+      inFlight.current ||
+      readingGuard.current ||
+      projectRemovalRef.current ||
+      inspectionOpenRef.current
+    )
+      return false;
     inFlight.current = true;
     setBusy(true);
     setActionError("");
@@ -1667,6 +1759,96 @@ function ScopedLedgerScreen({
   const showExpenseForm = Boolean(
     canWriteExpenses && (editing || (canAddExpense && creatingExpense))
   );
+  const closeInspection = () => {
+    inspectionOpenRef.current = false;
+    setInspectionOpen(false);
+    restoreInspectionFocus.current = true;
+  };
+  const openInspection = (event) => {
+    if (
+      !canWriteExpenses ||
+      blocked ||
+      showExpenseForm ||
+      projectRemovalRef.current ||
+      inFlight.current ||
+      readingGuard.current
+    )
+      return;
+    const validRecords = expenses.filter(
+      (expense) =>
+        typeof expense.id === "string" &&
+        Number.isInteger(expense.revision) &&
+        expense.revision > 0 &&
+        expense.target?.kind === target.kind &&
+        (target.kind === "shared" || expense.target.projectId === target.projectId)
+    );
+    if (!validRecords.length) return;
+    inspectionOpenerRef.current = event.currentTarget;
+    if (!inspectionRef.current) {
+      const snapshot = {
+        records: validRecords,
+        categories: data.categories,
+        target,
+        label: title,
+        scope: loadedScope.current,
+        request: requestId.current,
+      };
+      inspectionRef.current = snapshot;
+      setInspection(snapshot);
+    }
+    inspectionOpenRef.current = true;
+    setInspectionOpen(true);
+  };
+  const openReviewedExpense = (expense) => {
+    const snapshot = inspectionRef.current;
+    if (
+      !snapshot ||
+      !canWriteExpenses ||
+      !mounted.current ||
+      snapshot.scope !== loadedScope.current ||
+      snapshot.request !== requestId.current ||
+      !reviewReadRef.current
+    )
+      return;
+    pendingReviewEdit.current = { expense, snapshot };
+    inspectionOpenRef.current = false;
+    setInspectionOpen(false);
+    restoreInspectionFocus.current = false;
+  };
+  const reviewAccessFailure = (failure) => {
+    if (!mounted.current) return;
+    inspectionRef.current = null;
+    inspectionOpenRef.current = false;
+    pendingReviewEdit.current = null;
+    setInspection(null);
+    setInspectionOpen(false);
+    setData(null);
+    setEditing(null);
+    setCreatingExpense(false);
+    setSavedAssistance(null);
+    setActionError(errorText(failure));
+    onAccessChanged?.(failure);
+  };
+  useEffect(() => {
+    if (inspectionOpen || blocked || removalBackgroundRef.current?.inert) return;
+    const pending = pendingReviewEdit.current;
+    if (pending) {
+      pendingReviewEdit.current = null;
+      if (
+        pending.snapshot === inspectionRef.current &&
+        pending.snapshot.scope === loadedScope.current &&
+        pending.snapshot.request === requestId.current
+      ) {
+        expenseOpenerRef.current = inspectionOpenerRef.current;
+        setCreatingExpense(false);
+        setEditing(pending.expense);
+        setView("expenses");
+      }
+    } else if (restoreInspectionFocus.current) {
+      restoreInspectionFocus.current = false;
+      inspectionOpenerRef.current?.focus({ preventScroll: true });
+    }
+  }, [inspectionOpen, blocked]);
   useEffect(() => {
     if (!showExpenseForm && !loading && !busy && restoreExpenseFocus.current) {
       restoreExpenseFocus.current = false;
@@ -2669,6 +2851,8 @@ function ScopedLedgerScreen({
                 exportHref={exportHref}
                 disabled={writing}
                 exportDisabled={blocked}
+                onReview={canWriteExpenses ? openInspection : null}
+                reviewDisabled={blocked || showExpenseForm || expenses.length === 0}
               />
               {data.project?.status === "archived" && (
                 <div className="notice" role="status">
@@ -2906,7 +3090,14 @@ function ScopedLedgerScreen({
                   categories={data.categories}
                   canManage={canWriteExpenses}
                   beginOperation={beginRecurringOperation}
-                  disabled={parentBusy || loading || loadingMore || accessRefreshing}
+                  disabled={
+                    parentBusy ||
+                    reviewBusy ||
+                    reviewReadBusy ||
+                    loading ||
+                    loadingMore ||
+                    accessRefreshing
+                  }
                   reloadSignal={revision}
                   onAccessChanged={onAccessChanged}
                   formatTotal={formatRecurringTotal}
@@ -3397,6 +3588,25 @@ function ScopedLedgerScreen({
             danger={!projectRemovalConflict}
             backgroundRef={removalBackgroundRef}
             dialogId="remove-ledger-project"
+          />,
+          document.body
+        )}
+      {inspection &&
+        createPortal(
+          <ExpenseReviewDialog
+            open={inspectionOpen}
+            records={inspection.records}
+            categories={inspection.categories}
+            target={inspection.target}
+            scopeLabel={inspection.label}
+            api={api}
+            backgroundRef={removalBackgroundRef}
+            blocked={blocked}
+            beginOperation={beginReviewOperation}
+            beginEditRead={beginReviewEditRead}
+            onOpenEdit={openReviewedExpense}
+            onAccessFailure={reviewAccessFailure}
+            onClose={closeInspection}
           />,
           document.body
         )}

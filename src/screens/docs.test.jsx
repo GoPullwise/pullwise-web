@@ -36,6 +36,24 @@ describe("product Docs", () => {
     expect(assistance).toHaveTextContent("Recurring schedules always require an explicit category");
   });
 
+  it("explains explicit bounded checks and manual editing of saved expenses", () => {
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+    expect(screen.getByRole("heading", { name: "Review saved expenses" })).toHaveAttribute("id", "expense-review");
+    const review = screen.getByText(/open Expense review and select up to 10/i);
+    expect(review).toHaveTextContent("currently loaded filtered list");
+    expect(review).toHaveTextContent("Opening the dialog does not run Jev");
+    expect(review).toHaveTextContent("only Start review sends requests, one record at a time");
+    expect(review).toHaveTextContent("Stop ends the remaining queue");
+    expect(review).toHaveTextContent("requests already started may still consume allowance");
+    expect(review).toHaveTextContent("predefined choices and any returned confidence scores");
+    expect(review).toHaveTextContent("the interface uses fixed wording");
+    expect(review).toHaveTextContent("Possible duplicates are checked locally");
+    expect(review).toHaveTextContent("even when model checks are disabled or unavailable");
+    expect(review).toHaveTextContent("Checks never change saved records");
+    expect(review).toHaveTextContent("Edit reloads the current expense and opens its saved values without applying the results");
+    expect(review).toHaveTextContent("Uncertain or unavailable checks do not mean a clear result");
+  });
+
   it("explains email registration, explicit linking and inviter-approved join requests", () => {
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: false }} />);
     const signIn = screen.getByText(/Enter your email and verify the 6-digit code/i);
@@ -64,6 +82,15 @@ describe("product Docs", () => {
       expect(document.body.textContent).toContain(registration);
       expect(document.body.textContent).toContain(invitation);
       expect(document.body.textContent).not.toContain("Enter your email and verify");
+      const reviewHeading = {
+        zh: "检查已保存支出",
+        ja: "保存済み支出をチェック",
+        ko: "저장된 지출 점검",
+        fr: "Vérifier les dépenses enregistrées",
+        es: "Comprobar gastos guardados",
+      }[locale];
+      expect(screen.getByRole("heading", { name: reviewHeading })).toBeInTheDocument();
+      expect(document.body.textContent).not.toContain("In project expenses or the shared pool, open Expense review");
     });
   }
 });

@@ -45,6 +45,14 @@ const SECTIONS = [
     ],
   },
   {
+    id: "expense-review",
+    title: ["Review saved expenses", "检查已保存支出"],
+    text: [
+      "In project expenses or the shared pool, open Expense review and select up to 10 expenses from the currently loaded filtered list. Opening the dialog does not run Jev; only Start review sends requests, one record at a time. Stop ends the remaining queue; requests already started may still consume allowance. Reviews share the ledger Owner's effective Pro or Max daily and monthly allowance. Model checks use predefined choices and any returned confidence scores; the interface uses fixed wording. Possible duplicates are checked locally, even when model checks are disabled or unavailable. Checks never change saved records. Edit reloads the current expense and opens its saved values without applying the results. Uncertain or unavailable checks do not mean a clear result.",
+      "在项目支出或公共池中打开“账目巡检”，从当前已加载且经过筛选的列表中最多选择 10 笔支出。打开对话框不会运行 Jev，只有点击“开始巡检”才逐笔发送请求。“停止巡检”会结束剩余队列，已经发出的请求仍可能消耗额度。巡检共同使用账本所有者有效 Pro 或 Max 套餐的日度与月度额度。模型检查使用预定义选项及返回的置信评分，界面用固定文案展示；即使模型检查已停用或不可用，疑似重复仍可由本地规则检查。巡检不会修改已保存记录。点击编辑会重新读取该笔支出并打开当前保存值，不会套用巡检结果。不确定或不可用的检查不代表没有问题。",
+    ],
+  },
+  {
     id: "reports",
     title: ["Review reports", "查看报表"],
     text: [

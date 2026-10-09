@@ -103,6 +103,10 @@ describe("API screens", () => {
       expect(markdown).toContain("### GET /api/v1/expenses");
       expect(markdown).toContain("Idempotency-Key");
       expect(markdown).toContain("Automatic Jev assistance");
+      expect(markdown).toContain("## Review saved expenses");
+      expect(markdown).toContain("### POST /api/v1/expenses/{id}/review");
+      expect(markdown).toContain("an empty JSON body {} and If-Match");
+      expect(markdown).toContain("Jev returns only predefined choices and scores");
       expect(markdown).toContain("CATEGORY_REQUIRED");
       expect(markdown).toContain("### POST /api/v1/categories/{id}/remove");
       expect(markdown).toContain("categorySource");
@@ -127,9 +131,12 @@ describe("API screens", () => {
       render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
       const examples = screen.getAllByText(/curl.*api\/v1\/expenses/);
-      expect(examples).toHaveLength(2);
+      expect(examples).toHaveLength(3);
       for (const example of examples)
         expect(example).toHaveTextContent(`${window.location.origin}/api/api/v1/expenses`);
+      expect(
+        examples.find((example) => example.textContent.includes("exp_example/review"))
+      ).toHaveTextContent(`${window.location.origin}/api/api/v1/expenses/exp_example/review`);
     } finally {
       env.VITE_API_BASE_URL = originalApiBase;
       env.VITE_PUBLIC_API_BASE_URL = originalPublicApiBase;
@@ -171,9 +178,45 @@ describe("API screens", () => {
       "Free ledgers and all recurring schedules require an explicit category"
     );
     expect(screen.getByText(/categorySource/)).toBeInTheDocument();
-    expect(screen.getByText(/curl.*POST.*\/api\/v1\/expenses/)).toHaveTextContent(
+    expect(screen.getByText(/curl.*POST.*\/api\/v1\/expenses'/)).toHaveTextContent(
       "Idempotency-Key"
     );
+  });
+
+  it("documents record-specific checks, restricted results and the separate fresh edit workflow", () => {
+    render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+    expect(screen.getByRole("heading", { name: "Review saved expenses" })).toHaveAttribute(
+      "id",
+      "expense-review"
+    );
+    const request = screen.getByText(/checks one saved expense with an empty JSON body/i);
+    expect(request).toHaveTextContent("expenses:write");
+    expect(request).toHaveTextContent("Owner's effective Pro or Max plan");
+    expect(request).toHaveTextContent("20-attempt UTC daily cap");
+    expect(request).toHaveTextContent("Reviews never change expenses or their revision");
+    expect(request).toHaveTextContent("are not retried automatically");
+    expect(request).toHaveTextContent("review does not use Idempotency-Key replay");
+    const response = screen.getByText(/A review returns expenseId/i);
+    expect(response).toHaveTextContent("checked, issue, uncertain or unavailable");
+    expect(response).toHaveTextContent("optional suggested values and confidence");
+    expect(response).toHaveTextContent("Jev returns only predefined choices and scores");
+    expect(response).toHaveTextContent(
+      "fixed codes: disabled, provider_unavailable, no_categories or invalid_context"
+    );
+    expect(response).toHaveTextContent("local rules on up to 30 other expenses");
+    expect(response).toHaveTextContent("candidate {id, revision}, without expense details");
+    expect(response).toHaveTextContent(
+      "Local duplicate checks can remain available when the model is unavailable"
+    );
+    expect(response).toHaveTextContent("Uncertain or unavailable does not mean a clear result");
+    expect(response).toHaveTextContent("GET the current expense with expenses:read");
+    expect(response).toHaveTextContent(
+      "PATCH it with expenses:write and the fresh If-Match revision"
+    );
+    const example = screen.getByText(/curl.*POST.*exp_example\/review/);
+    expect(example).toHaveTextContent('If-Match: "7"');
+    expect(example).toHaveTextContent("--data '{}'");
+    expect(example).not.toHaveTextContent("Idempotency-Key");
   });
 
   it("exposes API key management docs navigation as real screen links", async () => {

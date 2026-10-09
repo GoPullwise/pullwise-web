@@ -156,5 +156,33 @@ describe("ledger locale copy", () => {
       expect(rights).not.toMatch(/^Contact /);
       expect(rights).toContain("privacy@example.com");
     });
+    it(`${locale} distinguishes selected review input from other historical candidate text`, async () => {
+      await setLang(locale);
+      const privacyKey = Object.keys(LEDGER_LONG_PHRASES[locale]).find((key) =>
+        key.startsWith("Pro and Max automatically use Jev during expense saves")
+      );
+      expect(privacyKey).toBeTypeOf("string");
+      const disclosure = T(privacyKey);
+      for (const phrase of {
+        zh: ["主动选中并开始检查", "预定义选项和置信评分", "其他历史重复候选记录的文字"],
+        ja: ["明示的に選択してチェックを開始した保存済み支出", "定義済みの選択肢と信頼度スコア", "他の過去の重複候補のテキスト"],
+        ko: ["직접 선택하고 점검을 시작한 저장된 지출", "미리 정해진 선택지와 신뢰도 점수", "다른 과거 중복 후보 기록의 텍스트"],
+        fr: ["sélectionnez et dont vous démarrez explicitement la vérification", "choix prédéfinis et des scores de confiance", "autres dépenses historiques candidates aux doublons"],
+        es: ["selecciones y cuya comprobación inicies expresamente", "opciones predefinidas y puntuaciones de confianza", "otros gastos históricos candidatos a duplicados"],
+      }[locale]) {
+        expect(disclosure).toContain(phrase);
+      }
+      const reviewKey = Object.keys(LEDGER_LONG_PHRASES[locale]).find((key) =>
+        key.startsWith("POST /api/v1/expenses/{id}/review checks one saved expense")
+      );
+      expect(reviewKey).toBeTypeOf("string");
+      const request = T(reviewKey);
+      expect(request).not.toBe(reviewKey);
+      expect(request).toContain("POST /api/v1/expenses/{id}/review");
+      expect(request).toContain("{}");
+      expect(request).toContain("If-Match");
+      expect(request).toContain("expenses:write");
+      expect(request).toContain("20");
+    });
   }
 });

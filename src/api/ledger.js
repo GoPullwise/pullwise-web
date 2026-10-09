@@ -142,6 +142,13 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
       }),
     expenses: (params, options) => ledgerRequest("/expenses", { ...options, params }),
     expense: (id, options) => ledgerRequest(resource("expenses", id), options),
+    reviewExpense: (id, revision, options) =>
+      ledgerRequest(`${resource("expenses", id)}/review`, {
+        ...options,
+        method: "POST",
+        headers: { ...options?.headers, ...version(revision) },
+        body: {},
+      }),
     createExpense: (fields, idempotencyKey, options) =>
       ledgerRequest("/expenses", {
         ...options,

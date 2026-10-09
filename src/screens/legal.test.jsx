@@ -85,7 +85,7 @@ describe("legal pages", () => {
   it("discloses Pro and Max model processing during ordinary saving and preserves user control", () => {
     const { unmount } = render(<PrivacyScreen go={vi.fn()} />);
     expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent("submitted purpose and note");
-    expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent("allowed category IDs and names");
+    expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent("allowed active category IDs and names");
     expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent("Pullwise checks possible duplicates in its own service");
     expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent(
       "Repository code and stored GitHub and API key tokens are excluded"
@@ -93,11 +93,29 @@ describe("legal pages", () => {
     expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent(
       "Do not enter secrets in purpose, notes or category names"
     );
+    expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent(
+      "saved purpose and note of expenses you explicitly select and start reviewing"
+    );
+    expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent(
+      "Jev returns only predefined choices and confidence scores"
+    );
+    expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent(
+      "the interface displays the checks using fixed wording"
+    );
+    expect(screen.getByText(/Pro and Max automatically use Jev/i)).toHaveTextContent(
+      "text from other candidate historical expenses is not sent to the model"
+    );
     expect(document.body.textContent).not.toContain("bounded authorized expense context");
     expect(screen.queryByText(/Optional Jev suggestions/i)).not.toBeInTheDocument();
     unmount();
     render(<TermsScreen go={vi.fn()} />);
-    expect(screen.getByText(/Automatic Jev assistance on Pro and Max runs/i)).toHaveTextContent("expense write");
+    const control = screen.getByText(/Automatic Jev assistance on Pro and Max runs/i);
+    expect(control).toHaveTextContent("expense write");
+    expect(control).toHaveTextContent("You can separately start checks of saved expenses");
+    expect(control).toHaveTextContent("predefined choices and any returned confidence scores");
+    expect(control).toHaveTextContent("fixed interface wording");
+    expect(control).toHaveTextContent("Review results do not change records");
+    expect(control).toHaveTextContent("you must confirm corrections through Edit");
   });
 
   it("explains email registration and optional GitHub integration in both policies", () => {

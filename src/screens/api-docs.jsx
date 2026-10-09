@@ -25,6 +25,7 @@ const ENDPOINTS = [
   ["GET", "/api/v1/expenses", "expenses:read", "Filtered expense detail"],
   ["POST", "/api/v1/expenses", "expenses:write", "Create with Idempotency-Key"],
   ["GET", "/api/v1/expenses/{id}", "expenses:read", "One expense"],
+  ["POST", "/api/v1/expenses/{id}/review", "expenses:write", "Check a saved expense with If-Match; never changes records"],
   ["PATCH", "/api/v1/expenses/{id}", "expenses:write", "Edit with If-Match"],
   ["DELETE", "/api/v1/expenses/{id}", "expenses:write", "Remove with If-Match"],
   ["GET", "/api/v1/expenses/export", "expenses:read", "CSV export"],
@@ -92,10 +93,14 @@ const CATEGORY_BEHAVIOR =
   "On POST /api/v1/expenses and PATCH /api/v1/expenses/{id}, categoryId may be omitted for automatic categorization when the ledger Owner's effective Pro or Max plan, model availability and allowance permit it. Explicit category, target, amount and currency are preserved. If no category can be selected confidently, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry. Creates use a new Idempotency-Key. Retry edits with If-Match using the loaded revision; reload explicitly after a revision conflict. Free ledgers and all recurring schedules require an explicit category.";
 const ASSISTANCE_RESPONSE =
   "Successful writes return the expense with an assistance object: status, categorySource (jev or user), suggestions and optional reason/modelVersion/questionVersion. Duplicate advice never blocks saving. Identical create requests with the same Idempotency-Key return the cached result without another model call. Reads do not invoke Jev.";
+const EXPENSE_REVIEW =
+  "POST /api/v1/expenses/{id}/review checks one saved expense with an empty JSON body {} and If-Match for its loaded revision. It requires expenses:write and the usual ledger role and target authority, with the Owner's effective Pro or Max plan. It shares the 20-attempt UTC daily cap and monthly Jev allowance. Reviews never change expenses or their revision, and never automatically apply a category or target. Requests are explicit and are not retried automatically; review does not use Idempotency-Key replay.";
+const REVIEW_RESPONSE =
+  "A review returns expenseId, revision, questionVersion, modelVersion, optional suggestionId and checks. Category and target checks use checked, issue, uncertain or unavailable, with current values and optional suggested values and confidence. Jev returns only predefined choices and scores. Optional reason values are fixed codes: disabled, provider_unavailable, no_categories or invalid_context. Duplicate checks use local rules on up to 30 other expenses with the same authorized target, amount and currency, a matching case-insensitive purpose and dates within seven days of the reviewed expense. The duplicate status is checked or issue; an issue may include candidate {id, revision}, without expense details. Local duplicate checks can remain available when the model is unavailable. Uncertain or unavailable does not mean a clear result. To edit, first GET the current expense with expenses:read, then explicitly PATCH it with expenses:write and the fresh If-Match revision.";
 const EXACT_TOTALS =
   "Single expense amountMinor values are safe integers. Aggregate amountMinor totals are numbers up to 9007199254740991 and exact decimal integer strings above that boundary; parse large totals with BigInt or decimal arithmetic.";
 
-function markdown(base, example, createExample, projectExample) {
+function markdown(base, example, createExample, projectExample, reviewExample) {
   return [
     "# Pullwise ledger REST API",
     "",
@@ -149,6 +154,16 @@ function markdown(base, example, createExample, projectExample) {
     createExample,
     "```",
     "",
+    "## Review saved expenses",
+    "",
+    EXPENSE_REVIEW,
+    "",
+    REVIEW_RESPONSE,
+    "",
+    "```sh",
+    reviewExample,
+    "```",
+    "",
     EXACT_TOTALS,
     "",
     "Filters: target, projectId, categoryId, from (inclusive), to (exclusive), currency. Lists also support limit and cursor.",
@@ -174,6 +189,13 @@ export function ApiDocsScreen({ go, auth }) {
     "  -H 'Content-Type: application/json'",
     `  --data '{"name":"Website launch"}'`,
   ].join(" \\\n");
+  const reviewExample = [
+    `curl -X POST '${apiUrl("/api/v1/expenses/exp_example/review", base)}'`,
+    '  -H "Authorization: Bearer $PULLWISE_API_KEY"',
+    "  -H 'Content-Type: application/json'",
+    `  -H 'If-Match: "7"'`,
+    "  --data '{}'",
+  ].join(" \\\n");
   const nav = [
     ["overview", "Overview"],
     ["authentication", "Authentication"],
@@ -181,11 +203,12 @@ export function ApiDocsScreen({ go, auth }) {
     ["endpoints", "Endpoints"],
     ["filters", "Filters and writes"],
     ["max-assistance", "Automatic Jev assistance"],
+    ["expense-review", "Review saved expenses"],
     ["errors", "Errors"],
   ];
   async function copyPage() {
     try {
-      await navigator.clipboard.writeText(markdown(base, example, createExample, projectExample));
+      await navigator.clipboard.writeText(markdown(base, example, createExample, projectExample, reviewExample));
       setCopied(true);
     } catch {
       setCopied(false);
@@ -342,6 +365,22 @@ export function ApiDocsScreen({ go, auth }) {
           >
             {createExample}
           </DocsCode>
+          <h2 id="expense-review" className="docs-h2">
+            {T("Review saved expenses", "检查已保存支出")}
+          </h2>
+          <p>
+            {T(
+              EXPENSE_REVIEW,
+              "POST /api/v1/expenses/{id}/review 使用空 JSON 请求体 {} 和已加载版本的 If-Match 检查一笔已保存支出。需要 expenses:write、当前账本角色和目标权限，以及所有者有效的 Pro 或 Max 套餐。检查共同使用 UTC 每日最多 20 次尝试及月度 Jev 额度。巡检不会修改支出或版本，也不会自动套用类别或目标。请求必须主动发起，不会自动重试；巡检不使用 Idempotency-Key 重放。"
+            )}
+          </p>
+          <p>
+            {T(
+              REVIEW_RESPONSE,
+              "巡检返回 expenseId、revision、questionVersion、modelVersion、可选的 suggestionId 及 checks。类别和目标检查的状态为 checked、issue、uncertain 或 unavailable，包含 current 值，以及可选的 suggested 值和 confidence。Jev 只返回预定义选项和评分。可选 reason 是固定代码：disabled、provider_unavailable、no_categories 或 invalid_context。重复检查通过本地规则，对同一获准目标、金额和币种、用途忽略大小写后相同、日期在被检查支出前后七天内的最多 30 笔其他支出进行比较。重复状态为 checked 或 issue；issue 可包含 candidate {id, revision}，不包含支出详情。模型不可用时，本地重复检查仍可能有结果。不确定或不可用不代表没有问题。修改前先使用 expenses:read GET 当前支出，再主动使用 expenses:write 和新的 If-Match 版本 PATCH。"
+            )}
+          </p>
+          <DocsCode title={T("Review one saved expense", "检查一笔已保存支出")}>{reviewExample}</DocsCode>
           <h2 id="errors" className="docs-h2">
             {T("Errors and limits", "错误与限制")}
           </h2>
