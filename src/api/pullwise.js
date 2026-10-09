@@ -27,6 +27,18 @@ export const pullwiseApi = {
       request("/auth/sign-out", { method: "POST", signal: options.signal }),
     getGitHubAuthorizeUrl: (params = {}, options = {}) =>
       request(withSearchParams("/auth/github/authorize", params), { signal: options.signal }),
+    requestEmailCode: (payload, options = {}) =>
+      request("/auth/email/request-code", {
+        method: "POST",
+        body: payload,
+        signal: options.signal,
+      }),
+    verifyEmailCode: (payload, options = {}) =>
+      request("/auth/email/verify-code", {
+        method: "POST",
+        body: payload,
+        signal: options.signal,
+      }),
   },
 
   repositories: {

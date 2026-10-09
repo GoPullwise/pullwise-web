@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import { EmailSignIn } from "../components/email-sign-in.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 
-export function SettingsScreen({ go }) {
+export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   useLang();
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
@@ -17,8 +18,11 @@ export function SettingsScreen({ go }) {
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const requestRef = useRef(0);
   const actionRef = useRef(false);
+  const emailActionRef = useRef(false);
   const mountedRef = useRef(false);
   const loadControllerRef = useRef(null);
+  const onOperationBusyRef = useRef(onOperationBusy);
+  onOperationBusyRef.current = onOperationBusy;
 
   const load = useCallback(async () => {
     if (!mountedRef.current) return;
@@ -54,11 +58,13 @@ export function SettingsScreen({ go }) {
       mountedRef.current = false;
       requestRef.current += 1;
       loadControllerRef.current?.abort();
+      onOperationBusyRef.current?.(false);
     };
   }, [load]);
 
   const runGitHubAction = async (action, installationId = "") => {
     if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
+    if (onOperationBusyRef.current?.(true) === false) return;
     actionRef.current = true;
     setBusy(true);
     setManagingInstallationId(installationId);
@@ -71,6 +77,7 @@ export function SettingsScreen({ go }) {
         setError(failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。"));
     } finally {
       actionRef.current = false;
+      onOperationBusyRef.current?.(false);
       if (mountedRef.current) {
         setBusy(false);
         setManagingInstallationId("");
@@ -84,6 +91,7 @@ export function SettingsScreen({ go }) {
   };
   const leaveSession = async () => {
     if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
+    if (onOperationBusyRef.current?.(true) === false) return;
     actionRef.current = true;
     setBusy(true);
     setError("");
@@ -93,14 +101,50 @@ export function SettingsScreen({ go }) {
       if (mountedRef.current) setError(failure?.message || T("Request failed. Please retry."));
     } finally {
       actionRef.current = false;
+      onOperationBusyRef.current?.(false);
       if (mountedRef.current) setBusy(false);
     }
   };
   const controlsDisabled = busy || loading;
 
+  const emailBusy = (active) => {
+    if (active) {
+      if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current)
+        return false;
+      if (onOperationBusyRef.current?.(true) === false) return false;
+      actionRef.current = true;
+      emailActionRef.current = true;
+      setBusy(true);
+      setError("");
+      return true;
+    }
+    if (emailActionRef.current) {
+      emailActionRef.current = false;
+      actionRef.current = false;
+      onOperationBusyRef.current?.(false);
+      if (mountedRef.current) setBusy(false);
+    }
+  };
+  const emailLinked = async (updatedSession) => {
+    if (!session?.user?.id || updatedSession?.user?.id !== session.user.id) {
+      throw new Error(
+        T(
+          "Email linking could not be confirmed for this account. Please retry.",
+          "未能确认邮箱已绑定到此账户，请重试。"
+        )
+      );
+    }
+    await onSessionUpdated?.(updatedSession);
+    if (mountedRef.current) setSession(updatedSession);
+  };
+
   const github = integrations?.github;
   const githubReady = typeof github?.connected === "boolean";
   const user = session?.user;
+  const emailProvider = Array.isArray(user?.providers) && user.providers.includes("email");
+  const loginEmail = emailProvider && user?.emailVerified === true ? user.email : null;
+  const canLinkEmail =
+    session?.authenticated && user?.id && !emailProvider && user?.emailVerified !== true;
   const accounts = Array.from(
     new Set(
       [
@@ -125,7 +169,7 @@ export function SettingsScreen({ go }) {
           <div className="page-h">
             <div>
               <h1>{T("Settings", "设置")}</h1>
-              <p className="sub">{T("Account and GitHub access", "账户与 GitHub 授权")}</p>
+              <p className="sub">{T("Account and sign-in methods", "账户与登录方式")}</p>
             </div>
             <button className="btn" onClick={reload} disabled={controlsDisabled}>
               {T("Reload", "重新加载")}
@@ -142,12 +186,14 @@ export function SettingsScreen({ go }) {
               <>
                 <div className="set-row">
                   <I.User size={18} />
-                  <span>{user?.name || user?.login || T("GitHub account", "GitHub 账户")}</span>
+                  <span className="email-sign-in-identity">
+                    {user?.name || user?.login || user?.email || T("Account", "账户")}
+                  </span>
                 </div>
                 {user?.email && (
                   <div className="set-row">
                     <I.Mail size={16} />
-                    <span>{user.email}</span>
+                    <span className="email-sign-in-identity">{user.email}</span>
                   </div>
                 )}
                 <button className="btn sm" onClick={leaveSession} disabled={controlsDisabled}>
@@ -156,6 +202,44 @@ export function SettingsScreen({ go }) {
               </>
             ) : (
               !loading && <p>{T("Account profile unavailable.", "账户资料暂不可用。")}</p>
+            )}
+          </section>
+          <section className="panel" aria-label={T("Sign-in methods", "登录方式")}>
+            <h2>{T("Sign-in methods", "登录方式")}</h2>
+            {loading && <p className="muted">{T("Loading...", "正在加载...")}</p>}
+            {loginEmail ? (
+              <>
+                <div className="set-row">
+                  <I.Mail size={16} />
+                  <span className="email-sign-in-identity">{loginEmail}</span>
+                  <span className="muted">{T("Verified email", "已验证邮箱")}</span>
+                </div>
+                <p className="muted">
+                  {T("Use email codes to sign in to this account.", "使用邮箱验证码登录此账户。")}
+                </p>
+              </>
+            ) : canLinkEmail ? (
+              <>
+                <p className="muted">
+                  {T(
+                    "Link an email to sign in with a code. Your existing account and ledgers stay together.",
+                    "绑定邮箱后即可使用验证码登录，现有账户和账本保持不变。"
+                  )}
+                </p>
+                <EmailSignIn
+                  key={user.id}
+                  purpose="link"
+                  disabled={controlsDisabled && !emailActionRef.current}
+                  onBusy={emailBusy}
+                  onVerified={emailLinked}
+                />
+              </>
+            ) : (
+              !loading && (
+                <p className="muted">
+                  {T("Email sign-in information is unavailable.", "邮箱登录信息暂不可用。")}
+                </p>
+              )
             )}
           </section>
           <section className="panel" aria-label={T("GitHub access", "GitHub 授权")}>

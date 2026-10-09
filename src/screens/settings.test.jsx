@@ -7,7 +7,7 @@ import { SettingsScreen } from "./settings.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
-    auth: { getSession: vi.fn() },
+    auth: { getSession: vi.fn(), requestEmailCode: vi.fn(), verifyEmailCode: vi.fn() },
     integrations: { list: vi.fn() },
   },
 }));
@@ -19,7 +19,7 @@ vi.mock("../lib/auth.js", () => ({
 
 const session = {
   authenticated: true,
-  user: { name: "Taylor", email: "taylor@example.com" },
+  user: { id: "taylor", name: "Taylor", email: "taylor@example.com", providers: ["github"] },
 };
 const connectedGitHub = {
   github: {
@@ -63,6 +63,20 @@ describe("product settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     pullwiseApi.auth.getSession.mockResolvedValue(session);
+    pullwiseApi.auth.requestEmailCode.mockResolvedValue({
+      challengeId: "email_1",
+      expiresIn: 600,
+      retryAfter: 0,
+    });
+    pullwiseApi.auth.verifyEmailCode.mockResolvedValue({
+      ...session,
+      user: {
+        ...session.user,
+        email: "login@example.com",
+        emailVerified: true,
+        providers: ["github", "email"],
+      },
+    });
     pullwiseApi.integrations.list.mockResolvedValue({
       github: { connected: false, repositories: [], installations: [] },
     });
@@ -90,6 +104,109 @@ describe("product settings", () => {
     expect(screen.getByText("Account profile unavailable.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /^reload$/i }));
     expect(await screen.findByText("Taylor")).toBeInTheDocument();
+  });
+
+  it("offers explicit first email binding without treating a GitHub profile email as verified sign-in", async () => {
+    const onSessionUpdated = vi.fn();
+    render(<SettingsScreen go={vi.fn()} onSessionUpdated={onSessionUpdated} />);
+    const email = await screen.findByRole("textbox", { name: "Email" });
+    expect(screen.queryByText("Verified email")).not.toBeInTheDocument();
+    fireEvent.change(email, { target: { value: "login@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send code" }));
+    const code = await screen.findByRole("textbox", { name: "6-digit code" });
+    expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledWith(
+      { email: "login@example.com", purpose: "link" },
+      { signal: expect.any(AbortSignal) }
+    );
+    fireEvent.change(code, { target: { value: "012345" } });
+    fireEvent.click(screen.getByRole("button", { name: "Verify and link email" }));
+    expect(await screen.findByText("Verified email")).toBeInTheDocument();
+    expect(onSessionUpdated).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user: expect.objectContaining({ id: "taylor", emailVerified: true }),
+      })
+    );
+    expect(screen.queryByRole("textbox", { name: "Email" })).not.toBeInTheDocument();
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(1);
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+  });
+
+  it("shows an already verified login email without offering an unsafe replacement", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      ...session,
+      user: { ...session.user, emailVerified: true, providers: ["email"] },
+    });
+    render(<SettingsScreen go={vi.fn()} />);
+    expect(await screen.findByText("Verified email")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Email" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit email" })).not.toBeInTheDocument();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+  });
+
+  it("shares one synchronous busy scope between email binding, GitHub authorization, sign out and navigation", async () => {
+    const request = deferred();
+    pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(request.promise);
+    const go = vi.fn();
+    withLedgers(go);
+    const email = await screen.findByRole("textbox", { name: "Email" });
+    fireEvent.change(email, { target: { value: "login@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send code" }));
+    fireEvent.click(screen.getByRole("button", { name: "Connect repositories" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Connect repositories" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeDisabled();
+    expect(email).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Projects", exact: true })).not.toHaveAttribute("href");
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
+    await act(async () => request.reject(new Error("Mail delivery unavailable")));
+    expect(screen.getByRole("alert")).toHaveTextContent("Mail delivery unavailable");
+    expect(email).toHaveValue("login@example.com");
+    expect(email).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Connect repositories" })).toBeEnabled();
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeEnabled();
+  });
+
+  it("disables email binding during GitHub changes and preserves its draft through the account refresh", async () => {
+    const action = deferred();
+    connectGitHubRepositories.mockReturnValueOnce(action.promise);
+    render(<SettingsScreen go={vi.fn()} />);
+    const email = await screen.findByRole("textbox", { name: "Email" });
+    fireEvent.change(email, { target: { value: "draft@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Connect repositories" }));
+    expect(email).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Send code" })).toBeDisabled();
+    const accountRead = deferred();
+    pullwiseApi.auth.getSession.mockReturnValueOnce(accountRead.promise);
+    await act(async () => action.resolve());
+    expect(email).toBeDisabled();
+    expect(email).toHaveValue("draft@example.com");
+    await act(async () => accountRead.resolve(session));
+    expect(screen.getByRole("textbox", { name: "Email" })).toBeEnabled();
+    expect(email).toHaveValue("draft@example.com");
+  });
+
+  it("refuses a binding response belonging to another user and retains the code for explicit retry", async () => {
+    pullwiseApi.auth.verifyEmailCode.mockResolvedValueOnce({
+      ...session,
+      user: { ...session.user, id: "other-account", emailVerified: true, providers: ["email"] },
+    });
+    const onSessionUpdated = vi.fn();
+    render(<SettingsScreen go={vi.fn()} onSessionUpdated={onSessionUpdated} />);
+    fireEvent.change(await screen.findByRole("textbox", { name: "Email" }), {
+      target: { value: "login@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send code" }));
+    const code = await screen.findByRole("textbox", { name: "6-digit code" });
+    fireEvent.change(code, { target: { value: "012345" } });
+    fireEvent.click(screen.getByRole("button", { name: "Verify and link email" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("for this account");
+    expect(code).toHaveValue("012345");
+    expect(code).toBeEnabled();
+    expect(onSessionUpdated).not.toHaveBeenCalled();
+    expect(screen.getByText("Taylor")).toBeInTheDocument();
   });
 
   it.each([false, true])(

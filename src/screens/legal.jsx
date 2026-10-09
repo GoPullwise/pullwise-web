@@ -8,7 +8,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const CONTACT_EMAIL = "contact@pull-wise.com";
 const SECURITY_EMAIL = CONTACT_EMAIL;
-const LAST_UPDATED = "2026-10-08";
+const LAST_UPDATED = "2026-10-09";
 
 function LegalChrome({ go, current, children, auth }) {
   useLang();
@@ -106,8 +106,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="scope" title={sections[0].title}>
         <p>
           {T(
-            "Pullwise provides project and shared expense tracking for developers and teams through the web app and REST API. GitHub sign-in identifies your account; linking repositories to projects is optional. This policy also covers shared ledgers, subscriptions and support interactions.",
-            "Pullwise 通过 Web 应用和 REST API 为开发者与团队提供项目及公共支出记账。GitHub 登录用于识别账户，项目关联仓库是可选的。本政策也适用于共享账本、订阅和支持沟通。"
+            "Pullwise provides project and shared expense tracking for developers and teams through the web app and REST API. You can sign in with an email verification code or GitHub. Your first successful email verification creates an account automatically. GitHub sign-in and repository integration are optional. This policy also covers shared ledgers, subscriptions and support interactions.",
+            "Pullwise 通过 Web 应用和 REST API 为开发者与团队提供项目及公共支出记账。你可以使用邮箱验证码或 GitHub 登录，首次邮箱验证成功会自动创建账户。GitHub 登录和仓库关联均为可选项。本政策也适用于共享账本、订阅和支持沟通。"
           )}
         </p>
       </Section>
@@ -115,8 +115,12 @@ export function PrivacyScreen({ go, auth }) {
         <LegalList
           items={[
             T(
-              "Account and GitHub data: GitHub user ID, username, display name, avatar, sessions, encrypted GitHub access tokens, and authorized repository, Organization and installation metadata when you use repository integration.",
-              "账户与 GitHub 数据：GitHub 用户 ID、用户名、显示名称、头像、会话、加密保存的 GitHub 访问令牌，以及使用仓库关联时的已授权仓库、Organization 和安装元数据。"
+              "Account and sign-in data: account ID, verified sign-in email when added, display name, sessions and short-lived email verification challenges. Codes expire after 10 minutes and are stored as keyed HMAC digests. Pullwise does not collect or store a sign-in password.",
+              "账户与登录数据：账户 ID、已添加且验证过的登录邮箱、显示名称、会话和短期邮箱验证记录。验证码 10 分钟后失效，仅以带密钥的 HMAC 摘要保存。Pullwise 不收集或保存登录密码。"
+            ),
+            T(
+              "Optional GitHub data: GitHub user ID, username, display name, avatar, encrypted GitHub access tokens, and authorized repository, Organization and installation metadata when you connect GitHub.",
+              "可选的 GitHub 数据：连接 GitHub 时的 GitHub 用户 ID、用户名、显示名称、头像、加密保存的 GitHub 访问令牌，以及已授权仓库、Organization 和安装元数据。"
             ),
             T(
               "Ledger data: project names and descriptions, repository associations, categories, expense dates, amounts, currencies, purpose, notes, quantity, unit and audit history, including model-assistance outcomes when used.",
@@ -127,8 +131,8 @@ export function PrivacyScreen({ go, auth }) {
               "API 密钥数据：名称、前缀、令牌哈希、权限、目标限制和使用元数据。完整令牌仅显示一次。"
             ),
             T(
-              "Team ledger data: workspace membership, roles, stable GitHub invitation recipient IDs, hashed invitation tokens and the actual actor's audit history.",
-              "团队账本数据：成员关系、角色、邀请对象的稳定 GitHub ID、邀请令牌哈希及实际操作成员的审计历史。"
+              "Team ledger data: workspace membership, roles, invitation and join-request account IDs, approval or rejection decisions, hashed invitation tokens, legacy GitHub recipient IDs and the actual actor's audit history.",
+              "团队账本数据：成员关系、角色、邀请与加入申请的账户 ID、批准或拒绝决定、邀请令牌哈希、旧版 GitHub 接收人 ID 及实际操作成员的审计历史。"
             ),
             T(
               "Platform billing data: customer, subscription, checkout and payment event identifiers, payment amounts, currencies, status, billing periods and customer email where provided by the payment processor. Checkout payment details are handled by Creem.",
@@ -150,6 +154,12 @@ export function PrivacyScreen({ go, auth }) {
         </p>
         <p>
           {T(
+            "Adding an email sign-in method to an existing account requires explicit verification while signed in. A GitHub profile email is not a verified Pullwise sign-in method and never causes automatic account linking or merging.",
+            "为已有账户添加邮箱登录方式，需要在登录状态下主动验证邮箱。GitHub 资料中的邮箱不等于已验证的 Pullwise 登录方式，也不会触发自动绑定或合并账户。"
+          )}
+        </p>
+        <p>
+          {T(
             "Max automatically uses Jev during expense saves when enabled, available and within the plan allowance, for categorization and advice on project or shared expenses. Expense data sent to the model consists of the submitted purpose and note plus allowed category IDs and names. Pullwise checks possible duplicates in its own service using a bounded authorized expense lookup; historical expense text is not sent to the model. Repository code and stored GitHub and API key tokens are excluded from model input. Do not enter secrets in purpose, notes or category names, as those fields may be sent to the model. Explicit amounts, currencies, targets and categories are preserved; uncertain categorization requires you to choose a category.",
             "Max 在模型已启用、可用且套餐额度内，会在保存支出时自动使用 Jev 分类，并提供项目或公共支出归属建议。发送给模型的支出数据包括本次提交的用途、备注，以及可用类别的 ID 和名称。Pullwise 在自身服务内通过有限的已授权支出查询检查疑似重复记录，不向模型发送历史支出文字。仓库代码、已保存的 GitHub 令牌及 API 密钥令牌不纳入模型输入。请勿在用途、备注或类别名称中填写秘密信息，这些字段可能发送给模型。明确填写的金额、币种、目标和类别会保留；无法可靠分类时需要你选择类别。"
           )}
@@ -158,8 +168,8 @@ export function PrivacyScreen({ go, auth }) {
       <Section id="sharing" title={sections[3].title}>
         <p>
           {T(
-            "Cloudflare hosts the web app, API and data storage. GitHub provides sign-in and optional repository authorization. Creem processes platform payments, and TypeSafe processes Jev expense assistance for Max when enabled and available. These providers process the data needed for their functions under their own applicable terms and privacy policies. We do not sell your personal data or repository code.",
-            "Cloudflare 托管 Web 应用、API 和数据存储。GitHub 提供登录及可选的仓库授权。Creem 处理平台支付，TypeSafe 在已启用且可用时提供 Max 的 Jev 支出辅助。这些提供方会根据各自适用的条款与隐私政策处理其功能所需数据。我们不出售个人数据或仓库代码。"
+            "Cloudflare hosts the web app, API and data storage, and delivers verification emails using your email address and one-time code. GitHub provides optional sign-in and repository authorization. Creem processes platform payments, and TypeSafe processes Jev expense assistance for Max when enabled and available. These providers process the data needed for their functions under their own applicable terms and privacy policies. We do not sell your personal data or repository code.",
+            "Cloudflare 托管 Web 应用、API 和数据存储，并使用你的邮箱地址和一次性验证码发送验证邮件。GitHub 提供可选的登录与仓库授权。Creem 处理平台支付，TypeSafe 在已启用且可用时提供 Max 的 Jev 支出辅助。这些提供方会根据各自适用的条款与隐私政策处理其功能所需数据。我们不出售个人数据或仓库代码。"
           )}
         </p>
         <p>
@@ -170,16 +180,16 @@ export function PrivacyScreen({ go, auth }) {
         </p>
         <p>
           {T(
-            "When a member accepts an invitation, their role gives them access to all existing and future projects, categories, expenses, reports and CSV exports in that ledger. An invitation is not limited to one project. Membership does not share GitHub credentials or grant access to repository code, personal billing or other ledgers. Remove members or change roles in Members to restrict subsequent access; this cannot recall copies they already exported.",
-            "成员接受邀请后，其角色会授予该账本全部现有及未来的项目、分类、支出、报表和 CSV 导出的访问权，邀请并非仅限于某个项目。成员资格不会共享 GitHub 凭据，也不会授予仓库代码、个人账单或其他账本的访问权。可在成员页面移除成员或更改角色，限制后续访问，但无法收回成员此前已经导出的副本。"
+            "Opening an invitation link or submitting a join request does not grant ledger access. New links accept requests from any signed-in Pullwise account, including email-only accounts. Only the original inviter, while their original permissions remain valid, can approve or reject a request. After approval, the member's role gives them access to all existing and future projects, categories, expenses, reports and CSV exports in that ledger. An invitation is not limited to one project. Legacy targeted invitations still check the intended GitHub identity. Membership does not share GitHub credentials or grant access to repository code, personal billing or other ledgers. Removing access cannot recall copies already exported.",
+            "打开邀请链接或提交加入申请不会授予账本访问权。新链接允许任何已登录的 Pullwise 账户（包括仅使用邮箱的账户）申请加入。只有原邀请人在原有权限仍有效时可以批准或拒绝申请。批准后，成员按角色访问该账本全部现有及未来的项目、分类、支出、报表和 CSV 导出，邀请并非仅限于某个项目。旧版定向邀请仍校验指定 GitHub 身份。成员资格不会共享 GitHub 凭据，也不会授予仓库代码、个人账单或其他账本的访问权。撤销访问无法收回此前已经导出的副本。"
           )}
         </p>
       </Section>
       <Section id="storage" title={sections[4].title}>
         <p>
           {T(
-            "Pullwise uses a secure, HttpOnly session cookie for sign-in. Browser local storage remembers your language and theme, and session storage records a pending GitHub access refresh. Signing out clears the session cookie; you can clear browser storage in your browser settings. Blocking the session cookie prevents signed-in use. GitHub and Creem may use their own cookies when you visit their services.",
-            "Pullwise 使用安全的 HttpOnly 会话 Cookie 维持登录。浏览器本地存储记住语言和主题，会话存储记录待完成的 GitHub 权限刷新。退出登录会清除会话 Cookie；你可以在浏览器设置中清除浏览器存储。阻止会话 Cookie 会影响登录后的使用。访问 GitHub 和 Creem 时，它们可能使用自己的 Cookie。"
+            "Pullwise uses a secure, HttpOnly session cookie for sign-in and a short-lived verification cookie to bind email code requests to your browser. Browser local storage remembers your language and theme, and session storage records a pending GitHub access refresh. Signing out clears the session cookie; you can clear browser storage in your browser settings. Blocking these cookies prevents sign-in or verification. GitHub and Creem may use their own cookies when you visit their services.",
+            "Pullwise 使用安全的 HttpOnly 会话 Cookie 维持登录，并用短期验证 Cookie 将邮箱验证码请求绑定到当前浏览器。浏览器本地存储记住语言和主题，会话存储记录待完成的 GitHub 权限刷新。退出登录会清除会话 Cookie；你可以在浏览器设置中清除浏览器存储。阻止这些 Cookie 会影响登录或验证。访问 GitHub 和 Creem 时，它们可能使用自己的 Cookie。"
           )}
         </p>
       </Section>
@@ -223,7 +233,7 @@ export function TermsScreen({ go, auth }) {
   useLang();
   const sections = [
     { id: "service", title: T("Service", "服务") },
-    { id: "account", title: T("Account and GitHub access", "账户与 GitHub 访问") },
+    { id: "account", title: T("Account and sign-in methods", "账户与登录方式") },
     { id: "api", title: T("API use", "API 使用") },
     { id: "billing", title: T("Billing", "计费") },
     { id: "content", title: T("Your content", "你的内容") },
@@ -253,8 +263,8 @@ export function TermsScreen({ go, auth }) {
       <Section id="account" title={sections[1].title}>
         <p>
           {T(
-            "You sign in with GitHub and are responsible for protecting your account and credentials. Only connect repositories you are authorized to access; repository integration is optional. Changed GitHub repository access does not erase financial history, but can restrict new expenses in linked projects. Shared-ledger access depends on your current membership and role.",
-            "你通过 GitHub 登录，并负责保护账户与凭据。只能关联你有权访问的仓库；仓库关联是可选的。GitHub 仓库权限变化不会抹去财务历史，但可能限制关联项目的新支出。共享账本的访问取决于当前成员资格与角色。"
+            "You can sign in with an email verification code or GitHub. Your first successful email verification creates an account automatically without a password. Protect your email account, verification codes, sessions and other credentials. Adding an email sign-in method to an existing account requires explicit verification while signed in; matching a GitHub profile email never merges accounts. Only connect repositories you are authorized to access; GitHub and repository integration are optional for standalone projects. Changed GitHub repository access does not erase financial history, but can restrict new expenses in linked projects. Shared-ledger access depends on your current membership and role; new invitation links grant access only after the original inviter approves. Legacy targeted invitations still check the intended GitHub identity.",
+            "你可以使用邮箱验证码或 GitHub 登录；首次邮箱验证成功会自动创建账户，无需密码。请保护邮箱账户、验证码、会话及其他凭据。为已有账户添加邮箱登录方式，需要在登录状态下主动验证；GitHub 资料中的相同邮箱不会自动合并账户。只能关联你有权访问的仓库，独立项目不要求 GitHub 或仓库关联。GitHub 仓库权限变化不会抹去财务历史，但可能限制关联项目的新支出。共享账本访问取决于当前成员资格与角色，新邀请链接须由原邀请人批准后才授予访问权。旧版定向邀请仍校验指定 GitHub 身份。"
           )}
         </p>
       </Section>
@@ -289,8 +299,8 @@ export function TermsScreen({ go, auth }) {
       <Section id="content" title={sections[4].title}>
         <p>
           {T(
-            "You retain ownership of your ledger entries and other customer content, and allow Pullwise to store and process them to provide and secure the service as described in the Privacy Policy. Only enter data you are entitled to use and share. When an invitation is accepted, all existing and future projects, categories, expenses, reports and CSV exports in that ledger become accessible according to the member's role. Removing access cannot recall exported copies. Automatic Max assistance runs as part of your expense write; it does not create expenses during reads or change explicit choices.",
-            "你保留账目和其他客户内容的所有权，并允许 Pullwise 按隐私政策说明存储和处理这些内容，以提供和保护服务。仅录入你有权使用与共享的数据。邀请被接受后，该账本全部现有及未来的项目、分类、支出、报表和 CSV 导出会按成员角色开放访问。撤销访问无法收回已经导出的副本。Max 自动辅助随支出写入运行，不会在读取时新增支出或改动明确选择。"
+            "You retain ownership of your ledger entries and other customer content, and allow Pullwise to store and process them to provide and secure the service as described in the Privacy Policy. Only enter data you are entitled to use and share. After a join request is approved, all existing and future projects, categories, expenses, reports and CSV exports in that ledger become accessible according to the member's role. Removing access cannot recall exported copies. Automatic Max assistance runs as part of your expense write; it does not create expenses during reads or change explicit choices.",
+            "你保留账目和其他客户内容的所有权，并允许 Pullwise 按隐私政策说明存储和处理这些内容，以提供和保护服务。仅录入你有权使用与共享的数据。加入申请获批后，该账本全部现有及未来的项目、分类、支出、报表和 CSV 导出会按成员角色开放访问。撤销访问无法收回已经导出的副本。Max 自动辅助随支出写入运行，不会在读取时新增支出或改动明确选择。"
           )}
         </p>
       </Section>

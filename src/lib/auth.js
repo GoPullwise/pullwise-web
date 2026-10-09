@@ -84,10 +84,12 @@ function identityIdFrom(value) {
 }
 
 function needsGitHubIdentity(error) {
-  return error?.status === 401 && String(error?.message || "").includes("Sign in with GitHub");
+  const code = error?.code || error?.payload?.error?.code || error?.payload?.code;
+  return code === "GITHUB_IDENTITY_REQUIRED" ||
+    (error?.status === 401 && String(error?.message || "").includes("Sign in with GitHub"));
 }
 
-export async function startGitHubLogin({ redirectTo, signal } = {}) {
+export async function startGitHubLogin({ redirectTo, signal, intent } = {}) {
   if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
 
   const invite = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)
@@ -97,7 +99,10 @@ export async function startGitHubLogin({ redirectTo, signal } = {}) {
     ? new URL(`/members${invite}`, window.location.origin).toString()
     : "";
   const result = await pullwiseApi.auth.getGitHubAuthorizeUrl(
-    { redirectTo: redirectTo || invitationReturn || getScreenRedirectUrl("ledgerProjects") },
+    {
+      redirectTo: redirectTo || invitationReturn || getScreenRedirectUrl("ledgerProjects"),
+      ...(intent === "link" ? { intent: "link" } : {}),
+    },
     { signal }
   );
 
@@ -130,6 +135,7 @@ export async function connectGitHubRepositories({
   } catch (error) {
     if (needsGitHubIdentity(error)) {
       await startGitHubLogin({
+        intent: "link",
         redirectTo: getContinueRepositoryRedirectUrl(repositoryRedirect),
         signal,
       });

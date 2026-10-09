@@ -52,23 +52,84 @@ describe("request", () => {
 });
 
 describe("fetch transport", () => {
-  function jsonResponse(body, { status = 200 } = {}) {
+  function jsonResponse(body, { status = 200, headers = {} } = {}) {
     return new Response(body === null ? "" : JSON.stringify(body), {
       status,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...headers },
     });
   }
 
-  it("reports a paused service clearly instead of a generic 503 status", async () => {
+  it("preserves email cooldown headers without automatically repeating the request", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      jsonResponse({ error: { code: "D1_ACCESS_PAUSED" } }, { status: 503 }));
+      jsonResponse(
+        { error: { code: "EMAIL_RATE_LIMIT" } },
+        {
+          status: 429,
+          headers: { "Retry-After": "47" },
+        }
+      )
+    );
+    try {
+      const error = await request("/auth/email/request-code", {
+        method: "POST",
+        body: { email: "member@example.com", purpose: "login" },
+      }).catch((failure) => failure);
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error.code).toBe("EMAIL_RATE_LIMIT");
+      expect(error.retryAfter).toBe(47);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("supports HTTP-date cooldowns and ignores malformed Retry-After values", async () => {
+    const now = Date.UTC(2026, 9, 9, 12);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    try {
+      for (const [value, expected] of [
+        [new Date(now + 75000).toUTCString(), 75],
+        ["7200", 3600],
+        ["invalid", undefined],
+        ["-1", undefined],
+      ]) {
+        fetchMock.mockResolvedValueOnce(
+          jsonResponse(
+            { error: { code: "EMAIL_RATE_LIMIT" } },
+            {
+              status: 429,
+              headers: { "Retry-After": value },
+            }
+          )
+        );
+        const error = await request("/auth/email/request-code", { method: "POST" }).catch(
+          (failure) => failure
+        );
+        expect(error.retryAfter).toBe(expected);
+      }
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+    } finally {
+      fetchMock.mockRestore();
+      clock.mockRestore();
+    }
+  });
+
+  it("reports a paused service clearly instead of a generic 503 status", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        jsonResponse({ error: { code: "D1_ACCESS_PAUSED" } }, { status: 503 })
+      );
     try {
       const error = await request("/auth/github/authorize").catch((failure) => failure);
       expect(error).toBeInstanceOf(ApiError);
       expect(error.code).toBe("D1_ACCESS_PAUSED");
       expect(error.message).toBe("Service is temporarily paused. Please try again later.");
       expect(fetchMock).toHaveBeenCalledTimes(1);
-    } finally { fetchMock.mockRestore(); }
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("serializes params and drops empty values", async () => {

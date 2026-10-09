@@ -128,6 +128,9 @@ export function App() {
   const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
   const [screen, setScreen] = useState(getInitialScreen);
   const [routeVersion, setRouteVersion] = useState(0);
+  const pageOperationRef = useRef(null);
+  const [reportedNavigation, setReportedNavigation] = useState({ owner: "", active: false });
+  const [renderedNavigation, setRenderedNavigation] = useState({ owner: "", active: false });
   const [auth, setAuth] = useState({ status: "checking", authenticated: false, session: null });
   const [repositoryAuthorizationError, setRepositoryAuthorizationError] = useState("");
   const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
@@ -217,11 +220,14 @@ export function App() {
     () => createLedgerApi(workspace?.id, onAccessChanged),
     [workspace?.id, onAccessChanged]
   );
-  const selectWorkspace = useCallback((selectedId) => {
-    workspaceIdentityRef.current = identity;
-    selectedWorkspaceRef.current = selectedId;
-    setWorkspaceState((old) => ({ ...old, selectedId }));
-  }, [identity]);
+  const selectWorkspace = useCallback(
+    (selectedId) => {
+      workspaceIdentityRef.current = identity;
+      selectedWorkspaceRef.current = selectedId;
+      setWorkspaceState((old) => ({ ...old, selectedId }));
+    },
+    [identity]
+  );
   const onInvitationRequestsChanged = useCallback(() => {
     window.dispatchEvent(new Event("pw-invitationrequestschange"));
   }, []);
@@ -256,13 +262,11 @@ export function App() {
           items.some((item) => !item?.id || !item?.role)
         )
           throw new Error("Ledger access could not be loaded.");
-        setWorkspaceState((old) => {
-          const wanted =
-            old.identity === identity ? selectedWorkspaceRef.current || old.selectedId : "";
-          const selectedId = items.some((item) => item.id === wanted) ? wanted : items[0].id;
-          selectedWorkspaceRef.current = selectedId;
-          return { identity, status: "ready", items, selectedId, error: "" };
-        });
+        const wanted =
+          workspaceIdentityRef.current === identity ? selectedWorkspaceRef.current : "";
+        const selectedId = items.some((item) => item.id === wanted) ? wanted : items[0].id;
+        selectedWorkspaceRef.current = selectedId;
+        setWorkspaceState({ identity, status: "ready", items, selectedId, error: "" });
         workspaceReloading.current = false;
       })
       .catch((error) => {
@@ -283,10 +287,50 @@ export function App() {
     ? screen
     : `${screen}:${identity}:${routeVersion}:${scopedScreen ? `${workspace?.id || "unloaded"}:${workspace?.revision || 0}` : "account"}`;
   const navigationKey = `${screen}:${routeVersion}`;
+  const currentScreenKeyRef = useRef(screenKey);
+  currentScreenKeyRef.current = screenKey;
+  const reportPageOperation = (active, owner) => {
+    if (currentScreenKeyRef.current !== owner) return false;
+    if (active) pageOperationRef.current = owner;
+    else if (pageOperationRef.current === owner) pageOperationRef.current = null;
+    setReportedNavigation({ owner, active });
+    return true;
+  };
+  const navigationDisabled =
+    (reportedNavigation.owner === screenKey && reportedNavigation.active) ||
+    (renderedNavigation.owner === screenKey && renderedNavigation.active);
   const focusedNavigation = useRef(null);
   const continuedRepositoryAuthorization = useRef(false);
   const languageMenuRef = useRef(null);
   const screenRootRef = useRef(null);
+
+  useEffect(() => {
+    if (pageOperationRef.current !== screenKey) pageOperationRef.current = null;
+    setReportedNavigation((previous) =>
+      previous.owner === screenKey || !previous.active
+        ? previous
+        : { owner: screenKey, active: false }
+    );
+    const root = screenRootRef.current;
+    if (!root) return;
+    const syncNavigation = () => {
+      const active = Boolean(root.querySelector('.topbar [aria-disabled="true"]'));
+      setRenderedNavigation((previous) =>
+        previous.owner === screenKey && previous.active === active
+          ? previous
+          : { owner: screenKey, active }
+      );
+    };
+    syncNavigation();
+    const observer = new MutationObserver(syncNavigation);
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["aria-disabled", "disabled", "href"],
+    });
+    return () => observer.disconnect();
+  }, [screenKey]);
 
   useEffect(() => {
     const root = screenRootRef.current;
@@ -323,6 +367,7 @@ export function App() {
   }, [navigationKey, screenKey]);
 
   const go = (nextScreen, params = {}) => {
+    if (pageOperationRef.current === currentScreenKeyRef.current) return;
     const path = pathFromScreen(nextScreen, params);
     const historyState = { screen: nextScreen };
     if (window.location.pathname !== path) {
@@ -403,6 +448,41 @@ export function App() {
     clearTimeout(sessionConfirmTimeoutRef.current);
     sessionConfirmTimeoutRef.current = null;
   }, []);
+
+  const acceptEmailSession = useCallback(
+    (payload, { link = false } = {}) => {
+      if (!payload?.authenticated || !payload?.user?.id) {
+        throw new Error(
+          T("Sign-in could not be confirmed. Please retry.", "未能确认登录状态，请重试。")
+        );
+      }
+      if (
+        link &&
+        (!authRef.current.authenticated || authRef.current.session?.user?.id !== payload.user.id)
+      ) {
+        throw new Error(
+          T(
+            "Email linking could not be confirmed for this account. Please retry.",
+            "未能确认邮箱已绑定到此账户，请重试。"
+          )
+        );
+      }
+      sessionAbortRef.current?.abort();
+      sessionAbortRef.current = null;
+      sessionCheckingRef.current = false;
+      clearSessionConfirmTimer();
+      setAuthState({ status: "ready", authenticated: true, session: payload });
+      if (!link) {
+        const destination = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)
+          ? "ledgerMembers"
+          : "ledgerProjects";
+        replaceAutomaticScreenPath(destination);
+        setScreen(destination);
+        setRouteVersion((value) => value + 1);
+      }
+    },
+    [clearSessionConfirmTimer, setAuthState]
+  );
 
   const checkSession = useCallback(
     async ({
@@ -610,7 +690,13 @@ export function App() {
         body = <LandingScreen go={go} auth={auth} />;
         break;
       case "login":
-        body = <LoginScreen go={go} />;
+        body = (
+          <LoginScreen
+            go={go}
+            onAuthenticated={acceptEmailSession}
+            onOperationBusy={(active) => reportPageOperation(active, screenKey)}
+          />
+        );
         break;
       case "oauth":
         body = <OAuthScreen go={go} auth={auth} />;
@@ -679,7 +765,13 @@ export function App() {
         );
         break;
       case "settings":
-        body = <SettingsScreen go={go} />;
+        body = (
+          <SettingsScreen
+            go={go}
+            onSessionUpdated={(payload) => acceptEmailSession(payload, { link: true })}
+            onOperationBusy={(active) => reportPageOperation(active, screenKey)}
+          />
+        );
         break;
       case "billing":
         body = <BillingScreen go={go} />;
@@ -735,12 +827,18 @@ export function App() {
     );
   }
   return (
-    <NotificationProvider scope={identity}>
+    <NotificationProvider
+      scope={identity}
+      navigationDisabled={navigationDisabled}
+      floatingControlsOpen={languageMenuOpen}
+    >
       <InvitationInboxProvider
         identity={identity}
         enabled={auth.status === "ready" && auth.authenticated}
         navigationKey={navigationKey}
+        navigationDisabled={navigationDisabled}
         onReview={(request) => {
+          if (pageOperationRef.current === currentScreenKeyRef.current) return false;
           if (screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]')) return false;
           selectWorkspace(request.workspaceId);
           go("ledgerMembers");

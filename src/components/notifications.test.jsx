@@ -35,7 +35,64 @@ function NotificationHarness() {
   );
 }
 
+function ActionHarness({ action }) {
+  const { notify } = useNotify();
+  return (
+    <button
+      type="button"
+      onClick={() => notify({ message: "Pending request", action, durationMs: 0 })}
+    >
+      Show action
+    </button>
+  );
+}
+
 describe("NotificationProvider", () => {
+  it("disables conflicting navigation while preserving the notification for later review", () => {
+    const review = vi.fn().mockReturnValueOnce(false).mockReturnValue(true);
+    const action = { label: "Review request", navigation: true, onClick: review };
+    const { rerender } = render(
+      <NotificationProvider navigationDisabled>
+        <ActionHarness action={action} />
+      </NotificationProvider>
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Show action" }));
+    const control = screen.getByRole("button", { name: "Review request" });
+    expect(control).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Close notification" })).toBeEnabled();
+    fireEvent.click(control);
+    expect(review).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("Pending request");
+
+    rerender(
+      <NotificationProvider>
+        <ActionHarness action={action} />
+      </NotificationProvider>
+    );
+    expect(control).toBeEnabled();
+    fireEvent.click(control);
+    expect(review).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    fireEvent.click(control);
+    expect(review).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("keeps non-navigation notification actions available during a pending operation", () => {
+    const copy = vi.fn();
+    render(
+      <NotificationProvider navigationDisabled>
+        <ActionHarness action={{ label: "Copy details", onClick: copy }} />
+      </NotificationProvider>
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Show action" }));
+    const control = screen.getByRole("button", { name: "Copy details" });
+    expect(control).toBeEnabled();
+    fireEvent.click(control);
+    expect(copy).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("localizes default notification chrome in Chinese", async () => {
     setLang("zh");
     const user = userEvent.setup();
@@ -87,16 +144,24 @@ describe("NotificationProvider", () => {
     const styles = readFileSync("src/app.css", "utf8");
 
     expect(styles).toMatch(
-      /\.notification-stack\s*\{[\s\S]*right:\s*166px;[\s\S]*bottom:\s*calc\(18px \+ env\(safe-area-inset-bottom\)\);[\s\S]*width:\s*min\(390px,\s*calc\(100vw - 184px\)\);/
+      /\.notification-stack\s*\{[\s\S]*right:\s*180px;[\s\S]*bottom:\s*calc\(18px \+ env\(safe-area-inset-bottom\)\);[\s\S]*width:\s*min\(390px,\s*calc\(100vw - 198px\)\);/
     );
   });
 
-  it("keeps the language picker below modal backdrops", () => {
+  it("keeps an open language picker above notifications and below modal backdrops", () => {
     const pickerStyles = readFileSync("src/app.css", "utf8");
     const modalStyles = readFileSync("styles/screens.css", "utf8");
     const baseStyles = readFileSync("styles/base.css", "utf8");
 
-    expect(extractRuleBody(pickerStyles, ".lang-picker")).toMatch(/z-index:\s*var\(--z-float\);/);
+    expect(extractRuleBody(pickerStyles, ".lang-picker")).toMatch(
+      /z-index:\s*calc\(var\(--z-float\) \+ 1\);/
+    );
+    expect(extractRuleBody(pickerStyles, ".notification-stack-controls-open")).toMatch(
+      /z-index:\s*var\(--z-float\);/
+    );
+    expect(extractRuleBody(pickerStyles, ".notification-stack")).toMatch(
+      /z-index:\s*var\(--z-toast\);/
+    );
     expect(extractRuleBody(modalStyles, ".modal-back")).toMatch(/z-index:\s*var\(--z-modal\);/);
     expect(baseStyles).toMatch(/--z-float:\s*60;/);
     expect(baseStyles).toMatch(/--z-modal:\s*100;/);

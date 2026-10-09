@@ -22,15 +22,32 @@ function notificationTone(value) {
   return value === "success" || value === "warning" || value === "info" ? value : "error";
 }
 
-function NotificationAction({ action, onDismiss }) {
+function NotificationAction({ action, onDismiss, navigationDisabled }) {
   if (!action?.label) return null;
+  const disabled = navigationDisabled && action.navigation === true;
   if (action.href) {
     return (
       <a
         className="btn sm notification-action"
-        href={action.href}
+        href={disabled ? undefined : action.href}
+        role={disabled ? "link" : undefined}
+        aria-disabled={disabled || undefined}
+        tabIndex={disabled ? -1 : undefined}
+        onAuxClick={(event) => {
+          if (disabled) event.preventDefault();
+        }}
+        onKeyDown={(event) => {
+          if (disabled && (event.key === "Enter" || event.key === " ")) event.preventDefault();
+        }}
         onClick={(event) => {
-          action.onClick?.(event);
+          if (disabled) {
+            event.preventDefault();
+            return;
+          }
+          if (action.onClick?.(event) === false) {
+            event.preventDefault();
+            return;
+          }
           onDismiss();
         }}
       >
@@ -42,8 +59,9 @@ function NotificationAction({ action, onDismiss }) {
     <button
       type="button"
       className="btn sm notification-action"
+      disabled={disabled}
       onClick={(event) => {
-        action.onClick?.(event);
+        if (disabled || action.onClick?.(event) === false) return;
         onDismiss();
       }}
     >
@@ -52,7 +70,7 @@ function NotificationAction({ action, onDismiss }) {
   );
 }
 
-function NotificationToast({ notification, onDismiss }) {
+function NotificationToast({ notification, onDismiss, navigationDisabled }) {
   const title = notification.title || T("Error", "错误");
   return (
     <div
@@ -66,7 +84,11 @@ function NotificationToast({ notification, onDismiss }) {
       <div className="notification-copy">
         <div className="notification-title">{title}</div>
         <div className="notification-message">{notification.message}</div>
-        <NotificationAction action={notification.action} onDismiss={onDismiss} />
+        <NotificationAction
+          action={notification.action}
+          onDismiss={onDismiss}
+          navigationDisabled={navigationDisabled}
+        />
       </div>
       <button
         type="button"
@@ -81,7 +103,12 @@ function NotificationToast({ notification, onDismiss }) {
   );
 }
 
-export function NotificationProvider({ children, scope = "" }) {
+export function NotificationProvider({
+  children,
+  scope = "",
+  navigationDisabled = false,
+  floatingControlsOpen = false,
+}) {
   const [notifications, setNotifications] = useState([]);
   const nextIdRef = useRef(1);
   const timersRef = useRef(new Map());
@@ -145,7 +172,12 @@ export function NotificationProvider({ children, scope = "" }) {
   return (
     <NotificationContext.Provider value={value}>
       {children}
-      <div className="notification-stack" aria-label={T("Notifications", "通知")}>
+      <div
+        className={
+          "notification-stack" + (floatingControlsOpen ? " notification-stack-controls-open" : "")
+        }
+        aria-label={T("Notifications", "通知")}
+      >
         {notifications
           .filter((notification) => notification.scope === scope)
           .map((notification) => (
@@ -153,6 +185,7 @@ export function NotificationProvider({ children, scope = "" }) {
               key={notification.id}
               notification={notification}
               onDismiss={() => dismiss(notification.id)}
+              navigationDisabled={navigationDisabled}
             />
           ))}
       </div>

@@ -2,14 +2,28 @@ import { env } from "../config/env.js";
 
 export const SERVER_REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
 
+function retryAfterSeconds(value) {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const text = value.trim();
+  const seconds = /^\d+$/.test(text)
+    ? Number(text)
+    : Math.ceil((Date.parse(text) - Date.now()) / 1000);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.min(3600, seconds) : undefined;
+}
+
 export class ApiError extends Error {
-  constructor(message, { status, payload } = {}) {
+  constructor(message, { status, payload, retryAfter } = {}) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.payload = payload;
-    this.code = typeof payload?.error?.code === "string" ? payload.error.code
-      : typeof payload?.code === "string" ? payload.code : "";
+    this.retryAfter = retryAfter;
+    this.code =
+      typeof payload?.error?.code === "string"
+        ? payload.error.code
+        : typeof payload?.code === "string"
+          ? payload.code
+          : "";
   }
 }
 
@@ -106,6 +120,7 @@ export const http = {
       throw new HttpStatusError(`Request failed with status ${response.status}`, {
         status: response.status,
         data: payload,
+        retryAfter: retryAfterSeconds(response.headers.get("Retry-After")),
       });
     }
 
@@ -135,11 +150,16 @@ export async function request(path, options = {}) {
 
     if (error instanceof HttpStatusError) {
       const paused = error.response?.data?.error?.code === "D1_ACCESS_PAUSED";
-      throw new ApiError(paused ? "Service is temporarily paused. Please try again later."
-        : error.response?.data?.message || error.message, {
-        status: error.response?.status,
-        payload: error.response?.data,
-      });
+      throw new ApiError(
+        paused
+          ? "Service is temporarily paused. Please try again later."
+          : error.response?.data?.message || error.message,
+        {
+          status: error.response?.status,
+          payload: error.response?.data,
+          retryAfter: error.response?.retryAfter,
+        }
+      );
     }
 
     throw error;

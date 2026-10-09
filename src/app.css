@@ -2,7 +2,7 @@
   position: fixed;
   right: 70px;
   bottom: calc(18px + env(safe-area-inset-bottom));
-  z-index: var(--z-float);
+  z-index: calc(var(--z-float) + 1);
 }
 
 .status-dot {
@@ -153,15 +153,19 @@
 
 .notification-stack {
   position: fixed;
-  right: 166px;
+  right: 180px;
   bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: var(--z-toast);
-  width: min(390px, calc(100vw - 184px));
+  width: min(390px, calc(100vw - 198px));
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
   pointer-events: none;
+}
+
+.notification-stack-controls-open {
+  z-index: var(--z-float);
 }
 
 .notification-toast {
@@ -265,7 +269,7 @@
 @media (max-width: 520px) {
   .notification-stack {
     right: 16px;
-    bottom: calc(72px + env(safe-area-inset-bottom));
+    bottom: calc(78px + env(safe-area-inset-bottom));
     width: calc(100vw - 32px);
   }
 

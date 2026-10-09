@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { I } from "../icons.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
+import { EmailSignIn } from "../components/email-sign-in.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -9,10 +10,7 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 function getAuthErrorMessage(error) {
   return (
     error?.message ||
-    T(
-      "Sign-in is unavailable. Please try again later.",
-      "登录暂不可用，请稍后重试。"
-    )
+    T("Sign-in is unavailable. Please try again later.", "登录暂不可用，请稍后重试。")
   );
 }
 
@@ -73,7 +71,7 @@ export function LandingScreen({ go, auth }) {
     ? T("Checking session...", "正在检查会话...")
     : signedIn
       ? T("Open projects", "打开项目")
-      : T("Sign in with GitHub", "使用 GitHub 登录");
+      : T("Start with email", "使用邮箱开始");
   const primaryActionIcon = checkingSession ? (
     <span className="spin">
       <I.Refresh />
@@ -81,7 +79,7 @@ export function LandingScreen({ go, auth }) {
   ) : signedIn ? (
     <I.Layout />
   ) : (
-    <I.Github />
+    <I.Mail />
   );
   return (
     <div className="landing fade-in">
@@ -90,7 +88,12 @@ export function LandingScreen({ go, auth }) {
       <section className="lp-hero" aria-labelledby="lp-title">
         <div className="lp-eyebrow">
           <span>PULLWISE / 01</span>
-          <span>{T("Project expense tracking for developers and teams", "面向开发者与团队的项目支出账本")}</span>
+          <span>
+            {T(
+              "Project expense tracking for developers and teams",
+              "面向开发者与团队的项目支出账本"
+            )}
+          </span>
         </div>
         <h1 id="lp-title" className="lp-title">
           {T("Track project and shared expenses.", "记录项目与公共支出。")}
@@ -314,7 +317,7 @@ export function LandingScreen({ go, auth }) {
   );
 }
 
-export function LoginScreen({ go } = {}) {
+export function LoginScreen({ go, onAuthenticated, onOperationBusy } = {}) {
   useLang();
   const [pendingAction, setPendingAction] = useState("");
   const [error, setError] = useState("");
@@ -324,9 +327,28 @@ export function LoginScreen({ go } = {}) {
   });
   const pending = Boolean(pendingAction);
   const loginAbortRef = useRef(null);
+  const actionRef = useRef("");
+  const onOperationBusyRef = useRef(onOperationBusy);
+  onOperationBusyRef.current = onOperationBusy;
+
+  const emailBusy = (active) => {
+    if (active) {
+      if (actionRef.current || onOperationBusyRef.current?.(true) === false) return false;
+      actionRef.current = "email";
+      setPendingAction("email");
+      setError("");
+      return true;
+    }
+    if (actionRef.current === "email") {
+      actionRef.current = "";
+      onOperationBusyRef.current?.(false);
+      setPendingAction("");
+    }
+  };
 
   const handleGitHubLogin = async () => {
-    if (loginAbortRef.current) loginAbortRef.current.abort();
+    if (actionRef.current || onOperationBusyRef.current?.(true) === false) return;
+    actionRef.current = "github";
     const controller = new AbortController();
     loginAbortRef.current = controller;
     setPendingAction("github");
@@ -337,6 +359,8 @@ export function LoginScreen({ go } = {}) {
     } catch (authError) {
       if (controller.signal.aborted) return;
       setError(getAuthErrorMessage(authError));
+      actionRef.current = "";
+      onOperationBusyRef.current?.(false);
       setPendingAction("");
     }
   };
@@ -344,12 +368,13 @@ export function LoginScreen({ go } = {}) {
   useEffect(() => {
     return () => {
       if (loginAbortRef.current) loginAbortRef.current.abort();
+      onOperationBusyRef.current?.(false);
     };
   }, []);
 
   return (
     <div className="auth-wrap fade-in">
-      <a className="auth-back-home" {...screenLinkProps(go, "landing")}>
+      <a className="auth-back-home" {...screenLinkProps(go, "landing", {}, pending)}>
         <I.ArrowL size={14} /> {T("Back to home", "返回首页")}
       </a>
       <div className="auth-card">
@@ -367,13 +392,21 @@ export function LoginScreen({ go } = {}) {
         <h2 className="auth-title">{T("Sign in to Pullwise", "登录 Pullwise")}</h2>
         <p className="auth-sub">
           {T(
-            "Sign in with GitHub, then create a project by name. Repository links are optional.",
-            "使用 GitHub 登录，为项目起名即可开始，仓库关联为可选项。"
+            "Use an email code to sign in or create your account. Repository links are optional.",
+            "使用邮箱验证码登录或创建账户，仓库关联为可选项。"
           )}
         </p>
 
+        <EmailSignIn
+          disabled={pendingAction === "github"}
+          onBusy={emailBusy}
+          onVerified={onAuthenticated}
+        />
+        <p className="email-sign-in-alternative">
+          {T("Or continue with GitHub", "或使用 GitHub 继续")}
+        </p>
         <button
-          className="btn lg primary auth-gh"
+          className="btn lg auth-gh"
           type="button"
           disabled={pending}
           onClick={handleGitHubLogin}
@@ -395,7 +428,9 @@ export function LoginScreen({ go } = {}) {
         <div className="auth-next">
           <div className="auth-next-i">
             <span>1</span>
-            <p>{T("Sign in with your GitHub identity.", "使用你的 GitHub 身份登录。")}</p>
+            <p>
+              {T("Verify your email or use GitHub to sign in.", "验证邮箱或使用 GitHub 登录。")}
+            </p>
           </div>
           <div className="auth-next-i">
             <span>2</span>
@@ -407,9 +442,9 @@ export function LoginScreen({ go } = {}) {
       </div>
       <div className="auth-legal">
         {T("By signing in you agree to our", "登录即表示你同意我们的")}{" "}
-        <a {...screenLinkProps(go, "terms")}>{T("Terms of Service", "服务条款")}</a>{" "}
+        <a {...screenLinkProps(go, "terms", {}, pending)}>{T("Terms of Service", "服务条款")}</a>{" "}
         {T("and", "和")}{" "}
-        <a {...screenLinkProps(go, "privacy")}>{T("Privacy Policy", "隐私政策")}</a>.
+        <a {...screenLinkProps(go, "privacy", {}, pending)}>{T("Privacy Policy", "隐私政策")}</a>.
       </div>
     </div>
   );

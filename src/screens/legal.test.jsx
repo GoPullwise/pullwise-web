@@ -51,7 +51,7 @@ describe("legal pages", () => {
   it("shows the current legal document update date", () => {
     render(<PrivacyScreen go={vi.fn()} />);
 
-    expect(screen.getByText("2026-10-08")).toBeInTheDocument();
+    expect(screen.getByText("2026-10-09")).toBeInTheDocument();
   });
 
   it("keeps billing terms aligned with implemented renewal controls", () => {
@@ -100,11 +100,13 @@ describe("legal pages", () => {
     expect(screen.getByText(/Automatic Max assistance runs/i)).toHaveTextContent("expense write");
   });
 
-  it("distinguishes GitHub sign-in from optional project integration in both policies", () => {
+  it("explains email registration and optional GitHub integration in both policies", () => {
     const { unmount } = render(<PrivacyScreen go={vi.fn()} />);
-    expect(screen.getByText(/GitHub sign-in identifies your account/i)).toHaveTextContent(
-      "linking repositories to projects is optional"
+    expect(screen.getByText(/Pullwise provides project and shared expense tracking/i)).toHaveTextContent(
+      "first successful email verification creates an account automatically"
     );
+    expect(screen.getByText(/Pullwise provides project and shared expense tracking/i))
+      .toHaveTextContent("GitHub sign-in and repository integration are optional");
     expect(document.body.textContent).not.toContain("GitHub-connected project expense ledger");
     unmount();
 
@@ -112,20 +114,26 @@ describe("legal pages", () => {
     expect(screen.getByText(/Projects can be created without linking/i)).toHaveTextContent(
       "Reports keep currencies separate"
     );
-    expect(screen.getByText(/Shared-ledger access depends/i)).toHaveTextContent(
-      "current membership and role"
-    );
+    const account = screen.getByText(/Shared-ledger access depends/i);
+    expect(account).toHaveTextContent("current membership and role");
+    expect(account).toHaveTextContent("new invitation links grant access only after the original inviter approves");
+    expect(account).toHaveTextContent("Legacy targeted invitations still check the intended GitHub identity");
+    expect(account).toHaveTextContent("matching a GitHub profile email never merges accounts");
   });
 
   it("discloses ledger-wide sharing without implying billing or GitHub credential sharing", () => {
     render(<PrivacyScreen go={vi.fn()} />);
-    const sharing = screen.getByText(/When a member accepts an invitation/i);
+    const sharing = screen.getByText(/Opening an invitation link or submitting a join request/i);
     expect(sharing).toHaveTextContent(
       "all existing and future projects, categories, expenses, reports and CSV exports"
     );
     expect(sharing).toHaveTextContent("An invitation is not limited to one project");
     expect(sharing).toHaveTextContent("personal billing or other ledgers");
-    expect(sharing).toHaveTextContent("cannot recall copies they already exported");
+    expect(sharing).toHaveTextContent("cannot recall copies already exported");
+    expect(sharing).toHaveTextContent("does not grant ledger access");
+    expect(sharing).toHaveTextContent("including email-only accounts");
+    expect(sharing).toHaveTextContent("Only the original inviter");
+    expect(sharing).toHaveTextContent("while their original permissions remain valid");
   });
 
   it("identifies infrastructure, model provider and functional browser storage", () => {
@@ -134,7 +142,7 @@ describe("legal pages", () => {
     expect(screen.getByText(/The interface loads fonts from Google Fonts/i)).toHaveTextContent(
       "Your browser sends font requests directly to Google"
     );
-    expect(screen.getByText(/Account and GitHub data:/i)).toHaveTextContent(
+    expect(screen.getByText(/Optional GitHub data:/i)).toHaveTextContent(
       "encrypted GitHub access tokens"
     );
     expect(screen.getByRole("link", { name: "Cookies and browser storage" })).toHaveAttribute(
@@ -143,6 +151,21 @@ describe("legal pages", () => {
     const storage = screen.getByText(/HttpOnly session cookie/i);
     expect(storage).toHaveTextContent("local storage remembers your language and theme");
     expect(storage).toHaveTextContent("session storage records a pending GitHub access refresh");
+    expect(storage).toHaveTextContent("short-lived verification cookie");
+  });
+
+  it("discloses short-lived HMAC email codes, explicit linking and delivery processing", () => {
+    render(<PrivacyScreen go={vi.fn()} />);
+    const identity = screen.getByText(/Account and sign-in data:/i);
+    expect(identity).toHaveTextContent("Codes expire after 10 minutes");
+    expect(identity).toHaveTextContent("stored as keyed HMAC digests");
+    expect(identity).toHaveTextContent("does not collect or store a sign-in password");
+    const linking = screen.getByText(/Adding an email sign-in method to an existing account/i);
+    expect(linking).toHaveTextContent("explicit verification while signed in");
+    expect(linking).toHaveTextContent("never causes automatic account linking or merging");
+    expect(screen.getByText(/Cloudflare hosts/i)).toHaveTextContent(
+      "delivers verification emails using your email address and one-time code"
+    );
   });
 
   it("describes soft removal without promising immediate account or history erasure", () => {

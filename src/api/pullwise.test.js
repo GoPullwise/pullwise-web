@@ -70,6 +70,51 @@ describe("pullwiseApi current product endpoints", () => {
     expect(request).toHaveBeenCalledWith("/integrations", { signal: controller.signal });
   });
 
+  it.each(["login", "link"])("requests an email code for the explicit %s purpose", async (purpose) => {
+    const challenge = { challengeId: "challenge_1", expiresIn: 600, retryAfter: 60 };
+    request.mockResolvedValueOnce(challenge);
+    const controller = new AbortController();
+
+    await expect(pullwiseApi.auth.requestEmailCode(
+      { email: "person@example.com", purpose },
+      { signal: controller.signal }
+    )).resolves.toBe(challenge);
+
+    expect(request).toHaveBeenCalledWith("/auth/email/request-code", {
+      method: "POST",
+      body: { email: "person@example.com", purpose },
+      signal: controller.signal,
+    });
+  });
+
+  it("verifies the issued email challenge without removing code leading zeros", async () => {
+    const session = { authenticated: true, user: { id: "usr_1", email: "person@example.com" } };
+    request.mockResolvedValueOnce(session);
+    const controller = new AbortController();
+
+    await expect(pullwiseApi.auth.verifyEmailCode(
+      { email: "person@example.com", challengeId: "challenge_1", code: "001234" },
+      { signal: controller.signal }
+    )).resolves.toBe(session);
+
+    expect(request).toHaveBeenCalledWith("/auth/email/verify-code", {
+      method: "POST",
+      body: { email: "person@example.com", challengeId: "challenge_1", code: "001234" },
+      signal: controller.signal,
+    });
+  });
+
+  it("preserves server email verification failures without retrying", async () => {
+    const failure = Object.assign(new Error("The code has expired."), { code: "EMAIL_CODE_EXPIRED" });
+    request.mockRejectedValueOnce(failure);
+
+    await expect(pullwiseApi.auth.verifyEmailCode({
+      email: "person@example.com", challengeId: "challenge_1", code: "001234",
+    })).rejects.toBe(failure);
+
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects empty dynamic account path segments", () => {
     expect(() => pullwiseApi.integrations.disconnect("")).toThrow(/path segment/i);
     expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(/path segment/i);

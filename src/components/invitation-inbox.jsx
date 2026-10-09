@@ -28,6 +28,7 @@ export function InvitationInboxProvider({
   identity = "",
   enabled,
   navigationKey,
+  navigationDisabled = false,
   onReview,
   children,
   api = ledgerApi,
@@ -42,8 +43,8 @@ export function InvitationInboxProvider({
     hasMore: false,
   });
   const [open, setOpen] = useState(false);
-  const current = useRef({ identity, enabled, onReview });
-  current.current = { identity, enabled, onReview };
+  const current = useRef({ identity, enabled, onReview, navigationDisabled });
+  current.current = { identity, enabled, onReview, navigationDisabled };
   const previousIdentity = useRef(identity);
   const request = useRef(null);
   const lastAutomaticRead = useRef(0);
@@ -53,9 +54,15 @@ export function InvitationInboxProvider({
   const closeRef = useRef(null);
 
   const review = useCallback((item, owner = current.current.identity) => {
-    if (!current.current.enabled || current.current.identity !== owner) return;
-    if (current.current.onReview(item) === false) return;
+    if (
+      !current.current.enabled ||
+      current.current.identity !== owner ||
+      current.current.navigationDisabled
+    )
+      return false;
+    if (current.current.onReview(item) === false) return false;
     setOpen(false);
+    return true;
   }, []);
 
   const refresh = useCallback(
@@ -124,7 +131,11 @@ export function InvitationInboxProvider({
             message: `${who} · ${item.workspace.name}: ${T("Requesting to join", { zh: "申请加入", ja: "参加を申請中", ko: "참여 요청 중", fr: "Demande d’accès", es: "Solicita unirse" })}${fresh.length > 1 ? ` (+${fresh.length - 1})` : ""}`,
             action:
               fresh.length === 1
-                ? { label: reviewLabel(), onClick: () => review(item, requestIdentity) }
+                ? {
+                    label: reviewLabel(),
+                    navigation: true,
+                    onClick: () => review(item, requestIdentity),
+                  }
                 : { label: title(), onClick: () => setOpen(true) },
           });
           toastIds.current.add(id);
@@ -284,7 +295,12 @@ export function InvitationInboxProvider({
                       {item.applicant.githubLogin && <p>@{item.applicant.githubLogin}</p>}
                       <p>{item.workspace.name}</p>
                     </div>
-                    <button className="btn sm" type="button" onClick={() => review(item)}>
+                    <button
+                      className="btn sm"
+                      type="button"
+                      disabled={navigationDisabled}
+                      onClick={() => review(item)}
+                    >
                       {reviewLabel()}
                     </button>
                   </article>

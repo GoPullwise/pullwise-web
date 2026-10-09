@@ -61,6 +61,56 @@ describe("auth redirects", () => {
     const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
     expect(redirectPath(call)).toBe("/projects");
     expect(redirectScreen(call)).toBeNull();
+    expect(call[0]).not.toHaveProperty("intent");
+  });
+
+  it("forwards explicit GitHub account-linking intent and the lifecycle signal", async () => {
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("stop"));
+    const controller = new AbortController();
+    const redirectTo = new URL("/settings", window.location.origin).toString();
+
+    await expect(startGitHubLogin({
+      redirectTo, intent: "link", signal: controller.signal,
+    })).rejects.toThrow("stop");
+
+    expect(pullwiseApi.auth.getGitHubAuthorizeUrl).toHaveBeenCalledWith(
+      { redirectTo, intent: "link" },
+      { signal: controller.signal }
+    );
+  });
+
+  it("preserves invitation return fragments when starting ordinary GitHub login", async () => {
+    const invitation = "#invite=abcdefghijklmnopqrst";
+    window.history.replaceState({}, "", `/login${invitation}`);
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("stop"));
+
+    await expect(startGitHubLogin()).rejects.toThrow("stop");
+
+    const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
+    expect(call[0]).toEqual({ redirectTo: new URL(`/members${invitation}`, window.location.origin).toString() });
+  });
+
+  it("does not start GitHub authorization after its lifecycle is cancelled", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(startGitHubLogin({ intent: "link", signal: controller.signal }))
+      .rejects.toMatchObject({ name: "AbortError" });
+
+    expect(pullwiseApi.auth.getGitHubAuthorizeUrl).not.toHaveBeenCalled();
+  });
+
+  it("ignores a GitHub authorize URL received after lifecycle cancellation", async () => {
+    const controller = new AbortController();
+    let receiveUrl;
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockReturnValueOnce(new Promise((resolve) => {
+      receiveUrl = resolve;
+    }));
+    const completion = startGitHubLogin({ intent: "link", signal: controller.signal });
+    controller.abort();
+    receiveUrl({ url: "javascript:alert(1)" });
+
+    await expect(completion).resolves.toBeUndefined();
   });
 
   it("keeps repository authorization scoped to the repositories flow", async () => {
@@ -87,6 +137,40 @@ describe("auth redirects", () => {
     expect(redirectPath(call)).toBe("/projects");
     expect(redirectScreen(call)).toBeNull();
     expect(redirectParam(call, "repoAuth")).toBe("1");
+    expect(call[0].intent).toBe("link");
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { code: "GITHUB_IDENTITY_REQUIRED" },
+    { payload: { code: "GITHUB_IDENTITY_REQUIRED" } },
+    { payload: { error: { code: "GITHUB_IDENTITY_REQUIRED" } } },
+  ])("links the current account on structured missing-GitHub-identity errors (%j)", async (details) => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockRejectedValueOnce(
+      Object.assign(new Error("A GitHub identity is required."), { status: 401, ...details })
+    );
+    pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("link-started"));
+    const controller = new AbortController();
+
+    await expect(connectGitHubRepositories({ signal: controller.signal })).rejects.toThrow("link-started");
+
+    const call = pullwiseApi.auth.getGitHubAuthorizeUrl.mock.calls[0];
+    expect(call[0].intent).toBe("link");
+    expect(redirectPath(call)).toBe("/projects");
+    expect(redirectParam(call, "repoAuth")).toBe("1");
+    expect(call[1]).toEqual({ signal: controller.signal });
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+  });
+
+  it("does not turn unrelated authorization failures into account linking", async () => {
+    const failure = Object.assign(new Error("Please sign in."), {
+      status: 401, code: "AUTH_REQUIRED",
+    });
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockRejectedValueOnce(failure);
+
+    await expect(connectGitHubRepositories()).rejects.toBe(failure);
+
+    expect(pullwiseApi.auth.getGitHubAuthorizeUrl).not.toHaveBeenCalled();
     expect(openGitHubInstallPopup).not.toHaveBeenCalled();
   });
 

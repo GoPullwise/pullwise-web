@@ -75,8 +75,8 @@ function failureMessage(failure) {
     );
   if (failure?.code === "OWNER_IMMUTABLE")
     return T(
-      "You already own this ledger. Invite another GitHub account.",
-      "你已是此账本的所有者，请邀请其他 GitHub 账户。"
+      "You already own this ledger. Invite another Pullwise account.",
+      "你已是此账本的所有者，请邀请其他 Pullwise 账户。"
     );
   if (failure?.code === "INVITATION_RECIPIENT_MISMATCH")
     return T(
@@ -110,8 +110,8 @@ function failureMessage(failure) {
     );
   if (failure?.code === "ALREADY_MEMBER")
     return T(
-      "That GitHub account is already a member of this ledger.",
-      "此 GitHub 账户已经是此账本的成员。"
+      "That account is already a member of this ledger.",
+      "此账户已经是此账本的成员。"
     );
   if (failure?.code === "INVITATION_REQUEST_REJECTED")
     return T(
@@ -131,8 +131,8 @@ function failureMessage(failure) {
   }
   if (failure?.status === 403)
     return T(
-      "Your access changed or this invitation is for another GitHub account.",
-      "你的权限已变化，或此邀请属于另一个 GitHub 账户。"
+      "Your access changed. Reload members before trying again.",
+      "你的权限已变化，请重新加载成员后再试。"
     );
   if (failure?.status === 404)
     return T(
@@ -217,6 +217,7 @@ function MembersContent({
   const [editId, setEditId] = useState("");
   const [removeId, setRemoveId] = useState("");
   const roleInput = useRef(null);
+  const removeConfirm = useRef(null);
   const editOpeners = useRef(new Map());
   const removeOpeners = useRef(new Map());
   const focusAction = useRef(null);
@@ -429,10 +430,12 @@ function MembersContent({
       focusAction.current = null;
       const openers = action === "edit" ? editOpeners : removeOpeners;
       const opener = openers.current.get(userId);
-      if (opener) opener.focus();
+      if (opener && !opener.disabled) opener.focus();
       else memberHeading.current?.focus();
     } else if (members && editId && !disabled) {
       roleInput.current?.focus();
+    } else if (members && removeId && !disabled) {
+      removeConfirm.current?.focus();
     }
   }, [editId, removeId, loading, busy, members, disabled, current]);
 
@@ -441,6 +444,29 @@ function MembersContent({
     focusAction.current = { action: "edit", userId };
     setEditId("");
     setRoles({});
+  };
+  const closeRemoval = (userId) => {
+    if (busy || loading || actionPending.current || !current(lifecycle.current)) return;
+    focusAction.current = { action: "remove", userId };
+    setRemoveId("");
+  };
+  const confirmRemoval = (member) => {
+    if (
+      disabled ||
+      actionPending.current ||
+      !current(lifecycle.current) ||
+      removeId !== member.userId ||
+      !canManage ||
+      member.role === "owner" ||
+      (!canManageAdmins && member.role === "admin")
+    )
+      return;
+    runAction(
+      () => api.removeMember(workspaceId, member.userId, member.revision, {}),
+      () => {
+        focusAction.current = { action: "remove", userId: member.userId };
+      }
+    );
   };
   const saveRole = (member, role) => {
     if (
@@ -583,7 +609,7 @@ function MembersContent({
           )}
           {token && (
             <section
-              className="panel"
+              className="panel member-invitation"
               aria-label={T("Invitation", "邀请")}
               aria-busy={previewLoading}
             >
@@ -704,6 +730,7 @@ function MembersContent({
           )}
           {workspaceId && (
             <LedgerSplit
+              className="member-ledger-layout"
               enabled={showManagement}
               scope={`${workspaceId}:${workspace?.memberRevision ?? workspace?.revision ?? 0}`}
             >
@@ -824,94 +851,77 @@ function MembersContent({
                             )}
                           </div>
                           {editable && (
-                            <>
-                              <div className="panel-actions member-actions">
-                                {removeId !== member.userId && (
+                            <div
+                              className="panel-actions member-actions member-remove-actions"
+                              aria-busy={busy && removeId === member.userId}
+                              onKeyDown={(event) => {
+                                if (event.key === "Escape" && removeId === member.userId) {
+                                  event.preventDefault();
+                                  closeRemoval(member.userId);
+                                }
+                              }}
+                            >
+                              {removeId === member.userId ? (
+                                <>
                                   <button
-                                    className="btn ghost"
+                                    className="btn ghost member-remove-confirm"
                                     type="button"
-                                    ref={(element) => {
-                                      if (element)
-                                        removeOpeners.current.set(member.userId, element);
-                                      else removeOpeners.current.delete(member.userId);
-                                    }}
-                                    aria-label={T("Remove {member}", "移除 {member}").replace(
+                                    ref={removeConfirm}
+                                    aria-label={T("Confirm remove {member}", "确认移除 {member}").replace(
+                                      "{member}",
+                                      label
+                                    )}
+                                    title={T("Confirm remove {member}", "确认移除 {member}").replace(
                                       "{member}",
                                       label
                                     )}
                                     disabled={disabled}
-                                    onClick={() => {
-                                      if (disabled || !current(lifecycle.current)) return;
-                                      focusAction.current = null;
-                                      setEditId("");
-                                      setRoles({});
-                                      setRemoveId(member.userId);
-                                    }}
+                                    onClick={() => confirmRemoval(member)}
                                   >
-                                    {T("Remove", "移除")}
+                                    <I.Check size={16} aria-hidden="true" />
                                   </button>
-                                )}
-                              </div>
-                              {removeId === member.userId && (
-                                <div className="notice">
-                                  <p>
-                                    {T(
-                                      "Removing this member ends their ledger access.",
-                                      "移除此成员后，对方将失去账本权限。"
+                                  <button
+                                    className="btn ghost member-remove-cancel"
+                                    type="button"
+                                    aria-label={T("Cancel removing {member}", "取消移除 {member}").replace(
+                                      "{member}",
+                                      label
                                     )}
-                                  </p>
-                                  <div className="panel-actions">
-                                    <button
-                                      className="btn"
-                                      autoFocus
-                                      disabled={disabled}
-                                      onClick={() => {
-                                        if (canManage && member.role !== "owner")
-                                          runAction(
-                                            () =>
-                                              api.removeMember(
-                                                workspaceId,
-                                                member.userId,
-                                                member.revision,
-                                                {}
-                                              ),
-                                            () => {
-                                              focusAction.current = {
-                                                action: "remove",
-                                                userId: member.userId,
-                                              };
-                                            }
-                                          );
-                                      }}
-                                    >
-                                      {T("Confirm remove {member}", "确认移除 {member}").replace(
-                                        "{member}",
-                                        label
-                                      )}
-                                    </button>
-                                    <button
-                                      className="btn ghost"
-                                      disabled={busy}
-                                      aria-label={T(
-                                        "Cancel removing {member}",
-                                        "取消移除 {member}"
-                                      ).replace("{member}", label)}
-                                      onClick={() => {
-                                        if (!current(lifecycle.current) || actionPending.current)
-                                          return;
-                                        focusAction.current = {
-                                          action: "remove",
-                                          userId: member.userId,
-                                        };
-                                        setRemoveId("");
-                                      }}
-                                    >
-                                      {T("Cancel", "取消")}
-                                    </button>
-                                  </div>
-                                </div>
+                                    title={T("Cancel removing {member}", "取消移除 {member}").replace(
+                                      "{member}",
+                                      label
+                                    )}
+                                    disabled={busy || loading}
+                                    onClick={() => closeRemoval(member.userId)}
+                                  >
+                                    <I.X size={16} aria-hidden="true" />
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  className="btn ghost member-remove-trigger"
+                                  type="button"
+                                  ref={(element) => {
+                                    if (element) removeOpeners.current.set(member.userId, element);
+                                    else removeOpeners.current.delete(member.userId);
+                                  }}
+                                  aria-label={T("Remove {member}", "移除 {member}").replace(
+                                    "{member}",
+                                    label
+                                  )}
+                                  disabled={disabled}
+                                  onClick={() => {
+                                    if (disabled || !current(lifecycle.current)) return;
+                                    focusAction.current = null;
+                                    setEditId("");
+                                    setRoles({});
+                                    setRemoveId(member.userId);
+                                  }}
+                                >
+                                  {T("Remove", "移除")}
+                                </button>
                               )}
-                            </>
+                            </div>
                           )}
                         </article>
                       );
@@ -938,8 +948,8 @@ function MembersContent({
                       </p>
                       <p className="ledger-help">
                         {T(
-                          "Share a link with anyone. You can review their GitHub identity and approve or reject their request before they join.",
-                          "把链接发给任何人。对方申请后，你可以查看其 GitHub 身份并同意或拒绝，获批后对方才会加入。"
+                          "Share a link with anyone. You can review their Pullwise account and approve or reject their request before they join.",
+                          "把链接发给任何人。对方申请后，你可以查看其 Pullwise 账户并同意或拒绝，获批后对方才会加入。"
                         )}
                       </p>
                       <form className="ledger-form" onSubmit={createInvite}>
@@ -973,8 +983,8 @@ function MembersContent({
                             </p>
                             <p>
                               {T(
-                                "Share this link. Each person requests to join with their signed-in GitHub account. The link closes after one person is approved.",
-                                "分享此链接。对方使用登录的 GitHub 账户申请加入，一人获批后链接即关闭。"
+                                "Share this link. Each person requests to join with their signed-in Pullwise account. The link closes after one person is approved.",
+                                "分享此链接。对方使用登录的 Pullwise 账户申请加入，一人获批后链接即关闭。"
                               )}
                             </p>
                             <p>

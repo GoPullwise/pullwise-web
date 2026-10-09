@@ -8,7 +8,15 @@ import { NotificationProvider } from "./components/notifications.jsx";
 import { screenFromPath } from "./lib/navigation.js";
 
 vi.mock("./api/pullwise.js", () => ({
-  pullwiseApi: { auth: { getSession: vi.fn(), getGitHubAuthorizeUrl: vi.fn() } },
+  pullwiseApi: {
+    auth: {
+      getSession: vi.fn(),
+      getGitHubAuthorizeUrl: vi.fn(),
+      requestEmailCode: vi.fn(),
+      verifyEmailCode: vi.fn(),
+    },
+    integrations: { list: vi.fn(), getGitHubAuthorizeUrl: vi.fn() },
+  },
 }));
 const harness = vi.hoisted(() => ({ enabled: false, apis: {}, captures: [] }));
 vi.mock("./screens/ledger.jsx", async () => {
@@ -69,6 +77,18 @@ beforeEach(() => {
   });
   window.history.replaceState({}, "", "/");
   pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
+  pullwiseApi.auth.requestEmailCode.mockResolvedValue({
+    challengeId: "email_challenge",
+    expiresIn: 600,
+    retryAfter: 0,
+  });
+  pullwiseApi.auth.verifyEmailCode.mockResolvedValue({
+    authenticated: true,
+    user: { id: "alice", email: "alice@example.com", emailVerified: true, providers: ["email"] },
+  });
+  pullwiseApi.integrations.list.mockResolvedValue({
+    github: { connected: false, repositories: [], installations: [] },
+  });
   ledgerApi.workspaces.mockResolvedValue({
     items: [{ id: "local-focus", name: "Personal ledger", role: "owner", revision: 1 }],
   });
@@ -89,6 +109,348 @@ function pending() {
   });
   return { promise, resolve, reject };
 }
+
+async function enterEmailCode(email = "alice@example.com") {
+  fireEvent.change(await screen.findByRole("textbox", { name: "Email" }, { timeout: 4000 }), {
+    target: { value: email },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send code" }));
+  const code = await screen.findByRole("textbox", { name: "6-digit code" });
+  fireEvent.change(code, { target: { value: "012345" } });
+  return code;
+}
+
+it("accepts an email session directly, aborts a stale session read and opens Projects without a focus event", async () => {
+  window.history.replaceState({}, "", "/login");
+  const staleSession = pending();
+  render(<App />);
+  await enterEmailCode();
+  const readsBeforeVerify = pullwiseApi.auth.getSession.mock.calls.length;
+  pullwiseApi.auth.getSession.mockReturnValueOnce(staleSession.promise);
+  act(() => window.dispatchEvent(new Event("focus")));
+  const staleSignal = pullwiseApi.auth.getSession.mock.calls.at(-1)[0].signal;
+  fireEvent.click(screen.getByRole("button", { name: "Verify and sign in" }));
+  expect(await screen.findByRole("heading", { name: "Projects" })).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/projects");
+  expect(staleSignal.aborted).toBe(true);
+  expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(readsBeforeVerify + 1);
+  expect(pullwiseApi.auth.verifyEmailCode).toHaveBeenCalledWith(
+    { email: "alice@example.com", challengeId: "email_challenge", code: "012345" },
+    { signal: expect.any(AbortSignal) }
+  );
+  await act(async () => staleSession.resolve({ authenticated: false }));
+  expect(screen.queryByRole("button", { name: "Verify and sign in" })).not.toBeInTheDocument();
+  expect(window.location.pathname).toBe("/projects");
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+});
+
+it("preserves an email-only guest invitation and submits a pending request without granting membership", async () => {
+  window.history.replaceState({}, "", `/members#invite=${inviteToken}`);
+  const emailRequest = {
+    ...joinRequest,
+    applicant: { userId: "alice", name: "alice@example.com" },
+  };
+  const submitted = pending();
+  harness.apis.alice = membersApi({
+    previewInvitation: vi
+      .fn()
+      .mockResolvedValueOnce({ ...invite, workspace: team })
+      .mockResolvedValue({ ...invite, workspace: team, request: emailRequest }),
+    acceptInvitation: vi.fn().mockReturnValue(submitted.promise),
+  });
+  ledgerApi.workspaces.mockResolvedValue({ items: [personal] });
+  render(<App />);
+  await enterEmailCode();
+  expect(window.location.pathname).toBe("/login");
+  expect(window.location.hash).toBe(`#invite=${inviteToken}`);
+  fireEvent.click(screen.getByRole("button", { name: "Verify and sign in" }));
+  const request = await screen.findByRole("button", { name: "Request to join" });
+  expect(request).toBeVisible();
+  expect(window.location.pathname).toBe("/members");
+  expect(window.location.hash).toBe(`#invite=${inviteToken}`);
+  expect(harness.apis.alice.acceptInvitation).not.toHaveBeenCalled();
+  expect(screen.queryByText(/GitHub account:/)).not.toBeInTheDocument();
+  fireEvent.click(request);
+  fireEvent.click(request);
+  expect(harness.apis.alice.acceptInvitation).toHaveBeenCalledExactlyOnceWith(
+    { token: inviteToken },
+    {}
+  );
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeDisabled();
+  await act(async () => submitted.resolve({ ...invite, workspace: team, request: emailRequest }));
+  expect(
+    await screen.findByText("Your request was sent. Waiting for the inviter's approval.")
+  ).toBeVisible();
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("alice");
+  expect(screen.queryByRole("option", { name: /Team ledger/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Open shared ledger" })).not.toBeInTheDocument();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Check status" }));
+  await waitFor(() => expect(harness.apis.alice.previewInvitation).toHaveBeenCalledTimes(2));
+  expect(harness.apis.alice.acceptInvitation).toHaveBeenCalledTimes(1);
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+  expect(window.location.hash).toBe(`#invite=${inviteToken}`);
+});
+
+it.each(["send", "verify"])(
+  "blocks same-event notification review while the Settings email %s operation starts",
+  async (stage) => {
+    window.history.replaceState({}, "", "/settings");
+    const managedTeam = {
+      ...team,
+      role: "admin",
+      permissions: { manageMembers: true, manageAdmins: false },
+    };
+    const session = {
+      authenticated: true,
+      user: { id: "alice", name: "Alice", providers: ["github"] },
+    };
+    pullwiseApi.auth.getSession.mockResolvedValue(session);
+    ledgerApi.workspaces.mockResolvedValue({ items: [personal, managedTeam] });
+    ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+    harness.apis.team = membersApi({
+      workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [joinRequest] }),
+    });
+    const operation = pending();
+    render(<App />);
+    const email = await screen.findByRole("textbox", { name: "Email" });
+    const review = await screen.findByRole("button", { name: "Review request" });
+    let form;
+    if (stage === "send") {
+      pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(operation.promise);
+      fireEvent.change(email, { target: { value: "alice@example.com" } });
+      form = email.closest("form");
+    } else {
+      const code = await enterEmailCode();
+      pullwiseApi.auth.verifyEmailCode.mockReturnValueOnce(operation.promise);
+      form = code.closest("form");
+    }
+    act(() => {
+      fireEvent.submit(form);
+      // The DOM has not reflected React's batched busy update yet.
+      expect(screen.getByRole("link", { name: "Go to Pullwise home" })).not.toHaveAttribute(
+        "aria-disabled"
+      );
+      fireEvent.click(review);
+    });
+    expect(window.location.pathname).toBe("/settings");
+    expect(harness.apis.team.members).not.toHaveBeenCalled();
+    expect(review).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Projects", exact: true })).not.toHaveAttribute("href");
+    expect(screen.getByRole("button", { name: "Connect repositories" })).toBeDisabled();
+    await act(async () => operation.reject(new Error("Local email boundary")));
+    expect(review).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Projects", exact: true })).toHaveAttribute(
+      "href",
+      "/projects"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
+    const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+    fireEvent.click(within(inbox).getByRole("button", { name: "Review request" }));
+    expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+    expect(window.location.pathname).toBe("/members");
+  }
+);
+
+it("blocks same-event Login navigation while an email request starts and releases it on failure", async () => {
+  window.history.replaceState({}, "", "/login");
+  const operation = pending();
+  pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(operation.promise);
+  render(<App />);
+  const email = await screen.findByRole("textbox", { name: "Email" }, { timeout: 4000 });
+  fireEvent.change(email, { target: { value: "alice@example.com" } });
+  const terms = screen.getByRole("link", { name: "Terms of Service" });
+  act(() => {
+    fireEvent.submit(email.closest("form"));
+    expect(terms).toHaveAttribute("href", "/terms");
+    fireEvent.click(terms);
+  });
+  expect(window.location.pathname).toBe("/login");
+  expect(screen.getByRole("button", { name: "Continue with GitHub" })).toBeDisabled();
+  await act(async () => operation.reject(new Error("Local mail boundary")));
+  fireEvent.click(terms);
+  expect(window.location.pathname).toBe("/terms");
+});
+
+it("releases an abandoned Login operation before reusing the public screen key", async () => {
+  window.history.replaceState({}, "", "/login");
+  const operation = pending();
+  pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(operation.promise);
+  render(<App />);
+  fireEvent.change(await screen.findByRole("textbox", { name: "Email" }, { timeout: 4000 }), {
+    target: { value: "alice@example.com" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send code" }));
+  const abandonedSignal = pullwiseApi.auth.requestEmailCode.mock.calls.at(-1)[1].signal;
+  act(() => {
+    window.history.replaceState({}, "", "/terms");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await screen.findByRole("heading", { name: "Terms of Service" });
+  expect(abandonedSignal.aborted).toBe(true);
+  act(() => {
+    window.history.replaceState({}, "", "/login");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await screen.findByRole("textbox", { name: "Email" });
+  await act(async () =>
+    operation.resolve({ challengeId: "abandoned", expiresIn: 600, retryAfter: 60 })
+  );
+  expect(screen.queryByRole("textbox", { name: "6-digit code" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("link", { name: "Terms of Service" }));
+  expect(window.location.pathname).toBe("/terms");
+});
+
+it("retains a legacy GitHub-targeted invitation as an explicit pending request", async () => {
+  window.history.replaceState({}, "", `/login#invite=${inviteToken}`);
+  authenticatedLedgers([personal]);
+  pullwiseApi.auth.getSession.mockResolvedValue({
+    authenticated: true,
+    user: { id: "alice", githubId: "101", githubLogin: "alice", providers: ["github"] },
+  });
+  const legacyInvite = {
+    ...invite,
+    recipient: { githubId: "101", login: "alice" },
+    workspace: team,
+  };
+  harness.apis.alice = membersApi({
+    previewInvitation: vi.fn().mockResolvedValue(legacyInvite),
+    acceptInvitation: vi.fn().mockResolvedValue({
+      ...legacyInvite,
+      request: {
+        ...joinRequest,
+        applicant: { userId: "alice", githubId: "101", githubLogin: "alice" },
+      },
+    }),
+  });
+  render(<App />);
+  const request = await screen.findByRole("button", { name: "Request to join" });
+  expect(screen.getByText(/GitHub account:/)).toHaveTextContent("alice");
+  expect(harness.apis.alice.acceptInvitation).not.toHaveBeenCalled();
+  fireEvent.click(request);
+  expect(
+    await screen.findByText("Your request was sent. Waiting for the inviter's approval.")
+  ).toBeVisible();
+  expect(screen.queryByRole("option", { name: /Team ledger/ })).not.toBeInTheDocument();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+  expect(window.location.hash).toBe(`#invite=${inviteToken}`);
+});
+
+it("keeps a new Settings operation locked after an old screen's GitHub action finishes", async () => {
+  window.history.replaceState({}, "", "/settings");
+  pullwiseApi.auth.getSession.mockResolvedValue({
+    authenticated: true,
+    user: { id: "alice", name: "Alice", providers: ["github"] },
+  });
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+  const oldAction = pending();
+  const newAction = pending();
+  pullwiseApi.integrations.getGitHubAuthorizeUrl.mockReturnValueOnce(oldAction.promise);
+  render(<App />);
+  await screen.findByRole("textbox", { name: "Email" });
+  const review = await screen.findByRole("button", { name: "Review request" });
+  fireEvent.click(screen.getByRole("button", { name: "Connect repositories" }));
+  act(() => {
+    window.history.pushState({}, "", "/projects");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await screen.findByRole("heading", { name: "Projects" });
+  act(() => {
+    window.history.pushState({}, "", "/settings");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  const email = await screen.findByRole("textbox", { name: "Email" });
+  fireEvent.change(email, { target: { value: "alice@example.com" } });
+  pullwiseApi.auth.requestEmailCode.mockReturnValueOnce(newAction.promise);
+  await act(async () => {
+    fireEvent.submit(email.closest("form"));
+    oldAction.reject(new Error("Old GitHub action failed"));
+    await Promise.resolve();
+    await Promise.resolve();
+    fireEvent.click(review);
+  });
+  expect(window.location.pathname).toBe("/settings");
+  expect(screen.getByRole("button", { name: "Connect repositories" })).toBeDisabled();
+  expect(screen.queryByText("Old GitHub action failed")).not.toBeInTheDocument();
+  await act(async () => newAction.reject(new Error("New email action failed")));
+  expect(screen.getByRole("button", { name: "Connect repositories" })).toBeEnabled();
+});
+
+it("allows navigation during a Settings read and ignores its late signed-out response", async () => {
+  window.history.replaceState({}, "", "/settings");
+  pullwiseApi.auth.getSession.mockResolvedValue({
+    authenticated: true,
+    user: { id: "alice", name: "Alice", providers: ["github"] },
+  });
+  render(<App />);
+  await screen.findByRole("textbox", { name: "Email" });
+  const read = pending();
+  pullwiseApi.auth.getSession.mockReturnValueOnce(read.promise);
+  fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+  const signal = pullwiseApi.auth.getSession.mock.calls.at(-1)[0].signal;
+  fireEvent.click(screen.getByRole("link", { name: "Projects", exact: true }));
+  expect(await screen.findByRole("heading", { name: "Projects" })).toBeVisible();
+  expect(signal.aborted).toBe(true);
+  await act(async () => read.resolve({ authenticated: false }));
+  expect(window.location.pathname).toBe("/projects");
+  expect(screen.queryByRole("button", { name: "Continue with GitHub" })).not.toBeInTheDocument();
+});
+
+it("keeps the current ledger and user identity after first email binding from Settings", async () => {
+  window.history.replaceState({}, "", "/projects");
+  const githubSession = {
+    authenticated: true,
+    user: { id: "alice", name: "Alice", email: "profile@example.com", providers: ["github"] },
+  };
+  pullwiseApi.auth.getSession.mockResolvedValue(githubSession);
+  ledgerApi.workspaces.mockResolvedValue({ items: [personal, team] });
+  pullwiseApi.auth.verifyEmailCode.mockResolvedValue({
+    ...githubSession,
+    user: {
+      ...githubSession.user,
+      email: "alice@example.com",
+      emailVerified: true,
+      providers: ["github", "email"],
+    },
+  });
+  harness.enabled = true;
+  harness.apis.alice = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Alice project" }] }),
+  };
+  harness.apis.team = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Team project" }] }),
+  };
+  render(<App />);
+  await screen.findByText("Alice project");
+  fireEvent.change(screen.getByRole("combobox", { name: "Select ledger" }), {
+    target: { value: "team" },
+  });
+  await screen.findByText("Team project");
+  // The fixture renders only the topbar; navigate by the real route event.
+  act(() => {
+    window.history.pushState({}, "", "/settings");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await enterEmailCode();
+  fireEvent.click(screen.getByRole("button", { name: "Verify and link email" }));
+  expect(await screen.findByText("Verified email")).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/settings");
+  const refreshedLedgers = pending();
+  ledgerApi.workspaces.mockReturnValueOnce(refreshedLedgers.promise);
+  const workspaceReads = ledgerApi.workspaces.mock.calls.length;
+  const aliceProjectReads = harness.apis.alice.projects.mock.calls.length;
+  fireEvent.click(screen.getByRole("link", { name: "Projects", exact: true }));
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(workspaceReads + 1));
+  await act(async () => refreshedLedgers.resolve({ items: [personal, team] }));
+  expect(await screen.findByText("Team project")).toBeInTheDocument();
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+  expect(harness.apis.alice.projects).toHaveBeenCalledTimes(aliceProjectReads);
+  expect(pullwiseApi.auth.requestEmailCode).toHaveBeenCalledWith(
+    { email: "alice@example.com", purpose: "link" },
+    { signal: expect.any(AbortSignal) }
+  );
+});
 
 const personal = {
   id: "alice",
@@ -580,6 +942,9 @@ it("keeps notification review in the current ledger during a member write and al
     "true"
   );
   expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeDisabled();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Review request" })).toBeDisabled()
+  );
   fireEvent.click(screen.getByRole("button", { name: "Review request" }));
   expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("alice");
   expect(harness.apis.team.members).not.toHaveBeenCalled();
@@ -589,6 +954,7 @@ it("keeps notification review in the current ledger during a member write and al
     creating.resolve({ ...invite, token: inviteToken });
   });
   await waitFor(() => expect(screen.getByRole("button", { name: "Join requests" })).toBeEnabled());
+  await waitFor(() => expect(screen.getByRole("button", { name: "Review request" })).toBeEnabled());
   expect(screen.getByRole("button", { name: "Join requests" })).toHaveTextContent("1");
   fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
   const inbox = await screen.findByRole("dialog", { name: "Join requests" });

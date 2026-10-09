@@ -461,6 +461,108 @@ describe("Members screen", () => {
     });
   });
 
+  it("replaces Remove with named confirmation icons in the existing row action slot", async () => {
+    show();
+    const remove = await screen.findByRole("button", { name: "Remove bob" });
+    const actions = remove.parentElement;
+    const row = remove.closest("article");
+    const rowChildren = [...row.children];
+    expect(actions).toHaveClass("member-remove-actions");
+    fireEvent.click(remove);
+
+    const confirm = screen.getByRole("button", { name: "Confirm remove bob" });
+    const cancel = screen.getByRole("button", { name: "Cancel removing bob" });
+    expect(confirm.parentElement).toBe(actions);
+    expect(cancel.parentElement).toBe(actions);
+    expect([...row.children]).toEqual(rowChildren);
+    expect(actions.children).toHaveLength(2);
+    expect(row.querySelector(".notice")).toBeNull();
+    for (const [button, name] of [[confirm, "Confirm remove bob"], [cancel, "Cancel removing bob"]]) {
+      expect(button).toHaveAttribute("type", "button");
+      expect(button).toHaveAttribute("title", name);
+      expect(button).toHaveTextContent("");
+      expect(button.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(api.removeMember).not.toHaveBeenCalled();
+    fireEvent.click(cancel);
+    expect(screen.getByRole("button", { name: "Remove bob" }).parentElement).toBe(actions);
+    expect([...row.children]).toEqual(rowChildren);
+  });
+
+  for (const target of ["Confirm remove bob", "Cancel removing bob"]) {
+    it(`cancels removal with Escape from ${target} and returns focus without a write`, async () => {
+      show();
+      fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
+      const button = screen.getByRole("button", { name: target });
+      button.focus();
+      fireEvent.keyDown(button, { key: "Escape" });
+      expect(screen.queryByRole("button", { name: "Confirm remove bob" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Remove bob" })).toHaveFocus();
+      expect(api.removeMember).not.toHaveBeenCalled();
+    });
+  }
+
+  it("keeps failed removal visible and focused for an explicit retry without automatic writes", async () => {
+    api.removeMember.mockRejectedValueOnce(new Error("Connection lost"));
+    show();
+    fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm remove bob" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Connection lost");
+    const retry = screen.getByRole("button", { name: "Confirm remove bob" });
+    await waitFor(() => expect(retry).toBeEnabled());
+    expect(retry).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Cancel removing bob" })).toBeEnabled();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(api.removeMember).toHaveBeenCalledTimes(1);
+    expect(api.members).toHaveBeenCalledTimes(1);
+    fireEvent.click(retry);
+    await waitFor(() => expect(api.removeMember).toHaveBeenCalledTimes(2));
+    expect(api.removeMember).toHaveBeenLastCalledWith("ws_owner", "bob", 3, {});
+  });
+
+  it("locks confirmation, cancellation and navigation through the removal write and required member refresh", async () => {
+    const write = deferred();
+    const refresh = deferred();
+    api.removeMember.mockReturnValue(write.promise);
+    api.members.mockResolvedValueOnce({ items: [owner, editor] }).mockReturnValueOnce(refresh.promise);
+    const go = vi.fn();
+    show({ go });
+    fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
+    const confirm = screen.getByRole("button", { name: "Confirm remove bob" });
+    const cancel = screen.getByRole("button", { name: "Cancel removing bob" });
+    fireEvent.click(confirm);
+    expect(confirm).toBeDisabled();
+    expect(cancel).toBeDisabled();
+    fireEvent.keyDown(confirm, { key: "Escape" });
+    fireEvent.click(cancel);
+    expect(screen.getByRole("button", { name: "Confirm remove bob" })).toBe(confirm);
+    expect(api.removeMember).toHaveBeenCalledTimes(1);
+    await act(async () => write.resolve(null));
+    await waitFor(() => expect(api.members).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Create invitation" })).not.toBeInTheDocument();
+    const projects = screen.getByRole("link", { name: "Projects", exact: true });
+    expect(projects).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(projects);
+    expect(go).not.toHaveBeenCalled();
+    await act(async () => refresh.resolve({ items: [owner] }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
+    expect(screen.getByRole("heading", { name: "Ledger members" })).toHaveFocus();
+    expect(api.removeMember).toHaveBeenCalledTimes(1);
+  });
+
+  it("discards removal confirmation across workspace changes and rejects detached confirmation events", async () => {
+    const view = show();
+    fireEvent.click(await screen.findByRole("button", { name: "Remove bob" }));
+    const oldConfirm = screen.getByRole("button", { name: "Confirm remove bob" });
+    api.members.mockResolvedValue({ items: [owner, editor] });
+    view.rerender(<MembersScreen go={vi.fn()} api={api} workspace={{ ...workspace, id: "ws_other" }} />);
+    await screen.findByRole("button", { name: "Remove bob" });
+    fireEvent.click(oldConfirm);
+    expect(api.removeMember).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Confirm remove bob" })).not.toBeInTheDocument();
+  });
+
   it("requires a manual reload after a revision conflict instead of repeating the stale write", async () => {
     api.updateMember.mockRejectedValueOnce(error(412));
     show();
@@ -683,7 +785,7 @@ describe("Members screen", () => {
       "carol",
       "An invitation is already pending for this GitHub account. Revoke it below before creating a new link.",
     ],
-    [409, "ALREADY_MEMBER", "bob", "That GitHub account is already a member of this ledger."],
+    [409, "ALREADY_MEMBER", "bob", "That account is already a member of this ledger."],
     [
       403,
       "INVITATION_LIMIT",
@@ -694,7 +796,7 @@ describe("Members screen", () => {
       403,
       "OWNER_IMMUTABLE",
       "alice",
-      "You already own this ledger. Invite another GitHub account.",
+      "You already own this ledger. Invite another Pullwise account.",
     ],
   ])(
     "keeps invitation business failure %s/%s local and permits explicit revocation",

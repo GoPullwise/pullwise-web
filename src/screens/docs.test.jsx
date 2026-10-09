@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DocsScreen } from "./docs.jsx";
+import { setLang } from "../i18n.jsx";
 
 describe("product Docs", () => {
+  afterEach(() => setLang("en"));
   it("explains project and shared expense workflows", () => {
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: false }} />);
 
@@ -27,4 +29,35 @@ describe("product Docs", () => {
     expect(screen.getByText(/Jev automatically assists when you save an expense/i)).toHaveTextContent("REST API");
     expect(screen.getByText(/leave the category blank/i)).toBeInTheDocument();
   });
+
+  it("explains email registration, explicit linking and inviter-approved join requests", () => {
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: false }} />);
+    const signIn = screen.getByText(/Enter your email and verify the 6-digit code/i);
+    expect(signIn).toHaveTextContent("first successful verification creates your account automatically");
+    expect(signIn).toHaveTextContent("sign in first and link an email from Settings");
+    expect(signIn).toHaveTextContent("never links or merges accounts");
+    expect(screen.getByText(/GitHub is optional for standalone projects/i)).toBeInTheDocument();
+    const sharing = screen.getByText(/In Members, choose a role/i);
+    expect(sharing).toHaveTextContent("including an email-only account");
+    expect(sharing).toHaveTextContent("Only the original inviter can approve or reject");
+    expect(sharing).toHaveTextContent("Opening the link or sending a request grants no ledger access");
+    expect(sharing).toHaveTextContent("Legacy invitations to a specific GitHub account still check that identity");
+  });
+
+  for (const [locale, heading, registration, invitation] of [
+    ["zh", "登录或创建账户", "首次验证成功会自动创建账户", "只有原邀请人"],
+    ["ja", "ログインまたはアカウント作成", "アカウントが自動で作成され", "招待者だけが申請を承認"],
+    ["ko", "로그인 또는 계정 만들기", "계정이 자동으로 생성됩니다", "초대자만 신청을 승인"],
+    ["fr", "Se connecter ou créer un compte", "crée automatiquement votre compte", "Seul l’auteur du lien"],
+    ["es", "Iniciar sesión o crear una cuenta", "crea tu cuenta automáticamente", "Solo quien creó el enlace"],
+  ]) {
+    it(`keeps email onboarding and invitation guidance localized in ${locale}`, async () => {
+      await setLang(locale);
+      render(<DocsScreen go={vi.fn()} auth={{ authenticated: false }} />);
+      expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+      expect(document.body.textContent).toContain(registration);
+      expect(document.body.textContent).toContain(invitation);
+      expect(document.body.textContent).not.toContain("Enter your email and verify");
+    });
+  }
 });

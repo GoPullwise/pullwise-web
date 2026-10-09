@@ -5,11 +5,19 @@ import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const SECTIONS = [
   {
+    id: "sign-in",
+    title: ["Sign in or create an account", "登录或创建账户"],
+    text: [
+      "Enter your email and verify the 6-digit code to sign in. Your first successful verification creates your account automatically; no password is needed. GitHub sign-in is also available. If you already use GitHub, sign in first and link an email from Settings to keep the same account and ledgers. A matching GitHub profile email never links or merges accounts.",
+      "输入邮箱并验证 6 位验证码即可登录，首次验证成功会自动创建账户，无需密码。也可以使用 GitHub 登录。如果你已有 GitHub 登录账户，请先登录，再到设置中验证并绑定邮箱，以保留同一个账户和账本。GitHub 资料中的相同邮箱不会自动绑定或合并账户。",
+    ],
+  },
+  {
     id: "connect",
     title: ["Create a project", "创建项目"],
     text: [
-      "Sign in with GitHub and create a project with a name and optional description. Repository links are optional: you can associate up to 30 authorized repositories and a GitHub Organization. Changing these links preserves the project ID and expense history. GitHub access is checked for the acting member when linking repositories or adding expenses to a linked project.",
-      "通过 GitHub 登录，为项目起名并按需填写说明。仓库关联为可选项，可关联最多 30 个已授权仓库及 GitHub 组织。修改关联会保留项目 ID 和历史支出。关联仓库或为已关联项目新增支出时，会检查当前操作成员的 GitHub 访问权。",
+      "Create a project with a name and optional description. GitHub is optional for standalone projects. Connect GitHub when you want to link up to 30 authorized repositories and a GitHub Organization. Changing these links preserves the project ID and expense history. GitHub access is checked for the acting member when linking repositories or adding expenses to a linked project.",
+      "为项目起名并按需填写说明，独立项目无需 GitHub。需要关联仓库时再连接 GitHub，可关联最多 30 个已授权仓库及 GitHub 组织。修改关联会保留项目 ID 和历史支出。关联仓库或为已关联项目新增支出时，会检查当前操作成员的 GitHub 访问权。",
     ],
   },
   {
@@ -56,8 +64,8 @@ const SECTIONS = [
     id: "members",
     title: ["Share a ledger", "共享账本"],
     text: [
-      "Use Members to invite a GitHub user to your existing ledger, including its history and future entries. Invitations expire after 24 hours and require the intended GitHub account to accept. Owner manages Admins; Admin manages Editors and Viewers. Editors record expenses; Viewers read reports and export CSV. Use the header picker to switch ledgers. All members share the Owner's plan and allowances. Joining a ledger never grants GitHub organization or repository access.",
-      "在成员页面邀请 GitHub 用户，共享现有账本的历史和后续记录。邀请 24 小时后失效，须由指定 GitHub 账户接受。Owner 管理 Admin，Admin 管理 Editor 和 Viewer。Editor 可以记账，Viewer 可以查看报表和导出 CSV。通过顶部选择器切换账本；所有成员共同使用 Owner 的套餐和额度。加入账本不会授予 GitHub 组织或仓库访问权。",
+      "In Members, choose a role and create an invitation link without naming a recipient. Anyone signed in to a Pullwise account, including an email-only account, can request to join. Only the original inviter can approve or reject requests while their original permissions remain valid. Opening the link or sending a request grants no ledger access. Links expire after 24 hours and close when one person is approved. Legacy invitations to a specific GitHub account still check that identity. Owner manages Admins; Admin manages Editors and Viewers. Approved members can access existing and future ledger data according to their role and share the Owner's plan and allowances. Joining a ledger never grants GitHub repository access.",
+      "在成员页面选择角色并生成邀请链接，无需指定接收人。任何已登录的 Pullwise 账户（包括仅使用邮箱的账户）都可以申请加入。只有原邀请人在原有权限仍有效时可以批准或拒绝申请。打开链接或提交申请不会授予账本访问权。链接 24 小时后失效，一人获批后即关闭。旧版指定 GitHub 账户的邀请仍校验该身份。Owner 管理 Admin，Admin 管理 Editor 和 Viewer。获批成员按角色访问当前及未来账本数据，共同使用 Owner 的套餐和额度。加入账本不会授予 GitHub 仓库访问权。",
     ],
   },
 ];
