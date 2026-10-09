@@ -1148,7 +1148,7 @@
         },
         {
           "method": "GET",
-          "path": "/assets/index-pBobKWbX.js",
+          "path": "/assets/index-DG1_LAAx.js",
           "query": [],
           "workspace": null,
           "outcome": "base-fixture"
@@ -1623,7 +1623,7 @@
         },
         {
           "method": "GET",
-          "path": "/assets/index-pBobKWbX.js",
+          "path": "/assets/index-DG1_LAAx.js",
           "query": [],
           "workspace": null,
           "outcome": "base-fixture"
@@ -2048,7 +2048,7 @@
         },
         {
           "method": "GET",
-          "path": "/assets/index-pBobKWbX.js",
+          "path": "/assets/index-DG1_LAAx.js",
           "query": [],
           "workspace": null,
           "outcome": "base-fixture"
@@ -2361,7 +2361,7 @@
         },
         {
           "method": "GET",
-          "path": "/assets/index-pBobKWbX.js",
+          "path": "/assets/index-DG1_LAAx.js",
           "query": [],
           "workspace": null,
           "outcome": "base-fixture"
@@ -2696,7 +2696,7 @@
         },
         {
           "method": "GET",
-          "path": "/assets/index-pBobKWbX.js",
+          "path": "/assets/index-DG1_LAAx.js",
           "query": [],
           "workspace": null,
           "outcome": "base-fixture"
@@ -3122,10 +3122,10 @@
   ],
   "failed": false,
   "artifact": {
-    "indexHtmlSha256": "a6c8ad3e5e2fb9aca31d434de9b366c92849c2d67e916c4da649de2d0d5a5e7b",
+    "indexHtmlSha256": "c7f4f5cf60c867ab4ac054162dfd1cafd14557284eb4c6974f5655d299dbae72",
     "assets": [
       "index-ChhzqjXD.css",
-      "index-pBobKWbX.js",
+      "index-DG1_LAAx.js",
       "ledger-B-S2igof.css",
       "ledger-CAs9ENqb.css",
       "ledger-CIWwQYwV.js",
@@ -3134,11 +3134,12 @@
       "ledger-longform-CzBOxFFv.js",
       "ledger-scopes-eTtBJDmQ.js",
       "ledger-screen-Ctef54Pf.js",
-      "ledger-ui-ydcEM64p.js"
+      "ledger-ui-ydcEM64p.js",
+      "members-BT8_PW3P.js"
     ],
     "assetHashes": {
       "index-ChhzqjXD.css": "2c8cf90ef4c80bcfdda2662acb47118be0ad846d7cf06ad3ed5e54f2526e3f05",
-      "index-pBobKWbX.js": "d29e86cdbaa21ce09bc9b0bc744e17c8f5c7505826b9c03e9023eea6799ecb6f",
+      "index-DG1_LAAx.js": "6fd60b94676d712b43a9aeb28db4d4580fe92fd04b1e0f89d8664a065bcc7b76",
       "ledger-B-S2igof.css": "328f3c3c38b5cc6fba32a2bd7b1a858090ac546e72fc5f6840994cca4a0eb40f",
       "ledger-CAs9ENqb.css": "82657e93f3b30cc9d1bdd67e6c712951a9df9bdfc4ac0652a55503c3b75f1ee9",
       "ledger-CIWwQYwV.js": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3",
@@ -3147,7 +3148,8 @@
       "ledger-longform-CzBOxFFv.js": "260e252520e3f4929ba62a41dc03f8b3bff6a38fc39e4c780eb91f400e68f4fd",
       "ledger-scopes-eTtBJDmQ.js": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369",
       "ledger-screen-Ctef54Pf.js": "adc5ec7dd7804f48f43007225f0a362294b2e06fb2602a4cfb6bffd3521c1b56",
-      "ledger-ui-ydcEM64p.js": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+      "ledger-ui-ydcEM64p.js": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de",
+      "members-BT8_PW3P.js": "f7bf647459301db2eec1752ae6b4a4db3635bda7059e05728e7fbceabd13b74a"
     }
   },
   "browserVersion": "151.0.7922.173",
@@ -3265,5 +3267,38 @@
     "apiRequests": 215,
     "violations": 0,
     "externalDelivered": 0
+  },
+  "mergedMainRevalidation": {
+    "sourceCommit": "718242732d1f5b29262386a0996420eb17f5e9ea",
+    "integratedOriginMain": "b37f9af5bdbd3226e8b0faa5e449d07489325e03",
+    "finalCheck": {
+      "command": "npm run check",
+      "passed": true,
+      "lint": true,
+      "testFiles": 47,
+      "tests": 867,
+      "defaultBuild": true
+    },
+    "previewBuild": {
+      "passed": true,
+      "frozenBeforeBrowserAcceptance": true,
+      "viteAppUrl": "https://preview.pull-wise.com",
+      "viteApiBaseUrl": "/api",
+      "viteGithubAppSlug": "gopullwise-preview"
+    },
+    "artifactRebuiltDuringAcceptance": false,
+    "previousIndexHtmlSha256": "a6c8ad3e5e2fb9aca31d434de9b366c92849c2d67e916c4da649de2d0d5a5e7b",
+    "previousIndexAsset": "index-pBobKWbX.js",
+    "acceptedIndexAsset": "index-DG1_LAAx.js",
+    "acceptedMembersAsset": "members-BT8_PW3P.js",
+    "finalBrowserAcceptance": true,
+    "finalPersistentLayoutAcceptance": true,
+    "rootVisualReview": {
+      "passed": true,
+      "uneditedScreenshotCount": 7,
+      "scope": "All seven final desktop/light/dark and 390/320px mobile captures; English and Chinese; long actor, record and change values. Viewport emulation does not establish physical-device acceptance."
+    },
+    "runtimeSourceChangesDuringRevalidation": false,
+    "limits": "Finite loopback Chromium fixtures only. No remote provider, OAuth, payment, real account or remote D1 requests; no browser polling, automatic HTTP retries, commit, push or deployment."
   }
 }

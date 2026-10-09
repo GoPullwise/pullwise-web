@@ -15,8 +15,9 @@ clear protected rows; pending writes defer conflicting reads and preserve drafts
 All six languages are supported. The topbar's separate Ledger text is removed,
 while the native selector retains its accessible localized label and real IDs.
 
-`npm run check` passes lint, **47 files / 859 tests** and build. Offline Worker
-checks pass. The final preview build is frozen as `index-pBobKWbX.js`,
+`npm run check` passes lint, **47 files / 867 tests** and build after merging
+the concurrent Members invitation-panel update (`b37f9af`, merge `7182427`).
+Offline Worker checks pass. The final preview build is frozen as `index-DG1_LAAx.js`,
 `ledger-DV-OZzdj.js` and `index-ChhzqjXD.css`.
 
 [Browser evidence](activity-log-local-2026-10-09.json) passes 18 workflow states
