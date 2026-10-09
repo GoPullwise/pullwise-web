@@ -9,16 +9,6 @@ import "./ledger.css";
 
 const EDITABLE_ROLES = ["admin", "editor", "viewer"];
 
-function recipientLogin(value) {
-  const input = value.trim();
-  const profile = /^(?:https:\/\/)?github\.com\/([A-Za-z0-9-]+)\/?(?:\?tab=[A-Za-z0-9_-]+)?$/i.exec(
-    input
-  );
-  const login = profile ? profile[1] : input.startsWith("@") ? input.slice(1) : input;
-  // Keep the API's existing ASCII login grammar and send no URL/provider query.
-  return /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(login) ? login : "";
-}
-
 function invitationToken() {
   const values = new URLSearchParams(window.location.hash.slice(1)).getAll("invite");
   return values.length === 1 && values[0].length <= 8192 ? values[0] : "";
@@ -59,6 +49,17 @@ function items(result) {
   if (!Array.isArray(result?.items))
     throw new Error(T("Member data unavailable.", "成员数据暂不可用。"));
   return result.items;
+}
+
+function validInvitation(result) {
+  return Boolean(
+    result &&
+    EDITABLE_ROLES.includes(result.role) &&
+    result.expiresAt &&
+    result.workspace?.id &&
+    (!result.request ||
+      (result.request.id && ["pending", "approved", "rejected"].includes(result.request.status)))
+  );
 }
 
 function failureMessage(failure) {
@@ -112,6 +113,16 @@ function failureMessage(failure) {
       "That GitHub account is already a member of this ledger.",
       "此 GitHub 账户已经是此账本的成员。"
     );
+  if (failure?.code === "INVITATION_REQUEST_REJECTED")
+    return T(
+      "Your request was rejected. Ask the inviter for a new link.",
+      "你的申请已被拒绝，请向邀请人索取新链接。"
+    );
+  if (failure?.code === "INVITATION_REQUEST_LIMIT")
+    return T(
+      "This invitation has too many requests. Ask the inviter for a new link.",
+      "此邀请的申请数量已达上限，请向邀请人索取新链接。"
+    );
   if (failure?.status === 409 || failure?.status === 412) {
     return T(
       "Changes conflict with a newer version. Reload members before trying again.",
@@ -137,6 +148,7 @@ export function MembersScreen({
   workspace = null,
   onMembershipChanged,
   onAccessChanged,
+  onInvitationRequestsChanged,
 }) {
   useLang();
   const [token, setToken] = useState(invitationToken);
@@ -171,6 +183,7 @@ export function MembersScreen({
       token={token}
       onMembershipChanged={onMembershipChanged}
       onAccessChanged={onAccessChanged}
+      onInvitationRequestsChanged={onInvitationRequestsChanged}
       clearInvitation={clearInvitation}
     />
   );
@@ -183,6 +196,7 @@ function MembersContent({
   token,
   onMembershipChanged,
   onAccessChanged,
+  onInvitationRequestsChanged,
   clearInvitation,
 }) {
   const workspaceId = workspace?.id || "";
@@ -191,6 +205,9 @@ function MembersContent({
   const grantableRoles = canManageAdmins ? EDITABLE_ROLES : ["editor", "viewer"];
   const [members, setMembers] = useState(null);
   const [invites, setInvites] = useState(null);
+  const [requests, setRequests] = useState(null);
+  const [requestsError, setRequestsError] = useState("");
+  const [requestsHasMore, setRequestsHasMore] = useState(false);
   const [loading, setLoading] = useState(Boolean(workspaceId));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -204,8 +221,8 @@ function MembersContent({
   const removeOpeners = useRef(new Map());
   const focusAction = useRef(null);
   const memberHeading = useRef(null);
-  const [githubLogin, setGithubLogin] = useState("");
-  const inviteLoginInput = useRef(null);
+  const requestHeading = useRef(null);
+  const focusReview = useRef(false);
   const [inviteRole, setInviteRole] = useState("viewer");
   const [createdInvite, setCreatedInvite] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -225,7 +242,12 @@ function MembersContent({
   const inviteVersion = useRef(0);
   const accessNotified = useRef(false);
   const callbacks = useRef({});
-  callbacks.current = { onMembershipChanged, onAccessChanged, clearInvitation };
+  callbacks.current = {
+    onMembershipChanged,
+    onAccessChanged,
+    onInvitationRequestsChanged,
+    clearInvitation,
+  };
 
   const current = useCallback(
     (ticket) => mounted.current && lifecycle.current === ticket && invitationToken() === token,
@@ -268,6 +290,9 @@ function MembersContent({
     setLoading(true);
     setMembers(null);
     setInvites(null);
+    setRequests(null);
+    setRequestsError("");
+    setRequestsHasMore(false);
     setError("");
     setConflict(false);
     setAccessLost(false);
@@ -288,6 +313,11 @@ function MembersContent({
             Promise.resolve()
               .then(() => api.invites(workspaceId, { signal: controller.signal }))
               .then(items),
+            Promise.resolve()
+              .then(() =>
+                api.workspaceInvitationRequests(workspaceId, { signal: controller.signal })
+              )
+              .then((result) => ({ items: items(result), hasMore: result.hasMore === true })),
           ]
         : []),
     ]);
@@ -299,6 +329,14 @@ function MembersContent({
     if (canManage) {
       if (results[1].status === "fulfilled") setInvites(results[1].value);
       else failed(results[1].reason);
+      if (results[2].status === "fulfilled") {
+        setRequests(
+          items(results[2].value).filter(
+            (request) => request.workspaceId === workspaceId && request.status === "pending"
+          )
+        );
+        setRequestsHasMore(results[2].value.hasMore === true);
+      } else setRequestsError(failureMessage(results[2].reason));
     }
   }, [api, workspaceId, canManage, current, failed]);
 
@@ -317,19 +355,14 @@ function MembersContent({
     setPreviewLoading(true);
     setPreview(null);
     setInvitationError("");
-    // Confirm the single-use token is still pending before allowing another
-    // explicit acceptance. A failed mutation is never retried automatically.
+    // Confirm the current request status before allowing another explicit
+    // submission. A failed mutation is never retried automatically.
     await Promise.resolve();
     if (!current(ticket) || controller.signal.aborted) return;
     try {
       const result = await api.previewInvitation({ token }, { signal: controller.signal });
       if (!current(ticket) || controller.signal.aborted || requestId !== previewId.current) return;
-      if (
-        !result?.recipient?.login ||
-        !EDITABLE_ROLES.includes(result.role) ||
-        !result.expiresAt ||
-        (result.status === "accepted" && !result.workspace?.id)
-      ) {
+      if (!validInvitation(result)) {
         throw new Error(T("Invitation data unavailable.", "邀请数据暂不可用。"));
       }
       setPreview(result);
@@ -387,7 +420,10 @@ function MembersContent({
   const disabled = busy || loading || !members || conflict || accessLost;
   useEffect(() => {
     if (loading || busy || !current(lifecycle.current)) return;
-    if (focusAction.current) {
+    if (focusReview.current) {
+      focusReview.current = false;
+      requestHeading.current?.focus();
+    } else if (focusAction.current) {
       const { action, userId } = focusAction.current;
       focusAction.current = null;
       const openers = action === "edit" ? editOpeners : removeOpeners;
@@ -408,22 +444,11 @@ function MembersContent({
   const createInvite = (event) => {
     event.preventDefault();
     if (!canManage) return;
-    const login = recipientLogin(githubLogin);
-    if (!login) {
-      setError(
-        T(
-          "Enter a valid GitHub username, @username or GitHub profile URL.",
-          "请输入有效的 GitHub 用户名、@用户名或 GitHub 个人主页链接。"
-        )
-      );
-      inviteLoginInput.current?.focus();
-      return;
-    }
     if (!grantableRoles.includes(inviteRole)) return;
     runAction(
-      () => api.inviteMember(workspaceId, { githubLogin: login, role: inviteRole }, {}),
+      () => api.inviteMember(workspaceId, { role: inviteRole }, {}),
       (result) => {
-        if (!result?.token || !result?.recipient?.login)
+        if (!result?.token)
           throw new Error(T("Invitation link unavailable.", "邀请链接暂不可用。"));
         inviteVersion.current += 1;
         setCreatedInvite({
@@ -431,7 +456,6 @@ function MembersContent({
           link: `${window.location.origin}/members#invite=${encodeURIComponent(result.token)}`,
         });
         setCopied(false);
-        setGithubLogin("");
       }
     );
   };
@@ -462,23 +486,49 @@ function MembersContent({
 
   const accept = () => {
     if (!current(lifecycle.current)) return;
-    if (!preview || acceptAttempted || actionPending.current) return;
+    if (
+      !preview ||
+      preview.request ||
+      preview.status === "accepted" ||
+      acceptAttempted ||
+      actionPending.current
+    )
+      return;
     setAcceptAttempted(true);
     runAction(
       () => api.acceptInvitation({ token }, {}),
       (result) => {
-        const acceptedId = result?.workspaceId || result?.workspace?.id;
-        if (!acceptedId)
-          throw new Error(
-            T(
-              "Accepted ledger unavailable. Reload your ledgers.",
-              "已加入的账本暂不可用，请重新加载账本列表。"
-            )
-          );
-        callbacks.current.clearInvitation();
-        callbacks.current.onMembershipChanged?.(acceptedId);
+        if (!validInvitation(result) || !result.request)
+          throw new Error(T("Invitation data unavailable.", "邀请数据暂不可用。"));
+        setPreview(result);
+        callbacks.current.onInvitationRequestsChanged?.();
       },
       true
+    );
+  };
+
+  const reviewRequest = (request, decision) => {
+    if (
+      !canManage ||
+      request.status !== "pending" ||
+      (!canManageAdmins && request.invitation?.role === "admin")
+    )
+      return;
+    runAction(
+      () =>
+        api[decision === "approve" ? "approveInviteRequest" : "rejectInviteRequest"](
+          workspaceId,
+          request.invitationId,
+          request.id,
+          request.revision,
+          {}
+        ),
+      (result) => {
+        if (result?.request?.status !== (decision === "approve" ? "approved" : "rejected"))
+          throw new Error(T("Invitation data unavailable.", "邀请数据暂不可用。"));
+        focusReview.current = true;
+        callbacks.current.onInvitationRequestsChanged?.();
+      }
     );
   };
 
@@ -522,8 +572,8 @@ function MembersContent({
                   {acceptAttempted && (
                     <p>
                       {T(
-                        "Check the invitation before trying again. If acceptance succeeded, reload your ledgers and choose the shared ledger.",
-                        "请先检查邀请再重试。如果已经成功加入，请重新加载账本并选择共享账本。"
+                        "Check the invitation status before trying again. A request only grants access after approval.",
+                        "请先检查邀请状态再重试，只有申请获批后才能访问账本。"
                       )}
                     </p>
                   )}
@@ -535,24 +585,17 @@ function MembersContent({
                     >
                       {T("Check invitation again", "重新检查邀请")}
                     </button>
-                    {acceptAttempted && onMembershipChanged && (
-                      <button
-                        className="btn ghost"
-                        disabled={busy || previewLoading}
-                        onClick={() => callbacks.current.onMembershipChanged?.()}
-                      >
-                        {T("Reload ledgers", "重新加载账本")}
-                      </button>
-                    )}
                   </div>
                 </div>
               )}
               {preview && (
                 <div className="panel-body">
                   {preview.workspace?.name && <h3>{preview.workspace.name}</h3>}
-                  <p>
-                    {T("GitHub account", "GitHub 账户")}: {preview.recipient.login}
-                  </p>
+                  {preview.recipient?.login && (
+                    <p>
+                      {T("GitHub account", "GitHub 账户")}: {preview.recipient.login}
+                    </p>
+                  )}
                   <p>
                     {T("Role", "角色")}:{" "}
                     {roleName(
@@ -575,10 +618,26 @@ function MembersContent({
                   )}
                   <p className="notice">
                     {T(
-                      "Accepting gives you access to all existing and future ledger data, including projects, categories, shared expenses and reports.",
-                      "接受邀请后，你将能按所授角色访问此账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
+                      "After approval, your role grants access to all existing and future ledger data, including projects, categories, shared expenses and reports.",
+                      "申请获批后，你将能按所授角色访问此账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
                     )}
                   </p>
+                  {preview.request?.status === "pending" && (
+                    <p className="notice" role="status">
+                      {T(
+                        "Your request was sent. Waiting for the inviter's approval.",
+                        "申请已发送，正在等待邀请人批准。"
+                      )}
+                    </p>
+                  )}
+                  {preview.request?.status === "rejected" && (
+                    <p className="notice" role="status">
+                      {T(
+                        "Your request was rejected. Ask the inviter for a new link.",
+                        "你的申请已被拒绝，请向邀请人索取新链接。"
+                      )}
+                    </p>
+                  )}
                   <div className="panel-actions">
                     {preview.status === "accepted" ? (
                       <button
@@ -592,13 +651,22 @@ function MembersContent({
                       >
                         {T("Open shared ledger", "打开共享账本")}
                       </button>
-                    ) : (
+                    ) : !preview.request ? (
                       <button
                         className="btn primary"
                         onClick={accept}
                         disabled={busy || acceptAttempted}
                       >
-                        {T("Accept invitation", "接受邀请")}
+                        {T("Request to join", "申请加入")}
+                      </button>
+                    ) : null}
+                    {preview.status !== "accepted" && (
+                      <button
+                        className="btn"
+                        onClick={loadInvitation}
+                        disabled={busy || previewLoading}
+                      >
+                        {T("Check status", "检查状态")}
                       </button>
                     )}
                   </div>
@@ -898,33 +966,13 @@ function MembersContent({
                           "邀请成员将按所授角色共享此所有者账本现有及未来的全部数据，包括项目、分类、公共支出和报表。"
                         )}
                       </p>
+                      <p className="ledger-help">
+                        {T(
+                          "Share a link with anyone. You can review their GitHub identity and approve or reject their request before they join.",
+                          "把链接发给任何人。对方申请后，你可以查看其 GitHub 身份并同意或拒绝，获批后对方才会加入。"
+                        )}
+                      </p>
                       <form className="ledger-form" onSubmit={createInvite}>
-                        <div className="ledger-field">
-                          <label htmlFor="invite-github-login">
-                            {T("GitHub username", "GitHub 用户名")}
-                          </label>
-                          <input
-                            id="invite-github-login"
-                            className="auth-input"
-                            ref={inviteLoginInput}
-                            aria-describedby="invite-github-help"
-                            value={githubLogin}
-                            required
-                            maxLength={100}
-                            disabled={disabled}
-                            autoComplete="off"
-                            autoCapitalize="none"
-                            spellCheck={false}
-                            placeholder="octocat / @octocat / https://github.com/octocat"
-                            onChange={(event) => setGithubLogin(event.target.value)}
-                          />
-                          <p className="ledger-help" id="invite-github-help">
-                            {T(
-                              "Use a username, @username or GitHub profile URL. Only that GitHub account can accept the link.",
-                              "支持用户名、@用户名或 GitHub 个人主页链接，只有对应的 GitHub 账户可以接受邀请。"
-                            )}
-                          </p>
-                        </div>
                         <div className="ledger-field">
                           <label htmlFor="invite-role">{T("Invitation role", "邀请角色")}</label>
                           <select
@@ -951,14 +999,13 @@ function MembersContent({
                         <div className="notice" role="status">
                           <div className="panel-body">
                             <p>
-                              {T("GitHub account", "GitHub 账户")}: {createdInvite.recipient.login}{" "}
-                              · {roleName(createdInvite.role)}
+                              {T("Role", "角色")}: {roleName(createdInvite.role)}
                             </p>
                             <p>
                               {T(
-                                "Send this link to @{username}. Only that GitHub account can accept it.",
-                                "请将此链接发送给 @{username}，只有该 GitHub 账户可以接受邀请。"
-                              ).replace("{username}", createdInvite.recipient.login)}
+                                "Share this link. Each person requests to join with their signed-in GitHub account. The link closes after one person is approved.",
+                                "分享此链接。对方使用登录的 GitHub 账户申请加入，一人获批后链接即关闭。"
+                              )}
                             </p>
                             <p>
                               {T("Expires", "有效期至")}: {createdInvite.expiresAt}
@@ -999,6 +1046,109 @@ function MembersContent({
                   </section>
                   <section
                     className="panel"
+                    aria-label={T("Join requests", "加入申请")}
+                    aria-busy={loading}
+                  >
+                    <div className="panel-h">
+                      <I.User size={20} aria-hidden="true" />
+                      <h2 ref={requestHeading} tabIndex={-1}>
+                        {T("Join requests", "加入申请")}
+                      </h2>
+                      {requests && (
+                        <span className="count">
+                          {requests.length}
+                          {requestsHasMore ? "+" : ""}
+                        </span>
+                      )}
+                    </div>
+                    <p className="ledger-help">
+                      {T(
+                        "Only you can review requests to invitation links you created.",
+                        "只有你可以审核自己创建的邀请链接收到的申请。"
+                      )}
+                    </p>
+                    {requestsError && (
+                      <p className="notice notice-error" role="alert">
+                        {requestsError}
+                      </p>
+                    )}
+                    {requests && requests.length === 0 && (
+                      <p>{T("No pending join requests.", "没有待审核的加入申请。")}</p>
+                    )}
+                    {requests && (
+                      <div className="ledger-list member-list member-invites">
+                        {requests.map((request) => {
+                          const applicant = request.applicant;
+                          const label = applicant.githubLogin || applicant.name || applicant.userId;
+                          return (
+                            <article key={request.id} className="member-row">
+                              <MemberIdentity
+                                name={applicant.name || label}
+                                login={applicant.githubLogin}
+                              >
+                                <span className="member-role">
+                                  {roleName(request.invitation.role)}
+                                </span>
+                                {applicant.githubLogin && (
+                                  <a
+                                    href={`https://github.com/${encodeURIComponent(applicant.githubLogin)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={T(
+                                      "View GitHub profile for {member}",
+                                      "查看 {member} 的 GitHub 主页"
+                                    ).replace("{member}", label)}
+                                  >
+                                    {T("GitHub profile", "GitHub 主页")}
+                                  </a>
+                                )}
+                                <p className="ledger-meta">
+                                  {T("Requested", "申请时间")}:{" "}
+                                  <time dateTime={request.createdAt}>{request.createdAt}</time>
+                                </p>
+                              </MemberIdentity>
+                              {(canManageAdmins || request.invitation.role !== "admin") && (
+                                <div className="panel-actions member-actions">
+                                  <button
+                                    className="btn primary"
+                                    disabled={disabled}
+                                    aria-label={T(
+                                      "Approve request from {member}",
+                                      "同意 {member} 的申请"
+                                    ).replace("{member}", label)}
+                                    onClick={() => reviewRequest(request, "approve")}
+                                  >
+                                    {T("Approve", "同意")}
+                                  </button>
+                                  <button
+                                    className="btn"
+                                    disabled={disabled}
+                                    aria-label={T(
+                                      "Reject request from {member}",
+                                      "拒绝 {member} 的申请"
+                                    ).replace("{member}", label)}
+                                    onClick={() => reviewRequest(request, "reject")}
+                                  >
+                                    {T("Reject", "拒绝")}
+                                  </button>
+                                </div>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {requestsHasMore && (
+                      <p className="ledger-help">
+                        {T(
+                          "More requests will appear as you review these.",
+                          "审核这些申请后，将显示更多申请。"
+                        )}
+                      </p>
+                    )}
+                  </section>
+                  <section
+                    className="panel"
                     aria-label={T("Pending invitations", "待接受邀请")}
                     aria-busy={loading}
                   >
@@ -1014,7 +1164,9 @@ function MembersContent({
                       <div className="ledger-list member-list member-invites">
                         {invites.map((invite) => (
                           <article key={invite.id} className="member-row">
-                            <MemberIdentity name={invite.recipient?.login}>
+                            <MemberIdentity
+                              name={invite.recipient?.login || T("Invitation link", "邀请链接")}
+                            >
                               <span className="member-role">{roleName(invite.role)}</span>
                               <p className="ledger-meta">
                                 {T("Expires", "有效期至")}:{" "}
@@ -1025,10 +1177,17 @@ function MembersContent({
                               <div className="panel-actions member-actions">
                                 <button
                                   className="btn"
-                                  aria-label={T(
-                                    "Revoke invitation for {member}",
-                                    "撤销 {member} 的邀请"
-                                  ).replace("{member}", invite.recipient?.login)}
+                                  aria-label={
+                                    invite.recipient?.login
+                                      ? T(
+                                          "Revoke invitation for {member}",
+                                          "撤销 {member} 的邀请"
+                                        ).replace("{member}", invite.recipient.login)
+                                      : T(
+                                          "Revoke invitation link {id}",
+                                          "撤销邀请链接 {id}"
+                                        ).replace("{id}", invite.id)
+                                  }
                                   disabled={disabled}
                                   onClick={() => {
                                     if (canManage && (canManageAdmins || invite.role !== "admin"))

@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { I } from "../icons.jsx";
 import { T } from "../i18n.jsx";
 
@@ -73,7 +81,7 @@ function NotificationToast({ notification, onDismiss }) {
   );
 }
 
-export function NotificationProvider({ children }) {
+export function NotificationProvider({ children, scope = "" }) {
   const [notifications, setNotifications] = useState([]);
   const nextIdRef = useRef(1);
   const timersRef = useRef(new Map());
@@ -86,7 +94,13 @@ export function NotificationProvider({ children }) {
   }, []);
 
   const notify = useCallback(
-    ({ title = "", message, tone = "error", action = null, durationMs = NOTIFICATION_AUTO_DISMISS_MS } = {}) => {
+    ({
+      title = "",
+      message,
+      tone = "error",
+      action = null,
+      durationMs = NOTIFICATION_AUTO_DISMISS_MS,
+    } = {}) => {
       const cleanMessage = notificationMessage(message);
       if (!cleanMessage) return "";
       const id = `notification-${nextIdRef.current}`;
@@ -95,6 +109,7 @@ export function NotificationProvider({ children }) {
         ...current,
         {
           id,
+          scope,
           title: notificationMessage(title),
           message: cleanMessage,
           tone: notificationTone(tone),
@@ -107,7 +122,7 @@ export function NotificationProvider({ children }) {
       }
       return id;
     },
-    [dismiss]
+    [dismiss, scope]
   );
 
   const value = useMemo(
@@ -131,23 +146,30 @@ export function NotificationProvider({ children }) {
     <NotificationContext.Provider value={value}>
       {children}
       <div className="notification-stack" aria-label={T("Notifications", "通知")}>
-        {notifications.map((notification) => (
-          <NotificationToast
-            key={notification.id}
-            notification={notification}
-            onDismiss={() => dismiss(notification.id)}
-          />
-        ))}
+        {notifications
+          .filter((notification) => notification.scope === scope)
+          .map((notification) => (
+            <NotificationToast
+              key={notification.id}
+              notification={notification}
+              onDismiss={() => dismiss(notification.id)}
+            />
+          ))}
       </div>
     </NotificationContext.Provider>
   );
 }
 
 export function useNotify() {
-  return useContext(NotificationContext) || { notify: () => "", error: () => "", dismiss: () => {} };
+  return (
+    useContext(NotificationContext) || { notify: () => "", error: () => "", dismiss: () => {} }
+  );
 }
 
-export function useErrorNotification(message, { title = T("Error", "错误"), action = null, key = "" } = {}) {
+export function useErrorNotification(
+  message,
+  { title = T("Error", "错误"), action = null, key = "" } = {}
+) {
   const { error } = useNotify();
   const lastKeyRef = useRef("");
   const cleanMessage = notificationMessage(message);

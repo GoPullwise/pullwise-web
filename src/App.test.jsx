@@ -54,7 +54,7 @@ vi.mock("./screens/ledger.jsx", async () => {
   };
 });
 vi.mock("./api/ledger.js", () => ({
-  ledgerApi: { workspaces: vi.fn() },
+  ledgerApi: { workspaces: vi.fn(), invitationRequests: vi.fn() },
   createLedgerApi: vi.fn(() => ({})),
 }));
 
@@ -72,9 +72,13 @@ beforeEach(() => {
   ledgerApi.workspaces.mockResolvedValue({
     items: [{ id: "local-focus", name: "Personal ledger", role: "owner", revision: 1 }],
   });
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [] });
 });
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 function pending() {
   let resolve;
@@ -102,11 +106,23 @@ const team = {
 };
 const invite = {
   id: "inv_1",
-  recipient: { githubId: "202", login: "bob" },
+  recipient: null,
   role: "viewer",
-  expiresAt: "2026-10-07T12:00:00Z",
+  expiresAt: "2026-10-16T12:00:00Z",
   revision: 1,
   status: "pending",
+};
+const joinRequest = {
+  id: "req_1",
+  invitationId: invite.id,
+  workspaceId: team.id,
+  workspace: { id: team.id, name: team.name },
+  invitation: invite,
+  applicant: { userId: "bob", githubId: "202", githubLogin: "bob", name: "Bob" },
+  role: invite.role,
+  status: "pending",
+  revision: 1,
+  createdAt: "2026-10-09T10:00:00Z",
 };
 const inviteToken = `pwi_${"x".repeat(43)}`;
 
@@ -117,17 +133,23 @@ function authenticatedLedgers(items = [personal, team], actor = "alice") {
 
 function membersApi(overrides = {}) {
   return {
-    members: vi
-      .fn()
-      .mockResolvedValue({
-        items: [
-          { userId: "alice", name: "Alice", githubLogin: "alice", role: "owner", revision: 1 },
-        ],
-      }),
+    members: vi.fn().mockResolvedValue({
+      items: [{ userId: "alice", name: "Alice", githubLogin: "alice", role: "owner", revision: 1 }],
+    }),
     invites: vi.fn().mockResolvedValue({ items: [] }),
+    workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [] }),
     inviteMember: vi.fn().mockResolvedValue({ ...invite, token: inviteToken }),
     previewInvitation: vi.fn().mockResolvedValue({ ...invite, workspace: team }),
-    acceptInvitation: vi.fn().mockResolvedValue({ workspace: team }),
+    acceptInvitation: vi
+      .fn()
+      .mockResolvedValue({ ...invite, workspace: team, request: joinRequest }),
+    approveInviteRequest: vi.fn().mockResolvedValue({
+      request: { ...joinRequest, status: "approved", revision: 2 },
+      workspace: team,
+    }),
+    rejectInviteRequest: vi.fn().mockResolvedValue({
+      request: { ...joinRequest, status: "rejected", revision: 2 },
+    }),
     ...overrides,
   };
 }
@@ -353,8 +375,9 @@ it("preserves the real Members screen's one-time invitation link throughout soft
   const copy = vi.fn().mockResolvedValue(undefined);
   vi.stubGlobal("navigator", { clipboard: { writeText: copy } });
   render(<App />);
-  fireEvent.change(await screen.findByLabelText("GitHub username"), { target: { value: "bob" } });
-  fireEvent.submit(screen.getByRole("button", { name: "Create invitation" }).closest("form"));
+  const create = await screen.findByRole("button", { name: "Create invitation" });
+  await waitFor(() => expect(create).toBeEnabled());
+  fireEvent.submit(create.closest("form"));
   const link = await screen.findByLabelText("New invitation link");
   expect(link).toHaveValue(`${window.location.origin}/members#invite=${inviteToken}`);
   await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
@@ -366,6 +389,8 @@ it("preserves the real Members screen's one-time invitation link throughout soft
   });
   expect(screen.getByLabelText("New invitation link")).toBe(link);
   expect(harness.apis.alice.inviteMember).toHaveBeenCalledTimes(1);
+  expect(harness.apis.alice.inviteMember).toHaveBeenCalledWith("alice", { role: "viewer" }, {});
+  expect(screen.queryByLabelText("GitHub username")).not.toBeInTheDocument();
 });
 
 it.each([
@@ -394,7 +419,7 @@ it.each([
     expect(harness.apis.alice.previewInvitation).toHaveBeenCalledTimes(1);
     expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("alert")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Accept invitation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Request to join" })).not.toBeInTheDocument();
     expect(window.location.hash).toBe(`#invite=${inviteToken}`);
   }
 );
@@ -422,7 +447,7 @@ it("preserves a guest invitation through Login's GitHub return URL and the resto
   await act(async () => {
     window.dispatchEvent(new Event("focus"));
   });
-  expect(await screen.findByRole("button", { name: "Accept invitation" })).toBeVisible();
+  expect(await screen.findByRole("button", { name: "Request to join" })).toBeVisible();
   expect(window.location.pathname).toBe("/members");
   expect(window.location.hash).toBe(`#invite=${inviteToken}`);
   expect(harness.apis.alice.acceptInvitation).not.toHaveBeenCalled();
@@ -433,11 +458,182 @@ it("returns an already authenticated Login invitation to Members without droppin
   authenticatedLedgers([personal]);
   harness.apis.alice = membersApi();
   render(<App />);
-  expect(await screen.findByRole("button", { name: "Accept invitation" })).toBeVisible();
+  expect(await screen.findByRole("button", { name: "Request to join" })).toBeVisible();
   expect(window.location.pathname).toBe("/members");
   expect(window.location.hash).toBe(`#invite=${inviteToken}`);
   expect(harness.apis.alice.previewInvitation).toHaveBeenCalledTimes(1);
   expect(harness.apis.alice.acceptInvitation).not.toHaveBeenCalled();
+});
+
+it("keeps a submitted join request pending without switching ledgers or granting access", async () => {
+  window.history.replaceState({}, "", `/members#invite=${inviteToken}`);
+  authenticatedLedgers([personal]);
+  const submitted = pending();
+  harness.apis.alice = membersApi({
+    acceptInvitation: vi.fn().mockReturnValue(submitted.promise),
+  });
+  render(<App />);
+  const request = await screen.findByRole("button", { name: "Request to join" });
+  fireEvent.click(request);
+  fireEvent.click(request);
+  expect(harness.apis.alice.acceptInvitation).toHaveBeenCalledTimes(1);
+  expect(harness.apis.alice.acceptInvitation).toHaveBeenCalledWith({ token: inviteToken }, {});
+  await act(async () => {
+    submitted.resolve({ ...invite, workspace: team, request: joinRequest });
+  });
+  expect(
+    await screen.findByText("Your request was sent. Waiting for the inviter's approval.")
+  ).toBeVisible();
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("alice");
+  expect(screen.queryByRole("option", { name: /Team ledger/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Open shared ledger" })).not.toBeInTheDocument();
+  expect(window.location.hash).toBe(`#invite=${inviteToken}`);
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+  expect(harness.apis.alice.previewInvitation).toHaveBeenCalledTimes(1);
+});
+
+it("notifies the inviter with the applicant identity and opens the request's ledger for review", async () => {
+  window.history.replaceState({}, "", "/projects");
+  const managedTeam = {
+    ...team,
+    role: "owner",
+    permissions: { manageMembers: true, manageAdmins: true },
+  };
+  authenticatedLedgers([personal, managedTeam]);
+  harness.enabled = true;
+  harness.apis.alice = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Personal project" }] }),
+  };
+  harness.apis.team = membersApi({
+    workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [joinRequest] }),
+  });
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+  render(<App />);
+  expect(await screen.findByText("Personal project")).toBeVisible();
+  const notification = await screen.findByRole("alert");
+  expect(notification).toHaveTextContent("Bob");
+  expect(notification).toHaveTextContent("Team ledger");
+  expect(screen.getByRole("button", { name: "Join requests" })).toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Review request" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Members" })).toBeVisible();
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+  expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Reject request from bob" })).toBeVisible();
+  expect(harness.apis.team.members).toHaveBeenCalledWith("team", expect.any(Object));
+  expect(harness.apis.team.approveInviteRequest).not.toHaveBeenCalled();
+  expect(window.location.pathname).toBe("/members");
+});
+
+it("opens the requested ledger when inbox review is the first navigation into a ledger", async () => {
+  const managedTeam = {
+    ...team,
+    role: "admin",
+    permissions: { manageMembers: true, manageAdmins: false },
+  };
+  authenticatedLedgers([personal, managedTeam]);
+  harness.apis.alice = membersApi();
+  harness.apis.team = membersApi({
+    workspaceInvitationRequests: vi.fn().mockResolvedValue({ items: [joinRequest] }),
+  });
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+  render(<App />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Bob");
+  expect(window.location.pathname).toBe("/");
+  expect(ledgerApi.workspaces).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Review request" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Members" })).toBeVisible();
+  expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+  expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
+  expect(harness.apis.team.workspaceInvitationRequests).toHaveBeenCalledWith(
+    "team",
+    expect.objectContaining({ signal: expect.any(AbortSignal) })
+  );
+  expect(harness.apis.alice.members).not.toHaveBeenCalled();
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(1);
+  expect(window.location.pathname).toBe("/members");
+});
+
+it("keeps pending requests available without repeating their notifications on focus refresh", async () => {
+  window.history.replaceState({}, "", "/projects");
+  authenticatedLedgers([personal]);
+  harness.enabled = true;
+  harness.apis.alice = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Personal project" }] }),
+  };
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+  const started = Date.now();
+  const clock = vi.spyOn(Date, "now").mockReturnValue(started);
+  render(<App />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Bob");
+  fireEvent.click(screen.getByRole("button", { name: "Close notification" }));
+  clock.mockReturnValue(started + 60000);
+  await act(async () => {
+    window.dispatchEvent(new Event("focus"));
+  });
+  await waitFor(() => expect(ledgerApi.invitationRequests).toHaveBeenCalledTimes(2));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
+  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  expect(inbox).toHaveTextContent("Bob");
+  expect(inbox).toHaveTextContent("@bob");
+  expect(inbox).toHaveTextContent("Team ledger");
+});
+
+it("ignores a late invitation inbox response after the authenticated account changes", async () => {
+  window.history.replaceState({}, "", "/projects");
+  authenticatedLedgers([personal]);
+  harness.enabled = true;
+  harness.apis.alice = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Personal project" }] }),
+  };
+  const previousActorRequests = pending();
+  ledgerApi.invitationRequests
+    .mockReturnValueOnce(previousActorRequests.promise)
+    .mockResolvedValue({ items: [] });
+  render(<App />);
+  await screen.findByText("Personal project");
+  await waitFor(() => expect(ledgerApi.invitationRequests).toHaveBeenCalledTimes(1));
+  const oldSignal = ledgerApi.invitationRequests.mock.calls[0][0].signal;
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true, user: { id: "actor-two" } });
+  await act(async () => {
+    window.dispatchEvent(new Event("focus"));
+  });
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
+  expect(oldSignal.aborted).toBe(true);
+  await act(async () => {
+    previousActorRequests.resolve({ items: [joinRequest] });
+  });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Join requests" })).not.toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
+  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  expect(inbox).not.toHaveTextContent("Bob");
+  expect(screen.queryByRole("button", { name: "Review request" })).not.toBeInTheDocument();
+});
+
+it("clears the previous account's visible requests and notification while the new inbox loads", async () => {
+  window.history.replaceState({}, "", "/projects");
+  authenticatedLedgers([personal]);
+  harness.enabled = true;
+  harness.apis.alice = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Personal project" }] }),
+  };
+  ledgerApi.invitationRequests.mockResolvedValue({ items: [joinRequest] });
+  render(<App />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Bob");
+  const nextActorRequests = pending();
+  ledgerApi.invitationRequests.mockReturnValue(nextActorRequests.promise);
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true, user: { id: "actor-two" } });
+  await act(async () => {
+    window.dispatchEvent(new Event("focus"));
+  });
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Join requests" })).not.toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
+  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  expect(inbox).not.toHaveTextContent("Bob");
+  expect(screen.queryByRole("button", { name: "Review request" })).not.toBeInTheDocument();
 });
 
 it("treats an inaccessible old project ID in a newly selected ledger as one resource error", async () => {

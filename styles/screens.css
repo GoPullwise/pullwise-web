@@ -565,6 +565,28 @@
 .modal-body {
   padding: 20px;
 }
+.invitation-inbox-body {
+  overflow-y: auto;
+  display: grid;
+  gap: 16px;
+}
+.invitation-inbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 16px;
+  border-top: 1px solid var(--border);
+}
+.invitation-inbox-row > div {
+  min-width: 0;
+  flex: 1 1 180px;
+  overflow-wrap: anywhere;
+}
+.invitation-inbox-row p {
+  color: var(--text-2);
+}
 .modal-foot {
   padding: 14px 20px;
   border-top: 1px solid var(--border);

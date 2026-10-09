@@ -14,12 +14,27 @@ const owner = { userId: "alice", name: "Alice", githubLogin: "alice", role: "own
 const editor = { userId: "bob", name: "Bob", githubLogin: "bob", role: "editor", revision: 3 };
 const invitation = {
   id: "inv_1",
-  recipient: { githubId: "202", login: "carol" },
+  recipient: null,
   role: "viewer",
   expiresAt: "2026-10-13T12:00:00Z",
   revision: 1,
 };
-const preview = { ...invitation, workspace: { id: "ws_alice", name: "Alice ledger" } };
+const preview = {
+  ...invitation,
+  status: "pending",
+  request: null,
+  workspace: { id: "ws_alice", name: "Alice ledger" },
+};
+const joinRequest = {
+  id: "req_1",
+  invitationId: "inv_1",
+  workspaceId: "ws_owner",
+  applicant: { userId: "carol", name: "Carol", githubLogin: "carol" },
+  invitation,
+  status: "pending",
+  revision: 3,
+  createdAt: "2026-10-09T03:00:00Z",
+};
 let api;
 
 function deferred() {
@@ -57,16 +72,25 @@ beforeEach(() => {
       "revokeInvite",
       "previewInvitation",
       "acceptInvitation",
+      "workspaceInvitationRequests",
+      "approveInviteRequest",
+      "rejectInviteRequest",
     ].map((name) => [name, vi.fn()])
   );
   api.members.mockResolvedValue({ items: [owner, editor] });
   api.invites.mockResolvedValue({ items: [] });
+  api.workspaceInvitationRequests.mockResolvedValue({ items: [] });
+  api.approveInviteRequest.mockResolvedValue({ request: { ...joinRequest, status: "approved" } });
+  api.rejectInviteRequest.mockResolvedValue({ request: { ...joinRequest, status: "rejected" } });
   api.updateMember.mockResolvedValue({ ...editor, role: "viewer", revision: 4 });
   api.removeMember.mockResolvedValue(null);
   api.inviteMember.mockResolvedValue({ ...invitation, token: "only-new-token" });
   api.revokeInvite.mockResolvedValue(null);
   api.previewInvitation.mockResolvedValue(preview);
-  api.acceptInvitation.mockResolvedValue({ workspace: { id: "ws_alice" } });
+  api.acceptInvitation.mockResolvedValue({
+    ...preview,
+    request: { id: "req_carol", status: "pending" },
+  });
 });
 
 afterEach(() => {
@@ -75,6 +99,166 @@ afterEach(() => {
 });
 
 describe("Members screen", () => {
+  it("shows only current-ledger requests, identifies applicants and approves one with its request revision", async () => {
+    api.workspaceInvitationRequests.mockResolvedValueOnce({
+      items: [
+        joinRequest,
+        {
+          ...joinRequest,
+          id: "other_req",
+          workspaceId: "ws_other",
+          applicant: { userId: "other", name: "Other applicant" },
+        },
+      ],
+    });
+    const changed = vi.fn();
+    const inboxChanged = vi.fn();
+    show({ onMembershipChanged: changed, onInvitationRequestsChanged: inboxChanged });
+    const approve = await screen.findByRole("button", { name: "Approve request from carol" });
+    expect(api.workspaceInvitationRequests).toHaveBeenCalledWith(
+      "ws_owner",
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+    expect(screen.getByText("Carol")).toBeVisible();
+    expect(screen.getByText("@carol")).toBeVisible();
+    expect(screen.getByRole("link", { name: "View GitHub profile for carol" })).toHaveAttribute(
+      "href",
+      "https://github.com/carol"
+    );
+    expect(screen.queryByText("Other applicant")).not.toBeInTheDocument();
+    fireEvent.click(approve);
+    fireEvent.click(approve);
+    await waitFor(() => expect(api.approveInviteRequest).toHaveBeenCalledTimes(1));
+    expect(api.approveInviteRequest).toHaveBeenCalledWith("ws_owner", "inv_1", "req_1", 3, {});
+    await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+    expect(inboxChanged).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Join requests" })).toHaveFocus()
+    );
+    expect(screen.queryByText("Carol")).not.toBeInTheDocument();
+  });
+
+  it("shows a bounded request count as a minimum and explains how further requests become visible", async () => {
+    api.workspaceInvitationRequests.mockResolvedValue({ items: [joinRequest], hasMore: true });
+    show();
+    const section = await screen.findByRole("region", { name: "Join requests" });
+    expect(
+      await within(section).findByText("More requests will appear as you review these.")
+    ).toBeVisible();
+    expect(section.querySelector(".count")).toHaveTextContent("1+");
+    expect(
+      within(section).getByRole("button", { name: "Approve request from carol" })
+    ).toBeEnabled();
+  });
+
+  it("does not turn failed request data into an empty inbox or disable otherwise loaded member controls", async () => {
+    api.workspaceInvitationRequests.mockResolvedValue({ unavailable: true });
+    show();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Member data unavailable.");
+    expect(screen.queryByText("No pending join requests.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Edit role for bob" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled();
+  });
+
+  it("rejects an applicant without dispatching an approval and refreshes the inviter inbox", async () => {
+    api.workspaceInvitationRequests.mockResolvedValueOnce({ items: [joinRequest] });
+    const changed = vi.fn();
+    show({ onInvitationRequestsChanged: changed });
+    fireEvent.click(await screen.findByRole("button", { name: "Reject request from carol" }));
+    await waitFor(() =>
+      expect(api.rejectInviteRequest).toHaveBeenCalledWith("ws_owner", "inv_1", "req_1", 3, {})
+    );
+    expect(api.approveInviteRequest).not.toHaveBeenCalled();
+    expect(changed).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.queryByText("Carol")).not.toBeInTheDocument());
+  });
+
+  it("requires a manual reload of a conflicting join request before reviewing its new revision", async () => {
+    api.workspaceInvitationRequests
+      .mockResolvedValueOnce({ items: [joinRequest] })
+      .mockResolvedValue({ items: [{ ...joinRequest, revision: 4 }] });
+    api.approveInviteRequest.mockRejectedValueOnce(error(412));
+    show();
+    fireEvent.click(await screen.findByRole("button", { name: "Approve request from carol" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Reload members");
+    expect(screen.getByRole("button", { name: "Approve request from carol" })).toBeDisabled();
+    expect(api.workspaceInvitationRequests).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    const approve = await screen.findByRole("button", { name: "Approve request from carol" });
+    await waitFor(() => expect(approve).toBeEnabled());
+    fireEvent.click(approve);
+    await waitFor(() =>
+      expect(api.approveInviteRequest).toHaveBeenLastCalledWith("ws_owner", "inv_1", "req_1", 4, {})
+    );
+  });
+
+  it("rejects a late approval callback after changing ledger scope", async () => {
+    const pending = deferred();
+    api.workspaceInvitationRequests.mockResolvedValueOnce({ items: [joinRequest] });
+    api.approveInviteRequest.mockReturnValue(pending.promise);
+    const changed = vi.fn();
+    const inboxChanged = vi.fn();
+    const view = show({ onMembershipChanged: changed, onInvitationRequestsChanged: inboxChanged });
+    fireEvent.click(await screen.findByRole("button", { name: "Approve request from carol" }));
+    view.rerender(
+      <MembersScreen
+        go={vi.fn()}
+        api={api}
+        workspace={{ ...workspace, id: "ws_other" }}
+        onMembershipChanged={changed}
+        onInvitationRequestsChanged={inboxChanged}
+      />
+    );
+    await waitFor(() => expect(api.members).toHaveBeenCalledTimes(2));
+    await act(async () => pending.resolve({ request: { ...joinRequest, status: "approved" } }));
+    expect(changed).not.toHaveBeenCalled();
+    expect(inboxChanged).not.toHaveBeenCalled();
+    expect(screen.queryByText("Carol")).not.toBeInTheDocument();
+  });
+
+  it("keeps a rejected applicant outside the ledger and never replays their request", async () => {
+    window.history.replaceState(null, "", "/members#invite=rejected-token");
+    api.previewInvitation.mockResolvedValue({
+      ...preview,
+      request: { ...joinRequest, status: "rejected" },
+    });
+    const changed = vi.fn();
+    show({ workspace: null, onMembershipChanged: changed });
+    expect(
+      await screen.findByText("Your request was rejected. Ask the inviter for a new link.")
+    ).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Request to join" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open shared ledger" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Check status" }));
+    await waitFor(() => expect(api.previewInvitation).toHaveBeenCalledTimes(2));
+    expect(api.acceptInvitation).not.toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
+    expect(window.location.hash).toBe("#invite=rejected-token");
+  });
+
+  it("opens the approved ledger only after an explicit status check confirms current membership", async () => {
+    window.history.replaceState(null, "", "/members#invite=waiting-token");
+    api.previewInvitation
+      .mockResolvedValueOnce({ ...preview, request: { ...joinRequest, status: "pending" } })
+      .mockResolvedValue({
+        ...preview,
+        status: "accepted",
+        request: { ...joinRequest, status: "approved" },
+      });
+    const changed = vi.fn();
+    show({ workspace: null, onMembershipChanged: changed });
+    expect(
+      await screen.findByText("Your request was sent. Waiting for the inviter's approval.")
+    ).toBeVisible();
+    expect(changed).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Open shared ledger" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Check status" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open shared ledger" }));
+    expect(changed).toHaveBeenCalledWith("ws_alice");
+    expect(api.acceptInvitation).not.toHaveBeenCalled();
+    expect(window.location.hash).toBe("");
+  });
+
   it("keeps a deleted invitation owner's error local while the current ledger remains accessible", async () => {
     window.history.replaceState(null, "", "/members#invite=deleted-owner-token");
     api.previewInvitation.mockRejectedValue(error(404, "WORKSPACE_NOT_FOUND"));
@@ -139,7 +323,7 @@ describe("Members screen", () => {
     api.members.mockResolvedValue({ items: [owner, admin, editor] });
     api.invites.mockResolvedValue({
       items: [
-        { ...invitation, id: "admin-invite", role: "admin" },
+        { ...invitation, id: "admin-invite", recipient: { login: "carol" }, role: "admin" },
         { ...invitation, id: "viewer-invite", recipient: { githubId: "303", login: "dave" } },
       ],
     });
@@ -179,7 +363,7 @@ describe("Members screen", () => {
   it("blocks dispatch from an obsolete invitation view before the hash-change render completes", async () => {
     window.history.replaceState(null, "", "/members#invite=old-token");
     show({ workspace: null });
-    const oldAccept = await screen.findByRole("button", { name: "Accept invitation" });
+    const oldAccept = await screen.findByRole("button", { name: "Request to join" });
     window.history.replaceState(null, "", "/members#invite=replacement-token");
     fireEvent.click(oldAccept);
     expect(api.acceptInvitation).not.toHaveBeenCalled();
@@ -336,69 +520,19 @@ describe("Members screen", () => {
     expect(api.members).toHaveBeenCalledTimes(2);
   });
 
-  it.each([
-    [" carol ", "carol"],
-    ["@CaRoL", "CaRoL"],
-    [" https://github.com/carol/ ", "carol"],
-    ["https://github.com/carol?tab=repositories", "carol"],
-    ["github.com/carol", "carol"],
-    ["https://github.com/a--b", "a--b"],
-    ["a".repeat(39), "a".repeat(39)],
-  ])(
-    "normalizes invitation recipient %s before the single creation request",
-    async (input, login) => {
-      show();
-      const recipient = await screen.findByLabelText("GitHub username");
-      await waitFor(() =>
-        expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
-      );
-      fireEvent.change(recipient, { target: { value: input } });
-      fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
-      await screen.findByLabelText("New invitation link");
-      expect(api.inviteMember).toHaveBeenCalledTimes(1);
-      expect(api.inviteMember).toHaveBeenCalledWith(
-        "ws_owner",
-        { githubLogin: login, role: "viewer" },
-        {}
-      );
-      expect(
-        screen.getByText("Send this link to @carol. Only that GitHub account can accept it.")
-      ).toBeVisible();
-    }
-  );
-
-  it.each([
-    "https://github.com.evil.test/carol",
-    "https://evil.test/carol",
-    "https://user@github.com/carol",
-    "https://github.com:443/carol",
-    "http://github.com/carol",
-    "https://github.com/carol/repository",
-    "https://github.com/a/../carol",
-    "https://github.com/%63arol",
-    "https://github.com/carol#profile",
-    "https://github.com/carol?redirect=elsewhere",
-    "@@carol",
-    "-carol",
-    "carol-",
-    "a".repeat(40),
-    "卡罗尔",
-    "car ol",
-  ])("rejects malformed invitation recipient %s locally without an API request", async (input) => {
+  it("creates an unbound invitation with only the selected role", async () => {
     show();
-    const recipient = await screen.findByLabelText("GitHub username");
+    const role = await screen.findByLabelText("Invitation role");
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
     );
-    fireEvent.change(recipient, { target: { value: input } });
+    expect(screen.queryByLabelText("GitHub username")).not.toBeInTheDocument();
+    fireEvent.change(role, { target: { value: "editor" } });
     fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Enter a valid GitHub username, @username or GitHub profile URL."
-    );
-    expect(recipient).toHaveFocus();
-    expect(recipient).toHaveValue(input);
-    expect(api.inviteMember).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled();
+    await screen.findByLabelText("New invitation link");
+    expect(api.inviteMember).toHaveBeenCalledTimes(1);
+    expect(api.inviteMember).toHaveBeenCalledWith("ws_owner", { role: "editor" }, {});
+    expect(screen.getByText(/Share this link. Each person requests to join/)).toBeVisible();
   });
 
   it.each([
@@ -423,14 +557,13 @@ describe("Members screen", () => {
     ],
   ])(
     "keeps invitation business failure %s/%s local and permits explicit revocation",
-    async (status, code, login, message) => {
+    async (status, code, _login, message) => {
       api.invites.mockResolvedValue({ items: [invitation] });
       api.inviteMember.mockRejectedValue(error(status, code));
       const accessChanged = vi.fn();
       show({ onAccessChanged: accessChanged });
-      const revoke = await screen.findByRole("button", { name: "Revoke invitation for carol" });
+      const revoke = await screen.findByRole("button", { name: "Revoke invitation link inv_1" });
       await waitFor(() => expect(revoke).toBeEnabled());
-      fireEvent.change(screen.getByLabelText("GitHub username"), { target: { value: login } });
       fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
       expect(await screen.findByRole("alert")).toHaveTextContent(message);
       expect(screen.queryByText(/Changes conflict with a newer version/)).not.toBeInTheDocument();
@@ -455,9 +588,8 @@ describe("Members screen", () => {
       api.inviteMember.mockRejectedValue(error(status));
       const accessChanged = vi.fn();
       show({ onAccessChanged: accessChanged });
-      const revoke = await screen.findByRole("button", { name: "Revoke invitation for carol" });
+      const revoke = await screen.findByRole("button", { name: "Revoke invitation link inv_1" });
       await waitFor(() => expect(revoke).toBeEnabled());
-      fireEvent.change(screen.getByLabelText("GitHub username"), { target: { value: "carol" } });
       fireEvent.click(screen.getByRole("button", { name: "Create invitation" }));
       await screen.findByRole("alert");
       expect(revoke).toBeDisabled();
@@ -476,21 +608,16 @@ describe("Members screen", () => {
     });
     const changed = vi.fn();
     show({ onMembershipChanged: changed });
-    expect(await screen.findByLabelText("GitHub username")).toBeVisible();
+    expect(await screen.findByLabelText("Invitation role")).toBeVisible();
     expect(
       screen.getByText(/Inviting shares all existing and future ledger data/)
     ).toHaveTextContent(/projects, categories, shared expenses and reports/);
     expect(document.body.textContent).not.toMatch(/never-render-list-token|never-render-hash/);
-    fireEvent.change(screen.getByLabelText("GitHub username"), { target: { value: " carol " } });
     fireEvent.submit(screen.getByRole("button", { name: "Create invitation" }).closest("form"));
     const link = await screen.findByLabelText("New invitation link");
     expect(link).toHaveValue(`${window.location.origin}/members#invite=only-new-token`);
     expect(screen.getByText(/This link is shown only now/)).toBeVisible();
-    expect(api.inviteMember).toHaveBeenCalledWith(
-      "ws_owner",
-      { githubLogin: "carol", role: "viewer" },
-      {}
-    );
+    expect(api.inviteMember).toHaveBeenCalledWith("ws_owner", { role: "viewer" }, {});
     expect(changed).toHaveBeenCalledTimes(1);
     const copyButton = screen.getByRole("button", { name: "Copy invitation link" });
     fireEvent.click(copyButton);
@@ -504,7 +631,7 @@ describe("Members screen", () => {
     api.invites.mockResolvedValue({ items: [invitation] });
     const changed = vi.fn();
     show({ onMembershipChanged: changed });
-    fireEvent.click(await screen.findByRole("button", { name: "Revoke invitation for carol" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Revoke invitation link inv_1" }));
     await waitFor(() => expect(api.revokeInvite).toHaveBeenCalledWith("ws_owner", "inv_1", 1, {}));
     expect(changed).toHaveBeenCalledTimes(1);
     expect(screen.queryByLabelText("New invitation link")).not.toBeInTheDocument();
@@ -529,9 +656,9 @@ describe("Members screen", () => {
       );
     }
     render(<RefreshingPicker />);
-    fireEvent.change(await screen.findByLabelText("GitHub username"), {
-      target: { value: "carol" },
-    });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
+    );
     fireEvent.submit(screen.getByRole("button", { name: "Create invitation" }).closest("form"));
     await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
     const link = screen.getByLabelText("New invitation link");
@@ -553,15 +680,14 @@ describe("Members screen", () => {
         token: "second-token",
       });
     show();
-    fireEvent.change(await screen.findByLabelText("GitHub username"), {
-      target: { value: "carol" },
-    });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
+    );
     fireEvent.submit(screen.getByRole("button", { name: "Create invitation" }).closest("form"));
     fireEvent.click(await screen.findByRole("button", { name: "Copy invitation link" }));
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
     );
-    fireEvent.change(screen.getByLabelText("GitHub username"), { target: { value: "dave" } });
     fireEvent.submit(screen.getByRole("button", { name: "Create invitation" }).closest("form"));
     await waitFor(() =>
       expect(screen.getByLabelText("New invitation link")).toHaveValue(
@@ -609,9 +735,9 @@ describe("Members screen", () => {
     api.inviteMember.mockReturnValue(pending.promise);
     const changed = vi.fn();
     const view = show({ onMembershipChanged: changed });
-    fireEvent.change(await screen.findByLabelText("GitHub username"), {
-      target: { value: "carol" },
-    });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Create invitation" })).toBeEnabled()
+    );
     fireEvent.submit(screen.getByRole("button", { name: "Create invitation" }).closest("form"));
     expect(api.inviteMember).toHaveBeenCalledTimes(1);
     view.rerender(
@@ -655,7 +781,7 @@ describe("Members screen", () => {
         <MembersScreen go={vi.fn()} api={api} workspace={null} onMembershipChanged={changed} />
       </StrictMode>
     );
-    const accept = await screen.findByRole("button", { name: "Accept invitation" });
+    const accept = await screen.findByRole("button", { name: "Request to join" });
     expect(api.previewInvitation).toHaveBeenCalledTimes(1);
     expect(api.previewInvitation).toHaveBeenCalledWith(
       { token: "incoming-token" },
@@ -668,10 +794,13 @@ describe("Members screen", () => {
     expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
     expect(api.acceptInvitation).toHaveBeenCalledWith({ token: "incoming-token" }, {});
     await act(async () => {
-      pending.resolve({ workspace: { id: "ws_alice" } });
+      pending.resolve({ ...preview, request: { id: "req_carol", status: "pending" } });
     });
-    expect(changed).toHaveBeenCalledWith("ws_alice");
-    expect(window.location.hash).toBe("");
+    expect(changed).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("Your request was sent. Waiting for the inviter's approval.")
+    ).toBeVisible();
+    expect(window.location.hash).toBe("#invite=incoming-token");
   });
 
   it("checks a failed acceptance explicitly before offering another attempt and never retries the write automatically", async () => {
@@ -680,19 +809,19 @@ describe("Members screen", () => {
     const pending = deferred();
     api.previewInvitation.mockResolvedValueOnce(preview).mockReturnValueOnce(pending.promise);
     show({ workspace: null });
-    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Request to join" }));
     await screen.findByText("Connection lost");
-    expect(screen.getByRole("button", { name: "Accept invitation" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Request to join" })).toBeDisabled();
     expect(api.previewInvitation).toHaveBeenCalledTimes(1);
     expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: "Check invitation again" }));
-    expect(screen.queryByRole("button", { name: "Accept invitation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Request to join" })).not.toBeInTheDocument();
     await waitFor(() => expect(api.previewInvitation).toHaveBeenCalledTimes(2));
     expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
     await act(async () => pending.resolve(preview));
-    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Request to join" }));
     await waitFor(() => expect(api.acceptInvitation).toHaveBeenCalledTimes(2));
-    expect(window.location.hash).toBe("");
+    expect(window.location.hash).toBe("#invite=incoming-token");
   });
 
   it("recovers a confirmed acceptance through a read-only preview without replaying the acceptance write", async () => {
@@ -703,9 +832,8 @@ describe("Members screen", () => {
       .mockResolvedValueOnce({ ...preview, status: "accepted" });
     const changed = vi.fn();
     show({ workspace: null, onMembershipChanged: changed });
-    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Request to join" }));
     await screen.findByText("Connection lost");
-    expect(screen.getByRole("button", { name: "Reload ledgers" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "Check invitation again" }));
     fireEvent.click(await screen.findByRole("button", { name: "Open shared ledger" }));
     expect(api.acceptInvitation).toHaveBeenCalledTimes(1);
@@ -720,7 +848,7 @@ describe("Members screen", () => {
     await screen.findByText("This invitation was revoked. Ask the ledger owner for a new link.");
     fireEvent.click(screen.getByRole("button", { name: "Check invitation again" }));
     await waitFor(() => expect(api.previewInvitation).toHaveBeenCalledTimes(2));
-    expect(screen.queryByRole("button", { name: "Accept invitation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Request to join" })).not.toBeInTheDocument();
     expect(api.acceptInvitation).not.toHaveBeenCalled();
   });
 
@@ -736,7 +864,7 @@ describe("Members screen", () => {
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     });
     expect(signal.aborted).toBe(true);
-    const accept = await screen.findByRole("button", { name: "Accept invitation" });
+    const accept = await screen.findByRole("button", { name: "Request to join" });
     await act(async () => {
       old.resolve({ ...preview, workspace: { id: "stale", name: "Stale invitation ledger" } });
     });
@@ -753,7 +881,7 @@ describe("Members screen", () => {
     const changed = vi.fn();
     show({ workspace: null, onAccessChanged: changed });
     expect(await screen.findByRole("alert")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Accept invitation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Request to join" })).not.toBeInTheDocument();
     expect(api.acceptInvitation).not.toHaveBeenCalled();
     expect(changed).not.toHaveBeenCalled();
   });
@@ -764,10 +892,10 @@ describe("Members screen", () => {
     api.acceptInvitation.mockReturnValue(pending.promise);
     const changed = vi.fn();
     const view = show({ workspace: null, onMembershipChanged: changed });
-    fireEvent.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Request to join" }));
     view.unmount();
     await act(async () => {
-      pending.resolve({ workspace: { id: "ws_alice" } });
+      pending.resolve({ ...preview, request: { id: "req_carol", status: "pending" } });
     });
     expect(window.location.hash).toBe("#invite=kept-token");
     expect(changed).not.toHaveBeenCalled();

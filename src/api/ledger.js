@@ -18,7 +18,7 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
       });
     } catch (error) {
       if (
-        !path.startsWith("/workspace-invitations/") &&
+        !path.startsWith("/workspace-invitation") &&
         [
           "ROLE_FORBIDDEN",
           "AUTHORIZATION_CHANGED",
@@ -69,6 +69,34 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
       ledgerRequest("/workspace-invitations/preview", { ...options, method: "POST", body: fields }),
     acceptInvitation: (fields, options) =>
       ledgerRequest("/workspace-invitations/accept", { ...options, method: "POST", body: fields }),
+    invitationRequests: (options) => ledgerRequest("/workspace-invitation-requests", options),
+    workspaceInvitationRequests: (id, options) =>
+      ledgerRequest(`/workspaces/${encodeURIComponent(id)}/join-requests`, options),
+    inviteRequests: (id, inviteId, options) =>
+      ledgerRequest(
+        `/workspaces/${encodeURIComponent(id)}/invites/${encodeURIComponent(inviteId)}/requests`,
+        options
+      ),
+    approveInviteRequest: (id, inviteId, requestId, revision, options) =>
+      ledgerRequest(
+        `/workspaces/${encodeURIComponent(id)}/invites/${encodeURIComponent(inviteId)}/requests/${encodeURIComponent(requestId)}/approve`,
+        {
+          ...options,
+          method: "POST",
+          headers: { ...options?.headers, ...version(revision) },
+          body: {},
+        }
+      ),
+    rejectInviteRequest: (id, inviteId, requestId, revision, options) =>
+      ledgerRequest(
+        `/workspaces/${encodeURIComponent(id)}/invites/${encodeURIComponent(inviteId)}/requests/${encodeURIComponent(requestId)}/reject`,
+        {
+          ...options,
+          method: "POST",
+          headers: { ...options?.headers, ...version(revision) },
+          body: {},
+        }
+      ),
     me: (options) => ledgerRequest("/me", options),
     repositories: (params, options) => ledgerRequest("/repositories", { ...options, params }),
     projects: (params, options) => ledgerRequest("/projects", { ...options, params }),

@@ -143,7 +143,7 @@ describe("ledger REST paths", () => {
     await api.invites("team/1", options);
     await api.updateMember("team/1", "user/2", 3, { role: "viewer" }, options);
     await api.removeMember("team/1", "user/2", 4, options);
-    await api.inviteMember("team/1", { githubLogin: "bob", role: "editor" }, options);
+    await api.inviteMember("team/1", { role: "editor" }, options);
     await api.revokeInvite("team/1", "invite/5", 6, options);
     expect(
       send.mock.calls.map(([call]) => [call.method, call.url, call.headers["If-Match"]])
@@ -160,8 +160,41 @@ describe("ledger REST paths", () => {
       expect(call.headers["X-Pullwise-Workspace"]).toBe("team/1");
     }
     expect(send.mock.calls[2][0].data).toEqual({ role: "viewer" });
-    expect(send.mock.calls[4][0].data).toEqual({ githubLogin: "bob", role: "editor" });
+    expect(send.mock.calls[4][0].data).toEqual({ role: "editor" });
     expect(options.headers).toEqual({ "X-Trace": "membership" });
+  });
+
+  it("lists invitation requests and reviews one with its own current revision", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: {} });
+    const api = createLedgerApi("team/1");
+    const controller = new AbortController();
+    const options = { signal: controller.signal, headers: { "X-Trace": "review" } };
+    await api.invitationRequests(options);
+    await api.workspaceInvitationRequests("team/1", options);
+    await api.inviteRequests("team/1", "invite/2", options);
+    await api.approveInviteRequest("team/1", "invite/2", "request/3", 4, options);
+    await api.rejectInviteRequest("team/1", "invite/2", "request/5", 6, options);
+    expect(
+      send.mock.calls.map(([call]) => [call.method, call.url, call.headers["If-Match"]])
+    ).toEqual([
+      ["GET", "/api/v1/workspace-invitation-requests", undefined],
+      ["GET", "/api/v1/workspaces/team%2F1/join-requests", undefined],
+      ["GET", "/api/v1/workspaces/team%2F1/invites/invite%2F2/requests", undefined],
+      [
+        "POST",
+        "/api/v1/workspaces/team%2F1/invites/invite%2F2/requests/request%2F3/approve",
+        '"4"',
+      ],
+      ["POST", "/api/v1/workspaces/team%2F1/invites/invite%2F2/requests/request%2F5/reject", '"6"'],
+    ]);
+    for (const [call] of send.mock.calls) {
+      expect(call.signal).toBe(controller.signal);
+      expect(call.headers["X-Trace"]).toBe("review");
+      expect(call.headers["X-Pullwise-Workspace"]).toBe("team/1");
+    }
+    expect(send.mock.calls[3][0].data).toEqual({});
+    expect(send.mock.calls[4][0].data).toEqual({});
+    expect(options.headers).toEqual({ "X-Trace": "review" });
   });
 
   it("posts invitation tokens in request bodies and carries the caller's abort signal", async () => {

@@ -3,6 +3,7 @@ import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
 import { useWorkspace } from "./components/workspace-context.jsx";
+import { InvitationInboxButton } from "./components/invitation-inbox.jsx";
 
 function ledgerLabel(workspace) {
   const ownership =
@@ -80,6 +81,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
         )}
       </div>
       <div className="topbar-actions">
+        <InvitationInboxButton />
         {ledgers?.workspace && (
           <div className="workspace-picker">
             <label htmlFor="workspace-select">{T("Ledger", "账本")}</label>
