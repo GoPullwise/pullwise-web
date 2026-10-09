@@ -456,6 +456,33 @@
   margin: 16px 0;
   max-width: 800px;
 }
+
+.ledger-screen .ledger-project-removal {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.ledger-screen .ledger-project-removal > p {
+  color: var(--text-2);
+}
+
+.ledger-project-removal-description {
+  display: grid;
+  gap: 16px;
+  overflow-wrap: anywhere;
+}
+
+.ledger-project-removal-description > strong {
+  color: var(--text);
+}
+
+.ledger-project-removal-description > .ledger-project-removal-error {
+  color: var(--danger);
+}
 .ledger-screen .ledger-split .ledger-form {
   margin-top: 0;
   max-width: none;
@@ -562,6 +589,7 @@
   margin-bottom: 4px;
 }
 .ledger-view-toolbar > .view-tabs {
+  flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
   border-bottom: 0;

@@ -111,6 +111,12 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
         headers: { ...options?.headers, ...version(revision) },
         body: fields,
       }),
+    removeProject: (id, revision, options) =>
+      ledgerRequest(resource("projects", id), {
+        ...options,
+        method: "DELETE",
+        headers: { ...options?.headers, ...version(revision) },
+      }),
     categories: (options) => ledgerRequest("/categories", options),
     createCategory: (fields, options) =>
       ledgerRequest("/categories", { ...options, method: "POST", body: fields }),
