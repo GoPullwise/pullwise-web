@@ -1,0 +1,164 @@
+{
+  "date": "2026-10-09",
+  "passed": true,
+  "scope": "Final REST Docs/API and opt-in expense capacity; synthetic loopback browser checks only",
+  "remoteBusinessRequests": 0,
+  "remoteD1Operations": 0,
+  "realProviderRequests": 0,
+  "realAccountWorkflowAcceptance": false,
+  "webChecks": {
+    "filesPassed": 60,
+    "testsPassed": 1167,
+    "lint": true,
+    "build": true,
+    "workerConfig": true
+  },
+  "serverChecks": {
+    "testsPassed": 2069
+  },
+  "contract": {
+    "paths": 43,
+    "operations": 59,
+    "sourceYamlSha256": "e6e68849df1677825c55680d50482aa5d7a1c5b9f46143c8e2c5452a8fbea9ab",
+    "distributedJsonSha256": "9051924d7139156eac1298005daa0eb161614db77a172a22da16393c47526b77",
+    "generatedCopiesEqual": true
+  },
+  "settingsBrowser": {
+    "scenarios": 36,
+    "failures": 0,
+    "browser": "Chromium 151.0.7922.173",
+    "playwright": "1.57.0",
+    "localeCount": 6,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "widths": [
+      320,
+      390,
+      1440
+    ],
+    "plans": {
+      "free": 12,
+      "pro": 12,
+      "max": 12
+    },
+    "touchCases": 24,
+    "coarseAndTouchAssertions": true,
+    "screenshotTouchRestored": true,
+    "defaultOffAndEnabledCases": 36,
+    "ownAccountHeaderOmitted": true,
+    "syntheticPatchCount": 3,
+    "syntheticGetCount": 74,
+    "maximumRetentionGetsPerCase": 3,
+    "enforcedRetentionGETCapPerCase": 6,
+    "enforcedOtherFixtureGETCapPerEndpointPerCase": 12,
+    "enforcedPATCHCapPerMutationCase": 1,
+    "planLifecycleFlows": [
+      {
+        "plan": "free",
+        "selectedOtherLedger": true,
+        "writeLock": true,
+        "requiredRefreshLock": true,
+        "patchCount": 1,
+        "retentionGets": 3,
+        "request": {
+          "case": "en/light/320/free",
+          "url": "http://127.0.0.1:41471/api/api/v1/account/expense-retention",
+          "method": "PATCH",
+          "path": "/api/v1/account/expense-retention",
+          "workspace": null,
+          "ifMatch": "\"1\"",
+          "body": "{\"autoRemoveOldestExpense\":true}"
+        }
+      },
+      {
+        "plan": "pro",
+        "selectedOtherLedger": true,
+        "writeLock": true,
+        "requiredRefreshLock": true,
+        "patchCount": 1,
+        "retentionGets": 3,
+        "request": {
+          "case": "en/light/390/pro",
+          "url": "http://127.0.0.1:41471/api/api/v1/account/expense-retention",
+          "method": "PATCH",
+          "path": "/api/v1/account/expense-retention",
+          "workspace": null,
+          "ifMatch": "\"1\"",
+          "body": "{\"autoRemoveOldestExpense\":true}"
+        }
+      },
+      {
+        "plan": "max",
+        "selectedOtherLedger": true,
+        "writeLock": true,
+        "requiredRefreshLock": true,
+        "patchCount": 1,
+        "retentionGets": 3,
+        "request": {
+          "case": "en/light/1440/max",
+          "url": "http://127.0.0.1:41471/api/api/v1/account/expense-retention",
+          "method": "PATCH",
+          "path": "/api/v1/account/expense-retention",
+          "workspace": null,
+          "ifMatch": "\"1\"",
+          "body": "{\"autoRemoveOldestExpense\":true}"
+        }
+      }
+    ],
+    "externalRequestsBlocked": 36,
+    "otherMutationRequests": 0,
+    "realUpstreamAPIRequests": 0,
+    "totalObservedRequests": 2369,
+    "frenchCopyRecheckedCases": 6,
+    "frenchCopy": "cet enregistrement",
+    "sourceSha256": {
+      "src/screens/settings.jsx": "a13c06a0d384b20fff0c9839718fa3216df2bc176e1d5e3c9f400d16b95c3db2",
+      "src/screens/settings.css": "622732a3bb3a0fe57d2f26aa3c47fa89d9914a4726cc6bfa0e7e2814e97a4ce1",
+      "src/locales/expense-retention.js": "8af2f0e2861ad51c00e16f621bb83c7f97fa3c71aae47f4027b47edad2c8ec4e",
+      "src/api/pullwise.js": "b776c3f74a24a96a404e61c788bf0d13ff4d086c4629c9a1b441f714dd4c6cc7"
+    }
+  },
+  "finalDocsBrowser": {
+    "scenarios": 13,
+    "failures": 0,
+    "operations": 59,
+    "browser": "Chromium 151.0.7922.173",
+    "playwright": "1.57.0",
+    "matrix": "6 locales × 2 themes × 320px, plus English/light/1440px",
+    "coarseTouchCases": 12,
+    "allOperationDesktopExpansion": 59,
+    "totalEndpointExpansions": 155,
+    "retentionDeepLink": "/developers/api#expense-retention",
+    "settledTopMin": 59.75,
+    "settledTopMax": 60.40625,
+    "allRetentionScrollPositive": true,
+    "ownCookieCurlVerified": true,
+    "ownCookieOnlyGETPATCHReferenceVerified": true,
+    "sessionGETs": 91,
+    "otherRealBusinessAPIRequests": 0,
+    "mutationRequests": 0,
+    "externalRequestsAborted": 39,
+    "realUpstreamAPIRequests": 0,
+    "contractSha256": "9051924d7139156eac1298005daa0eb161614db77a172a22da16393c47526b77",
+    "sourceSha256": {
+      "src/screens/api-docs.jsx": "c49169cbfcb523207ad1fed2408b2bd2362669bdd69d2a8fc00b7a8975ced63a",
+      "src/screens/api-guide.jsx": "89190b4b9f862a232afa1c6ea5c00a7a6dd0f89c16bbd7693d709fe9bc67ffd9",
+      "src/screens/api-reference.jsx": "1cf0e7753abf9052de2ea0599aad18573577f20fa4a24da88af2181ff6bff652",
+      "src/locales/api-guide.js": "6ff96d63b23b9eca84a7a3029030222f9566b43ac01f4ac9294bc28101ff4895",
+      "src/screens/docs.jsx": "2fa4707b7728330bbf60b4b792a263a5c2695f609779b95315d46561fbacb163",
+      "src/locales/docs-guide.js": "59d080d4230c1e47ed629e078e88d1f755d8216be86aa7758d9112f872607306",
+      "styles/screens.css": "b090a3eabd45a1ac97188eb2642c5779e074495af82b63f7dc5b7f209e0a0557"
+    }
+  },
+  "visualInspection": [
+    "Settings zh/dark/390px",
+    "API expense-retention zh/dark/320px"
+  ],
+  "limitations": [
+    "Chromium simulated touch/viewports; not physical-device or Safari acceptance",
+    "Browser fixtures never call the real API, providers or remote D1",
+    "Separate original 57-operation/36-context and persistent 258-state receipts remain historical evidence"
+  ]
+}

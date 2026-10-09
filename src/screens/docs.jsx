@@ -30,6 +30,7 @@ const SECTIONS = [
     text: DOCS_GUIDE.expenses,
   },
   DOCS_GUIDE.recurring,
+  DOCS_GUIDE.expenseRetention,
   {
     id: "max-assistance",
     title: ["Automatic Jev assistance", "Jev 自动辅助"],

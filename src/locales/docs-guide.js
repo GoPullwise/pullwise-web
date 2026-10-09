@@ -1,5 +1,4 @@
-// Product guide copy stays beside the screen, with explicit variants for all
-// supported languages so newly added instructions never fall back to English.
+// Source-backed integration guidance in all supported languages.
 export const DOCS_GUIDE = {
   projectSetup: [
     "In Projects, choose Add project, enter a name and optionally a description, then save. GitHub is optional for standalone projects. Connect GitHub only when you want to link up to 30 authorized repositories and a GitHub Organization. Changing these links preserves the project ID and expense history. GitHub access is checked for the acting member when linking repositories or adding expenses to a linked project.",
@@ -13,10 +12,16 @@ export const DOCS_GUIDE = {
   ],
   projectSettings: {
     id: "project-settings",
-    title: ["Manage project settings", {
-      zh: "管理项目设置", ja: "プロジェクト設定を管理", ko: "프로젝트 설정 관리",
-      fr: "Gérer les paramètres du projet", es: "Gestionar la configuración del proyecto",
-    }],
+    title: [
+      "Manage project settings",
+      {
+        zh: "管理项目设置",
+        ja: "プロジェクト設定を管理",
+        ko: "프로젝트 설정 관리",
+        fr: "Gérer les paramètres du projet",
+        es: "Gestionar la configuración del proyecto",
+      },
+    ],
     text: [
       "Open a project’s Project settings tab to edit its name, description, development and product links, GitHub associations or status. Links must use absolute HTTP(S) URLs; development links are manual shortcuts for standalone projects, while linked projects use currently authorized repository destinations. Owner and Admin manage project settings. Archived projects keep their recorded expenses in lists and reports but do not accept new expenses; set the status back to Active to use them again. Removing a project is available only to the ledger Owner and requires confirmation. It hides the project and its expenses from lists, reports and CSV, and stops its recurring schedules. The history is retained in the background; you cannot restore a removed project by editing its status.",
       {
@@ -50,10 +55,16 @@ export const DOCS_GUIDE = {
   ],
   recurring: {
     id: "recurring",
-    title: ["Manage recurring expenses", {
-      zh: "管理周期支出", ja: "定期支出を管理", ko: "반복 지출 관리",
-      fr: "Gérer les dépenses récurrentes", es: "Gestionar gastos recurrentes",
-    }],
+    title: [
+      "Manage recurring expenses",
+      {
+        zh: "管理周期支出",
+        ja: "定期支出を管理",
+        ko: "반복 지출 관리",
+        fr: "Gérer les dépenses récurrentes",
+        es: "Gestionar gastos recurrentes",
+      },
+    ],
     text: [
       "In a project or Shared Pool, choose Add expense, then Recurring. Enter an explicit active category and select weekly, monthly, quarterly or yearly. Set the start date, an IANA time zone such as Asia/Shanghai, and an optional inclusive end date. Weekly rules use a weekday; monthly rules use a day of month; quarterly rules also select the month within each calendar quarter; yearly rules also select a month of year. A day beyond the month’s length uses its last day. Save schedule creates a rule, not a payment; future occurrences do not count as spent until they become recorded expenses. The schedule list shows the next occurrence and status. Edit affects future occurrences only. Pause stops posting; Resume starts with future occurrences, and paused or blocked periods are not backfilled. Cancel permanently stops the rule while keeping already recorded expenses. Both project and shared-pool schedules support the same actions in Web and REST API.",
       {
@@ -67,10 +78,16 @@ export const DOCS_GUIDE = {
   },
   activity: {
     id: "activity",
-    title: ["Read the operation log", {
-      zh: "查看操作日志", ja: "操作ログを確認", ko: "작업 로그 보기",
-      fr: "Consulter le journal des opérations", es: "Consultar el registro de operaciones",
-    }],
+    title: [
+      "Read the operation log",
+      {
+        zh: "查看操作日志",
+        ja: "操作ログを確認",
+        ko: "작업 로그 보기",
+        fr: "Consulter le journal des opérations",
+        es: "Consultar el registro de operaciones",
+      },
+    ],
     text: [
       "Open Operation log in a project or Shared Pool to see changes from the last 24 hours: who acted, when, which record changed and its before-and-after values. The window follows Server time, and the newest events appear first. Load more reads the next page; Reload explicitly refreshes the log. The log loads when first opened and does not poll or replace the ledger’s retained history. API results follow the key’s current scopes and project/shared restrictions.",
       {
@@ -102,8 +119,37 @@ export const DOCS_GUIDE = {
       es: "Para cambiar un rol, desbloquea el control, selecciona un rol permitido y espera a que se recargue la lista guardada; se bloqueará de nuevo tras guardar correctamente. Usa Eliminar y confirma para revocar la membresía. El Owner no se puede cambiar ni eliminar. Los cambios de rol y la eliminación invalidan las claves de equipo existentes del miembro. Revisa solicitantes en la bandeja de solicitudes o en Miembros y actualiza manualmente cuando sea necesario.",
     },
   ],
-  quickstartLink: ["API quickstart", {
-    zh: "API 接入教程", ja: "API 導入ガイド", ko: "API 시작 안내",
-    fr: "Démarrage rapide de l’API", es: "Inicio rápido de la API",
-  }],
+  quickstartLink: [
+    "API quickstart",
+    {
+      zh: "API 接入教程",
+      ja: "API 導入ガイド",
+      ko: "API 시작 안내",
+      fr: "Démarrage rapide de l’API",
+      es: "Inicio rápido de la API",
+    },
+  ],
+  expenseRetention: {
+    id: "expense-retention",
+    title: [
+      "Expense capacity and automatic removal",
+      {
+        zh: "支出容量与自动移除",
+        ja: "支出の容量と自動削除",
+        ko: "지출 용량 및 자동 제거",
+        fr: "Capacité des dépenses et suppression automatique",
+        es: "Capacidad de gastos y eliminación automática",
+      },
+    ],
+    text: [
+      "In Settings, automatically removing the oldest expense is Off by default on every plan and adds no charges. The setting belongs to your own account, even when another shared ledger is selected; shared ledgers follow their own Owner's setting. Expense capacity counts undeleted shared-pool expenses and expenses in active or archived projects. Manually removing an expense, automatically removing it, or removing its project frees expense slots; archived and removed projects still count toward project capacity. Off blocks new expenses when full. Turn it On only if you agree to remove the oldest expense before saving a new one when exactly full. Oldest is ordered by expense date, then creation time, then ID, across that Owner's visible ledger. You must have permission to remove that exact expense; otherwise saving is blocked rather than skipping to a newer expense. Removed expenses disappear from ordinary expense reads, lists, reports and CSV and cannot be restored. Internal audit history remains; the authorized last-24-hour operation log can still show removal events and their changes. If usage exceeds a lowered plan limit, clear records manually first; the setting does not perform bulk cleanup. A failed save does not remove the old expense, and retrying the same successful request does not remove another one. Recurring generation follows the same setting. Changing the switch does not immediately remove expenses or reset usage.",
+      {
+        zh: "在设置中，“自动移除最早支出”在所有套餐下默认关闭，且不收取额外费用。偏好属于你自己的账户，即使当前选中其他共享账本也不改变；共享账本遵循其自身 Owner 的设置。支出容量统计未移除的公共池支出及启用或归档项目内的支出。手动或自动移除支出、移除其项目都会释放支出名额；归档和移除的项目仍占用项目容量。关闭时容量满后阻止新增。只有接受恰好满额时先移除最早一笔再保存新支出，才应开启。最早顺序按支出日期、创建时间、ID 依次判定，范围为该 Owner 的整个可见账本。你必须有权限移除这条确切记录，否则保存被阻止，不会跳过它改删较新记录。移除支出不再通过普通支出读取、列表、报表和 CSV 呈现，且无法恢复；内部审计历史仍保留，获授权的最近 24 小时操作日志仍可显示移除事件及其变更。降级后若使用量超过新上限，须先手动清理，设置不会批量移除。保存失败不移除旧支出，重试同一已成功请求不会再次移除。周期生成也遵循该设置。 切换开关不会立即移除支出或重置使用量。",
+        ja: "設定の「最も古い支出を自動削除」は全プランで既定では Off で、追加料金はかかりません。他の共有帳簿を選んでいても自分のアカウントの設定を変更し、共有帳簿は自身の Owner の設定に従います。支出枠は未削除の共有プール支出と有効・アーカイブ済みプロジェクトの支出を数えます。支出の手動・自動削除やプロジェクト削除で支出枠が空きますが、アーカイブ・削除済みプロジェクトはプロジェクト枠を消費し続けます。Off では上限に達すると新規支出を保存できません。上限と同数のときに最も古い支出を削除して新規保存することに同意する場合だけ On にしてください。Owner の表示対象帳簿全体で、支出日、作成時刻、ID の順に古さを判定します。その特定の支出を削除する権限がなければ保存を拒否し、新しい記録に置き換えません。削除した支出は通常の支出取得、一覧、レポート、CSV に現れず、復元できません。内部監査履歴は保持し、権限のある直近 24 時間の操作ログには削除イベントと変更内容が表示される場合があります。プラン引き下げ後に上限を超えている場合は先に手動で整理してください。一括削除は行いません。保存失敗や同じ成功済みリクエストの再送で別の支出を削除することはありません。定期生成にも同じ設定が適用されます。 切り替え自体は支出を即時削除せず、使用量もリセットしません。",
+        ko: "설정의 ‘가장 오래된 지출 자동 제거’는 모든 요금제에서 기본 Off이며 추가 요금이 없습니다. 다른 공유 장부를 선택해도 자신의 계정 설정을 변경하며 공유 장부는 자체 Owner 설정을 따릅니다. 지출 한도는 제거되지 않은 공유 풀 지출과 활성·보관된 프로젝트의 지출을 셉니다. 지출의 수동·자동 제거 또는 프로젝트 제거로 지출 자리가 비지만, 보관·제거된 프로젝트는 계속 프로젝트 한도를 사용합니다. Off이면 용량이 찼을 때 새 지출을 차단합니다. 정확히 한도에 도달했을 때 가장 오래된 지출을 제거한 뒤 새 지출을 저장하는 데 동의하는 경우에만 On으로 바꾸세요. 해당 Owner의 표시 대상 장부 전체에서 지출 날짜, 생성 시간, ID 순으로 판단합니다. 바로 그 지출을 제거할 권한이 없으면 저장을 차단하며 더 최근 기록으로 건너뛰지 않습니다. 제거한 지출은 일반 지출 조회·목록·보고서·CSV에서 사라지고 복원할 수 없습니다. 내부 감사 이력은 유지되며 권한이 있는 최근 24시간 작업 로그에는 제거 이벤트와 변경 내용이 표시될 수 있습니다. 요금제 하향 후 새 한도를 초과하면 먼저 수동 정리해야 하며 일괄 제거하지 않습니다. 저장 실패나 동일한 성공 요청 재전송은 다른 지출을 제거하지 않습니다. 반복 생성도 같은 설정을 따릅니다. 스위치를 바꾸는 것만으로 지출을 즉시 제거하거나 사용량을 초기화하지 않습니다.",
+        fr: "Dans Paramètres, la suppression automatique de la dépense la plus ancienne est Off par défaut sur tous les plans, sans frais supplémentaires. Le réglage appartient à votre compte, même si un autre registre partagé est sélectionné ; chaque registre partagé suit celui de son Owner. La capacité compte les dépenses non supprimées du fonds partagé et des projets actifs ou archivés. Supprimer une dépense manuellement ou automatiquement, ou supprimer son projet, libère des places de dépenses ; les projets archivés et supprimés occupent toujours des places de projets. Off bloque les nouvelles dépenses lorsque la capacité est pleine. Activez On seulement si vous acceptez de supprimer la plus ancienne pour enregistrer une nouvelle dépense lorsque l’usage atteint exactement la limite. L’ordre est la date de dépense, puis la date de création, puis l’ID, dans tout le registre visible d’Owner. Sans autorisation de supprimer cette dépense précise, l’enregistrement est bloqué plutôt que de choisir une dépense plus récente. Les dépenses supprimées disparaissent des lectures ordinaires, listes, rapports et CSV, sans restauration possible. L’audit interne est conservé ; le journal autorisé des dernières 24 heures peut encore afficher les suppressions et leurs changements. Si un changement de plan laisse l’usage au-dessus de la limite, supprimez d’abord des dépenses manuellement ; aucun nettoyage en masse n’est effectué. Un échec ou une reprise de la même requête déjà réussie ne supprime pas d’autre dépense. La génération récurrente suit le même réglage. Changer le réglage ne supprime pas immédiatement de dépenses et ne réinitialise pas l’usage.",
+        es: "En Ajustes, eliminar automáticamente el gasto más antiguo está Off por defecto en todos los planes, sin cargos adicionales. El ajuste pertenece a tu cuenta aunque selecciones otro libro compartido; cada libro compartido sigue el de su propio Owner. La capacidad cuenta gastos no eliminados del fondo compartido y de proyectos activos o archivados. Eliminar un gasto manual o automáticamente, o eliminar su proyecto, libera plazas de gastos; los proyectos archivados y eliminados siguen ocupando capacidad de proyectos. Off bloquea nuevos gastos cuando la capacidad está llena. Activa On solo si aceptas eliminar el más antiguo para guardar uno nuevo cuando el uso coincide exactamente con el límite. El orden es fecha del gasto, después fecha de creación y después ID, en todo el libro visible de Owner. Si no puedes eliminar ese gasto concreto, se bloquea el guardado en lugar de elegir uno más reciente. Los gastos eliminados desaparecen de consultas ordinarias, listas, informes y CSV, sin restauración posible. Se conserva la auditoría interna; el registro autorizado de las últimas 24 horas puede seguir mostrando eliminaciones y sus cambios. Si al reducir el plan el uso supera el límite, elimina gastos manualmente primero; no hay limpieza masiva. Un fallo o repetir la misma solicitud ya guardada no elimina otro gasto. La generación recurrente sigue el mismo ajuste. Cambiar el ajuste no elimina gastos inmediatamente ni reinicia el uso.",
+      },
+    ],
+  },
 };

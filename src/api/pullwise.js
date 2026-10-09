@@ -42,6 +42,14 @@ export const pullwiseApi = {
   },
 
   account: {
+    getExpenseRetention: (options = {}) => getRequest("/api/v1/account/expense-retention", options),
+    updateExpenseRetention: (revision, autoRemoveOldestExpense, options = {}) =>
+      request("/api/v1/account/expense-retention", {
+        method: "PATCH",
+        headers: { "If-Match": `"${revision}"` },
+        body: { autoRemoveOldestExpense },
+        signal: options.signal,
+      }),
     getJev: (options = {}) => getRequest("/api/v1/account/jev", options),
     updateJev: (revision, enabled, options = {}) =>
       request("/api/v1/account/jev", {

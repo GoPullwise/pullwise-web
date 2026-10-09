@@ -2049,9 +2049,16 @@
 }
 .api-reference-content {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   padding-top: 12px;
+}
+.api-reference-content > *,
+.api-reference-response > *,
+.api-reference-schema {
+  min-width: 0;
+  max-width: 100%;
 }
 .api-reference-content h4 {
   font-size: var(--fs-lg);
@@ -2098,6 +2105,7 @@
   margin-top: 6px;
 }
 .api-reference-schema summary {
+  min-height: 44px;
   padding: 12px 0;
   cursor: pointer;
   font-size: var(--fs-sm);
@@ -2113,6 +2121,7 @@
 }
 .api-reference-response {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: 12px;
   border-top: 1px solid var(--border);

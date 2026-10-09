@@ -37,9 +37,23 @@ Default limits are Free **3 projects / 100 expense records**, Pro **20 / 20,000*
 and Max **100 / 100,000**. Billing renders the Server's configured limits and
 personal-ledger used/remaining counts as accessible charts for every plan.
 Project/shared-pool expenses and generated recurring occurrences use the owner's
-record allowance. Archived and removed records retain consumed capacity;
-lowering a limit preserves existing history while blocking additions above it.
+record allowance. Expense capacity counts current undeleted entries in shared
+pool and projects that have not been removed, including archived projects.
+Removing an expense or its project frees expense slots. Project capacity still
+counts archived and removed projects.
 Billing does not switch to a joined team's allowance with the ledger picker.
+
+Global Settings has an **automatically remove oldest expense at capacity** switch
+for every plan, default Off, without additional charges. Off blocks full-capacity
+creates; On atomically removes the oldest retained entry and adds the new one.
+Oldest means expense date, then creation time and ID. The Owner's setting applies
+to that ledger's members, API keys and recurring rules. Switching it removes
+nothing immediately. An already-over-limit ledger needs manual cleanup first;
+automatic replacement removes at most one entry per successful create. A key
+that cannot remove the actual oldest entry cannot replace another one instead.
+Failed creates and idempotent replays remove no additional records. Removed
+expenses leave lists/reports/export and cannot be restored; authorized recent
+activity and internal immutable audit/replay records remain.
 
 ## Project links and recurring expenses
 

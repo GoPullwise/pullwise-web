@@ -1,4 +1,5 @@
-.settings-jev-control {
+.settings-jev-control,
+.settings-retention-control {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -9,7 +10,8 @@
   cursor: pointer;
 }
 
-.settings-jev-control input {
+.settings-jev-control input,
+.settings-retention-control input {
   flex: 0 0 auto;
   width: 20px;
   height: 20px;
@@ -17,12 +19,15 @@
 }
 
 .settings-jev-control span,
-.settings-jev-panel p {
+.settings-jev-panel p,
+.settings-retention-control span,
+.settings-retention-panel p {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.settings-jev-control-disabled {
+.settings-jev-control-disabled,
+.settings-retention-control-disabled {
   cursor: default;
   opacity: 0.4;
 }

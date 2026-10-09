@@ -22,7 +22,7 @@ describe("REST integration journey", () => {
 
   it("copies the same guide sections, permission boundaries and recovery instructions", () => {
     const value = integrationMarkdown("https://preview-api.pull-wise.com");
-    for (const expected of ["## Quickstart", "## Environments", "## Scopes", "## Project and shared recurring", "## Invitations", "## Error responses", "members:write", "Cookie", "412", "428", "204", "D1_ACCESS_PAUSED", "categoryId", "nextCursor"])
+    for (const expected of ["## Quickstart", "## Environments", "## Scopes", "## Project and shared recurring", "## Invitations", "## Error responses", "members:write", "Cookie", "412", "428", "204", "D1_ACCESS_PAUSED", "categoryId", "nextCursor", "autoRemoveOldestExpense", "/api/v1/account/expense-retention", "PULLWISE_COOKIE_JAR", "Origin: $PULLWISE_APP_ORIGIN"])
       expect(value).toContain(expected);
     expect(value).toContain("the same REST resources and business rules");
   });

@@ -11,7 +11,12 @@ vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
     auth: { getSession: vi.fn(), requestEmailCode: vi.fn(), verifyEmailCode: vi.fn() },
     integrations: { list: vi.fn() },
-    account: { getJev: vi.fn(), updateJev: vi.fn() },
+    account: {
+      getJev: vi.fn(),
+      updateJev: vi.fn(),
+      getExpenseRetention: vi.fn(),
+      updateExpenseRetention: vi.fn(),
+    },
   },
 }));
 vi.mock("../lib/auth.js", () => ({
@@ -62,6 +67,10 @@ describe("personal Jev preference", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     pullwiseApi.auth.getSession.mockResolvedValue(account);
+    pullwiseApi.account.getExpenseRetention.mockResolvedValue({
+      autoRemoveOldestExpense: false,
+      revision: 1,
+    });
     pullwiseApi.integrations.list.mockResolvedValue({
       github: { connected: false, repositories: [], installations: [] },
     });

@@ -3,6 +3,7 @@ import contract from "../data/api-contract.json";
 import { API_KEY_SCOPE_VALUES } from "../screens/ledger-api-scopes.js";
 import { createLedgerApi } from "./ledger.js";
 import { http } from "./http.js";
+import { pullwiseApi } from "./pullwise.js";
 
 const WORKSPACE = "contract_owner";
 const PROJECT = "prj_contract";
@@ -172,5 +173,47 @@ describe("Web ledger actions remain covered by the published REST contract", () 
       assertDocumentedCall(send.mock.lastCall[0], operationId);
     }
     expect(send).toHaveBeenCalledTimes(actions.length);
+  });
+});
+
+describe("personal Settings actions remain covered by the published account contract", () => {
+  const actions = [
+    ["getJev", "getAccountJevPreference", null],
+    ["updateJev", "updateAccountJevPreference", "enabled"],
+    ["getExpenseRetention", "getAccountExpenseRetentionPreference", null],
+    ["updateExpenseRetention", "updateAccountExpenseRetentionPreference", "autoRemoveOldestExpense"],
+  ];
+
+  it("requires a documented account workflow for every personal preference action", () => {
+    expect(new Set(actions.map(([name]) => name))).toEqual(new Set(Object.keys(pullwiseApi.account)));
+  });
+
+  it.each(actions)("documents the actual %s request through %s", async (name, operationId, field) => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: {} });
+    const options = { workspaceId: "another_owner", headers: { "X-Pullwise-Workspace": "another_owner", Authorization: "Bearer must_not_forward" } };
+    for (const enabled of field ? [false, true] : [undefined]) {
+      if (field) await pullwiseApi.account[name](REVISION, enabled, options);
+      else await pullwiseApi.account[name](options);
+      const call = send.mock.lastCall[0];
+      const resource = matchDocumentedResource(call.url);
+      expect(resource, `${name} must be documented`).toBeTruthy();
+      const operation = resource.item[call.method.toLowerCase()];
+      expect(operation?.operationId).toBe(operationId);
+      expect(operation["x-pullwise-scope"]).toBe("account:auth");
+      expect(operation.security).toEqual([{ cookieSession: [] }]);
+      expect(call.headers?.["X-Pullwise-Workspace"]).toBeUndefined();
+      expect(call.headers?.Authorization).toBeUndefined();
+      expect(call.params).toBeUndefined();
+      if (field) {
+        const parameters = [...resource.item.parameters || [], ...operation.parameters || []].map(resolveReference);
+        expect(parameters.find((parameter) => parameter.name === "If-Match")?.required).toBe(true);
+        expect(call.headers["If-Match"]).toBe(`"${REVISION}"`);
+        expect(call.data).toEqual({ [field]: enabled });
+        const schema = resolveReference(operation.requestBody)?.content?.["application/json"]?.schema;
+        expect(hasRequiredFields(schema, call.data)).toBe(true);
+        expect(resolveReference(schema).properties[field].type).toBe("boolean");
+      } else expect(call.data).toBeUndefined();
+    }
+    expect(send).toHaveBeenCalledTimes(field ? 2 : 1);
   });
 });

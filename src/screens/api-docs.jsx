@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiIntegrationGuide, integrationMarkdown } from "./api-guide.jsx";
 import { ApiReference, referenceMarkdown } from "./api-reference.jsx";
 import { API_GUIDE_COPY } from "../locales/api-guide.js";
@@ -134,6 +134,12 @@ function markdown(base, example, createExample, projectExample, reviewExample) {
 export function ApiDocsScreen({ go, auth }) {
   useLang();
   const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    const anchor = window.location.hash.slice(1);
+    if (!anchor) return;
+    const frame = requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const base = baseUrl();
   const example = `curl '${apiUrl("/api/v1/expenses?target=shared&from=2026-09-01&to=2026-10-01", base)}' \\\n  -H "Authorization: Bearer $PULLWISE_API_KEY"`;
   const createExample = [
@@ -168,6 +174,7 @@ export function ApiDocsScreen({ go, auth }) {
     ["recurring", "Project and shared recurring expenses"],
     ["members", "Invitations and member management"],
     ["activity", "Operation history"],
+    ["expense-retention", API_GUIDE_COPY.retentionTitle[0]],
     ["reference", "Complete API reference"],
     ["filters", "Filters and writes"],
     ["max-assistance", "Automatic Jev assistance"],
@@ -271,7 +278,7 @@ export function ApiDocsScreen({ go, auth }) {
           <DocsCode title={T("Create a standalone project", "创建独立项目")}>
             {projectExample}
           </DocsCode>
-          <ApiIntegrationGuide base={base} ids={["writes", "project-management", "recurring", "members", "activity"]} />
+          <ApiIntegrationGuide base={base} ids={["writes", "project-management", "recurring", "members", "activity", "expense-retention"]} />
           <h2 id="jev-settings" className="docs-h2">
             {T("Jev settings", "Jev 设置")}
           </h2>

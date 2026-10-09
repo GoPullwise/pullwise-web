@@ -72,7 +72,7 @@ describe("Jev preference product contract", () => {
       const endpoints = screen.getAllByText("/api/v1/account/jev");
       expect(endpoints).toHaveLength(2);
       for (const path of endpoints)
-        expect(path.closest("article").textContent).not.toContain("profile:write");
+        expect(path.closest("details").textContent).not.toContain("profile:write");
     }
   );
 });

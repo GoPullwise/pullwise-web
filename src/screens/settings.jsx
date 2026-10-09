@@ -7,7 +7,21 @@ import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
+import { EXPENSE_RETENTION_COPY } from "../locales/expense-retention.js";
 import "./settings.css";
+
+function retentionText(key) {
+  return T(...EXPENSE_RETENTION_COPY[key]);
+}
+
+function validExpenseRetention(value) {
+  return (
+    value &&
+    typeof value.autoRemoveOldestExpense === "boolean" &&
+    Number.isSafeInteger(value.revision) &&
+    value.revision > 0
+  );
+}
 
 function validJevSettings(value) {
   return (
@@ -26,6 +40,8 @@ function validJevSettings(value) {
 export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   useLang();
   const jevDescriptionId = useId();
+  const retentionDescriptionId = useId();
+  const retentionSelectionId = useId();
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,19 +50,27 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const [jevSettings, setJevSettings] = useState(null);
   const [jevReloadRequired, setJevReloadRequired] = useState(false);
+  const [expenseRetention, setExpenseRetention] = useState(null);
+  const [retentionReloadRequired, setRetentionReloadRequired] = useState(false);
   const requestRef = useRef(0);
   const actionRef = useRef(false);
   const emailActionRef = useRef(false);
   const mountedRef = useRef(false);
   const loadControllerRef = useRef(null);
   const jevOperationRef = useRef(null);
+  const retentionOperationRef = useRef(null);
   const sessionRef = useRef(session);
   const jevRef = useRef(jevSettings);
   const jevSwitchRef = useRef(null);
   const jevDescriptionRef = useRef(null);
   const jevFocusRef = useRef(null);
+  const retentionRef = useRef(expenseRetention);
+  const retentionSwitchRef = useRef(null);
+  const retentionDescriptionRef = useRef(null);
+  const retentionFocusRef = useRef(null);
   sessionRef.current = session;
   jevRef.current = jevSettings;
+  retentionRef.current = expenseRetention;
   const onOperationBusyRef = useRef(onOperationBusy);
   onOperationBusyRef.current = onOperationBusy;
 
@@ -58,11 +82,13 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     const requestId = ++requestRef.current;
     setLoading(true);
     setError("");
-    const [sessionResult, integrationsResult, jevResult] = await Promise.allSettled([
-      pullwiseApi.auth.getSession({ signal: controller.signal }),
-      pullwiseApi.integrations.list({ signal: controller.signal }),
-      pullwiseApi.account.getJev({ signal: controller.signal }),
-    ]);
+    const [sessionResult, integrationsResult, jevResult, retentionResult] =
+      await Promise.allSettled([
+        pullwiseApi.auth.getSession({ signal: controller.signal }),
+        pullwiseApi.integrations.list({ signal: controller.signal }),
+        pullwiseApi.account.getJev({ signal: controller.signal }),
+        pullwiseApi.account.getExpenseRetention({ signal: controller.signal }),
+      ]);
     if (controller.signal.aborted || requestId !== requestRef.current) return;
     if (loadControllerRef.current === controller) loadControllerRef.current = null;
     setSession(sessionResult.status === "fulfilled" ? sessionResult.value : null);
@@ -75,6 +101,14 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
       validJevSettings(jevResult.value);
     setJevSettings(jevConfirmed ? jevResult.value : null);
     setJevReloadRequired(!jevConfirmed);
+    const retentionConfirmed =
+      sessionResult.status === "fulfilled" &&
+      sessionResult.value?.authenticated &&
+      sessionResult.value?.user?.id &&
+      retentionResult.status === "fulfilled" &&
+      validExpenseRetention(retentionResult.value);
+    setExpenseRetention(retentionConfirmed ? retentionResult.value : null);
+    setRetentionReloadRequired(!retentionConfirmed);
     setError(
       [sessionResult, integrationsResult]
         .filter((result) => result.status === "rejected")
@@ -91,6 +125,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
                 ),
               ]
         )
+        .concat(retentionConfirmed ? [] : [retentionText("loadFailed")])
         .join(" ")
     );
     setLoading(false);
@@ -106,6 +141,9 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
       jevOperationRef.current?.controller.abort();
       jevOperationRef.current = null;
       jevFocusRef.current = null;
+      retentionOperationRef.current?.controller.abort();
+      retentionOperationRef.current = null;
+      retentionFocusRef.current = null;
       onOperationBusyRef.current?.(false);
     };
   }, [load]);
@@ -163,6 +201,97 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     if (document.activeElement !== jevDescriptionRef.current) return;
     if (!jevReloadRequired && jevSettings?.eligible) jevSwitchRef.current?.focus();
   }, [controlsDisabled, jevReloadRequired, jevSettings, session]);
+
+  useEffect(() => {
+    if (controlsDisabled || !retentionFocusRef.current) return;
+    const pending = retentionFocusRef.current;
+    retentionFocusRef.current = null;
+    if (session?.user?.id !== pending.identity) return;
+    if (document.activeElement !== retentionDescriptionRef.current) return;
+    if (!retentionReloadRequired && validExpenseRetention(expenseRetention))
+      retentionSwitchRef.current?.focus();
+  }, [controlsDisabled, retentionReloadRequired, expenseRetention, session]);
+
+  const updateExpenseRetention = async (enabled) => {
+    const current = retentionRef.current;
+    const identity = sessionRef.current?.user?.id;
+    if (
+      !mountedRef.current ||
+      actionRef.current ||
+      loading ||
+      loadControllerRef.current ||
+      retentionReloadRequired ||
+      !identity ||
+      !sessionRef.current?.authenticated ||
+      !validExpenseRetention(current) ||
+      typeof enabled !== "boolean" ||
+      enabled === current.autoRemoveOldestExpense
+    )
+      return;
+    if (onOperationBusyRef.current?.(true) === false) return;
+    const operation = {
+      controller: new AbortController(),
+      identity,
+      requestId: requestRef.current,
+    };
+    retentionOperationRef.current = operation;
+    actionRef.current = true;
+    if (document.activeElement === retentionSwitchRef.current) {
+      retentionFocusRef.current = { identity };
+      retentionDescriptionRef.current?.focus();
+    }
+    setBusy(true);
+    setError("");
+    const live = () =>
+      mountedRef.current &&
+      retentionOperationRef.current === operation &&
+      !operation.controller.signal.aborted &&
+      requestRef.current === operation.requestId &&
+      sessionRef.current?.user?.id === identity;
+    let accepted = false;
+    try {
+      const confirmed = await pullwiseApi.account.updateExpenseRetention(
+        current.revision,
+        enabled,
+        {
+          signal: operation.controller.signal,
+        }
+      );
+      if (!live()) return;
+      if (
+        !validExpenseRetention(confirmed) ||
+        confirmed.autoRemoveOldestExpense !== enabled ||
+        confirmed.revision !== current.revision + 1
+      )
+        throw new Error("Invalid expense retention response");
+      accepted = true;
+      setExpenseRetention(confirmed);
+      const refreshed = await pullwiseApi.account.getExpenseRetention({
+        signal: operation.controller.signal,
+      });
+      if (!live()) return;
+      if (!validExpenseRetention(refreshed) || refreshed.revision < confirmed.revision)
+        throw new Error("Invalid expense retention refresh");
+      setExpenseRetention(refreshed);
+      setRetentionReloadRequired(false);
+    } catch (failure) {
+      if (!live()) return;
+      setRetentionReloadRequired(true);
+      if (failure?.status === 401 || failure?.status === 403) setExpenseRetention(null);
+      setError(
+        retentionText(
+          accepted ? "refreshFailed" : failure?.status === 412 ? "changed" : "saveFailed"
+        )
+      );
+    } finally {
+      if (retentionOperationRef.current === operation) {
+        retentionOperationRef.current = null;
+        actionRef.current = false;
+        onOperationBusyRef.current?.(false);
+        if (mountedRef.current) setBusy(false);
+      }
+    }
+  };
 
   const updateJev = async (enabled) => {
     const current = jevRef.current;
@@ -386,6 +515,44 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
                   {T("Email sign-in information is unavailable.", "邮箱登录信息暂不可用。")}
                 </p>
               )
+            )}
+          </section>
+          <section className="panel settings-retention-panel" aria-label={retentionText("title")}>
+            <h2>{retentionText("title")}</h2>
+            <p className="muted">{retentionText("scope")}</p>
+            <p
+              className="muted"
+              id={retentionDescriptionId}
+              ref={retentionDescriptionRef}
+              tabIndex={0}
+            >
+              {retentionText("description")}
+            </p>
+            <p className="muted" id={retentionSelectionId}>
+              {retentionText("selection")}
+            </p>
+            <label
+              className={`settings-retention-control${controlsDisabled || retentionReloadRequired || !expenseRetention ? " settings-retention-control-disabled" : ""}`}
+            >
+              <input
+                ref={retentionSwitchRef}
+                type="checkbox"
+                role="switch"
+                aria-describedby={`${retentionDescriptionId} ${retentionSelectionId}`}
+                checked={expenseRetention?.autoRemoveOldestExpense === true}
+                disabled={controlsDisabled || retentionReloadRequired || !expenseRetention}
+                onChange={(event) => updateExpenseRetention(event.target.checked)}
+              />
+              <span>{retentionText("toggle")}</span>
+            </label>
+            {loading ? (
+              <p className="muted">{T("Loading...", "正在加载...")}</p>
+            ) : !expenseRetention ? (
+              <p className="muted">{retentionText("unavailable")}</p>
+            ) : (
+              <p className="muted" aria-live="polite">
+                {retentionText(expenseRetention.autoRemoveOldestExpense ? "on" : "off")}
+              </p>
             )}
           </section>
           <section className="panel settings-jev-panel" aria-label={T("Jev settings", "Jev 设置")}>

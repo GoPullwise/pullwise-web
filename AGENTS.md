@@ -16,11 +16,25 @@ After a contract change regenerate and check both distributed JSON artifacts.
 Default limits are Free 3 projects/100 expense records, Pro 20/20,000 and Max
 100/100,000. Billing displays actual configured used/limit/remaining charts from
 the existing /billing/plan read for the account's personal ledger. Retain owner
-quota pooling, historical capacity retention, unavailable-data honesty, manual
+quota pooling, unavailable-data honesty, manual
 refresh without polling, workspace isolation and mutation/refresh guards.
 Complete local/native/browser verification, push main and publish preview;
 preserve the original database/journal and production pause. This current
 authorization supersedes older generic Wrangler-paused notes below.
+
+The user's subsequent capacity policy supersedes cumulative expense slots:
+count undeleted shared expenses and undeleted expenses in non-removed projects,
+including archived projects. Expense or project removal frees expense slots;
+project capacity retains its cumulative semantics. Global Settings offers
+autoRemoveOldestExpense for every account/plan, default false and no extra fee.
+It controls the personal owner's ledger independently of the selected workspace.
+Off blocks full creates; On atomically replaces one oldest expense by occurredOn,
+then createdAt/ID, through the same Web/REST/recurring business transaction.
+Already-over-limit ledgers require manual cleanup first; keys unable to remove
+the actual oldest target are denied rather than deleting a later permitted row.
+Failed writes/replays cannot remove extra entries. Preserve immutable internal
+audits, authorized recent activity, current owner preference CAS and drafts on
+capacity denials. Enabling the setting does not immediately delete any records.
 
 ## Current membership permissions (2026-10-09)
 

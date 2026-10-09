@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
+import { EXPENSE_CAPACITY_COPY, EXPENSE_CAPACITY_ERRORS } from "../locales/expense-capacity.js";
 import { FinancialValue } from "./financial-value.jsx";
 import { LedgerSplit } from "./ledger-split.jsx";
 import "./recurring-expenses.css";
@@ -163,7 +164,9 @@ const blockedReason = (code) =>
     SCHEDULE_AUTHORIZATION_CHANGED: T(
       "Schedule access changed. Review your ledger permissions before resuming."
     ),
-    RECORD_LIMIT: T("Expense record allowance reached. Existing records remain available."),
+    RECORD_LIMIT: T(...EXPENSE_CAPACITY_COPY.full),
+    RETENTION_CLEANUP_REQUIRED: T(...EXPENSE_CAPACITY_COPY.cleanup),
+    RETENTION_TARGET_FORBIDDEN: T(...EXPENSE_CAPACITY_COPY.forbidden),
     WRITE_RATE_LIMIT: T("Too many changes in a short time. Wait a minute before trying again."),
     MONTHLY_WRITE_LIMIT: T("Monthly write allowance reached."),
   })[code] ||
@@ -173,7 +176,7 @@ const isAccessFailure = (error) => {
   return (
     [401, 403, 404].includes(error?.status) &&
     !code?.startsWith("GITHUB_") &&
-    code !== "RECURRING_RULE_LIMIT"
+    code !== "RECURRING_RULE_LIMIT" && !EXPENSE_CAPACITY_ERRORS.includes(code)
   );
 };
 const scopeKey = (target) =>

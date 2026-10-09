@@ -148,6 +148,34 @@ function renderOperationLedger(mode = "shared") {
 }
 
 describe("ledger screens", () => {
+  it.each(["project", "shared"].flatMap(mode => [
+    [mode, "RECORD_LIMIT", /Expense record allowance reached/],
+    [mode, "RETENTION_CLEANUP_REQUIRED", /Usage exceeds your current expense limit/],
+    [mode, "RETENTION_TARGET_FORBIDDEN", /oldest expense is outside your current permissions/],
+  ]))("keeps the %s expense draft and history after %s", async (mode, code, notice) => {
+    const target = mode === "project" ? { kind: mode, projectId: "prj_1" } : { kind: mode };
+    const { expense } = operationRecords(target);
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    api.me.mockResolvedValue({ entitlements: { jev: { eligible: false, available: false } } });
+    api.expenses.mockResolvedValue({ items: [expense], nextCursor: null });
+    api.createExpense.mockRejectedValueOnce({ status: 403, payload: { error: { code } } });
+    const accessChanged = vi.fn();
+    render(<LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} onAccessChanged={accessChanged} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-09" } });
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "4.00" } });
+    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
+    fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Keep capacity draft" } });
+    const reads = api.expenses.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+    expect(await screen.findByText(notice)).toBeVisible();
+    expect(screen.getByText("Existing hosting")).toBeVisible();
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Keep capacity draft");
+    expect(screen.getByRole("button", { name: "Save expense" })).toBeEnabled();
+    expect(api.expenses).toHaveBeenCalledTimes(reads);
+    expect(accessChanged).not.toHaveBeenCalled();
+  });
+
   it.each([
     { mode: "project", operation: "edit" },
     { mode: "shared", operation: "create" },

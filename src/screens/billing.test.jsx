@@ -105,7 +105,9 @@ describe("BillingScreen", () => {
       expect(meter).toHaveAttribute("aria-valuetext", `Used: ${used.toLocaleString("en")}. Limit: ${limit.toLocaleString("en")}. Remaining: ${(limit - used).toLocaleString("en")}`);
     }
     expect(region).toHaveTextContent("ledger you own, even when another ledger is selected");
-    expect(region).toHaveTextContent("Archived or removed projects and removed expense records still count");
+    expect(region).toHaveTextContent("Archived or removed projects still count toward the project limit");
+    expect(region).toHaveTextContent("Removing an expense manually or automatically frees its place");
+    expect(region).toHaveTextContent("removing a project frees its expense places");
     expect(region).toHaveTextContent("does not reset each month");
     expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
     expect(pullwiseApi.billing.getPlan).toHaveBeenCalledWith();
@@ -1036,7 +1038,7 @@ describe("BillingScreen", () => {
       "Expense records: 100,000",
     ]);
     expect(
-      screen.getByText(/Archived or removed projects and removed expense records still count toward capacity/i)
+      screen.getByText(/Removing expenses manually or automatically, or removing their project, frees expense capacity/i)
     ).toBeInTheDocument();
     expect(
       screen.getByText(/monthly Jev allowance covers model assistance, has no cash value/i)

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ledgerApi } from "../api/ledger.js";
+import { EXPENSE_CAPACITY_COPY, EXPENSE_CAPACITY_ERRORS } from "../locales/expense-capacity.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
@@ -41,7 +42,7 @@ function isLedgerAccessFailure(failure) {
   return (
     [403, 404].includes(failure?.status) &&
     !code?.startsWith("GITHUB_") &&
-    code !== "RECURRING_RULE_LIMIT"
+    code !== "RECURRING_RULE_LIMIT" && !EXPENSE_CAPACITY_ERRORS.includes(code)
   );
 }
 
@@ -100,10 +101,9 @@ function errorText(error) {
       "Project allowance reached. Existing history remains available.",
       "项目额度已用完，已有历史仍可访问。"
     ),
-    RECORD_LIMIT: T(
-      "Expense record allowance reached. Existing records remain available.",
-      "支出记录额度已用完，已有记录仍可访问。"
-    ),
+    RECORD_LIMIT: T(...EXPENSE_CAPACITY_COPY.full),
+    RETENTION_CLEANUP_REQUIRED: T(...EXPENSE_CAPACITY_COPY.cleanup),
+    RETENTION_TARGET_FORBIDDEN: T(...EXPENSE_CAPACITY_COPY.forbidden),
     RECURRING_RULE_LIMIT: T(
       "Recurring schedule allowance reached. Existing schedules and expenses remain available.",
       "周期计划额度已用完，已有计划和支出仍可访问。"

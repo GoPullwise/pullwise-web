@@ -27,6 +27,15 @@ describe("API integration guide translations", () => {
       expect(text("pagination")).toContain("nextCursor");
       expect(text("memberKey")).toContain("projectIds");
       expect(text("memberKey")).toContain("members:write");
+      expect(text("retentionAccount")).toContain("/api/v1/account/expense-retention");
+      expect(text("retentionAccount")).toContain("autoRemoveOldestExpense");
+      expect(text("retentionAccount")).toContain("If-Match");
+      expect(text("retentionAccount")).toContain("Origin");
+      expect(text("retentionAccount")).toContain("Referer");
+      expect(text("retentionAuthority")).toContain("403 RETENTION_CLEANUP_REQUIRED");
+      expect(text("retentionAuthority")).toContain("403 RETENTION_TARGET_FORBIDDEN");
+      expect(text("error403")).toContain("RETENTION_CLEANUP_REQUIRED");
+      expect(text("error409")).not.toContain("RETENTION_CLEANUP_REQUIRED");
     }
   });
 });

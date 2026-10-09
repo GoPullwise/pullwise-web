@@ -85,12 +85,47 @@ describe("pullwiseApi current product endpoints", () => {
         signal: controller.signal,
         workspaceId: "someone_else",
         headers: { "X-Pullwise-Workspace": "someone_else" },
-      }),
+      })
     ).resolves.toBe(preference);
     expect(request).toHaveBeenCalledWith("/api/v1/account/jev", {
       signal: controller.signal,
     });
   });
+
+  it("reads personal retention independently of the selected ledger without enabling it", async () => {
+    const preference = { autoRemoveOldestExpense: false, revision: 1 };
+    request.mockResolvedValueOnce(preference);
+    const controller = new AbortController();
+    await expect(
+      pullwiseApi.account.getExpenseRetention({
+        signal: controller.signal,
+        workspaceId: "someone_else",
+        headers: { "X-Pullwise-Workspace": "someone_else" },
+      })
+    ).resolves.toBe(preference);
+    expect(request).toHaveBeenCalledExactlyOnceWith("/api/v1/account/expense-retention", {
+      signal: controller.signal,
+    });
+  });
+
+  it.each([true, false])(
+    "saves retention=%s with its account revision and no workspace override",
+    async (autoRemoveOldestExpense) => {
+      request.mockResolvedValue({});
+      const controller = new AbortController();
+      await pullwiseApi.account.updateExpenseRetention(3, autoRemoveOldestExpense, {
+        signal: controller.signal,
+        workspaceId: "someone_else",
+        headers: { "If-Match": '"999"' },
+      });
+      expect(request).toHaveBeenCalledExactlyOnceWith("/api/v1/account/expense-retention", {
+        method: "PATCH",
+        headers: { "If-Match": '"3"' },
+        body: { autoRemoveOldestExpense },
+        signal: controller.signal,
+      });
+    }
+  );
 
   it.each([true, false])(
     "writes only the explicit enabled=%s preference with its quoted revision",
@@ -108,7 +143,7 @@ describe("pullwiseApi current product endpoints", () => {
         body: { enabled },
         signal: controller.signal,
       });
-    },
+    }
   );
 
   it("propagates a preference revision conflict without retrying or refreshing automatically", async () => {
@@ -118,32 +153,39 @@ describe("pullwiseApi current product endpoints", () => {
     expect(request).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["login", "link"])("requests an email code for the explicit %s purpose", async (purpose) => {
-    const challenge = { challengeId: "challenge_1", expiresIn: 600, retryAfter: 60 };
-    request.mockResolvedValueOnce(challenge);
-    const controller = new AbortController();
+  it.each(["login", "link"])(
+    "requests an email code for the explicit %s purpose",
+    async (purpose) => {
+      const challenge = { challengeId: "challenge_1", expiresIn: 600, retryAfter: 60 };
+      request.mockResolvedValueOnce(challenge);
+      const controller = new AbortController();
 
-    await expect(pullwiseApi.auth.requestEmailCode(
-      { email: "person@example.com", purpose },
-      { signal: controller.signal }
-    )).resolves.toBe(challenge);
+      await expect(
+        pullwiseApi.auth.requestEmailCode(
+          { email: "person@example.com", purpose },
+          { signal: controller.signal }
+        )
+      ).resolves.toBe(challenge);
 
-    expect(request).toHaveBeenCalledWith("/auth/email/request-code", {
-      method: "POST",
-      body: { email: "person@example.com", purpose },
-      signal: controller.signal,
-    });
-  });
+      expect(request).toHaveBeenCalledWith("/auth/email/request-code", {
+        method: "POST",
+        body: { email: "person@example.com", purpose },
+        signal: controller.signal,
+      });
+    }
+  );
 
   it("verifies the issued email challenge without removing code leading zeros", async () => {
     const session = { authenticated: true, user: { id: "usr_1", email: "person@example.com" } };
     request.mockResolvedValueOnce(session);
     const controller = new AbortController();
 
-    await expect(pullwiseApi.auth.verifyEmailCode(
-      { email: "person@example.com", challengeId: "challenge_1", code: "001234" },
-      { signal: controller.signal }
-    )).resolves.toBe(session);
+    await expect(
+      pullwiseApi.auth.verifyEmailCode(
+        { email: "person@example.com", challengeId: "challenge_1", code: "001234" },
+        { signal: controller.signal }
+      )
+    ).resolves.toBe(session);
 
     expect(request).toHaveBeenCalledWith("/auth/email/verify-code", {
       method: "POST",
@@ -153,19 +195,27 @@ describe("pullwiseApi current product endpoints", () => {
   });
 
   it("preserves server email verification failures without retrying", async () => {
-    const failure = Object.assign(new Error("The code has expired."), { code: "EMAIL_CODE_EXPIRED" });
+    const failure = Object.assign(new Error("The code has expired."), {
+      code: "EMAIL_CODE_EXPIRED",
+    });
     request.mockRejectedValueOnce(failure);
 
-    await expect(pullwiseApi.auth.verifyEmailCode({
-      email: "person@example.com", challengeId: "challenge_1", code: "001234",
-    })).rejects.toBe(failure);
+    await expect(
+      pullwiseApi.auth.verifyEmailCode({
+        email: "person@example.com",
+        challengeId: "challenge_1",
+        code: "001234",
+      })
+    ).rejects.toBe(failure);
 
     expect(request).toHaveBeenCalledTimes(1);
   });
 
   it("rejects empty dynamic account path segments", () => {
     expect(() => pullwiseApi.integrations.disconnect("")).toThrow(/path segment/i);
-    expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(/path segment/i);
+    expect(() => pullwiseApi.integrations.createGitHubInstallationManageSession("", {})).toThrow(
+      /path segment/i
+    );
     expect(() => pullwiseApi.apiKeys.revoke("")).toThrow(/path segment/i);
     expect(request).not.toHaveBeenCalled();
   });

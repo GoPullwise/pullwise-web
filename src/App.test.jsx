@@ -15,7 +15,12 @@ vi.mock("./api/pullwise.js", () => ({
       requestEmailCode: vi.fn(),
       verifyEmailCode: vi.fn(),
     },
-    account: { getJev: vi.fn(), updateJev: vi.fn() },
+    account: {
+      getJev: vi.fn(),
+      updateJev: vi.fn(),
+      getExpenseRetention: vi.fn(),
+      updateExpenseRetention: vi.fn(),
+    },
     integrations: { list: vi.fn(), getGitHubAuthorizeUrl: vi.fn() },
   },
 }));
@@ -78,6 +83,10 @@ beforeEach(() => {
   });
   window.history.replaceState({}, "", "/");
   pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: false });
+  pullwiseApi.account.getExpenseRetention.mockResolvedValue({
+    autoRemoveOldestExpense: false,
+    revision: 1,
+  });
   pullwiseApi.account.getJev.mockResolvedValue({
     enabled: true,
     revision: 7,
@@ -553,11 +562,9 @@ it("refreshes the selected member's effective access before Members Reload after
   const admin = { ...adminTeam(), revision: 2 };
   authenticatedLedgers([viewer], "bob");
   harness.apis.team = membersApi({
-    members: vi
-      .fn()
-      .mockResolvedValue({
-        items: [{ userId: "bob", githubLogin: "bob", role: "viewer", revision: 1 }],
-      }),
+    members: vi.fn().mockResolvedValue({
+      items: [{ userId: "bob", githubLogin: "bob", role: "viewer", revision: 1 }],
+    }),
   });
   render(<App />);
   expect(await screen.findByText("Viewer", { selector: ".member-role" })).toBeVisible();
@@ -770,7 +777,9 @@ it("reopening an accepted Admin invitation respects a current Viewer downgrade",
     window.history.replaceState({}, "", `/members#invite=${inviteToken}`);
     window.dispatchEvent(new HashChangeEvent("hashchange"));
   });
-  await waitFor(() => expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument());
+  await waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument()
+  );
   const panel = screen.getByRole("heading", { name: "Ledger invitation" }).closest("section");
   expect(within(panel).getByText("Role: Viewer")).toBeVisible();
   expect(within(panel).queryByText("Role: Admin")).not.toBeInTheDocument();

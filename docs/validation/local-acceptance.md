@@ -1,5 +1,84 @@
 # Current local acceptance
 
+## Opt-in expense replacement at capacity (2026-10-09)
+
+Settings adds a personal-account expense retention switch for every plan, with
+the Server's actual saved value and a default of Off. It applies to the Owner's
+project/shared expenses created by Web members, API keys and recurring schedules,
+independently of the selected ledger. Six-language copy explains real removal,
+no restoration, no extra charges, expense-date ordering, permissions on the exact
+oldest record and manual cleanup above a lowered limit. Switching On makes no
+immediate expense removal. Writes use the independent account revision and retain
+the shared Settings operation guard through the required status refresh; errors
+require explicit Reload. Neither preference reads nor UI navigation poll or write.
+
+Billing and Pricing explain the updated capacity rule: undeleted expenses in
+shared pool and active/archived projects use expense slots. Manual or automatic
+expense removal and project removal release expense slots. Archived and removed
+projects still use the cumulative project allowance. Configured defaults remain
+Free **3/100**, Pro **20/20,000**, Max **100/100,000** projects/expense records.
+
+The new preference suite passes **28 tests** for all plans, failed/stale responses,
+identity changes, cancellation, six languages and reciprocal Settings guards.
+The final generated **59-operation** contract passes **52 focused tests** for
+actual ledger/account request mappings and product clients, including both boolean
+values, required If-Match and Cookie-only personal preferences. The complete Web
+pipeline passes **60 files / 1,167 tests**, lint, build and offline Worker checks.
+
+Local Chromium **151.0.7922.173** with Playwright **1.57.0** passes **36 contexts**
+covering six locales, both themes and 320/390/1440px; each plan has 12 contexts.
+All switches initially reflect Off and remain available on Free, Pro and Max.
+Three explicit synthetic On writes verify separate held-PATCH and held-refresh
+lock stages after selecting another Owner's ledger. **74 preference GETs and three
+PATCHes** contain no workspace header; each context permits at most six preference
+GETs and one explicit preference write. All mobile cases verify coarse-pointer
+and touch state, 44px labels and no document overflow. A French copy polish was
+rechecked in six contexts. External requests are blocked; no real provider,
+authenticated remote API or D1 access occurs. Browser evidence and source hashes
+are preserved in `/workspace/work/retention-browser/`, with the finite capture
+script at `/workspace/work/retention-browser.mjs`; its isolated Vite has exited.
+
+The final **59-operation** docs pass another **13 Chromium contexts**: six locales
+and both themes at 320px, plus English/light at 1440px with every operation opened.
+The retention section, Cookie-only curl with Origin/If-Match, new preference schemas
+and all response tables pass. Docs' retention deep link settles at its heading on
+initial lazy rendering; no document overflow occurs and mobile targets remain
+44px with coarse/touch assertions before and after capture. The check makes 91
+synthetic session GETs and blocks all external delivery. Its Vite has exited.
+[Durable local receipt](rest-capacity-and-retention-local-2026-10-09.json) records
+the final source and contract hashes plus both browser matrices. The reviewed
+Chinese mobile captures show readable copy and contained code/table scrolling.
+
+## Complete REST integration docs and Billing capacity (2026-10-09)
+
+API docs now include a runnable explicit-category Free journey, real response IDs,
+expense replacement PATCH, If-Match/idempotency recovery, project CRUD, project/shared
+recurring management and member invitation/approval/role/removal. Cookie and Bearer
+clients share Server resources. Six-locale copy explains role/scope boundaries,
+whole-ledger member keys and independent applicant authentication. The generated
+reference and downloadable OpenAPI initially covered **42 paths / 57 operations**
+at this REST/Jev checkpoint. The expense-retention update above expands the current
+contract to **43 paths / 59 operations**; `--check` verifies both JSON copies
+against Server's current source hash.
+
+Default capacities are Free **3 projects / 100 expense records**, Pro **20 / 20,000**,
+Max **100 / 100,000**. Billing displays actual configured used/limit/remaining charts
+from its existing personal-ledger read, with over-limit and unavailable states,
+capacity-retention guidance and guarded explicit refresh without polling. The actual
+Web REST adapter regression checks every client method against the generated contract,
+including project/shared CRUD, recurring edit/pause/resume/cancel and member governance.
+
+After retaining concurrent main's personal Jev preference feature, lint, **1,124
+tests in 59 files**, build and offline Worker configuration checks pass. The local
+Chromium persistent layout runner passes **258 states** in four profiles. Billing
+passes **36 local synthetic contexts** covering six locales, both themes and
+1440/390/320px, with exact usage numbers, no horizontal overflow, coarse-pointer
+controls, one Billing GET per load and no polling. Expanded reference tables and
+JSON scroll inside their mobile container; schema disclosures have 44px targets.
+API docs resolve their initial lazy-rendered hash so Docs' quickstart link lands
+at the requested heading. These are synthetic local checks, not real OAuth/payment,
+physical-device or authenticated remote ledger acceptance.
+
 ## Current membership permissions and old invitation links (2026-10-09)
 
 Accepted invitation links display the current member role, not the link's initial
