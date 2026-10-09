@@ -48,6 +48,16 @@ remain configured in the existing three-engine CI; local Firefox success is not
 claimed. Linux engines and emulated touch do not establish physical iOS/Android
 or older Safari acceptance. Browser fixtures do not establish live-account saves.
 
+Source `1dd1b30` was pushed to GitHub main and published to
+`preview.pull-wise.com` as Web version `e8f22622-7aeb-450a-9929-46177bde8c4b`.
+The finite static check made one homepage and three exact hashed-asset GETs;
+all returned 200, the homepage retained noindex and referenced
+`/assets/index-GiWMVkSt.js`, and the entry/ledger/CSS bytes matched the accepted
+local build. No redirects, retries, page JavaScript, business API, Server/D1 or
+production operation occurred. The post-push main Actions query was empty;
+remote CI success is not claimed. This publication record changes documentation
+only and requires no additional deployment.
+
 ## Safari date-field sizing and shared ledger picker (2026-10-08)
 
 Shared date fields now fill shrinkable single-column field tracks with explicit
