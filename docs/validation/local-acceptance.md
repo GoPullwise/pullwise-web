@@ -2,6 +2,38 @@
 
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Recent operation history and topbar label (2026-10-09)
+
+Project detail adds Operation log after Expenses, Reports and Project settings;
+Shared pool adds it after Expenses and Reports. It shows the actual actor,
+complete local timestamp, affected record and changed values, including exact
+currency amounts. The Server supplies the rolling 24-hour window. First explicit
+activation loads history; manual reload and bounded pagination remain available
+without polling. Expiry uses the advancing Server window even after pagination
+or with a skewed client clock. Permission/scope changes abort stale requests and
+clear protected rows; pending writes defer conflicting reads and preserve drafts.
+All six languages are supported. The topbar's separate Ledger text is removed,
+while the native selector retains its accessible localized label and real IDs.
+
+`npm run check` passes lint, **47 files / 859 tests** and build. Offline Worker
+checks pass. The final preview build is frozen as `index-pBobKWbX.js`,
+`ledger-DV-OZzdj.js` and `index-ChhzqjXD.css`.
+
+[Browser evidence](activity-log-local-2026-10-09.json) passes 18 workflow states
+in five Chromium contexts, with 88 synthetic API calls and a 100-request cap per
+context. The persistent layout check passes 250 states in four profiles with
+215 synthetic GETs. Mobile 390/320px touch, long identities/values, both themes,
+Chinese copy and Shanghai time, busy controls, pagination, expiry and stale
+workspace/403 clearing are checked. All seven unedited screenshots were visually
+reviewed. No remote request, JavaScript error or layout violation occurred.
+Firefox/WebKit and physical devices were not run for this change.
+
+The Server companion proves native schema and authenticated synthetic activity
+flows. [Preview publication](activity-log-preview-release-2026-10-09.json)
+records separate static readback; no actual OAuth/provider or remote applicant
+account flow is claimed. Activity begins with this release and old history is
+not backfilled. Receipt-only follow-up commits require no runtime redeployment.
+
 ## Invitation links with inviter approval (2026-10-09)
 
 Members creates an invitation link from its role alone, without requiring a

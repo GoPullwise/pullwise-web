@@ -84,7 +84,6 @@ export function Topbar({ go, breadcrumbs, loading = false, navigationDisabled = 
         <InvitationInboxButton disabled={navigationDisabled} />
         {ledgers?.workspace && (
           <div className="workspace-picker">
-            <label htmlFor="workspace-select">{T("Ledger", "账本")}</label>
             <select
               id="workspace-select"
               aria-label={T("Select ledger", "选择账本")}

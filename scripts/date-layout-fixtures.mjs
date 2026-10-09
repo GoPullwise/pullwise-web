@@ -263,6 +263,17 @@ function payloadFor(path, params) {
     assertQuery(params, []);
     return categories;
   }
+  if (path === "/api/v1/activity") {
+    assertQuery(params, ["target", "projectId", "limit", "cursor"]);
+    fixedTarget(params);
+    const now = Date.now();
+    return {
+      items: [],
+      nextCursor: null,
+      windowStart: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+      windowEnd: new Date(now).toISOString(),
+    };
+  }
   if (path === "/api/v1/expense-recurring-rules") {
     assertQuery(params, ["target", "projectId", "limit", "cursor"]);
     return {

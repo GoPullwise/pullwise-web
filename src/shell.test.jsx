@@ -63,6 +63,8 @@ describe("Topbar navigation", () => {
       </WorkspaceContext.Provider>
     );
     const selector = screen.getByRole("combobox", { name: "Select ledger" });
+    expect(screen.queryByText("Ledger", { exact: true })).not.toBeInTheDocument();
+    expect(selector.closest(".workspace-picker").querySelector("label")).toBeNull();
     expect(within(selector).getByRole("option", { name: "Unknown ledger" })).toHaveProperty(
       "selected",
       true

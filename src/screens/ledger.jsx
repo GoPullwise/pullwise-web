@@ -13,6 +13,7 @@ import {
   projectUrlHref,
 } from "../lib/project-links.js";
 import { ExpenseCharts } from "../components/expense-charts.jsx";
+import { ActivityLog } from "../components/activity-log.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -242,11 +243,12 @@ function LedgerViewToolbar({
             ...(mode === "project"
               ? [{ key: "settings", label: T("Project settings", "项目设置") }]
               : []),
+            { key: "activity", label: T("Operation log", "操作记录") },
           ]}
           value={view}
           onChange={onViewChange}
         />
-        <div className="ledger-view-controls" hidden={view === "settings"}>
+        <div className="ledger-view-controls" hidden={["settings", "activity"].includes(view)}>
           <button
             className="btn ghost"
             type="button"
@@ -289,7 +291,11 @@ function LedgerViewToolbar({
           </a>
         </div>
       </div>
-      <div className="ledger-filter-strip" id={filtersId} hidden={view === "settings" || !expanded}>
+      <div
+        className="ledger-filter-strip"
+        id={filtersId}
+        hidden={["settings", "activity"].includes(view) || !expanded}
+      >
         <LedgerFilters
           filters={filters}
           onChange={onFiltersChange}
@@ -3002,6 +3008,22 @@ function ScopedLedgerScreen({
                   )}
                 </section>
               )}
+              <div
+                role="tabpanel"
+                id={`${viewId}-panel-activity`}
+                aria-labelledby={`${viewId}-tab-activity`}
+                tabIndex={0}
+                hidden={view !== "activity"}
+              >
+                <ActivityLog
+                  api={api}
+                  target={target}
+                  active={view === "activity"}
+                  disabled={loading || writing}
+                  reloadSignal={revision}
+                  onAccessChanged={onAccessChanged}
+                />
+              </div>
             </>
           )}
         </main>

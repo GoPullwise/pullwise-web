@@ -1,5 +1,20 @@
 # Pullwise Web
 
+## Recent operation history (2026-10-09)
+
+Project detail places Operation log after Expenses, Reports and Project settings;
+Shared pool places it after Expenses and Reports. Show identity, local time,
+affected record and exact changes for the Server-enforced rolling last 24 hours.
+Use an explicit first activation, bounded pagination and manual reload without
+polling. Isolate requests and cached rows by account/workspace/project; retain
+current permission, stale-response and pending-operation boundaries. Keep view
+tabs available during writes but block conflicting history reloads.
+The topbar's standalone Ledger label is removed per the user's latest request;
+the native ledger selector keeps its accessible localized label and selected
+ledger names. This supersedes historical visible-label layout requirements.
+Complete local/native/browser checks, push main and publish preview only;
+required Server/schema work preserves the original DB/journal and production pause.
+
 ## Invitation approval (2026-10-09)
 
 Invite member selects a role and creates a link without a username. Preserve
@@ -107,9 +122,9 @@ editing/selection, focus, date bounds, fixed expense targets and the original
 theme. Touch controls use at least 44px height and 16px input text. Check analogous
 date fields across project/shared views and recurring editors, then push main
 and publish only Web preview. Report browser-engine/device evidence accurately.
-The shared topbar ledger picker uses an explicit label/selector grid with a
-shrinkable selector track. Preserve the native arrow, ownership prefixes and
-horizontal label/selector layout; long option names must not create horizontal
+The shared topbar ledger picker uses one shrinkable selector track and an
+accessible localized label without a separate visible Ledger label. Preserve
+the native arrow and ownership prefixes; long option names must not create horizontal
 overflow on short-breadcrumb pages. Check both long and short breadcrumbs at
 mobile widths, including API Keys and its name/scopes form.
 Run the persistent `npm run test:layout` browser geometry check after building;
@@ -279,7 +294,7 @@ loading/failure guidance, and the real name after loading. Its short description
 explains expenses/reports; nameless projects use Project rather than history.
 
 Projects search uses one square accent focus perimeter around the icon, input
-and clear action. The topbar Ledger label and picker stay side by side, with
+and clear action. The topbar picker has no separate visible Ledger label, with
 long ledger names constrained inside the native selector. Prefix each option
 with the translated Your ledger/Shared ledger label from its actual workspace
 role, so ownership stays visible before long names truncate. Keep the real
@@ -505,9 +520,10 @@ the owner's platform subscription and payment history. Use the public slogan
   destination reachable without a horizontally scrolled navigation rail.
   Let long localized Ledger labels wrap and move the account selector to a
   second row when needed; do not truncate the three primary destinations.
-- Project detail uses the shared `ViewTabs` for Expenses, Reports and Project
-  settings; Shared Pool has Expenses and Reports. Tabs are local views, use
-  arrow/Home/End keyboard activation, and never trigger API refreshes. Keep
+- Project detail uses the shared `ViewTabs` for Expenses, Reports, Project
+  settings and Operation log; Shared Pool has Expenses, Reports and Operation
+  log. Tabs use arrow/Home/End keyboard activation. The history loads on its
+  first explicit activation; ordinary view switching does not refresh data. Keep
   inactive panels mounted and hidden so drafts survive tab switches. Continue
   draft returns to the existing form without replacing historical edit state.
   Tabs shrink and wrap long labels inside their available width rather than

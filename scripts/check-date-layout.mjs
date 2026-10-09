@@ -1080,16 +1080,16 @@ async function measureApiKeys(page, report, name) {
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
       workspacePicker:
-        picker && pickerLabel && pickerSelect
+        picker && pickerSelect
           ? {
               picker: rect(picker),
-              label: rect(pickerLabel),
+              hasVisibleLabel: Boolean(pickerLabel?.getClientRects().length),
+              accessibleLabel: pickerSelect.getAttribute("aria-label"),
               select: rect(pickerSelect),
               clientWidth: picker.clientWidth,
               scrollWidth: picker.scrollWidth,
               selectClientWidth: pickerSelect.clientWidth,
               selectScrollWidth: pickerSelect.scrollWidth,
-              gap: Number.parseFloat(getComputedStyle(picker).columnGap),
               selectedId: pickerSelect.value,
               optionLabels: Array.from(pickerSelect.options).map((option) => option.text),
             }
@@ -1139,7 +1139,14 @@ async function measureApiKeys(page, report, name) {
   );
   assert(measured.keyName, `${name}: API key name field was not rendered`);
   assert(measured.workspacePicker, `${name}: native Ledger picker was not rendered`);
-  const { picker, label, select, gap, selectedId, optionLabels } = measured.workspacePicker;
+  const { picker, hasVisibleLabel, accessibleLabel, select, selectedId, optionLabels } =
+    measured.workspacePicker;
+  assert(!hasVisibleLabel, `${name}: Ledger picker displays a redundant visible label`);
+  assert.equal(
+    accessibleLabel,
+    report.profile.lang === "zh" ? "选择账本" : "Select ledger",
+    `${name}: Ledger picker has no localized accessible label`
+  );
   assert.equal(selectedId, WORKSPACE_ID, `${name}: active ledger changed during layout checks`);
   assert(optionLabels.length === 2, `${name}: long own/shared Ledger options were not rendered`);
   // Linux WebKit can count invisible native-option intrinsic widths in the
@@ -1148,11 +1155,9 @@ async function measureApiKeys(page, report, name) {
   assert(
     picker.left >= -tolerance &&
       picker.right <= measured.viewport + tolerance &&
-      label.left >= picker.left - tolerance &&
-      label.right <= picker.right + tolerance &&
-      select.left >= label.right + gap - tolerance &&
+      select.left >= picker.left - tolerance &&
       select.right <= picker.right + tolerance,
-    `${name}: Ledger label/select overlap or escape their picker ${details}`
+    `${name}: Ledger selector escapes its picker ${details}`
   );
   const { input, wrapper, field, content } = measured.keyName;
   assert(

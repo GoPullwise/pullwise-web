@@ -1,0 +1,93 @@
+.activity-log .panel-h {
+  flex-wrap: wrap;
+}
+.activity-log .panel-h > .btn {
+  margin-left: auto;
+  max-width: 100%;
+  white-space: normal;
+}
+.activity-log-row {
+  display: grid;
+  align-content: center;
+}
+.activity-log-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  min-width: 0;
+}
+.activity-log-row-header > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ledger-screen .activity-log-actor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+}
+.activity-log-actor strong {
+  color: var(--text);
+}
+.activity-log-actor span,
+.activity-log-row-header time {
+  color: var(--text-3);
+  font-size: var(--fs-md);
+}
+.ledger-screen .activity-log-list h3 {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+}
+.activity-log-action {
+  color: var(--text-2);
+  font-size: var(--fs-md);
+  font-weight: 400;
+}
+.activity-log-changes {
+  --financial-size: var(--fs-value-secondary);
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  font-size: var(--fs-md);
+}
+.activity-log-changes > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px 16px;
+}
+.activity-log-changes dt {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.activity-log-value-label {
+  color: var(--text-3);
+}
+.activity-log-changes dd {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0;
+  min-width: 0;
+}
+.activity-log-changes dd > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.activity-log-changes dd > svg {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--text-3);
+}
+@container (max-width: 560px) {
+  .activity-log-changes > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

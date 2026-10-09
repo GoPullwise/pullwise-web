@@ -1,0 +1,3269 @@
+{
+  "kind": "isolated-local-browser-acceptance",
+  "date": "2026-10-09",
+  "source": "frozen built dist; synthetic local GET fixtures",
+  "engines": [
+    "Chromium"
+  ],
+  "actualDeviceAcceptance": false,
+  "realAccountAcceptance": false,
+  "providerCalls": 0,
+  "remoteD1Calls": 0,
+  "remoteRequestsDelivered": 0,
+  "states": [
+    {
+      "name": "project-lazy-log-actual-identity-24h-cutoff",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Project settings",
+          "width": 101.65625,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nProjects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "activity-project-desktop-light-after-capture",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Project settings",
+          "width": 101.65625,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nProjects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "explicit-pagination-email-account-name",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Local email account display nameOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseShared maintenance invoiceRecord ID: exp_emailCategoryBefore: HostingAfter: Maintenance"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Project settings",
+          "width": 101.65625,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nProjects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "last-day-local-expiry-without-api-read",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Project settings",
+          "width": 101.65625,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nProjects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "shared-log-right-of-reports-keyboard-end",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nShared expense pool\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "activity-shared-desktop-light-after-capture",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nShared expense pool\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "activity-project-desktop-dark-after-capture",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Project settings",
+          "width": 101.65625,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nProjects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "busy-write-postwrite-refresh-preserves-tabs-and-log-guard",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 311.1875,
+          "width": 1148,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Project settings",
+          "width": 101.65625,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nProjects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "coarse-phone-390-long-name-full-diff",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 254,
+          "height": 44
+        },
+        {
+          "text": "Expenses",
+          "width": 77.65625,
+          "height": 52
+        },
+        {
+          "text": "Reports",
+          "width": 67.234375,
+          "height": 52
+        },
+        {
+          "text": "Project settings",
+          "width": 92.59375,
+          "height": 52
+        },
+        {
+          "text": "Operation log",
+          "width": 84.515625,
+          "height": 52
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 44
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 44
+        }
+      ],
+      "topbarText": "Projects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "activity-project-mobile-390-light-after-capture",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 254,
+          "height": 44
+        },
+        {
+          "text": "Expenses",
+          "width": 77.65625,
+          "height": 52
+        },
+        {
+          "text": "Reports",
+          "width": 67.234375,
+          "height": 52
+        },
+        {
+          "text": "Project settings",
+          "width": 92.59375,
+          "height": 52
+        },
+        {
+          "text": "Operation log",
+          "width": 84.515625,
+          "height": 52
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 44
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 44
+        }
+      ],
+      "topbarText": "Projects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "coarse-live-320-log-tabs-picker-long-diff",
+      "viewport": 348,
+      "documentWidth": 348,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 184,
+          "height": 44
+        },
+        {
+          "text": "Expenses",
+          "width": 77.65625,
+          "height": 52
+        },
+        {
+          "text": "Reports",
+          "width": 67.234375,
+          "height": 52
+        },
+        {
+          "text": "Project settings",
+          "width": 68.28125,
+          "height": 52
+        },
+        {
+          "text": "Operation log",
+          "width": 82.59375,
+          "height": 52
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 44
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 44
+        }
+      ],
+      "topbarText": "Projects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "activity-project-mobile-320-light-after-capture",
+      "viewport": 348,
+      "documentWidth": 348,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseInfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeRecord ID: exp_act_recentAmountBefore: USD 12.00After: USD 24.50PurposeBefore: Existing hosting expenseAfter: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurposeNoteBefore: Not setAfter: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "API key · Local key owner@local-key-ownerOct 9, 2026, 7:59:00 PM GMT+8Created · ExpenseAPI-created domain renewalRecord ID: exp_keyAmountBefore: Not setAfter: USD 90071992547409.91"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "Automated schedule · Scheduler original member@original-memberOct 9, 2026, 7:59:00 PM GMT+8Generated · ExpenseGenerated hosting expenseRecord ID: exp_systemPurposeBefore: Not setAfter: Recurring hosting schedule"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaboratorOct 8, 2026, 8:00:01 PM GMT+8Paused · Recurring scheduleExpiring local recurring pauseRecord ID: rec_expiringStatusBefore: ActiveAfter: Paused"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 184,
+          "height": 44
+        },
+        {
+          "text": "Expenses",
+          "width": 77.65625,
+          "height": 52
+        },
+        {
+          "text": "Reports",
+          "width": 67.234375,
+          "height": 52
+        },
+        {
+          "text": "Project settings",
+          "width": 68.28125,
+          "height": 52
+        },
+        {
+          "text": "Operation log",
+          "width": 82.59375,
+          "height": 52
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 44
+        },
+        {
+          "text": "Load more",
+          "width": 90.984375,
+          "height": 44
+        }
+      ],
+      "topbarText": "Projects\n/\nDate layout project\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "coarse-phone-390-zh-shanghai-time-dark",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月9日 GMT+8 19:59:00已修改 · 支出InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose记录 ID: exp_act_recent金额修改前: USD 12.00修改后: USD 24.50用途修改前: Existing hosting expense修改后: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose备注修改前: 未设置修改后: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "API 密钥 · Local key owner@local-key-owner2026年10月9日 GMT+8 19:59:00已创建 · 支出API-created domain renewal记录 ID: exp_key金额修改前: 未设置修改后: USD 90071992547409.91"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "自动周期计划 · Scheduler original member@original-member2026年10月9日 GMT+8 19:59:00已自动生成 · 支出Generated hosting expense记录 ID: exp_system用途修改前: 未设置修改后: Recurring hosting schedule"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月8日 GMT+8 20:00:01已暂停 · 周期计划Expiring local recurring pause记录 ID: rec_expiring状态修改前: 有效修改后: 已暂停"
+        }
+      ],
+      "controls": [
+        {
+          "text": "选择账本",
+          "width": 254,
+          "height": 44
+        },
+        {
+          "text": "支出",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "报表",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "操作记录",
+          "width": 72,
+          "height": 44
+        },
+        {
+          "text": "刷新操作记录",
+          "width": 128.234375,
+          "height": 44
+        },
+        {
+          "text": "加载更多",
+          "width": 81.484375,
+          "height": 44
+        }
+      ],
+      "topbarText": "公共支出池\n你的账本 · Pullwise preview team ledger\n共享账本 · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "选择账本"
+    },
+    {
+      "name": "activity-shared-mobile-390-zh-dark-after-capture",
+      "viewport": 390,
+      "documentWidth": 390,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月9日 GMT+8 19:59:00已修改 · 支出InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose记录 ID: exp_act_recent金额修改前: USD 12.00修改后: USD 24.50用途修改前: Existing hosting expense修改后: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose备注修改前: 未设置修改后: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "API 密钥 · Local key owner@local-key-owner2026年10月9日 GMT+8 19:59:00已创建 · 支出API-created domain renewal记录 ID: exp_key金额修改前: 未设置修改后: USD 90071992547409.91"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "自动周期计划 · Scheduler original member@original-member2026年10月9日 GMT+8 19:59:00已自动生成 · 支出Generated hosting expense记录 ID: exp_system用途修改前: 未设置修改后: Recurring hosting schedule"
+        },
+        {
+          "height": 661.375,
+          "width": 358,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月8日 GMT+8 20:00:01已暂停 · 周期计划Expiring local recurring pause记录 ID: rec_expiring状态修改前: 有效修改后: 已暂停"
+        }
+      ],
+      "controls": [
+        {
+          "text": "选择账本",
+          "width": 254,
+          "height": 44
+        },
+        {
+          "text": "支出",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "报表",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "操作记录",
+          "width": 72,
+          "height": 44
+        },
+        {
+          "text": "刷新操作记录",
+          "width": 128.234375,
+          "height": 44
+        },
+        {
+          "text": "加载更多",
+          "width": 81.484375,
+          "height": 44
+        }
+      ],
+      "topbarText": "公共支出池\n你的账本 · Pullwise preview team ledger\n共享账本 · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "选择账本"
+    },
+    {
+      "name": "coarse-live-320-zh-dark-shared-log",
+      "viewport": 320,
+      "documentWidth": 320,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月9日 GMT+8 19:59:00已修改 · 支出InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose记录 ID: exp_act_recent金额修改前: USD 12.00修改后: USD 24.50用途修改前: Existing hosting expense修改后: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose备注修改前: 未设置修改后: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "API 密钥 · Local key owner@local-key-owner2026年10月9日 GMT+8 19:59:00已创建 · 支出API-created domain renewal记录 ID: exp_key金额修改前: 未设置修改后: USD 90071992547409.91"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "自动周期计划 · Scheduler original member@original-member2026年10月9日 GMT+8 19:59:00已自动生成 · 支出Generated hosting expense记录 ID: exp_system用途修改前: 未设置修改后: Recurring hosting schedule"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月8日 GMT+8 20:00:01已暂停 · 周期计划Expiring local recurring pause记录 ID: rec_expiring状态修改前: 有效修改后: 已暂停"
+        }
+      ],
+      "controls": [
+        {
+          "text": "选择账本",
+          "width": 184,
+          "height": 44
+        },
+        {
+          "text": "支出",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "报表",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "操作记录",
+          "width": 72,
+          "height": 44
+        },
+        {
+          "text": "刷新操作记录",
+          "width": 128.234375,
+          "height": 44
+        },
+        {
+          "text": "加载更多",
+          "width": 81.484375,
+          "height": 44
+        }
+      ],
+      "topbarText": "公共支出池\n你的账本 · Pullwise preview team ledger\n共享账本 · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "选择账本"
+    },
+    {
+      "name": "activity-shared-mobile-320-zh-dark-after-capture",
+      "viewport": 320,
+      "documentWidth": 320,
+      "coarse": true,
+      "touchPoints": 1,
+      "rows": [
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月9日 GMT+8 19:59:00已修改 · 支出InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose记录 ID: exp_act_recent金额修改前: USD 12.00修改后: USD 24.50用途修改前: Existing hosting expense修改后: InfrastructureHostingAndDomainRenewalExpenseForTheSharedDevelopmentTeamWithLongUnbrokenPurpose备注修改前: 未设置修改后: Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note Detailed local synthetic change note "
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "API 密钥 · Local key owner@local-key-owner2026年10月9日 GMT+8 19:59:00已创建 · 支出API-created domain renewal记录 ID: exp_key金额修改前: 未设置修改后: USD 90071992547409.91"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "自动周期计划 · Scheduler original member@original-member2026年10月9日 GMT+8 19:59:00已自动生成 · 支出Generated hosting expense记录 ID: exp_system用途修改前: 未设置修改后: Recurring hosting schedule"
+        },
+        {
+          "height": 772.765625,
+          "width": 288,
+          "text": "LocalCollaboratorWithAnEspeciallyLongUnbrokenDisplayNameForNaturalWrapping@local-collaborator2026年10月8日 GMT+8 20:00:01已暂停 · 周期计划Expiring local recurring pause记录 ID: rec_expiring状态修改前: 有效修改后: 已暂停"
+        }
+      ],
+      "controls": [
+        {
+          "text": "选择账本",
+          "width": 184,
+          "height": 44
+        },
+        {
+          "text": "支出",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "报表",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "text": "操作记录",
+          "width": 72,
+          "height": 44
+        },
+        {
+          "text": "刷新操作记录",
+          "width": 128.234375,
+          "height": 44
+        },
+        {
+          "text": "加载更多",
+          "width": 81.484375,
+          "height": 44
+        }
+      ],
+      "topbarText": "公共支出池\n你的账本 · Pullwise preview team ledger\n共享账本 · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "选择账本"
+    },
+    {
+      "name": "ledger-switch-aborts-old-log-response-without-data-leak",
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "coarse": false,
+      "touchPoints": 0,
+      "rows": [
+        {
+          "height": 188.6875,
+          "width": 1148,
+          "text": "Another ledger collaboratorOct 9, 2026, 7:59:00 PM GMT+8Updated · ExpenseAnother ledger expenseRecord ID: exp_other_ledgerPurposeBefore: Before alternate ledgerAfter: After alternate ledger"
+        }
+      ],
+      "controls": [
+        {
+          "text": "Select ledger",
+          "width": 280,
+          "height": 33
+        },
+        {
+          "text": "Expenses",
+          "width": 61.65625,
+          "height": 44
+        },
+        {
+          "text": "Reports",
+          "width": 51.234375,
+          "height": 44
+        },
+        {
+          "text": "Operation log",
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "text": "Reload operation log",
+          "width": 168.390625,
+          "height": 34
+        }
+      ],
+      "topbarText": "Pullwise\nShared expense pool\nYour ledger · Pullwise preview team ledger\nShared ledger · Shared operational ledger with a longer workspace name",
+      "pickerLabel": "Select ledger"
+    },
+    {
+      "name": "unauthorized-log-response-clears-protected-records",
+      "rows": 0
+    }
+  ],
+  "contexts": [
+    {
+      "name": "desktop-light-project-and-shared",
+      "width": 1440,
+      "touch": false,
+      "theme": "light",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/projects/prj_date_layout",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/css2",
+          "query": [
+            [
+              "family",
+              "Geist:wght@400;500;600;700"
+            ],
+            [
+              "family",
+              "Geist Mono:wght@400;500;600"
+            ],
+            [
+              "display",
+              "swap"
+            ]
+          ],
+          "workspace": null,
+          "outcome": "blocked-external"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-pBobKWbX.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-react-CIxRT3XZ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/navigation-DA0NMEwF.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/notifications-DA2CPC1E.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/console-layout-BpJ8LnCD.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/pullwise-CVGBATj4.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-Csy0W_xT.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/auth-DYOQutd6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/public-layout-CJnk7PU9.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-ChhzqjXD.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/brand-mark.png",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-DV-OZzdj.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/financial-value-Bbfxr_y0.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-COOezCt2.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-CAs9ENqb.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/skeleton-CeAkszC6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/shell-BfHnAn-l.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-B-S2igof.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects/prj_date_layout",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ],
+            [
+              "cursor",
+              "opaque_local_page_2"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "shared"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        }
+      ],
+      "blockedExternal": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "violations": [],
+      "cap": 100
+    },
+    {
+      "name": "desktop-dark-busy-operation",
+      "width": 1440,
+      "touch": false,
+      "theme": "dark",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/projects/prj_date_layout",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/css2",
+          "query": [
+            [
+              "family",
+              "Geist:wght@400;500;600;700"
+            ],
+            [
+              "family",
+              "Geist Mono:wght@400;500;600"
+            ],
+            [
+              "display",
+              "swap"
+            ]
+          ],
+          "workspace": null,
+          "outcome": "blocked-external"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-pBobKWbX.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-react-CIxRT3XZ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/navigation-DA0NMEwF.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/notifications-DA2CPC1E.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/console-layout-BpJ8LnCD.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/pullwise-CVGBATj4.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-Csy0W_xT.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/auth-DYOQutd6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/public-layout-CJnk7PU9.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-ChhzqjXD.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/brand-mark.png",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-DV-OZzdj.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/financial-value-Bbfxr_y0.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-COOezCt2.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-CAs9ENqb.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/skeleton-CeAkszC6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/shell-BfHnAn-l.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-B-S2igof.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects/prj_date_layout",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/expenses/exp_date_project",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "synthetic-write"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "synthetic-postwrite-read"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects/prj_date_layout",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        }
+      ],
+      "blockedExternal": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "violations": [],
+      "cap": 100
+    },
+    {
+      "name": "phone-390-to-320-light",
+      "width": 390,
+      "touch": true,
+      "theme": "light",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/projects/prj_date_layout",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/css2",
+          "query": [
+            [
+              "family",
+              "Geist:wght@400;500;600;700"
+            ],
+            [
+              "family",
+              "Geist Mono:wght@400;500;600"
+            ],
+            [
+              "display",
+              "swap"
+            ]
+          ],
+          "workspace": null,
+          "outcome": "blocked-external"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-pBobKWbX.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-react-CIxRT3XZ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/navigation-DA0NMEwF.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/notifications-DA2CPC1E.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/console-layout-BpJ8LnCD.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/pullwise-CVGBATj4.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-Csy0W_xT.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/auth-DYOQutd6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/public-layout-CJnk7PU9.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-ChhzqjXD.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/brand-mark.png",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-DV-OZzdj.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/financial-value-Bbfxr_y0.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-COOezCt2.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-CAs9ENqb.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/skeleton-CeAkszC6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/shell-BfHnAn-l.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-B-S2igof.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects/prj_date_layout",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "project"
+            ],
+            [
+              "projectId",
+              "prj_date_layout"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        }
+      ],
+      "blockedExternal": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "violations": [],
+      "cap": 100
+    },
+    {
+      "name": "phone-390-to-320-zh-dark",
+      "width": 390,
+      "touch": true,
+      "theme": "dark",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/shared",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/css2",
+          "query": [
+            [
+              "family",
+              "Geist:wght@400;500;600;700"
+            ],
+            [
+              "family",
+              "Geist Mono:wght@400;500;600"
+            ],
+            [
+              "display",
+              "swap"
+            ]
+          ],
+          "workspace": null,
+          "outcome": "blocked-external"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-pBobKWbX.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-react-CIxRT3XZ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/navigation-DA0NMEwF.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/notifications-DA2CPC1E.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/console-layout-BpJ8LnCD.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/pullwise-CVGBATj4.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-Csy0W_xT.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/auth-DYOQutd6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/public-layout-CJnk7PU9.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-ChhzqjXD.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/zh-CWLY-8WZ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/dynamic-CqKDyOhl.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-CIWwQYwV.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-longform-CzBOxFFv.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-ui-ydcEM64p.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-scopes-eTtBJDmQ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-screen-Ctef54Pf.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/brand-mark.png",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-DV-OZzdj.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/financial-value-Bbfxr_y0.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-COOezCt2.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-CAs9ENqb.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/skeleton-CeAkszC6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/shell-BfHnAn-l.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-B-S2igof.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "shared"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        }
+      ],
+      "blockedExternal": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "violations": [],
+      "cap": 100
+    },
+    {
+      "name": "ledger-scope-stale-abort-and-access-error",
+      "width": 1440,
+      "touch": false,
+      "theme": "light",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/shared",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/css2",
+          "query": [
+            [
+              "family",
+              "Geist:wght@400;500;600;700"
+            ],
+            [
+              "family",
+              "Geist Mono:wght@400;500;600"
+            ],
+            [
+              "display",
+              "swap"
+            ]
+          ],
+          "workspace": null,
+          "outcome": "blocked-external"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-pBobKWbX.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-react-CIxRT3XZ.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/navigation-DA0NMEwF.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/notifications-DA2CPC1E.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/console-layout-BpJ8LnCD.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/pullwise-CVGBATj4.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-Csy0W_xT.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/auth-DYOQutd6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/public-layout-CJnk7PU9.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/index-ChhzqjXD.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/brand-mark.png",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/auth/session",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspace-invitation-requests",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-DV-OZzdj.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/financial-value-Bbfxr_y0.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-COOezCt2.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-CAs9ENqb.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/skeleton-CeAkszC6.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/shell-BfHnAn-l.js",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/assets/ledger-B-S2igof.css",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "shared"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_layout",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "shared"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/activity",
+          "query": [
+            [
+              "target",
+              "shared"
+            ],
+            [
+              "limit",
+              "50"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "fulfilled"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/workspaces",
+          "query": [],
+          "workspace": null,
+          "outcome": "base-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "query": [],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expenses",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/projects",
+          "query": [],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/timeseries",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/reports/categories",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/expense-recurring-rules",
+          "query": [
+            [
+              "target",
+              "shared"
+            ]
+          ],
+          "workspace": "usr_date_shared",
+          "outcome": "alternate-ledger-fixture"
+        }
+      ],
+      "blockedExternal": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "violations": [],
+      "cap": 100
+    }
+  ],
+  "screenshots": [
+    "/workspace/work/activity-project-desktop-light.png",
+    "/workspace/work/activity-shared-desktop-light.png",
+    "/workspace/work/activity-project-desktop-dark.png",
+    "/workspace/work/activity-project-mobile-390-light.png",
+    "/workspace/work/activity-project-mobile-320-light.png",
+    "/workspace/work/activity-shared-mobile-390-zh-dark.png",
+    "/workspace/work/activity-shared-mobile-320-zh-dark.png"
+  ],
+  "failed": false,
+  "artifact": {
+    "indexHtmlSha256": "a6c8ad3e5e2fb9aca31d434de9b366c92849c2d67e916c4da649de2d0d5a5e7b",
+    "assets": [
+      "index-ChhzqjXD.css",
+      "index-pBobKWbX.js",
+      "ledger-B-S2igof.css",
+      "ledger-CAs9ENqb.css",
+      "ledger-CIWwQYwV.js",
+      "ledger-COOezCt2.js",
+      "ledger-DV-OZzdj.js",
+      "ledger-longform-CzBOxFFv.js",
+      "ledger-scopes-eTtBJDmQ.js",
+      "ledger-screen-Ctef54Pf.js",
+      "ledger-ui-ydcEM64p.js"
+    ],
+    "assetHashes": {
+      "index-ChhzqjXD.css": "2c8cf90ef4c80bcfdda2662acb47118be0ad846d7cf06ad3ed5e54f2526e3f05",
+      "index-pBobKWbX.js": "d29e86cdbaa21ce09bc9b0bc744e17c8f5c7505826b9c03e9023eea6799ecb6f",
+      "ledger-B-S2igof.css": "328f3c3c38b5cc6fba32a2bd7b1a858090ac546e72fc5f6840994cca4a0eb40f",
+      "ledger-CAs9ENqb.css": "82657e93f3b30cc9d1bdd67e6c712951a9df9bdfc4ac0652a55503c3b75f1ee9",
+      "ledger-CIWwQYwV.js": "2be8b94b5af442e51d8ec871d27f7c0a736a0679397de3e43363cb4ba55a4ec3",
+      "ledger-COOezCt2.js": "71212524342a4ceb76edb0081f26ff403fe47bfd7bc4b26025658359f32f9b93",
+      "ledger-DV-OZzdj.js": "3ca617f40d004e22a6bc124f2bdf389e8b8d34b83562ac1a9c8f1b3fd81dcf31",
+      "ledger-longform-CzBOxFFv.js": "260e252520e3f4929ba62a41dc03f8b3bff6a38fc39e4c780eb91f400e68f4fd",
+      "ledger-scopes-eTtBJDmQ.js": "c952340e463d82948a8d9915fbe0438dac8f06fb569a8c4e2898efb5cb2e5369",
+      "ledger-screen-Ctef54Pf.js": "adc5ec7dd7804f48f43007225f0a362294b2e06fb2602a4cfb6bffd3521c1b56",
+      "ledger-ui-ydcEM64p.js": "36b8303cb57691e7dc1cef395ee077bf579c38a0694c1428098de691274eb6de"
+    }
+  },
+  "browserVersion": "151.0.7922.173",
+  "requestCount": 210,
+  "apiRequests": 88,
+  "errors": [],
+  "clientTimeZone": "Asia/Shanghai",
+  "fixtureBounds": {
+    "contexts": 5,
+    "maxRequestsPerContext": 100,
+    "actualMax": 48,
+    "noAutomaticRetry": true,
+    "externalBlocked": 5,
+    "source": "Synthetic local accounts and a single gated local PATCH; deliberately old/24h-boundary DTO rows test the display cutoff. No real ledger, OAuth, account, provider, payment or remote D1 acceptance."
+  },
+  "independentSourceReview": {
+    "verdict": "No unresolved scope or privacy issue in reviewed activity DTO and authorization",
+    "authorization": "ledger_principal expenses:read, selected workspace/role and same-snapshot validation; API-key workspace and target restrictions retained. Key logs expose expense records only.",
+    "actorPrivacy": "Immutable actual actor kind/userId/name/githubLogin only; no private email, access token, API key name/hash or full stored identity.",
+    "movedTargetPrivacy": "Cross-target key reads redact inaccessible opposite target to restricted and conceal opposite snapshot values.",
+    "timeWindow": "Opaque cursor freezes server upper time; lower bound advances with server now minus 86400 seconds. UI separately expires loaded rows without an API timer.",
+    "atomicity": "Business mutation, original financial event, new activity projection and bounded 16-row retention companions share the original CAS transaction. Exact replay and no-op projections do not duplicate activity.",
+    "snapshotBoundaryReview": "The initial 18KB emoji example exceeds the existing 8192-byte Worker raw-body ingress limit and is unreachable by valid HTTP writes. Keep the existing bounded 16KiB activity snapshots; backend regression covers the valid ingress boundary separately. Final backend regression uses note 1600 emoji plus multilingual purpose near 8KiB, then edits with another full Unicode note and preserves exact before/after values; no schema-size increase needed."
+  },
+  "persistentLayout": {
+    "command": "npm run test:layout -- --browser=chromium",
+    "passed": true,
+    "scope": "Local GET-only fixtures; browser engines and simulated viewports, not physical devices. No save, CSV download, external delivery or screenshots.",
+    "profiles": [
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": {
+          "name": "desktop-1440",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "touch": false
+        },
+        "states": 79,
+        "counts": {
+          "total": 79,
+          "api": 54,
+          "static": 24,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": {
+          "name": "tablet-1280-zh",
+          "width": 1280,
+          "height": 900,
+          "lang": "zh",
+          "touch": true
+        },
+        "states": 79,
+        "counts": {
+          "total": 86,
+          "api": 54,
+          "static": 31,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": {
+          "name": "phone-390-to-320",
+          "width": 390,
+          "narrow": 320,
+          "height": 844,
+          "lang": "en",
+          "touch": true
+        },
+        "states": 46,
+        "counts": {
+          "total": 79,
+          "api": 54,
+          "static": 24,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "engine": "chromium",
+        "version": "151.0.7922.173",
+        "profile": {
+          "name": "android-size-412-to-360",
+          "width": 412,
+          "narrow": 360,
+          "height": 844,
+          "lang": "en",
+          "touch": true
+        },
+        "states": 46,
+        "counts": {
+          "total": 78,
+          "api": 53,
+          "static": 24,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      }
+    ],
+    "stateCount": 250,
+    "requestCount": 322,
+    "apiRequests": 215,
+    "violations": 0,
+    "externalDelivered": 0
+  }
+}

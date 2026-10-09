@@ -101,6 +101,7 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
     repositories: (params, options) => ledgerRequest("/repositories", { ...options, params }),
     projects: (params, options) => ledgerRequest("/projects", { ...options, params }),
     project: (id, options) => ledgerRequest(resource("projects", id), options),
+    activity: (params, options) => ledgerRequest("/activity", { ...options, params }),
     createProject: (fields, options) =>
       ledgerRequest("/projects", { ...options, method: "POST", body: fields }),
     updateProject: (id, revision, fields, options) =>

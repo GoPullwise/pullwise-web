@@ -36,6 +36,8 @@ function fixture({ mode = "shared", projectId = "prj_current", purpose = "Curren
     totals: [],
   };
   const api = {
+    activity: vi.fn().mockResolvedValue({ items: [], nextCursor: null,
+      windowStart: "2026-10-08T08:00:00Z", windowEnd: "2026-10-09T08:00:00Z" }),
     categories: vi.fn().mockResolvedValue([
       { id: "cat_hosting", name: "Hosting", archivedAt: null },
       { id: "cat_tools", name: "Tools", archivedAt: null },
@@ -80,6 +82,29 @@ const requestCounts = (api) =>
   ].map((method) => method.mock.calls.length);
 
 describe("Shared expense and project view toolbar", () => {
+  it.each(["shared", "project"])("appends the %s operation log and loads its fixed target only on intent", async (mode) => {
+    const { api, expense } = fixture({ mode });
+    const readonly = workspace({ permissions: { manageProjects: false, manageCategories: false, writeExpenses: false } });
+    render(<LedgerScreen api={api} go={vi.fn()} mode={mode} projectId="prj_current" workspace={readonly} />);
+    await screen.findByText(expense.purpose);
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(mode === "project"
+      ? ["Expenses", "Reports", "Project settings", "Operation log"]
+      : ["Expenses", "Reports", "Operation log"]);
+    expect(api.activity).not.toHaveBeenCalled();
+    fireEvent.click(filterToggle());
+    fireEvent.click(screen.getByRole("tab", { name: "Operation log" }));
+    const log = screen.getByRole("tabpanel", { name: "Operation log" });
+    expect(await within(log).findByText("No changes in the past 24 hours.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Filters/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Export CSV" })).not.toBeInTheDocument();
+    expect(api.activity).toHaveBeenCalledWith({ ...targetQuery(mode), limit: 50 }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+    expect(screen.getByText(expense.purpose)).toBeVisible();
+    expect(filterToggle()).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("tab", { name: "Operation log" }));
+    expect(api.activity).toHaveBeenCalledOnce();
+  });
+
   it.each(["shared", "project"])(
     "shows %s records first and starts Reports with charts without requesting a summary",
     async (mode) => {

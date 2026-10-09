@@ -5,6 +5,16 @@ import { createLedgerApi, ledgerApi } from "./ledger.js";
 afterEach(() => vi.restoreAllMocks());
 
 describe("ledger REST paths", () => {
+  it("reads bounded activity for the captured workspace and carries the abort signal", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: {} });
+    const controller = new AbortController();
+    const params = { target: "project", projectId: "prj/1", limit: 50, cursor: "opaque-next" };
+    await createLedgerApi("team/2").activity(params, { signal: controller.signal });
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({
+      method: "GET", url: "/api/v1/activity", params, signal: controller.signal,
+      headers: { "X-Pullwise-Workspace": "team/2" },
+    }));
+  });
   it("uses one versioned Server path and the same-origin proxy base", async () => {
     const oldBase = http.defaults.baseURL;
     http.defaults.baseURL = "/api";
