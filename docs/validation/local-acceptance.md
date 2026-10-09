@@ -44,6 +44,17 @@ Firefox remains unavailable in this managed runtime because of the previously
 recorded uid-mapping/SWGL startup errors; no new local Firefox success is claimed.
 Its checks remain configured in the existing three-engine CI.
 
+Source `329c528` was pushed to GitHub main and deployed as Web preview version
+`acdb83ff-0e7b-49ef-b034-0b873611a3e1`; the deployment list confirms 100% traffic.
+One homepage and three exact hashed-asset GETs all returned 200. The homepage
+retained noindex and references `/assets/index-pFJUia5q.js`; that entry script,
+`/assets/ledger-BKHPT-Pc.js` and the changed ledger stylesheet
+`/assets/ledger-CAs9ENqb.css` match the accepted local build byte for byte.
+No redirects, retries, page JavaScript, business API, Server/D1 or production
+operation occurred. The main Actions query was empty; remote CI success is not
+claimed. This publication record changes documentation only and needs no
+additional deployment.
+
 ## Expense presentation and recurring side editor (2026-10-09)
 
 Project detail and Shared Pool now edit recurring schedules in a separate
