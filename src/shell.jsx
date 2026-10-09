@@ -15,7 +15,7 @@ function ledgerLabel(workspace) {
   return ownership ? `${ownership} · ${workspace.name}` : workspace.name;
 }
 
-export function Topbar({ go, breadcrumbs, loading = false }) {
+export function Topbar({ go, breadcrumbs, loading = false, navigationDisabled = false }) {
   useLang();
   const ledgers = useWorkspace();
   const headerRef = React.useRef(null);
@@ -45,7 +45,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
         <a
           className="brand topbar-brand-button"
           aria-label={T("Go to Pullwise home", "前往 Pullwise 首页")}
-          {...screenLinkProps(go, "landing")}
+          {...screenLinkProps(go, "landing", {}, navigationDisabled)}
         >
           <img
             className="brand-mark"
@@ -66,7 +66,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
                   <a
                     className="crumb-button"
                     aria-label={T(`Go to ${crumb.label}`, `前往 ${crumb.label}`)}
-                    {...screenLinkProps(go, crumb.go)}
+                    {...screenLinkProps(go, crumb.go, {}, navigationDisabled)}
                   >
                     {crumb.label}
                   </a>
@@ -81,7 +81,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
         )}
       </div>
       <div className="topbar-actions">
-        <InvitationInboxButton />
+        <InvitationInboxButton disabled={navigationDisabled} />
         {ledgers?.workspace && (
           <div className="workspace-picker">
             <label htmlFor="workspace-select">{T("Ledger", "账本")}</label>
@@ -90,7 +90,10 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
               aria-label={T("Select ledger", "选择账本")}
               title={ledgerLabel(ledgers.workspace)}
               value={ledgers.workspace.id}
-              onChange={(event) => ledgers.onSelect(event.target.value)}
+              disabled={navigationDisabled}
+              onChange={(event) => {
+                if (!navigationDisabled) ledgers.onSelect(event.target.value);
+              }}
             >
               {ledgers.items.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -113,7 +116,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
         <a
           className="btn ghost sm"
           aria-label={T("Open account settings", "打开账户设置")}
-          {...screenLinkProps(go, "settings")}
+          {...screenLinkProps(go, "settings", {}, navigationDisabled)}
         >
           <I.User size={14} />
         </a>
@@ -122,7 +125,7 @@ export function Topbar({ go, breadcrumbs, loading = false }) {
   );
 }
 
-export function Sidebar({ go, section = "ledgerProjects", id }) {
+export function Sidebar({ go, section = "ledgerProjects", id, navigationDisabled = false }) {
   useLang();
   const ledger = [
     { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
@@ -140,7 +143,12 @@ export function Sidebar({ go, section = "ledgerProjects", id }) {
       <nav className="side-nav-landmark" aria-label={T("Navigation", "导航")}>
         <div className="side-group side-nav" role="group" aria-label={T("Ledger", "账本")}>
           <div className="side-h">{T("Ledger", "账本")}</div>
-          <SidebarLinks section={section} go={go} items={ledger} />
+          <SidebarLinks
+            section={section}
+            go={go}
+            items={ledger}
+            navigationDisabled={navigationDisabled}
+          />
         </div>
         <div
           className="side-group side-account"
@@ -148,14 +156,20 @@ export function Sidebar({ go, section = "ledgerProjects", id }) {
           aria-label={T("Account & tools", "账户与工具")}
         >
           <div className="side-h">{T("Account & tools", "账户与工具")}</div>
-          <SidebarLinks section={section} go={go} items={account} />
+          <SidebarLinks
+            section={section}
+            go={go}
+            items={account}
+            navigationDisabled={navigationDisabled}
+          />
         </div>
         <select
           className="side-compact"
           aria-label={T("Account & tools", "账户与工具")}
           value={account.some((item) => item.k === section) ? section : ""}
+          disabled={navigationDisabled}
           onChange={(event) => {
-            if (event.target.value) go(event.target.value);
+            if (!navigationDisabled && event.target.value) go(event.target.value);
           }}
         >
           <option value="">{T("More", "更多")}</option>
@@ -170,7 +184,7 @@ export function Sidebar({ go, section = "ledgerProjects", id }) {
   );
 }
 
-function SidebarLinks({ section, go, items }) {
+function SidebarLinks({ section, go, items, navigationDisabled }) {
   return (
     <>
       {items.map((item) => (
@@ -178,7 +192,7 @@ function SidebarLinks({ section, go, items }) {
           key={item.k}
           className={"side-i" + (section === item.k ? " active" : "")}
           aria-current={section === item.k ? "page" : undefined}
-          {...screenLinkProps(go, item.k)}
+          {...screenLinkProps(go, item.k, {}, navigationDisabled)}
         >
           <div className="ic">{item.icon}</div>
           <span>{item.label}</span>

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { WorkspaceContext } from "./components/workspace-context.jsx";
-import { Sidebar, Topbar } from "./shell.jsx";
+import { Sidebar, Topbar, ViewTabs } from "./shell.jsx";
 
 describe("Topbar navigation", () => {
   it.each(["admin", "editor", "viewer"])(
@@ -125,6 +125,60 @@ describe("Topbar navigation", () => {
     await user.click(account);
 
     expect(go).toHaveBeenCalledWith("settings");
+  });
+
+  it("pauses topbar destinations and ledger changes, then restores native keyboard navigation", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+    const onSelect = vi.fn();
+    const own = { id: "own", role: "owner", name: "Own ledger" };
+    const shared = { id: "shared", role: "viewer", name: "Shared ledger" };
+    const topbar = (navigationDisabled) => (
+      <WorkspaceContext.Provider value={{ items: [own, shared], workspace: own, onSelect }}>
+        <Topbar
+          go={go}
+          loading
+          navigationDisabled={navigationDisabled}
+          breadcrumbs={[{ label: "Projects", go: "ledgerProjects" }, { label: "Expenses" }]}
+        />
+        <button type="button">Following control</button>
+      </WorkspaceContext.Provider>
+    );
+    const view = render(topbar(true));
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(3);
+    for (const link of links) {
+      expect(link).not.toHaveAttribute("href");
+      expect(link).toHaveAttribute("aria-disabled", "true");
+      expect(link).toHaveAttribute("tabindex", "-1");
+      expect(fireEvent.click(link, { ctrlKey: true })).toBe(false);
+      expect(
+        fireEvent(link, new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 }))
+      ).toBe(false);
+    }
+    const selector = screen.getByRole("combobox", { name: "Select ledger" });
+    expect(selector).toBeDisabled();
+    await user.selectOptions(selector, "shared");
+    fireEvent.change(selector, { target: { value: "shared" } });
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Following control" })).toHaveFocus();
+    const brand = screen.getByRole("link", { name: /go to pullwise home/i });
+    brand.focus();
+    await user.keyboard("{Enter}");
+    expect(go).not.toHaveBeenCalled();
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+
+    view.rerender(topbar(false));
+    expect(selector).not.toBeDisabled();
+    expect(brand).toHaveAttribute("href", "/");
+    expect(brand).not.toHaveAttribute("aria-disabled");
+    expect(brand).not.toHaveAttribute("tabindex");
+    brand.focus();
+    await user.keyboard("{Enter}");
+    await user.selectOptions(selector, "shared");
+    expect(go).toHaveBeenCalledWith("landing");
+    expect(onSelect).toHaveBeenCalledWith("shared");
   });
 });
 
@@ -301,5 +355,57 @@ describe("Sidebar navigation", () => {
     await user.click(apiKeys);
 
     expect(go).toHaveBeenCalledWith("apiKeys");
+  });
+
+  it("pauses sidebar links and compact destinations while pure view tabs remain usable", async () => {
+    const user = userEvent.setup();
+    const go = vi.fn();
+    const onViewChange = vi.fn();
+    const sidebar = (navigationDisabled) => (
+      <>
+        <Sidebar section="ledgerProjects" go={go} navigationDisabled={navigationDisabled} />
+        <ViewTabs
+          id="busy-test"
+          label="Ledger views"
+          tabs={[
+            { key: "expenses", label: "Expenses" },
+            { key: "reports", label: "Reports" },
+          ]}
+          value="expenses"
+          onChange={onViewChange}
+        />
+      </>
+    );
+    const view = render(sidebar(true));
+    for (const link of screen.getAllByRole("link")) {
+      expect(link).not.toHaveAttribute("href");
+      expect(link).toHaveAttribute("aria-disabled", "true");
+      expect(link).toHaveAttribute("tabindex", "-1");
+      expect(fireEvent.click(link, { metaKey: true })).toBe(false);
+      expect(
+        fireEvent(link, new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 }))
+      ).toBe(false);
+    }
+    const compact = screen.getByRole("combobox", { name: "Account & tools" });
+    expect(compact).toBeDisabled();
+    await user.selectOptions(compact, "billing");
+    fireEvent.change(compact, { target: { value: "settings" } });
+    await user.tab();
+    expect(screen.getByRole("tab", { name: "Expenses" })).toHaveFocus();
+    await user.keyboard("{ArrowRight}");
+    expect(onViewChange).toHaveBeenCalledWith("reports");
+    expect(screen.getByRole("tab", { name: "Reports" })).toHaveFocus();
+    expect(go).not.toHaveBeenCalled();
+
+    view.rerender(sidebar(false));
+    expect(compact).not.toBeDisabled();
+    const projects = screen.getByRole("link", { name: "Projects" });
+    expect(projects).toHaveAttribute("href", "/projects");
+    expect(projects).not.toHaveAttribute("aria-disabled");
+    projects.focus();
+    await user.keyboard("{Enter}");
+    await user.selectOptions(compact, "billing");
+    expect(go).toHaveBeenCalledWith("ledgerProjects");
+    expect(go).toHaveBeenCalledWith("billing");
   });
 });

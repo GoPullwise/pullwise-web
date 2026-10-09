@@ -12,6 +12,7 @@ export function SettingsScreen({ go }) {
   const [session, setSession] = useState(null);
   const [integrations, setIntegrations] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const requestRef = useRef(0);
@@ -57,8 +58,9 @@ export function SettingsScreen({ go }) {
   }, [load]);
 
   const runGitHubAction = async (action, installationId = "") => {
-    if (actionRef.current) return;
+    if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
     actionRef.current = true;
+    setBusy(true);
     setManagingInstallationId(installationId);
     setError("");
     try {
@@ -69,9 +71,32 @@ export function SettingsScreen({ go }) {
         setError(failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。"));
     } finally {
       actionRef.current = false;
-      if (mountedRef.current) setManagingInstallationId("");
+      if (mountedRef.current) {
+        setBusy(false);
+        setManagingInstallationId("");
+      }
     }
   };
+
+  const reload = () => {
+    if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
+    load();
+  };
+  const leaveSession = async () => {
+    if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
+    actionRef.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      await signOut();
+    } catch (failure) {
+      if (mountedRef.current) setError(failure?.message || T("Request failed. Please retry."));
+    } finally {
+      actionRef.current = false;
+      if (mountedRef.current) setBusy(false);
+    }
+  };
+  const controlsDisabled = busy || loading;
 
   const github = integrations?.github;
   const githubReady = typeof github?.connected === "boolean";
@@ -88,16 +113,21 @@ export function SettingsScreen({ go }) {
 
   return (
     <div className="app fade-in settings-screen">
-      <Topbar go={go} breadcrumbs={[{ label: T("Settings", "设置") }]} loading={loading} />
+      <Topbar
+        go={go}
+        breadcrumbs={[{ label: T("Settings", "设置") }]}
+        loading={loading || busy}
+        navigationDisabled={busy}
+      />
       <ConsoleLayout>
-        <Sidebar section="settings" go={go} />
+        <Sidebar section="settings" go={go} navigationDisabled={busy} />
         <main className="main">
           <div className="page-h">
             <div>
               <h1>{T("Settings", "设置")}</h1>
               <p className="sub">{T("Account and GitHub access", "账户与 GitHub 授权")}</p>
             </div>
-            <button className="btn" onClick={load} disabled={loading}>
+            <button className="btn" onClick={reload} disabled={controlsDisabled}>
               {T("Reload", "重新加载")}
             </button>
           </div>
@@ -120,7 +150,7 @@ export function SettingsScreen({ go }) {
                     <span>{user.email}</span>
                   </div>
                 )}
-                <button className="btn sm" onClick={signOut}>
+                <button className="btn sm" onClick={leaveSession} disabled={controlsDisabled}>
                   {T("Sign out", "退出登录")}
                 </button>
               </>
@@ -163,12 +193,19 @@ export function SettingsScreen({ go }) {
                 </p>
                 <div className="panel-actions">
                   {github?.connected && (
-                    <button className="btn primary" onClick={() => go("ledgerProjects")}>
+                    <button
+                      className="btn primary"
+                      disabled={busy}
+                      onClick={() => {
+                        if (!actionRef.current) go("ledgerProjects");
+                      }}
+                    >
                       {T("Open projects", "打开项目")} <I.ArrowR size={14} />
                     </button>
                   )}
                   <button
                     className="btn sm"
+                    disabled={controlsDisabled}
                     onClick={() =>
                       runGitHubAction(() =>
                         connectGitHubRepositories(github?.connected ? { add: true } : {})
@@ -181,21 +218,27 @@ export function SettingsScreen({ go }) {
                   </button>
                 </div>
                 {github?.connected && (
-                  <GitHubInstallationsList
-                    installations={github.installations}
-                    managingInstallationId={managingInstallationId}
-                    onManage={(installation) => {
-                      const installationId = installation?.id || installation?.installationId;
-                      runGitHubAction(
-                        () =>
-                          manageGitHubInstallation(installationId, {
-                            githubIdentityId: installation?.manage?.githubIdentityId || undefined,
-                            redirectTo: window.location.href,
-                          }),
-                        installationId
-                      );
-                    }}
-                  />
+                  <fieldset
+                    disabled={controlsDisabled}
+                    aria-label={T("Authorized GitHub installations", "已授权 GitHub 安装")}
+                    style={{ border: 0, padding: 0, margin: 0, minWidth: 0, color: "inherit" }}
+                  >
+                    <GitHubInstallationsList
+                      installations={github.installations}
+                      managingInstallationId={managingInstallationId}
+                      onManage={(installation) => {
+                        const installationId = installation?.id || installation?.installationId;
+                        runGitHubAction(
+                          () =>
+                            manageGitHubInstallation(installationId, {
+                              githubIdentityId: installation?.manage?.githubIdentityId || undefined,
+                              redirectTo: window.location.href,
+                            }),
+                          installationId
+                        );
+                      }}
+                    />
+                  </fieldset>
                 )}
               </>
             )}

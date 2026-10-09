@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 import {
   createDateLayoutFixture,
+  ARCHIVED_CATEGORY_NAME,
   DEVELOPMENT_URL,
   EXPENSE_PURPOSE,
   LARGE_RULE_AMOUNT,
+  LONG_CATEGORY_NAME,
   PROJECT_ID,
   PRODUCT_URL,
   RULE_PURPOSE,
@@ -41,6 +43,19 @@ assert(
   "Usage: node scripts/check-date-layout.mjs [--browser=chromium|webkit|firefox]"
 );
 const engines = requested.length ? [requested[0].split("=")[1]] : ["chromium", "webkit", "firefox"];
+const currencyStyles = await readFile(join(root, "styles", "base.css"), "utf8");
+const currencyCodes = [
+  ...new Set(
+    Array.from(
+      currencyStyles.matchAll(
+        /\.financial-value-currency\[data-currency="([A-Z]{3})"\]\s*\{\s*--financial-currency-hue:\s*[\d.]+\s*;/g
+      ),
+      ([, code]) => code
+    )
+  ),
+].sort();
+assert(currencyCodes.length > 1, "No distinct currency color rules were found in base.css");
+assert(!currencyCodes.includes("ZZZ"), "ZZZ must remain an unsupported neutral currency probe");
 
 async function exists(path) {
   try {
@@ -214,6 +229,151 @@ function overlaps(left, right) {
   );
 }
 
+function computedRgb(value) {
+  const match = /^rgba?\((.+)\)$/.exec(value);
+  assert(match, `Unsupported computed RGB color: ${value}`);
+  const parts = match[1].trim().split(/[\s,/]+/);
+  assert([3, 4].includes(parts.length), `Invalid computed RGB color: ${value}`);
+  const channels = parts
+    .slice(0, 3)
+    .map((part) => (part.endsWith("%") ? (Number.parseFloat(part) * 255) / 100 : Number(part)));
+  const alpha =
+    parts.length === 3
+      ? 1
+      : parts[3].endsWith("%")
+        ? Number.parseFloat(parts[3]) / 100
+        : Number(parts[3]);
+  assert(
+    channels.every((channel) => Number.isFinite(channel) && channel >= 0 && channel <= 255) &&
+      Number.isFinite(alpha) &&
+      alpha >= 0 &&
+      alpha <= 1,
+    `Invalid computed RGB channels: ${value}`
+  );
+  return [...channels, alpha];
+}
+
+function compositeRgb(foreground, background) {
+  const alpha = foreground[3] + background[3] * (1 - foreground[3]);
+  if (alpha === 0) return [0, 0, 0, 0];
+  return [
+    ...foreground
+      .slice(0, 3)
+      .map(
+        (channel, index) =>
+          (channel * foreground[3] + background[index] * background[3] * (1 - foreground[3])) /
+          alpha
+      ),
+    alpha,
+  ];
+}
+
+function rgbLuminance(rgb) {
+  const linear = rgb.slice(0, 3).map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+}
+
+function currencyContrast(palette) {
+  // Fold every actual ancestor background into the badge background so an
+  // alpha color is checked against its rendered surface, not transparent black.
+  const background = palette.backgrounds.reduce(
+    (surface, color) => compositeRgb(computedRgb(color), surface),
+    [255, 255, 255, 1]
+  );
+  const foreground = compositeRgb(computedRgb(palette.foreground), background);
+  const luminances = [rgbLuminance(foreground), rgbLuminance(background)].sort((a, b) => a - b);
+  return (luminances[1] + 0.05) / (luminances[0] + 0.05);
+}
+
+async function checkCurrencyPalette(page) {
+  const measured = await page.evaluate((codes) => {
+    const source = document.querySelector(".ledger-expense-row .financial-value-money");
+    if (!source) throw new Error("Currency contrast probe has no actual expense value to clone");
+    const probe = source.cloneNode(true);
+    const badge = probe.querySelector(".financial-value-currency");
+    if (!badge) throw new Error("Currency contrast probe has no currency badge");
+    const previousTheme = document.documentElement.getAttribute("data-theme");
+    probe.setAttribute("aria-hidden", "true");
+    Object.assign(probe.style, {
+      position: "fixed",
+      left: "-10000px",
+      top: "0",
+      visibility: "hidden",
+      pointerEvents: "none",
+    });
+    source.parentElement.append(probe);
+    const palettes = [];
+    try {
+      for (const theme of ["light", "dark"]) {
+        document.documentElement.setAttribute("data-theme", theme);
+        for (const code of [...codes, "ZZZ"]) {
+          badge.setAttribute("data-currency", code);
+          badge.textContent = code;
+          const style = getComputedStyle(badge);
+          const backgrounds = [];
+          for (let element = badge; element; element = element.parentElement)
+            backgrounds.unshift(getComputedStyle(element).backgroundColor);
+          palettes.push({
+            theme,
+            currency: code,
+            foreground: style.color,
+            background: style.backgroundColor,
+            backgrounds,
+          });
+        }
+      }
+      return palettes;
+    } finally {
+      probe.remove();
+      if (previousTheme === null) document.documentElement.removeAttribute("data-theme");
+      else document.documentElement.setAttribute("data-theme", previousTheme);
+    }
+  }, currencyCodes);
+  assert.equal(
+    measured.length,
+    (currencyCodes.length + 1) * 2,
+    "Currency palette probe is incomplete"
+  );
+  const themes = [];
+  for (const theme of ["light", "dark"]) {
+    const palettes = measured.filter((palette) => palette.theme === theme);
+    const contrasts = palettes.map((palette) => {
+      const contrast = currencyContrast(palette);
+      assert(
+        contrast >= 4.5,
+        `${theme}/${palette.currency}: currency badge contrast ${contrast.toFixed(2)} is below 4.5:1 ${JSON.stringify(palette)}`
+      );
+      return contrast;
+    });
+    const signatures = new Set(
+      palettes.map((palette) => `${palette.foreground}/${palette.background}`)
+    );
+    assert.equal(
+      signatures.size,
+      palettes.length,
+      `${theme}: built-in currencies and neutral fallback do not have distinct palettes`
+    );
+    const unknown = palettes.find((palette) => palette.currency === "ZZZ");
+    for (const color of [unknown.foreground, unknown.background]) {
+      const [red, green, blue] = computedRgb(color);
+      assert(
+        red === green && green === blue,
+        `${theme}: unsupported currency is not neutral ${color}`
+      );
+    }
+    themes.push({
+      theme,
+      minimumContrast: Number(Math.min(...contrasts).toFixed(2)),
+      distinctPalettes: signatures.size,
+      neutral: { foreground: unknown.foreground, background: unknown.background },
+    });
+  }
+  return { currencies: currencyCodes, unsupportedCurrency: "ZZZ", themes };
+}
+
 async function checkPresentation(page, name) {
   const measured = await page.evaluate(() => {
     const rect = (element) => {
@@ -237,6 +397,7 @@ async function checkPresentation(page, name) {
             bottom: bounds.bottom,
           })),
         fontSize: Number.parseFloat(style.fontSize),
+        currencyCode: element.getAttribute("data-currency"),
         overflowX: style.overflowX,
         overflowY: style.overflowY,
         textOverflow: style.textOverflow,
@@ -250,6 +411,7 @@ async function checkPresentation(page, name) {
         const value = row.querySelector(".financial-value");
         const side = row.querySelector(".ledger-row-side, .recurring-expenses-side");
         return {
+          ordinary: row.classList.contains("ledger-expense-row"),
           purpose: row.querySelector("h3")?.textContent,
           row: rect(row),
           side: side ? textGeometry(side) : null,
@@ -257,6 +419,12 @@ async function checkPresentation(page, name) {
           currency: textGeometry(value?.querySelector(".financial-value-currency")),
           number: textGeometry(value?.querySelector(".financial-value-number")),
           actions: Array.from(row.querySelectorAll(".ledger-actions, .panel-actions")).map(rect),
+          actionGroups: Array.from(row.querySelectorAll(".ledger-actions, .panel-actions")).map(
+            (group) => ({
+              rect: rect(group),
+              buttons: Array.from(group.querySelectorAll("button")).map(rect),
+            })
+          ),
         };
       });
     const header = document.querySelector(".ledger-project .page-h");
@@ -264,6 +432,12 @@ async function checkPresentation(page, name) {
     const shortcuts = identity?.querySelector(".ledger-project-shortcuts");
     return {
       rows,
+      projectCurrencies: Array.from(
+        document.querySelectorAll(".ledger-project-total .financial-value-currency")
+      ).map((badge) => ({
+        text: badge.textContent,
+        currencyCode: badge.getAttribute("data-currency"),
+      })),
       header: header
         ? {
             rect: rect(header),
@@ -308,6 +482,11 @@ async function checkPresentation(page, name) {
     );
     assert.equal(row.currency.text, "USD", `${name}: currency text changed`);
     assert.equal(
+      row.currency.currencyCode,
+      row.currency.text,
+      `${name}: ordinary/recurring currency color does not identify its displayed code`
+    );
+    assert.equal(
       row.number.text,
       expected.get(row.purpose)?.slice(4),
       `${name}: amount text changed precision`
@@ -344,6 +523,45 @@ async function checkPresentation(page, name) {
         );
       }
     }
+    if (row.ordinary && row.actionGroups.length > 0) {
+      const amountBottom = Math.max(
+        row.currency.rect.bottom,
+        row.number.rect.bottom,
+        ...row.currency.fragments.map((fragment) => fragment.bottom),
+        ...row.number.fragments.map((fragment) => fragment.bottom)
+      );
+      for (const group of row.actionGroups) {
+        assert(
+          group.rect.top >= amountBottom + 4 - tolerance,
+          `${name}: ordinary expense amount is not above its actions with a clear gap ${details}`
+        );
+        assert(
+          inside(group.rect, row.row) && insideInline(group.rect, row.side.rect),
+          `${name}: ordinary expense actions escape the record ${details}`
+        );
+        for (let index = 0; index < group.buttons.length; index += 1) {
+          const button = group.buttons[index];
+          assert(
+            inside(button, group.rect),
+            `${name}: ordinary expense action escapes its group ${details}`
+          );
+          for (const sibling of group.buttons.slice(index + 1)) {
+            assert(
+              Math.abs(button.top - sibling.top) <= tolerance &&
+                button.right <= sibling.left + tolerance,
+              `${name}: ordinary expense edit/remove actions do not share a horizontal row ${details}`
+            );
+          }
+        }
+      }
+    }
+  }
+  for (const badge of measured.projectCurrencies) {
+    assert.equal(
+      badge.currencyCode,
+      badge.text,
+      `${name}: project total currency color does not identify its displayed code`
+    );
   }
   if (measured.header) {
     const header = measured.header;
@@ -477,7 +695,14 @@ async function checkPaneWidth(page, panelSelector, width, name) {
   );
 }
 
-async function dragSide(page, width, report, name, panelSelector = "#expense-form") {
+async function dragSide(
+  page,
+  width,
+  report,
+  name,
+  panelSelector = "#expense-form",
+  measureState = measure
+) {
   const { handle } = paneTargets(page, panelSelector);
   await handle.scrollIntoViewIfNeeded();
   const initial = Number(await handle.getAttribute("aria-valuenow"));
@@ -504,7 +729,7 @@ async function dragSide(page, width, report, name, panelSelector = "#expense-for
     await page.mouse.up();
   }
   await checkPaneWidth(page, panelSelector, width, name);
-  await measure(page, report, name);
+  await measureState(page, report, name);
 }
 
 async function keyboardSide(page, report, name, panelSelector) {
@@ -975,6 +1200,234 @@ async function checkApiKeys(page, report) {
   }
 }
 
+async function measureCategories(page, report, name) {
+  await settle(page);
+  const measured = await page.evaluate(() => {
+    const rect = (element) => {
+      const { left, right, top, bottom, width, height } = element.getBoundingClientRect();
+      return { left, right, top, bottom, width, height };
+    };
+    return {
+      viewport: innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      coarse: matchMedia("(pointer: coarse)").matches,
+      rows: Array.from(document.querySelectorAll(".ledger-category-row")).map((row) => {
+        const main = row.querySelector(".ledger-row-main");
+        const title = main.querySelector(".ledger-category-title");
+        const heading = title?.querySelector("h3");
+        const opener = title?.querySelector("[data-category-rename]");
+        const editor = main.querySelector(".ledger-category-editor");
+        const range = document.createRange();
+        if (heading) range.selectNodeContents(heading);
+        return {
+          row: rect(row),
+          main: rect(main),
+          clientWidth: row.clientWidth,
+          scrollWidth: row.scrollWidth,
+          heading: heading
+            ? {
+                text: heading.textContent,
+                rect: rect(heading),
+                fragments: Array.from(range.getClientRects())
+                  .filter((bounds) => bounds.width > 0)
+                  .map((bounds) => ({
+                    left: bounds.left,
+                    right: bounds.right,
+                    top: bounds.top,
+                    bottom: bounds.bottom,
+                  })),
+              }
+            : null,
+          title: title ? rect(title) : null,
+          opener: opener
+            ? {
+                rect: rect(opener),
+                text: opener.textContent,
+                svg: Boolean(opener.querySelector("svg")),
+              }
+            : null,
+          rightRename: Array.from(row.querySelectorAll(":scope > .ledger-actions button")).some(
+            (button) =>
+              button.hasAttribute("data-category-rename") ||
+              ["Rename", "重命名"].includes(button.textContent.trim())
+          ),
+          buttons: row.querySelectorAll("button").length,
+          editor: editor
+            ? {
+                rect: rect(editor),
+                parentMain: editor.parentElement === main,
+                controls: Array.from(editor.querySelectorAll("input, button")).map((control) => ({
+                  rect: rect(control),
+                  fontSize: Number.parseFloat(getComputedStyle(control).fontSize),
+                })),
+              }
+            : null,
+        };
+      }),
+    };
+  });
+  const details = JSON.stringify(measured);
+  assert(
+    measured.documentWidth <= measured.viewport + tolerance,
+    `${name}: categories page overflows viewport ${details}`
+  );
+  assert.equal(measured.rows.length, 3, `${name}: category fixture is incomplete`);
+  for (const row of measured.rows) {
+    assert(
+      row.scrollWidth <= row.clientWidth + tolerance,
+      `${name}: category record overflows ${details}`
+    );
+    assert(!row.rightRename, `${name}: Rename remains in the right-hand actions ${details}`);
+    if (row.opener) {
+      assert(
+        row.heading && row.title && row.opener.svg && !row.opener.text.trim(),
+        `${name}: category rename is not an icon beside the title ${details}`
+      );
+      assert(
+        inside(row.opener.rect, row.row) && inside(row.opener.rect, row.title),
+        `${name}: long category name pushes its pencil outside the title ${details}`
+      );
+      assert(
+        !overlaps(row.heading.rect, row.opener.rect),
+        `${name}: category name overlaps pencil ${details}`
+      );
+      // A wrapping heading retains its allocated flex width even when no text
+      // fragment reaches the final few pixels. Keep the icon beside that box;
+      // single-line names additionally stay beside the actual visible text.
+      const textRight =
+        row.heading.fragments.length === 1
+          ? row.heading.fragments[0].right
+          : row.heading.rect.right;
+      assert(
+        row.opener.rect.left >= textRight - tolerance &&
+          row.opener.rect.left <= textRight + 16 + tolerance,
+        `${name}: pencil is not adjacent to the category name ${details}`
+      );
+      if (measured.coarse)
+        assert(
+          row.opener.rect.width >= 44 - tolerance && row.opener.rect.height >= 44 - tolerance,
+          `${name}: category pencil has no 44px touch target ${details}`
+        );
+    }
+    for (const fragment of row.heading?.fragments || []) {
+      assert(
+        inside(fragment, row.row) && insideInline(fragment, row.main),
+        `${name}: category name escapes its record ${details}`
+      );
+    }
+    if (row.editor) {
+      assert(
+        row.editor.parentMain && !row.heading,
+        `${name}: category editor does not replace its title in place ${details}`
+      );
+      assert(
+        inside(row.editor.rect, row.row),
+        `${name}: category editor escapes record bounds ${details}`
+      );
+      assert.equal(
+        row.editor.controls.length,
+        3,
+        `${name}: category editor lacks input/save/cancel`
+      );
+      for (let index = 0; index < row.editor.controls.length; index += 1) {
+        const control = row.editor.controls[index];
+        assert(
+          inside(control.rect, row.editor.rect),
+          `${name}: category edit control escapes form ${details}`
+        );
+        assert(
+          row.editor.controls
+            .slice(index + 1)
+            .every((other) => !overlaps(control.rect, other.rect)),
+          `${name}: category edit input/save/cancel overlap ${details}`
+        );
+        if (measured.coarse)
+          assert(
+            control.rect.height >= 44 - tolerance,
+            `${name}: category editor control has no 44px touch target ${details}`
+          );
+      }
+      if (measured.coarse || measured.viewport <= 760)
+        assert(
+          row.editor.controls[0].fontSize >= 16 - 0.05,
+          `${name}: category edit input text is too small ${details}`
+        );
+    }
+  }
+  const archived = measured.rows[2];
+  assert.equal(
+    archived.heading?.text,
+    ARCHIVED_CATEGORY_NAME,
+    `${name}: archived category name is unavailable`
+  );
+  assert.equal(archived.buttons, 0, `${name}: archived category exposes mutation controls`);
+  report.states.push({ name, categories: measured });
+}
+
+async function checkCategories(page, report) {
+  // Ledger links remain visible on mobile; the compact selector contains only
+  // Account & tools destinations and does not offer Categories.
+  await page.locator('.side-nav .side-i[href="/categories"]').click();
+  await page.waitForURL(`${baseURL}/categories`);
+  const rows = page.locator(".ledger-category-row");
+  await rows.nth(2).waitFor();
+  await page.locator(".topbar-loading").waitFor({ state: "detached" });
+  await measureCategories(page, report, "categories-title-pencils-idle");
+  assert.equal(await rows.nth(1).locator("h3").textContent(), LONG_CATEGORY_NAME);
+  const opener = rows.nth(1).locator("[data-category-rename]");
+  await opener.click();
+  const form = rows.nth(1).locator(".ledger-row-main .ledger-category-editor");
+  const input = form.locator("input");
+  await input.waitFor();
+  assert(
+    await input.evaluate((element) => document.activeElement === element),
+    "categories: inline name input did not receive focus"
+  );
+  assert.equal(await input.inputValue(), LONG_CATEGORY_NAME);
+  await input.fill("Unsaved category draft");
+  await measureCategories(page, report, "categories-inline-editor-open");
+  if (report.profile.width >= 900) {
+    const panel = ".ledger-categories .ledger-split > .panel:nth-child(2)";
+    await dragSide(
+      page,
+      260,
+      report,
+      "categories-inline-editor-pane-260",
+      panel,
+      measureCategories
+    );
+    await dragSide(
+      page,
+      520,
+      report,
+      "categories-inline-editor-pane-520",
+      panel,
+      measureCategories
+    );
+  }
+  const narrow = report.profile.narrow || 899;
+  await page.setViewportSize({ width: narrow, height: report.profile.height });
+  await measureCategories(page, report, `categories-inline-editor-live-${narrow}`);
+  assert.equal(
+    await input.inputValue(),
+    "Unsaved category draft",
+    "categories: reflow discarded rename draft"
+  );
+  await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+  const cancelName = report.profile.lang === "zh" ? "取消" : "Cancel";
+  await form.getByRole("button", { name: cancelName, exact: true }).click();
+  await form.waitFor({ state: "detached" });
+  assert(
+    await opener.evaluate((element) => document.activeElement === element),
+    "categories: cancel did not restore pencil focus"
+  );
+  assert.equal(await rows.nth(1).locator("h3").textContent(), LONG_CATEGORY_NAME);
+  await measureCategories(page, report, "categories-inline-cancel-restored-title");
+  await page.setViewportSize({ width: narrow, height: report.profile.height });
+  await measureCategories(page, report, `categories-long-title-pencil-live-${narrow}`);
+  await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+}
+
 await access(join(root, "dist", "index.html"));
 // Browser installation is an explicit CI/runtime step. This script never
 // downloads browsers or writes caches under the user's home directory.
@@ -1035,8 +1488,10 @@ try {
             errors.push(`External response delivered: ${response.url()}`);
         });
         await checkScope(page, report, "project");
+        if (profile === profiles[0]) report.currencyPalette = await checkCurrencyPalette(page);
         await checkScope(page, report, "shared");
         await checkApiKeys(page, report);
+        await checkCategories(page, report);
         fixture.assertClean();
         assert.deepEqual(errors, [], `${engine}/${profile.name}: browser errors`);
         report.requests = fixture.getRequests();

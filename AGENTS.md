@@ -1,5 +1,68 @@
 # Pullwise Web
 
+## Pending operations and member role controls (2026-10-09)
+
+Project, Shared Pool, Categories and Projects mutations keep conflicting
+controls disabled and visibly muted through their required read refresh. An
+expense and recurring schedule share a synchronous page operation guard; do
+not release it between an accepted write and a queued refresh. Preserve drafts
+on write failure and release guards on error, lost access, scope changes and
+unmount, without letting a stale completion release a newer operation.
+Disable editing, destructive actions, cancel, refresh/pagination, filters,
+CSV and internal route/ledger switching during writes. Keep view tabs,
+disclosures, scrolling, copying, external new-tab links, theme/language and
+pane resizing available. Read-only refreshes block dependent mutations but
+allow navigation and filter refinement. Disabled links remove href and block
+keyboard/modifier/auxiliary activation; native disabled inputs retain readable
+text and their platform behavior in both themes.
+
+Apply the same write visibility to API Key name/scopes/restrictions, Billing
+mutations and Settings GitHub authorization/sign-out. Settings must track busy
+independently of an installation ID, since Connect/Add use no ID. Preserve
+Billing's required refresh and block modal Escape cancellation during writes.
+Pricing's month/year selector is disabled during checkout creation. Retain
+one-time-key handling, payment consent, OAuth and access/revision contracts;
+these UI locks must not introduce new writes or automatic retries.
+
+Members roles stay in the existing role column with a lock icon and native
+dropdown. Default locked; unlock permits a selection, which saves immediately
+and locks again after the required member refresh. Failed writes retain the
+unlocked selection for explicit retry. Keep owner/admin permissions and
+revision/access guards. Do not add a nested role editor or stretch other rows.
+The invitation management rail is shown only with completed member loading;
+hide it during initial reads, reloads and post-write reads. Check pending-write
+and pending-read stages separately with finite synthetic local fixtures.
+
+## Currency identity colors (2026-10-09)
+
+All ISO currency badges share `CurrencyBadge`, including financial values and
+report captions. Fixed common-code colors live in `styles/base.css`; retain
+stable code identity across expense, recurring, project-total and report views.
+Unknown codes use a neutral label. Keep plain currency text, monetary precision,
+native copying and numeric emphasis unchanged; do not infer or normalize codes
+from formatted text or localize provider values. Use explicit light/dark badge
+colors with at least 4.5:1 text contrast and broadly supported CSS syntax.
+The persistent layout check verifies actual code attributes plus every built-in
+palette and neutral fallback in both themes without additional API requests.
+Publish Web preview only after the shared layout and mixed-currency checks.
+
+## Category title rename (2026-10-09)
+
+Ordinary project and Shared Pool expense rows place their exact amount above a
+horizontal action group, matching recurring records. Use the same 12px vertical
+gap and right alignment on wide lists; narrow lists align the stack at the start.
+Keep financial precision/copying, record heights and confirmation flows intact.
+
+Categories use an accessible pencil directly beside each active category title;
+remove the separate right-hand Rename text action. The name input replaces the
+title in the left record area, with Save/Cancel controls that wrap naturally.
+Retain archived/viewer restrictions, exact category identity/revision/color,
+drafts and pending-save locking. Cancel/Escape and successful saves return focus
+to the pencil; failed saves retain the draft and restore its input focus.
+Reject whitespace-only names and keep the existing 80-character bound. Validate
+long unspaced names, 44px coarse-pointer targets, narrow layouts and resizable
+creation rails in the shared persistent browser check. Publish Web preview only.
+
 ## Expense presentation and recurring side editor (2026-10-09)
 
 Project detail groups repository status and safe development/product shortcuts
@@ -175,8 +238,8 @@ Flat console records share stable 16px inline insets in `base.css`, including
 Projects, members/invitations, categories, expenses, keys, billing records and
 GitHub installations. Row owners set block density only; first rows retain
 their full vertical inset. Hover changes background only and excludes loading
-skeletons. Members role editors use a compact neutral nested control group,
-with aligned fields/actions and container-based mobile wrapping.
+skeletons. Members role selectors and lock icons stay in their role column,
+with stable control height and container-based mobile wrapping.
 All console screens use `ConsoleLayout`; its navigation width is shared within
 the signed-in tab, defaults to 220px, ranges from 180 to 320px and preserves at
 least 660px for main content. All creation/entry splits use `LedgerSplit`; the

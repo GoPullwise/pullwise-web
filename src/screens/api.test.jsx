@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { createLedgerApi } from "../api/ledger.js";
 import { NotificationProvider } from "../components/notifications.jsx";
+import { WorkspaceContext } from "../components/workspace-context.jsx";
 import { env } from "../config/env.js";
 import { ApiKeysScreen } from "./api.jsx";
 import { ApiDocsScreen } from "./api-docs.jsx";
@@ -390,6 +391,123 @@ describe("API screens", () => {
 
     expect(pullwiseApi.apiKeys.revoke).toHaveBeenCalledTimes(1);
     expect(pullwiseApi.apiKeys.create).not.toHaveBeenCalled();
+  });
+
+  it("locks the submitted API key draft and navigation until a failed creation settles", async () => {
+    const creation = deferredPromise();
+    const go = vi.fn();
+    const onSelect = vi.fn();
+    const own = workspaceFixture("wsp_own", { role: "owner" });
+    const other = workspaceFixture("wsp_other");
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_existing", name: "Existing key", prefix: "pwk_existing" }],
+    });
+    pullwiseApi.apiKeys.create.mockReturnValue(creation.promise);
+    const user = userEvent.setup();
+    render(
+      <WorkspaceContext.Provider value={{ workspace: own, items: [own, other], onSelect }}>
+        <ApiKeysScreen go={go} />
+      </WorkspaceContext.Provider>
+    );
+    const create = await screen.findByRole("button", { name: "Create key" });
+    const name = screen.getByLabelText("Key name");
+    const writeScope = screen.getByRole("checkbox", { name: /manage expenses/i });
+    await user.clear(name);
+    await user.type(name, "Deployment key");
+    await user.click(writeScope);
+    await user.click(create);
+
+    expect(name).toBeDisabled();
+    for (const checkbox of screen.getAllByRole("checkbox")) expect(checkbox).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeDisabled();
+    const docs = screen.getByRole("link", { name: "API docs" });
+    const ledger = screen.getByRole("combobox", { name: "Select ledger" });
+    expect(docs).toHaveAttribute("aria-disabled", "true");
+    expect(docs).not.toHaveAttribute("href");
+    expect(ledger).toBeDisabled();
+    expect(screen.getByRole("status", { name: "Loading" })).toHaveClass("topbar-loading");
+    fireEvent.change(name, { target: { value: "Unsaved replacement" } });
+    fireEvent.click(writeScope);
+    fireEvent.change(ledger, { target: { value: other.id } });
+    fireEvent.click(docs);
+    fireEvent.submit(create.closest("form"));
+    expect(name).toHaveValue("Deployment key");
+    expect(writeScope).toBeChecked();
+    expect(go).not.toHaveBeenCalled();
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledOnce();
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Deployment key",
+        scopes: expect.arrayContaining(["expenses:write"]),
+      })
+    );
+
+    await act(async () => creation.reject(new Error("Creation unavailable")));
+    await waitFor(() => expect(create).toBeEnabled());
+    expect(name).toBeEnabled();
+    expect(name).toHaveValue("Deployment key");
+    expect(writeScope).toBeChecked();
+    expect(docs).toHaveAttribute("href", "/developers/api");
+    expect(ledger).toBeEnabled();
+    expect(screen.queryByRole("status", { name: "Loading" })).not.toBeInTheDocument();
+    expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
+  });
+
+  it("keeps revocation locked against Escape and read retries while token copying stays available", async () => {
+    const revocation = deferredPromise();
+    pullwiseApi.apiKeys.list.mockResolvedValue({
+      apiKeys: [{ id: "key_existing", name: "Existing key", prefix: "pwk_existing" }],
+    });
+    pullwiseApi.apiKeys.create.mockResolvedValue({
+      id: "key_created",
+      name: "Created key",
+      prefix: "pwk_created",
+      key: "pwk_visible_secret",
+    });
+    pullwiseApi.apiKeys.revoke.mockReturnValue(revocation.promise);
+    const user = userEvent.setup();
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error("Clipboard unavailable")) },
+    });
+    try {
+      render(<ApiKeysScreen go={vi.fn()} />);
+      await user.click(await screen.findByRole("button", { name: "Create key" }));
+      await screen.findByText("pwk_visible_secret");
+      const existing = screen.getByText("Existing key").closest(".key-row");
+      await user.click(within(existing).getByRole("button", { name: "Revoke" }));
+      const dialog = await screen.findByRole("dialog", { name: "Revoke API key?" });
+      await user.click(within(dialog).getByRole("button", { name: "Confirm revoke" }));
+      for (const cancel of within(dialog).getAllByRole("button", { name: "Cancel" }))
+        expect(cancel).toBeDisabled();
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(dialog).toBeInTheDocument();
+      const copy = screen.getByRole("button", { name: "Copy" });
+      expect(copy).toBeEnabled();
+      await user.click(copy);
+      const retry = await screen.findByRole("button", { name: "Retry" });
+      expect(retry).toBeDisabled();
+      fireEvent.click(retry);
+      expect(pullwiseApi.apiKeys.list).toHaveBeenCalledOnce();
+      expect(screen.getByRole("button", { name: "Create key" })).toBeDisabled();
+
+      await act(async () => revocation.resolve());
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(screen.getByRole("button", { name: "Create key" })).toBeEnabled();
+      expect(screen.getByRole("link", { name: "API docs" })).toHaveAttribute(
+        "href",
+        "/developers/api"
+      );
+      expect(screen.getByText("pwk_visible_secret")).toBeInTheDocument();
+      expect(screen.queryByText("Existing key")).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: originalClipboard,
+      });
+    }
   });
 
   it("retains malformed created-key metadata for revocation when the one-time token is missing", async () => {

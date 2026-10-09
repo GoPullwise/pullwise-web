@@ -319,7 +319,7 @@ export function InvitationInboxProvider({
   );
 }
 
-export function InvitationInboxButton() {
+export function InvitationInboxButton({ disabled = false }) {
   useLang();
   const inbox = useContext(InboxContext);
   if (!inbox) return null;
@@ -327,6 +327,7 @@ export function InvitationInboxButton() {
     <button
       className="btn sm"
       type="button"
+      disabled={disabled}
       aria-label={title()}
       title={title()}
       onClick={inbox.open}

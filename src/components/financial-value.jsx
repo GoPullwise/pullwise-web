@@ -14,6 +14,14 @@ function GroupedValue({ text }) {
   ));
 }
 
+export function CurrencyBadge({ currency }) {
+  return (
+    <span className="financial-value-currency" data-currency={currency}>
+      {currency}
+    </span>
+  );
+}
+
 // Formatting and validity belong to the caller. A declared currency identifies
 // its exact prefix; arbitrary text, precision and monetary arithmetic stay intact.
 export function FinancialValue({ value, currency, numeric = true, className = "" }) {
@@ -32,7 +40,7 @@ export function FinancialValue({ value, currency, numeric = true, className = ""
     >
       {money ? (
         <>
-          <span className="financial-value-currency">{currency}</span>{" "}
+          <CurrencyBadge currency={currency} />{" "}
           <span className="financial-value-number">
             <GroupedValue text={text.slice(currencyPrefix.length)} />
           </span>

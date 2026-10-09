@@ -226,18 +226,21 @@ export function RecurringExpenses({
   disabled = false,
   reloadSignal,
   onAccessChanged,
+  beginOperation,
   renderExpenseForm,
   formatTotal,
 }) {
   useLang();
   const key = scopeKey(target);
   const live = useRef(null);
-  live.current = { api, key, canManage, disabled, onAccessChanged };
+  live.current = { api, key, canManage, disabled, onAccessChanged, beginOperation };
   const mounted = useRef(false);
   const readController = useRef(null);
   const mutationController = useRef(null);
   const readSequence = useRef(0);
   const actionPending = useRef(false);
+  const readPending = useRef(false);
+  const operationRelease = useRef(null);
   const refreshPending = useRef(false);
   const needsReload = useRef(false);
   const cursors = useRef(new Set());
@@ -265,6 +268,12 @@ export function RecurringExpenses({
   const visible = records.api === api && records.key === key;
   const items = visible ? records.items : [];
   const nextCursor = visible ? records.nextCursor : null;
+  const finishOperation = useCallback((operation = operationRelease.current) => {
+    if (!operation || operation.finished) return;
+    operation.finished = true;
+    if (operationRelease.current === operation) operationRelease.current = null;
+    operation.release?.();
+  }, []);
 
   const loseAccess = useCallback(
     (scope, error) => {
@@ -278,19 +287,21 @@ export function RecurringExpenses({
       setLoading(false);
       setBusy(false);
       actionPending.current = false;
+      readPending.current = false;
       refreshPending.current = false;
       needsReload.current = true;
       pendingFocus.current = null;
+      finishOperation();
       live.current.onAccessChanged?.(error);
     },
-    [current]
+    [current, finishOperation]
   );
 
   const load = useCallback(
-    async ({ append = false, explicit = false } = {}) => {
+    async ({ append = false, explicit = false, allowDuringMutation = false } = {}) => {
       const scope = { api, key, canManage };
       if (!current(scope) || !key) return;
-      if (actionPending.current) {
+      if (actionPending.current && !allowDuringMutation) {
         refreshPending.current = true;
         return;
       }
@@ -306,6 +317,7 @@ export function RecurringExpenses({
       const controller = new AbortController();
       readController.current = controller;
       const sequence = ++readSequence.current;
+      readPending.current = true;
       setLoading(true);
       if (append) setPageError("");
       else setReadError("");
@@ -358,7 +370,10 @@ export function RecurringExpenses({
         if (append) setPageError(T("More schedules could not be loaded. Retry to continue."));
         else setReadError(T("Recurring schedules could not be loaded. Reload to try again."));
       } finally {
-        if (current(scope) && sequence === readSequence.current) setLoading(false);
+        if (current(scope) && sequence === readSequence.current) {
+          readPending.current = false;
+          setLoading(false);
+        }
       }
     },
     [api, key, canManage, current, loseAccess, records.nextCursor, target]
@@ -370,6 +385,7 @@ export function RecurringExpenses({
   useEffect(() => {
     mounted.current = true;
     actionPending.current = false;
+    readPending.current = false;
     refreshPending.current = false;
     needsReload.current = false;
     mutationController.current = null;
@@ -387,8 +403,9 @@ export function RecurringExpenses({
       readController.current?.abort();
       mutationController.current?.abort();
       readSequence.current += 1;
+      finishOperation();
     };
-  }, [api, key, canManage]);
+  }, [api, key, canManage, finishOperation]);
   const previousReload = useRef(reloadSignal);
   useEffect(() => {
     if (previousReload.current === reloadSignal) return;
@@ -397,7 +414,7 @@ export function RecurringExpenses({
   }, [reloadSignal]);
 
   useLayoutEffect(() => {
-    if (busy || disabled) return;
+    if (busy || loading || disabled) return;
     if (editor && editorFocus.current) {
       editorFocus.current = false;
       editorRef.current?.querySelector('input[type="date"]')?.focus();
@@ -407,7 +424,7 @@ export function RecurringExpenses({
       const opener = openers.current.get(`${id}:${action}`);
       (opener && !opener.disabled ? opener : reloadRef.current)?.focus();
     }
-  }, [editor, confirmation, busy, disabled, records]);
+  }, [editor, confirmation, busy, loading, disabled, records]);
 
   const mutate = async (rule, kind, fields) => {
     const scope = { api, key, canManage };
@@ -417,10 +434,15 @@ export function RecurringExpenses({
       !scope.canManage ||
       !(kind === "delete" ? canDelete(rule) : canChange(rule)) ||
       actionPending.current ||
+      readPending.current ||
       needsReload.current ||
       !sameTarget(rule.target, target)
     )
       return;
+    const release = live.current.beginOperation?.();
+    if (release === false) return;
+    const operation = { release: typeof release === "function" ? release : null, finished: false };
+    operationRelease.current = operation;
     actionPending.current = true;
     readController.current?.abort();
     readSequence.current += 1;
@@ -470,18 +492,30 @@ export function RecurringExpenses({
         mutationController.current === controller &&
         !controller.signal.aborted
       ) {
-        actionPending.current = false;
-        setBusy(false);
-        if (refreshPending.current) {
-          refreshPending.current = false;
-          loadRef.current();
+        try {
+          // Keep both the local write guard and the parent's admitted operation
+          // until every refresh queued by a reload signal has settled.
+          while (refreshPending.current && current(scope) && !controller.signal.aborted) {
+            refreshPending.current = false;
+            await loadRef.current({ allowDuringMutation: true });
+          }
+        } finally {
+          if (
+            current(scope) &&
+            mutationController.current === controller &&
+            !controller.signal.aborted
+          ) {
+            actionPending.current = false;
+            setBusy(false);
+          }
+          finishOperation(operation);
         }
-      }
+      } else finishOperation(operation);
     }
   };
 
   const close = (rule, action) => {
-    if (actionPending.current || live.current.disabled) return;
+    if (actionPending.current || readPending.current || live.current.disabled) return;
     pendingFocus.current = { id: rule.id, action };
     setEditor(null);
     setConfirmation(null);
@@ -490,7 +524,7 @@ export function RecurringExpenses({
     if (node) openers.current.set(`${id}:${action}`, node);
     else openers.current.delete(`${id}:${action}`);
   };
-  const blocked = busy || disabled;
+  const blocked = busy || loading || disabled;
   const activeEditor =
     visible && canManage && items.some((rule) => rule.id === editor?.rule.id) ? editor : null;
   if (!key) return null;
@@ -601,7 +635,12 @@ export function RecurringExpenses({
                               ref={ref(rule.id, "edit")}
                               disabled={blocked || needsReload.current}
                               onClick={() => {
-                                if (actionPending.current || live.current.disabled) return;
+                                if (
+                                  actionPending.current ||
+                                  readPending.current ||
+                                  live.current.disabled
+                                )
+                                  return;
                                 pendingFocus.current = null;
                                 setConfirmation(null);
                                 if (edit) {
@@ -623,7 +662,12 @@ export function RecurringExpenses({
                             ref={ref(rule.id, "delete")}
                             disabled={blocked || needsReload.current}
                             onClick={() => {
-                              if (actionPending.current || live.current.disabled) return;
+                              if (
+                                actionPending.current ||
+                                readPending.current ||
+                                live.current.disabled
+                              )
+                                return;
                               pendingFocus.current = null;
                               setEditor(null);
                               setConfirmation(rule);

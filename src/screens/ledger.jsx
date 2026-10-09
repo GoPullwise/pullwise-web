@@ -166,9 +166,11 @@ function formatRecurringTotal(rule) {
     : T("Unavailable");
 }
 
-function LedgerFilters({ filters, onChange, categories = [] }) {
+function LedgerFilters({ filters, onChange, categories = [], disabled = false }) {
   const fieldId = useId();
-  const update = (name, value) => onChange((old) => ({ ...old, [name]: value }));
+  const update = (name, value) => {
+    if (!disabled) onChange((old) => ({ ...old, [name]: value }));
+  };
   return (
     <div className="ledger-filters">
       <div className="ledger-field">
@@ -176,6 +178,7 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
         <input
           id={`${fieldId}-from`}
           type="date"
+          disabled={disabled}
           value={filters.from}
           onChange={(event) => update("from", event.target.value)}
         />
@@ -185,6 +188,7 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
         <input
           id={`${fieldId}-before`}
           type="date"
+          disabled={disabled}
           value={filters.to}
           min={filters.from || undefined}
           onChange={(event) => update("to", event.target.value)}
@@ -193,6 +197,7 @@ function LedgerFilters({ filters, onChange, categories = [] }) {
       <div className="ledger-field">
         <label htmlFor={`${fieldId}-category`}>{T("Filter category")}</label>
         <select
+          disabled={disabled}
           id={`${fieldId}-category`}
           value={filters.categoryId}
           onChange={(event) => update("categoryId", event.target.value)}
@@ -220,6 +225,8 @@ function LedgerViewToolbar({
   expanded,
   onExpandedChange,
   exportHref,
+  disabled = false,
+  exportDisabled = false,
 }) {
   const filterCount = Object.values(filters).filter(Boolean).length;
   const filtersId = `${id}-filters`;
@@ -256,18 +263,39 @@ function LedgerViewToolbar({
             <button
               className="btn ghost"
               type="button"
-              onClick={() => onFiltersChange({ from: "", to: "", categoryId: "" })}
+              disabled={disabled}
+              onClick={() => {
+                if (!disabled) onFiltersChange({ from: "", to: "", categoryId: "" });
+              }}
             >
               {T("Clear filters", "清除筛选")}
             </button>
           )}
-          <a className="btn ghost" href={exportHref} download="expenses.csv">
+          <a
+            className="btn ghost"
+            href={exportDisabled ? undefined : exportHref}
+            download={exportDisabled ? undefined : "expenses.csv"}
+            role={exportDisabled ? "link" : undefined}
+            aria-disabled={exportDisabled || undefined}
+            tabIndex={exportDisabled ? -1 : undefined}
+            onClick={(event) => {
+              if (exportDisabled) event.preventDefault();
+            }}
+            onAuxClick={(event) => {
+              if (exportDisabled) event.preventDefault();
+            }}
+          >
             <I.Download size={14} aria-hidden="true" /> {T("Export CSV")}
           </a>
         </div>
       </div>
       <div className="ledger-filter-strip" id={filtersId} hidden={view === "settings" || !expanded}>
-        <LedgerFilters filters={filters} onChange={onFiltersChange} categories={categories} />
+        <LedgerFilters
+          filters={filters}
+          onChange={onFiltersChange}
+          categories={categories}
+          disabled={disabled}
+        />
       </div>
     </>
   );
@@ -475,13 +503,16 @@ function ProjectLinkFields({ developmentUrl, productUrl, onChange, disabled }) {
   );
 }
 
-function ProjectListRow({ project, go }) {
+function ProjectListRow({ project, go, navigationDisabled = false }) {
   const productHref = projectUrlHref(project.productUrl);
   return (
     <article className="ledger-project-row">
       <div className="ledger-row-main">
         <h2>
-          <a draggable={false} {...screenLinkProps(go, "ledgerProject", { id: project.id })}>
+          <a
+            draggable={false}
+            {...screenLinkProps(go, "ledgerProject", { id: project.id }, navigationDisabled)}
+          >
             {projectLabel(project)}
           </a>
         </h2>
@@ -612,6 +643,7 @@ function ExpenseForm({
   );
   const submit = async (event) => {
     event.preventDefault();
+    if (busy || submitDisabled) return;
     if (
       !draft.occurredOn ||
       !draft.amount ||
@@ -848,8 +880,12 @@ function ScopedLedgerScreen({
   const [loadedRequest, setLoadedRequest] = useState(0);
   const [filters, setFilters] = useState({ from: "", to: "", categoryId: "" });
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [parentBusy, setBusy] = useState(false);
+  const [recurringBusy, setRecurringBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const writing = parentBusy || recurringBusy;
+  const busy = writing || loadingMore;
+  const blocked = busy || loading;
   const [repositoryLoading, setRepositoryLoading] = useState(false);
   const [description, setDescription] = useState("");
   const [developmentUrl, setDevelopmentUrl] = useState("");
@@ -882,6 +918,10 @@ function ScopedLedgerScreen({
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
   const inFlight = useRef(false);
+  const writeRefreshPending = useRef(false);
+  const recurringOperation = useRef(null);
+  const readingGuard = useRef(false);
+  readingGuard.current = loading || loadingMore;
   const requestId = useRef(0);
   const moreController = useRef(null);
   const repositoryController = useRef(null);
@@ -893,11 +933,26 @@ function ScopedLedgerScreen({
   const expenseOpenerRef = useRef(null);
   const restoreExpenseFocus = useRef(false);
   const categoryEditorRowRef = useRef(null);
+  const categoryEditorInputRef = useRef(null);
+  const restoreCategoryDraftFocus = useRef(false);
   const restoreCategoryFocus = useRef(false);
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
+    };
+  }, []);
+  const beginRecurringOperation = useCallback(() => {
+    if (inFlight.current || readingGuard.current || !mounted.current) return false;
+    inFlight.current = true;
+    const operation = {};
+    recurringOperation.current = operation;
+    setRecurringBusy(true);
+    return () => {
+      if (recurringOperation.current !== operation) return;
+      recurringOperation.current = null;
+      inFlight.current = false;
+      if (mounted.current) setRecurringBusy(false);
     };
   }, []);
   useEffect(() => {
@@ -911,11 +966,18 @@ function ScopedLedgerScreen({
     }
   }, [editing, creatingExpense]);
   useEffect(() => {
-    if (!categoryEdit && restoreCategoryFocus.current) {
-      categoryEditorRowRef.current?.querySelector("button")?.focus({ preventScroll: true });
+    if (!categoryEdit) restoreCategoryDraftFocus.current = false;
+    else if (!blocked && restoreCategoryDraftFocus.current) {
+      categoryEditorInputRef.current?.focus({ preventScroll: true });
+      restoreCategoryDraftFocus.current = false;
+    }
+    if (!categoryEdit && !blocked && restoreCategoryFocus.current) {
+      categoryEditorRowRef.current
+        ?.querySelector("[data-category-rename]")
+        ?.focus({ preventScroll: true });
       restoreCategoryFocus.current = false;
     }
-  }, [categoryEdit]);
+  }, [categoryEdit, blocked]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -975,6 +1037,7 @@ function ScopedLedgerScreen({
       setCategoryEdit(null);
       setConfirmCategoryId("");
       categoryEditorRowRef.current = null;
+      restoreCategoryDraftFocus.current = false;
       restoreCategoryFocus.current = false;
     }
     loadedScope.current = scope;
@@ -1057,6 +1120,11 @@ function ScopedLedgerScreen({
       .finally(() => {
         if (!controller.signal.aborted && request === requestId.current) {
           setLoading(false);
+          if (writeRefreshPending.current) {
+            writeRefreshPending.current = false;
+            inFlight.current = false;
+            if (mounted.current) setBusy(false);
+          }
         }
       });
     return () => {
@@ -1195,7 +1263,7 @@ function ScopedLedgerScreen({
   };
 
   const action = async (callback) => {
-    if (inFlight.current) return;
+    if (inFlight.current || readingGuard.current) return false;
     inFlight.current = true;
     setBusy(true);
     setActionError("");
@@ -1203,6 +1271,8 @@ function ScopedLedgerScreen({
     try {
       await callback();
       if (request !== requestId.current) return false;
+      writeRefreshPending.current = true;
+      setLoading(true);
       reload();
       return true;
     } catch (failure) {
@@ -1222,13 +1292,15 @@ function ScopedLedgerScreen({
       }
       return false;
     } finally {
-      inFlight.current = false;
-      if (mounted.current) setBusy(false);
+      if (!writeRefreshPending.current) {
+        inFlight.current = false;
+        if (mounted.current) setBusy(false);
+      }
     }
   };
 
   const reconnectGitHub = async () => {
-    if (inFlight.current) return;
+    if (inFlight.current || readingGuard.current) return;
     inFlight.current = true;
     setBusy(true);
     setActionError("");
@@ -1405,6 +1477,7 @@ function ScopedLedgerScreen({
         .includes(projectSearch.trim().toLowerCase())
     ) || [];
   useEffect(() => {
+    if (blocked) return;
     if (!addingProject && restoreProjectFocus.current) {
       restoreProjectFocus.current = false;
       projectOpenerRef.current?.focus();
@@ -1414,7 +1487,7 @@ function ScopedLedgerScreen({
     const control = panel?.querySelector("input, select, button");
     panel?.scrollIntoView?.({ block: "center" });
     control?.focus({ preventScroll: true });
-  }, [addingProject, showProjectForm]);
+  }, [addingProject, showProjectForm, blocked]);
   const startAddingProject = () => {
     if (busy || loading) return;
     setAddingProject(true);
@@ -1426,16 +1499,18 @@ function ScopedLedgerScreen({
     <div className="app product-workspace ledger-screen fade-in">
       <Topbar
         go={go}
+        navigationDisabled={writing}
         breadcrumbs={
           mode === "project"
             ? [{ label: T("Projects"), go: "ledgerProjects" }, { label: title }]
             : [{ label: title }]
         }
-        loading={loading}
+        loading={loading || busy || repositoryLoading}
       />
       <ConsoleLayout>
         <Sidebar
           go={go}
+          navigationDisabled={writing}
           section={
             mode === "shared"
               ? "ledgerShared"
@@ -1444,7 +1519,7 @@ function ScopedLedgerScreen({
                 : "ledgerProjects"
           }
         />
-        <main className={`main ledger-${mode}`}>
+        <main className={`main ledger-${mode}`} aria-busy={writing}>
           <div className="page-h">
             <div className={mode === "project" ? "ledger-project-identity" : undefined}>
               <h1>{title}</h1>
@@ -1478,7 +1553,7 @@ function ScopedLedgerScreen({
               {canManageProjects && mode === "projects" && data?.projects.items.length > 0 && (
                 <button
                   className="btn primary"
-                  disabled={busy || loading || addingProject}
+                  disabled={blocked || addingProject}
                   aria-expanded={showProjectForm}
                   aria-controls="add-repository"
                   onClick={(event) => {
@@ -1494,7 +1569,7 @@ function ScopedLedgerScreen({
                   className="btn primary"
                   aria-expanded={showExpenseForm}
                   aria-controls="expense-form"
-                  disabled={busy || loading || (showExpenseForm && view === "expenses")}
+                  disabled={blocked || (showExpenseForm && view === "expenses")}
                   onClick={(event) => {
                     if (!showExpenseForm) {
                       expenseOpenerRef.current = event.currentTarget;
@@ -1511,7 +1586,7 @@ function ScopedLedgerScreen({
                 </button>
               )}
               {mode === "project" && (
-                <a className="btn ghost" {...screenLinkProps(go, "ledgerProjects")}>
+                <a className="btn ghost" {...screenLinkProps(go, "ledgerProjects", {}, writing)}>
                   <I.ArrowL size={14} /> {T("Back to projects", "返回项目列表")}
                 </a>
               )}
@@ -1522,7 +1597,7 @@ function ScopedLedgerScreen({
                   projectSettingsDirty.current = false;
                   reload();
                 }}
-                disabled={loading || busy}
+                disabled={loading || writing}
                 aria-label={T("Reload")}
                 title={T("Reload")}
               >
@@ -1538,7 +1613,7 @@ function ScopedLedgerScreen({
           {error && (
             <div role="alert" className="notice">
               {error}{" "}
-              <button className="btn" onClick={reload}>
+              <button className="btn" disabled={blocked} onClick={reload}>
                 {T("Retry")}
               </button>
             </div>
@@ -1595,7 +1670,7 @@ function ScopedLedgerScreen({
           {data && mode === "projects" && data.repositoryError && (
             <div role="alert" className="notice">
               <p>{errorText(data.repositoryError)}</p>
-              <button className="btn" disabled={busy || loading} onClick={retryRepositories}>
+              <button className="btn" disabled={blocked} onClick={retryRepositories}>
                 {T("Check repository access", "检查仓库授权")}
               </button>
             </div>
@@ -1607,11 +1682,7 @@ function ScopedLedgerScreen({
                 <p>
                   {errorText({ payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } } })}
                 </p>
-                <button
-                  className="btn primary"
-                  disabled={busy || loading}
-                  onClick={reconnectGitHub}
-                >
+                <button className="btn primary" disabled={blocked} onClick={reconnectGitHub}>
                   {T("Reconnect GitHub", "重新连接 GitHub")}
                 </button>
               </div>
@@ -1648,7 +1719,7 @@ function ScopedLedgerScreen({
                       <span className="setup-number">02</span>
                       <div>
                         <strong>
-                          <a {...screenLinkProps(go, "ledgerCategories")}>
+                          <a {...screenLinkProps(go, "ledgerCategories", {}, writing)}>
                             {T("Create categories")} <I.ArrowR size={12} />
                           </a>
                         </strong>
@@ -1738,14 +1809,19 @@ function ScopedLedgerScreen({
                     )}
                     <div className="ledger-list">
                       {matchingProjects.map((project) => (
-                        <ProjectListRow key={project.id} project={project} go={go} />
+                        <ProjectListRow
+                          key={project.id}
+                          project={project}
+                          go={go}
+                          navigationDisabled={writing}
+                        />
                       ))}
                     </div>
                     {data.projects.nextCursor && (
                       <div className="panel-actions">
                         <button
                           className="btn"
-                          disabled={loadingMore}
+                          disabled={blocked}
                           onClick={() => loadMore("projects")}
                         >
                           {T("Load more projects")}
@@ -1818,7 +1894,7 @@ function ScopedLedgerScreen({
                           value={projectName}
                           required
                           maxLength={120}
-                          disabled={busy}
+                          disabled={blocked}
                           onChange={(event) => setProjectName(event.target.value)}
                         />
                       </div>
@@ -1834,7 +1910,7 @@ function ScopedLedgerScreen({
                               "What are you building? (optional)",
                               "这个项目是做什么的？（选填）"
                             )}
-                            disabled={busy}
+                            disabled={blocked}
                             onChange={(event) => setDescription(event.target.value)}
                           />
                         </div>
@@ -1845,7 +1921,7 @@ function ScopedLedgerScreen({
                           <ProjectLinkFields
                             developmentUrl={developmentUrl}
                             productUrl={productUrl}
-                            disabled={busy}
+                            disabled={blocked}
                             onChange={(field, value) =>
                               field === "developmentUrl"
                                 ? setDevelopmentUrl(value)
@@ -1880,7 +1956,7 @@ function ScopedLedgerScreen({
                               <select
                                 id={organizationFieldId}
                                 value={organizationId}
-                                disabled={busy || repositoryLoading || needsGitHubReconnect}
+                                disabled={blocked || repositoryLoading || needsGitHubReconnect}
                                 onChange={(event) => {
                                   setOrganizationId(event.target.value);
                                   setSelectedRepo("");
@@ -1916,7 +1992,7 @@ function ScopedLedgerScreen({
                                       : ""
                                   }
                                   required={linkRepositories}
-                                  disabled={busy || repositoryLoading}
+                                  disabled={blocked || repositoryLoading}
                                   onChange={(event) => setSelectedRepo(event.target.value)}
                                 >
                                   <option value="">{T("Choose a repository", "选择仓库")}</option>
@@ -1992,7 +2068,7 @@ function ScopedLedgerScreen({
                               <button
                                 className="btn"
                                 type="button"
-                                disabled={busy || loadingMore || repositoryLoading}
+                                disabled={blocked || repositoryLoading}
                                 onClick={() => loadMore("repositories")}
                               >
                                 {T("Load more repositories")}
@@ -2032,7 +2108,7 @@ function ScopedLedgerScreen({
                           <button
                             className="btn ghost"
                             type="button"
-                            disabled={busy}
+                            disabled={blocked}
                             onClick={() => {
                               restoreProjectFocus.current = true;
                               setAddingProject(false);
@@ -2070,9 +2146,101 @@ function ScopedLedgerScreen({
                 )}
                 <div className="ledger-list">
                   {data.categories.map((category) => (
-                    <article className="ledger-category-row" key={category.id}>
+                    <article
+                      className={
+                        canManageCategories && categoryEdit?.id === category.id
+                          ? "ledger-category-row is-editing"
+                          : "ledger-category-row"
+                      }
+                      key={category.id}
+                    >
                       <div className="ledger-row-main">
-                        <h3>{category.name}</h3>
+                        {canManageCategories && categoryEdit?.id === category.id ? (
+                          <form
+                            className="ledger-actions ledger-category-editor"
+                            onKeyDown={(event) => {
+                              if (event.key === "Escape" && !blocked) {
+                                event.preventDefault();
+                                restoreCategoryFocus.current = true;
+                                setCategoryEdit(null);
+                              }
+                            }}
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              if (!categoryEdit.name.trim()) return;
+                              restoreCategoryDraftFocus.current = true;
+                              action(() =>
+                                api.updateCategory(
+                                  category.id,
+                                  category.revision,
+                                  { name: categoryEdit.name.trim(), color: category.color },
+                                  {}
+                                )
+                              ).then((ok) => {
+                                if (ok) {
+                                  restoreCategoryFocus.current = true;
+                                  setCategoryEdit(null);
+                                }
+                              });
+                            }}
+                          >
+                            <input
+                              ref={categoryEditorInputRef}
+                              aria-label={T("New category name")}
+                              autoFocus
+                              value={categoryEdit.name}
+                              required
+                              maxLength={80}
+                              disabled={blocked}
+                              onChange={(event) =>
+                                setCategoryEdit({ id: category.id, name: event.target.value })
+                              }
+                            />
+                            <button
+                              className="btn primary"
+                              type="submit"
+                              disabled={blocked || !categoryEdit.name.trim()}
+                            >
+                              {T("Save category")}
+                            </button>
+                            <button
+                              className="btn ghost sm"
+                              type="button"
+                              disabled={blocked}
+                              onClick={() => {
+                                restoreCategoryFocus.current = true;
+                                setCategoryEdit(null);
+                              }}
+                            >
+                              {T("Cancel")}
+                            </button>
+                          </form>
+                        ) : (
+                          <div className="ledger-category-title">
+                            <h3 id={`${viewId}-category-${category.id}`}>{category.name}</h3>
+                            {canManageCategories &&
+                              !category.archivedAt &&
+                              confirmCategoryId !== category.id && (
+                                <button
+                                  className="btn ghost sm ledger-category-rename"
+                                  type="button"
+                                  data-category-rename
+                                  aria-label={T("Rename")}
+                                  aria-describedby={`${viewId}-category-${category.id}`}
+                                  title={T("Rename")}
+                                  disabled={blocked}
+                                  onClick={(event) => {
+                                    categoryEditorRowRef.current =
+                                      event.currentTarget.closest("article");
+                                    setConfirmCategoryId("");
+                                    setCategoryEdit({ id: category.id, name: category.name });
+                                  }}
+                                >
+                                  <I.Pencil size={15} aria-hidden="true" />
+                                </button>
+                              )}
+                          </div>
+                        )}
                         <p className="ledger-meta">
                           {category.archivedAt
                             ? T(
@@ -2082,75 +2250,15 @@ function ScopedLedgerScreen({
                             : T("Ready to use", "可用于记账")}
                         </p>
                       </div>
-                      {canManageCategories && categoryEdit?.id === category.id && (
-                        <form
-                          className="ledger-actions"
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            action(() =>
-                              api.updateCategory(
-                                category.id,
-                                category.revision,
-                                { name: categoryEdit.name.trim(), color: category.color },
-                                {}
-                              )
-                            ).then((ok) => {
-                              if (ok) {
-                                restoreCategoryFocus.current = true;
-                                setCategoryEdit(null);
-                              }
-                            });
-                          }}
-                        >
-                          <label>
-                            {T("New category name")}
-                            <input
-                              autoFocus
-                              value={categoryEdit.name}
-                              required
-                              maxLength={80}
-                              onChange={(event) =>
-                                setCategoryEdit({ id: category.id, name: event.target.value })
-                              }
-                            />
-                          </label>
-                          <button className="btn primary" type="submit" disabled={busy}>
-                            {T("Save category")}
-                          </button>
-                          <button
-                            className="btn ghost sm"
-                            type="button"
-                            onClick={() => {
-                              restoreCategoryFocus.current = true;
-                              setCategoryEdit(null);
-                            }}
-                          >
-                            {T("Cancel")}
-                          </button>
-                        </form>
-                      )}
                       {canManageCategories &&
                         !category.archivedAt &&
                         categoryEdit?.id !== category.id && (
                           <div className="ledger-actions">
-                            {confirmCategoryId !== category.id && (
-                              <button
-                                className="btn ghost sm"
-                                disabled={busy}
-                                onClick={(event) => {
-                                  categoryEditorRowRef.current =
-                                    event.currentTarget.closest("article");
-                                  setCategoryEdit({ id: category.id, name: category.name });
-                                }}
-                              >
-                                {T("Rename")}
-                              </button>
-                            )}
                             {confirmCategoryId === category.id ? (
                               <>
                                 <button
                                   className="btn"
-                                  disabled={busy}
+                                  disabled={blocked}
                                   onClick={() =>
                                     action(() =>
                                       api.archiveCategory(category.id, category.revision, {})
@@ -2163,7 +2271,7 @@ function ScopedLedgerScreen({
                                 </button>
                                 <button
                                   className="btn"
-                                  disabled={busy}
+                                  disabled={blocked}
                                   onClick={() => setConfirmCategoryId("")}
                                 >
                                   {T("Cancel")}
@@ -2172,7 +2280,7 @@ function ScopedLedgerScreen({
                             ) : (
                               <button
                                 className="btn ghost sm"
-                                disabled={busy}
+                                disabled={blocked}
                                 onClick={() => setConfirmCategoryId(category.id)}
                               >
                                 {T("Archive")}
@@ -2214,11 +2322,11 @@ function ScopedLedgerScreen({
                         maxLength={80}
                         placeholder={T("e.g. Hosting", "例如：托管")}
                         required
-                        disabled={busy}
+                        disabled={blocked}
                         onChange={(event) => setCategoryName(event.target.value)}
                       />
                     </label>
-                    <button className="btn primary" type="submit" disabled={busy}>
+                    <button className="btn primary" type="submit" disabled={blocked}>
                       {T("Add category")}
                     </button>
                   </form>
@@ -2247,6 +2355,8 @@ function ScopedLedgerScreen({
                 expanded={filtersExpanded}
                 onExpandedChange={setFiltersExpanded}
                 exportHref={exportHref}
+                disabled={writing}
+                exportDisabled={blocked}
               />
               {data.project?.status === "archived" && (
                 <div className="notice" role="status">
@@ -2280,7 +2390,7 @@ function ScopedLedgerScreen({
                 role="tabpanel"
                 id={`${viewId}-panel-expenses`}
                 aria-labelledby={`${viewId}-tab-expenses`}
-                aria-busy={loading}
+                aria-busy={loading || writing}
                 tabIndex={0}
                 hidden={view !== "expenses"}
               >
@@ -2304,7 +2414,11 @@ function ScopedLedgerScreen({
                           "Start by adding a category, such as Hosting or AI tools.",
                           "先添加一个分类，比如「托管」或「AI 工具」。"
                         )}{" "}
-                        <button className="btn" onClick={() => go("ledgerCategories")}>
+                        <button
+                          className="btn"
+                          disabled={writing}
+                          onClick={() => go("ledgerCategories")}
+                        >
                           {T("Manage categories")}
                         </button>
                       </p>
@@ -2339,6 +2453,7 @@ function ScopedLedgerScreen({
                         {canAddExpense && !showExpenseForm && !Object.keys(filtered).length && (
                           <button
                             className="btn primary"
+                            disabled={blocked}
                             onClick={(event) => {
                               expenseOpenerRef.current = event.currentTarget;
                               setEditing(null);
@@ -2374,7 +2489,7 @@ function ScopedLedgerScreen({
                               <div className="ledger-actions">
                                 <button
                                   className="btn ghost sm"
-                                  disabled={busy}
+                                  disabled={blocked}
                                   onClick={(event) => {
                                     expenseOpenerRef.current = event.currentTarget;
                                     setEditing(expense);
@@ -2387,14 +2502,14 @@ function ScopedLedgerScreen({
                                   <>
                                     <button
                                       className="btn ghost sm"
-                                      disabled={busy}
+                                      disabled={blocked}
                                       onClick={() => removeExpense(expense)}
                                     >
                                       {T("Confirm removal")}
                                     </button>
                                     <button
                                       className="btn"
-                                      disabled={busy}
+                                      disabled={blocked}
                                       onClick={() => setConfirmId("")}
                                     >
                                       {T("Cancel")}
@@ -2403,7 +2518,7 @@ function ScopedLedgerScreen({
                                 ) : (
                                   <button
                                     className="btn ghost sm"
-                                    disabled={busy}
+                                    disabled={blocked}
                                     onClick={() => setConfirmId(expense.id)}
                                     aria-label={`${T("Remove")} ${expense.purpose}`}
                                   >
@@ -2419,7 +2534,7 @@ function ScopedLedgerScreen({
                     {data.expenses.nextCursor && (
                       <button
                         className="btn"
-                        disabled={loadingMore}
+                        disabled={blocked}
                         onClick={() => loadMore("expenses")}
                       >
                         {T("Load more expenses")}
@@ -2439,7 +2554,11 @@ function ScopedLedgerScreen({
                             "先添加一个分类，比如「托管」或「AI 工具」。"
                           )}{" "}
                           {canManageCategories && (
-                            <button className="btn" onClick={() => go("ledgerCategories")}>
+                            <button
+                              className="btn"
+                              disabled={writing}
+                              onClick={() => go("ledgerCategories")}
+                            >
                               {T("Manage categories")}
                             </button>
                           )}
@@ -2458,7 +2577,7 @@ function ScopedLedgerScreen({
                         value={editing}
                         target={target}
                         categories={data.categories}
-                        busy={busy}
+                        busy={blocked}
                         onSubmit={saveExpense}
                         onCancel={() => {
                           setEditing(null);
@@ -2474,7 +2593,8 @@ function ScopedLedgerScreen({
                   target={target}
                   categories={data.categories}
                   canManage={canWriteExpenses}
-                  disabled={busy || loading}
+                  beginOperation={beginRecurringOperation}
+                  disabled={parentBusy || loading || loadingMore}
                   reloadSignal={revision}
                   onAccessChanged={onAccessChanged}
                   formatTotal={formatRecurringTotal}
@@ -2492,7 +2612,7 @@ function ScopedLedgerScreen({
                 role="tabpanel"
                 id={`${viewId}-panel-reports`}
                 aria-labelledby={`${viewId}-tab-reports`}
-                aria-busy={loading}
+                aria-busy={loading || writing}
                 tabIndex={0}
                 hidden={view !== "reports"}
               >
@@ -2605,7 +2725,7 @@ function ScopedLedgerScreen({
                           value={projectName}
                           required={projectRepoIds.length === 0}
                           maxLength={120}
-                          disabled={busy || loading}
+                          disabled={blocked}
                           onChange={(event) => {
                             projectSettingsDirty.current = true;
                             setProjectName(event.target.value);
@@ -2625,7 +2745,7 @@ function ScopedLedgerScreen({
                         <select
                           id={projectStatusId}
                           value={projectStatus}
-                          disabled={busy || loading}
+                          disabled={blocked}
                           onChange={(event) => {
                             projectSettingsDirty.current = true;
                             setProjectStatus(event.target.value);
@@ -2670,8 +2790,7 @@ function ScopedLedgerScreen({
                                 id={organizationFieldId}
                                 value={organizationId}
                                 disabled={
-                                  busy ||
-                                  loading ||
+                                  blocked ||
                                   repositoryLoading ||
                                   !data.repositories ||
                                   needsGitHubReconnect
@@ -2745,8 +2864,7 @@ function ScopedLedgerScreen({
                                     type="checkbox"
                                     checked={projectRepoIds.includes(repo.githubRepoId)}
                                     disabled={
-                                      busy ||
-                                      loading ||
+                                      blocked ||
                                       (!projectRepoIds.includes(repo.githubRepoId) &&
                                         (repositoryLoading ||
                                           !data.repositories ||
@@ -2781,7 +2899,7 @@ function ScopedLedgerScreen({
                               <button
                                 className="btn"
                                 type="button"
-                                disabled={busy || loading}
+                                disabled={blocked}
                                 onClick={retryRepositories}
                               >
                                 {T("Check repository access", "检查仓库授权")}
@@ -2792,7 +2910,7 @@ function ScopedLedgerScreen({
                             <button
                               className="btn"
                               type="button"
-                              disabled={loadingMore}
+                              disabled={blocked}
                               onClick={() => loadMore("repositories")}
                             >
                               {T("Load more repositories")}
@@ -2815,7 +2933,7 @@ function ScopedLedgerScreen({
                       <ProjectLinkFields
                         developmentUrl={developmentUrl}
                         productUrl={productUrl}
-                        disabled={busy || loading}
+                        disabled={blocked}
                         onChange={(field, value) => {
                           projectSettingsDirty.current = true;
                           if (field === "developmentUrl") setDevelopmentUrl(value);
@@ -2828,7 +2946,7 @@ function ScopedLedgerScreen({
                           id={projectDescriptionId}
                           value={description}
                           maxLength={2000}
-                          disabled={busy || loading}
+                          disabled={blocked}
                           onChange={(event) => {
                             projectSettingsDirty.current = true;
                             setDescription(event.target.value);
@@ -2840,8 +2958,7 @@ function ScopedLedgerScreen({
                           className="btn primary"
                           type="submit"
                           disabled={
-                            busy ||
-                            loading ||
+                            blocked ||
                             (projectRepoIds.length === 0 && !projectName.trim()) ||
                             projectRepoIds.length > 30
                           }

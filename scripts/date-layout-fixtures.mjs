@@ -8,6 +8,9 @@ export const SECOND_RULE_PURPOSE = "Recurring backup schedule";
 export const LARGE_RULE_AMOUNT = "90071992547409.91";
 export const DEVELOPMENT_URL = "https://example.com/pullwise-layout/development";
 export const PRODUCT_URL = "https://example.com/pullwise-layout/product";
+export const LONG_CATEGORY_NAME =
+  "InfrastructureHostingDomainsAndAIServiceCostsForSharedTeamOperations";
+export const ARCHIVED_CATEGORY_NAME = "Retired subscriptions";
 
 const CATEGORY_ID = "cat_date_hosting";
 const CREATED_AT = "2026-09-01T00:00:00Z";
@@ -55,6 +58,14 @@ const project = {
 };
 const categories = [
   { id: CATEGORY_ID, name: "Hosting", color: null, revision: 1, archivedAt: null },
+  { id: "cat_date_long", name: LONG_CATEGORY_NAME, color: null, revision: 1, archivedAt: null },
+  {
+    id: "cat_date_archived",
+    name: ARCHIVED_CATEGORY_NAME,
+    color: null,
+    revision: 2,
+    archivedAt: "2026-09-30T00:00:00Z",
+  },
 ];
 const targets = [{ kind: "project", projectId: PROJECT_ID }, { kind: "shared" }];
 const expenses = targets.map((target) => ({

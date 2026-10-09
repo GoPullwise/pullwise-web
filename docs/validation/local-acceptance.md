@@ -2,6 +2,179 @@
 
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Pending operation boundaries and member role locks (2026-10-09)
+
+Project and Shared Pool expense writes now share a synchronous operation guard
+with recurring schedule writes. Conflicting edit/remove/create, form fields,
+cancel, refresh/pagination, filters, CSV and internal navigation/ledger switching
+remain disabled and visibly muted until the write and any required refresh have
+finished. Recurring responses remain authoritative; the existing queued refresh
+is awaited without adding an unnecessary read after every schedule write.
+Pure view tabs/disclosures, scrolling/copying, theme/language, external new-tab
+links and pane resizing remain available. Ordinary read-only refreshes allow
+navigation and filter refinement while blocking mutations based on stale data;
+refresh can still cancel an outstanding read-only pagination request. Failed
+writes preserve drafts and restore controls without automatic retries.
+
+Projects and Categories use the same write/refresh boundary. API Keys also lock
+the submitted name, scopes and restrictions; one-time token handling is retained.
+Billing preserves its write-to-refresh lock and blocks Escape cancellation of
+pending dialogs. Pricing pauses the month/year choice during checkout creation.
+Settings tracks busy independently of installation ID, covering Connect/Add,
+installation management, sign-out and subsequent required account reads.
+Native disabled controls and disabled-link semantics share light/dark styling;
+disabled links have no href and reject modifier, auxiliary and keyboard activation.
+
+Members replaces the expanded row editor with the role-column native dropdown
+and lock icon. Roles default to locked; unlock enables selection, selection saves
+immediately and the completed member refresh locks it again. Failed saves retain
+the unlocked draft for explicit retry. Owner/admin, revision and access guards
+are preserved. Unlocking changes neither row height nor sibling geometry.
+Invitation management remains hidden until the member load completes, including
+initial reads, manual reloads and post-write reads; it stays hidden on roster
+read failure. The member and invitation reads settle together before that rail
+appears.
+
+`npm run check` passes lint, **44 files / 783 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass. Deferred
+integration tests separately verify pending writes and required reads, exact
+draft preservation on failure, role-lock admission, scope/unmount cleanup,
+stale-completion protection, modal Escape and safe browsing boundaries.
+
+The persistent browser check passes **500 layout states in eight contexts** with
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Previously requested project-header,
+financial-value/currency colors, category-pencil, expense action stacks and both
+recurring side editors continue passing at desktop/tablet/phone widths, live
+899/900px reflow and 260/520px pane limits.
+
+A separate finite local interaction check passes **88 states in eight contexts**
+across both engines at 1440px and 320px, light/dark and coarse-pointer profiles.
+It verifies muted native fields/actions through ordinary write and refresh,
+ordinary/recurring exclusion, retained browsing tabs, trusted native role changes
+with exactly one autosave, stable member rows and synchronized invitation rails.
+Its accepted run intercepts 336 requests: 100 synthetic GETs, 12 explicitly listed
+in-memory PATCHes, 216 static requests and eight blocked fonts. Each context stays
+below its 100-request cap (maximum 48); no API request continues to a real server,
+no external delivery, violation or page error occurs, and all 46 built artifact
+hashes plus the original GET-only fixture remain unchanged. Nine captures support
+the stage evidence; Root reviewed member desktop/touch and pending-state captures.
+
+These are local engine/emulation checks, not physical iOS/Android or live-account
+acceptance. Chromium touch remains coarse=true/maxTouchPoints=1 around captures;
+Linux WebKit reports its unmodified maxTouchPoints=0 with coarse media enabled.
+Firefox remains unavailable under the previously recorded managed-runtime
+uid-mapping/SWGL limitation; its workflow layout checks remain configured.
+
+Source `29456ae` is published on GitHub main and deployed as Web preview version
+`19ae73c0-364d-414f-906d-a91bb0d900e3`; deployment metadata confirms 100% traffic.
+The publication used a fast-forward update with an expected-head lease, and the
+complete remote Git tree matches the verified local source tree. One homepage
+and three exact hashed-asset GETs all return 200. The noindex homepage references
+`/assets/index-HqtUu9hl.js`; the requested `/assets/ledger-Dg8cmCDd.js`,
+`/assets/members-BxUhIBHI.js` and `/assets/index-CiNwg8Wz.css` match the accepted
+local build byte for byte. No redirects, retries, page JavaScript, business API,
+Server/D1 or production operation occurred. This publication record is a
+documentation-only follow-up and needs no additional deployment.
+
+## Currency identity colors (2026-10-09)
+
+The shared `CurrencyBadge` now gives USD, CNY, JPY, EUR, GBP, AUD, CAD, CHF,
+HKD, KRW, SGD, NZD and INR stable, distinct identity colors. Unknown currency
+codes retain a neutral gray label. Ordinary/recurring amounts, project totals,
+report readouts and chart captions share the same explicit code attribute and
+palette. ISO text, exact monetary precision, native copying, number emphasis
+and badge geometry are preserved; currency is never inferred or normalized.
+The palette uses traditional HSL/custom properties with explicit light/dark
+colors, independent of the global action accent.
+
+`npm run check` passes lint, **44 files / 742 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass.
+The persistent browser check passes **500 states in eight contexts**, using
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Actual expense/recurring badges keep
+their displayed currency identity; an isolated clone of a rendered badge probes
+all 13 built-in colors and the neutral fallback in both themes. It requires
+distinct color pairs and at least 4.5:1 text contrast, composes actual ancestor
+backgrounds, then removes the probe and restores the theme without API traffic.
+Both engines measure a minimum 5.18:1 in light mode and 6.73:1 in dark mode.
+
+Four frozen-build captures cover five real synthetic currencies (USD/CNY/JPY/
+EUR/GBP) in project ordinary/recurring rows, project totals, 320px Shared Pool
+and WebKit dark chart captions/readouts. Exact amounts, color consistency and
+badge/number boundaries pass; Root reviewed three of the captures. Three local
+contexts made 148 interceptions: 29 synthetic GETs, 115 static requests and four
+blocked fonts, at most 72/100 requests each, with no writes, external delivery,
+violations or page errors. Chromium touch remains coarse=true/points=1 before
+and after capture; all 46 built artifact hashes are stable.
+
+These are local browser-engine and emulation checks, not physical-device or
+live-account acceptance. Firefox remains unavailable under the previously
+recorded managed-runtime uid-mapping/SWGL limitation; its CI checks stay enabled.
+
+Source `a396e6e` was pushed to GitHub main and deployed as Web preview version
+`7e1d76f6-8a15-473e-86e2-d0992a806912`; deployment metadata confirms 100% traffic.
+One homepage and three exact hashed-asset GETs all returned 200. The noindex
+homepage references `/assets/index-B0LMEhSI.js`; that entry,
+`/assets/financial-value-Bbfxr_y0.js` and `/assets/index-CxZX2pQg.css` match the
+accepted local build byte for byte. No redirects, retries, page JavaScript,
+business API, Server/D1 or production operation occurred. The main Actions query
+failed with an HTTP 401 credential error; remote CI success is not claimed.
+This publication record changes documentation only and needs no extra deployment.
+
+## Expense action stacks and category title rename (2026-10-09)
+
+Ordinary project and Shared Pool expense rows now place the exact amount above
+horizontal Edit/Remove actions, matching recurring records with a 12px gap.
+Wide lists align the stack to the right; narrow lists place it below the record
+description and align it to the start. Financial formatting, copying, equal
+natural row sizing and removal confirmation remain unchanged.
+
+Categories replace the right-hand Rename text action with an accessible pencil
+beside the active category title. Clicking it edits the name in that title's
+left-hand record area. Save/Cancel wrap naturally; input focus, Cancel/Escape
+opener restoration and failed-save draft focus are retained. Pending saves lock
+the controls, whitespace-only names are rejected and revision/color, access,
+archived restrictions and the 80-character bound remain intact.
+
+`npm run check` passes lint, **44 files / 742 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass.
+The persistent layout check passes **500 states in eight contexts** using
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Project/shared expense checks require
+amounts above non-overlapping horizontal actions across desktop/touch profiles,
+260/520px rails, 899/900px reflow and 390→320/412→360 widths. Categories cover
+long unspaced titles, adjacent pencils, 44px coarse targets, input/control bounds,
+inline replacement, draft preservation, cancellation focus and archived records.
+Local fixtures accept GETs only, cap each context at 100 requests and block
+writes and external delivery.
+
+Nine final viewport captures use the same frozen build: six category idle/edit
+views across desktop, Chromium 320px touch and WebKit 320px dark, plus project
+desktop, Shared Pool touch and WebKit dark expense action stacks. Three captures
+were independently reviewed by Root. All six capture contexts are clean:
+213 interceptions, 35 synthetic API GETs, 172 static requests and six blocked
+fonts, at most 39/100 per context. Chromium touch remains coarse/points true/1
+before and after captures. Linux WebKit reports coarse=true but raw
+`maxTouchPoints=0`; both remain stable and two trusted pencil touchstart events
+were recorded without changing navigator values. These are browser-engine and
+emulation checks, not physical iOS/Android or live-account save acceptance.
+
+Firefox remains unavailable in this managed runtime because of the previously
+recorded uid-mapping/SWGL startup errors; no new local Firefox success is claimed.
+Its checks remain configured in the existing three-engine CI.
+
+Source `329c528` was pushed to GitHub main and deployed as Web preview version
+`acdb83ff-0e7b-49ef-b034-0b873611a3e1`; the deployment list confirms 100% traffic.
+One homepage and three exact hashed-asset GETs all returned 200. The homepage
+retained noindex and references `/assets/index-pFJUia5q.js`; that entry script,
+`/assets/ledger-BKHPT-Pc.js` and the changed ledger stylesheet
+`/assets/ledger-CAs9ENqb.css` match the accepted local build byte for byte.
+No redirects, retries, page JavaScript, business API, Server/D1 or production
+operation occurred. The main Actions query was empty; remote CI success is not
+claimed. This publication record changes documentation only and needs no
+additional deployment.
+
 ## Expense presentation and recurring side editor (2026-10-09)
 
 Project detail and Shared Pool now edit recurring schedules in a separate
