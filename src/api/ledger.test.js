@@ -5,15 +5,51 @@ import { createLedgerApi, ledgerApi } from "./ledger.js";
 afterEach(() => vi.restoreAllMocks());
 
 describe("ledger REST paths", () => {
+  it("removes one project with its captured ledger and revision without replaying the request", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: undefined });
+    const controller = new AbortController();
+    const options = {
+      signal: controller.signal,
+      headers: { "X-Pullwise-Workspace": "other", "If-Match": '"99"', "X-Trace": "remove" },
+    };
+    const api = createLedgerApi("owner/1");
+    await expect(api.removeProject("prj/2", 7, options)).resolves.toBeUndefined();
+    expect(send).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        method: "DELETE",
+        url: "/api/v1/projects/prj%2F2",
+        signal: controller.signal,
+        headers: { "X-Pullwise-Workspace": "owner/1", "If-Match": '"7"', "X-Trace": "remove" },
+      })
+    );
+    expect(send.mock.calls[0][0].data).toBeUndefined();
+    expect(options.headers).toEqual({
+      "X-Pullwise-Workspace": "other",
+      "If-Match": '"99"',
+      "X-Trace": "remove",
+    });
+    const conflict = new ApiError("Project changed", {
+      status: 412,
+      payload: { error: { code: "PRECONDITION_FAILED" } },
+    });
+    send.mockRejectedValueOnce(conflict);
+    await expect(api.removeProject("prj/2", 7, options)).rejects.toBe(conflict);
+    expect(send).toHaveBeenCalledTimes(2);
+  });
   it("reads bounded activity for the captured workspace and carries the abort signal", async () => {
     const send = vi.spyOn(http, "request").mockResolvedValue({ data: {} });
     const controller = new AbortController();
     const params = { target: "project", projectId: "prj/1", limit: 50, cursor: "opaque-next" };
     await createLedgerApi("team/2").activity(params, { signal: controller.signal });
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({
-      method: "GET", url: "/api/v1/activity", params, signal: controller.signal,
-      headers: { "X-Pullwise-Workspace": "team/2" },
-    }));
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "GET",
+        url: "/api/v1/activity",
+        params,
+        signal: controller.signal,
+        headers: { "X-Pullwise-Workspace": "team/2" },
+      })
+    );
   });
   it("uses one versioned Server path and the same-origin proxy base", async () => {
     const oldBase = http.defaults.baseURL;

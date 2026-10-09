@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ledgerApi } from "../api/ledger.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
@@ -14,6 +15,7 @@ import {
 } from "../lib/project-links.js";
 import { ExpenseCharts } from "../components/expense-charts.jsx";
 import { ActivityLog } from "../components/activity-log.jsx";
+import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { env } from "../config/env.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -131,6 +133,18 @@ function requestKey() {
   const bytes = new Uint8Array(16);
   globalThis.crypto.getRandomValues(bytes);
   return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function projectRemovalErrorText(error) {
+  const code = error?.code || error?.payload?.error?.code;
+  if (code === "PROJECT_OWNER_SESSION_REQUIRED")
+    return T(
+      "Sign in as the ledger Owner to remove this project.",
+      "请以账本 Owner 身份登录后移除此项目。"
+    );
+  if (error?.status === 428 || ["REVISION_LIMIT", "PROJECT_BINDINGS_INVALID"].includes(code))
+    return T("Save conflict. Reload the latest record before retrying.");
+  return errorText(error);
 }
 
 function minorAmount(value) {
@@ -859,7 +873,7 @@ function ExpenseForm({
 export function LedgerScreen(props) {
   const workspace = props.workspace;
   const identity = workspace
-    ? `${workspace.id}:${workspace.revision}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(Object.entries(workspace.permissions || {}).sort(([left], [right]) => left.localeCompare(right)))}`
+    ? `${workspace.id}:${workspace.role || ""}:${workspace.revision}:${workspace.memberRevision ?? workspace.revision}:${JSON.stringify(Object.entries(workspace.permissions || {}).sort(([left], [right]) => left.localeCompare(right)))}`
     : "personal";
   const scope = `${identity}:${props.mode || "projects"}:${props.projectId || ""}:${props.authorizationRevision || 0}`;
   return <ScopedLedgerScreen key={scope} {...props} />;
@@ -881,6 +895,7 @@ function ScopedLedgerScreen({
   const canManageProjects = workspace ? workspace.permissions?.manageProjects === true : true;
   const canManageCategories = workspace ? workspace.permissions?.manageCategories === true : true;
   const canWriteExpenses = workspace ? workspace.permissions?.writeExpenses === true : true;
+  const isWorkspaceOwner = Boolean(workspace?.id && workspace.role === "owner");
   const workspaceScope = `${workspace?.id || "personal"}:${workspace?.revision || 0}:${canManageProjects}:${canManageCategories}:${canWriteExpenses}`;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -914,6 +929,9 @@ function ScopedLedgerScreen({
   const [editing, setEditing] = useState(null);
   const [creatingExpense, setCreatingExpense] = useState(false);
   const [confirmId, setConfirmId] = useState("");
+  const [projectRemoval, setProjectRemoval] = useState(null);
+  const [projectRemovalError, setProjectRemovalError] = useState("");
+  const [projectRemovalConflict, setProjectRemovalConflict] = useState(false);
   const [view, setView] = useState("expenses");
   const [projectSearch, setProjectSearch] = useState("");
   const [addingProject, setAddingProject] = useState(false);
@@ -930,6 +948,11 @@ function ScopedLedgerScreen({
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
   const inFlight = useRef(false);
+  const projectRemovalRef = useRef(null);
+  const removalOperationRef = useRef(null);
+  const removalControllerRef = useRef(null);
+  const removalBackgroundRef = useRef(null);
+  const removalDescriptionRef = useRef(null);
   const writeRefreshPending = useRef(false);
   const recurringOperation = useRef(null);
   const readingGuard = useRef(false);
@@ -956,10 +979,13 @@ function ScopedLedgerScreen({
     mounted.current = true;
     return () => {
       mounted.current = false;
+      removalOperationRef.current = null;
+      removalControllerRef.current?.abort();
     };
   }, []);
   const beginRecurringOperation = useCallback(() => {
-    if (inFlight.current || readingGuard.current || !mounted.current) return false;
+    if (inFlight.current || readingGuard.current || projectRemovalRef.current || !mounted.current)
+      return false;
     inFlight.current = true;
     const operation = {};
     recurringOperation.current = operation;
@@ -1061,6 +1087,10 @@ function ScopedLedgerScreen({
     const request = ++requestId.current;
     setLoading(true);
     setError("");
+    projectRemovalRef.current = null;
+    setProjectRemoval(null);
+    setProjectRemovalError("");
+    setProjectRemovalConflict(false);
     const scope = `${workspaceScope}:${mode}:${projectId}:${authorizationRevision}`;
     if (loadedScope.current !== scope) {
       setData(null);
@@ -1318,7 +1348,7 @@ function ScopedLedgerScreen({
   };
 
   const action = async (callback) => {
-    if (inFlight.current || readingGuard.current) return false;
+    if (inFlight.current || readingGuard.current || projectRemovalRef.current) return false;
     inFlight.current = true;
     setBusy(true);
     setActionError("");
@@ -1472,6 +1502,111 @@ function ScopedLedgerScreen({
     if (ok) setConfirmId("");
   };
 
+  const canRemoveCurrentProject = Boolean(
+    isWorkspaceOwner &&
+    mode === "project" &&
+    data?.project?.id === projectId &&
+    Number.isInteger(data.project.revision) &&
+    data.project.revision > 0
+  );
+  const openProjectRemoval = () => {
+    if (!canRemoveCurrentProject || inFlight.current || readingGuard.current || !mounted.current)
+      return;
+    const snapshot = {
+      id: projectId,
+      revision: data.project.revision,
+      name: projectLabel(data.project),
+    };
+    projectRemovalRef.current = snapshot;
+    setProjectRemoval(snapshot);
+    setProjectRemovalError("");
+    setProjectRemovalConflict(false);
+  };
+  const closeProjectRemoval = () => {
+    if (inFlight.current) return;
+    projectRemovalRef.current = null;
+    setProjectRemoval(null);
+    setProjectRemovalError("");
+    setProjectRemovalConflict(false);
+  };
+  const removeCurrentProject = async () => {
+    const snapshot = projectRemovalRef.current;
+    if (
+      !mounted.current ||
+      !canRemoveCurrentProject ||
+      !snapshot ||
+      snapshot.id !== projectId ||
+      projectRemovalConflict ||
+      inFlight.current ||
+      readingGuard.current
+    )
+      return;
+    const operation = {};
+    const controller = new AbortController();
+    const request = requestId.current;
+    removalOperationRef.current = operation;
+    removalControllerRef.current = controller;
+    const current = () =>
+      mounted.current &&
+      !controller.signal.aborted &&
+      removalOperationRef.current === operation &&
+      requestId.current === request;
+    inFlight.current = true;
+    removalDescriptionRef.current?.focus({ preventScroll: true });
+    setBusy(true);
+    setProjectRemovalError("");
+    try {
+      await api.removeProject(snapshot.id, snapshot.revision, { signal: controller.signal });
+      if (!current()) return;
+      projectRemovalRef.current = null;
+      setProjectRemoval(null);
+      setData(null);
+      setEditing(null);
+      setCreatingExpense(false);
+      setCategoryEdit(null);
+      setConfirmId("");
+      setSavedAssistance(null);
+      setSavedSchedule(null);
+      setProjectName("");
+      setDescription("");
+      setDevelopmentUrl("");
+      setProductUrl("");
+      projectSettingsBase.current = null;
+      projectSettingsDirty.current = false;
+      removalOperationRef.current = null;
+      inFlight.current = false;
+      setBusy(false);
+      go("ledgerProjects");
+    } catch (failure) {
+      if (!current()) return;
+      if (isLedgerAccessFailure(failure)) {
+        projectRemovalRef.current = null;
+        setProjectRemoval(null);
+        setData(null);
+        setEditing(null);
+        setCreatingExpense(false);
+        setCategoryEdit(null);
+        setConfirmId("");
+        setError(projectRemovalErrorText(failure));
+        onAccessChanged?.(failure);
+      } else {
+        setProjectRemovalError(projectRemovalErrorText(failure));
+        const code = failure?.code || failure?.payload?.error?.code;
+        setProjectRemovalConflict(
+          [412, 428].includes(failure?.status) ||
+            ["REVISION_LIMIT", "PROJECT_BINDINGS_INVALID"].includes(code)
+        );
+      }
+    } finally {
+      if (removalControllerRef.current === controller) removalControllerRef.current = null;
+      if (removalOperationRef.current === operation) {
+        removalOperationRef.current = null;
+        inFlight.current = false;
+        if (mounted.current) setBusy(false);
+      }
+    }
+  };
+
   const title =
     mode === "projects"
       ? T("Projects")
@@ -1580,7 +1715,7 @@ function ScopedLedgerScreen({
     input?.focus({ preventScroll: true });
   };
   return (
-    <div className="app product-workspace ledger-screen fade-in">
+    <div ref={removalBackgroundRef} className="app product-workspace ledger-screen fade-in">
       <Topbar
         go={go}
         navigationDisabled={writing}
@@ -3158,6 +3293,25 @@ function ScopedLedgerScreen({
                       </div>
                     </div>
                   )}
+                  {canRemoveCurrentProject && (
+                    <section className="ledger-project-removal">
+                      <h3>{T("Remove project", "移除项目")}</h3>
+                      <p>
+                        {T(
+                          "Remove this project and its expenses from lists and reports.",
+                          "从列表和报表中移除此项目及其支出。"
+                        )}
+                      </p>
+                      <button
+                        type="button"
+                        className="btn danger"
+                        disabled={blocked}
+                        onClick={openProjectRemoval}
+                      >
+                        <I.X size={14} aria-hidden="true" /> {T("Remove project", "移除项目")}
+                      </button>
+                    </section>
+                  )}
                 </section>
               )}
               <div
@@ -3180,6 +3334,53 @@ function ScopedLedgerScreen({
           )}
         </main>
       </ConsoleLayout>
+      {projectRemoval &&
+        canRemoveCurrentProject &&
+        createPortal(
+          <ConfirmDialog
+            open
+            title={T("Remove project?", "移除项目？")}
+            description={
+              <span
+                ref={removalDescriptionRef}
+                tabIndex={0}
+                className="ledger-project-removal-description"
+              >
+                <strong>{projectRemoval.name}</strong>
+                <span>
+                  {T(
+                    "Removing this project hides it and its expenses from lists and reports, stops its recurring schedules, and keeps its history in the background.",
+                    "移除此项目后，它及其支出将不再显示在列表和报表中，周期计划会停止，后台历史记录将保留。"
+                  )}
+                </span>
+                {projectRemovalError && (
+                  <span className="ledger-project-removal-error" role="alert">
+                    {projectRemovalError}
+                  </span>
+                )}
+              </span>
+            }
+            confirmLabel={
+              projectRemovalConflict
+                ? T("Reload project", "刷新项目")
+                : T("Confirm remove project", "确认移除项目")
+            }
+            cancelLabel={T("Cancel", "取消")}
+            onCancel={closeProjectRemoval}
+            onConfirm={() => {
+              if (!projectRemovalConflict) removeCurrentProject();
+              else if (!inFlight.current && !readingGuard.current) {
+                closeProjectRemoval();
+                reload();
+              }
+            }}
+            busy={writing}
+            danger={!projectRemovalConflict}
+            backgroundRef={removalBackgroundRef}
+            dialogId="remove-ledger-project"
+          />,
+          document.body
+        )}
     </div>
   );
 }

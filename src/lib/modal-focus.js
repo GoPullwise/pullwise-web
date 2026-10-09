@@ -47,7 +47,10 @@ export function useModalFocus({ open, dialogRef, initialFocusRef = null, onClose
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      if (!dialog.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -64,7 +67,11 @@ export function useModalFocus({ open, dialogRef, initialFocusRef = null, onClose
       document.removeEventListener("keydown", handleKeyDown);
       // Other modal cleanups must release the background's inert state first.
       queueMicrotask(() => {
-        if (opener?.isConnected && !opener.closest("[inert]") && typeof opener.focus === "function") {
+        if (
+          opener?.isConnected &&
+          !opener.closest("[inert]") &&
+          typeof opener.focus === "function"
+        ) {
           opener.focus();
         }
       });

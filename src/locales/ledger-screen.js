@@ -1,4 +1,11 @@
 const rows = [
+  ["Sign in as the ledger Owner to remove this project.", "请以账本 Owner 身份登录后移除此项目。", "このプロジェクトを削除するには、台帳のオーナーとしてログインしてください。", "이 프로젝트를 제거하려면 원장 소유자로 로그인하세요.", "Connectez-vous en tant que propriétaire du registre pour retirer ce projet.", "Inicia sesión como propietario del libro para retirar este proyecto."],
+  ["Remove project", "移除项目", "プロジェクトを削除", "프로젝트 제거", "Retirer le projet", "Retirar proyecto"],
+  ["Remove project?", "移除项目？", "プロジェクトを削除しますか？", "프로젝트를 제거할까요?", "Retirer le projet ?", "¿Retirar el proyecto?"],
+  ["Confirm remove project", "确认移除项目", "プロジェクトの削除を確認", "프로젝트 제거 확인", "Confirmer le retrait du projet", "Confirmar retirada del proyecto"],
+  ["Reload project", "刷新项目", "プロジェクトを再読み込み", "프로젝트 새로 고침", "Actualiser le projet", "Actualizar proyecto"],
+  ["Remove this project and its expenses from lists and reports.", "从列表和报表中移除此项目及其支出。", "このプロジェクトと支出を一覧とレポートから除外します。", "이 프로젝트와 지출을 목록과 보고서에서 제외합니다.", "Retirez ce projet et ses dépenses des listes et des rapports.", "Retira este proyecto y sus gastos de las listas y los informes."],
+  ["Removing this project hides it and its expenses from lists and reports, stops its recurring schedules, and keeps its history in the background.", "移除此项目后，它及其支出将不再显示在列表和报表中，周期计划会停止，后台历史记录将保留。", "このプロジェクトを削除すると、プロジェクトと支出が一覧とレポートから除外され、定期スケジュールが停止します。履歴はバックエンドに保持されます。", "이 프로젝트를 제거하면 프로젝트와 지출이 목록과 보고서에서 제외되고 반복 일정이 중지됩니다. 기록은 백엔드에 보존됩니다.", "Le retrait de ce projet le masque ainsi que ses dépenses dans les listes et les rapports, arrête ses échéanciers récurrents et conserve son historique en arrière-plan.", "Retirar este proyecto lo oculta, junto con sus gastos, de las listas y los informes, detiene sus programaciones recurrentes y conserva su historial en segundo plano."],
   ["Operation log", "操作记录", "操作履歴", "작업 기록", "Journal des opérations", "Registro de operaciones"],
   ["Name", "名称", "名前", "이름", "Nom", "Nombre"],
   ["Load more", "加载更多", "さらに読み込む", "더 불러오기", "Charger plus", "Cargar más"],
