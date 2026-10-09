@@ -35,6 +35,12 @@ records separate static readback; no actual OAuth/provider or remote applicant
 account flow is claimed. Activity begins with this release and old history is
 not backfilled. Receipt-only follow-up commits require no runtime redeployment.
 
+Preview version `59787df2-05d3-48e1-b2c2-750d13de1755` is published from the
+accepted frozen build. Four finite static GETs return 200 and match its homepage
+references and exact asset bytes. Existing bindings retain the preview Server
+service. The release receipt distinguishes static publication from authenticated
+remote workflow acceptance.
+
 ## Invitation links with inviter approval (2026-10-09)
 
 Members creates an invitation link from its role alone, without requiring a
