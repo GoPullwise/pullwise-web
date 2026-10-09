@@ -2513,7 +2513,7 @@
       "post": {
         "operationId": "createExpense",
         "x-pullwise-scope": "expenses:write",
-        "description": "When the ledger owner's Pro or Max plan, activation gates and usage budget allow\nit, this ordinary write attempts Jev assistance for Cookie sessions and\nexpenses:write API keys alike. categoryId may be omitted on create:\na confident existing ledger category is then selected. Explicit\ncategories, targets, money and dates are never changed by inference. If a\ncategory cannot be selected, 422 CATEGORY_REQUIRED preserves the draft and\nreturns assistance for manual completion. Provider failure or exhausted Jev\nbudget does not block a write with an explicit category. Idempotent replay\nreturns the stored result without another model call or budget reservation.\nCapacity counts undeleted expenses in Shared pool and nonremoved\nprojects, including archived projects. If the Owner enabled automatic\nremoval, an at-capacity creation and deletion of the globally oldest\nactive expense share one transaction and one commercial write. The\nactual oldest target must be writable under the caller's current grant;\notherwise RETENTION_TARGET_FORBIDDEN is returned without creating or\ndeleting anything. Above-capacity ledgers return RETENTION_CLEANUP_REQUIRED\nand require manual cleanup. Invalid writes and replay never remove expenses.\n",
+        "description": "When the ledger owner's Pro or Max plan, activation gates and usage budget allow\nit, this ordinary write attempts Jev assistance for Cookie sessions and\nexpenses:write API keys alike. categoryId may be omitted on create:\na confident existing ledger category is then selected. Explicit\ncategories, targets, money and dates are never changed by inference. If a\ncategory cannot be selected, 422 CATEGORY_REQUIRED preserves the draft and\nreturns assistance for manual completion. Provider failure or exhausted Jev\nbudget does not block a write with an explicit category. Idempotent replay\nreturns the stored result without another model call or budget reservation.\nCapacity counts undeleted expenses in Shared pool and nonremoved\nprojects, including archived projects. If the Owner enabled automatic\nremoval, an at-capacity creation and deletion of the globally oldest\nactive expense share one transaction and one commercial write. The\nactual oldest target must be writable under the caller's current grant;\notherwise RETENTION_TARGET_FORBIDDEN is returned without creating or\ndeleting anything. With automatic removal enabled, above-capacity ledgers\nreturn RETENTION_CLEANUP_REQUIRED and require manual cleanup. With it\ndisabled, full or above-capacity creates return RECORD_LIMIT. Invalid\nwrites and replay never remove expenses.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -7017,5 +7017,5 @@
       }
     }
   },
-  "x-pullwise-source-sha256": "e6e68849df1677825c55680d50482aa5d7a1c5b9f46143c8e2c5452a8fbea9ab"
+  "x-pullwise-source-sha256": "4fb4268d37b9363d1726a02e573e9534a82d0bdb378fabdc919aad14697ca42c"
 }

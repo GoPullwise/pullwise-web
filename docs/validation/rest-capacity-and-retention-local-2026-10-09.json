@@ -19,8 +19,8 @@
   "contract": {
     "paths": 43,
     "operations": 59,
-    "sourceYamlSha256": "e6e68849df1677825c55680d50482aa5d7a1c5b9f46143c8e2c5452a8fbea9ab",
-    "distributedJsonSha256": "9051924d7139156eac1298005daa0eb161614db77a172a22da16393c47526b77",
+    "sourceYamlSha256": "4fb4268d37b9363d1726a02e573e9534a82d0bdb378fabdc919aad14697ca42c",
+    "distributedJsonSha256": "9cf6020465dcf8ff4b12af4ef71496318effa33fbb9d866d4cdc04009e69f9f3",
     "generatedCopiesEqual": true
   },
   "settingsBrowser": {
@@ -160,5 +160,11 @@
     "Chromium simulated touch/viewports; not physical-device or Safari acceptance",
     "Browser fixtures never call the real API, providers or remote D1",
     "Separate original 57-operation/36-context and persistent 258-state receipts remain historical evidence"
-  ]
+  ],
+  "postBrowserContractClarification": {
+    "change": "Explicitly distinguish auto-removal-enabled above-capacity RETENTION_CLEANUP_REQUIRED from disabled RECORD_LIMIT; description only, no DTO/endpoint/layout/business change",
+    "serverContractTestsPassed": 6,
+    "browserReceiptRetainsMeasuredPriorDescriptionHash": true,
+    "webContractTestsPassed": 47
+  }
 }
