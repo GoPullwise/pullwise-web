@@ -1,5 +1,11 @@
 # Current local acceptance
 
+[Billing usage preview publication](billing-usage-preview-release-2026-10-09.json)
+records the new two-value usage presentation, Web preview version and exact
+homepage/three-asset static readback. The matching Billing/CSS/index assets
+are verified against the final build; no business API calls, Server/database
+changes or production publication are part of this release.
+
 [Final preview publication receipt](rest-capacity-and-retention-preview-release-2026-10-09.json) records the released Web/Server
 versions, exact three-asset/static-homepage readback, configured plan capacities
 and preserved database, journal, hourly schedule and production D1 pause. No

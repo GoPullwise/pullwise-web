@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-09",
+  "passed": true,
+  "scope": "Web-only Billing usage redesign preview publication",
+  "sourceCommit": "e3d51934555e04d2cfd4a7726be754fa653d869d",
+  "worker": "pullwise-web-preview",
+  "versionId": "50795a8b-e27b-452b-8437-a394cf248856",
+  "url": "https://preview.pull-wise.com/billing",
+  "localValidation": "billing-usage-local-2026-10-09.json",
+  "staticReadback": {
+    "origin": "https://preview.pull-wise.com",
+    "passed": true,
+    "homepageGets": 1,
+    "hashedAssetGets": 3,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "businessApiRequests": 0,
+    "executedPageJavaScript": false,
+    "results": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 4839,
+        "sha256": "7370ea69ab92383784cbb173e45f925af2eed0664b566f47fe66b36e964f486e",
+        "noindex": true
+      },
+      {
+        "path": "/assets/billing-RFiXGRmT.js",
+        "status": 200,
+        "bytes": 41049,
+        "sha256": "bdd6f50e682d60088560a9620d4e27539ff4f7ef4d4636095e621c8c6d27114f",
+        "matchesBuiltAsset": true
+      },
+      {
+        "path": "/assets/index-v2EWGh_Z.css",
+        "status": 200,
+        "bytes": 85552,
+        "sha256": "9a91b78b16fb1a66bc3629feb901041d32b4bd084088e323267bcd827d2ea565",
+        "matchesBuiltAsset": true
+      },
+      {
+        "path": "/assets/index-BhtBuvmR.js",
+        "status": 200,
+        "bytes": 47595,
+        "sha256": "972894fa1027750ee4c6a23275402b7738ae1f733aae85410c8cbb858483dd32",
+        "matchesBuiltAsset": true
+      }
+    ]
+  },
+  "serverDeployment": false,
+  "databaseChanges": false,
+  "productionDeployment": false,
+  "realAccountOrProviderAcceptance": false
+}
