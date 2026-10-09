@@ -2,6 +2,53 @@
 
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Invitation links with inviter approval (2026-10-09)
+
+Members creates an invitation link from its role alone, without requiring a
+GitHub username. An applicant signs in and requests to join; the authenticated
+account supplies their identity. Only the original inviter can approve or
+reject the request. Approval creates membership, while a pending or rejected
+request grants no ledger access. A link closes after one applicant is approved.
+Repeated applications do not duplicate requests or audit writes, and checking
+an approved link recovers current access without restoring removed membership.
+
+The application-wide join-request inbox shows applicant identity and the
+target ledger, with a direct path to its Members review controls. It refreshes
+on authenticated login, navigation, returning focus/visibility and explicit
+reload, with no interval polling. Invitation hashes survive the login return;
+an already signed-in account returns directly to Members. Existing member role
+dropdowns, locks and operation boundaries remain intact. Both the topbar inbox
+and notification review actions respect an in-flight write before navigating.
+
+The full `npm run check` passes lint, **44 test files / 776 tests** and the
+build; the separately frozen preview-configured build is browser-accepted.
+After the final notification navigation guard,
+the targeted App suite passes **25 tests**. The independent local workflow
+check passes **17 states in five Chromium contexts**, using **72 synthetic API
+requests** with seven external requests blocked and no remote response or
+JavaScript error. It covers role-only creation, identity-backed pending
+applications, approval/rejection, approved access recovery without resubmission,
+login return, correct shared-ledger selection, notification focus/Tab/Escape,
+and navigation rejection during a deferred invitation write.
+
+The persistent Chromium layout check passes **250 states in four contexts**
+at desktop/tablet widths and live mobile **390/320px** and **412/360px** widths.
+Its 314 interceptions include 215 synthetic API reads and four blocked external
+font requests, with no request-guard violation or remote response. The workflow's
+touch checks assert coarse-pointer media and touch capability before and after
+captures. All **six original, unedited screenshots** were visually reviewed. WebKit and
+Firefox were not run for this invitation change; these local browser fixtures
+do not establish physical-device, actual OAuth or remote applicant-account
+acceptance.
+
+Detailed workflow, frozen artifact hashes, bounded traffic and earlier harness
+diagnostics are recorded in
+[local invitation acceptance](invite-approval-local-2026-10-09.json).
+The Server companion records its separate schema and runtime verification.
+[Preview release evidence](invite-approval-preview-release-2026-10-09.json)
+records publication and the finite static homepage/asset readback separately;
+static publication is not authenticated invitation-flow acceptance.
+
 ## Pending operation boundaries and member role locks (2026-10-09)
 
 Project and Shared Pool expense writes now share a synchronous operation guard
