@@ -154,6 +154,7 @@ function LedgerTotal({ total }) {
   return (
     <FinancialValue
       value={formatTotal(total)}
+      currency={total.currency}
       numeric={minorAmount(total.amountMinor) !== null && typeof total.currency === "string"}
     />
   );
@@ -396,7 +397,10 @@ function ProjectExternalLinks({ project }) {
       <span key={id}>{label}</span>
     );
   return (
-    <div className="ledger-project-links">
+    <div className="panel-actions ledger-project-links ledger-project-shortcuts">
+      {project.githubAccess === "not_linked" && (
+        <span className="ledger-meta">{T("No repositories linked", "未关联仓库")}</span>
+      )}
       {repositories.length > 1 ? (
         <details className="disclosure ledger-project-repositories">
           <summary>
@@ -414,12 +418,12 @@ function ProjectExternalLinks({ project }) {
       )}
       {developmentHref && (
         <a href={developmentHref} target="_blank" rel="noopener noreferrer" draggable={false}>
-          {T("Development", "开发环境")}
+          {T("Development", "开发环境")} <span aria-hidden="true">↗</span>
         </a>
       )}
       {productHref && (
         <a href={productHref} target="_blank" rel="noopener noreferrer" draggable={false}>
-          {T("Product", "产品")}
+          {T("Product", "产品")} <span aria-hidden="true">↗</span>
         </a>
       )}
     </div>
@@ -1442,7 +1446,7 @@ function ScopedLedgerScreen({
         />
         <main className={`main ledger-${mode}`}>
           <div className="page-h">
-            <div>
+            <div className={mode === "project" ? "ledger-project-identity" : undefined}>
               <h1>{title}</h1>
               <p className="sub">
                 {mode === "projects"
@@ -1466,9 +1470,6 @@ function ScopedLedgerScreen({
                           ? T("Unable to load project expenses.", "无法加载项目支出。")
                           : T("Expenses and reports for this project.", "此项目的支出与报表。")}
               </p>
-              {mode === "project" && data?.project?.githubAccess === "not_linked" && (
-                <p className="ledger-meta">{T("No repositories linked", "未关联仓库")}</p>
-              )}
               {mode === "project" && data?.project && (
                 <ProjectExternalLinks project={data.project} />
               )}
@@ -2364,7 +2365,10 @@ function ScopedLedgerScreen({
                           </div>
                           <div className="ledger-row-side">
                             <strong className="ledger-amount">
-                              <FinancialValue value={`${expense.currency} ${expense.amount}`} />
+                              <FinancialValue
+                                value={`${expense.currency} ${expense.amount}`}
+                                currency={expense.currency}
+                              />
                             </strong>
                             {canWriteExpenses && (
                               <div className="ledger-actions">

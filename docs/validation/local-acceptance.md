@@ -1,6 +1,52 @@
 # Current local acceptance
 
-Updated 2026-10-08. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
+
+## Expense presentation and recurring side editor (2026-10-09)
+
+Project detail and Shared Pool now edit recurring schedules in a separate
+`LedgerSplit` secondary panel, matching ordinary expense editing. The editor
+stays outside the equal-row record grid; desktop pointer/keyboard resizing uses
+the shared 260–520px bounds and narrow layouts place the form before records.
+Independent ordinary/recurring panes can coexist. Drafts, start-date focus,
+opener restoration, fixed targets, revisions and access isolation are retained.
+
+Project detail groups repository status and safe development/product shortcuts
+beneath its introduction in one wrapping metadata row. The original authorized
+repository disclosure, native link selection and destinations remain intact.
+Financial values now distinguish a small accent ISO currency label from the
+dominant tabular number. Callers explicitly declare currency; the renderer keeps
+the complete formatted text, precision and copying without monetary arithmetic.
+The hierarchy references [Maybe's net-worth component](https://github.com/maybe-finance/maybe/blob/main/app/views/pages/dashboard/_net_worth_chart.html.erb)
+and [Actual's amount columns](https://actualbudget.org/docs/tour/user-interface/)
+while retaining Pullwise's original light/dark theme and square controls.
+
+`npm run check` passes lint, **44 files / 740 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass.
+The persistent layout check passes **452 states in eight contexts**, using
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Both project and shared targets cover
+1440px desktop, Chinese touch landscape 1280, 390→320 and 412→360 widths,
+260/520px mouse drags, keyboard adjustment, simultaneous editors, 899/900px live
+reflow, natural equal rows, drafts and plan switching. Each field/amount/header
+check keeps native date bounds, exact financial text, currency/number hierarchy,
+safe shortcuts, wrapping and action separation. GET-only fixture guards retain
+a 100-request per-context cap and block writes and external delivery.
+
+Six final viewport captures cover Chinese desktop, simultaneous editors with a
+520px recurring rail, 390/320px touch layouts, the complete long amount at 320px
+and WebKit dark mode. Touch media/maxTouchPoints remain true/1 before and after
+each touch capture. The dark currency label has 5.89:1 contrast and its primary
+number 18.37:1. Visual fixtures made 27 synthetic API GETs across three contexts,
+with no writes, external delivery or changes to the accepted build.
+
+WebKit uses isolated runtime libraries; its supported host-validation skip only
+avoids a system-library-cache false negative, after actual loading was verified.
+Firefox could not start in this managed environment: read-only uid mapping and
+SWGL framebuffer errors remain after dependencies/cache preparation. Its checks
+remain configured in the existing three-engine CI; local Firefox success is not
+claimed. Linux engines and emulated touch do not establish physical iOS/Android
+or older Safari acceptance. Browser fixtures do not establish live-account saves.
 
 ## Safari date-field sizing and shared ledger picker (2026-10-08)
 

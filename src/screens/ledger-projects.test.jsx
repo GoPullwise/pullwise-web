@@ -823,7 +823,12 @@ describe("Projects authorization and creation", () => {
       "href",
       "/projects/prj_history"
     );
-    expect(screen.getByText("USD 12.30")).toBeInTheDocument();
+    expect(
+      screen
+        .getByRole("link", { name: /Historical hosting/ })
+        .closest("article")
+        .querySelector(".financial-value").textContent
+    ).toBe("USD 12.30");
     fireEvent.click(screen.getByRole("button", { name: "Add project" }));
     await nameProject();
     await openGitHubLinks();

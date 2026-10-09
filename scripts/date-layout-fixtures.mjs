@@ -4,6 +4,10 @@ export const PROJECT_ID = "prj_date_layout";
 export const WORKSPACE_ID = "usr_date_layout";
 export const EXPENSE_PURPOSE = "Existing hosting expense";
 export const RULE_PURPOSE = "Recurring hosting schedule";
+export const SECOND_RULE_PURPOSE = "Recurring backup schedule";
+export const LARGE_RULE_AMOUNT = "90071992547409.91";
+export const DEVELOPMENT_URL = "https://example.com/pullwise-layout/development";
+export const PRODUCT_URL = "https://example.com/pullwise-layout/product";
 
 const CATEGORY_ID = "cat_date_hosting";
 const CREATED_AT = "2026-09-01T00:00:00Z";
@@ -41,8 +45,8 @@ const project = {
   repositories: [],
   githubOrganizationId: null,
   githubOrganization: null,
-  developmentUrl: null,
-  productUrl: null,
+  developmentUrl: DEVELOPMENT_URL,
+  productUrl: PRODUCT_URL,
   status: "active",
   githubAccess: "not_linked",
   canCreateExpense: true,
@@ -95,6 +99,18 @@ const rules = targets.map((target) => ({
   createdAt: CREATED_AT,
   updatedAt: CREATED_AT,
 }));
+// Two records expose equal-row regressions when an editor is opened. Keep the
+// fixtures read-only; their plans are never saved or scheduled on a real Server.
+rules.push(
+  ...rules.map((rule) => ({
+    ...rule,
+    id: `${rule.id}_backup`,
+    purpose: SECOND_RULE_PURPOSE,
+    // USD retains two decimals; the exact minor value is the Server's safe
+    // integer upper bound. This is presentation evidence, never a write.
+    amount: LARGE_RULE_AMOUNT,
+  }))
+);
 const profile = {
   id: WORKSPACE_ID,
   workspace,

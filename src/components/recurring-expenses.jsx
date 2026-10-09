@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
 import { FinancialValue } from "./financial-value.jsx";
+import { LedgerSplit } from "./ledger-split.jsx";
 import "./recurring-expenses.css";
 
 const frequencies = () => [
@@ -490,205 +491,226 @@ export function RecurringExpenses({
     else openers.current.delete(`${id}:${action}`);
   };
   const blocked = busy || disabled;
+  const activeEditor =
+    visible && canManage && items.some((rule) => rule.id === editor?.rule.id) ? editor : null;
   if (!key) return null;
   return (
-    <section className="panel recurring-expenses" aria-busy={loading || busy}>
-      <div className="panel-h">
-        <h2>{T("Recurring expenses")}</h2>
-        <button
-          className="btn ghost"
-          type="button"
-          aria-label={T("Reload recurring schedules")}
-          ref={reloadRef}
-          disabled={blocked || loading}
-          onClick={() => load({ explicit: true })}
-        >
-          {T("Reload")}
-        </button>
-      </div>
-      <div className="panel-body">
-        {items.length > 0 && (
-          <p className="ledger-meta">
-            {T("{count} recurring schedules").replace("{count}", items.length)}
-          </p>
-        )}
-        {readError && (
-          <div className="notice notice-error" role="alert">
-            <p>{readError}</p>
-          </div>
-        )}
-        {actionError && (
-          <div className="notice notice-error" role="alert">
-            <p>{actionError}</p>
-          </div>
-        )}
-        {loading && <p role="status">{T("Loading recurring schedules…")}</p>}
-        {!loading && !readError && !items.length && (
-          <div className="empty">
-            <p>{T("No recurring schedules yet.")}</p>
-          </div>
-        )}
-        <div className="ledger-list">
-          {items.map((rule) => {
-            const category = categories.find((item) => item.id === rule.categoryId);
-            const money =
-              typeof rule.amount === "string" &&
-              /^\d+(?:\.\d+)?$/.test(rule.amount) &&
-              typeof rule.currency === "string";
-            const editable = canManage && canChange(rule);
-            const deletable = canManage && canDelete(rule);
-            const edit = editor?.rule.id === rule.id ? editor : null;
-            return (
-              <article className="recurring-expenses-row" key={rule.id}>
-                <div className="ledger-row-main">
-                  <h3>{rule.purpose}</h3>
-                  <p>
-                    {category?.name || T("Archived category")} ·{" "}
-                    {frequencies().find(([value]) => value === rule.schedule?.frequency)?.[1] ||
-                      T("Unavailable")}
-                  </p>
-                  <p className="ledger-meta">
-                    {T("Next occurrence")}: {rule.nextOccurrenceOn || T("No next occurrence")} ·{" "}
-                    {rule.schedule?.timezone || T("Unavailable")}
-                  </p>
-                  {rule.status === "blocked" && (
-                    <p className="ledger-meta">{blockedReason(rule.blockedCode)}</p>
-                  )}
-                  {["paused", "blocked"].includes(rule.status) && (
-                    <p className="ledger-meta">
-                      {T(
-                        "Resuming starts with future occurrences; paused or blocked periods are not backfilled."
-                      )}
+    <LedgerSplit
+      enabled={Boolean(activeEditor)}
+      className={activeEditor ? "recurring-expenses ledger-entry" : "recurring-expenses"}
+      scope={key}
+    >
+      <section className="panel" aria-busy={loading || busy}>
+        <div className="panel-h">
+          <h2>{T("Recurring expenses")}</h2>
+          <button
+            className="btn ghost"
+            type="button"
+            aria-label={T("Reload recurring schedules")}
+            ref={reloadRef}
+            disabled={blocked || loading}
+            onClick={() => load({ explicit: true })}
+          >
+            {T("Reload")}
+          </button>
+        </div>
+        <div className="panel-body">
+          {items.length > 0 && (
+            <p className="ledger-meta">
+              {T("{count} recurring schedules").replace("{count}", items.length)}
+            </p>
+          )}
+          {readError && (
+            <div className="notice notice-error" role="alert">
+              <p>{readError}</p>
+            </div>
+          )}
+          {actionError && (
+            <div className="notice notice-error" role="alert">
+              <p>{actionError}</p>
+            </div>
+          )}
+          {loading && <p role="status">{T("Loading recurring schedules…")}</p>}
+          {!loading && !readError && !items.length && (
+            <div className="empty">
+              <p>{T("No recurring schedules yet.")}</p>
+            </div>
+          )}
+          <div className="ledger-list">
+            {items.map((rule) => {
+              const category = categories.find((item) => item.id === rule.categoryId);
+              const money =
+                typeof rule.amount === "string" &&
+                /^\d+(?:\.\d+)?$/.test(rule.amount) &&
+                typeof rule.currency === "string";
+              const editable = canManage && canChange(rule);
+              const deletable = canManage && canDelete(rule);
+              const edit = editor?.rule.id === rule.id ? editor : null;
+              return (
+                <article className="recurring-expenses-row" key={rule.id}>
+                  <div className="ledger-row-main">
+                    <h3>{rule.purpose}</h3>
+                    <p>
+                      {category?.name || T("Archived category")} ·{" "}
+                      {frequencies().find(([value]) => value === rule.schedule?.frequency)?.[1] ||
+                        T("Unavailable")}
                     </p>
-                  )}
-                </div>
-                <div className="recurring-expenses-side">
-                  <FinancialValue
-                    className="ledger-amount"
-                    numeric={money}
-                    value={money ? formatTotal(rule) : T("Unavailable")}
-                  />
-                  <span className="tag">{statusName(rule.status)}</span>
-                  {(editable || deletable) && (
-                    <div className="panel-actions">
-                      {editable && (
-                        <>
+                    <p className="ledger-meta">
+                      {T("Next occurrence")}: {rule.nextOccurrenceOn || T("No next occurrence")} ·{" "}
+                      {rule.schedule?.timezone || T("Unavailable")}
+                    </p>
+                    {rule.status === "blocked" && (
+                      <p className="ledger-meta">{blockedReason(rule.blockedCode)}</p>
+                    )}
+                    {["paused", "blocked"].includes(rule.status) && (
+                      <p className="ledger-meta">
+                        {T(
+                          "Resuming starts with future occurrences; paused or blocked periods are not backfilled."
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="recurring-expenses-side">
+                    <FinancialValue
+                      className="ledger-amount"
+                      currency={rule.currency}
+                      numeric={money}
+                      value={money ? formatTotal(rule) : T("Unavailable")}
+                    />
+                    <span className="tag">{statusName(rule.status)}</span>
+                    {(editable || deletable) && (
+                      <div className="panel-actions">
+                        {editable && (
+                          <>
+                            <button
+                              className="btn ghost"
+                              type="button"
+                              ref={ref(rule.id, "status")}
+                              disabled={blocked || needsReload.current}
+                              onClick={() =>
+                                mutate(rule, "status", {
+                                  status: rule.status === "active" ? "paused" : "active",
+                                })
+                              }
+                            >
+                              {rule.status === "active" ? T("Pause") : T("Resume")}
+                            </button>
+                            <button
+                              className="btn ghost"
+                              type="button"
+                              ref={ref(rule.id, "edit")}
+                              disabled={blocked || needsReload.current}
+                              onClick={() => {
+                                if (actionPending.current || live.current.disabled) return;
+                                pendingFocus.current = null;
+                                setConfirmation(null);
+                                if (edit) {
+                                  editorRef.current?.querySelector('input[type="date"]')?.focus();
+                                  return;
+                                }
+                                editorFocus.current = true;
+                                setEditor({ rule });
+                              }}
+                            >
+                              {T("Edit schedule")}
+                            </button>
+                          </>
+                        )}
+                        {deletable && (
                           <button
                             className="btn ghost"
                             type="button"
-                            ref={ref(rule.id, "status")}
-                            disabled={blocked || needsReload.current}
-                            onClick={() =>
-                              mutate(rule, "status", {
-                                status: rule.status === "active" ? "paused" : "active",
-                              })
-                            }
-                          >
-                            {rule.status === "active" ? T("Pause") : T("Resume")}
-                          </button>
-                          <button
-                            className="btn ghost"
-                            type="button"
-                            ref={ref(rule.id, "edit")}
+                            ref={ref(rule.id, "delete")}
                             disabled={blocked || needsReload.current}
                             onClick={() => {
                               if (actionPending.current || live.current.disabled) return;
                               pendingFocus.current = null;
-                              setConfirmation(null);
-                              if (edit) {
-                                editorRef.current?.querySelector('input[type="date"]')?.focus();
-                                return;
-                              }
-                              editorFocus.current = true;
-                              setEditor({ rule });
+                              setEditor(null);
+                              setConfirmation(rule);
                             }}
                           >
-                            {T("Edit schedule")}
+                            {T("Delete schedule")}
                           </button>
-                        </>
-                      )}
-                      {deletable && (
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {confirmation?.id === rule.id && (
+                    <div className="notice">
+                      <p>
+                        {T(
+                          "Delete this schedule permanently? Already created expense records are retained."
+                        )}
+                      </p>
+                      <div className="panel-actions">
+                        <button
+                          className="btn"
+                          type="button"
+                          autoFocus
+                          disabled={blocked || needsReload.current}
+                          onClick={() => mutate(confirmation, "delete")}
+                        >
+                          {T("Confirm delete schedule")}
+                        </button>
                         <button
                           className="btn ghost"
                           type="button"
-                          ref={ref(rule.id, "delete")}
-                          disabled={blocked || needsReload.current}
-                          onClick={() => {
-                            if (actionPending.current || live.current.disabled) return;
-                            pendingFocus.current = null;
-                            setEditor(null);
-                            setConfirmation(rule);
-                          }}
+                          disabled={blocked}
+                          onClick={() => close(rule, "delete")}
                         >
-                          {T("Delete schedule")}
+                          {T("Cancel")}
                         </button>
-                      )}
+                      </div>
                     </div>
                   )}
-                </div>
-                {edit && (
-                  <div className="recurring-expenses-editor" ref={editorRef} key={rule.id}>
-                    {renderExpenseForm({
-                      value: edit.rule,
-                      recurrence: edit.rule.schedule,
-                      busy: blocked,
-                      submitDisabled: needsReload.current,
-                      onSubmit: (fields, _key, schedule) =>
-                        mutate(edit.rule, "edit", templateFields(edit.rule, fields, schedule)),
-                      onCancel: () => close(rule, "edit"),
-                    })}
-                  </div>
-                )}
-                {confirmation?.id === rule.id && (
-                  <div className="notice">
-                    <p>
-                      {T(
-                        "Delete this schedule permanently? Already created expense records are retained."
-                      )}
-                    </p>
-                    <div className="panel-actions">
-                      <button
-                        className="btn"
-                        type="button"
-                        autoFocus
-                        disabled={blocked || needsReload.current}
-                        onClick={() => mutate(confirmation, "delete")}
-                      >
-                        {T("Confirm delete schedule")}
-                      </button>
-                      <button
-                        className="btn ghost"
-                        type="button"
-                        disabled={blocked}
-                        onClick={() => close(rule, "delete")}
-                      >
-                        {T("Cancel")}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </article>
-            );
-          })}
+                </article>
+              );
+            })}
+          </div>
+          {pageError && (
+            <div className="notice notice-error" role="alert">
+              <p>{pageError}</p>
+            </div>
+          )}
+          {nextCursor && (
+            <div className="panel-actions">
+              <button
+                className="btn ghost"
+                type="button"
+                disabled={blocked || loading}
+                onClick={() => load({ append: true })}
+              >
+                {T("Load more schedules")}
+              </button>
+            </div>
+          )}
         </div>
-        {pageError && (
-          <div className="notice notice-error" role="alert">
-            <p>{pageError}</p>
+      </section>
+      {activeEditor && (
+        <section
+          className="panel recurring-expenses-editor"
+          ref={editorRef}
+          key={activeEditor.rule.id}
+          aria-busy={busy}
+        >
+          <div className="panel-h">
+            <h2>{T("Edit schedule")}</h2>
           </div>
-        )}
-        {nextCursor && (
-          <div className="panel-actions">
-            <button
-              className="btn ghost"
-              type="button"
-              disabled={blocked || loading}
-              onClick={() => load({ append: true })}
-            >
-              {T("Load more schedules")}
-            </button>
-          </div>
-        )}
-      </div>
-    </section>
+          {renderExpenseForm({
+            value: activeEditor.rule,
+            recurrence: activeEditor.rule.schedule,
+            busy: blocked,
+            submitDisabled: needsReload.current,
+            onSubmit: (fields, _key, schedule) =>
+              mutate(
+                activeEditor.rule,
+                "edit",
+                templateFields(activeEditor.rule, fields, schedule)
+              ),
+            onCancel: () => close(activeEditor.rule, "edit"),
+          })}
+        </section>
+      )}
+    </LedgerSplit>
   );
 }

@@ -1,5 +1,25 @@
 # Pullwise Web
 
+## Expense presentation and recurring side editor (2026-10-09)
+
+Project detail groups repository status and safe development/product shortcuts
+under its introduction in a compact wrapping row. Financial values distinguish
+an explicitly declared ISO currency from the exact preformatted number: a quiet
+accent currency label supports the dominant tabular amount. Keep native copying,
+full precision, unavailable states and arbitrary non-money text intact; the
+renderer must never infer currency, perform arithmetic or trim digits. Validate
+header/link wrapping, amount/action separation and long values across engines.
+
+Recurring schedule editing shares the ordinary expense `LedgerSplit` pattern:
+records stay in the primary panel and the keyed editor is a separate secondary
+panel, outside the equal-row grid. Reuse the shared pointer/keyboard divider,
+width bounds and entry-first narrow layout. Preserve drafts, start-date focus,
+opener restoration, fixed targets and revision/access guards. Ordinary and
+recurring editors may coexist with independent pane widths. The persistent
+layout check covers both editors, equal natural record heights, 260/520px rails,
+899/900px live reflow, narrow inputs and schedule switching. The user explicitly
+requests a GitHub main push and Cloudflare deployment; publish Web preview only.
+
 ## Safari date-field sizing (2026-10-08)
 
 Fix overlapping filter dates and expense date inputs wider than sibling fields,

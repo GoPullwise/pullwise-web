@@ -97,9 +97,11 @@ describe("Project links in the real ledger views", () => {
       const styles = readFileSync("src/screens/ledger.css", "utf8");
       const linkRules = [...styles.matchAll(/([^{}]+)\{[^{}]*\}/g)]
         .filter(([, selectors]) =>
-          [".ledger-project-links > a", ".ledger-row-main h2 > a"].some((selector) =>
-            selectors.includes(selector)
-          )
+          [
+            ".ledger-project-links > a",
+            ".ledger-project-shortcuts > a",
+            ".ledger-row-main h2 > a",
+          ].some((selector) => selectors.includes(selector))
         )
         .map(([rule]) => rule);
       expect(linkRules.length).toBeGreaterThan(0);
@@ -123,9 +125,7 @@ describe("Project links in the real ledger views", () => {
         expect(links).toHaveLength(2);
         for (const link of links) {
           expect(getComputedStyle(link).userSelect).toBe("text");
-          expect(getComputedStyle(link).textDecoration).toBe(
-            mode === "projects" ? "none" : "underline"
-          );
+          expect(getComputedStyle(link).textDecoration).toBe("none");
           expect(link).toHaveAttribute("draggable", "false");
         }
         if (mode === "projects") {
@@ -147,6 +147,34 @@ describe("Project links in the real ledger views", () => {
       }
     }
   );
+
+  it("groups repository status and native shortcuts beneath the project introduction", async () => {
+    const current = project({
+      developmentUrl: "https://dev.example.com/",
+      productUrl: "https://product.example.com/",
+    });
+    const go = vi.fn();
+    render(<LedgerScreen api={client(current)} go={go} mode="project" projectId="prj_one" />);
+    const productLink = await screen.findByRole("link", { name: "Product" });
+    const shortcuts = productLink.closest(".ledger-project-shortcuts");
+    const identity = shortcuts.closest(".ledger-project-identity");
+    expect(shortcuts).toHaveClass("panel-actions", "ledger-project-links");
+    expect(within(identity).getByText("Expenses and reports for this project.")).toHaveClass("sub");
+    expect(within(shortcuts).getByText("No repositories linked")).toHaveClass("ledger-meta");
+    const developmentLink = within(shortcuts).getByRole("link", { name: "Development" });
+    for (const [link, href] of [
+      [developmentLink, current.developmentUrl],
+      [productLink, current.productUrl],
+    ]) {
+      expect(link).toHaveAttribute("href", href);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(link).toHaveAttribute("draggable", "false");
+      expect(link.querySelector("[aria-hidden='true']")).toHaveTextContent("↗");
+      fireEvent.click(link, { ctrlKey: true });
+    }
+    expect(go).not.toHaveBeenCalled();
+  });
 
   it("limits list shortcuts to a safe product link and keeps project entry separate", async () => {
     const linked = project({

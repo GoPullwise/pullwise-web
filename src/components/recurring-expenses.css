@@ -17,7 +17,6 @@
 .recurring-expenses-side .panel-actions {
   justify-content: flex-end;
 }
-.recurring-expenses-editor,
 .recurring-expenses-row > .notice {
   grid-column: 1 / -1;
 }

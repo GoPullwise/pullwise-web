@@ -283,6 +283,11 @@ describe("RecurringExpenses", () => {
     await loaded();
     fireEvent.click(button("Edit schedule"));
     expect(screen.getByLabelText("Start date")).toHaveFocus();
+    const editor = screen.getByRole("form", { name: "Expense editor" });
+    expect(editor.closest(".ledger-list")).toBeNull();
+    expect(editor.closest(".recurring-expenses-editor").previousElementSibling).toContainElement(
+      row()
+    );
     fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "My draft" } });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(button("Edit schedule")).toHaveFocus();
@@ -296,6 +301,26 @@ describe("RecurringExpenses", () => {
     expect(screen.getByLabelText("Start date")).toHaveFocus();
     expect(api.updateRecurringRule).not.toHaveBeenCalled();
     expect(api.removeRecurringRule).not.toHaveBeenCalled();
+  });
+
+  it("preserves the current draft on repeated edit and rebuilds the side editor when another schedule opens", async () => {
+    const api = client([rule(), rule({ id: "rul_two", purpose: "Storage" })]);
+    render(fixture(api));
+    await loaded();
+    fireEvent.click(button("Edit schedule"));
+    fireEvent.change(screen.getByLabelText("Purpose"), { target: { value: "Unsaved hosting" } });
+    fireEvent.click(button("Edit schedule"));
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Unsaved hosting");
+    expect(screen.getByLabelText("Start date")).toHaveFocus();
+    fireEvent.click(button("Edit schedule", "Storage"));
+    expect(screen.getAllByRole("form", { name: "Expense editor" })).toHaveLength(1);
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Storage");
+    expect(screen.getByLabelText("Start date")).toHaveFocus();
+    expect(within(row("Storage")).queryByRole("textbox")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(button("Edit schedule", "Storage")).toHaveFocus();
+    expect(screen.queryByRole("form")).not.toBeInTheDocument();
+    expect(api.updateRecurringRule).not.toHaveBeenCalled();
   });
 
   it("keeps edit revision stable across an external refresh and normalizes the complete template with its original target", async () => {

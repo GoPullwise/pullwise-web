@@ -6,9 +6,13 @@ import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 import {
   createDateLayoutFixture,
+  DEVELOPMENT_URL,
   EXPENSE_PURPOSE,
+  LARGE_RULE_AMOUNT,
   PROJECT_ID,
+  PRODUCT_URL,
   RULE_PURPOSE,
+  SECOND_RULE_PURPOSE,
   WORKSPACE_ID,
 } from "./date-layout-fixtures.mjs";
 
@@ -183,7 +187,231 @@ async function measure(page, report, name) {
   await settle(page);
   const measured = await geometry(page);
   const touch = report.engine === "firefox" ? null : report.profile.touch;
-  report.states.push({ name, ...checkGeometry(measured, name, touch) });
+  report.states.push({
+    name,
+    ...checkGeometry(measured, name, touch),
+    presentation: await checkPresentation(page, name),
+  });
+}
+
+function inside(bounds, container) {
+  return (
+    bounds.left >= container.left - tolerance &&
+    bounds.right <= container.right + tolerance &&
+    bounds.top >= container.top - tolerance &&
+    bounds.bottom <= container.bottom + tolerance
+  );
+}
+
+function insideInline(bounds, container) {
+  return bounds.left >= container.left - tolerance && bounds.right <= container.right + tolerance;
+}
+
+function overlaps(left, right) {
+  return (
+    Math.min(left.right, right.right) - Math.max(left.left, right.left) > tolerance &&
+    Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top) > tolerance
+  );
+}
+
+async function checkPresentation(page, name) {
+  const measured = await page.evaluate(() => {
+    const rect = (element) => {
+      const { left, right, top, bottom, width, height } = element.getBoundingClientRect();
+      return { left, right, top, bottom, width, height };
+    };
+    const textGeometry = (element) => {
+      if (!element) return null;
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const style = getComputedStyle(element);
+      return {
+        rect: rect(element),
+        text: element.textContent,
+        fragments: Array.from(range.getClientRects())
+          .filter((bounds) => bounds.width > 0 && bounds.height > 0)
+          .map((bounds) => ({
+            left: bounds.left,
+            right: bounds.right,
+            top: bounds.top,
+            bottom: bounds.bottom,
+          })),
+        fontSize: Number.parseFloat(style.fontSize),
+        overflowX: style.overflowX,
+        overflowY: style.overflowY,
+        textOverflow: style.textOverflow,
+      };
+    };
+    const rows = Array.from(
+      document.querySelectorAll(".ledger-expense-row, .recurring-expenses-row")
+    )
+      .filter((row) => row.getClientRects().length > 0)
+      .map((row) => {
+        const value = row.querySelector(".financial-value");
+        const side = row.querySelector(".ledger-row-side, .recurring-expenses-side");
+        return {
+          purpose: row.querySelector("h3")?.textContent,
+          row: rect(row),
+          side: side ? textGeometry(side) : null,
+          value: textGeometry(value),
+          currency: textGeometry(value?.querySelector(".financial-value-currency")),
+          number: textGeometry(value?.querySelector(".financial-value-number")),
+          actions: Array.from(row.querySelectorAll(".ledger-actions, .panel-actions")).map(rect),
+        };
+      });
+    const header = document.querySelector(".ledger-project .page-h");
+    const identity = header?.querySelector(".ledger-project-identity");
+    const shortcuts = identity?.querySelector(".ledger-project-shortcuts");
+    return {
+      rows,
+      header: header
+        ? {
+            rect: rect(header),
+            main: rect(header.closest(".main")),
+            identity: textGeometry(identity),
+            title: textGeometry(identity?.querySelector("h1")),
+            description: textGeometry(identity?.querySelector(".sub")),
+            shortcuts: shortcuts ? rect(shortcuts) : null,
+            metadata: textGeometry(shortcuts?.querySelector(".ledger-meta")),
+            items: Array.from(shortcuts?.children || []).map(textGeometry),
+            links: Array.from(shortcuts?.querySelectorAll("a") || []).map((link) => ({
+              ...textGeometry(link),
+              href: link.href,
+              target: link.target,
+              rel: link.rel,
+            })),
+            actions: Array.from(header.querySelectorAll(":scope > .actions")).map(rect),
+          }
+        : null,
+    };
+  });
+  const expected = new Map([
+    [EXPENSE_PURPOSE, "USD 12.00"],
+    [RULE_PURPOSE, "USD 24.50"],
+    [SECOND_RULE_PURPOSE, `USD ${LARGE_RULE_AMOUNT}`],
+  ]);
+  assert.equal(
+    measured.rows.length,
+    3,
+    `${name}: financial fixtures did not render all three records`
+  );
+  for (const row of measured.rows) {
+    const details = JSON.stringify(row);
+    assert(
+      row.value && row.currency && row.number && row.side,
+      `${name}: financial currency/number parts are missing ${details}`
+    );
+    assert.equal(
+      row.value.text,
+      expected.get(row.purpose),
+      `${name}: displayed financial text changed precision`
+    );
+    assert.equal(row.currency.text, "USD", `${name}: currency text changed`);
+    assert.equal(
+      row.number.text,
+      expected.get(row.purpose)?.slice(4),
+      `${name}: amount text changed precision`
+    );
+    assert(
+      row.number.fontSize > row.currency.fontSize,
+      `${name}: currency and amount have no visible type hierarchy ${details}`
+    );
+    for (const part of [row.value, row.currency, row.number, row.side]) {
+      assert(
+        !["hidden", "clip"].includes(part.overflowX) &&
+          !["hidden", "clip"].includes(part.overflowY) &&
+          part.textOverflow !== "ellipsis",
+        `${name}: financial content can be clipped ${details}`
+      );
+    }
+    for (const part of [row.currency, row.number]) {
+      // Inline font boxes can extend vertically beyond their CSS line box.
+      // The record must contain the full text; the side column constrains its
+      // inline extent while visible overflow preserves ordinary font metrics.
+      assert(
+        inside(part.rect, row.row) && insideInline(part.rect, row.side.rect),
+        `${name}: financial part escapes its row/side bounds ${details}`
+      );
+      assert(part.fragments.length > 0, `${name}: financial part has no rendered text ${details}`);
+      for (const fragment of part.fragments) {
+        assert(
+          inside(fragment, row.row) && insideInline(fragment, row.side.rect),
+          `${name}: financial text escapes its row/side bounds ${details}`
+        );
+        assert(
+          row.actions.every((action) => !overlaps(fragment, action)),
+          `${name}: financial text overlaps row actions ${details}`
+        );
+      }
+    }
+  }
+  if (measured.header) {
+    const header = measured.header;
+    const details = JSON.stringify(header);
+    assert(
+      header.identity && header.title && header.description && header.shortcuts && header.metadata,
+      `${name}: project header metadata is incomplete ${details}`
+    );
+    assert(
+      inside(header.rect, header.main),
+      `${name}: project header escapes main bounds ${details}`
+    );
+    assert.equal(header.links.length, 2, `${name}: project header did not render both shortcuts`);
+    assert.deepEqual(
+      header.links.map((link) => link.href),
+      [DEVELOPMENT_URL, PRODUCT_URL],
+      `${name}: project shortcut destinations changed`
+    );
+    for (const content of [header.title, header.description, ...header.items]) {
+      assert(
+        inside(content.rect, header.identity.rect),
+        `${name}: project header item escapes identity bounds ${details}`
+      );
+      for (const fragment of content.fragments) {
+        assert(
+          inside(fragment, header.identity.rect),
+          `${name}: project header text overflows identity bounds ${details}`
+        );
+        assert(
+          header.actions.every((action) => !overlaps(fragment, action)),
+          `${name}: project header text overlaps its actions ${details}`
+        );
+      }
+    }
+    for (let index = 0; index < header.items.length; index += 1) {
+      assert(
+        inside(header.items[index].rect, header.shortcuts),
+        `${name}: shortcut escapes metadata group ${details}`
+      );
+      for (const sibling of header.items.slice(index + 1)) {
+        assert(
+          !overlaps(header.items[index].rect, sibling.rect),
+          `${name}: project metadata/link items overlap ${details}`
+        );
+      }
+    }
+    for (const link of header.links) {
+      assert(
+        link.target === "_blank" &&
+          link.rel.split(/\s+/).includes("noopener") &&
+          link.rel.split(/\s+/).includes("noreferrer"),
+        `${name}: project shortcut lost native safe-link behavior`
+      );
+    }
+  }
+  return {
+    money: measured.rows.map((row) => ({
+      value: row.value.text,
+      numberLines: new Set(row.number.fragments.map((fragment) => Math.round(fragment.top))).size,
+    })),
+    projectHeader: measured.header
+      ? {
+          links: measured.header.links.map((link) => link.href),
+          metadataRows: new Set(measured.header.items.map((item) => Math.round(item.rect.top)))
+            .size,
+        }
+      : null,
+  };
 }
 
 async function negativeControl(page, report) {
@@ -220,8 +448,37 @@ async function negativeControl(page, report) {
   await measure(page, report, "negative-control-restored");
 }
 
-async function dragSide(page, width, report, name) {
-  const handle = page.locator(".ledger-split-resizer");
+function paneTargets(page, panelSelector) {
+  const panel = page.locator(panelSelector);
+  const split = panel.locator("..");
+  return { panel, split, handle: split.locator(":scope > .ledger-split-resizer") };
+}
+
+async function checkPaneWidth(page, panelSelector, width, name) {
+  await page.waitForFunction(
+    ({ selector, expected }) =>
+      Number(
+        document
+          .querySelector(selector)
+          ?.parentElement.querySelector(":scope > .ledger-split-resizer")
+          ?.getAttribute("aria-valuenow")
+      ) === expected,
+    { selector: panelSelector, expected: width }
+  );
+  const { panel, split } = paneTargets(page, panelSelector);
+  const actual = await panel.evaluate((element) => element.getBoundingClientRect().width);
+  assert(
+    Math.abs(actual - width) <= tolerance,
+    `${name}: actual pane width ${actual}, expected ${width}`
+  );
+  assert(
+    !(await split.getAttribute("class")).includes("is-resizing"),
+    `${name}: drag capture not released`
+  );
+}
+
+async function dragSide(page, width, report, name, panelSelector = "#expense-form") {
+  const { handle } = paneTargets(page, panelSelector);
   await handle.scrollIntoViewIfNeeded();
   const initial = Number(await handle.getAttribute("aria-valuenow"));
   const maximum = Number(await handle.getAttribute("aria-valuemax"));
@@ -246,24 +503,122 @@ async function dragSide(page, width, report, name) {
   } finally {
     await page.mouse.up();
   }
-  await page.waitForFunction(
-    (expected) =>
-      Number(document.querySelector(".ledger-split-resizer")?.getAttribute("aria-valuenow")) ===
-      expected,
-    width
-  );
-  const actual = await page
-    .locator("#expense-form")
-    .evaluate((element) => element.getBoundingClientRect().width);
-  assert(
-    Math.abs(actual - width) <= tolerance,
-    `${name}: actual pane width ${actual}, expected ${width}`
-  );
-  assert(
-    !(await page.locator(".ledger-entry").getAttribute("class")).includes("is-resizing"),
-    `${name}: drag capture not released`
-  );
+  await checkPaneWidth(page, panelSelector, width, name);
   await measure(page, report, name);
+}
+
+async function keyboardSide(page, report, name, panelSelector) {
+  const { handle } = paneTargets(page, panelSelector);
+  const minimum = Number(await handle.getAttribute("aria-valuemin"));
+  const maximum = Number(await handle.getAttribute("aria-valuemax"));
+  assert(maximum >= minimum + 16, `${name}: divider has no keyboard adjustment range`);
+  await handle.focus();
+  for (const [key, expected] of [
+    ["Home", minimum],
+    ["ArrowLeft", minimum + 16],
+    ["ArrowRight", minimum],
+    ["End", maximum],
+  ]) {
+    await handle.press(key);
+    await checkPaneWidth(page, panelSelector, expected, `${name}-${key}`);
+    assert(
+      await handle.evaluate((element) => document.activeElement === element),
+      `${name}-${key}: divider lost keyboard focus`
+    );
+    await measure(page, report, `${name}-${key}`);
+  }
+}
+
+async function measureRecurring(page, report, name, editorOpen) {
+  await settle(page);
+  const measured = await page.evaluate(() => {
+    const rect = (element) => {
+      const { left, right, top, bottom, width, height } = element.getBoundingClientRect();
+      return { left, right, top, bottom, width, height };
+    };
+    const rowNodes = Array.from(document.querySelectorAll(".recurring-expenses-row"));
+    const primary = rowNodes[0]?.closest(".panel");
+    const editor = document.querySelector(".recurring-expenses-editor");
+    const split = editor?.parentElement || primary?.parentElement;
+    const handle = split?.querySelector(":scope > .ledger-split-resizer");
+    return {
+      viewport: innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      primary: primary ? rect(primary) : null,
+      editor: editor ? rect(editor) : null,
+      siblingPanels: Boolean(editor && primary && editor.parentElement === primary.parentElement),
+      editorInRecord: Boolean(editor?.closest(".recurring-expenses-row")),
+      resizing: Boolean(split?.classList.contains("is-resizing")),
+      handle: handle
+        ? { rect: rect(handle), width: Number(handle.getAttribute("aria-valuenow")) }
+        : null,
+      rows: rowNodes.map((row) => {
+        const style = getComputedStyle(row);
+        const children = Array.from(row.children).map(rect);
+        return {
+          rect: rect(row),
+          contentHeight:
+            Math.max(...children.map((child) => child.bottom)) -
+            Math.min(...children.map((child) => child.top)),
+          blockInsets:
+            Number.parseFloat(style.paddingTop) +
+            Number.parseFloat(style.paddingBottom) +
+            Number.parseFloat(style.borderTopWidth) +
+            Number.parseFloat(style.borderBottomWidth),
+        };
+      }),
+    };
+  });
+  const details = JSON.stringify(measured);
+  assert(measured.primary, `${name}: recurring primary panel is missing ${details}`);
+  assert.equal(measured.rows.length, 2, `${name}: equal-row fixture did not render two records`);
+  assert(
+    measured.documentWidth <= measured.viewport + tolerance,
+    `${name}: recurring layout overflows the viewport ${details}`
+  );
+  assert(!measured.editorInRecord, `${name}: recurring editor is still inside a record ${details}`);
+  const heights = measured.rows.map((row) => row.rect.height);
+  assert(
+    Math.max(...heights) - Math.min(...heights) <= tolerance,
+    `${name}: recurring records are not equally tall ${details}`
+  );
+  const naturalHeight = Math.max(
+    ...measured.rows.map((row) => row.contentHeight + row.blockInsets)
+  );
+  assert(
+    Math.max(...heights) <= naturalHeight + tolerance * 2,
+    `${name}: recurring record tracks are stretched beyond their natural content ${details}`
+  );
+  assert.equal(Boolean(measured.editor), editorOpen, `${name}: unexpected recurring editor state`);
+  assert(!measured.resizing, `${name}: recurring divider capture was not released`);
+  if (editorOpen) {
+    assert(measured.siblingPanels, `${name}: list and editor do not share a split ${details}`);
+    if (measured.viewport >= 900) {
+      assert(measured.handle, `${name}: desktop recurring divider is missing ${details}`);
+      assert(
+        measured.editor.left >= measured.primary.right + 48 - tolerance &&
+          Math.abs(measured.editor.top - measured.primary.top) <= tolerance,
+        `${name}: desktop recurring editor is not in the right-hand pane ${details}`
+      );
+      assert(
+        measured.primary.width >= 280 - tolerance &&
+          measured.editor.width >= 260 - tolerance &&
+          measured.editor.width <= 520 + tolerance,
+        `${name}: recurring panes escape their shared width bounds ${details}`
+      );
+    } else {
+      assert(!measured.handle, `${name}: narrow recurring divider remains interactive ${details}`);
+      assert(
+        measured.editor.bottom <= measured.primary.top + tolerance &&
+          Math.abs(measured.editor.width - measured.primary.width) <= tolerance,
+        `${name}: narrow recurring form does not precede the full-width records ${details}`
+      );
+    }
+  } else {
+    assert(!measured.handle, `${name}: closed recurring editor left a divider behind ${details}`);
+  }
+  report.states.push({ name, recurring: measured });
+  return measured;
 }
 
 async function closeForm(form) {
@@ -331,19 +686,132 @@ async function checkScope(page, report, mode) {
   await form.locator('.ledger-fields input[type="date"]').first().fill("");
   await measure(page, report, `${mode}-edit-expense-empty`);
   await closeForm(form);
+  const recurringBaseline = await measureRecurring(
+    page,
+    report,
+    `${mode}-recurring-list-idle`,
+    false
+  );
   const editName = report.profile.lang === "zh" ? "编辑周期计划" : "Edit schedule";
-  await page.getByRole("button", { name: editName, exact: true }).click();
+  const firstRule = page.locator(".recurring-expenses-row").filter({ hasText: RULE_PURPOSE });
+  const editOpener = firstRule.getByRole("button", { name: editName, exact: true });
+  await editOpener.click();
   const scheduleForm = page.locator(".recurring-expenses-editor > .ledger-form");
+  const schedulePanel = ".recurring-expenses-editor";
   await scheduleForm.waitFor();
+  assert(
+    await scheduleForm
+      .locator('.ledger-fields input[type="date"]')
+      .first()
+      .evaluate((element) => document.activeElement === element),
+    `${mode}: recurring editor did not focus the start date`
+  );
   await measure(page, report, `${mode}-edit-recurring-populated`);
+  await measureRecurring(page, report, `${mode}-recurring-editor-outside-records`, true);
   await scheduleForm.locator('.recurring-schedule-fields input[type="date"]').fill("");
   await measure(page, report, `${mode}-edit-recurring-end-empty`);
+  if (report.profile.width >= 900) {
+    await dragSide(page, 260, report, `${mode}-recurring-edit-pane-260`, schedulePanel);
+    await measureRecurring(page, report, `${mode}-recurring-edit-list-at-260`, true);
+    await dragSide(page, 520, report, `${mode}-recurring-edit-pane-520`, schedulePanel);
+    await measureRecurring(page, report, `${mode}-recurring-edit-list-at-520`, true);
+    await keyboardSide(page, report, `${mode}-recurring-edit-keyboard`, schedulePanel);
+
+    // Independent ordinary and recurring editors must target their own rail.
+    await page.locator(".ledger-expense-row .ledger-actions button[aria-label]").first().click();
+    await form.waitFor();
+    const ordinaryWidth = await page
+      .locator("#expense-form")
+      .evaluate((element) => element.getBoundingClientRect().width);
+    await dragSide(page, 260, report, `${mode}-recurring-edit-with-expense-pane`, schedulePanel);
+    assert(
+      Math.abs(
+        (await page
+          .locator("#expense-form")
+          .evaluate((element) => element.getBoundingClientRect().width)) - ordinaryWidth
+      ) <= tolerance,
+      `${mode}: recurring divider changed the independent ordinary expense pane`
+    );
+    await measureRecurring(page, report, `${mode}-recurring-edit-independent-list`, true);
+    await closeForm(form);
+  }
   if (report.profile.narrow) {
     await page.setViewportSize({ width: report.profile.narrow, height: report.profile.height });
     await measure(page, report, `${mode}-live-narrow-recurring-edit`);
+    await measureRecurring(page, report, `${mode}-live-narrow-recurring-form-first`, true);
     await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+  } else {
+    await page.setViewportSize({ width: 899, height: report.profile.height });
+    await measure(page, report, `${mode}-recurring-edit-live-stack-at-899`);
+    await measureRecurring(page, report, `${mode}-recurring-edit-form-first-at-899`, true);
+    await page.setViewportSize({ width: 900, height: report.profile.height });
+    await measure(page, report, `${mode}-recurring-edit-live-rail-at-900`);
+    await measureRecurring(page, report, `${mode}-recurring-edit-bounded-at-900`, true);
+    await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+    await measureRecurring(page, report, `${mode}-recurring-edit-desktop-restored`, true);
   }
+  assert.equal(
+    await scheduleForm.locator('.recurring-schedule-fields input[type="date"]').inputValue(),
+    "",
+    `${mode}: live layout changes discarded the recurring end-date draft`
+  );
   await closeForm(scheduleForm);
+  assert(
+    await editOpener.evaluate((element) => document.activeElement === element),
+    `${mode}: cancelling the recurring editor did not restore opener focus`
+  );
+  const recurringClosed = await measureRecurring(
+    page,
+    report,
+    `${mode}-recurring-editor-closed`,
+    false
+  );
+  assert(
+    Math.abs(recurringClosed.primary.width - recurringBaseline.primary.width) <= tolerance &&
+      recurringClosed.rows.every(
+        (row, index) =>
+          Math.abs(row.rect.height - recurringBaseline.rows[index].rect.height) <= tolerance
+      ),
+    `${mode}: closing the recurring editor did not restore full-width natural records`
+  );
+
+  // Switching plans remounts the draft without mutating either fixture record.
+  await editOpener.click();
+  await scheduleForm.waitFor();
+  const purposeInput = scheduleForm.getByRole("textbox", {
+    name: report.profile.lang === "zh" ? "这笔钱花在哪儿了？" : "What did you pay for?",
+    exact: true,
+  });
+  assert.equal(await purposeInput.inputValue(), RULE_PURPOSE);
+  assert.equal(
+    await scheduleForm.locator('.recurring-schedule-fields input[type="date"]').inputValue(),
+    "2027-12-31"
+  );
+  await purposeInput.fill("Unsaved layout draft");
+  await editOpener.click();
+  assert.equal(
+    await purposeInput.inputValue(),
+    "Unsaved layout draft",
+    `${mode}: repeated edit discarded the draft`
+  );
+  const secondOpener = page
+    .locator(".recurring-expenses-row")
+    .filter({ hasText: SECOND_RULE_PURPOSE })
+    .getByRole("button", { name: editName, exact: true });
+  await secondOpener.click();
+  assert.equal(
+    await purposeInput.inputValue(),
+    SECOND_RULE_PURPOSE,
+    `${mode}: switching schedules retained the previous draft`
+  );
+  await measure(page, report, `${mode}-recurring-edit-second-plan`);
+  await measureRecurring(page, report, `${mode}-recurring-second-plan-natural-rows`, true);
+  await closeForm(scheduleForm);
+  assert(
+    await secondOpener.evaluate((element) => document.activeElement === element),
+    `${mode}: cancelling the second schedule did not restore its opener focus`
+  );
+  await measureRecurring(page, report, `${mode}-recurring-final-full-width`, false);
 }
 
 async function measureApiKeys(page, report, name) {

@@ -57,11 +57,12 @@ input[type="checkbox"] {
   --fs-4xl: 22px;
   --fs-value-primary: 32px;
   --fs-value-primary-compact: 28px;
-  --fs-value-row: 22px;
-  --fs-value-row-compact: 20px;
+  --fs-value-row: 24px;
+  --fs-value-row-compact: 22px;
   --fs-value-secondary: 18px;
   --fs-value-price: 40px;
   --fs-value-count: 16px;
+  --financial-currency-bg: rgba(79, 70, 229, 0.08);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -95,6 +96,7 @@ input[type="checkbox"] {
   --accent-fg: #080808;
   --accent-soft: color-mix(in oklch, var(--accent) 15%, transparent);
   --accent-glow: color-mix(in oklch, var(--accent) 30%, transparent);
+  --financial-currency-bg: rgba(129, 140, 248, 0.12);
 
   --sev-critical: #f87171;
   --sev-high: #fb923c;
@@ -873,6 +875,23 @@ a.crumb-button:hover {
   min-width: 0;
   max-width: 100%;
   white-space: normal;
+  overflow-wrap: anywhere;
+}
+.financial-value-money {
+  color: var(--text);
+}
+.financial-value-currency {
+  display: inline-block;
+  padding: 3px 5px;
+  margin-inline-end: 0.12em;
+  background: var(--financial-currency-bg);
+  color: var(--accent);
+  font: 600 var(--fs-xs)/1.2 var(--font-mono);
+  letter-spacing: 0.04em;
+  vertical-align: 0.18em;
+  white-space: nowrap;
+}
+.financial-value-number {
   overflow-wrap: anywhere;
 }
 .numeric-count,

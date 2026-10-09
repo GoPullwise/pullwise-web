@@ -1274,7 +1274,12 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
     expect(await screen.findByRole("link", { name: "History" })).toBeVisible();
     expect(screen.queryByText(/GitHub access lost/i)).not.toBeInTheDocument();
-    expect(screen.getByText("USD 2.00")).toBeInTheDocument();
+    expect(
+      screen
+        .getByRole("link", { name: "History" })
+        .closest("article")
+        .querySelector(".financial-value").textContent
+    ).toBe("USD 2.00");
     api.createProject.mockResolvedValue({ id: "prj_2" });
     fireEvent.click(screen.getByRole("button", { name: "Add project" }));
     fireEvent.change(screen.getByLabelText("Project name"), { target: { value: "New project" } });
@@ -1568,9 +1573,9 @@ describe("ledger screens", () => {
       ["2026-09-03", "USD 0.00"],
     ]) {
       fireEvent.click(within(currencyChart).getByRole("button", { name: new RegExp(date) }));
-      expect(
-        within(currencyChart).getByText(amount, { selector: ".financial-value" })
-      ).toBeVisible();
+      const value = currencyChart.querySelector(".financial-value");
+      expect(value).toBeVisible();
+      expect(value.textContent).toBe(amount);
     }
     expect(
       [...currencyChart.querySelectorAll(".expense-chart-point")].map((point) =>

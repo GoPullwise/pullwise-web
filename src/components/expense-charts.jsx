@@ -162,7 +162,11 @@ function CurrencyChart({ currency, points, dimension, formatTotal, title }) {
       <figcaption className="expense-chart-caption">{currency}</figcaption>
       <div className="expense-chart-readout" aria-live="polite" aria-atomic="true">
         <span className="expense-chart-selected-label">{selected.label}</span>
-        <FinancialValue value={formatTotal(selected.row)} className="expense-chart-value" />
+        <FinancialValue
+          value={formatTotal(selected.row)}
+          currency={currency}
+          className="expense-chart-value"
+        />
       </div>
       <div className="expense-chart-plot" ref={plotRef}>
         <svg
