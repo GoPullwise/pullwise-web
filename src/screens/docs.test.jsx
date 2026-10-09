@@ -23,11 +23,17 @@ describe("product Docs", () => {
     expect(screen.getByRole("link", { name: /API contract/i })).toHaveAttribute("href", "/developers/api");
   });
 
-  it("explains automatic Max assistance as part of ordinary expense entry and REST writes", () => {
+  it("explains automatic Jev assistance as part of ordinary expense entry and REST writes", () => {
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    expect(screen.getByRole("heading", { name: "Automatic Max assistance" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Automatic Jev assistance" })).toBeInTheDocument();
     expect(screen.getByText(/Jev automatically assists when you save an expense/i)).toHaveTextContent("REST API");
-    expect(screen.getByText(/leave the category blank/i)).toBeInTheDocument();
+    const assistance = screen.getByText(/leave the category blank/i);
+    expect(assistance).toHaveTextContent("Owner's effective Pro or Max plan");
+    expect(assistance).toHaveTextContent("$3 for Pro and $5 for Max");
+    expect(assistance).toHaveTextContent("server-provided allowance applies");
+    expect(assistance).toHaveTextContent("Editing keeps the original category unless you choose Automatic");
+    expect(assistance).toHaveTextContent("the expense is not saved; choose a category and retry");
+    expect(assistance).toHaveTextContent("Recurring schedules always require an explicit category");
   });
 
   it("explains email registration, explicit linking and inviter-approved join requests", () => {

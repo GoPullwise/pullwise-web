@@ -46,6 +46,10 @@ function isLedgerAccessFailure(failure) {
 
 function errorText(error) {
   const code = error?.payload?.error?.code;
+  const jevPlanRequired = T(
+    "Jev assistance requires the ledger Owner's Pro or Max plan.",
+    "Jev 辅助需要账本所有者的 Pro 或 Max 套餐。"
+  );
   const allowanceErrors = {
     IDENTITY_UNAVAILABLE: T(
       "Repository access could not be checked. Your loaded project history remains available.",
@@ -112,7 +116,8 @@ function errorText(error) {
       "Monthly Jev budget reached. Continue manually.",
       "本月 Jev 预算已用完，请继续手工记账。"
     ),
-    MAX_REQUIRED: T("Jev suggestions require Max.", "Jev 建议仅向 Max 开放。"),
+    JEV_PLAN_REQUIRED: jevPlanRequired,
+    MAX_REQUIRED: jevPlanRequired,
     CATEGORY_REQUIRED: T(
       "Choose a category to finish saving. Your draft is still here.",
       "请选择类别后保存，已填写的内容已保留。"
@@ -624,7 +629,8 @@ function ExpenseForm({
   useEffect(() => {
     mounted.current = true;
     const controller = new AbortController();
-    if (!value) {
+    setAutomaticCategory(false);
+    if (!recurrence && typeof api.me === "function") {
       api
         .me({ signal: controller.signal })
         .then((profile) => {
@@ -642,9 +648,9 @@ function ExpenseForm({
       mounted.current = false;
       controller.abort();
     };
-  }, [value, api]);
+  }, [value, recurrence, api]);
   const categoryRequired = Boolean(
-    value || expenseType === "recurring" || !automaticCategory || requiresCategory
+    expenseType === "recurring" || !automaticCategory || requiresCategory
   );
   useEffect(() => {
     // Chrome ignores focus while a pending write still disables the select.

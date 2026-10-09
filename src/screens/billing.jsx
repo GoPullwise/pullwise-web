@@ -1452,7 +1452,6 @@ function PlanCard({ plan, price, interval, active, featured, cta }) {
       ? limits.expenseRecords
       : null;
   const jevBudget =
-    plan?.id === "max" &&
     jev?.eligible === true &&
     typeof jev.monthlyBudgetUsd === "string" &&
     /^\d+(?:\.\d{1,6})?$/.test(jev.monthlyBudgetUsd)

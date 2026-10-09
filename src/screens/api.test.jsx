@@ -102,7 +102,7 @@ describe("API screens", () => {
       expect(markdown).toContain("# Pullwise ledger REST API");
       expect(markdown).toContain("### GET /api/v1/expenses");
       expect(markdown).toContain("Idempotency-Key");
-      expect(markdown).toContain("Automatic Max assistance");
+      expect(markdown).toContain("Automatic Jev assistance");
       expect(markdown).toContain("CATEGORY_REQUIRED");
       expect(markdown).toContain("### POST /api/v1/categories/{id}/remove");
       expect(markdown).toContain("categorySource");
@@ -153,11 +153,23 @@ describe("API screens", () => {
 
   it("documents automatic assistance on regular expense writes with no extra scope", () => {
     render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
-    expect(screen.getByRole("heading", { name: "Automatic Max assistance" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Automatic Jev assistance" })).toBeInTheDocument();
     expect(
       screen.getByText(/No separate suggestion request or suggestions:use scope/i)
     ).toBeInTheDocument();
-    expect(screen.getByText(/CATEGORY_REQUIRED/)).toBeInTheDocument();
+    const categoryBehavior = screen.getByText(/CATEGORY_REQUIRED/);
+    expect(categoryBehavior).toHaveTextContent(
+      "POST /api/v1/expenses and PATCH /api/v1/expenses/{id}"
+    );
+    expect(categoryBehavior).toHaveTextContent("Owner's effective Pro or Max plan");
+    expect(categoryBehavior).toHaveTextContent("Creates use a new Idempotency-Key");
+    expect(categoryBehavior).toHaveTextContent(
+      "Retry edits with If-Match using the loaded revision"
+    );
+    expect(categoryBehavior).toHaveTextContent("reload explicitly after a revision conflict");
+    expect(categoryBehavior).toHaveTextContent(
+      "Free ledgers and all recurring schedules require an explicit category"
+    );
     expect(screen.getByText(/categorySource/)).toBeInTheDocument();
     expect(screen.getByText(/curl.*POST.*\/api\/v1\/expenses/)).toHaveTextContent(
       "Idempotency-Key"

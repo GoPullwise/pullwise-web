@@ -2443,7 +2443,7 @@ describe("ledger screens", () => {
     expect(api.createExpense).not.toHaveBeenCalled();
   });
 
-  it("does not let automatic assistance omit the category when editing history", async () => {
+  it("keeps the existing category while edit eligibility loads, then offers automatic categorization", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     api.expenses.mockResolvedValue({
       items: [
@@ -2463,7 +2463,10 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     fireEvent.click(await screen.findByRole("button", { name: "Edit Hosting" }));
     expect(screen.getByLabelText("Category")).toBeRequired();
-    expect(api.me).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Category")).toHaveValue("cat_1");
+    await waitFor(() => expect(screen.getByRole("option", { name: "Automatic" })).toBeVisible());
+    expect(api.me).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText("Category")).toHaveValue("cat_1");
   });
 
   it("clears saved assistance when the ledger scope changes", async () => {

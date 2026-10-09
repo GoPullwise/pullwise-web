@@ -87,11 +87,11 @@ const PROJECT_STATE =
   'Standalone responses have githubRepoId: null, githubRepoIds: [], repositories: [] and githubAccess: "not_linked". Active standalone projects can record expenses under the usual role, scope and plan limits.';
 
 const MAX_ASSISTANCE =
-  "For ledgers on the Owner's Max plan, regular expense creation and editing automatically receive Jev assistance while the model is available and within the ledger's monthly allowance. No separate suggestion request or suggestions:use scope is needed; expenses:write and the normal target restrictions apply.";
+  "For ledgers on the Owner's effective Pro or Max plan, regular expense creation and editing automatically receive Jev assistance while the model is available and within the ledger's monthly allowance. No separate suggestion request or suggestions:use scope is needed; expenses:write and the normal target restrictions apply.";
 const CATEGORY_BEHAVIOR =
-  "On POST /api/v1/expenses, Max can omit categoryId when automatic categorization is available. Explicit category, target, amount and currency are preserved. If no category can be suggested, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry with a new Idempotency-Key. Free and Pro require a category. PATCH always requires an explicit category.";
+  "On POST /api/v1/expenses and PATCH /api/v1/expenses/{id}, categoryId may be omitted for automatic categorization when the ledger Owner's effective Pro or Max plan, model availability and allowance permit it. Explicit category, target, amount and currency are preserved. If no category can be selected confidently, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry. Creates use a new Idempotency-Key. Retry edits with If-Match using the loaded revision; reload explicitly after a revision conflict. Free ledgers and all recurring schedules require an explicit category.";
 const ASSISTANCE_RESPONSE =
-  "Successful writes return the expense with an assistance object: status, categorySource (jev or user), suggestions and optional reason/modelVersion/questionVersion. Duplicate advice never blocks saving. Identical Idempotency-Key replays return the cached result without another model call. Reads do not invoke Jev.";
+  "Successful writes return the expense with an assistance object: status, categorySource (jev or user), suggestions and optional reason/modelVersion/questionVersion. Duplicate advice never blocks saving. Identical create requests with the same Idempotency-Key return the cached result without another model call. Reads do not invoke Jev.";
 const EXACT_TOTALS =
   "Single expense amountMinor values are safe integers. Aggregate amountMinor totals are numbers up to 9007199254740991 and exact decimal integer strings above that boundary; parse large totals with BigInt or decimal arithmetic.";
 
@@ -137,7 +137,7 @@ function markdown(base, example, createExample, projectExample) {
     example,
     "```",
     "",
-    "## Automatic Max assistance",
+    "## Automatic Jev assistance",
     "",
     MAX_ASSISTANCE,
     "",
@@ -180,7 +180,7 @@ export function ApiDocsScreen({ go, auth }) {
     ["projects", "Projects"],
     ["endpoints", "Endpoints"],
     ["filters", "Filters and writes"],
-    ["max-assistance", "Automatic Max assistance"],
+    ["max-assistance", "Automatic Jev assistance"],
     ["errors", "Errors"],
   ];
   async function copyPage() {
@@ -317,28 +317,28 @@ export function ApiDocsScreen({ go, auth }) {
             )}
           </p>
           <h2 id="max-assistance" className="docs-h2">
-            {T("Automatic Max assistance", "Max 自动辅助")}
+            {T("Automatic Jev assistance", "Jev 自动辅助")}
           </h2>
           <p>
             {T(
               MAX_ASSISTANCE,
-              "账本所有者订阅 Max 后，在模型可用且账本月度额度内，正常创建和编辑支出即可自动享受 Jev 辅助。无需另发建议请求或授予 suggestions:use 权限；使用 expenses:write 和正常目标权限即可。"
+              "账本所有者的 Pro 或 Max 权益有效时，在模型可用且账本月度额度内，正常创建和编辑支出即可自动享受 Jev 辅助。无需另发建议请求或授予 suggestions:use 权限；使用 expenses:write 和正常目标权限即可。"
             )}
           </p>
           <p>
             {T(
               CATEGORY_BEHAVIOR,
-              "POST /api/v1/expenses 时，自动分类可用则 Max 可省略 categoryId。明确填写的类别、目标、金额和币种会保留。无法提供类别建议时返回 422 CATEGORY_REQUIRED，支出尚未保存；请选择类别并用新的 Idempotency-Key 重试。Free 和 Pro 必须填写类别；PATCH 始终需要明确类别。"
+              "POST /api/v1/expenses 和 PATCH /api/v1/expenses/{id} 时，账本所有者的 Pro 或 Max 权益有效、模型可用且额度允许，则可省略 categoryId 进行自动分类。明确填写的类别、目标、金额和币种会保留。无法有把握地选出类别时返回 422 CATEGORY_REQUIRED，支出尚未保存；请选择类别后重试。新增支出使用新的 Idempotency-Key；编辑重试使用已加载版本的 If-Match，发生版本冲突后须主动重新加载。Free 及所有周期计划都必须明确填写类别。"
             )}
           </p>
           <p>
             {T(
               ASSISTANCE_RESPONSE,
-              "成功写入会返回支出和 assistance 对象，包括 status、categorySource（jev 或 user）、suggestions，以及可选的 reason/modelVersion/questionVersion。重复记录提示不阻止保存。相同 Idempotency-Key 重放返回缓存结果，不会再次调用模型。读取不会调用 Jev。"
+              "成功写入会返回支出和 assistance 对象，包括 status、categorySource（jev 或 user）、suggestions，以及可选的 reason/modelVersion/questionVersion。重复记录提示不阻止保存。使用相同 Idempotency-Key 的相同创建请求重放返回缓存结果，不会再次调用模型。读取不会调用 Jev。"
             )}
           </p>
           <DocsCode
-            title={T("Create with automatic categorization (Max)", "使用自动分类创建支出（Max）")}
+            title={T("Create with automatic categorization (Pro and Max)", "使用自动分类创建支出（Pro 和 Max）")}
           >
             {createExample}
           </DocsCode>

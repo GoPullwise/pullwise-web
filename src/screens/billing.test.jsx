@@ -887,7 +887,7 @@ describe("BillingScreen", () => {
     expect(screen.getAllByText(/2 months free/i)).toHaveLength(2);
   });
 
-  it("renders configurable ledger allowances and Max monthly Jev budget without inventing availability", async () => {
+  it("renders Server-provided Pro and Max monthly Jev budgets without inventing availability", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({
       ...billingCatalog,
       plans: [...billingCatalog.plans, maxPlan].map((plan) => ({
@@ -898,9 +898,9 @@ describe("BillingScreen", () => {
             expenseRecords: plan.id === "free" ? 500 : 20000,
           },
           jev: {
-            eligible: plan.id === "max",
+            eligible: plan.id === "pro" || plan.id === "max",
             available: false,
-            monthlyBudgetUsd: plan.id === "max" ? "5.00" : "0.00",
+            monthlyBudgetUsd: plan.id === "max" ? "5.00" : plan.id === "pro" ? "3.00" : "0.00",
             rollover: false,
           },
         },
@@ -925,15 +925,83 @@ describe("BillingScreen", () => {
     expect(
       screen.getByText(/monthly Jev allowance covers model assistance, has no cash value/i)
     ).toBeInTheDocument();
-    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent(
-      "Jev assistance allowance: $5.00 / month"
-    );
-    expect(screen.getByText("Activation pending · no rollover")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/Jev assistance allowance:/).map((node) => node.textContent)
+    ).toEqual([
+      "Jev assistance allowance: $3.00 / month",
+      "Jev assistance allowance: $5.00 / month",
+    ]);
+    expect(screen.getAllByText("Activation pending · no rollover")).toHaveLength(2);
+    expect(screen.getAllByText("Jev: not included")).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: /yearly/i }));
-    expect(screen.getByText(/Jev assistance allowance:/)).toHaveTextContent(
-      "Jev assistance allowance: $5.00 / month"
-    );
+    expect(
+      screen.getAllByText(/Jev assistance allowance:/).map((node) => node.textContent)
+    ).toEqual([
+      "Jev assistance allowance: $3.00 / month",
+      "Jev assistance allowance: $5.00 / month",
+    ]);
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(1);
+    expect(pullwiseApi.billing.createCheckoutSession).not.toHaveBeenCalled();
   });
+
+  it("uses configured Jev budget amounts and availability for each paid tier", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      plans: [
+        billingCatalog.plans[0],
+        {
+          ...billingCatalog.plans[1],
+          entitlements: {
+            jev: { eligible: true, available: true, monthlyBudgetUsd: "1.234567" },
+          },
+        },
+        {
+          ...maxPlan,
+          entitlements: {
+            jev: { eligible: true, available: false, monthlyBudgetUsd: "4.25" },
+          },
+        },
+      ],
+    });
+    render(<PricingScreen go={vi.fn()} auth={{ authenticated: false }} navigate={vi.fn()} />);
+
+    await screen.findAllByText(/Jev assistance allowance:/);
+    const pro = screen.getByRole("heading", { name: "Pullwise Pro" }).closest(".pricing-card");
+    const max = screen.getByRole("heading", { name: "Pullwise Max" }).closest(".pricing-card");
+    expect(pro).toHaveTextContent("Jev assistance allowance: $1.234567 / month");
+    expect(pro).toHaveTextContent("Monthly UTC budget · no rollover");
+    expect(pro).not.toHaveTextContent("Activation pending");
+    expect(max).toHaveTextContent("Jev assistance allowance: $4.25 / month");
+    expect(max).toHaveTextContent("Activation pending · no rollover");
+    expect(max).not.toHaveTextContent("Monthly UTC budget");
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    null,
+    { jev: { eligible: true, available: true } },
+    { jev: { eligible: true, available: true, monthlyBudgetUsd: 3 } },
+    { jev: { eligible: true, available: true, monthlyBudgetUsd: "3e0" } },
+    { jev: { eligible: false, available: true, monthlyBudgetUsd: "3.00" } },
+  ])(
+    "does not invent a Pro Jev allowance from absent or invalid entitlements: %j",
+    async (entitlements) => {
+      pullwiseApi.billing.getPlan.mockResolvedValue({
+        ...billingCatalog,
+        plans: [billingCatalog.plans[0], { ...billingCatalog.plans[1], entitlements }],
+      });
+      render(<PricingScreen go={vi.fn()} auth={{ authenticated: false }} navigate={vi.fn()} />);
+
+      await screen.findByText("Project expense ledger for teams.");
+      expect(screen.getByRole("heading", { name: "Pullwise Max" })).toBeInTheDocument();
+      expect(screen.queryByText(/Jev assistance allowance:/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Automatic Jev assistance when saving expenses")
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Monthly UTC budget · no rollover")).not.toBeInTheDocument();
+      expect(screen.queryByText("Activation pending · no rollover")).not.toBeInTheDocument();
+    }
+  );
 
   it("does not leak malformed billing price amounts", async () => {
     pullwiseApi.billing.getPlan.mockResolvedValue({

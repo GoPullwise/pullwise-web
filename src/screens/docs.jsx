@@ -38,10 +38,10 @@ const SECTIONS = [
   },
   {
     id: "max-assistance",
-    title: ["Automatic Max assistance", "Max 自动辅助"],
+    title: ["Automatic Jev assistance", "Jev 自动辅助"],
     text: [
-      "With the ledger Owner's Max plan, Jev automatically assists when you save an expense in the web app or REST API, while the model is available and within the ledger's monthly allowance. For a new expense, you can leave the category blank when automatic categorization is available or choose one yourself. Editing requires an explicit category. Your chosen category, project, amount and currency stay unchanged. If no category can be suggested, choose one to finish saving. Possible duplicates appear as advice after saving.",
-      "账本所有者订阅 Max 后，在模型可用且账本月度额度内，Web 应用或 REST API 保存支出时会自动启用 Jev 辅助。新增支出时，自动分类可用则可留空类别，也可自行选择；编辑支出必须明确选择类别。你明确选择的类别、项目、金额和币种会保持不变。无法提供类别建议时，请选择类别后再保存；疑似重复记录会在保存后以提示呈现。",
+      "With the ledger Owner's effective Pro or Max plan, Jev automatically assists when you save an expense in the web app or REST API, while the model is available and within the ledger's allowance. Default monthly model allowances are $3 for Pro and $5 for Max; your displayed server-provided allowance applies. For new or edited ordinary expenses, select Automatic to leave the category blank, or choose a category yourself. Editing keeps the original category unless you choose Automatic or another category. Explicit category, project or shared target, amount and currency stay unchanged. If no category can be selected confidently, the expense is not saved; choose a category and retry. Recurring schedules always require an explicit category. Possible duplicates appear as advice after saving.",
+      "账本所有者的 Pro 或 Max 权益有效、模型可用且账本额度允许时，Web 应用或 REST API 保存支出会自动使用 Jev 辅助。默认月度模型额度为 Pro 3 美元、Max 5 美元；实际以服务端提供并展示的额度为准。普通支出的新增和编辑都可主动选择“自动分类”以留空类别，也可自行选择类别。编辑默认保留原类别，除非你选择“自动分类”或其他类别。明确填写的类别、项目或公共池目标、金额和币种会保持不变。无法有把握地选出类别时，支出不会保存；请选择类别后重试。周期计划始终需要明确类别。疑似重复记录会在保存后以提示呈现。",
     ],
   },
   {
