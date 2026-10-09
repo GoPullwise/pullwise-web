@@ -1430,8 +1430,20 @@ describe("ledger screens", () => {
   it("keeps category rename and archive confirmation focused on the current action", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="categories" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    const pencil = await screen.findByRole("button", { name: "Rename" });
+    const row = pencil.closest("article");
+    const title = screen.getByRole("heading", { name: "Tools", level: 3 });
+    expect(pencil.parentElement).toBe(title.parentElement);
+    expect(pencil).toHaveAccessibleDescription("Tools");
+    expect(pencil.textContent).toBe("");
+    expect(pencil.querySelector("svg")).not.toBeNull();
+    fireEvent.click(pencil);
     expect(screen.getByLabelText("New category name")).toHaveFocus();
+    expect(screen.getByLabelText("New category name")).toHaveValue("Tools");
+    expect(screen.queryByRole("heading", { name: "Tools", level: 3 })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("New category name").closest("form").parentElement).toBe(
+      row.querySelector(".ledger-row-main")
+    );
     expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -1440,6 +1452,54 @@ describe("ledger screens", () => {
     expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Confirm archive" })).toBeInTheDocument();
     expect(api.archiveCategory).not.toHaveBeenCalled();
+  });
+
+  it("cancels an inline category draft with Escape and rejects whitespace-only names", async () => {
+    api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
+    render(<LedgerScreen go={vi.fn()} mode="categories" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    const input = screen.getByLabelText("New category name");
+    fireEvent.change(input, { target: { value: "   " } });
+    expect(screen.getByRole("button", { name: "Save category" })).toBeDisabled();
+    fireEvent.submit(input.closest("form"));
+    expect(api.updateCategory).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(screen.queryByLabelText("New category name")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tools", level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Rename" })).toHaveFocus();
+    expect(api.updateCategory).not.toHaveBeenCalled();
+  });
+
+  it("keeps the inline category draft after a revision conflict and locks a pending save", async () => {
+    api.categories.mockResolvedValue([
+      { id: "cat_1", name: "Tools", revision: 4, color: "indigo", archivedAt: null },
+    ]);
+    let rejectSave;
+    api.updateCategory.mockImplementationOnce(
+      () => new Promise((resolve, reject) => (rejectSave = reject))
+    );
+    render(<LedgerScreen go={vi.fn()} mode="categories" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rename" }));
+    const input = screen.getByLabelText("New category name");
+    fireEvent.change(input, { target: { value: "  Software  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Save category" }));
+    expect(api.updateCategory).toHaveBeenCalledWith(
+      "cat_1",
+      4,
+      { name: "Software", color: "indigo" },
+      expect.anything()
+    );
+    expect(input).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    input.blur();
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(input).toBeInTheDocument();
+    rejectSave({ status: 412 });
+    expect(await screen.findByText(/Save conflict/i)).toBeInTheDocument();
+    expect(input).toBeEnabled();
+    expect(input).toHaveValue("  Software  ");
+    expect(input).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Save category" })).toBeEnabled();
   });
 
   it("saves the project description with its revision", async () => {

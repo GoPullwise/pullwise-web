@@ -2,6 +2,48 @@
 
 Updated 2026-10-09. Companion: [Server acceptance](../../../pullwise-server/docs/validation/local-acceptance.md).
 
+## Expense action stacks and category title rename (2026-10-09)
+
+Ordinary project and Shared Pool expense rows now place the exact amount above
+horizontal Edit/Remove actions, matching recurring records with a 12px gap.
+Wide lists align the stack to the right; narrow lists place it below the record
+description and align it to the start. Financial formatting, copying, equal
+natural row sizing and removal confirmation remain unchanged.
+
+Categories replace the right-hand Rename text action with an accessible pencil
+beside the active category title. Clicking it edits the name in that title's
+left-hand record area. Save/Cancel wrap naturally; input focus, Cancel/Escape
+opener restoration and failed-save draft focus are retained. Pending saves lock
+the controls, whitespace-only names are rejected and revision/color, access,
+archived restrictions and the 80-character bound remain intact.
+
+`npm run check` passes lint, **44 files / 742 tests**, and the preview-configured
+build. Offline Worker configuration, Worker/script syntax, owned formatting,
+whitespace and pinned Wrangler 4.136.3 preview packaging also pass.
+The persistent layout check passes **500 states in eight contexts** using
+Chromium 143.0.7499.4 and Linux WebKit 26.0. Project/shared expense checks require
+amounts above non-overlapping horizontal actions across desktop/touch profiles,
+260/520px rails, 899/900px reflow and 390→320/412→360 widths. Categories cover
+long unspaced titles, adjacent pencils, 44px coarse targets, input/control bounds,
+inline replacement, draft preservation, cancellation focus and archived records.
+Local fixtures accept GETs only, cap each context at 100 requests and block
+writes and external delivery.
+
+Nine final viewport captures use the same frozen build: six category idle/edit
+views across desktop, Chromium 320px touch and WebKit 320px dark, plus project
+desktop, Shared Pool touch and WebKit dark expense action stacks. Three captures
+were independently reviewed by Root. All six capture contexts are clean:
+213 interceptions, 35 synthetic API GETs, 172 static requests and six blocked
+fonts, at most 39/100 per context. Chromium touch remains coarse/points true/1
+before and after captures. Linux WebKit reports coarse=true but raw
+`maxTouchPoints=0`; both remain stable and two trusted pencil touchstart events
+were recorded without changing navigator values. These are browser-engine and
+emulation checks, not physical iOS/Android or live-account save acceptance.
+
+Firefox remains unavailable in this managed runtime because of the previously
+recorded uid-mapping/SWGL startup errors; no new local Firefox success is claimed.
+Its checks remain configured in the existing three-engine CI.
+
 ## Expense presentation and recurring side editor (2026-10-09)
 
 Project detail and Shared Pool now edit recurring schedules in a separate

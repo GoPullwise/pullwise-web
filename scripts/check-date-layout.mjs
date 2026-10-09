@@ -6,9 +6,11 @@ import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 import {
   createDateLayoutFixture,
+  ARCHIVED_CATEGORY_NAME,
   DEVELOPMENT_URL,
   EXPENSE_PURPOSE,
   LARGE_RULE_AMOUNT,
+  LONG_CATEGORY_NAME,
   PROJECT_ID,
   PRODUCT_URL,
   RULE_PURPOSE,
@@ -250,6 +252,7 @@ async function checkPresentation(page, name) {
         const value = row.querySelector(".financial-value");
         const side = row.querySelector(".ledger-row-side, .recurring-expenses-side");
         return {
+          ordinary: row.classList.contains("ledger-expense-row"),
           purpose: row.querySelector("h3")?.textContent,
           row: rect(row),
           side: side ? textGeometry(side) : null,
@@ -257,6 +260,12 @@ async function checkPresentation(page, name) {
           currency: textGeometry(value?.querySelector(".financial-value-currency")),
           number: textGeometry(value?.querySelector(".financial-value-number")),
           actions: Array.from(row.querySelectorAll(".ledger-actions, .panel-actions")).map(rect),
+          actionGroups: Array.from(row.querySelectorAll(".ledger-actions, .panel-actions")).map(
+            (group) => ({
+              rect: rect(group),
+              buttons: Array.from(group.querySelectorAll("button")).map(rect),
+            })
+          ),
         };
       });
     const header = document.querySelector(".ledger-project .page-h");
@@ -342,6 +351,38 @@ async function checkPresentation(page, name) {
           row.actions.every((action) => !overlaps(fragment, action)),
           `${name}: financial text overlaps row actions ${details}`
         );
+      }
+    }
+    if (row.ordinary && row.actionGroups.length > 0) {
+      const amountBottom = Math.max(
+        row.currency.rect.bottom,
+        row.number.rect.bottom,
+        ...row.currency.fragments.map((fragment) => fragment.bottom),
+        ...row.number.fragments.map((fragment) => fragment.bottom)
+      );
+      for (const group of row.actionGroups) {
+        assert(
+          group.rect.top >= amountBottom + 4 - tolerance,
+          `${name}: ordinary expense amount is not above its actions with a clear gap ${details}`
+        );
+        assert(
+          inside(group.rect, row.row) && insideInline(group.rect, row.side.rect),
+          `${name}: ordinary expense actions escape the record ${details}`
+        );
+        for (let index = 0; index < group.buttons.length; index += 1) {
+          const button = group.buttons[index];
+          assert(
+            inside(button, group.rect),
+            `${name}: ordinary expense action escapes its group ${details}`
+          );
+          for (const sibling of group.buttons.slice(index + 1)) {
+            assert(
+              Math.abs(button.top - sibling.top) <= tolerance &&
+                button.right <= sibling.left + tolerance,
+              `${name}: ordinary expense edit/remove actions do not share a horizontal row ${details}`
+            );
+          }
+        }
       }
     }
   }
@@ -477,7 +518,14 @@ async function checkPaneWidth(page, panelSelector, width, name) {
   );
 }
 
-async function dragSide(page, width, report, name, panelSelector = "#expense-form") {
+async function dragSide(
+  page,
+  width,
+  report,
+  name,
+  panelSelector = "#expense-form",
+  measureState = measure
+) {
   const { handle } = paneTargets(page, panelSelector);
   await handle.scrollIntoViewIfNeeded();
   const initial = Number(await handle.getAttribute("aria-valuenow"));
@@ -504,7 +552,7 @@ async function dragSide(page, width, report, name, panelSelector = "#expense-for
     await page.mouse.up();
   }
   await checkPaneWidth(page, panelSelector, width, name);
-  await measure(page, report, name);
+  await measureState(page, report, name);
 }
 
 async function keyboardSide(page, report, name, panelSelector) {
@@ -975,6 +1023,234 @@ async function checkApiKeys(page, report) {
   }
 }
 
+async function measureCategories(page, report, name) {
+  await settle(page);
+  const measured = await page.evaluate(() => {
+    const rect = (element) => {
+      const { left, right, top, bottom, width, height } = element.getBoundingClientRect();
+      return { left, right, top, bottom, width, height };
+    };
+    return {
+      viewport: innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      coarse: matchMedia("(pointer: coarse)").matches,
+      rows: Array.from(document.querySelectorAll(".ledger-category-row")).map((row) => {
+        const main = row.querySelector(".ledger-row-main");
+        const title = main.querySelector(".ledger-category-title");
+        const heading = title?.querySelector("h3");
+        const opener = title?.querySelector("[data-category-rename]");
+        const editor = main.querySelector(".ledger-category-editor");
+        const range = document.createRange();
+        if (heading) range.selectNodeContents(heading);
+        return {
+          row: rect(row),
+          main: rect(main),
+          clientWidth: row.clientWidth,
+          scrollWidth: row.scrollWidth,
+          heading: heading
+            ? {
+                text: heading.textContent,
+                rect: rect(heading),
+                fragments: Array.from(range.getClientRects())
+                  .filter((bounds) => bounds.width > 0)
+                  .map((bounds) => ({
+                    left: bounds.left,
+                    right: bounds.right,
+                    top: bounds.top,
+                    bottom: bounds.bottom,
+                  })),
+              }
+            : null,
+          title: title ? rect(title) : null,
+          opener: opener
+            ? {
+                rect: rect(opener),
+                text: opener.textContent,
+                svg: Boolean(opener.querySelector("svg")),
+              }
+            : null,
+          rightRename: Array.from(row.querySelectorAll(":scope > .ledger-actions button")).some(
+            (button) =>
+              button.hasAttribute("data-category-rename") ||
+              ["Rename", "重命名"].includes(button.textContent.trim())
+          ),
+          buttons: row.querySelectorAll("button").length,
+          editor: editor
+            ? {
+                rect: rect(editor),
+                parentMain: editor.parentElement === main,
+                controls: Array.from(editor.querySelectorAll("input, button")).map((control) => ({
+                  rect: rect(control),
+                  fontSize: Number.parseFloat(getComputedStyle(control).fontSize),
+                })),
+              }
+            : null,
+        };
+      }),
+    };
+  });
+  const details = JSON.stringify(measured);
+  assert(
+    measured.documentWidth <= measured.viewport + tolerance,
+    `${name}: categories page overflows viewport ${details}`
+  );
+  assert.equal(measured.rows.length, 3, `${name}: category fixture is incomplete`);
+  for (const row of measured.rows) {
+    assert(
+      row.scrollWidth <= row.clientWidth + tolerance,
+      `${name}: category record overflows ${details}`
+    );
+    assert(!row.rightRename, `${name}: Rename remains in the right-hand actions ${details}`);
+    if (row.opener) {
+      assert(
+        row.heading && row.title && row.opener.svg && !row.opener.text.trim(),
+        `${name}: category rename is not an icon beside the title ${details}`
+      );
+      assert(
+        inside(row.opener.rect, row.row) && inside(row.opener.rect, row.title),
+        `${name}: long category name pushes its pencil outside the title ${details}`
+      );
+      assert(
+        !overlaps(row.heading.rect, row.opener.rect),
+        `${name}: category name overlaps pencil ${details}`
+      );
+      // A wrapping heading retains its allocated flex width even when no text
+      // fragment reaches the final few pixels. Keep the icon beside that box;
+      // single-line names additionally stay beside the actual visible text.
+      const textRight =
+        row.heading.fragments.length === 1
+          ? row.heading.fragments[0].right
+          : row.heading.rect.right;
+      assert(
+        row.opener.rect.left >= textRight - tolerance &&
+          row.opener.rect.left <= textRight + 16 + tolerance,
+        `${name}: pencil is not adjacent to the category name ${details}`
+      );
+      if (measured.coarse)
+        assert(
+          row.opener.rect.width >= 44 - tolerance && row.opener.rect.height >= 44 - tolerance,
+          `${name}: category pencil has no 44px touch target ${details}`
+        );
+    }
+    for (const fragment of row.heading?.fragments || []) {
+      assert(
+        inside(fragment, row.row) && insideInline(fragment, row.main),
+        `${name}: category name escapes its record ${details}`
+      );
+    }
+    if (row.editor) {
+      assert(
+        row.editor.parentMain && !row.heading,
+        `${name}: category editor does not replace its title in place ${details}`
+      );
+      assert(
+        inside(row.editor.rect, row.row),
+        `${name}: category editor escapes record bounds ${details}`
+      );
+      assert.equal(
+        row.editor.controls.length,
+        3,
+        `${name}: category editor lacks input/save/cancel`
+      );
+      for (let index = 0; index < row.editor.controls.length; index += 1) {
+        const control = row.editor.controls[index];
+        assert(
+          inside(control.rect, row.editor.rect),
+          `${name}: category edit control escapes form ${details}`
+        );
+        assert(
+          row.editor.controls
+            .slice(index + 1)
+            .every((other) => !overlaps(control.rect, other.rect)),
+          `${name}: category edit input/save/cancel overlap ${details}`
+        );
+        if (measured.coarse)
+          assert(
+            control.rect.height >= 44 - tolerance,
+            `${name}: category editor control has no 44px touch target ${details}`
+          );
+      }
+      if (measured.coarse || measured.viewport <= 760)
+        assert(
+          row.editor.controls[0].fontSize >= 16 - 0.05,
+          `${name}: category edit input text is too small ${details}`
+        );
+    }
+  }
+  const archived = measured.rows[2];
+  assert.equal(
+    archived.heading?.text,
+    ARCHIVED_CATEGORY_NAME,
+    `${name}: archived category name is unavailable`
+  );
+  assert.equal(archived.buttons, 0, `${name}: archived category exposes mutation controls`);
+  report.states.push({ name, categories: measured });
+}
+
+async function checkCategories(page, report) {
+  // Ledger links remain visible on mobile; the compact selector contains only
+  // Account & tools destinations and does not offer Categories.
+  await page.locator('.side-nav .side-i[href="/categories"]').click();
+  await page.waitForURL(`${baseURL}/categories`);
+  const rows = page.locator(".ledger-category-row");
+  await rows.nth(2).waitFor();
+  await page.locator(".topbar-loading").waitFor({ state: "detached" });
+  await measureCategories(page, report, "categories-title-pencils-idle");
+  assert.equal(await rows.nth(1).locator("h3").textContent(), LONG_CATEGORY_NAME);
+  const opener = rows.nth(1).locator("[data-category-rename]");
+  await opener.click();
+  const form = rows.nth(1).locator(".ledger-row-main .ledger-category-editor");
+  const input = form.locator("input");
+  await input.waitFor();
+  assert(
+    await input.evaluate((element) => document.activeElement === element),
+    "categories: inline name input did not receive focus"
+  );
+  assert.equal(await input.inputValue(), LONG_CATEGORY_NAME);
+  await input.fill("Unsaved category draft");
+  await measureCategories(page, report, "categories-inline-editor-open");
+  if (report.profile.width >= 900) {
+    const panel = ".ledger-categories .ledger-split > .panel:nth-child(2)";
+    await dragSide(
+      page,
+      260,
+      report,
+      "categories-inline-editor-pane-260",
+      panel,
+      measureCategories
+    );
+    await dragSide(
+      page,
+      520,
+      report,
+      "categories-inline-editor-pane-520",
+      panel,
+      measureCategories
+    );
+  }
+  const narrow = report.profile.narrow || 899;
+  await page.setViewportSize({ width: narrow, height: report.profile.height });
+  await measureCategories(page, report, `categories-inline-editor-live-${narrow}`);
+  assert.equal(
+    await input.inputValue(),
+    "Unsaved category draft",
+    "categories: reflow discarded rename draft"
+  );
+  await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+  const cancelName = report.profile.lang === "zh" ? "取消" : "Cancel";
+  await form.getByRole("button", { name: cancelName, exact: true }).click();
+  await form.waitFor({ state: "detached" });
+  assert(
+    await opener.evaluate((element) => document.activeElement === element),
+    "categories: cancel did not restore pencil focus"
+  );
+  assert.equal(await rows.nth(1).locator("h3").textContent(), LONG_CATEGORY_NAME);
+  await measureCategories(page, report, "categories-inline-cancel-restored-title");
+  await page.setViewportSize({ width: narrow, height: report.profile.height });
+  await measureCategories(page, report, `categories-long-title-pencil-live-${narrow}`);
+  await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
+}
+
 await access(join(root, "dist", "index.html"));
 // Browser installation is an explicit CI/runtime step. This script never
 // downloads browsers or writes caches under the user's home directory.
@@ -1037,6 +1313,7 @@ try {
         await checkScope(page, report, "project");
         await checkScope(page, report, "shared");
         await checkApiKeys(page, report);
+        await checkCategories(page, report);
         fixture.assertClean();
         assert.deepEqual(errors, [], `${engine}/${profile.name}: browser errors`);
         report.requests = fixture.getRequests();

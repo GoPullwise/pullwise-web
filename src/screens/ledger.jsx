@@ -893,6 +893,8 @@ function ScopedLedgerScreen({
   const expenseOpenerRef = useRef(null);
   const restoreExpenseFocus = useRef(false);
   const categoryEditorRowRef = useRef(null);
+  const categoryEditorInputRef = useRef(null);
+  const restoreCategoryDraftFocus = useRef(false);
   const restoreCategoryFocus = useRef(false);
   useEffect(() => {
     mounted.current = true;
@@ -911,11 +913,18 @@ function ScopedLedgerScreen({
     }
   }, [editing, creatingExpense]);
   useEffect(() => {
+    if (!categoryEdit) restoreCategoryDraftFocus.current = false;
+    else if (!busy && restoreCategoryDraftFocus.current) {
+      categoryEditorInputRef.current?.focus({ preventScroll: true });
+      restoreCategoryDraftFocus.current = false;
+    }
     if (!categoryEdit && restoreCategoryFocus.current) {
-      categoryEditorRowRef.current?.querySelector("button")?.focus({ preventScroll: true });
+      categoryEditorRowRef.current
+        ?.querySelector("[data-category-rename]")
+        ?.focus({ preventScroll: true });
       restoreCategoryFocus.current = false;
     }
-  }, [categoryEdit]);
+  }, [categoryEdit, busy]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const filtered = useMemo(
@@ -975,6 +984,7 @@ function ScopedLedgerScreen({
       setCategoryEdit(null);
       setConfirmCategoryId("");
       categoryEditorRowRef.current = null;
+      restoreCategoryDraftFocus.current = false;
       restoreCategoryFocus.current = false;
     }
     loadedScope.current = scope;
@@ -2070,9 +2080,101 @@ function ScopedLedgerScreen({
                 )}
                 <div className="ledger-list">
                   {data.categories.map((category) => (
-                    <article className="ledger-category-row" key={category.id}>
+                    <article
+                      className={
+                        canManageCategories && categoryEdit?.id === category.id
+                          ? "ledger-category-row is-editing"
+                          : "ledger-category-row"
+                      }
+                      key={category.id}
+                    >
                       <div className="ledger-row-main">
-                        <h3>{category.name}</h3>
+                        {canManageCategories && categoryEdit?.id === category.id ? (
+                          <form
+                            className="ledger-actions ledger-category-editor"
+                            onKeyDown={(event) => {
+                              if (event.key === "Escape" && !busy) {
+                                event.preventDefault();
+                                restoreCategoryFocus.current = true;
+                                setCategoryEdit(null);
+                              }
+                            }}
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              if (!categoryEdit.name.trim()) return;
+                              restoreCategoryDraftFocus.current = true;
+                              action(() =>
+                                api.updateCategory(
+                                  category.id,
+                                  category.revision,
+                                  { name: categoryEdit.name.trim(), color: category.color },
+                                  {}
+                                )
+                              ).then((ok) => {
+                                if (ok) {
+                                  restoreCategoryFocus.current = true;
+                                  setCategoryEdit(null);
+                                }
+                              });
+                            }}
+                          >
+                            <input
+                              ref={categoryEditorInputRef}
+                              aria-label={T("New category name")}
+                              autoFocus
+                              value={categoryEdit.name}
+                              required
+                              maxLength={80}
+                              disabled={busy}
+                              onChange={(event) =>
+                                setCategoryEdit({ id: category.id, name: event.target.value })
+                              }
+                            />
+                            <button
+                              className="btn primary"
+                              type="submit"
+                              disabled={busy || !categoryEdit.name.trim()}
+                            >
+                              {T("Save category")}
+                            </button>
+                            <button
+                              className="btn ghost sm"
+                              type="button"
+                              disabled={busy}
+                              onClick={() => {
+                                restoreCategoryFocus.current = true;
+                                setCategoryEdit(null);
+                              }}
+                            >
+                              {T("Cancel")}
+                            </button>
+                          </form>
+                        ) : (
+                          <div className="ledger-category-title">
+                            <h3 id={`${viewId}-category-${category.id}`}>{category.name}</h3>
+                            {canManageCategories &&
+                              !category.archivedAt &&
+                              confirmCategoryId !== category.id && (
+                                <button
+                                  className="btn ghost sm ledger-category-rename"
+                                  type="button"
+                                  data-category-rename
+                                  aria-label={T("Rename")}
+                                  aria-describedby={`${viewId}-category-${category.id}`}
+                                  title={T("Rename")}
+                                  disabled={busy}
+                                  onClick={(event) => {
+                                    categoryEditorRowRef.current =
+                                      event.currentTarget.closest("article");
+                                    setConfirmCategoryId("");
+                                    setCategoryEdit({ id: category.id, name: category.name });
+                                  }}
+                                >
+                                  <I.Pencil size={15} aria-hidden="true" />
+                                </button>
+                              )}
+                          </div>
+                        )}
                         <p className="ledger-meta">
                           {category.archivedAt
                             ? T(
@@ -2082,70 +2184,10 @@ function ScopedLedgerScreen({
                             : T("Ready to use", "可用于记账")}
                         </p>
                       </div>
-                      {canManageCategories && categoryEdit?.id === category.id && (
-                        <form
-                          className="ledger-actions"
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            action(() =>
-                              api.updateCategory(
-                                category.id,
-                                category.revision,
-                                { name: categoryEdit.name.trim(), color: category.color },
-                                {}
-                              )
-                            ).then((ok) => {
-                              if (ok) {
-                                restoreCategoryFocus.current = true;
-                                setCategoryEdit(null);
-                              }
-                            });
-                          }}
-                        >
-                          <label>
-                            {T("New category name")}
-                            <input
-                              autoFocus
-                              value={categoryEdit.name}
-                              required
-                              maxLength={80}
-                              onChange={(event) =>
-                                setCategoryEdit({ id: category.id, name: event.target.value })
-                              }
-                            />
-                          </label>
-                          <button className="btn primary" type="submit" disabled={busy}>
-                            {T("Save category")}
-                          </button>
-                          <button
-                            className="btn ghost sm"
-                            type="button"
-                            onClick={() => {
-                              restoreCategoryFocus.current = true;
-                              setCategoryEdit(null);
-                            }}
-                          >
-                            {T("Cancel")}
-                          </button>
-                        </form>
-                      )}
                       {canManageCategories &&
                         !category.archivedAt &&
                         categoryEdit?.id !== category.id && (
                           <div className="ledger-actions">
-                            {confirmCategoryId !== category.id && (
-                              <button
-                                className="btn ghost sm"
-                                disabled={busy}
-                                onClick={(event) => {
-                                  categoryEditorRowRef.current =
-                                    event.currentTarget.closest("article");
-                                  setCategoryEdit({ id: category.id, name: category.name });
-                                }}
-                              >
-                                {T("Rename")}
-                              </button>
-                            )}
                             {confirmCategoryId === category.id ? (
                               <>
                                 <button

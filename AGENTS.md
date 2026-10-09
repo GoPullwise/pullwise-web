@@ -1,5 +1,22 @@
 # Pullwise Web
 
+## Category title rename (2026-10-09)
+
+Ordinary project and Shared Pool expense rows place their exact amount above a
+horizontal action group, matching recurring records. Use the same 12px vertical
+gap and right alignment on wide lists; narrow lists align the stack at the start.
+Keep financial precision/copying, record heights and confirmation flows intact.
+
+Categories use an accessible pencil directly beside each active category title;
+remove the separate right-hand Rename text action. The name input replaces the
+title in the left record area, with Save/Cancel controls that wrap naturally.
+Retain archived/viewer restrictions, exact category identity/revision/color,
+drafts and pending-save locking. Cancel/Escape and successful saves return focus
+to the pencil; failed saves retain the draft and restore its input focus.
+Reject whitespace-only names and keep the existing 80-character bound. Validate
+long unspaced names, 44px coarse-pointer targets, narrow layouts and resizable
+creation rails in the shared persistent browser check. Publish Web preview only.
+
 ## Expense presentation and recurring side editor (2026-10-09)
 
 Project detail groups repository status and safe development/product shortcuts
