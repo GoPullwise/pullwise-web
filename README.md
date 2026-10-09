@@ -12,11 +12,34 @@ As of 2026-10-06, the new workspace/team and multi-repository version is impleme
 
 An existing owner's ledger becomes a workspace identified by that owner's ID; personal ownership remains an implicit Owner. The header picker switches between the personal ledger and ledgers joined by invitation. Protected views clear their data, drafts and one-time credentials when the workspace or access scope changes, abort obsolete reads and ignore late results.
 
-Members supports invitations, acceptance, role changes, removal and invitation revocation. An invitation entered by GitHub username is bound to the recipient's stable GitHub ID. Owner manages Admins; Admin manages Editors and Viewers. Editors record expenses; Viewers can read reports and export CSV. Invitation creation and acceptance warn that membership shares all current and future ledger data. Membership does not grant GitHub access. Team usage pools the owner's ledger quotas, plan and model allowance; billing stays with the owner, and each member's personal ledger remains separate.
+Members supports invitation links, applications, original-inviter approval, role changes, removal and invitation revocation. Applicants sign in with their own account; access starts after approval. Owner manages Admins; Admin manages Editors and Viewers. Editors record expenses; Viewers can read reports and export CSV. Invitation creation and acceptance warn that membership shares all current and future ledger data. Membership does not grant GitHub access. Team usage pools the owner's ledger quotas, plan and model allowance; billing stays with the owner, and each member's personal ledger remains separate.
 
 Create a standalone project with a name and optional description; no GitHub App installation or repository authorization is needed for its expense entries. Optionally link 1–30 distinct stable GitHub repository IDs and a GitHub Organization. The chooser uses the acting member's current GitHub authorization, filters by the selected organization and revalidates selections after access changes. Project settings can add, change or remove these associations while preserving the project ID and expense history. A new expense in a linked project requires at least one linked repository authorized for the acting member; unavailable protected repository metadata stays hidden while permitted financial history remains accessible. Removing all repository links requires a nonempty project name and clears the Organization association.
 
 The Cloudflare static-asset Worker in `worker-entry.js` proxies `/api/*` to the Server Worker and streams its response body. The browser API helper uses `/api/v1/*` behind the configurable base URL; on the production domain the base URL is `/api`, so the proxy receives `/api/api/v1/*` and strips the first `/api`.
+
+## Shared REST API and capacity
+
+Browser sessions and external Bearer keys use the same ledger REST resources,
+DTOs, permissions, revision checks and business validation. This covers project
+management, project/shared-pool expenses and recurring rules, categories,
+reports/export, activity and member governance. Keys add explicit scopes and
+optional project restrictions. Member governance requires whole-ledger keys;
+invitation applications use the applicant's independent account session.
+
+The [API guide](https://preview.pull-wise.com/developers/api) includes a runnable
+first-expense example, full update/concurrency examples and the complete endpoint
+reference. `scripts/sync-api-contract.py` generates the reference and downloadable
+OpenAPI JSON from Server's `openapi/ledger-v1.yaml`; run it with `--check` after
+contract changes to detect stale copies.
+
+Default limits are Free **3 projects / 100 expense records**, Pro **20 / 20,000**,
+and Max **100 / 100,000**. Billing renders the Server's configured limits and
+personal-ledger used/remaining counts as accessible charts for every plan.
+Project/shared-pool expenses and generated recurring occurrences use the owner's
+record allowance. Archived and removed records retain consumed capacity;
+lowering a limit preserves existing history while blocking additions above it.
+Billing does not switch to a joined team's allowance with the ledger picker.
 
 ## Project links and recurring expenses
 
@@ -46,8 +69,11 @@ Short months clamp to their last day without changing later months' anchors.
 The separate recurring list shows the next date and supports editing,
 pause/resume and permanent cancellation according to ledger permissions.
 Resume skips paused periods. Planned costs remain outside reports until the
-Server atomically generates an actual expense. Recurring rules require a cookie
-session; API keys cannot establish a background execution grant.
+Server atomically generates an actual expense. Sessions and authorized Bearer
+keys can manage rules. A key-created rule retains an internal credential hash;
+each occurrence rechecks the key, membership, scopes and target permission.
+Revocation or expiry blocks execution until an authorized edit or resume grants
+current authority. Tokens and internal grants never appear in public rule DTOs.
 
 The Server checks due rules hourly in preview, with current membership, GitHub
 target access, category and owner quota checks, bounded catch-up and permanent

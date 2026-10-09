@@ -23,6 +23,50 @@ describe("product Docs", () => {
     expect(screen.getByRole("link", { name: /API contract/i })).toHaveAttribute("href", "/developers/api");
   });
 
+  it("explains project settings, recurring expenses and operation history", () => {
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const settingsHeading = screen.getByRole("heading", { name: "Manage project settings" });
+    expect(settingsHeading).toHaveAttribute("id", "project-settings");
+    const settings = settingsHeading.closest("section");
+    for (const phrase of ["Project settings", "development and product", "Archived", "Removing", "cannot restore"]) {
+      expect(settings).toHaveTextContent(phrase);
+    }
+
+    const recurringHeading = screen.getByRole("heading", { name: "Manage recurring expenses" });
+    expect(recurringHeading).toHaveAttribute("id", "recurring");
+    const recurring = recurringHeading.closest("section");
+    for (const phrase of ["Asia/Shanghai", "weekly", "monthly", "quarterly", "yearly", "future occurrences", "not backfilled", "already recorded expenses"]) {
+      expect(recurring).toHaveTextContent(phrase);
+    }
+
+    const activityHeading = screen.getByRole("heading", { name: "Read the operation log" });
+    expect(activityHeading).toHaveAttribute("id", "activity");
+    const activity = activityHeading.closest("section");
+    for (const phrase of ["last 24 hours", "Reload", "does not poll"]) {
+      expect(activity).toHaveTextContent(phrase);
+    }
+  });
+
+  it("explains category management and links API key users to the REST quickstart", () => {
+    render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
+
+    const categoriesHeading = screen.getByRole("heading", { name: "Create categories" });
+    expect(categoriesHeading).toHaveAttribute("id", "categories");
+    const categories = categoriesHeading.closest("section");
+    for (const phrase of ["Rename", "Archive", "Remove", "unused"]) {
+      expect(categories).toHaveTextContent(phrase);
+    }
+
+    const keysHeading = screen.getByRole("heading", { name: "Use API keys" });
+    expect(keysHeading).toHaveAttribute("id", "keys");
+    const keys = keysHeading.closest("section");
+    for (const phrase of ["REST API", "target", "If-Match", "Idempotency-Key"]) {
+      expect(keys).toHaveTextContent(phrase);
+    }
+    expect(screen.getByRole("link", { name: "API quickstart" })).toHaveAttribute("href", "/developers/api#quickstart");
+  });
+
   it("explains automatic Jev assistance as part of ordinary expense entry and REST writes", () => {
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
     expect(screen.getByRole("heading", { name: "Automatic Jev assistance" })).toBeInTheDocument();
@@ -67,6 +111,79 @@ describe("product Docs", () => {
     expect(sharing).toHaveTextContent("Opening the link or sending a request grants no ledger access");
     expect(sharing).toHaveTextContent("Legacy invitations to a specific GitHub account still check that identity");
   });
+
+  for (const { locale, sections, categories, quickstart } of [
+    {
+      locale: "zh",
+      sections: [
+        ["project-settings", "管理项目设置", ["开发和产品链接", "不能通过修改状态恢复已移除项目"]],
+        ["recurring", "管理周期支出", ["每周、每月、每季度或每年", "不补记暂停或阻塞期间的支出", "已经记入的支出仍保留"]],
+        ["activity", "查看操作日志", ["最近 24 小时", "重新加载", "不会轮询"]],
+      ],
+      categories: "移除只会永久删除未被使用的类别",
+      quickstart: "API 接入教程",
+    },
+    {
+      locale: "ja",
+      sections: [
+        ["project-settings", "プロジェクト設定を管理", ["開発・製品リンク", "削除済みプロジェクトを復元することはできません"]],
+        ["recurring", "定期支出を管理", ["毎週、毎月、四半期ごと、毎年", "停止・ブロック期間分は遡って記録されません", "記録済み支出は保持します"]],
+        ["activity", "操作ログを確認", ["直近 24 時間", "再読み込み", "定期取得は行いません"]],
+      ],
+      categories: "削除できるのは未使用のカテゴリーだけ",
+      quickstart: "API 導入ガイド",
+    },
+    {
+      locale: "ko",
+      sections: [
+        ["project-settings", "프로젝트 설정 관리", ["개발 및 제품 링크", "제거한 프로젝트를 복원할 수는 없습니다"]],
+        ["recurring", "반복 지출 관리", ["매주, 매월, 분기별 또는 매년", "중지 또는 차단된 기간은 소급 기록되지 않습니다", "이미 기록된 지출은 유지됩니다"]],
+        ["activity", "작업 로그 보기", ["최근 24시간", "새로고침", "주기적으로 조회하지 않고"]],
+      ],
+      categories: "제거는 사용하지 않은 카테고리만 영구 삭제",
+      quickstart: "API 시작 안내",
+    },
+    {
+      locale: "fr",
+      sections: [
+        ["project-settings", "Gérer les paramètres du projet", ["liens de développement et de produit", "ne permet pas de restaurer un projet supprimé"]],
+        ["recurring", "Gérer les dépenses récurrentes", ["hebdomadaire, mensuelle, trimestrielle ou annuelle", "sans rattraper les périodes en pause ou bloquées", "conserve les dépenses déjà enregistrées"]],
+        ["activity", "Consulter le journal des opérations", ["dernières 24 heures", "Recharger", "sans interrogation périodique"]],
+      ],
+      categories: "Supprimer efface définitivement une catégorie inutilisée",
+      quickstart: "Démarrage rapide de l’API",
+    },
+    {
+      locale: "es",
+      sections: [
+        ["project-settings", "Gestionar la configuración del proyecto", ["enlaces de desarrollo y producto", "no puedes restaurar un proyecto eliminado"]],
+        ["recurring", "Gestionar gastos recurrentes", ["semanal, mensual, trimestral o anual", "sin recuperar períodos pausados o bloqueados", "conserva los gastos ya registrados"]],
+        ["activity", "Consultar el registro de operaciones", ["últimas 24 horas", "Recargar", "sin consultas periódicas"]],
+      ],
+      categories: "Eliminar borra definitivamente solo una categoría sin uso",
+      quickstart: "Inicio rápido de la API",
+    },
+  ]) {
+    it(`keeps project, recurring, history and REST onboarding guidance localized in ${locale}`, async () => {
+      await setLang(locale);
+      render(<DocsScreen go={vi.fn()} auth={{ authenticated: false }} />);
+
+      for (const [id, title, phrases] of sections) {
+        const heading = screen.getByRole("heading", { name: title });
+        expect(heading).toHaveAttribute("id", id);
+        for (const phrase of phrases) {
+          expect(heading.closest("section")).toHaveTextContent(phrase);
+        }
+      }
+      expect(document.getElementById("recurring").closest("section")).toHaveTextContent("Asia/Shanghai");
+      expect(document.getElementById("categories").closest("section")).toHaveTextContent(categories);
+      const keys = document.getElementById("keys").closest("section");
+      for (const phrase of ["target", "If-Match", "Idempotency-Key"]) {
+        expect(keys).toHaveTextContent(phrase);
+      }
+      expect(screen.getByRole("link", { name: quickstart })).toHaveAttribute("href", "/developers/api#quickstart");
+    });
+  }
 
   for (const [locale, heading, registration, invitation] of [
     ["zh", "登录或创建账户", "首次验证成功会自动创建账户", "只有原邀请人"],

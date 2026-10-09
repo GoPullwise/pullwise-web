@@ -1,0 +1,6026 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pullwise Project Expense Ledger API",
+    "version": "0.9.0",
+    "description": "Current ledger contract for Pullwise, the project expense tracker for\ndevelopers and teams at pull-wise.com. Users and authorized API clients\nenter expenses; bank or vendor transactions are not imported. Platform\nsubscription payments remain separate from ledger expenses.\nWeb uses its same-origin /api proxy; direct\nclients call these paths on the Server Worker. All private responses are\nCache-Control: no-store. Money is grouped by currency without conversion.\nEach user's existing personal ledger is an immutable workspace. Explicit\ninvitations share all existing and future ledger data after the original\ninviter approves the authenticated applicant. Links do not require a named\nrecipient. Pending or rejected requests grant no ledger access. Invitations\ndo not grant GitHub organization or repository access. Select a ledger with\nX-Pullwise-Workspace, or workspaceId on CSV links. Conflicting selectors are\nrejected. API keys are permanently bound to one ledger and intersect the\nissuing member's current role; membership revision changes invalidate team\nkeys. All members use the ledger owner's plan, capacity and model budget.\nAccount billing remains the signed-in user's own account service.\nProjects can be standalone with a nonblank name and no GitHub repository or\norganization association. Connecting repositories is optional and continues\nto require the current actor's GitHub authorization. The shared expense pool\nis shared across projects in a ledger, never publicly accessible. AI assistance\ndepends on the ledger owner's Pro or Max plan, current activation and usage budget;\nan explicit category permits manual entry when assistance is unavailable.\nProject development and product links are optional absolute HTTP(S) URLs.\nOnly the selected ledger Owner using a current cookie session or an API key\nwith projects:write and permission for that project may remove a\nproject. Removal is a soft tombstone, distinct from reversible archiving:\nthe project and its expenses disappear from resource reads, reports and\nexports, and its recurring plans cannot generate further expenses. Stored\nfinancial records, audit history and commercial capacity accounting remain\nintact. Repository associations are released atomically; removed projects\ncannot be restored through PATCH.\nRecurring expense rules use the same REST resource for browser sessions and\nAPI keys with explicit expense authority. A key-created or key-resumed rule\nretains only a credential hash; execution rechecks its current key scopes,\nexpiration, revocation, ledger binding and target restrictions. Each\ngenerated occurrence uses the current ledger owner's plan and the rule\nsaved execution actor's current membership and GitHub access. A rule records one ordinary\nexpense per calendar period without making a payment or extending a\nsubscription. Stopping a rule preserves its previously recorded expenses.\nEmail verification codes provide independent registration and sign-in.\nGitHub identity and repository connections are optional. Verified email and\nexplicit GitHub links preserve the immutable account ID, personal ledger,\nmemberships and billing. Matching provider or billing contact emails never\nmerge accounts. Authentication endpoints do not grant API-key scopes.\nProject and shared-pool activity records identify the authenticated actor,\noperation time and exact changed record. Only the latest rolling 24 hours\nare visible, using the Server clock. History starts when activity logging\nis enabled; old financial audit events are not backfilled or deleted.\nMember governance requires explicit members:read or members:write scopes.\nGovernance keys must omit projectIds, and every key remains bound to its\none ledger and issuer's current role. Owner/Admin can manage members; only\nOwner can manage Admin, and only an invitation's original inviter can review\nits applicants. Previewing or applying to an invitation uses the applicant's\nbrowser account session rather than a ledger-bound key.\n"
+  },
+  "servers": [
+    {
+      "url": "https://preview-api.pull-wise.com",
+      "description": "Preview environment; use keys created in preview.pull-wise.com"
+    },
+    {
+      "url": "https://api.pull-wise.com",
+      "description": "Production endpoint; ledger access is currently paused"
+    },
+    {
+      "url": "/",
+      "description": "Relative Server paths; Web proxies these through its /api prefix"
+    }
+  ],
+  "security": [
+    {
+      "cookieSession": []
+    },
+    {
+      "bearerKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication"
+    },
+    {
+      "name": "Ledger"
+    },
+    {
+      "name": "Reports"
+    },
+    {
+      "name": "API Keys"
+    }
+  ],
+  "paths": {
+    "/api-keys": {
+      "get": {
+        "operationId": "listAccountApiKeys",
+        "x-pullwise-scope": "account:keys",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "List the signed-in actor's unrevoked key metadata. Bearer keys cannot manage credentials. An optional workspace selector filters keys to that accessible ledger; without a selector the actor's keys across ledgers are listed. Reads never return tokens or hashes.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key metadata; apiKeys is a compatibility alias of items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "apiKeys"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiKey"
+                      }
+                    },
+                    "apiKeys": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiKey"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAccountApiKey",
+        "x-pullwise-scope": "account:keys",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "Use the signed-in actor's browser session and a trusted app Origin.\nSelect a ledger with X-Pullwise-Workspace or restrictions.workspaceId;\nselectors must agree. Omission binds to the actor's personal ledger.\nScopes cannot exceed the actor's current selected-ledger role.\nExplicit members scopes require omitting projectIds, including an empty\nallowlist; conflicting scopes/restrictions return INVALID_RESTRICTION.\nA selected team ledger's current membership revision is stored by the\nServer; role or membership changes invalidate its existing keys.\nThe response displays key once. Store it in your application's secret\nstorage; the Server stores only its hash and cannot recover the token.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          },
+          {
+            "$ref": "#/components/parameters/AuthOrigin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Metadata and one-time Bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiKey"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "key"
+                      ],
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "pattern": "^pwk_[A-Za-z0-9_-]{43}$"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_SCOPE or INVALID_RESTRICTION; malformed input or expiry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api-keys/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "delete": {
+        "operationId": "revokeAccountApiKey",
+        "x-pullwise-scope": "account:keys",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "Revoke one key issued by the signed-in actor using its real browser session and a trusted Origin. Revocation is immediate and remains available after commercial write quota exhaustion. Other actors cannot revoke this key. This route returns 200 with JSON rather than 204.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthOrigin"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "id",
+                    "revoked"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "revoked": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/auth/session": {
+      "get": {
+        "operationId": "getAccountSession",
+        "x-pullwise-scope": "account:auth",
+        "security": [],
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Read the current cookie session without initialization, provider calls or token refresh. An absent or expired session returns authenticated false and user null. Verified email sessions remain valid independently of GitHub authorization; GitHub contact email and billing email are not verified login identities.",
+        "responses": {
+          "200": {
+            "description": "Current session; authenticated users may have email, GitHub or both providers",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStore"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSession"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/sign-out": {
+      "post": {
+        "operationId": "signOutAccount",
+        "x-pullwise-scope": "account:auth",
+        "security": [],
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Requires the current cookie session and a trusted Origin or Referer. Revoke only this session and clear pw_session; account identities, ledger data and billing remain intact. API keys cannot sign out a browser session.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthOrigin"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session revoked; pw_session is cleared with Max-Age 0",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStore"
+              },
+              "Set-Cookie": {
+                "$ref": "#/components/headers/AuthCookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED; a current cookie session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "UNTRUSTED_ORIGIN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/email/request-code": {
+      "post": {
+        "operationId": "requestEmailCode",
+        "x-pullwise-scope": "account:auth",
+        "x-pullwise-max-body-bytes": 8192,
+        "security": [],
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Request a six-digit code for a normalized ASCII email address. purpose\nlogin verifies an existing email identity or registers a new account\nafter successful verification; it does not disclose account existence.\npurpose link requires the current cookie session, binds the challenge\nto that account and session, and never merges accounts. Changing an\nalready verified login email requires a separate flow and is rejected.\nAn email already owned by another account is rejected before sending\na code, creating a challenge or starting its send cooldown. Ownership\nis checked only for authenticated linking and rechecked at verification.\nA trusted Origin header and at most 8 KiB of strict JSON are required.\nA Referer header does not replace a missing Origin.\nOnly one challenge is active per email; explicit resend after 60 seconds\ninvalidates the earlier challenge. Codes expire after 600 seconds and\nare never returned or logged. Delivery uncertainty is not retried.\nSet-Cookie issues a random pw_email_challenge browser binding, Secure\nand HttpOnly with a 600-second lifetime; verification must use this same\nbrowser. The binding's SameSite policy follows the configured app origin.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EmailAuthOrigin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Code request accepted; only challenge metadata is returned",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStore"
+              },
+              "Set-Cookie": {
+                "$ref": "#/components/headers/AuthCookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailCodeChallenge"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED for link without a current cookie session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "UNTRUSTED_ORIGIN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "EMAIL_ALREADY_LINKED for authenticated linking to another account's email before code sending or cooldown; EMAIL_CHANGE_NOT_SUPPORTED when replacing a different verified login email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "REQUEST_TOO_LARGE; JSON exceeds 8 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_INPUT; unknown fields, invalid email or unsupported purpose",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "EMAIL_RATE_LIMIT; email and source admission or the 60-second resend interval was exceeded",
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/AuthRetryAfter"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "EMAIL_AUTH_NOT_CONFIGURED, EMAIL_AUTH_UNAVAILABLE or EMAIL_SEND_UNAVAILABLE; no automatic resend",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/email/verify-code": {
+      "post": {
+        "operationId": "verifyEmailCode",
+        "x-pullwise-scope": "account:auth",
+        "x-pullwise-max-body-bytes": 8192,
+        "security": [],
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Verify the email, challenge ID and six-digit code using the original\npw_email_challenge cookie and a trusted Origin header. A Referer header\ndoes not replace a missing Origin. At most five\nincorrect codes are allowed per challenge. Success consumes the proof\nonce; replay never creates another session. Login atomically initializes\na new account when necessary, retains a previously registered account\nID, and issues Secure HttpOnly pw_session with a seven-day lifetime.\nLink requires the original authenticated session, preserves its cookie,\nuser ID, ledger and billing, and clears pw_email_challenge. An email\nalready owned by another account is rechecked and rejected with 409;\nno automatic account merge occurs. JSON is strict and bounded to 8 KiB.\nAll responses have Cache-Control no-store. Incorrect browser bindings\nnever consume one of the five code attempts.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EmailAuthOrigin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailCodeVerification"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified account session; login sets pw_session, link keeps it and clears the challenge cookie",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStore"
+              },
+              "Set-Cookie": {
+                "$ref": "#/components/headers/AuthCookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "EMAIL_CODE_INVALID for wrong, replayed or browser-unbound proof; EMAIL_CODE_EXPIRED at the exact 600-second deadline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED; the original link session was changed, revoked or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "UNTRUSTED_ORIGIN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "EMAIL_ALREADY_LINKED or ACCOUNT_CHANGED; no account merge or overwrite of concurrent account facts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "REQUEST_TOO_LARGE; JSON exceeds 8 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_INPUT; unknown fields or malformed email, challenge ID or code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "EMAIL_RATE_LIMIT or EMAIL_ATTEMPTS_EXCEEDED; no account or session write",
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/AuthRetryAfter"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "EMAIL_AUTH_NOT_CONFIGURED, EMAIL_AUTH_UNAVAILABLE or EMAIL_IDENTITY_UNAVAILABLE; no implicit identity repair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/github/authorize": {
+      "get": {
+        "operationId": "authorizeGithubAccount",
+        "x-pullwise-scope": "account:auth",
+        "security": [],
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Optional GitHub OAuth sign-in or explicit identity link. intent login\n(the default) signs in the account mapped to the stable GitHub numeric\nidentity. intent link requires a current cookie session and a trusted\nOrigin or Referer, binds the one-use ten-minute state to that account\nand session, and preserves its immutable ID and billing. It never\nmatches accounts using GitHub profile email. Repository authorization\nis a separate optional integration. redirectTo must stay within the\ntrusted app origin; an invalid destination falls back to /projects.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthOrigin"
+          },
+          {
+            "name": "intent",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "login",
+                "link"
+              ],
+              "default": "login"
+            }
+          },
+          {
+            "name": "redirectTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Trusted app destination after OAuth"
+          },
+          {
+            "name": "response",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "redirect"
+              ]
+            },
+            "description": "Return an HTTP redirect instead of the JSON authorization URL"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth authorization URL",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStore"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "mode"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "const": "github"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to the GitHub OAuth authorization URL"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED for explicit link without a current cookie session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "UNTRUSTED_ORIGIN for explicit link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_INPUT; unsupported intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GITHUB_NOT_CONFIGURED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/github/callback": {
+      "get": {
+        "operationId": "completeGithubAccountAuthorization",
+        "x-pullwise-scope": "account:auth",
+        "security": [],
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Consume the one-use OAuth state and verify the actual GitHub identity. Explicit linking requires the original account and session at callback and commits identity mapping, user and session fences atomically. A GitHub identity already owned by another account returns 409 rather than merging accounts. Successful login sets a seven-day pw_session; successful linking retains the current session. Provider denial redirects to the trusted destination with github_error.",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Trusted app redirect after sign-in or linking",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStore"
+              },
+              "Set-Cookie": {
+                "$ref": "#/components/headers/AuthCookie"
+              }
+            }
+          },
+          "400": {
+            "description": "OAUTH_STATE_INVALID; absent, expired or consumed state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED; original link session is missing or changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GITHUB_IDENTITY_CONFLICT or ACCOUNT_CHANGED; account IDs and billing are preserved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "GITHUB_PROFILE_INVALID; no trusted numeric identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "operationId": "listWorkspaces",
+        "x-pullwise-scope": "members:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Cookie sessions list the personal ledger first and explicitly joined ledgers. A members:read key lists only its bound ledger. Reads never initialize data.",
+        "responses": {
+          "200": {
+            "description": "Current accessible ledgers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 100,
+                      "items": {
+                        "$ref": "#/components/schemas/Workspace"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/members": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        }
+      ],
+      "get": {
+        "operationId": "listWorkspaceMembers",
+        "x-pullwise-scope": "members:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner and current members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "workspace"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 100,
+                      "items": {
+                        "$ref": "#/components/schemas/WorkspaceMember"
+                      }
+                    },
+                    "workspace": {
+                      "$ref": "#/components/schemas/Workspace"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/members/{userId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        },
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "patch": {
+        "operationId": "updateWorkspaceMember",
+        "x-pullwise-scope": "members:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Owner can grant Admin/Editor/Viewer. Admin can manage only Editor/Viewer. Owner cannot be changed or removed.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "role"
+                ],
+                "properties": {
+                  "role": {
+                    "$ref": "#/components/schemas/AssignableRole"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated member with a new revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMember"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeWorkspaceMember",
+        "x-pullwise-scope": "members:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed; subsequent resource and key requests fail current membership checks"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/invites": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        }
+      ],
+      "get": {
+        "operationId": "listWorkspaceInvites",
+        "x-pullwise-scope": "members:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Owner/Admin only. Tokens and hashes are never returned by reads.",
+        "responses": {
+          "200": {
+            "description": "Pending unexpired invitations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 100,
+                      "items": {
+                        "$ref": "#/components/schemas/WorkspaceInvitation"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "inviteWorkspaceMember",
+        "x-pullwise-scope": "members:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Create an unassigned 24-hour invitation link with a role. The token is displayed once; the original inviter must approve an authenticated applicant before membership is granted. Financial roles do not grant GitHub access.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "role"
+                ],
+                "properties": {
+                  "role": {
+                    "$ref": "#/components/schemas/AssignableRole"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invitation metadata and one-time token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/WorkspaceInvitation"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "token"
+                      ],
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "pattern": "^pwi_[A-Za-z0-9_-]{43}$"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/invites/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        },
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "delete": {
+        "operationId": "revokeWorkspaceInvitation",
+        "x-pullwise-scope": "members:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Invitation permanently revoked"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace-invitations/preview": {
+      "post": {
+        "operationId": "previewWorkspaceInvitation",
+        "x-pullwise-scope": "profile:read",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "Authenticated read without a join or write. Pending tokens check expiry and current inviter authority; legacy targeted tokens also check their stable recipient ID. The response includes the current applicant request when present. Pending requests grant no ledger permissions. An accepted token can recover only its approved applicant's current active membership, without restoring removed membership.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/InvitationToken"
+        },
+        "responses": {
+          "200": {
+            "description": "Invitation and applicant request or current approved membership",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceInvitationPreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "410": {
+            "description": "INVITATION_EXPIRED, INVITATION_REVOKED, or INVITATION_ACCEPTED without a current active membership",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace-invitations/accept": {
+      "post": {
+        "operationId": "acceptWorkspaceInvitation",
+        "x-pullwise-scope": "profile:read",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "Submit the authenticated actor's join request and notify the original inviter through their durable inbox. This does not grant membership or consume the link. Each link permits at most 100 lifetime applicants. Existing pending or rejected requests replay read-only. One approved applicant consumes the link; removed-member generations advance only upon approval and old keys do not revive.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/InvitationToken"
+        },
+        "responses": {
+          "200": {
+            "description": "Existing pending or rejected applicant request without another write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceInvitationPreview"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Join request awaiting original inviter approval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceInvitationPreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "410": {
+            "description": "INVITATION_ACCEPTED, INVITATION_REVOKED, or INVITATION_EXPIRED; no request or membership write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace-invitation-requests": {
+      "get": {
+        "operationId": "listWorkspaceInvitationRequests",
+        "x-pullwise-scope": "members:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Durable inbox for the current original inviter. Cookie sessions can read across currently authorized ledgers; a members:read key sees only its bound ledger. Returns up to 100 oldest actionable pending requests plus hasMore; expiry, revocation, consumed links and lost inviter authority remove requests from the actionable inbox. Reads never mark notifications or mutate data.",
+        "responses": {
+          "200": {
+            "description": "Pending requests with applicant identity, invitation and ledger",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "hasMore"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 100,
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/WorkspaceJoinRequest"
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "invitation",
+                              "workspace"
+                            ],
+                            "properties": {
+                              "invitation": {
+                                "$ref": "#/components/schemas/WorkspaceInvitation"
+                              },
+                              "workspace": {
+                                "$ref": "#/components/schemas/Workspace"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/join-requests": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        }
+      ],
+      "get": {
+        "operationId": "listWorkspaceJoinRequests",
+        "x-pullwise-scope": "members:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Current Owner/Admin only. Durable inbox scoped to this ledger and invitations created by the current actor. Returns up to 100 oldest actionable pending requests plus hasMore.",
+        "responses": {
+          "200": {
+            "description": "Pending requests with applicant identity and ledger invitation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "hasMore"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 100,
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/WorkspaceJoinRequest"
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "invitation",
+                              "workspace"
+                            ],
+                            "properties": {
+                              "invitation": {
+                                "$ref": "#/components/schemas/WorkspaceInvitation"
+                              },
+                              "workspace": {
+                                "$ref": "#/components/schemas/Workspace"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/invites/{id}/requests": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        },
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "operationId": "listWorkspaceInvitationJoinRequests",
+        "x-pullwise-scope": "members:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Current original inviter only. List up to 100 actionable pending applicants for this invitation.",
+        "responses": {
+          "200": {
+            "description": "Pending join requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "hasMore"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 100,
+                      "items": {
+                        "$ref": "#/components/schemas/WorkspaceJoinRequest"
+                      }
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/invites/{id}/requests/{requestId}/approve": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        },
+        {
+          "$ref": "#/components/parameters/Id"
+        },
+        {
+          "$ref": "#/components/parameters/JoinRequestPath"
+        }
+      ],
+      "post": {
+        "operationId": "approveWorkspaceJoinRequest",
+        "x-pullwise-scope": "members:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "description": "Current original inviter only. Atomically approve one pending request, grant the link's role, consume the link and append the audit event. Other pending applicants become unavailable. If-Match is the request revision; stale authority, membership or invitation revisions cannot commit partial changes.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Approved request and granted ledger membership",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceJoinReview"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "410": {
+            "description": "Invitation no longer actionable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/invites/{id}/requests/{requestId}/reject": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/WorkspacePath"
+        },
+        {
+          "$ref": "#/components/parameters/Id"
+        },
+        {
+          "$ref": "#/components/parameters/JoinRequestPath"
+        }
+      ],
+      "post": {
+        "operationId": "rejectWorkspaceJoinRequest",
+        "x-pullwise-scope": "members:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "description": "Current original inviter only. Reject a pending applicant and append the audit event without granting membership or consuming the invitation. The rejected applicant cannot resubmit on the same link. If-Match is the request revision.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rejected request and ledger summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceJoinReview"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "410": {
+            "description": "Invitation no longer actionable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "getLedgerMe",
+        "x-pullwise-scope": "profile:read",
+        "responses": {
+          "200": {
+            "description": "Current identity, ledger capabilities and entitlements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/repositories": {
+      "get": {
+        "operationId": "listLedgerRepositories",
+        "x-pullwise-scope": "projects:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current actor GitHub App repositories ordered by stable numeric ID; cursor is the last repository ID. No automatic binding or installation expansion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "502": {
+            "description": "Invalid bounded GitHub response; error code GITHUB_RESPONSE_INVALID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GitHub temporarily unavailable, rate limited, or credential decryption/configuration failure; no automatic retry or token refresh",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "operationId": "listLedgerProjects",
+        "x-pullwise-scope": "projects:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accessible projects in the selected ledger and per-currency totals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "createLedgerProject",
+        "x-pullwise-scope": "projects:write",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "201": {
+            "description": "Created project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "getLedgerProject",
+        "x-pullwise-scope": "projects:read",
+        "responses": {
+          "200": {
+            "description": "Project, including authorization state and totals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateLedgerProject",
+        "x-pullwise-scope": "projects:write",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "200": {
+            "description": "Updated project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeLedgerProject",
+        "x-pullwise-scope": "projects:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Current Owner of the selected ledger only. An Owner API key requires projects:write and permission for this project; Admin, Editor and Viewer cannot remove projects. Cookie writes require a trusted app Origin. Both forms require the current If-Match revision. Atomically tombstones the project, releases at most 30 repository associations and records the actual actor. Retains all financial, recurring and audit rows without a bulk cascade. The removed project's expenses and recurring rules become inaccessible, leave list/report/export results and cannot generate new expenses. Shared-pool expenses are unchanged. Capacity totals are not reclaimed. Repeating removal of the same authorized tombstone is read-only; PATCH cannot resurrect it.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          },
+          {
+            "$ref": "#/components/parameters/AuthOrigin"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Project removed or already removed within the same authorized ledger"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Revision or repository-binding limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          },
+          "428": {
+            "description": "If-Match is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/categories": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "listExpenseCategories",
+        "x-pullwise-scope": "categories:read",
+        "responses": {
+          "200": {
+            "description": "Selected ledger categories including archived entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "createExpenseCategory",
+        "x-pullwise-scope": "categories:write",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "201": {
+            "description": "Created category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "patch": {
+        "operationId": "updateExpenseCategory",
+        "x-pullwise-scope": "categories:write",
+        "description": "Replace the category label with a required nonblank name. Omitted color becomes null. Archived categories cannot be renamed.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "200": {
+            "description": "Updated category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "archiveExpenseCategory",
+        "x-pullwise-scope": "categories:write",
+        "description": "Archive only; existing expenses retain their category reference.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "204": {
+            "description": "Archived"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/{id}/remove": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "post": {
+        "operationId": "removeExpenseCategory",
+        "x-pullwise-scope": "categories:write",
+        "description": "Permanently remove an unused active or archived category. Any reference\nin expenses (including deleted entries), durable expense history,\noriginal creation responses, recurring rules or chosen/accepted Jev\nsuggestions prevents removal. Evaluated candidate probabilities alone\ndo not prevent removal.\nReferenced categories must be archived instead; removal never deletes\nor rewrites expenses, schedules, history or idempotency responses.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Removed unused category"
+          },
+          "409": {
+            "description": "CATEGORY_IN_USE; archive this category to retain its history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "428": {
+            "description": "If-Match is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/expenses": {
+      "get": {
+        "operationId": "listExpenses",
+        "x-pullwise-scope": "expenses:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Target"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "$ref": "#/components/parameters/Currency"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active expenses only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpensePage"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createExpense",
+        "x-pullwise-scope": "expenses:write",
+        "description": "When the ledger owner's Pro or Max plan, activation gates and usage budget allow\nit, this ordinary write attempts Jev assistance for Cookie sessions and\nexpenses:write API keys alike. categoryId may be omitted on create:\na confident existing ledger category is then selected. Explicit\ncategories, targets, money and dates are never changed by inference. If a\ncategory cannot be selected, 422 CATEGORY_REQUIRED preserves the draft and\nreturns assistance for manual completion. Provider failure or exhausted Jev\nbudget does not block a write with an explicit category. Idempotent replay\nreturns the stored result without another model call or budget reservation.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpenseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "201": {
+            "description": "Created expense or exact idempotent replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/export": {
+      "get": {
+        "operationId": "exportExpenses",
+        "x-pullwise-scope": "expenses:read",
+        "description": "Uses list filters; active records only. CSV cells must escape spreadsheet formulas.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Target"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "$ref": "#/components/parameters/Currency"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Streamed CSV",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "getExpense",
+        "x-pullwise-scope": "expenses:read",
+        "responses": {
+          "200": {
+            "description": "Active expense",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateExpense",
+        "x-pullwise-scope": "expenses:write",
+        "description": "Send the complete editable expense input, including target, occurredOn,\namount, currency and purpose. This endpoint replaces those fields; it\ndoes not merge a partial body. Omitted note, quantity and unit become null.\nRequires the current If-Match revision before inference. Moving an\nexpense checks write authority on both old and new targets. When the\nledger owner's Pro or Max plan, activation gates and usage budget allow it,\ncategoryId may be omitted to select a confident existing active category.\nThe selected category must remain active at the atomic update, including\nwhen inference chooses the previous category. Explicit categories,\ntargets, money and dates are preserved; explicitly retaining the previous\narchived category is permitted. Unavailable or uncertain automatic\nclassification returns 422 CATEGORY_REQUIRED without updating the expense.\nAssistance uses the same daily and monthly budget as expense creation;\nadvisory target suggestions never move the expense.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpensePatchInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "200": {
+            "description": "Updated expense",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeExpense",
+        "x-pullwise-scope": "expenses:write",
+        "description": "Soft delete and audit event; immediately excluded from list, export and reports.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "204": {
+            "description": "Removed or already removed within the same authorized ledger"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}/review": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "post": {
+        "operationId": "reviewExpense",
+        "x-pullwise-scope": "expenses:write",
+        "description": "Explicit advisory review of one current saved expense, bound to If-Match. The request is an empty object; clients cannot replace saved purpose, note, money, category or target. Requires the ledger Owner's current Pro or Max plan and the actual actor's expense-write and target authority. Jev selects and scores existing category/scope choices; it does not generate explanations or reports. Only this saved record's purpose and note and current active category names enter the model. Categories and target kinds are advice only; no expense, financial audit, recent activity, revision, record count or commercial write allowance is changed. Model attempts share the existing 20 per UTC day and Pro USD 3 / Max USD 5 per UTC month reservation; admitted failures remain charged. With no active categories the model can still check target kind. Disabled, failed or invalid model context returns partial checks while the local duplicate rule remains available. That bounded rule checks at most 30 other current records on the same authorized target, with equal currency and amount, within seven dates, and a case-insensitive matching purpose. It does not prove ledger-wide uniqueness. Duplicate output contains only ID and revision, including for write-only keys. Saved source, permissions, category and duplicate candidate are freshly rechecked and atomically fenced before results are published; a source changed during review returns 412. There is no automatic apply, target move, money update, retry, batch endpoint or idempotent model replay.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "maxProperties": 0,
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured dimension checks for the unchanged saved revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "JEV_PLAN_REQUIRED for a noncurrent paid Owner plan, or current actor/scope/target authority forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          },
+          "428": {
+            "description": "If-Match is required before model admission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "SUGGESTION_LIMIT at the existing daily attempt limit or JEV_BUDGET_LIMIT at the shared monthly reservation limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expense-recurring-rules": {
+      "get": {
+        "operationId": "listRecurringExpenseRules",
+        "x-pullwise-scope": "expenses:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Current ledger rules excluding canceled entries. Reads never generate expenses. Session and expenses:read key readers use the same DTO; keys see only targets permitted by their current restrictions.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Target"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated rules",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpensePage"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRecurringExpenseRule",
+        "x-pullwise-scope": "expenses:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Create an automation with an explicit existing active category and a\ncurrently authorized project/shared target. The authenticated key issuer\nor session user is initially its execution actor. Session and key tokens\nare never stored in the rule. Key grants retain a credential hash and\nrecheck expiration, revocation, expenses:write, ledger binding, membership\nrevision and project/shared restrictions before every generated expense.\nAt most 100 noncanceled rules per ledger is an operational bound,\nindependent of the owner's paid plan. An exact repeated creation key\nreplays its original DTO; different input with that key conflicts.\nCreation keys remain scoped to the original creating user even if a\nlater authorized edit or resume changes the saved execution actor.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringExpenseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created rule or exact original creation response replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpenseRule"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/expense-recurring-rules/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "operationId": "getRecurringExpenseRule",
+        "x-pullwise-scope": "expenses:read",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized rule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpenseRule"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateRecurringExpenseRule",
+        "x-pullwise-scope": "expenses:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Pause or resume with a status-only body, or replace the complete\ntemplate and calendar. The target is immutable. A complete edit or\nexplicit resume rechecks the current actor's write and project\naccess, then makes that actor the saved execution actor and adopts the\ncredential used for that write. A session edit/resume removes an old key\ngrant; a key edit/resume binds the automation to that key. The original\ncreation key and replay response remain immutable.\nCanceled rules cannot resume. Changes affect future occurrences only;\nafter an edit/resume the next occurrence is strictly after the current\ndate in the rule's timezone. Pausing remains available when commercial\nwrite allowances are exhausted, with all role and revision guards.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RecurringExpenseInput"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "status"
+                    ],
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "active",
+                          "paused"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated rule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpenseRule"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "428": {
+            "description": "If-Match is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "cancelRecurringExpenseRule",
+        "x-pullwise-scope": "expenses:write",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerKey": []
+          }
+        ],
+        "description": "Permanently cancel automation while retaining all generated expense and occurrence history. This remains available after commercial quota exhaustion.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Canceled"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "428": {
+            "description": "If-Match is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/activity": {
+      "get": {
+        "tags": [
+          "Ledger"
+        ],
+        "operationId": "listLedgerActivity",
+        "x-pullwise-scope": "expenses:read",
+        "description": "Indexed history for one project or the shared pool in the selected ledger.\nA project target requires projectId; a shared target forbids projectId.\nResults are newest first by createdAt and id. The opaque nextCursor\nfreezes the first page's upper window boundary; every page still excludes\nrecords at or before the current Server clock minus 24 hours. Clients\ncannot extend the window with dates or their own clock. GET performs no\ncleanup writes and makes no external provider requests.\nCookie members see expense, project settings and recurring-rule activity.\nExpense-read API keys see expense and recurring-rule activity within\ntheir current workspace and target restrictions. Project-setting activity\nadditionally requires projects:read on the same key. A move appears in both affected pools;\na restricted key sees only the target change and the permitted-side\nrecord label when the opposite pool is outside its allowlist.\nActors are immutable name/GitHub-login/user-ID snapshots. Email-only\nidentities are supported; private email, credentials, provider metadata\nand API-key hashes are never exposed. API-key events identify the issuing\nperson and are labeled api_key, without claiming which person used the\ncredential. Generated expenses are labeled system and identify the rule's\nactual saved execution actor.\nNew history is published in the same CAS/idempotency/commercial-quota\ntransaction as its operation. Exact replays, failed operations and\nunchanged revisions publish no activity. At most 16 expired activity\nrows are retired per changed operation or existing hourly maintenance\ntick; original expense/workspace audit and financial rows are preserved.\n",
+        "parameters": [
+          {
+            "name": "target",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "project",
+                "shared"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Opaque cursor returned by this endpoint; not an expense or project resource ID"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest 24-hour activity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/summary": {
+      "get": {
+        "operationId": "getLedgerSummary",
+        "x-pullwise-scope": "reports:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Target"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "$ref": "#/components/parameters/Currency"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Separate project, shared and account totals by currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/timeseries": {
+      "get": {
+        "operationId": "getLedgerTimeseries",
+        "x-pullwise-scope": "reports:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Target"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "$ref": "#/components/parameters/Currency"
+          },
+          {
+            "name": "bucket",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "day",
+                "month"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Per-currency date buckets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/categories": {
+      "get": {
+        "operationId": "getLedgerCategoriesReport",
+        "x-pullwise-scope": "reports:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Target"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectId"
+          },
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "$ref": "#/components/parameters/Currency"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Per-currency category buckets including historical archived categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expense-suggestions": {
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "operationId": "suggestExpense",
+        "x-pullwise-scope": "suggestions:use",
+        "description": "Advanced draft advice only; ordinary expense writes already attempt eligible Pro or Max assistance without this endpoint or its scope. Never writes an expense. Disabled unless evaluated and enabled. Requires the ledger owner's current paid plan, irrespective of the actor's personal plan. Shares the ledger owner's limit of 20 attempts per UTC day and monthly Jev reservation with automatic assistance; defaults are USD 3 for Pro and USD 5 for Max per UTC calendar month, without rollover.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "purpose",
+                  "target"
+                ],
+                "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "occurredOn": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "amount": {
+                    "type": "string",
+                    "description": "Decimal amount in selected currency"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  },
+                  "target": {
+                    "$ref": "#/components/schemas/Target"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status, optional suggestionId, candidates and probabilities; never an expense write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "available",
+                        "uncertain",
+                        "unavailable"
+                      ]
+                    },
+                    "suggestionId": {
+                      "type": "string"
+                    },
+                    "questionVersion": {
+                      "type": "string"
+                    },
+                    "modelVersion": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "suggestions": {
+                      "type": "object",
+                      "properties": {
+                        "categoryId": {
+                          "type": "string"
+                        },
+                        "targetKind": {
+                          "type": "string"
+                        },
+                        "duplicateExpenseId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "probabilities": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "JEV_PLAN_REQUIRED when the ledger owner has no current Pro or Max plan, or current scope/target authority is forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Ledger owner rate or daily/monthly suggestion budget exhausted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expense-suggestions/{id}/decision": {
+      "post": {
+        "operationId": "recordExpenseSuggestionDecision",
+        "x-pullwise-scope": "suggestions:use",
+        "description": "Record the user's selected category and target after reviewing a suggestion; never writes an expense.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "categoryId",
+                  "target"
+                ],
+                "properties": {
+                  "categoryId": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "$ref": "#/components/schemas/Target"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "204": {
+            "description": "Decision recorded"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "headers": {
+      "NoStore": {
+        "description": "Authentication responses are never cached",
+        "schema": {
+          "type": "string",
+          "const": "no-store"
+        }
+      },
+      "AuthCookie": {
+        "description": "Secure HttpOnly cookie with Path / and the configured SameSite policy; pw_email_challenge lasts 600 seconds, pw_session lasts 604800 seconds, and explicit clearing uses Max-Age 0",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "AuthRetryAfter": {
+        "description": "Minimum whole seconds before another request is admitted",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "requestBodies": {
+      "InvitationToken": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "token"
+              ],
+              "properties": {
+                "token": {
+                  "type": "string",
+                  "pattern": "^pwi_[A-Za-z0-9_-]{43}$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cookieSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "pw_session"
+      },
+      "bearerKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "pwk_ API key"
+      }
+    },
+    "parameters": {
+      "AuthOrigin": {
+        "name": "Origin",
+        "in": "header",
+        "schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": "Trusted app Origin for sign-out and explicit GitHub link; a trusted Referer origin is accepted when Origin is absent"
+      },
+      "EmailAuthOrigin": {
+        "name": "Origin",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": "Trusted app Origin required for both email POSTs; Referer is never a substitute"
+      },
+      "WorkspacePath": {
+        "name": "workspaceId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,120}$"
+        }
+      },
+      "WorkspaceHeader": {
+        "name": "X-Pullwise-Workspace",
+        "in": "header",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Explicit ledger selection; never grants membership and cannot override a key binding"
+      },
+      "WorkspaceQuery": {
+        "name": "workspaceId",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        },
+        "description": "CSV/native-link selector; must agree with any header"
+      },
+      "JoinRequestPath": {
+        "name": "requestId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,120}$"
+        }
+      },
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,120}$"
+        }
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "maxLength": 18,
+          "pattern": "^\"[1-9][0-9]{0,15}\"$"
+        },
+        "description": "Quoted revision ETag in the exact integer range 1 through 9007199254740991"
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "Target": {
+        "name": "target",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "all",
+            "project",
+            "shared"
+          ],
+          "default": "all"
+        }
+      },
+      "ProjectId": {
+        "name": "projectId",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,120}$"
+        }
+      },
+      "CategoryId": {
+        "name": "categoryId",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,120}$"
+        }
+      },
+      "From": {
+        "name": "from",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        },
+        "description": "Inclusive business date"
+      },
+      "To": {
+        "name": "to",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        },
+        "description": "Exclusive business date"
+      },
+      "Currency": {
+        "name": "currency",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,120}$"
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Scope, target, GitHub authorization or plan capacity insufficient",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource absent or outside the authorized ledger",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Idempotency conflict or a quota window changed; reload before retrying",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "PreconditionFailed": {
+        "description": "Revision does not match If-Match",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InvalidInput": {
+        "description": "Invalid or missing field. CATEGORY_REQUIRED on create or edit may include top-level assistance when eligible Pro or Max inference is unavailable or cannot confidently select an existing active category. No expense is created or updated in that case.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Runtime request rate or ledger owner write allowance exhausted. Jev budget exhaustion falls back to manual completion for ordinary expense writes and does not block a write with an explicit category.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "message": {
+                "type": "string",
+                "description": "Optional human-readable detail; branch client logic on code"
+              }
+            }
+          },
+          "assistance": {
+            "$ref": "#/components/schemas/ExpenseAssistance"
+          }
+        },
+        "examples": [
+          {
+            "error": {
+              "code": "PRECONDITION_FAILED"
+            }
+          },
+          {
+            "error": {
+              "code": "CATEGORY_REQUIRED"
+            },
+            "assistance": {
+              "status": "unavailable",
+              "categorySource": null,
+              "suggestions": {}
+            }
+          }
+        ]
+      },
+      "ApiKeyScope": {
+        "type": "string",
+        "enum": [
+          "profile:read",
+          "projects:read",
+          "projects:write",
+          "categories:read",
+          "categories:write",
+          "expenses:read",
+          "expenses:write",
+          "reports:read",
+          "suggestions:use",
+          "members:read",
+          "members:write"
+        ]
+      },
+      "ApiKeyRestrictions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "projectIds": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "pattern": "^prj_[A-Za-z0-9_-]{1,100}$"
+            },
+            "description": "Omit for all projects; an empty array grants no project access. Does not grant shared access. Cannot be supplied with members scopes."
+          },
+          "shared": {
+            "type": "boolean",
+            "default": false,
+            "description": "Explicit shared-pool permission; project access never implies shared access"
+          },
+          "workspaceId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,120}$",
+            "description": "Bound ledger; cannot be overridden by a later request header"
+          },
+          "workspaceMemberRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "Server records the current selected-ledger membership revision; changing membership invalidates team keys"
+          }
+        }
+      },
+      "ApiKeyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Optional display label; omission or blank uses API key"
+          },
+          "scopes": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApiKeyScope"
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 11,
+                "items": {
+                  "$ref": "#/components/schemas/ApiKeyScope"
+                }
+              }
+            ],
+            "description": "Explicit scope or list. Omission uses the five read-only defaults and excludes members scopes. Names are trimmed and lowercased; duplicates are normalized.",
+            "default": [
+              "profile:read",
+              "projects:read",
+              "categories:read",
+              "expenses:read",
+              "reports:read"
+            ]
+          },
+          "restrictions": {
+            "$ref": "#/components/schemas/ApiKeyRestrictions"
+          },
+          "expiresAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "Optional UTC epoch seconds; must be after Server time"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Positive values set expiry relative to Server time; zero leaves expiresAt unchanged"
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "userId",
+          "prefix",
+          "scopes",
+          "createdAt",
+          "expiresAt",
+          "lastUsedAt",
+          "revokedAt",
+          "restrictions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Public token prefix; never a usable credential"
+          },
+          "scopes": {
+            "type": "array",
+            "maxItems": 11,
+            "items": {
+              "$ref": "#/components/schemas/ApiKeyScope"
+            }
+          },
+          "createdAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "UTC epoch seconds"
+          },
+          "expiresAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "lastUsedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "revokedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "restrictions": {
+            "$ref": "#/components/schemas/ApiKeyRestrictions"
+          }
+        }
+      },
+      "AccountSession": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "authenticated",
+          "user",
+          "github"
+        ],
+        "properties": {
+          "authenticated": {
+            "type": "boolean"
+          },
+          "user": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SessionUser"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "github": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "identityConnected",
+              "repositoriesConnected"
+            ],
+            "properties": {
+              "identityConnected": {
+                "type": "boolean",
+                "description": "Account has its own GitHub identity credential; email sign-in does not require it"
+              },
+              "repositoriesConnected": {
+                "type": "boolean",
+                "description": "The account has a current authorized repository connection"
+              }
+            }
+          }
+        }
+      },
+      "SessionUser": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "avatarUrl",
+          "email",
+          "emailVerified",
+          "providers"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Immutable account and personal-ledger identity; preserved across explicit provider links"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Verified login email only; never an unverified provider or billing contact"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "providers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Explicit login identities such as email and github; legacy accounts may omit an explicit provider in stored facts"
+          }
+        }
+      },
+      "EmailCodeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "purpose"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "description": "ASCII mailbox normalized by trimming and lowercasing; provider aliases and plus tags remain distinct"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "login",
+              "link"
+            ]
+          }
+        }
+      },
+      "EmailCodeChallenge": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "challengeId",
+          "expiresIn",
+          "retryAfter"
+        ],
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "const": 600
+          },
+          "retryAfter": {
+            "type": "integer",
+            "const": 60
+          }
+        }
+      },
+      "EmailCodeVerification": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "challengeId",
+          "code"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254
+          },
+          "challengeId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "Six ASCII digits, including leading zeros"
+          }
+        }
+      },
+      "AssignableRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "editor",
+          "viewer"
+        ]
+      },
+      "Workspace": {
+        "type": "object",
+        "required": [
+          "id",
+          "ownerId",
+          "name",
+          "role",
+          "revision",
+          "permissions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Immutable ledger owner partition; existing data is preserved"
+          },
+          "ownerId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "editor",
+              "viewer"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "Current member generation; Owner has implicit revision 1"
+          },
+          "permissions": {
+            "type": "object",
+            "required": [
+              "writeExpenses",
+              "manageProjects",
+              "manageCategories",
+              "manageMembers",
+              "manageAdmins"
+            ],
+            "properties": {
+              "writeExpenses": {
+                "type": "boolean"
+              },
+              "manageProjects": {
+                "type": "boolean"
+              },
+              "manageCategories": {
+                "type": "boolean"
+              },
+              "manageMembers": {
+                "type": "boolean"
+              },
+              "manageAdmins": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceMember": {
+        "type": "object",
+        "required": [
+          "userId",
+          "role",
+          "revision"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "githubLogin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "editor",
+              "viewer"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "joinedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "WorkspaceInvitation": {
+        "type": "object",
+        "required": [
+          "id",
+          "recipient",
+          "createdByUserId",
+          "canReview",
+          "role",
+          "status",
+          "revision",
+          "expiresAt",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Null for unassigned links; preserved identity for legacy targeted links",
+            "required": [
+              "githubId",
+              "login"
+            ],
+            "properties": {
+              "githubId": {
+                "type": "string"
+              },
+              "login": {
+                "type": "string"
+              }
+            }
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "canReview": {
+            "type": "boolean",
+            "description": "Current actor is the original inviter with current management authority"
+          },
+          "role": {
+            "$ref": "#/components/schemas/AssignableRole"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "revoked"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkspaceJoinRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "invitationId",
+          "workspaceId",
+          "applicant",
+          "status",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "reviewedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "invitationId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "applicant": {
+            "type": "object",
+            "required": [
+              "userId",
+              "name",
+              "githubLogin"
+            ],
+            "properties": {
+              "userId": {
+                "type": "string",
+                "description": "Authenticated Pullwise account identity"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "githubLogin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkspaceInvitationPreview": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WorkspaceInvitation"
+          },
+          {
+            "type": "object",
+            "required": [
+              "request",
+              "workspace"
+            ],
+            "properties": {
+              "request": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/WorkspaceJoinRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "workspace": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
+                ],
+                "description": "Before approval all permissions are false; only an approved applicant receives its current active role and generation"
+              }
+            }
+          }
+        ]
+      },
+      "WorkspaceJoinReview": {
+        "type": "object",
+        "required": [
+          "request",
+          "workspace"
+        ],
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/WorkspaceJoinRequest"
+          },
+          "workspace": {
+            "$ref": "#/components/schemas/Workspace"
+          }
+        }
+      },
+      "Me": {
+        "type": "object",
+        "required": [
+          "id",
+          "scopes",
+          "entitlements",
+          "workspace",
+          "ledgerUsage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspace": {
+            "$ref": "#/components/schemas/Workspace"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entitlements": {
+            "$ref": "#/components/schemas/Entitlements"
+          },
+          "ledgerUsage": {
+            "$ref": "#/components/schemas/LedgerUsage"
+          }
+        }
+      },
+      "LedgerUsage": {
+        "type": "object",
+        "required": [
+          "workspaceId",
+          "projects",
+          "expenseRecords"
+        ],
+        "description": "Read-only selected-ledger capacity. Counts include archived or removed projects and soft-deleted or generated expenses; deletion does not reclaim capacity. Current effective plan and operator configuration set the limits.",
+        "properties": {
+          "workspaceId": {
+            "type": "string"
+          },
+          "projects": {
+            "$ref": "#/components/schemas/CapacityUsage"
+          },
+          "expenseRecords": {
+            "$ref": "#/components/schemas/CapacityUsage"
+          }
+        }
+      },
+      "CapacityUsage": {
+        "type": "object",
+        "required": [
+          "used",
+          "limit",
+          "remaining"
+        ],
+        "properties": {
+          "used": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "max(0; limit minus used)"
+          }
+        }
+      },
+      "Entitlements": {
+        "type": "object",
+        "required": [
+          "plan",
+          "limits",
+          "jev"
+        ],
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "pro",
+              "max"
+            ]
+          },
+          "limits": {
+            "type": "object",
+            "required": [
+              "projects",
+              "expenseRecords",
+              "writesPerMinute",
+              "writesPerMonth"
+            ],
+            "properties": {
+              "projects": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "expenseRecords": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Stored records including soft deletion"
+              },
+              "writesPerMinute": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Fixed UTC minute bucket shared by the ledger owner's members and API keys"
+              },
+              "writesPerMonth": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "UTC calendar month shared by the ledger owner's members and API keys"
+              }
+            }
+          },
+          "jev": {
+            "type": "object",
+            "required": [
+              "eligible",
+              "available",
+              "monthlyBudgetUsd",
+              "period",
+              "rollover"
+            ],
+            "properties": {
+              "eligible": {
+                "type": "boolean",
+                "description": "Current ledger owner's Pro or Max entitlement; actor's personal plan does not grant eligibility"
+              },
+              "available": {
+                "type": "boolean",
+                "description": "Eligibility and current activation gates both passed"
+              },
+              "monthlyBudgetUsd": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "period": {
+                "type": "string",
+                "enum": [
+                  "utc-calendar-month"
+                ]
+              },
+              "rollover": {
+                "type": "boolean",
+                "const": false
+              }
+            }
+          }
+        }
+      },
+      "Repository": {
+        "type": "object",
+        "required": [
+          "githubRepoId",
+          "fullName",
+          "installationId",
+          "account"
+        ],
+        "properties": {
+          "githubRepoId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "isBound": {
+            "type": "boolean",
+            "description": "A repository binding exists in the selected ledger, including archived projects. API keys consider only their explicitly allowed projects. No project ID or cached metadata is disclosed."
+          },
+          "installationId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,15}$"
+          },
+          "account": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GitHubAccount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "GitHubAccount": {
+        "type": "object",
+        "required": [
+          "id",
+          "login",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "login": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "User",
+              "Organization"
+            ]
+          }
+        }
+      },
+      "RepositoryPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor",
+          "githubAccess",
+          "organizations"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Repository"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "organizations": {
+            "type": "array",
+            "maxItems": 10,
+            "description": "Current actor authorized installation account metadata only; organization membership does not grant ledger access.",
+            "items": {
+              "$ref": "#/components/schemas/GitHubAccount"
+            }
+          },
+          "githubAccess": {
+            "type": "string",
+            "enum": [
+              "authorized",
+              "not_connected",
+              "lost",
+              "reauthorization_required"
+            ],
+            "description": "Reauthorization requires an explicit GitHub login; expired/revoked credentials never revoke the Pullwise session or write on a GET. Unavailable/unknown grants return an error rather than a successful empty page."
+          }
+        }
+      },
+      "Target": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "projectId"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "project"
+              },
+              "projectId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{1,120}$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "shared"
+              }
+            }
+          }
+        ]
+      },
+      "ProjectInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "not": {
+          "required": [
+            "githubRepoId",
+            "githubRepoIds"
+          ]
+        },
+        "allOf": [
+          {
+            "if": {
+              "anyOf": [
+                {
+                  "required": [
+                    "githubRepoIds"
+                  ],
+                  "properties": {
+                    "githubRepoIds": {
+                      "maxItems": 0
+                    }
+                  }
+                },
+                {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "githubRepoId"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "githubRepoIds"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "then": {
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "githubOrganizationId": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "githubRepoId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "deprecated": true,
+            "description": "Compatible singular repository selection"
+          },
+          "githubRepoIds": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 30,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Omit or use an empty array for a standalone project with a nonblank name. A nonempty set explicitly selects currently actor-authorized repositories; a repository belongs to one project per ledger, including archived projects. Cross-organization selections are allowed."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Financial project name that persists independently of GitHub grants. Required and nonblank for standalone projects; optional for compatible repository-backed creation."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "developmentUrl": {
+            "$ref": "#/components/schemas/ProjectUrl"
+          },
+          "productUrl": {
+            "$ref": "#/components/schemas/ProjectUrl"
+          },
+          "githubOrganizationId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "Optional association on a repository-backed project, verified against current actor installation account metadata; never selects all organization repositories. Must be absent or null on standalone creation."
+          }
+        }
+      },
+      "ProjectPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "not": {
+          "required": [
+            "githubRepoId",
+            "githubRepoIds"
+          ]
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "githubRepoIds"
+              ],
+              "properties": {
+                "githubRepoIds": {
+                  "maxItems": 0
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "githubOrganizationId": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "githubRepoId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "deprecated": true
+          },
+          "githubRepoIds": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 30,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Atomically replace the full explicit repository set under If-Match. Every selected repository must currently be authorized to the actor. Omit to retain historical lost bindings. An explicit empty array disconnects all repositories and clears the organization association while preserving the project ID and expenses; the final project name must be nonblank (supply name in the same patch when needed)."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "The final name must be nonblank when no repositories are linked; omission retains the existing name."
+          },
+          "githubOrganizationId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "developmentUrl": {
+            "$ref": "#/components/schemas/ProjectUrl"
+          },
+          "productUrl": {
+            "$ref": "#/components/schemas/ProjectUrl"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "archived"
+            ]
+          }
+        }
+      },
+      "ProjectUrl": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1,
+        "maxLength": 2048,
+        "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://",
+        "description": "Absolute HTTP(S) URL, at most 2048 UTF-8 bytes. Server rejects missing/invalid hosts or ports, userinfo, whitespace, control characters and backslashes. Null clears the link; omission preserves it on PATCH and defaults to null on POST. Empty strings are invalid. Development/product links are ledger metadata and never grant repository access."
+      },
+      "BoundRepository": {
+        "type": "object",
+        "required": [
+          "githubRepoId",
+          "githubFullName",
+          "githubAccess",
+          "installationId",
+          "account"
+        ],
+        "properties": {
+          "githubRepoId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "githubFullName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Null when the actor's current GitHub access cannot be verified; cached names are never exposed"
+          },
+          "githubAccess": {
+            "type": "string",
+            "enum": [
+              "authorized",
+              "lost",
+              "reauthorization_required",
+              "unavailable"
+            ]
+          },
+          "installationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "account": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GitHubAccount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "ProjectOrganization": {
+        "type": "object",
+        "required": [
+          "id",
+          "login",
+          "type",
+          "githubAccess"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "login": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "const": "Organization"
+          },
+          "githubAccess": {
+            "type": "string",
+            "enum": [
+              "authorized",
+              "lost",
+              "reauthorization_required",
+              "unavailable"
+            ]
+          }
+        }
+      },
+      "Project": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "githubRepoId",
+          "githubRepoIds",
+          "repositories",
+          "githubOrganizationId",
+          "githubOrganization",
+          "description",
+          "developmentUrl",
+          "productUrl",
+          "status",
+          "githubAccess",
+          "canCreateExpense",
+          "revision",
+          "totals"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "githubRepoId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "Null for a standalone project; otherwise a compatibility anchor among the currently bound repositories. Never a fabricated repository ID."
+          },
+          "githubRepoIds": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 30,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "repositories": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 30,
+            "items": {
+              "$ref": "#/components/schemas/BoundRepository"
+            }
+          },
+          "githubOrganizationId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "githubOrganization": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProjectOrganization"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "githubFullName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Compatibility anchor name from the actor's current grant; ledger financial history remains available"
+          },
+          "description": {
+            "type": "string"
+          },
+          "developmentUrl": {
+            "$ref": "#/components/schemas/ProjectUrl"
+          },
+          "productUrl": {
+            "$ref": "#/components/schemas/ProjectUrl"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "archived"
+            ]
+          },
+          "githubAccess": {
+            "type": "string",
+            "enum": [
+              "not_linked",
+              "authorized",
+              "partial",
+              "lost",
+              "reauthorization_required",
+              "unavailable"
+            ],
+            "description": "not_linked identifies an explicitly standalone project, with null GitHub anchor and organization and empty repository arrays; loss or unavailability of a bound grant never implicitly disconnects a project."
+          },
+          "canCreateExpense": {
+            "type": "boolean",
+            "description": "Active standalone project, or an active repository-backed project with at least one bound repository currently authorized to the actor. Ledger role, key target scopes and plan limits still apply. Historical edits and deletion do not require a live GitHub grant."
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MoneyTotal"
+            }
+          }
+        }
+      },
+      "ProjectPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CategoryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 32
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "revision",
+          "archivedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "archivedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CurrencyCode": {
+        "type": "string",
+        "enum": [
+          "AED",
+          "AFN",
+          "ALL",
+          "AMD",
+          "ANG",
+          "AOA",
+          "ARS",
+          "AUD",
+          "AWG",
+          "AZN",
+          "BAM",
+          "BBD",
+          "BDT",
+          "BGN",
+          "BHD",
+          "BIF",
+          "BMD",
+          "BND",
+          "BOB",
+          "BOV",
+          "BRL",
+          "BSD",
+          "BTN",
+          "BWP",
+          "BYN",
+          "BZD",
+          "CAD",
+          "CDF",
+          "CHE",
+          "CHF",
+          "CHW",
+          "CLF",
+          "CLP",
+          "CNY",
+          "COP",
+          "COU",
+          "CRC",
+          "CUC",
+          "CUP",
+          "CVE",
+          "CZK",
+          "DJF",
+          "DKK",
+          "DOP",
+          "DZD",
+          "EGP",
+          "ERN",
+          "ETB",
+          "EUR",
+          "FJD",
+          "FKP",
+          "GBP",
+          "GEL",
+          "GHS",
+          "GIP",
+          "GMD",
+          "GNF",
+          "GTQ",
+          "GYD",
+          "HKD",
+          "HNL",
+          "HRK",
+          "HTG",
+          "HUF",
+          "IDR",
+          "ILS",
+          "INR",
+          "IQD",
+          "IRR",
+          "ISK",
+          "JMD",
+          "JOD",
+          "JPY",
+          "KES",
+          "KGS",
+          "KHR",
+          "KMF",
+          "KPW",
+          "KRW",
+          "KWD",
+          "KYD",
+          "KZT",
+          "LAK",
+          "LBP",
+          "LKR",
+          "LRD",
+          "LSL",
+          "LYD",
+          "MAD",
+          "MDL",
+          "MGA",
+          "MKD",
+          "MMK",
+          "MNT",
+          "MOP",
+          "MRU",
+          "MUR",
+          "MVR",
+          "MWK",
+          "MXN",
+          "MXV",
+          "MYR",
+          "MZN",
+          "NAD",
+          "NGN",
+          "NIO",
+          "NOK",
+          "NPR",
+          "NZD",
+          "OMR",
+          "PAB",
+          "PEN",
+          "PGK",
+          "PHP",
+          "PKR",
+          "PLN",
+          "PYG",
+          "QAR",
+          "RON",
+          "RSD",
+          "RUB",
+          "RWF",
+          "SAR",
+          "SBD",
+          "SCR",
+          "SDG",
+          "SEK",
+          "SGD",
+          "SHP",
+          "SLE",
+          "SLL",
+          "SOS",
+          "SRD",
+          "SSP",
+          "STN",
+          "SVC",
+          "SYP",
+          "SZL",
+          "THB",
+          "TJS",
+          "TMT",
+          "TND",
+          "TOP",
+          "TRY",
+          "TTD",
+          "TWD",
+          "TZS",
+          "UAH",
+          "UGX",
+          "USD",
+          "USN",
+          "UYI",
+          "UYU",
+          "UYW",
+          "UZS",
+          "VED",
+          "VES",
+          "VND",
+          "VUV",
+          "WST",
+          "YER",
+          "ZAR",
+          "ZMW",
+          "ZWL"
+        ],
+        "description": "Supported uppercase currencies. Writes use decimal strings and fixed currency exponents; JPY has zero fractional digits, USD has two, KWD has three, and CLF has four. Amount minor units must not exceed 9007199254740991. Values across currencies are never combined or converted."
+      },
+      "ExpenseFields": {
+        "type": "object",
+        "required": [
+          "target",
+          "occurredOn",
+          "amount",
+          "currency",
+          "purpose"
+        ],
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "occurredOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "description": "Currency exponent and safe integer bound enforced by server"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/CurrencyCode"
+          },
+          "categoryId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required for a Free ledger. Omit on create or edit when the ledger owner's Pro or Max plan and assistance gates permit automatic classification; a confident existing active category is selected. Unavailable or uncertain inference returns CATEGORY_REQUIRED. An explicit nonempty value is preserved, including the previous archived category on edit."
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "quantity": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40,
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40
+          }
+        }
+      },
+      "ExpenseInput": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExpenseFields"
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RecurringExpenseSchedule": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "frequency",
+          "timezone",
+          "startOn"
+        ],
+        "description": "Calendar in a validated IANA timezone. Weekly weekday is ISO Monday=1\nthrough Sunday=7. Quarterly quarterMonth is 1, 2 or 3 within each\ncalendar quarter. Days beyond a month's length use its final day;\nFebruary 29 therefore becomes February 28 in a nonleap year.\nThe occurrence becomes due at local midnight or the first valid\ninstant after a timezone gap. Start and optional end dates are\ninclusive. Each period posts once; delayed dispatch catches up under\na bounded hourly tick without charging a card or polling the client.\n",
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "weekly",
+              "monthly",
+              "quarterly",
+              "yearly"
+            ]
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Valid IANA zone available to the runtime, for example Asia/Shanghai or UTC"
+          },
+          "startOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endOn": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Inclusive last eligible business date; must be on or after startOn"
+          },
+          "weekday": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          },
+          "day": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 31
+          },
+          "quarterMonth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "frequency": {
+                  "const": "weekly"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "weekday"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "day"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "quarterMonth"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "month"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "frequency": {
+                  "const": "monthly"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "day"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "weekday"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "quarterMonth"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "month"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "frequency": {
+                  "const": "quarterly"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "day",
+                "quarterMonth"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "weekday"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "month"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "frequency": {
+                  "const": "yearly"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "day",
+                "month"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "weekday"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "quarterMonth"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "RecurringExpenseFields": {
+        "type": "object",
+        "required": [
+          "target",
+          "amount",
+          "currency",
+          "categoryId",
+          "purpose",
+          "schedule"
+        ],
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "description": "Same currency-exponent and integer bounds as an ordinary expense"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/CurrencyCode"
+          },
+          "categoryId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Explicit existing active category; no automatic model selection during background execution"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "quantity": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40,
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/RecurringExpenseSchedule"
+          }
+        }
+      },
+      "RecurringExpenseInput": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RecurringExpenseFields"
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RecurringExpenseRule": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RecurringExpenseFields"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "status",
+              "revision",
+              "nextOccurrenceOn",
+              "nextRunAt",
+              "blockedCode",
+              "createdAt",
+              "updatedAt"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "paused",
+                  "blocked",
+                  "completed",
+                  "canceled"
+                ]
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "nextOccurrenceOn": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date"
+              },
+              "nextRunAt": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 9007199254740991,
+                "description": "UTC epoch seconds for the next due occurrence"
+              },
+              "blockedCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 80,
+                "description": "Current authorization, target, category or plan stop reason; blocked rules do not keep executing automatically"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        ]
+      },
+      "RecurringExpensePage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/RecurringExpenseRule"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ExpensePatchInput": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExpenseInput"
+          }
+        ]
+      },
+      "ExpenseReview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expenseId",
+          "revision",
+          "questionVersion",
+          "modelVersion",
+          "checks"
+        ],
+        "properties": {
+          "expenseId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "questionVersion": {
+            "type": "string",
+            "const": "ledger-suggest-v2"
+          },
+          "modelVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "suggestionId": {
+            "type": "string",
+            "description": "Existing suggestion event when a model attempt was admitted; no saved-expense mutation"
+          },
+          "checks": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "category",
+              "target",
+              "duplicate"
+            ],
+            "properties": {
+              "category": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "current"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "checked",
+                      "issue",
+                      "uncertain",
+                      "unavailable"
+                    ]
+                  },
+                  "current": {
+                    "type": "string",
+                    "description": "Saved category ID, including historical archived categories"
+                  },
+                  "suggested": {
+                    "type": "string",
+                    "description": "Confident currently active category; never automatically assigned"
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Validated choice confidence; uncertainty never establishes correctness"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "disabled",
+                      "provider_unavailable",
+                      "invalid_context",
+                      "no_categories"
+                    ]
+                  }
+                }
+              },
+              "target": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "current"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "checked",
+                      "issue",
+                      "uncertain",
+                      "unavailable"
+                    ]
+                  },
+                  "current": {
+                    "$ref": "#/components/schemas/Target"
+                  },
+                  "suggested": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "kind"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "project",
+                          "shared"
+                        ],
+                        "description": "Scope-kind advice only; no destination project or automatic move"
+                      }
+                    }
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "disabled",
+                      "provider_unavailable",
+                      "invalid_context"
+                    ]
+                  }
+                }
+              },
+              "duplicate": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "checked",
+                      "issue"
+                    ],
+                    "description": "Bounded local same-target rule, independent of provider availability"
+                  },
+                  "candidate": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "revision"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ExpenseAssistance": {
+        "type": "object",
+        "required": [
+          "status",
+          "suggestions",
+          "categorySource"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "uncertain",
+              "unavailable"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Provider configuration or daily/monthly budget fallback code; advisory only"
+          },
+          "categorySource": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "user",
+              "jev",
+              null
+            ]
+          },
+          "suggestionId": {
+            "type": "string"
+          },
+          "questionVersion": {
+            "type": "string"
+          },
+          "modelVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "suggestions": {
+            "type": "object",
+            "properties": {
+              "categoryId": {
+                "type": "string",
+                "description": "Confident existing active category; assigned on create or edit when caller omits categoryId"
+              },
+              "targetKind": {
+                "type": "string",
+                "enum": [
+                  "project",
+                  "shared"
+                ],
+                "description": "Advice only; never moves an expense"
+              },
+              "duplicateExpenseId": {
+                "type": "string",
+                "description": "Matching active expense on the same authorized target, currency and amount within seven days, excluding the expense being edited; advisory only"
+              }
+            }
+          },
+          "probabilities": {
+            "type": "object"
+          }
+        }
+      },
+      "Expense": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExpenseFields"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "categoryId",
+              "amountMinor",
+              "revision",
+              "createdAt",
+              "updatedAt"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "categoryId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "amountMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "assistance": {
+                "$ref": "#/components/schemas/ExpenseAssistance"
+              }
+            }
+          }
+        ]
+      },
+      "ExpensePage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Expense"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ActivityActor": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "userId",
+          "name",
+          "githubLogin"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "user",
+              "api_key",
+              "system"
+            ]
+          },
+          "userId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "githubLogin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 39
+          }
+        }
+      },
+      "ActivityChange": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "before",
+          "after"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "target",
+              "purpose",
+              "amount",
+              "currency",
+              "occurredOn",
+              "categoryId",
+              "note",
+              "quantity",
+              "unit",
+              "name",
+              "description",
+              "developmentUrl",
+              "productUrl",
+              "status",
+              "githubRepoIds",
+              "githubOrganizationId",
+              "schedule"
+            ]
+          },
+          "before": {
+            "$ref": "#/components/schemas/ActivityValue"
+          },
+          "after": {
+            "$ref": "#/components/schemas/ActivityValue"
+          }
+        }
+      },
+      "ActivityValue": {
+        "description": "A bounded safe JSON value. Amount values are exact decimal/currency\nobjects such as {amount: \"12.30\", currency: \"USD\"}; they never expose raw\nminor units as display amounts. Category values are {id, name}; target\nvalues are {kind, projectId?, projectName?}, or {kind: restricted} for\nthe opposite side of a move outside an API key's permission. Schedule\nvalues contain the saved calendar schedule. Other fields contain their\noriginal string, safe integer, bounded array or null. Removed/created\nvalues use null for the absent side.\n",
+        "type": [
+          "string",
+          "number",
+          "boolean",
+          "object",
+          "array",
+          "null"
+        ]
+      },
+      "ActivityEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "operationId",
+          "createdAt",
+          "actor",
+          "resource",
+          "action",
+          "target",
+          "changes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "operationId": {
+            "type": "string",
+            "maxLength": 160,
+            "description": "Shared across the two activity rows of a cross-pool move"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/ActivityActor"
+          },
+          "resource": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "id",
+              "label"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "expense",
+                  "project",
+                  "recurring_rule"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Saved purpose or financial project name; falls back to record ID and never to a protected GitHub repository name"
+              }
+            }
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "create",
+              "update",
+              "delete",
+              "archive",
+              "restore",
+              "pause",
+              "resume",
+              "cancel",
+              "move",
+              "generate"
+            ]
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "changes": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/ActivityChange"
+            }
+          }
+        }
+      },
+      "ActivityPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor",
+          "windowStart",
+          "windowEnd"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ActivityEvent"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 256
+          },
+          "windowStart": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Exclusive Server-clock 24-hour floor, refreshed on every page"
+          },
+          "windowEnd": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Inclusive upper window boundary anchored by the first page"
+          }
+        }
+      },
+      "MoneyTotal": {
+        "type": "object",
+        "required": [
+          "currency",
+          "amountMinor"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "amountMinor": {
+            "$ref": "#/components/schemas/AggregateMinor"
+          }
+        }
+      },
+      "AggregateMinor": {
+        "description": "Exact total in minor currency units. Totals above the JSON safe integer bound use a decimal integer string; clients must not convert those strings to floating point.",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          }
+        ]
+      },
+      "Report": {
+        "type": "object",
+        "required": [
+          "groups"
+        ],
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "currency",
+                "amountMinor"
+              ],
+              "properties": {
+                "target": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "project",
+                    "shared",
+                    "account",
+                    null
+                  ]
+                },
+                "projectId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "categoryId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "bucket": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "amountMinor": {
+                  "$ref": "#/components/schemas/AggregateMinor"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-pullwise-source-sha256": "7f948c404a18b8849f0c625b60994f8e02efa7739fbc49babb599168a21f4617"
+}

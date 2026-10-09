@@ -10,6 +10,7 @@ import { pathFromScreen, screenLinkProps } from "../lib/navigation.js";
 import { formatBillingTimestamp } from "../lib/billing-date.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { useModalFocus } from "../lib/modal-focus.js";
+import { BILLING_USAGE_COPY } from "../locales/billing-usage.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
@@ -384,6 +385,86 @@ function planLabel(plan) {
   return String(plan?.id || "").toUpperCase() || T("Plan", "套餐");
 }
 
+function usageText(key) {
+  return T(...BILLING_USAGE_COPY[key]);
+}
+
+function usageMetric(usage, key) {
+  if (typeof usage?.workspaceId !== "string" || !usage.workspaceId.trim()) return null;
+  const metric = usage[key];
+  if (
+    !Number.isSafeInteger(metric?.used) || metric.used < 0 ||
+    !Number.isSafeInteger(metric?.limit) || metric.limit <= 0 ||
+    !Number.isSafeInteger(metric?.remaining) || metric.remaining < 0 ||
+    metric.remaining !== Math.max(0, metric.limit - metric.used)
+  ) return null;
+  return metric;
+}
+
+function BillingUsage({ usage, lang, busy, onRefresh }) {
+  const number = (value) => new Intl.NumberFormat(lang).format(value);
+  return (
+    <section className="panel" aria-labelledby="billing-usage-title">
+      <div className="panel-h billing-usage-heading">
+        <I.Trend size={20} />
+        <h2 id="billing-usage-title">{usageText("title")}</h2>
+        <button className="btn sm" type="button" disabled={busy} onClick={onRefresh}>
+          <I.Refresh size={14} /> {usageText("refresh")}
+        </button>
+      </div>
+      <p className="muted">{usageText("scope")}</p>
+      <div className="billing-usage-grid">
+        {["projects", "expenseRecords"].map((key) => {
+          const metric = usageMetric(usage, key);
+          const label = usageText(key);
+          const overLimit = metric && metric.used > metric.limit;
+          const reached = metric && metric.used === metric.limit;
+          const status = overLimit
+            ? `${usageText("over")}: ${number(metric.used - metric.limit)}`
+            : reached ? usageText("reached") : "";
+          const description = metric
+            ? ["used", "limit", "remaining"].map((field) =>
+                `${usageText(field)}: ${number(metric[field])}`
+              ).concat(status || []).join(". ")
+            : "";
+          return (
+            <article className="billing-usage-row" key={key} data-over-limit={overLimit || undefined}>
+              <div className="billing-usage-row-heading">
+                <h3>{label}</h3>
+                {status && <span className="tag">{status}</span>}
+              </div>
+              {metric ? (
+                <>
+                  <dl className="billing-usage-values">
+                    {["used", "limit", "remaining"].map((field) => (
+                      <div key={field}>
+                        <dt>{usageText(field)}</dt>
+                        <dd>{number(metric[field])}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <div
+                    className="billing-usage-track"
+                    role="meter"
+                    aria-label={label}
+                    aria-valuemin={0}
+                    aria-valuemax={metric.limit}
+                    aria-valuenow={Math.min(metric.used, metric.limit)}
+                    aria-valuetext={description}
+                  >
+                    <span aria-hidden="true" style={{ width: `${Math.min(100, metric.used / metric.limit * 100)}%` }} />
+                  </div>
+                </>
+              ) : <p className="muted">{usageText("unavailable")}</p>}
+            </article>
+          );
+        })}
+      </div>
+      <p className="muted">{usageText("retention")}</p>
+    </section>
+  );
+}
+
 function BillingSkeleton() {
   return (
     <div className="set-body billing-skeleton" aria-busy="true">
@@ -399,6 +480,19 @@ function BillingSkeleton() {
           <SkeletonLine className="sk-line sk-w-26 sk-h-34" />
           <SkeletonLine className="sk-line sk-w-24 sk-h-34" />
           <SkeletonLine className="sk-line sk-w-22 sk-h-34" />
+        </div>
+      </div>
+
+      <div className="panel">
+        <SkeletonLine className="sk-line sk-w-32 sk-h-16" />
+        <div className="billing-usage-grid">
+          {["projects", "expenses"].map((key) => (
+            <div className="billing-usage-row" key={key}>
+              <SkeletonLine className="sk-line sk-w-26" />
+              <SkeletonLine className="sk-line sk-w-52 sk-h-16" />
+              <SkeletonLine className="sk-line sk-h-12" />
+            </div>
+          ))}
         </div>
       </div>
 
@@ -454,7 +548,7 @@ function PricingLoadError({ error, onRetry }) {
 }
 
 export function BillingScreen({ go, navigate = (url) => window.location.assign(url) }) {
-  useLang();
+  const lang = useLang();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState("");
   useErrorNotification(error, {
@@ -467,6 +561,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   const [changeDraft, setChangeDraft] = useState(null);
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
   const billingMutationRef = useRef("");
+  const billingReadRef = useRef(false);
   const mountedRef = useRef(true);
   const changeDialogRef = useRef(null);
   const changeCloseRef = useRef(null);
@@ -489,7 +584,8 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   }, []);
 
   const loadBillingPlan = useCallback(async () => {
-    if (billingMutationRef.current) return;
+    if (billingMutationRef.current || billingReadRef.current) return;
+    billingReadRef.current = true;
     setLoading(true);
     setError("");
     try {
@@ -499,6 +595,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     } catch (err) {
       if (mountedRef.current) setError(err?.message || "Unable to load billing.");
     } finally {
+      billingReadRef.current = false;
       if (mountedRef.current) setLoading(false);
     }
   }, []);
@@ -892,6 +989,13 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                       )}
                     </div>
                   </section>
+
+                  <BillingUsage
+                    usage={plan?.ledgerUsage}
+                    lang={lang}
+                    busy={loading || writing}
+                    onRefresh={loadBillingPlan}
+                  />
 
                   {(paymentPending ||
                     new URLSearchParams(window.location.search).get("billing") === "success") && (
@@ -1412,10 +1516,7 @@ export function PricingScreen({
       {!pricingLoading && !error && (
         <div className="pricing-faq" style={{ paddingTop: 0 }}>
           <p className="muted">
-            {T(
-              "Project and expense limits apply to the Owner's ledger and are shared by members and API keys. Archived projects and removed expenses still count toward capacity.",
-              "项目与支出限额按所有者的账本计算，由成员及 API 密钥共同使用。已归档项目和已移除支出仍占用容量。"
-            )}
+            {usageText("policy")}
           </p>
           <p className="muted">
             {T(

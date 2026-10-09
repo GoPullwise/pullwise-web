@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
-import { act, fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
 import { NotificationProvider } from "../components/notifications.jsx";
 import { BillingScreen, PricingScreen } from "./billing.jsx";
+import { setLang } from "../i18n.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: {
@@ -73,6 +74,121 @@ describe("BillingScreen", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(async () => { await act(async () => { await setLang("en"); }); });
+
+  function withUsage(planId, projects, expenseRecords) {
+    return {
+      ...billingCatalog,
+      plans: [...billingCatalog.plans, maxPlan],
+      account: { status: planId === "free" ? "none" : "active", plan: planId, interval: "month" },
+      ledgerUsage: { workspaceId: "personal-owner", projects, expenseRecords },
+    };
+  }
+
+  it.each([
+    ["free", 2, 3, 79, 100],
+    ["pro", 12, 20, 1200, 20000],
+    ["max", 50, 100, 64567, 100000],
+  ])("shows exact Server capacity for the current %s plan", async (planId, projectsUsed, projectsLimit, recordsUsed, recordsLimit) => {
+    pullwiseApi.billing.getPlan.mockResolvedValue(withUsage(planId,
+      { used: projectsUsed, limit: projectsLimit, remaining: projectsLimit - projectsUsed },
+      { used: recordsUsed, limit: recordsLimit, remaining: recordsLimit - recordsUsed }
+    ));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Ledger usage" });
+    for (const [label, used, limit] of [["Projects", projectsUsed, projectsLimit], ["Expense records", recordsUsed, recordsLimit]]) {
+      const meter = within(region).getByRole("meter", { name: label });
+      expect(meter).toHaveAttribute("aria-valuenow", String(used));
+      expect(meter).toHaveAttribute("aria-valuemax", String(limit));
+      expect(meter).toHaveAttribute("aria-valuetext", `Used: ${used.toLocaleString("en")}. Limit: ${limit.toLocaleString("en")}. Remaining: ${(limit - used).toLocaleString("en")}`);
+    }
+    expect(region).toHaveTextContent("ledger you own, even when another ledger is selected");
+    expect(region).toHaveTextContent("Archived or removed projects and removed expense records still count");
+    expect(region).toHaveTextContent("does not reset each month");
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledWith();
+  });
+
+  it("preserves over-limit counts while bounding only the capacity chart", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue(withUsage("free",
+      { used: 7, limit: 3, remaining: 0 },
+      { used: 112, limit: 100, remaining: 0 }
+    ));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Ledger usage" });
+    const records = within(region).getByRole("meter", { name: "Expense records" });
+    expect(records).toHaveAttribute("aria-valuenow", "100");
+    expect(records).toHaveAttribute("aria-valuetext", "Used: 112. Limit: 100. Remaining: 0. Over limit by: 12");
+    expect(records.firstElementChild).toHaveStyle({ width: "100%" });
+    expect(records.closest("article")).toHaveTextContent("112");
+    expect(region).toHaveTextContent("Over limit by: 4");
+  });
+
+  it("keeps missing or malformed usage unavailable until an explicit read succeeds", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValueOnce(withUsage("free",
+      { used: null, limit: 3, remaining: 3 },
+      { used: 8, limit: 100, remaining: 100 }
+    )).mockResolvedValueOnce(withUsage("free",
+      { used: 0, limit: 3, remaining: 3 },
+      { used: 8, limit: 100, remaining: 92 }
+    ));
+    const user = userEvent.setup();
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Ledger usage" });
+    expect(within(region).getAllByText("Usage unavailable")).toHaveLength(2);
+    expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
+    await user.click(within(region).getByRole("button", { name: "Refresh usage" }));
+    expect(await screen.findByRole("meter", { name: "Projects" })).toHaveAttribute("aria-valuenow", "0");
+    expect(screen.getByRole("meter", { name: "Expense records" })).toHaveAttribute("aria-valuenow", "8");
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not invent capacity from catalog limits when the usage DTO is absent", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({ ...billingCatalog, account: { plan: "free" } });
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Ledger usage" });
+    expect(within(region).getAllByText("Usage unavailable")).toHaveLength(2);
+    expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
+  });
+
+  it("coalesces same-frame manual usage refreshes", async () => {
+    const refresh = deferred();
+    pullwiseApi.billing.getPlan.mockResolvedValueOnce(withUsage("free",
+      { used: 2, limit: 3, remaining: 1 }, { used: 8, limit: 100, remaining: 92 }
+    )).mockReturnValueOnce(refresh.promise);
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const button = await screen.findByRole("button", { name: "Refresh usage" });
+    act(() => { button.click(); button.click(); });
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+    await act(async () => refresh.resolve(withUsage("free",
+      { used: 2, limit: 3, remaining: 1 }, { used: 9, limit: 100, remaining: 91 }
+    )));
+    expect(await screen.findByRole("meter", { name: "Expense records" })).toHaveAttribute("aria-valuenow", "9");
+  });
+
+  it.each([
+    ["zh", "账本用量", "项目", "支出记录", "已使用", "上限", "剩余", "刷新用量", "容量不会每月重置"],
+    ["ja", "帳簿の使用量", "プロジェクト", "支出記録", "使用済み", "上限", "残り", "使用量を更新", "毎月リセットされません"],
+    ["ko", "장부 사용량", "프로젝트", "지출 기록", "사용됨", "한도", "남음", "사용량 새로고침", "매월 초기화되지 않습니다"],
+    ["fr", "Utilisation du registre", "Projets", "Enregistrements de dépenses", "Utilisé", "Limite", "Restant", "Actualiser l’utilisation", "n’est pas réinitialisée chaque mois"],
+    ["es", "Uso del libro", "Proyectos", "Registros de gastos", "Usado", "Límite", "Restante", "Actualizar uso", "no se restablece cada mes"],
+  ])("localizes capacity labels and policy in %s", async (locale, title, projects, records, used, limit, remaining, refresh, retention) => {
+    await setLang(locale);
+    pullwiseApi.billing.getPlan.mockResolvedValue(withUsage("max",
+      { used: 50, limit: 100, remaining: 50 }, { used: 64567, limit: 100000, remaining: 35433 }
+    ));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: title });
+    expect(within(region).getByRole("meter", { name: projects })).toBeInTheDocument();
+    const meter = within(region).getByRole("meter", { name: records });
+    expect(meter).toHaveAttribute("aria-valuetext", `${used}: ${new Intl.NumberFormat(locale).format(64567)}. ${limit}: ${new Intl.NumberFormat(locale).format(100000)}. ${remaining}: ${new Intl.NumberFormat(locale).format(35433)}`);
+    expect(within(region).getByRole("button", { name: refresh })).toBeInTheDocument();
+    expect(region).toHaveTextContent(retention);
+    expect(region).not.toHaveTextContent("Ledger usage");
   });
 
   it("does not invent paid prices or enable missing yearly products", async () => {
@@ -281,7 +397,7 @@ describe("BillingScreen", () => {
     const { container } = render(<BillingScreen go={vi.fn()} />);
 
     expect(container.querySelector(".billing-skeleton")).toBeInTheDocument();
-    expect(container.querySelectorAll(".billing-skeleton .panel")).toHaveLength(2);
+    expect(container.querySelectorAll(".billing-skeleton .panel")).toHaveLength(3);
     expect(screen.queryByText(/billing is not configured/i)).not.toBeInTheDocument();
   });
 
@@ -894,8 +1010,8 @@ describe("BillingScreen", () => {
         ...plan,
         entitlements: {
           limits: {
-            projects: plan.id === "free" ? 3 : 100,
-            expenseRecords: plan.id === "free" ? 500 : 20000,
+            projects: plan.id === "free" ? 3 : plan.id === "max" ? 100 : 20,
+            expenseRecords: plan.id === "free" ? 100 : plan.id === "max" ? 100000 : 20000,
           },
           jev: {
             eligible: plan.id === "pro" || plan.id === "max",
@@ -911,16 +1027,16 @@ describe("BillingScreen", () => {
     const projectCopies = await screen.findAllByText("Projects:");
     expect(projectCopies.map((node) => node.textContent)).toEqual([
       "Projects: 3",
-      "Projects: 100",
+      "Projects: 20",
       "Projects: 100",
     ]);
     expect(screen.getAllByText("Expense records:").map((node) => node.textContent)).toEqual([
-      "Expense records: 500",
+      "Expense records: 100",
       "Expense records: 20,000",
-      "Expense records: 20,000",
+      "Expense records: 100,000",
     ]);
     expect(
-      screen.getByText(/Archived projects and removed expenses still count toward capacity/i)
+      screen.getByText(/Archived or removed projects and removed expense records still count toward capacity/i)
     ).toBeInTheDocument();
     expect(
       screen.getByText(/monthly Jev allowance covers model assistance, has no cash value/i)
@@ -1541,9 +1657,11 @@ describe("BillingScreen", () => {
     render(<BillingScreen go={go} navigate={vi.fn()} />);
     const resumeButton = await screen.findByRole("button", { name: "Resume renewal" });
     const pricing = screen.getByRole("link", { name: "View pricing" });
+    const usageRefresh = screen.getByRole("button", { name: "Refresh usage" });
     expect(pricing).toHaveAttribute("href", "/pricing");
     await user.click(resumeButton);
     expect(resumeButton).toBeDisabled();
+    expect(usageRefresh).toBeDisabled();
     expect(pricing).toHaveAttribute("aria-disabled", "true");
     expect(pricing).not.toHaveAttribute("href");
     expect(document.querySelectorAll('.side-i[aria-disabled="true"]').length).toBeGreaterThan(0);
@@ -1556,6 +1674,9 @@ describe("BillingScreen", () => {
     await waitFor(() => expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2));
     expect(pricing).not.toHaveAttribute("href");
     expect(screen.getByRole("button", { name: "Cancel renewal" })).toBeDisabled();
+    expect(usageRefresh).toBeDisabled();
+    fireEvent.click(usageRefresh);
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2);
     expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
     await act(async () => refresh.resolve({ ...billingCatalog, account: activeAccount }));
     await waitFor(() =>
@@ -1563,6 +1684,7 @@ describe("BillingScreen", () => {
     );
     expect(pricing).toHaveAttribute("href", "/pricing");
     expect(screen.getByRole("button", { name: "Cancel renewal" })).toBeEnabled();
+    expect(usageRefresh).toBeEnabled();
     expect(screen.queryByRole("status", { name: "Loading" })).not.toBeInTheDocument();
   });
 

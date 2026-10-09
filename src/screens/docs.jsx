@@ -1,6 +1,7 @@
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
+import { DOCS_GUIDE } from "../locales/docs-guide.js";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
 const SECTIONS = [
@@ -15,27 +16,20 @@ const SECTIONS = [
   {
     id: "connect",
     title: ["Create a project", "创建项目"],
-    text: [
-      "Create a project with a name and optional description. GitHub is optional for standalone projects. Connect GitHub when you want to link up to 30 authorized repositories and a GitHub Organization. Changing these links preserves the project ID and expense history. GitHub access is checked for the acting member when linking repositories or adding expenses to a linked project.",
-      "为项目起名并按需填写说明，独立项目无需 GitHub。需要关联仓库时再连接 GitHub，可关联最多 30 个已授权仓库及 GitHub 组织。修改关联会保留项目 ID 和历史支出。关联仓库或为已关联项目新增支出时，会检查当前操作成员的 GitHub 访问权。",
-    ],
+    text: DOCS_GUIDE.projectSetup,
   },
+  DOCS_GUIDE.projectSettings,
   {
     id: "categories",
     title: ["Create categories", "创建类别"],
-    text: [
-      "Categories belong to the selected ledger and can be used for project or shared expenses. Owners and Admins manage categories; archived categories remain on historical entries.",
-      "类别属于当前账本，可用于项目或公共池支出。Owner 和 Admin 可以管理类别，归档类别仍保留在历史记录中。",
-    ],
+    text: DOCS_GUIDE.categories,
   },
   {
     id: "expenses",
     title: ["Record expenses", "记录支出"],
-    text: [
-      "Choose a project or the shared pool, date, amount, currency, category and purpose. The shared pool is counted once in the selected ledger overview; it is not copied into every project.",
-      "选择项目或公共池，并填写日期、金额、币种、类别和用途。公共池在当前账本总览中只计一次，不会复制到每个项目。",
-    ],
+    text: DOCS_GUIDE.expenses,
   },
+  DOCS_GUIDE.recurring,
   {
     id: "max-assistance",
     title: ["Automatic Jev assistance", "Jev 自动辅助"],
@@ -60,13 +54,11 @@ const SECTIONS = [
       "按日期和类别筛选明细及图表。总额按币种分开，Pullwise 不进行货币转换。账本成员可以查看报表和导出 CSV；Owner、Admin 和 Editor 可以修改和移除记录。",
     ],
   },
+  DOCS_GUIDE.activity,
   {
     id: "keys",
     title: ["Use API keys", "使用 API 密钥"],
-    text: [
-      "Create a key for the selected ledger with only the scopes you need. Restrict it to selected projects and explicitly allow the shared pool when required. Team keys cannot exceed your role and stop working when your membership revision changes. Revoking a key stops its access.",
-      "为当前账本创建 API 密钥，只授予所需权限并限制到指定项目；需要公共池时应显式允许。团队密钥不能超出你的角色权限，成员权限版本变化后会失效。撤销密钥后将无法继续访问。",
-    ],
+    text: DOCS_GUIDE.keys,
   },
   {
     id: "members",
@@ -75,6 +67,7 @@ const SECTIONS = [
       "In Members, choose a role and create an invitation link without naming a recipient. Anyone signed in to a Pullwise account, including an email-only account, can request to join. Only the original inviter can approve or reject requests while their original permissions remain valid. Opening the link or sending a request grants no ledger access. Links expire after 24 hours and close when one person is approved. Legacy invitations to a specific GitHub account still check that identity. Owner manages Admins; Admin manages Editors and Viewers. Approved members can access existing and future ledger data according to their role and share the Owner's plan and allowances. Joining a ledger never grants GitHub repository access.",
       "在成员页面选择角色并生成邀请链接，无需指定接收人。任何已登录的 Pullwise 账户（包括仅使用邮箱的账户）都可以申请加入。只有原邀请人在原有权限仍有效时可以批准或拒绝申请。打开链接或提交申请不会授予账本访问权。链接 24 小时后失效，一人获批后即关闭。旧版指定 GitHub 账户的邀请仍校验该身份。Owner 管理 Admin，Admin 管理 Editor 和 Viewer。获批成员按角色访问当前及未来账本数据，共同使用 Owner 的套餐和额度。加入账本不会授予 GitHub 仓库访问权。",
     ],
+    detail: DOCS_GUIDE.membersManagement,
   },
 ];
 
@@ -127,6 +120,12 @@ export function DocsScreen({ go, auth }) {
                 {T(...section.title)}
               </h2>
               <p>{T(...section.text)}</p>
+              {section.detail && <p>{T(...section.detail)}</p>}
+              {section.id === "keys" && (
+                <a className="auth-link" href="/developers/api#quickstart">
+                  {T(...DOCS_GUIDE.quickstartLink)}
+                </a>
+              )}
             </section>
           ))}
           <div className="docs-foot-actions">

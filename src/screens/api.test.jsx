@@ -130,7 +130,7 @@ describe("API screens", () => {
     try {
       render(<ApiDocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
       expect(screen.getByText(`${window.location.origin}/api`)).toBeInTheDocument();
-      const examples = screen.getAllByText(/curl.*api\/v1\/expenses/);
+      const examples = screen.getAllByText(/curl.*api\/v1\/expenses/).filter(example => example.textContent.startsWith("curl "));
       expect(examples).toHaveLength(3);
       for (const example of examples)
         expect(example).toHaveTextContent(`${window.location.origin}/api/api/v1/expenses`);
@@ -164,7 +164,7 @@ describe("API screens", () => {
     expect(
       screen.getByText(/No separate suggestion request or suggestions:use scope/i)
     ).toBeInTheDocument();
-    const categoryBehavior = screen.getByText(/CATEGORY_REQUIRED/);
+    const categoryBehavior = screen.getByText(/On POST \/api\/v1\/expenses and PATCH/);
     expect(categoryBehavior).toHaveTextContent(
       "POST /api/v1/expenses and PATCH /api/v1/expenses/{id}"
     );
@@ -803,6 +803,49 @@ describe("API screens", () => {
     );
   });
 
+  it("keeps member scopes opt-in and prevents mixing ledger governance with project restrictions", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    pullwiseApi.apiKeys.create.mockResolvedValue({ id: "key_members", token: "pwk_members_local" });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    const memberRead = await screen.findByRole("checkbox", { name: /Read members/ });
+    const memberWrite = screen.getByRole("checkbox", { name: /Manage members/ });
+    const restrict = screen.getByRole("checkbox", { name: "Limit to selected projects" });
+    expect(memberRead).not.toBeChecked();
+    expect(memberWrite).not.toBeChecked();
+    await user.click(memberRead);
+    expect(restrict).toBeDisabled();
+    await user.click(memberWrite);
+    await user.click(screen.getByRole("button", { name: "Create key" }));
+    expect(pullwiseApi.apiKeys.create).toHaveBeenCalledWith(expect.objectContaining({
+      scopes: expect.arrayContaining(["members:read", "members:write"]),
+      restrictions: { shared: false },
+    }));
+    expect(projects).not.toHaveBeenCalled();
+  });
+
+  it("requires clearing project restrictions before selecting a member scope", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    const user = userEvent.setup();
+    render(<ApiKeysScreen go={vi.fn()} />);
+    const restrict = await screen.findByRole("checkbox", { name: "Limit to selected projects" });
+    await user.click(restrict);
+    expect(screen.getByRole("checkbox", { name: /Read members/ })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /Manage members/ })).toBeDisabled();
+    await user.click(restrict);
+    expect(screen.getByRole("checkbox", { name: /Read members/ })).toBeEnabled();
+  });
+
+  it("requires actual member-management capability as well as a server scope", async () => {
+    pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
+    render(<ApiKeysScreen go={vi.fn()} workspace={workspaceFixture("wsp_editor", {
+      role: "editor", scopes: [...readScopes, "members:read", "members:write"],
+      permissions: { manageMembers: false },
+    })} />);
+    expect(await screen.findByRole("checkbox", { name: /Read members/ })).toBeEnabled();
+    expect(screen.queryByRole("checkbox", { name: /Manage members/ })).not.toBeInTheDocument();
+  });
+
   it("uses a streamlined API key creation panel without redundant scope explainer rows", async () => {
     pullwiseApi.apiKeys.list.mockResolvedValue({ apiKeys: [] });
 
@@ -821,8 +864,8 @@ describe("API screens", () => {
       screen.queryByText(/Choose only the REST scopes each key needs/i)
     ).not.toBeInTheDocument();
     expect(createForm).toContainElement(screen.getByRole("button", { name: /create key/i }));
-    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 9 selected");
-    expect(within(scopes).getAllByRole("checkbox")).toHaveLength(9);
+    expect(scopes.querySelector(".api-scope-count")).toHaveTextContent("5 / 11 selected");
+    expect(within(scopes).getAllByRole("checkbox")).toHaveLength(11);
     expect(within(scopes).getAllByRole("checkbox", { checked: true })).toHaveLength(5);
   });
 

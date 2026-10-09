@@ -84,6 +84,7 @@ function workspaceScopeValues(workspace) {
     "categories:write": "manageCategories",
     "expenses:write": "writeExpenses",
     "suggestions:use": "writeExpenses",
+    "members:write": "manageMembers",
   };
   return API_KEY_SCOPE_VALUES.filter(
     (scope) =>
@@ -246,6 +247,7 @@ export function ApiKeysScreen({
   const [keys, setKeys] = useState([]);
   const [name, setName] = useState(T("Ledger automation", "账本自动化"));
   const [selectedScopes, setSelectedScopes] = useState(defaultScopes);
+  const hasMemberScopes = selectedScopes.some((scope) => scope.startsWith("members:"));
   const [restrictProjects, setRestrictProjects] = useState(false);
   const [selectedProjectIds, setSelectedProjectIds] = useState([]);
   const [projectPage, setProjectPage] = useState(emptyProjectPage);
@@ -520,6 +522,7 @@ export function ApiKeysScreen({
 
   const toggleScope = (scopeValue) => {
     if (interactionBlocked() || !allowedScopeValues.includes(scopeValue)) return;
+    if (restrictProjects && scopeValue.startsWith("members:")) return;
     setSelectedScopes((current) => {
       const next = current.includes(scopeValue)
         ? current.filter((scope) => scope !== scopeValue)
@@ -530,6 +533,7 @@ export function ApiKeysScreen({
 
   const toggleProjectRestriction = (checked) => {
     if (interactionBlocked()) return;
+    if (checked && hasMemberScopes) return;
     setRestrictProjects(checked);
     if (checked) {
       if (!projectPage.loaded) loadProjects();
@@ -577,6 +581,7 @@ export function ApiKeysScreen({
       );
       return;
     }
+    if (restrictProjects && hasMemberScopes) return;
     const mutation = {};
     createOpenerRef.current =
       event.nativeEvent?.submitter || event.currentTarget.querySelector('button[type="submit"]');
@@ -846,7 +851,7 @@ export function ApiKeysScreen({
                                 <input
                                   type="checkbox"
                                   checked={checked}
-                                  disabled={controlsDisabled}
+                                  disabled={controlsDisabled || (restrictProjects && scope.value.startsWith("members:"))}
                                   onChange={() => toggleScope(scope.value)}
                                 />
                                 <span className="api-scope-copy">
@@ -858,6 +863,9 @@ export function ApiKeysScreen({
                             );
                           })}
                         </div>
+                        <p className="api-scope-help">
+                          {T("Member scopes apply to the whole ledger. Turn off project restrictions to select them, or deselect member scopes to restrict projects.", "成员权限作用于整个账本。关闭项目限制后可选择成员权限；取消成员权限后可限制项目。")}
+                        </p>
                       </fieldset>
                       <fieldset className="api-scope-panel">
                         <legend className="api-scope-legend">
@@ -872,7 +880,7 @@ export function ApiKeysScreen({
                           <input
                             type="checkbox"
                             checked={restrictProjects}
-                            disabled={controlsDisabled}
+                            disabled={controlsDisabled || hasMemberScopes}
                             onChange={(event) => toggleProjectRestriction(event.target.checked)}
                           />
                           {T("Limit to selected projects", "仅允许所选项目")}

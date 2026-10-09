@@ -8,6 +8,8 @@ export const API_KEY_SCOPES = [
   { value: "expenses:write", labelEn: "Manage expenses", labelZh: "管理支出", descEn: "Create, edit and remove allowed expenses.", descZh: "创建、修改和移除获准的支出。" },
   { value: "reports:read", labelEn: "Read reports", labelZh: "读取报表", descEn: "Read currency, date and category totals.", descZh: "读取币种、日期和类别汇总。" },
   { value: "suggestions:use", labelEn: "Request suggestions", labelZh: "请求建议", descEn: "Request optional expense suggestions; cannot record entries.", descZh: "请求可选的支出建议；不能据此自动入账。" },
+  { value: "members:read", labelEn: "Read members", labelZh: "读取成员", descEn: "Read members in this ledger; cannot be limited to selected projects.", descZh: "读取当前账本成员，不能与指定项目限制组合。" },
+  { value: "members:write", labelEn: "Manage members", labelZh: "管理成员", descEn: "Manage invitations, join requests and members within your current role; applies to the whole ledger.", descZh: "按当前角色管理邀请、加入申请及成员，作用于整个账本。" },
 ];
 
 export const API_KEY_SCOPE_VALUES = API_KEY_SCOPES.map(scope => scope.value);

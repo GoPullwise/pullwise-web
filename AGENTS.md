@@ -1,5 +1,27 @@
 # Pullwise Web
 
+## Shared REST API, integration docs and capacity (2026-10-09)
+
+The user requires Web ledger actions and external API keys to use the same REST
+resources and business validation. Preserve project/shared expense CRUD,
+recurring management, project settings/removal, category/report/activity and
+member governance parity. Member scopes are opt-in and incompatible with
+projectIds restrictions; they never widen a restricted credential implicitly.
+Invitation application uses the applicant's own account session.
+Keep the full endpoint reference generated from Server OpenAPI, with runnable
+explicit-category Free quickstart, actual response IDs, full expense PATCH,
+If-Match, idempotency, scopes/roles and actionable error recovery in six locales.
+After a contract change regenerate and check both distributed JSON artifacts.
+
+Default limits are Free 3 projects/100 expense records, Pro 20/20,000 and Max
+100/100,000. Billing displays actual configured used/limit/remaining charts from
+the existing /billing/plan read for the account's personal ledger. Retain owner
+quota pooling, historical capacity retention, unavailable-data honesty, manual
+refresh without polling, workspace isolation and mutation/refresh guards.
+Complete local/native/browser verification, push main and publish preview;
+preserve the original database/journal and production pause. This current
+authorization supersedes older generic Wrangler-paused notes below.
+
 ## Current membership permissions (2026-10-09)
 
 An accepted invitation's initial role does not own later page permissions.

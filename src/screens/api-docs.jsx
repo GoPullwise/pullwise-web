@@ -1,59 +1,18 @@
 import { useState } from "react";
+import { ApiIntegrationGuide, integrationMarkdown } from "./api-guide.jsx";
+import { ApiReference, referenceMarkdown } from "./api-reference.jsx";
+import { API_GUIDE_COPY } from "../locales/api-guide.js";
 import { env } from "../config/env.js";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
-const ENDPOINTS = [
-  ["GET", "/api/v1/me", "profile:read", "Account profile"],
-  ["GET", "/api/v1/repositories", "projects:read", "Authorized repositories"],
-  ["GET", "/api/v1/projects", "projects:read", "Your projects"],
-  ["POST", "/api/v1/projects", "projects:write", "Create a project with optional GitHub links"],
-  ["GET", "/api/v1/projects/{id}", "projects:read", "Project and description"],
-  [
-    "PATCH",
-    "/api/v1/projects/{id}",
-    "projects:write",
-    "Update project details or GitHub links with If-Match",
-  ],
-  ["GET", "/api/v1/categories", "categories:read", "Ledger categories"],
-  ["POST", "/api/v1/categories", "categories:write", "Create category"],
-  ["PATCH", "/api/v1/categories/{id}", "categories:write", "Rename with If-Match"],
-  ["DELETE", "/api/v1/categories/{id}", "categories:write", "Archive with If-Match"],
-  ["POST", "/api/v1/categories/{id}/remove", "categories:write", "Remove unused category with If-Match"],
-  ["GET", "/api/v1/expenses", "expenses:read", "Filtered expense detail"],
-  ["POST", "/api/v1/expenses", "expenses:write", "Create with Idempotency-Key"],
-  ["GET", "/api/v1/expenses/{id}", "expenses:read", "One expense"],
-  ["POST", "/api/v1/expenses/{id}/review", "expenses:write", "Check a saved expense with If-Match; never changes records"],
-  ["PATCH", "/api/v1/expenses/{id}", "expenses:write", "Edit with If-Match"],
-  ["DELETE", "/api/v1/expenses/{id}", "expenses:write", "Remove with If-Match"],
-  ["GET", "/api/v1/expenses/export", "expenses:read", "CSV export"],
-  [
-    "GET",
-    "/api/v1/reports/summary",
-    "reports:read",
-    "Per-currency ledger, project and shared totals",
-  ],
-  ["GET", "/api/v1/reports/timeseries", "reports:read", "Date-bucket totals"],
-  ["GET", "/api/v1/reports/categories", "reports:read", "Category totals"],
-  [
-    "POST",
-    "/api/v1/expense-suggestions",
-    "suggestions:use",
-    "Optional suggestion; never records an expense",
-  ],
-  [
-    "POST",
-    "/api/v1/expense-suggestions/{id}/decision",
-    "suggestions:use",
-    "Record a reviewed suggestion decision",
-  ],
-];
 
 function baseUrl() {
   const configured = String(env.VITE_PUBLIC_API_BASE_URL || env.VITE_API_BASE_URL || "").trim();
-  if (!configured) return "https://api.pull-wise.com";
+  if (!configured) return typeof window !== "undefined" && /^(www\.)?pull-wise\.com$/.test(window.location.hostname)
+    ? "https://api.pull-wise.com" : "https://preview-api.pull-wise.com";
   if (/^[a-z][a-z0-9+.-]*:/i.test(configured)) return configured.replace(/\/$/, "");
   return configured.startsWith("/") && typeof window !== "undefined"
     ? new URL(configured, window.location.origin).href.replace(/\/$/, "")
@@ -128,14 +87,9 @@ function markdown(base, example, createExample, projectExample, reviewExample) {
     "",
     base,
     "",
-    "## Endpoints",
+    integrationMarkdown(base),
     "",
-    ...ENDPOINTS.flatMap(([method, path, scope, description]) => [
-      `### ${method} ${path}`,
-      description,
-      `Scope: ${scope}`,
-      "",
-    ]),
+    referenceMarkdown(),
     "## Example",
     "",
     "```sh",
@@ -198,13 +152,21 @@ export function ApiDocsScreen({ go, auth }) {
   ].join(" \\\n");
   const nav = [
     ["overview", "Overview"],
+    ["quickstart", "Quickstart: save your first expense"],
+    ["environments", "Environments and request URLs"],
     ["authentication", "Authentication"],
+    ["permissions", "Scopes, roles and ledger boundaries"],
     ["projects", "Projects"],
-    ["endpoints", "Endpoints"],
+    ["writes", "Editing, retries, pagination and money"],
+    ["project-management", "Project and category management"],
+    ["recurring", "Project and shared recurring expenses"],
+    ["members", "Invitations and member management"],
+    ["activity", "Operation history"],
+    ["reference", "Complete API reference"],
     ["filters", "Filters and writes"],
     ["max-assistance", "Automatic Jev assistance"],
     ["expense-review", "Review saved expenses"],
-    ["errors", "Errors"],
+    ["troubleshooting", "Error responses and recovery"],
   ];
   async function copyPage() {
     try {
@@ -223,7 +185,7 @@ export function ApiDocsScreen({ go, auth }) {
             <div className="docs-side-h">API</div>
             {nav.map(([id, label]) => (
               <a key={id} className="docs-side-i" href={`#${id}`}>
-                {T(label)}
+                {T(label, label === "Complete API reference" ? { zh: "完整 API 参考", ja: "API リファレンス全体", ko: "전체 API 참조", fr: "Référence API complète", es: "Referencia completa de la API" } : Object.values(API_GUIDE_COPY).find(([english]) => english === label)?.[1])}
               </a>
             ))}
           </div>
@@ -251,6 +213,7 @@ export function ApiDocsScreen({ go, auth }) {
               "记录项目和公共池支出，按币种读取汇总。平台账单是独立的账户服务。"
             )}
           </p>
+          <ApiIntegrationGuide base={base} ids={["quickstart", "environments"]} />
           <h2 id="authentication" className="docs-h2">
             {T("Authentication", "认证")}
           </h2>
@@ -270,6 +233,7 @@ export function ApiDocsScreen({ go, auth }) {
               "每个密钥绑定一个账本，不能超出发行成员的当前角色权限。成员权限版本变化后，团队密钥会失效。Cookie 客户端通过 X-Pullwise-Workspace 选择账本，CSV 链接使用 workspaceId；冲突的选择器会被拒绝。所有成员共用账本 Owner 的套餐和模型额度。"
             )}
           </p>
+          <ApiIntegrationGuide base={base} ids={["permissions"]} />
           <h2 id="projects" className="docs-h2">
             {T("Projects", "项目")}
           </h2>
@@ -300,23 +264,7 @@ export function ApiDocsScreen({ go, auth }) {
           <DocsCode title={T("Create a standalone project", "创建独立项目")}>
             {projectExample}
           </DocsCode>
-          <h2 id="endpoints" className="docs-h2">
-            {T("Endpoints", "接口")}
-          </h2>
-          <div className="docs-endpoint-list">
-            {ENDPOINTS.map(([method, path, scope, description]) => (
-              <article key={`${method}-${path}`} className="docs-endpoint-card">
-                <div className="docs-endpoint-card-h">
-                  <span className="docs-method">{method}</span>
-                  <code>{path}</code>
-                </div>
-                <p>{T(description)}</p>
-                <span className="docs-scope">
-                  {T("Required scope", "所需权限")}: {scope}
-                </span>
-              </article>
-            ))}
-          </div>
+          <ApiIntegrationGuide base={base} ids={["writes", "project-management", "recurring", "members", "activity"]} />
           <h2 id="filters" className="docs-h2">
             {T("Filters and writes", "筛选与写入")}
           </h2>
@@ -381,25 +329,8 @@ export function ApiDocsScreen({ go, auth }) {
             )}
           </p>
           <DocsCode title={T("Review one saved expense", "检查一笔已保存支出")}>{reviewExample}</DocsCode>
-          <h2 id="errors" className="docs-h2">
-            {T("Errors and limits", "错误与限制")}
-          </h2>
-          <div className="docs-table">
-            {[
-              ["401", "Session or API key required"],
-              ["403", "Scope or target denied"],
-              ["404", "Resource unavailable"],
-              ["409", "Idempotency conflict"],
-              ["412", "Saved revision changed"],
-              ["422", "Invalid input or filters"],
-              ["429", "Request limit reached"],
-            ].map(([code, description]) => (
-              <div key={code} className="docs-table-r">
-                <b>{code}</b>
-                <span>{T(description)}</span>
-              </div>
-            ))}
-          </div>
+          <ApiIntegrationGuide base={base} ids={["troubleshooting"]} />
+          <ApiReference />
           <div className="docs-foot-actions">
             <a className="btn" {...screenLinkProps(go, "docs")}>
               {T("Guide", "指南")}

@@ -138,7 +138,7 @@ const profile = {
   ],
   entitlements: {
     plan: "free",
-    limits: { projects: 3, expenseRecords: 500, writesPerMinute: 10, writesPerMonth: 1000 },
+    limits: { projects: 3, expenseRecords: 100, writesPerMinute: 10, writesPerMonth: 1000 },
     jev: {
       eligible: false,
       available: false,
