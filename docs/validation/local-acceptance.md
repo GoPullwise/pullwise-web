@@ -18,6 +18,12 @@ touch screens. Browser evidence uses finite local GET fixtures, with no external
 delivery or writes; it does not establish physical-device or live-account
 acceptance. Screenshots and temporary B/C prototypes remain outside the repository.
 
+[Preview publication](category-guidance-preview-release-2026-10-09.json) records
+the released Web version and the finite static readback: one noindex homepage
+and three exact built assets (entry, expense screen and shared CSS). All returned
+200; asset bytes match the final preview build. No business API calls, Server
+deployment, database changes or production publication occurred.
+
 [Billing usage preview publication](billing-usage-preview-release-2026-10-09.json)
 records the new two-value usage presentation, Web preview version and exact
 homepage/three-asset static readback. The matching Billing/CSS/index assets

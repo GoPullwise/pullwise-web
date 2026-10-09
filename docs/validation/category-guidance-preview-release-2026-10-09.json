@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-09",
+  "passed": true,
+  "scope": "Web-only selected proposal A category guidance preview publication",
+  "sourceCommit": "0ea4c4e2d7e00682285945911dc0f29794d32422",
+  "worker": "pullwise-web-preview",
+  "versionId": "baf6ef34-3f3e-4c7d-a703-be256ec7a120",
+  "url": "https://preview.pull-wise.com/shared",
+  "localValidation": "category-guidance-local-2026-10-09.json",
+  "staticReadback": {
+    "origin": "https://preview.pull-wise.com",
+    "passed": true,
+    "homepageGets": 1,
+    "hashedAssetGets": 3,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "businessApiRequests": 0,
+    "executedPageJavaScript": false,
+    "results": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 5206,
+        "sha256": "35de282a80dd13ff2c611956d689ca4bce27b1e80ea018729afd9be59f62d157",
+        "noindex": true,
+        "entryAndStylesMatchBuild": true
+      },
+      {
+        "path": "/assets/index-CFe0Kg1q.js",
+        "status": 200,
+        "bytes": 47595,
+        "sha256": "cf54fb5b3c292d521a8ccb03e603a245bf06384eb71249dca4dec1f919594d3c",
+        "matchesBuiltAsset": true
+      },
+      {
+        "path": "/assets/ledger-CGmtwhmj.js",
+        "status": 200,
+        "bytes": 119612,
+        "sha256": "c7e99b49bd985df92713739bbb71b32587f8b845f6ca052184c811f98d3ef15c",
+        "matchesBuiltAsset": true
+      },
+      {
+        "path": "/assets/index-X9HxdBrG.css",
+        "status": 200,
+        "bytes": 85740,
+        "sha256": "d488d61b0d0402065473cb966ece05178f11e1ea0803fd975baf69a92d227dab",
+        "matchesBuiltAsset": true
+      }
+    ]
+  },
+  "serverDeployment": false,
+  "databaseChanges": false,
+  "productionDeployment": false,
+  "realAccountOrProviderAcceptance": false
+}
