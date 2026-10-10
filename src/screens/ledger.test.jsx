@@ -162,7 +162,7 @@ describe("ledger screens", () => {
     const accessChanged = vi.fn();
     render(<LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} onAccessChanged={accessChanged} />);
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-09" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-10-09" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "4.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), { target: { value: "Keep capacity draft" } });
@@ -202,7 +202,7 @@ describe("ledger screens", () => {
       const purpose = screen.getByLabelText("What did you pay for?");
       fireEvent.change(purpose, { target: { value: "Saved hosting" } });
       if (operation === "create") {
-        fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+        fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
         fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
         fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
       }
@@ -433,8 +433,8 @@ describe("ledger screens", () => {
     expect(await screen.findByText("No repositories linked")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Date")).toHaveFocus();
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-07" } });
+    expect(screen.getByLabelText("Paid on")).toHaveFocus();
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-10-07" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "4.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -475,8 +475,8 @@ describe("ledger screens", () => {
       fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
       expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
       expect(screen.queryByRole("option", { name: "Other project" })).not.toBeInTheDocument();
-      expect(screen.getByLabelText("Date")).toHaveFocus();
-      fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-08" } });
+      expect(screen.getByLabelText("Paid on")).toHaveFocus();
+      fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-10-08" } });
       fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "9.25" } });
       fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
       fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -563,7 +563,7 @@ describe("ledger screens", () => {
       <LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" onAccessChanged={changed} />
     );
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-06" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-10-06" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "4.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -1239,7 +1239,7 @@ describe("ledger screens", () => {
   it("distinguishes a filtered empty list from a new ledger and clears the filters", async () => {
     api.categories.mockResolvedValue([{ id: "cat_1", name: "Tools", archivedAt: null }]);
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
-    await screen.findByRole("heading", { name: "Expenses" });
+    await screen.findByRole("heading", { name: "Recorded expenses" });
     await openFilters();
     fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
     await screen.findByText("No expenses match these filters");
@@ -1257,7 +1257,7 @@ describe("ledger screens", () => {
     fireEvent.click(add);
     expect(add).toHaveAttribute("aria-expanded", "true");
     expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Date")).toHaveFocus();
+    expect(screen.getByLabelText("Paid on")).toHaveFocus();
     fireEvent.click(screen.getByText("More details (optional)"));
     fireEvent.change(screen.getByLabelText("Note (optional)"), {
       target: { value: "Manual draft" },
@@ -1401,7 +1401,7 @@ describe("ledger screens", () => {
     expect(status.querySelectorAll(".ledger-stats")).toHaveLength(0);
     expect(status.querySelectorAll(".ledger-filter-bar")).toHaveLength(0);
     expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(0);
-    expect(screen.queryByRole("heading", { name: "Expenses" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Recorded expenses" })).not.toBeInTheDocument();
   });
 
   it("shows authorization failures without pretending there are authorized repositories", async () => {
@@ -1660,7 +1660,7 @@ describe("ledger screens", () => {
     expect(await screen.findByText("Hosting")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Edit Hosting/i }));
     expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Date")).toHaveFocus();
+    expect(screen.getByLabelText("Paid on")).toHaveFocus();
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting edited" },
     });
@@ -1714,7 +1714,7 @@ describe("ledger screens", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Edit Project hosting" }));
     expect(screen.queryByLabelText("Project or shared cost")).not.toBeInTheDocument();
     expect(screen.queryByRole("option", { name: "Other project" })).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Date")).toHaveFocus();
+    expect(screen.getByLabelText("Paid on")).toHaveFocus();
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Project hosting edited" },
     });
@@ -2101,7 +2101,7 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     expect(await screen.findByText(/No expenses for this target yet/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -2283,7 +2283,7 @@ describe("ledger screens", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
     await waitFor(() => expect(screen.getByLabelText("Category")).not.toBeRequired());
     expect(screen.queryByRole("button", { name: /suggestion/i })).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting" },
@@ -2315,7 +2315,7 @@ describe("ledger screens", () => {
     });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -2342,7 +2342,7 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
     await waitFor(() => expect(screen.getByLabelText("Category")).not.toBeRequired());
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
       target: { value: "Hosting" },
@@ -2388,7 +2388,7 @@ describe("ledger screens", () => {
         <LedgerScreen go={vi.fn()} mode={mode} projectId={mode === "project" ? "prj_1" : ""} />
       );
       fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-      fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+      fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
       fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
       fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
       fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -2415,7 +2415,7 @@ describe("ledger screens", () => {
     });
     render(<LedgerScreen go={vi.fn()} mode="shared" />);
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {
@@ -2510,7 +2510,7 @@ describe("ledger screens", () => {
     });
     const view = render(<LedgerScreen go={vi.fn()} mode="shared" />);
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-27" } });
+    fireEvent.change(screen.getByLabelText("Paid on"), { target: { value: "2026-09-27" } });
     fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "12.00" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "cat_1" } });
     fireEvent.change(screen.getByLabelText("What did you pay for?"), {

@@ -175,7 +175,7 @@ describe("API screens", () => {
     );
     expect(categoryBehavior).toHaveTextContent("reload explicitly after a revision conflict");
     expect(categoryBehavior).toHaveTextContent(
-      "Free ledgers and all recurring schedules require an explicit category"
+      "Recurring schedule creation and complete edits support the same gated category omission"
     );
     expect(screen.getByText(/categorySource/)).toBeInTheDocument();
     expect(screen.getByText(/curl.*POST.*\/api\/v1\/expenses'/)).toHaveTextContent(

@@ -188,6 +188,14 @@ const scopeKey = (target) =>
       ? "shared"
       : "";
 const sameTarget = (left, right) => scopeKey(left) === scopeKey(right) && Boolean(scopeKey(right));
+const validPendingOccurrences = (items) =>
+  items === undefined ||
+  (Array.isArray(items) && items.length <= 10 &&
+    new Set(items.map((item) => item?.periodKey)).size === items.length &&
+    items.every((item) => item && typeof item.periodKey === "string" && item.periodKey &&
+      /^\d{4}-\d{2}-\d{2}$/.test(item.scheduledOn) &&
+      typeof item.amount === "string" && /^\d+(?:\.\d+)?$/.test(item.amount) &&
+      typeof item.currency === "string"));
 const validRule = (rule, target) =>
   Boolean(
     rule &&
@@ -195,7 +203,8 @@ const validRule = (rule, target) =>
     rule.id &&
     Number.isSafeInteger(rule.revision) &&
     rule.revision > 0 &&
-    sameTarget(rule.target, target)
+    sameTarget(rule.target, target) &&
+    validPendingOccurrences(rule.pendingOccurrences)
   );
 
 function templateFields(rule, fields, schedule) {
@@ -204,7 +213,7 @@ function templateFields(rule, fields, schedule) {
     target: rule.target,
     amount: fields.amount,
     currency: fields.currency,
-    categoryId: fields.categoryId,
+    ...(fields.categoryId ? { categoryId: fields.categoryId } : {}),
     purpose: fields.purpose,
     note: fields.note ?? null,
     quantity: fields.quantity ?? null,
@@ -232,6 +241,7 @@ export function RecurringExpenses({
   reloadSignal,
   onAccessChanged,
   beginOperation,
+  onExpensesChanged,
   renderExpenseForm,
   formatTotal,
 }) {
@@ -239,7 +249,7 @@ export function RecurringExpenses({
   const deleteDescriptionId = useId();
   const key = scopeKey(target);
   const live = useRef(null);
-  live.current = { api, key, canManage, disabled, onAccessChanged, beginOperation };
+  live.current = { api, key, canManage, disabled, onAccessChanged, beginOperation, onExpensesChanged };
   const mounted = useRef(false);
   const readController = useRef(null);
   const mutationController = useRef(null);
@@ -438,7 +448,9 @@ export function RecurringExpenses({
       !current(scope) ||
       live.current.disabled ||
       !scope.canManage ||
-      !(kind === "delete" ? canDelete(rule) : canChange(rule)) ||
+      !(kind === "retry"
+        ? rule.pendingOccurrences?.some((item) => item.periodKey === fields?.retryPeriodKey)
+        : kind === "delete" ? canDelete(rule) : canChange(rule)) ||
       actionPending.current ||
       readPending.current ||
       needsReload.current ||
@@ -457,6 +469,7 @@ export function RecurringExpenses({
     mutationController.current = controller;
     setBusy(true);
     setActionError("");
+    let accepted = false;
     try {
       const response =
         kind === "delete"
@@ -467,6 +480,7 @@ export function RecurringExpenses({
       if (!current(scope) || controller.signal.aborted) return;
       if (kind !== "delete" && (!validRule(response, target) || response.id !== rule.id))
         throw new Error("INVALID_RECURRING_RESPONSE");
+      accepted = true;
       setRecords((previous) => ({
         ...previous,
         items:
@@ -478,16 +492,29 @@ export function RecurringExpenses({
       setConfirmation(null);
       pendingFocus.current = {
         id: rule.id,
-        action: kind === "edit" ? "edit" : kind === "delete" ? "delete" : "status",
+        action: kind === "edit" ? "edit" : kind === "delete" ? "delete" : kind === "retry" ? "pending" : "status",
       };
+      if (kind === "retry") {
+        await live.current.onExpensesChanged?.({ signal: controller.signal });
+        if (!current(scope) || controller.signal.aborted) return;
+        window.dispatchEvent(new Event("pw-recurring-expenses-changed"));
+      }
       return { ok: true };
     } catch (error) {
       if (!current(scope) || controller.signal.aborted) return;
       if (isAccessFailure(error)) loseAccess(scope, error);
+      const code = error?.code || error?.payload?.error?.code;
+      if (code === "CATEGORY_REQUIRED") return { error };
+      if (EXPENSE_CAPACITY_ERRORS.includes(code)) {
+        setActionError(blockedReason(code));
+        return { error };
+      }
       // An uncertain write is never retried with an implicitly refreshed revision.
       needsReload.current = true;
       setActionError(
-        error?.status === 412
+        accepted && kind === "retry"
+          ? T("Expense added. Reload to update your records.")
+          : error?.status === 412
           ? T("Schedule conflict. Your draft is still here. Reload the schedules before retrying.")
           : T("Recurring schedule could not be changed. Reload before retrying.")
       );
@@ -540,9 +567,11 @@ export function RecurringExpenses({
       className={activeEditor ? "recurring-expenses ledger-entry" : "recurring-expenses"}
       scope={key}
     >
-      <section className="panel" aria-busy={loading || busy}>
+      <section className="panel" id="recurring-plans" tabIndex={-1} aria-busy={loading || busy}>
         <div className="panel-h">
-          <h2>{T("Recurring expenses")}</h2>
+          <I.Refresh size={20} aria-hidden="true" />
+          <h2>{T("Recurring plans")}</h2>
+          <span className="count">{items.length}{nextCursor ? "+" : ""}</span>
           <button
             className="btn ghost"
             type="button"
@@ -555,11 +584,6 @@ export function RecurringExpenses({
           </button>
         </div>
         <div className="panel-body">
-          {items.length > 0 && (
-            <p className="ledger-meta">
-              {T("{count} recurring schedules").replace("{count}", items.length)}
-            </p>
-          )}
           {readError && (
             <div className="notice notice-error" role="alert">
               <p>{readError}</p>
@@ -586,8 +610,9 @@ export function RecurringExpenses({
               const editable = canManage && canChange(rule);
               const deletable = canManage && canDelete(rule);
               const edit = editor?.rule.id === rule.id ? editor : null;
+              const pending = rule.pendingOccurrences || [];
               return (
-                <article className="recurring-expenses-row" key={rule.id}>
+                <article className="recurring-expenses-row" data-recurring-rule-id={rule.id} key={rule.id}>
                   <div className="ledger-row-main">
                     <h3>{rule.purpose}</h3>
                     <p>
@@ -600,10 +625,15 @@ export function RecurringExpenses({
                       {frequencies().find(([value]) => value === rule.schedule?.frequency)?.[1] ||
                         T("Unavailable")}
                     </p>
-                    <p className="ledger-meta">
-                      {T("Next occurrence")}: {rule.nextOccurrenceOn || T("No next occurrence")} ·{" "}
-                      {rule.schedule?.timezone || T("Unavailable")}
-                    </p>
+                    <dl className="recurring-expenses-next">
+                      <dt>{T("Next planned expense")}</dt>
+                      <dd>
+                        {rule.nextOccurrenceOn
+                          ? <time dateTime={rule.nextOccurrenceOn}>{rule.nextOccurrenceOn}</time>
+                          : T("No next occurrence")}
+                        <span className="ledger-meta">{rule.schedule?.timezone || T("Unavailable")}</span>
+                      </dd>
+                    </dl>
                     {rule.status === "blocked" && (
                       <p className="ledger-meta">{blockedReason(rule.blockedCode)}</p>
                     )}
@@ -742,6 +772,45 @@ export function RecurringExpenses({
                       </div>
                     )}
                   </div>
+                  {pending.length > 0 && (
+                    <div className="recurring-expenses-pending">
+                      <div className="panel-h">
+                        <h4>{T("Pending expenses")}</h4>
+                        <span className="count">{pending.length} / 10</span>
+                      </div>
+                      <p className="ledger-meta">
+                        {T("Free up expense capacity, then add these saved dates.")}
+                      </p>
+                      {pending.length === 10 && <p className="ledger-meta">{T("Queue full. Further failed dates are not retained.")}</p>}
+                      <ul className="recurring-expenses-pending-list">
+                        {pending.map((occurrence) => (
+                          <li key={occurrence.periodKey}>
+                            <div>
+                              <time dateTime={occurrence.scheduledOn}>{occurrence.scheduledOn}</time>
+                              {occurrence.purpose && occurrence.purpose !== rule.purpose && <span className="ledger-meta">{occurrence.purpose}</span>}
+                            </div>
+                            <FinancialValue
+                              value={`${occurrence.currency} ${occurrence.amount}`}
+                              currency={occurrence.currency}
+                              className="recurring-pending-amount"
+                            />
+                            {canManage && (
+                              <button
+                                className="btn"
+                                type="button"
+                                ref={ref(rule.id, "pending")}
+                                disabled={blocked || needsReload.current}
+                                aria-label={T("Add {date} to expenses").replace("{date}", occurrence.scheduledOn)}
+                                onClick={() => mutate(rule, "retry", { retryPeriodKey: occurrence.periodKey })}
+                              >
+                                {T("Add to expenses")}
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </article>
               );
             })}

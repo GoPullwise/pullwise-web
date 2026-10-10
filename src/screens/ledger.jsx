@@ -614,7 +614,6 @@ function ExpenseForm({
 }) {
   const noteId = useId();
   const categoryFieldId = useId();
-  const expenseTypeId = useId();
   const recurringDateHelpId = useId();
   const [expenseType, setExpenseType] = useState(recurrence ? "recurring" : "one-time");
   const [schedule, setSchedule] = useState(() => {
@@ -660,7 +659,7 @@ function ExpenseForm({
     mounted.current = true;
     const controller = new AbortController();
     setAutomaticCategory(false);
-    if (!recurrence && typeof api.me === "function") {
+    if (typeof api.me === "function") {
       api
         .me({ signal: controller.signal })
         .then((profile) => {
@@ -679,9 +678,19 @@ function ExpenseForm({
       controller.abort();
     };
   }, [value, recurrence, api]);
-  const categoryRequired = Boolean(
-    expenseType === "recurring" || !automaticCategory || requiresCategory
-  );
+  const categoryRequired = !automaticCategory || requiresCategory;
+  let scheduleToday = "";
+  try {
+    const parts = new Intl.DateTimeFormat("en", {
+      timeZone: schedule.timezone,
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(new Date());
+    scheduleToday = ["year", "month", "day"]
+      .map((type) => parts.find((part) => part.type === type)?.value).join("-");
+  } catch {
+    /* An invalid draft time zone is validated on save, never guessed here. */
+  }
+  const recordsStartNow = Boolean(scheduleToday && draft.occurredOn && draft.occurredOn <= scheduleToday);
   useEffect(() => {
     // Chrome ignores focus while a pending write still disables the select.
     if (requiresCategory && !busy && !draft.categoryId) categoryRef.current?.focus();
@@ -761,29 +770,37 @@ function ExpenseForm({
   return (
     <form className="ledger-form" onSubmit={submit}>
       {!value && (
-        <div className="ledger-field">
-          <label htmlFor={expenseTypeId}>{T("Expense type", "支出类型")}</label>
-          <select
-            id={expenseTypeId}
-            value={expenseType}
-            disabled={busy}
-            onChange={(event) => {
-              createKey.current = requestKey();
-              setValidation("");
-              setExpenseType(event.target.value);
-            }}
-          >
-            <option value="one-time">{T("One-time", "单次")}</option>
-            <option value="recurring">{T("Recurring", "周期")}</option>
-          </select>
-        </div>
+        <fieldset className="ledger-entry-types">
+          <legend>{T("Expense type", "支出类型")}</legend>
+          <div>
+            {[
+              ["one-time", T("Record expense"), T("Already paid")],
+              ["recurring", T("Recurring plan"), T("Future expenses")],
+            ].map(([type, label, caption]) => (
+              <button
+                key={type}
+                type="button"
+                className={expenseType === type ? "btn is-selected" : "btn"}
+                aria-pressed={expenseType === type}
+                disabled={busy}
+                onClick={() => {
+                  createKey.current = requestKey();
+                  setValidation("");
+                  setExpenseType(type);
+                }}
+              >
+                <strong>{label}</strong><span>{caption}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
       )}
       <div className="ledger-fields">
         {field(
           "occurredOn",
           expenseType === "recurring"
-            ? T("Start date (on or after)", "起始日期（当日或之后）")
-            : T("Date"),
+            ? T("Start date", "起始日期")
+            : T("Paid on"),
           {
             type: "date",
             required: true,
@@ -841,39 +858,21 @@ function ExpenseForm({
           />
           <p className="ledger-help" id={recurringDateHelpId}>
             {T(
-              "The start date is the earliest date the schedule can run. Repeat dates follow the selected weekday or day of month; changing the start date does not change them. Save the schedule to apply changes.",
-              "起始日期是计划最早可执行的日期。重复日期由所选星期或每月几号决定，修改起始日期不会改变重复日期；保存周期计划后改动才会生效。"
+              "Each due date adds a separate expense.",
+              "每个到期日新增一笔支出。"
             )}
           </p>
-          {schedule.frequency !== "weekly" && (
-            <p className="ledger-help">
-              {T(
-                "If a month has fewer days, the schedule uses its last day.",
-                "当月不足所选日期时，使用当月最后一天。"
-              )}
-            </p>
-          )}
-          {schedule.frequency === "quarterly" && (
-            <p className="ledger-help">
-              {T(
-                "Quarterly dates use the selected month in each calendar quarter.",
-                "季度日期使用每个自然季度中所选的月份。"
-              )}
-            </p>
-          )}
-          <p className="ledger-help">
-            {T(
-              "This schedule records an expense on each due date.",
-              "此计划会在每个到期日记下一笔支出。"
-            )}
-          </p>
-          {!value && (
-            <p className="ledger-help">
-              {T(
-                "A past start date can create earlier expense records.",
-                "过去的起始日期可能补记之前的支出。"
-              )}
-            </p>
+          {!value && draft.occurredOn && scheduleToday && (
+            <dl className="ledger-entry-impact" aria-live="polite">
+              <div>
+                <dt>{recordsStartNow ? T("Record now") : T("First planned expense")}</dt>
+                <dd><time dateTime={draft.occurredOn}>{draft.occurredOn}</time></dd>
+              </div>
+              <div>
+                <dt>{T("Following expenses")}</dt>
+                <dd>{T("Future due dates")}</dd>
+              </div>
+            </dl>
           )}
         </>
       )}
@@ -1641,6 +1640,45 @@ function ScopedLedgerScreen({
       restoreExpenseFocus.current = true;
     }
     return { error: failure };
+  };
+  const refreshRecurringExpenses = async ({ signal }) => {
+    const request = requestId.current;
+    const options = { signal };
+    const optionalReport = (promise) => promise.then(
+      (value) => ({ value }),
+      (failure) => {
+        if (failure?.status === 401 || isLedgerAccessFailure(failure)) throw failure;
+        return { failure };
+      }
+    );
+    try {
+      const [expenses, project, timeseries, categoryReport] = await Promise.all([
+        api.expenses(detailQuery, options),
+        mode === "project" ? api.project(projectId, options) : Promise.resolve(null),
+        optionalReport(api.reportTimeseries(detailQuery, options)),
+        optionalReport(api.reportCategories(detailQuery, options)),
+      ]);
+      if (signal.aborted || request !== requestId.current || !mounted.current) return;
+      setData((previous) => previous && ({
+        ...previous,
+        expenses,
+        project,
+        timeseries: timeseries.value,
+        timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
+        categoryReport: categoryReport.value,
+        categoryReportError: categoryReport.failure ? errorText(categoryReport.failure) : "",
+      }));
+    } catch (failure) {
+      if (signal.aborted || request !== requestId.current || !mounted.current) return;
+      if (failure?.status === 401 || isLedgerAccessFailure(failure)) {
+        setData(null);
+        setEditing(null);
+        setCreatingExpense(false);
+        setError(errorText(failure));
+        onAccessChanged?.(failure);
+      }
+      throw failure;
+    }
   };
   const removeExpense = async (expense) => {
     const ok = await action(() => api.removeExpense(expense.id, expense.revision, {}));
@@ -2959,7 +2997,7 @@ function ScopedLedgerScreen({
                   <section className="panel">
                     <div className="panel-h">
                       <I.Database size={20} />
-                      <h2>{T("Expenses")}</h2>
+                      <h2>{T("Recorded expenses")}</h2>
                       <span className="count">
                         {expenses.length}
                         {data.expenses.nextCursor ? "+" : ""}
@@ -3105,17 +3143,12 @@ function ScopedLedgerScreen({
                         <I.Plus size={20} />
                         <h2>{editing ? T("Edit expense") : T("Add expense")}</h2>
                       </div>
-                      <p className="ledger-help">
-                        {activeCategories.length === 0 && editing
-                          ? T(
+                      {activeCategories.length === 0 && editing && (
+                        <p className="ledger-help">{T(
                               "You can keep this expense's original category when editing.",
                               "编辑时可以保留这笔支出原来的类别。"
-                            )
-                          : T(
-                            "What did you pay for? Add the amount, date and a category below.",
-                            "这笔钱花在哪儿了？在下面填好金额、日期和分类。"
-                          )}
-                      </p>
+                            )}</p>
+                      )}
                       <ExpenseForm
                         api={api}
                         key={editing?.id || "new"}
@@ -3139,6 +3172,7 @@ function ScopedLedgerScreen({
                   categories={data.categories}
                   canManage={canWriteExpenses}
                   beginOperation={beginRecurringOperation}
+                  onExpensesChanged={refreshRecurringExpenses}
                   disabled={
                     parentBusy ||
                     reviewBusy ||

@@ -5,6 +5,17 @@ import { createLedgerApi, ledgerApi } from "./ledger.js";
 afterEach(() => vi.restoreAllMocks());
 
 describe("ledger REST paths", () => {
+  it("reads account-wide pending recurring notifications with the caller's abort signal", async () => {
+    const send = vi.spyOn(http, "request").mockResolvedValue({ data: { items: [] } });
+    const controller = new AbortController();
+    await ledgerApi.recurringExpenseNotifications({ signal: controller.signal });
+    const call = send.mock.calls[0][0];
+    expect(call.url).toBe("/api/v1/recurring-expense-notifications");
+    expect(call.method).toBe("GET");
+    expect(call.signal).toBe(controller.signal);
+    expect(call.headers?.["X-Pullwise-Workspace"]).toBeUndefined();
+    expect(call.data).toBeUndefined();
+  });
   it("includes removed category metadata only when explicitly requested for scoped history", async () => {
     const send = vi.spyOn(http, "request").mockResolvedValue({ data: [] });
     const api = createLedgerApi("ledger_current");

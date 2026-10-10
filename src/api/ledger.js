@@ -70,6 +70,8 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
     acceptInvitation: (fields, options) =>
       ledgerRequest("/workspace-invitations/accept", { ...options, method: "POST", body: fields }),
     invitationRequests: (options) => ledgerRequest("/workspace-invitation-requests", options),
+    recurringExpenseNotifications: (options) =>
+      ledgerRequest("/recurring-expense-notifications", options),
     workspaceInvitationRequests: (id, options) =>
       ledgerRequest(`/workspaces/${encodeURIComponent(id)}/join-requests`, options),
     inviteRequests: (id, inviteId, options) =>

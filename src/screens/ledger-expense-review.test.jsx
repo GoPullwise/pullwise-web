@@ -369,7 +369,7 @@ describe("explicit inspection of selected saved expenses", () => {
       expect(screen.getByLabelText("Amount")).toHaveValue("123.456789");
       expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Fresh saved purpose");
       expect(screen.getByLabelText("Note (optional)")).toHaveValue("Fresh saved note");
-      await waitFor(() => expect(screen.getByLabelText("Date")).toHaveFocus());
+      await waitFor(() => expect(screen.getByLabelText("Paid on")).toHaveFocus());
       expect(f.api.updateExpense).not.toHaveBeenCalled();
       fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
       await waitFor(() =>

@@ -83,8 +83,8 @@ async function recurring(api, mode = "shared") {
   );
   fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
   await waitFor(() => expect(screen.getByLabelText("Category")).not.toBeRequired());
-  change("Expense type", "recurring");
-  change("Start date (on or after)", "2026-10-08");
+  fireEvent.click(screen.getByRole("button", { name: "Recurring plan Future expenses" }));
+  change("Start date", "2026-10-08");
   change("Amount", "12.50");
   change("What did you pay for?", "Scheduled hosting");
   change("Time zone", "Europe/Paris");
@@ -328,6 +328,44 @@ describe("Project links in the real ledger views", () => {
 });
 
 describe("Recurring entry in project and shared expenses", () => {
+  it.each(["project", "shared"])("allows Jev to categorize a new %s recurring plan and preserves its category-required draft", async (mode) => {
+    const api = client();
+    api.createRecurringRule.mockRejectedValueOnce({ status: 422, payload: { error: { code: "CATEGORY_REQUIRED" } } });
+    await recurring(api, mode);
+    expect(screen.getByLabelText("Category")).not.toBeRequired();
+    expect(screen.getByRole("button", { name: "Recurring plan Future expenses" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Save schedule" }));
+    await screen.findByText("Choose a category to finish saving. Your draft is still here.");
+    expect(api.createRecurringRule.mock.calls[0][0]).not.toHaveProperty("categoryId");
+    expect(api.createRecurringRule.mock.calls[0][0].target).toEqual(mode === "project" ? { kind: "project", projectId: "prj_one" } : { kind: "shared" });
+    expect(screen.getByLabelText("Category")).toBeRequired();
+    expect(screen.getByLabelText("Category")).toHaveFocus();
+    expect(screen.getByLabelText("Start date")).toHaveValue("2026-10-08");
+    expect(screen.getByLabelText("What did you pay for?")).toHaveValue("Scheduled hosting");
+    change("Category", "cat_one");
+    fireEvent.click(screen.getByRole("button", { name: "Save schedule" }));
+    await waitFor(() => expect(api.createRecurringRule).toHaveBeenCalledTimes(2));
+    expect(api.createRecurringRule.mock.calls[1][0].categoryId).toBe("cat_one");
+    expect(api.createRecurringRule.mock.calls[0][1]).not.toBe(api.createRecurringRule.mock.calls[1][1]);
+    expect(api.me).toHaveBeenCalledOnce();
+  });
+
+  it("separates already paid expense entry from the future plan and previews the historical start once", async () => {
+    const api = client();
+    await recurring(api);
+    expect(screen.getByRole("heading", { name: "Recorded expenses" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Recurring plans" })).toBeVisible();
+    change("Start date", "2000-10-08");
+    expect(screen.getByText("Record now")).toBeVisible();
+    expect(screen.getByText("Future due dates")).toBeVisible();
+    change("Start date", "2099-10-08");
+    expect(screen.getByText("First planned expense")).toBeVisible();
+    expect(screen.queryByText("Record now")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Record expense Already paid" }));
+    expect(screen.getByLabelText("Paid on")).toHaveValue("2099-10-08");
+    expect(screen.queryByText("First planned expense")).toBeNull();
+  });
+
   it.each([
     ["weekly", { weekday: 2 }],
     ["monthly", { day: 31 }],
@@ -339,17 +377,12 @@ describe("Recurring entry in project and shared expenses", () => {
       const api = client();
       await recurring(api);
       change("Frequency", frequency);
-      expect(screen.getByLabelText("Category")).toBeRequired();
-      fireEvent.submit(screen.getByLabelText("Amount").closest("form"));
-      expect(api.createRecurringRule).not.toHaveBeenCalled();
+      expect(screen.getByLabelText("Category")).not.toBeRequired();
       change("Category", "cat_one");
       if (frequency === "weekly") change("Weekday", "2");
       else change("Day of month", "31");
       if (frequency === "quarterly") {
         change("Month of quarter", "2");
-        expect(
-          screen.getByText("Quarterly dates use the selected month in each calendar quarter.")
-        ).toBeVisible();
       }
       if (frequency === "yearly") change("Month of year", "12");
       change("End date (optional)", "2027-12-31");
@@ -429,8 +462,8 @@ describe("Recurring entry in project and shared expenses", () => {
     render(<LedgerScreen api={api} go={vi.fn()} mode="shared" />);
     const row = (await screen.findByRole("heading", { name: saved.purpose })).closest("article");
     fireEvent.click(within(row).getByRole("button", { name: "Edit schedule" }));
-    expect(screen.queryByLabelText("Expense type")).not.toBeInTheDocument();
-    change("Start date (on or after)", "2026-11-01");
+    expect(screen.queryByRole("group", { name: "Expense type" })).not.toBeInTheDocument();
+    change("Start date", "2026-11-01");
     change("What did you pay for?", "Updated schedule");
     fireEvent.click(screen.getByRole("button", { name: "Save schedule" }));
     await waitFor(() => expect(api.updateRecurringRule).toHaveBeenCalledTimes(1));
@@ -470,8 +503,8 @@ describe("Recurring entry in project and shared expenses", () => {
     const changed = vi.fn();
     render(<LedgerScreen api={api} go={vi.fn()} mode="shared" onAccessChanged={changed} />);
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    change("Expense type", "recurring");
-    change("Start date (on or after)", "2026-10-08");
+    fireEvent.click(screen.getByRole("button", { name: "Recurring plan Future expenses" }));
+    change("Start date", "2026-10-08");
     change("Amount", "12.50");
     change("Category", "cat_one");
     change("What did you pay for?", "Planned hosting");
@@ -536,8 +569,8 @@ describe("Recurring entry in project and shared expenses", () => {
       <LedgerScreen {...props} workspace={{ id: "one", revision: 1, permissions }} />
     );
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    change("Expense type", "recurring");
-    change("Start date (on or after)", "2026-10-08");
+    fireEvent.click(screen.getByRole("button", { name: "Recurring plan Future expenses" }));
+    change("Start date", "2026-10-08");
     change("Amount", "12.50");
     change("Category", "cat_one");
     change("What did you pay for?", "Old workspace schedule");

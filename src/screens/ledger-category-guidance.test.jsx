@@ -85,7 +85,7 @@ describe("Expense category guidance", () => {
   it("opens expense entry when an active category is available", async () => {
     const { go } = fixture({ categories: [{ ...archivedCategory, archivedAt: null }] });
     fireEvent.click(await screen.findByRole("button", { name: "Add expense" }));
-    expect(screen.getByLabelText("Date")).toHaveFocus();
+    expect(screen.getByLabelText("Paid on")).toHaveFocus();
     expect(screen.getByLabelText("Category")).toBeVisible();
     expect(screen.queryByRole("heading", { name: guideTitle })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Add category" })).not.toBeInTheDocument();

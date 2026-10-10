@@ -36,6 +36,14 @@ describe("API integration guide translations", () => {
       expect(text("retentionAuthority")).toContain("403 RETENTION_TARGET_FORBIDDEN");
       expect(text("error403")).toContain("RETENTION_CLEANUP_REQUIRED");
       expect(text("error409")).not.toContain("RETENTION_CLEANUP_REQUIRED");
+      expect(text("recurringBehavior")).toContain("CATEGORY_REQUIRED");
+      expect(text("recurringBehavior")).toContain("categoryId");
+      expect(text("schedule")).toContain("awaitingSync");
+      expect(text("schedule")).toContain("pendingOccurrences");
+      expect(text("recurringFailures")).toContain("10");
+      expect(text("recurringFailures")).toContain("retryPeriodKey");
+      expect(text("recurringFailures")).toContain("If-Match");
+      expect(text("recurringFailures")).toContain("/api/v1/recurring-expense-notifications");
     }
   });
 });

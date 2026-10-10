@@ -122,6 +122,18 @@ rules.push(
     amount: LARGE_RULE_AMOUNT,
   }))
 );
+for (const rule of rules.filter((item) => item.purpose === RULE_PURPOSE)) {
+  rule.pendingOccurrences = Array.from({ length: 10 }, (_, index) => ({
+    periodKey: `M2026-${String(index + 1).padStart(2, "0")}`,
+    scheduledOn: `2026-${String(index + 1).padStart(2, "0")}-01`,
+    amount: "24.50",
+    currency: "USD",
+    categoryId: CATEGORY_ID,
+    purpose: "Saved historical hosting",
+    blockedCode: "RECORD_LIMIT",
+    createdAt: CREATED_AT,
+  }));
+}
 const profile = {
   id: WORKSPACE_ID,
   workspace,
@@ -248,6 +260,10 @@ function payloadFor(path, params) {
     return { items: [workspace, sharedWorkspace] };
   }
   if (path === "/api/v1/workspace-invitation-requests") {
+    assertQuery(params, []);
+    return { items: [], hasMore: false };
+  }
+  if (path === "/api/v1/recurring-expense-notifications") {
     assertQuery(params, []);
     return { items: [], hasMore: false };
   }

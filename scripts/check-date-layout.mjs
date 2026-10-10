@@ -792,11 +792,25 @@ async function measureRecurring(page, report, name, editorOpen) {
             Number.parseFloat(style.borderBottomWidth),
         };
       }),
+      pending: rowNodes.flatMap((row) => Array.from(row.querySelectorAll('.recurring-expenses-pending-list > li')).map((item) => ({
+        row: rect(row),
+        rect: rect(item),
+        date: item.querySelector('time')?.dateTime,
+        amount: item.querySelector('.financial-value-number')?.textContent,
+        action: item.querySelector('button') ? rect(item.querySelector('button')) : null,
+      }))),
     };
   });
   const details = JSON.stringify(measured);
   assert(measured.primary, `${name}: recurring primary panel is missing ${details}`);
   assert.equal(measured.rows.length, 2, `${name}: equal-row fixture did not render two records`);
+  assert.equal(measured.pending.length, 10, `${name}: ten saved historical occurrences are not visible`);
+  for (const item of measured.pending) {
+    assert(/^2026-\d{2}-01$/.test(item.date), `${name}: pending occurrence lost its historical date`);
+    assert.equal(item.amount, "24.50", `${name}: pending occurrence lost its frozen amount`);
+    assert(item.action && item.action.height >= 44 - tolerance, `${name}: pending recovery action is too short`);
+    assert(item.rect.left >= item.row.left - tolerance && item.rect.right <= item.row.right + tolerance, `${name}: pending occurrence escaped its record`);
+  }
   assert(
     measured.documentWidth <= measured.viewport + tolerance,
     `${name}: recurring layout overflows the viewport ${details}`
@@ -892,7 +906,7 @@ async function checkScope(page, report, mode) {
     await dragSide(page, 260, report, `${mode}-create-pane-260`);
     await dragSide(page, 520, report, `${mode}-create-pane-520`);
   }
-  await form.locator(":scope > .ledger-field > select").selectOption("recurring");
+  await form.locator('.ledger-entry-types button[aria-pressed]').nth(1).click();
   await measure(page, report, `${mode}-recurring-create-end-empty`);
   await form.locator('.recurring-schedule-fields input[type="date"]').fill("2027-12-31");
   await measure(page, report, `${mode}-recurring-create-end-populated`);

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { LedgerScreen } from "./ledger.jsx";
 
 const dateHelp =
-  "The start date is the earliest date the schedule can run. Repeat dates follow the selected weekday or day of month; changing the start date does not change them. Save the schedule to apply changes.";
+  "Each due date adds a separate expense.";
 
 function deferred() {
   let resolve;
@@ -83,7 +83,7 @@ describe("Recurring start dates in the shared expense editor", () => {
       const readCounts = reads();
       await user.click(within(row).getByRole("button", { name: "Edit schedule" }));
 
-      const startDate = screen.getByLabelText("Start date (on or after)");
+      const startDate = screen.getByLabelText("Start date");
       const repeatDay = screen.getByLabelText("Day of month");
       expect(startDate).toHaveValue("2026-10-09");
       expect(repeatDay).toHaveValue(9);
@@ -95,7 +95,7 @@ describe("Recurring start dates in the shared expense editor", () => {
       expect(startDate).toHaveValue("2026-10-10");
       expect(repeatDay).toHaveValue(9);
       expect(screen.getByLabelText("Time zone")).toHaveValue("Asia/Shanghai");
-      expect(within(row).getByText("Next occurrence: 2026-10-09 · Asia/Shanghai")).toBeVisible();
+      expect(within(row).getByText("2026-10-09", { selector: "time" })).toBeVisible();
       expect(api.updateRecurringRule).not.toHaveBeenCalled();
       expect(reads()).toEqual(readCounts);
 
@@ -116,7 +116,7 @@ describe("Recurring start dates in the shared expense editor", () => {
         },
         { signal: expect.any(AbortSignal) }
       );
-      expect(within(row).getByText("Next occurrence: 2026-10-09 · Asia/Shanghai")).toBeVisible();
+      expect(within(row).getByText("2026-10-09", { selector: "time" })).toBeVisible();
       expect(startDate).toBeDisabled();
 
       const saved = {
@@ -127,15 +127,15 @@ describe("Recurring start dates in the shared expense editor", () => {
         nextRunAt: 1794153600,
       };
       await act(async () => write.resolve(saved));
-      await waitFor(() => expect(screen.queryByLabelText("Start date (on or after)")).toBeNull());
-      expect(within(row).getByText("Next occurrence: 2026-11-09 · Asia/Shanghai")).toBeVisible();
+      await waitFor(() => expect(screen.queryByLabelText("Start date")).toBeNull());
+      expect(within(row).getByText("2026-11-09", { selector: "time" })).toBeVisible();
       expect(reads()).toEqual(readCounts);
       expect(api.createRecurringRule).not.toHaveBeenCalled();
       expect(api.createExpense).not.toHaveBeenCalled();
       expect(api.updateExpense).not.toHaveBeenCalled();
 
       await user.click(within(row).getByRole("button", { name: "Edit schedule" }));
-      expect(screen.getByLabelText("Start date (on or after)")).toHaveValue("2026-10-10");
+      expect(screen.getByLabelText("Start date")).toHaveValue("2026-10-10");
       expect(screen.getByLabelText("Day of month")).toHaveValue(9);
       expect(screen.getByLabelText("Time zone")).toHaveValue("Asia/Shanghai");
       expect(reads()).toEqual(readCounts);

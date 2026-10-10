@@ -120,7 +120,7 @@ describe("Shared expense and project view toolbar", () => {
       );
       expect(await screen.findByText(expense.purpose)).toBeVisible();
       const records = screen.getByRole("tabpanel", { name: "Expenses" });
-      expect(within(records).getByRole("heading", { name: "Expenses" })).toBeVisible();
+      expect(within(records).getByRole("heading", { name: "Recorded expenses" })).toBeVisible();
       expect(records.querySelector(".ledger-stats")).toBeNull();
       expect(
         screen.queryByRole("heading", { name: "Totals by currency", hidden: true })

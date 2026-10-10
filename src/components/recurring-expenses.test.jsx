@@ -160,6 +160,70 @@ describe("RecurringScheduleFields", () => {
 });
 
 describe("RecurringExpenses", () => {
+  it("retains frozen historical entries and locks the page through the successful expense refresh", async () => {
+    const occurrence = { periodKey: "M2026-09", scheduledOn: "2026-09-30", amount: "9.99", currency: "EUR", purpose: "Original hosting", blockedCode: "RECORD_LIMIT" };
+    const initial = rule({ pendingOccurrences: [occurrence] });
+    const api = client([initial]);
+    const write = pending();
+    const refresh = pending();
+    const release = vi.fn();
+    const onExpensesChanged = vi.fn(() => refresh.promise);
+    api.updateRecurringRule.mockReturnValueOnce(write.promise);
+    render(fixture(api, { beginOperation: () => release, onExpensesChanged }));
+    await loaded();
+    const recovery = screen.getByRole("button", { name: "Add 2026-09-30 to expenses" });
+    expect(row()).toHaveTextContent("Pending expenses1 / 10");
+    expect(row()).toHaveTextContent("Original hosting");
+    expect(row()).toHaveTextContent("EUR 9.99");
+    fireEvent.click(recovery);
+    fireEvent.click(recovery);
+    expect(api.updateRecurringRule).toHaveBeenCalledExactlyOnceWith(initial.id, 2, { retryPeriodKey: "M2026-09" }, { signal: expect.any(AbortSignal) });
+    expect(button("Edit schedule")).toBeDisabled();
+    await act(async () => write.resolve({ ...initial, revision: 3, pendingOccurrences: [] }));
+    expect(screen.queryByRole("button", { name: "Add 2026-09-30 to expenses" })).toBeNull();
+    expect(onExpensesChanged).toHaveBeenCalledExactlyOnceWith({ signal: expect.any(AbortSignal) });
+    expect(button("Edit schedule")).toBeDisabled();
+    expect(release).not.toHaveBeenCalled();
+    await act(async () => refresh.resolve());
+    await waitFor(() => expect(button("Edit schedule")).toBeEnabled());
+    expect(release).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a full-capacity occurrence available for an explicit later retry", async () => {
+    const occurrence = { periodKey: "M2026-09", scheduledOn: "2026-09-30", amount: "9.99", currency: "EUR" };
+    const initial = rule({ pendingOccurrences: [occurrence] });
+    const api = client([initial]);
+    api.updateRecurringRule.mockRejectedValueOnce(Object.assign(error(403), { payload: { error: { code: "RECORD_LIMIT" } } }));
+    api.updateRecurringRule.mockResolvedValueOnce({ ...initial, revision: 3, pendingOccurrences: [] });
+    const onAccessChanged = vi.fn();
+    render(fixture(api, { onAccessChanged }));
+    await loaded();
+    fireEvent.click(screen.getByRole("button", { name: "Add 2026-09-30 to expenses" }));
+    await screen.findByRole("alert");
+    expect(screen.getByRole("button", { name: "Add 2026-09-30 to expenses" })).toBeEnabled();
+    expect(onAccessChanged).not.toHaveBeenCalled();
+    expect(api.updateRecurringRule).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Add 2026-09-30 to expenses" }));
+    await waitFor(() => expect(api.updateRecurringRule).toHaveBeenCalledTimes(2));
+    expect(api.updateRecurringRule.mock.calls[1][1]).toBe(2);
+  });
+
+  it("shows ten saved failures without presenting a historical next date as a pending expense", async () => {
+    const pendingOccurrences = Array.from({ length: 10 }, (_, index) => ({ periodKey: `M2026-${String(index + 1).padStart(2, "0")}`, scheduledOn: `2026-${String(index + 1).padStart(2, "0")}-01`, amount: "12.00", currency: "USD" }));
+    render(fixture(client([rule({ pendingOccurrences, nextOccurrenceOn: "2099-10-31" })])));
+    await loaded();
+    expect(screen.getAllByRole("button", { name: /^Add .* to expenses$/ })).toHaveLength(10);
+    expect(screen.getByText("Queue full. Further failed dates are not retained.")).toBeVisible();
+    expect(row().querySelector(".recurring-expenses-next time")).toHaveTextContent("2099-10-31");
+  });
+
+  it("leaves saved historical occurrences visible to viewers without write controls", async () => {
+    render(fixture(client([rule({ status: "completed", nextOccurrenceOn: null, pendingOccurrences: [{ periodKey: "M2026-09", scheduledOn: "2026-09-30", amount: "12.00", currency: "USD" }] })]), { canManage: false }));
+    await loaded();
+    expect(screen.getByText("2026-09-30", { selector: "time" })).toBeVisible();
+    expect(within(row()).queryByRole("button")).toBeNull();
+  });
+
   it("does not start a recurring write when the parent operation boundary denies admission", async () => {
     const api = client();
     const beginOperation = vi.fn(() => false);
@@ -326,12 +390,12 @@ describe("RecurringExpenses", () => {
       { target: "shared" },
       { signal: expect.any(AbortSignal) }
     );
-    expect(row()).toHaveTextContent("Next occurrence: 2099-02-28 · Europe/Paris");
+    expect(row()).toHaveTextContent("Next planned expense2099-02-28Europe/Paris");
     expect(row().querySelector(".financial-value").textContent).toBe(
       "USD 900719925474099312345.12345"
     );
     expect(within(row()).queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("1 recurring schedules").closest(".ledger-list")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Recurring plans" }).closest(".ledger-list")).toBeNull();
     expect(screen.getByRole("button", { name: "Reload recurring schedules" })).toBeEnabled();
   });
 

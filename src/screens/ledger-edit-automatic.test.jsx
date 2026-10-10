@@ -216,7 +216,7 @@ describe("Automatic categorization while editing ordinary expenses", () => {
       );
       expect(category).toBeRequired();
       expect(category).toHaveValue("");
-      expect(screen.getByLabelText("Date")).toHaveValue(f.expense.occurredOn);
+      expect(screen.getByLabelText("Paid on")).toHaveValue(f.expense.occurredOn);
       expect(screen.getByLabelText("Amount")).toHaveValue(f.expense.amount);
       expect(screen.getByLabelText("What did you pay for?")).toHaveValue(f.expense.purpose);
       expect(screen.getByLabelText("Note (optional)")).toHaveValue(f.expense.note);
@@ -272,7 +272,7 @@ describe("Automatic categorization while editing ordinary expenses", () => {
   });
 
   it.each(["project", "shared"])(
-    "keeps %s recurring schedule editing manually categorized without a new entitlement read",
+    "allows automatic categorization for %s recurring schedule editing while retaining the original category",
     async (mode) => {
       const f = fixture({ mode, plan: "pro" });
       const schedule = {
@@ -290,16 +290,17 @@ describe("Automatic categorization while editing ordinary expenses", () => {
       };
       f.api.recurringRules.mockResolvedValue({ items: [schedule], nextCursor: null });
       render(viewFor(f));
-      const row = (await screen.findByRole("heading", { name: "Recurring expenses" })).closest(
+      const row = (await screen.findByRole("heading", { name: "Recurring plans" })).closest(
         "section"
       );
       await waitFor(() =>
         expect(within(row).getByRole("button", { name: "Edit schedule" })).toBeEnabled()
       );
       fireEvent.click(within(row).getByRole("button", { name: "Edit schedule" }));
-      expect(screen.getByLabelText("Category")).toBeRequired();
-      expect(screen.queryByRole("option", { name: "Automatic" })).not.toBeInTheDocument();
-      expect(f.api.me).not.toHaveBeenCalled();
+      await screen.findByRole("option", { name: "Automatic" });
+      expect(screen.getByLabelText("Category")).not.toBeRequired();
+      expect(screen.getByLabelText("Category")).toHaveValue(f.expense.categoryId);
+      expect(f.api.me).toHaveBeenCalledOnce();
     }
   );
 

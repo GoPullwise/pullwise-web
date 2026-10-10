@@ -31,6 +31,7 @@ const ACCOUNT_AND_PROJECT_ACTIONS = [
   ["previewInvitation", "previewWorkspaceInvitation", [{ token: `pwi_${"a".repeat(43)}` }]],
   ["acceptInvitation", "acceptWorkspaceInvitation", [{ token: `pwi_${"a".repeat(43)}` }]],
   ["invitationRequests", "listWorkspaceInvitationRequests", []],
+  ["recurringExpenseNotifications", "listRecurringExpenseNotifications", []],
   ["workspaceInvitationRequests", "listWorkspaceJoinRequests", [WORKSPACE]],
   ["inviteRequests", "listWorkspaceInvitationJoinRequests", [WORKSPACE, "invite_contract"]],
   ["approveInviteRequest", "approveWorkspaceJoinRequest", [WORKSPACE, "invite_contract", "request_contract", REVISION]],
@@ -69,6 +70,7 @@ function targetActions(kind) {
     ["updateRecurringRule", "updateRecurringExpenseRule", [`rule_${kind}`, REVISION, rule]],
     ["updateRecurringRule", "updateRecurringExpenseRule", [`rule_${kind}`, REVISION, { status: "paused" }]],
     ["updateRecurringRule", "updateRecurringExpenseRule", [`rule_${kind}`, REVISION, { status: "active" }]],
+    ["updateRecurringRule", "updateRecurringExpenseRule", [`rule_${kind}`, REVISION, { retryPeriodKey: "M2026-09" }]],
     ["removeRecurringRule", "cancelRecurringExpenseRule", [`rule_${kind}`, REVISION]],
     ["exportExpenses", "exportExpenses", [query]],
     ["reportSummary", "getLedgerSummary", [query]],
@@ -121,11 +123,13 @@ function assertDocumentedCall(call, operationId) {
   const operation = resource.item[call.method.toLowerCase()];
   expect(operation, `${call.method} must exist on ${resource.path}`).toBeTruthy();
   expect(operation.operationId).toBe(operationId);
-  expect(API_KEY_SCOPE_VALUES).toContain(operation["x-pullwise-scope"]);
+  const accountInbox = operationId === "listRecurringExpenseNotifications";
+  if (accountInbox) expect(operation["x-pullwise-scope"]).toBe("account:auth");
+  else expect(API_KEY_SCOPE_VALUES).toContain(operation["x-pullwise-scope"]);
   expect(call.headers["X-Pullwise-Workspace"]).toBe(WORKSPACE);
 
   const security = operation.security || contract.security;
-  const browserIdentityOnly = ["previewWorkspaceInvitation", "acceptWorkspaceInvitation"].includes(operationId);
+  const browserIdentityOnly = ["previewWorkspaceInvitation", "acceptWorkspaceInvitation", "listRecurringExpenseNotifications"].includes(operationId);
   expect(security.some((requirement) => Object.hasOwn(requirement, "bearerKey"))).toBe(!browserIdentityOnly);
   expect(security.some((requirement) => Object.hasOwn(requirement, "cookieSession"))).toBe(true);
 

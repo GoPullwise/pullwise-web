@@ -17,6 +17,55 @@
 .recurring-expenses-side .panel-actions {
   justify-content: flex-end;
 }
+.recurring-expenses-next {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+}
+.recurring-expenses-next dt {
+  color: var(--text-2);
+  font-size: var(--fs-md);
+}
+.recurring-expenses-next dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+.recurring-expenses-pending {
+  grid-column: 1 / -1;
+  border-inline-start: 2px solid var(--accent);
+  padding-inline-start: 12px;
+}
+.recurring-expenses-pending .panel-h {
+  margin-bottom: 8px;
+}
+.recurring-expenses-pending-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+}
+.recurring-expenses-pending-list > li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.recurring-expenses-pending-list > li > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.recurring-expenses-pending-list .btn {
+  min-height: 44px;
+}
+.recurring-pending-amount {
+  font-size: var(--fs-lg);
+}
 .ledger-screen .recurring-expenses-editor .ledger-form {
   margin: 0;
 }

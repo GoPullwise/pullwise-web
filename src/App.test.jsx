@@ -52,6 +52,11 @@ vi.mock("./screens/ledger.jsx", async () => {
         <Topbar go={go} breadcrumbs={[{ label: "Projects" }]} />
         <h1>Projects</h1>
         <p>Scope: {workspace.id}</p>
+        {mode !== "projects" && (
+          <section id="recurring-plans">
+            <article data-recurring-rule-id="rule-one">Recurring target: {mode}</article>
+          </section>
+        )}
         <p>{record}</p>
         {failure && <p role="alert">{failure}</p>}
         <label htmlFor="protected-draft">Unsaved scope draft</label>
@@ -68,7 +73,11 @@ vi.mock("./screens/ledger.jsx", async () => {
   };
 });
 vi.mock("./api/ledger.js", () => ({
-  ledgerApi: { workspaces: vi.fn(), invitationRequests: vi.fn() },
+  ledgerApi: {
+    workspaces: vi.fn(),
+    invitationRequests: vi.fn(),
+    recurringExpenseNotifications: vi.fn(),
+  },
   createLedgerApi: vi.fn(() => ({})),
 }));
 
@@ -110,6 +119,7 @@ beforeEach(() => {
     items: [{ id: "local-focus", name: "Personal ledger", role: "owner", revision: 1 }],
   });
   ledgerApi.invitationRequests.mockResolvedValue({ items: [] });
+  ledgerApi.recurringExpenseNotifications.mockResolvedValue({ items: [] });
 });
 
 afterEach(() => {
@@ -271,8 +281,8 @@ it.each(["send", "verify"])(
       "href",
       "/projects"
     );
-    fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
-    const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+    fireEvent.click(screen.getByRole("button", { name: "Inbox" }));
+    const inbox = await screen.findByRole("dialog", { name: "Inbox" });
     fireEvent.click(within(inbox).getByRole("button", { name: "Review request" }));
     expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
@@ -1145,7 +1155,7 @@ it("notifies the inviter with the applicant identity and opens the request's led
   const notification = await screen.findByRole("alert");
   expect(notification).toHaveTextContent("Bob");
   expect(notification).toHaveTextContent("Team ledger");
-  expect(screen.getByRole("button", { name: "Join requests" })).toHaveTextContent("1");
+  expect(screen.getByRole("button", { name: "Inbox" })).toHaveTextContent("1");
   fireEvent.click(screen.getByRole("button", { name: "Review request" }));
   expect(await screen.findByRole("heading", { level: 1, name: "Members" })).toBeVisible();
   expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
@@ -1155,6 +1165,55 @@ it("notifies the inviter with the applicant identity and opens the request's led
   expect(harness.apis.team.approveInviteRequest).not.toHaveBeenCalled();
   expect(window.location.pathname).toBe("/members");
 });
+
+it.each([
+  [{ kind: "shared" }, "/shared", "shared"],
+  [{ kind: "project", projectId: "hosting" }, "/projects/hosting", "project"],
+])(
+  "opens a pending recurring expense in its current authorized ledger and target %j",
+  async (target, path, mode) => {
+    window.history.replaceState({}, "", "/projects");
+    authenticatedLedgers([personal, { ...team, role: "editor" }]);
+    ledgerApi.workspaces.mockResolvedValueOnce({ items: [personal] });
+    harness.enabled = true;
+    harness.apis.alice = {
+      projects: vi.fn().mockResolvedValue({ items: [{ name: "Personal project" }] }),
+    };
+    harness.apis.team = {
+      projects: vi.fn().mockResolvedValue({ items: [{ name: "Team expense" }] }),
+      project: vi.fn().mockResolvedValue({ name: "Team expense" }),
+    };
+    ledgerApi.recurringExpenseNotifications.mockResolvedValue({
+      items: [
+        {
+          id: "rule-one:2026-10-09",
+          ruleId: "rule-one",
+          periodKey: "2026-10-09",
+          scheduledOn: "2026-10-09",
+          workspaceId: "team",
+          workspaceName: "Team ledger",
+          target,
+          amount: "12.30",
+          currency: "USD",
+          purpose: "Monthly hosting",
+          failedCode: "EXPENSE_LIMIT_REACHED",
+          createdAt: "2026-10-09T00:00:00Z",
+        },
+      ],
+    });
+    render(<App />);
+    expect(await screen.findByText("Personal project")).toBeVisible();
+    const notice = await screen.findByRole("alert");
+    expect(notice).toHaveTextContent("2026-10-09");
+    fireEvent.click(within(notice).getByRole("button", { name: "Open recurring plan" }));
+    expect(await screen.findByText("Team expense")).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
+    expect(window.location.pathname).toBe(path);
+    await waitFor(() => expect(screen.getByText(`Recurring target: ${mode}`)).toHaveFocus());
+    expect(ledgerApi.workspaces.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(harness.apis.alice.projects).toHaveBeenCalledTimes(1);
+  }
+);
 
 it("opens the requested ledger when inbox review is the first navigation into a ledger", async () => {
   const managedTeam = {
@@ -1346,11 +1405,11 @@ it("keeps notification review in the current ledger during a member write and al
   await act(async () => {
     creating.resolve({ ...invite, token: inviteToken });
   });
-  await waitFor(() => expect(screen.getByRole("button", { name: "Join requests" })).toBeEnabled());
+  await waitFor(() => expect(screen.getByRole("button", { name: "Inbox" })).toBeEnabled());
   await waitFor(() => expect(screen.getByRole("button", { name: "Review request" })).toBeEnabled());
-  expect(screen.getByRole("button", { name: "Join requests" })).toHaveTextContent("1");
-  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
-  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  expect(screen.getByRole("button", { name: "Inbox" })).toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Inbox" }));
+  const inbox = await screen.findByRole("dialog", { name: "Inbox" });
   fireEvent.click(within(inbox).getByRole("button", { name: "Review request" }));
   expect(await screen.findByRole("button", { name: "Approve request from bob" })).toBeVisible();
   expect(screen.getByRole("combobox", { name: "Select ledger" })).toHaveValue("team");
@@ -1377,8 +1436,8 @@ it("keeps pending requests available without repeating their notifications on fo
   });
   await waitFor(() => expect(ledgerApi.invitationRequests).toHaveBeenCalledTimes(2));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
-  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  fireEvent.click(screen.getByRole("button", { name: "Inbox" }));
+  const inbox = await screen.findByRole("dialog", { name: "Inbox" });
   expect(inbox).toHaveTextContent("Bob");
   expect(inbox).toHaveTextContent("@bob");
   expect(inbox).toHaveTextContent("Team ledger");
@@ -1409,9 +1468,9 @@ it("ignores a late invitation inbox response after the authenticated account cha
     previousActorRequests.resolve({ items: [joinRequest] });
   });
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Join requests" })).not.toHaveTextContent("1");
-  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
-  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  expect(screen.getByRole("button", { name: "Inbox" })).not.toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Inbox" }));
+  const inbox = await screen.findByRole("dialog", { name: "Inbox" });
   expect(inbox).not.toHaveTextContent("Bob");
   expect(screen.queryByRole("button", { name: "Review request" })).not.toBeInTheDocument();
 });
@@ -1434,9 +1493,9 @@ it("clears the previous account's visible requests and notification while the ne
   });
   await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(2));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Join requests" })).not.toHaveTextContent("1");
-  fireEvent.click(screen.getByRole("button", { name: "Join requests" }));
-  const inbox = await screen.findByRole("dialog", { name: "Join requests" });
+  expect(screen.getByRole("button", { name: "Inbox" })).not.toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: "Inbox" }));
+  const inbox = await screen.findByRole("dialog", { name: "Inbox" });
   expect(inbox).not.toHaveTextContent("Bob");
   expect(screen.queryByRole("button", { name: "Review request" })).not.toBeInTheDocument();
 });

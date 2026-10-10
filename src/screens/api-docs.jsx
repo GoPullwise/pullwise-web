@@ -49,7 +49,7 @@ const PROJECT_STATE =
 const MAX_ASSISTANCE =
   "For ledgers on the Owner's effective Pro or Max plan, regular expense creation and editing automatically receive Jev assistance while the model is available and within the ledger's monthly allowance. No separate suggestion request or suggestions:use scope is needed; expenses:write and the normal target restrictions apply.";
 const CATEGORY_BEHAVIOR =
-  "On POST /api/v1/expenses and PATCH /api/v1/expenses/{id}, categoryId may be omitted for automatic categorization when the ledger Owner's effective Pro or Max plan, model availability and allowance permit it. Explicit category, target, amount and currency are preserved. If no category can be selected confidently, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry. Creates use a new Idempotency-Key. Retry edits with If-Match using the loaded revision; reload explicitly after a revision conflict. Free ledgers and all recurring schedules require an explicit category.";
+  "On POST /api/v1/expenses and PATCH /api/v1/expenses/{id}, categoryId may be omitted for automatic categorization when the ledger Owner's effective Pro or Max plan, model availability and allowance permit it. Explicit category, target, amount and currency are preserved. If no category can be selected confidently, 422 CATEGORY_REQUIRED leaves the expense unsaved; choose a category and retry. Creates use a new Idempotency-Key. Retry edits with If-Match using the loaded revision; reload explicitly after a revision conflict. Recurring schedule creation and complete edits support the same gated category omission; background posting reuses the saved category. Free ledgers require an explicit category.";
 const ASSISTANCE_RESPONSE =
   "Successful writes return the expense with an assistance object: status, categorySource (jev or user), suggestions and optional reason/modelVersion/questionVersion. Duplicate advice never blocks saving. Identical create requests with the same Idempotency-Key return the cached result without another model call. Reads do not invoke Jev.";
 const EXPENSE_REVIEW =
@@ -322,7 +322,7 @@ export function ApiDocsScreen({ go, auth }) {
           <p>
             {T(
               CATEGORY_BEHAVIOR,
-              "POST /api/v1/expenses 和 PATCH /api/v1/expenses/{id} 时，账本所有者的 Pro 或 Max 权益有效、模型可用且额度允许，则可省略 categoryId 进行自动分类。明确填写的类别、目标、金额和币种会保留。无法有把握地选出类别时返回 422 CATEGORY_REQUIRED，支出尚未保存；请选择类别后重试。新增支出使用新的 Idempotency-Key；编辑重试使用已加载版本的 If-Match，发生版本冲突后须主动重新加载。Free 及所有周期计划都必须明确填写类别。"
+              "POST /api/v1/expenses 和 PATCH /api/v1/expenses/{id} 时，账本所有者的 Pro 或 Max 权益有效、模型可用且额度允许，则可省略 categoryId 进行自动分类。明确填写的类别、目标、金额和币种会保留。无法有把握地选出类别时返回 422 CATEGORY_REQUIRED，支出尚未保存；请选择类别后重试。新增支出使用新的 Idempotency-Key；编辑重试使用已加载版本的 If-Match，发生版本冲突后须主动重新加载。周期计划的创建和完整编辑同样支持受权益与额度限制的类别省略；后台生成沿用保存的类别。Free 账本必须明确填写类别。"
             )}
           </p>
           <p>

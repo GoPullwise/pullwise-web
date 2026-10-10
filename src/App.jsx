@@ -145,6 +145,7 @@ export function App() {
   const [screen, setScreen] = useState(getInitialScreen);
   const [routeVersion, setRouteVersion] = useState(0);
   const [reviewIntent, setReviewIntent] = useState(null);
+  const [recurringFocusIntent, setRecurringFocusIntent] = useState(null);
   const reviewNonceRef = useRef(0);
   const pageOperationRef = useRef(null);
   const [reportedNavigation, setReportedNavigation] = useState({ owner: "", active: false });
@@ -497,6 +498,67 @@ export function App() {
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [navigationKey, screenKey]);
+
+  useEffect(() => {
+    if (!recurringFocusIntent) return;
+    const intent = recurringFocusIntent;
+    if (
+      intent.identity !== identity ||
+      screen !== intent.screen ||
+      window.location.pathname !== intent.path
+    ) {
+      setRecurringFocusIntent(null);
+      return;
+    }
+    if (workspaceState.status !== "ready" || accessRefreshing) return;
+    if (workspace?.id !== intent.workspaceId) {
+      setRecurringFocusIntent(null);
+      return;
+    }
+    const root = screenRootRef.current;
+    if (!root) return;
+    let frame = 0;
+    const focusPlan = () => {
+      const section = root.querySelector("#recurring-plans");
+      if (!section || section.closest("[hidden]") || section.getAttribute("aria-busy") === "true")
+        return false;
+      const row = Array.from(section.querySelectorAll("[data-recurring-rule-id]")).find(
+        (node) => node.dataset.recurringRuleId === intent.ruleId
+      );
+      const target = row || section;
+      // Wait for the inbox focus cleanup and the normal route heading focus.
+      frame = window.requestAnimationFrame(() => {
+        if (!target.isConnected) return;
+        target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+        target.scrollIntoView?.({ block: "start" });
+        setRecurringFocusIntent((current) => (current === intent ? null : current));
+      });
+      return true;
+    };
+    const observer = new MutationObserver(() => {
+      if (focusPlan()) observer.disconnect();
+    });
+    if (!focusPlan())
+      observer.observe(root, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["aria-busy", "hidden"],
+      });
+    return () => {
+      observer.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [
+    recurringFocusIntent,
+    identity,
+    screen,
+    screenKey,
+    workspace,
+    workspaceState.status,
+    accessRefreshing,
+  ]);
 
   const go = (nextScreen, params = {}) => {
     if (pageOperationRef.current === currentScreenKeyRef.current) return;
@@ -1025,6 +1087,26 @@ export function App() {
           });
           selectWorkspace(request.workspaceId);
           go("ledgerMembers");
+        }}
+        onOpenRecurring={(item) => {
+          if (pageOperationRef.current === currentScreenKeyRef.current) return false;
+          if (screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]')) return false;
+          const nextScreen = item.target.kind === "project" ? "ledgerProject" : "ledgerShared";
+          const params = item.target.kind === "project" ? { id: item.target.projectId } : {};
+          setRecurringFocusIntent({
+            identity,
+            workspaceId: item.workspaceId,
+            ruleId: item.ruleId,
+            screen: nextScreen,
+            path: pathFromScreen(nextScreen, params),
+          });
+          selectWorkspace(item.workspaceId);
+          if (
+            workspaceState.status !== "ready" ||
+            !workspaceState.items.some((entry) => entry.id === item.workspaceId)
+          )
+            reloadWorkspaceAccess();
+          go(nextScreen, params);
         }}
       >
         <ConsoleLayoutProvider scope={identity}>

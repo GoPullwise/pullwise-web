@@ -26,4 +26,14 @@ describe("REST integration journey", () => {
       expect(value).toContain(expected);
     expect(value).toContain("the same REST resources and business rules");
   });
+
+  it("distinguishes separate historical retries from future scheduling", () => {
+    const value = integrationMarkdown("https://preview-api.pull-wise.com", ["recurring"]);
+    for (const expected of ["exactly one expense on startOn", "one separate expense record", "never a cumulative amount",
+      "categoryId may be omitted", "CATEGORY_REQUIRED", "strictly after today", "awaitingSync", "first 10 unresolved",
+      "Later failures are discarded", "pendingOccurrences", "retryPeriodKey", "If-Match", "English email",
+      "/api/v1/recurring-expense-notifications", "cookie-only", "PASTE_RETAINED_PERIOD_KEY"])
+      expect(value).toContain(expected);
+    expect(value).not.toContain("explicit active category is always required");
+  });
 });

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Pullwise Project Expense Ledger API",
-    "version": "0.9.0",
-    "description": "Current ledger contract for Pullwise, the project expense tracker for\ndevelopers and teams at pull-wise.com. Users and authorized API clients\nenter expenses; bank or vendor transactions are not imported. Platform\nsubscription payments remain separate from ledger expenses.\nWeb uses its same-origin /api proxy; direct\nclients call these paths on the Server Worker. All private responses are\nCache-Control: no-store. Money is grouped by currency without conversion.\nEach user's existing personal ledger is an immutable workspace. Explicit\ninvitations share all existing and future ledger data after the original\ninviter approves the authenticated applicant. Links do not require a named\nrecipient. Pending or rejected requests grant no ledger access. Invitations\ndo not grant GitHub organization or repository access. Select a ledger with\nX-Pullwise-Workspace, or workspaceId on CSV links. Conflicting selectors are\nrejected. API keys are permanently bound to one ledger and intersect the\nissuing member's current role; membership revision changes invalidate team\nkeys. All members use the ledger owner's plan, capacity and model budget.\nAccount billing remains the signed-in user's own account service.\nProjects can be standalone with a nonblank name and no GitHub repository or\norganization association. Connecting repositories is optional and continues\nto require the current actor's GitHub authorization. The shared expense pool\nis shared across projects in a ledger, never publicly accessible. AI assistance\ndepends on the ledger owner's Pro or Max plan, current activation and usage budget;\nan explicit category permits manual entry when assistance is unavailable.\nProject development and product links are optional absolute HTTP(S) URLs.\nOnly the selected ledger Owner using a current cookie session or an API key\nwith projects:write and permission for that project may remove a\nproject. Removal permanently erases that project, its current expenses,\nrecurring plans and attributable business history. Archived projects remain\nrecoverable until explicitly removed. Current expenses already moved to\nanother project or Shared pool survive, while their erased-project snapshots\ndisappear. Unrelated schedules retain consumed-period fences without a\nremoved expense identifier. Active expense capacity is released;\ncumulative project capacity is retained;\nprior write and model-fee counters remain charged. Ledger-wide categories,\naccount identity, billing and membership remain.\nRecurring expense rules use the same REST resource for browser sessions and\nAPI keys with explicit expense authority. A key-created or key-resumed rule\nretains only a credential hash; execution rechecks its current key scopes,\nexpiration, revocation, ledger binding and target restrictions. Each\n\ngenerated occurrence uses the current ledger owner's plan and the rule\nsaved execution actor's current membership and GitHub access. A rule records one ordinary\nexpense per calendar period without making a payment or extending a\nsubscription. Stopping a rule preserves its previously recorded expenses.\nEmail verification codes provide independent registration and sign-in.\nGitHub identity and repository connections are optional. Verified email and\nexplicit GitHub links preserve the immutable account ID, personal ledger,\nmemberships and billing. Matching provider or billing contact emails never\nmerge accounts. Authentication endpoints do not grant API-key scopes.\nProject and shared-pool activity records identify the authenticated actor,\noperation time and exact changed record. Only the latest rolling 24 hours\nare visible, using the Server clock. History starts when activity logging\nis enabled; old financial audit events are not backfilled or deleted.\nMember governance requires explicit members:read or members:write scopes.\nGovernance keys must omit projectIds, and every key remains bound to its\none ledger and issuer's current role. Owner/Admin can manage members; only\nOwner can manage Admin, and only an invitation's original inviter can review\nits applicants. Previewing or applying to an invitation uses the applicant's\nbrowser account session rather than a ledger-bound key.\n"
+    "version": "0.10.0",
+    "description": "Current ledger contract for Pullwise, the project expense tracker for\ndevelopers and teams at pull-wise.com. Users and authorized API clients\nenter expenses; bank or vendor transactions are not imported. Platform\nsubscription payments remain separate from ledger expenses.\nWeb uses its same-origin /api proxy; direct\nclients call these paths on the Server Worker. All private responses are\nCache-Control: no-store. Money is grouped by currency without conversion.\nEach user's existing personal ledger is an immutable workspace. Explicit\ninvitations share all existing and future ledger data after the original\ninviter approves the authenticated applicant. Links do not require a named\nrecipient. Pending or rejected requests grant no ledger access. Invitations\ndo not grant GitHub organization or repository access. Select a ledger with\nX-Pullwise-Workspace, or workspaceId on CSV links. Conflicting selectors are\nrejected. API keys are permanently bound to one ledger and intersect the\nissuing member's current role; membership revision changes invalidate team\nkeys. All members use the ledger owner's plan, capacity and model budget.\nAccount billing remains the signed-in user's own account service.\nProjects can be standalone with a nonblank name and no GitHub repository or\norganization association. Connecting repositories is optional and continues\nto require the current actor's GitHub authorization. The shared expense pool\nis shared across projects in a ledger, never publicly accessible. AI assistance\ndepends on the ledger owner's Pro or Max plan, current activation and usage budget;\nan explicit category permits manual entry when assistance is unavailable.\nProject development and product links are optional absolute HTTP(S) URLs.\nOnly the selected ledger Owner using a current cookie session or an API key\nwith projects:write and permission for that project may remove a\nproject. Removal permanently erases that project, its current expenses,\nrecurring plans and attributable business history. Archived projects remain\nrecoverable until explicitly removed. Current expenses already moved to\nanother project or Shared pool survive, while their erased-project snapshots\ndisappear. Unrelated schedules retain consumed-period fences without a\nremoved expense identifier. Active expense capacity is released;\ncumulative project capacity is retained;\nprior write and model-fee counters remain charged. Ledger-wide categories,\naccount identity, billing and membership remain.\nRecurring expense rules use the same REST resource for browser sessions and\nAPI keys with explicit expense authority. A key-created or key-resumed rule\nretains only a credential hash; execution rechecks its current key scopes,\nexpiration, revocation, ledger binding and target restrictions. Each\n\ngenerated occurrence uses the current ledger owner's plan and the rule\nsaved execution actor's current membership and GitHub access. A rule records one ordinary\nexpense per calendar period without making a payment or extending a\nsubscription. Each occurrence is a separate expense record, even when its\nother values match a previous occurrence; amounts are never accumulated\ninto an existing expense. A start date on or before today in the schedule's\ntimezone records exactly one initial expense on that start date. A future\nstart waits for its scheduled occurrence. Future plans do not count as spent.\nCapacity failures retain at most ten unresolved occurrences per rule for\nexplicit manual posting and notify the saved execution actor by English\nemail to a usable verified address, otherwise by Pullwise inbox. Later\nfailed occurrences are discarded while ten remain unresolved.\nStopping a rule preserves its previously recorded expenses.\nEmail verification codes provide independent registration and sign-in.\nGitHub identity and repository connections are optional. Verified email and\nexplicit GitHub links preserve the immutable account ID, personal ledger,\nmemberships and billing. Matching provider or billing contact emails never\nmerge accounts. Authentication endpoints do not grant API-key scopes.\nProject and shared-pool activity records identify the authenticated actor,\noperation time and exact changed record. Only the latest rolling 24 hours\nare visible, using the Server clock. History starts when activity logging\nis enabled; old financial audit events are not backfilled or deleted.\nMember governance requires explicit members:read or members:write scopes.\nGovernance keys must omit projectIds, and every key remains bound to its\none ledger and issuer's current role. Owner/Admin can manage members; only\nOwner can manage Admin, and only an invitation's original inviter can review\nits applicants. Previewing or applying to an invitation uses the applicant's\nbrowser account session rather than a ledger-bound key.\n"
   },
   "servers": [
     {
@@ -1670,6 +1670,43 @@
         }
       }
     },
+    "/api/v1/recurring-expense-notifications": {
+      "get": {
+        "operationId": "listRecurringExpenseNotifications",
+        "x-pullwise-scope": "account:auth",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "Read the signed-in account's actionable recurring capacity-failure inbox\nacross currently authorized ledgers, independently of the selected\nworkspace. Bearer API keys and Bearer session tokens are rejected with\nCOOKIE_SESSION_REQUIRED. Returns at most 100 oldest actionable retained\nfailures plus hasMore. Current recipient identity, ledger membership and\ntarget access are required; canceled rules and removed targets are\nexcluded. Notifications delivered by email are hidden from this inbox.\nPending email delivery and inbox fallback remain visible until the\nhistorical occurrence is successfully posted. GET never marks read,\nposts an expense or changes notification delivery state.\n",
+        "responses": {
+          "200": {
+            "description": "Current account's actionable recurring failures",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpenseNotificationPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "COOKIE_SESSION_REQUIRED for Bearer credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/workspaces/{workspaceId}/join-requests": {
       "parameters": [
         {
@@ -2819,7 +2856,7 @@
             "bearerKey": []
           }
         ],
-        "description": "Current ledger rules excluding canceled entries. Reads never generate expenses. Session and expenses:read key readers use the same DTO; keys see only targets permitted by their current restrictions.",
+        "description": "Current ledger rules excluding canceled entries. Reads never generate expenses or repair financial state. nextOccurrenceOn is the next future business date in the schedule's timezone, or null when none remains. For an overdue legacy rule, awaitingSync identifies a read-only future projection awaiting the next authorized scheduled write. Retained pendingOccurrences remain separately visible. Session and expenses:read key readers use the same DTO; keys see only targets permitted by their current restrictions.",
         "parameters": [
           {
             "$ref": "#/components/parameters/Target"
@@ -2867,7 +2904,7 @@
             "bearerKey": []
           }
         ],
-        "description": "Create an automation with an explicit existing active category and a\ncurrently authorized project/shared target. The authenticated key issuer\nor session user is initially its execution actor. Session and key tokens\nare never stored in the rule. Key grants retain a credential hash and\nrecheck expiration, revocation, expenses:write, ledger binding, membership\nrevision and project/shared restrictions before every generated expense.\nAt most 100 noncanceled rules per ledger is an operational bound,\nindependent of the owner's paid plan. An exact repeated creation key\nreplays its original DTO; different input with that key conflicts.\nCreation keys remain scoped to the original creating user even if a\nlater authorized edit or resume changes the saved execution actor.\nGenerated expenses follow the Owner's current automatic-removal policy.\nAt capacity they may atomically replace the globally oldest active\nexpense only when the saved actor and current original credential can\ndelete that target. Expired or revoked grants never remove expenses;\ncapacity or target denial blocks the pending period without generating it.\n",
+        "description": "Create an automation for a currently authorized project/shared target.\ncategoryId may be omitted for Jev automatic classification when the\ncurrent Owner's plan, activation, model availability and allowance permit\nit, just as on ordinary expense creation. Only a confident existing\nactive category is saved; an explicit category is never changed.\nCATEGORY_REQUIRED preserves the unsaved input for manual selection.\nBackground execution uses that saved category without model calls.\nThe authenticated key issuer\nor session user is initially its execution actor. Session and key tokens\nare never stored in the rule. Key grants retain a credential hash and\nrecheck expiration, revocation, expenses:write, ledger binding, membership\nrevision and project/shared restrictions before every generated expense.\nAt most 100 noncanceled rules per ledger is an operational bound,\nindependent of the owner's paid plan. An exact repeated creation key\nreplays its original DTO; different input with that key conflicts.\nCreation keys remain scoped to the original creating user even if a\nlater authorized edit or resume changes the saved execution actor.\nA startOn on or before today in the schedule timezone immediately posts\nexactly one ordinary expense dated startOn, without backfilling every\nintervening historical period. A future startOn waits for its exact\ndate as the first occurrence; frequency selectors govern later periods.\nnextOccurrenceOn is strictly after today, or null when no future date\nremains. Every successful occurrence inserts a separate expense; it\nnever increases another expense's amount. Future plans stay outside\nspent totals until their expenses have been recorded.\nGenerated expenses follow the Owner's current automatic-removal policy.\nAt capacity they may atomically replace the globally oldest active\nexpense only when the saved actor and current original credential can\ndelete that target. Expired or revoked grants never remove expenses;\nCapacity failures retain the first ten unresolved frozen occurrences\nper rule for explicit retry and advance the future schedule. English\nemail notifies the saved execution actor when a usable verified email\nexists; otherwise Pullwise inbox is used. While ten remain unresolved,\nlater failed occurrences are discarded and do not replace older ones.\nAuthorization, target and category failures still block execution.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -2934,6 +2971,7 @@
             "$ref": "#/components/parameters/WorkspaceHeader"
           }
         ],
+        "description": "Read the authorized rule without generating expenses. nextOccurrenceOn is future-only in the schedule timezone; awaitingSync distinguishes a read-only future projection from persisted scheduled progress. Retained capacity failures appear separately in pendingOccurrences.",
         "responses": {
           "200": {
             "description": "Authorized rule",
@@ -2961,7 +2999,7 @@
             "bearerKey": []
           }
         ],
-        "description": "Pause or resume with a status-only body, or replace the complete\ntemplate and calendar. The target is immutable. A complete edit or\nexplicit resume rechecks the current actor's write and project\naccess, then makes that actor the saved execution actor and adopts the\ncredential used for that write. A session edit/resume removes an old key\ngrant; a key edit/resume binds the automation to that key. The original\ncreation key and replay response remain immutable.\nCanceled rules cannot resume. Changes affect future occurrences only;\nafter an edit/resume the next occurrence is strictly after the current\ndate in the rule's timezone. Pausing remains available when commercial\nwrite allowances are exhausted, with all role and revision guards.\n",
+        "description": "Pause or resume with a status-only body, replace the complete\ntemplate and calendar, or manually post one retained occurrence with\na retryPeriodKey-only body. All forms require the current If-Match.\nThe target is immutable. A complete edit or\nexplicit resume rechecks the current actor's write and project\naccess, then makes that actor the saved execution actor and adopts the\ncredential used for that write. A session edit/resume removes an old key\ngrant; a key edit/resume binds the automation to that key. The original\ncreation key and replay response remain immutable.\nA complete edit may omit categoryId for the same gated Jev automatic\nclassification as create. An explicit category is never changed, and\nCATEGORY_REQUIRED leaves the saved rule unchanged and preserves input.\nCanceled rules cannot resume. Changes affect future occurrences only;\nafter an edit/resume the next occurrence is strictly after the current\ndate in the rule's timezone. Pausing remains available when commercial\nwrite allowances are exhausted, with all role and revision guards.\nA retry uses the retained occurrence's frozen date, amount, currency,\npurpose and category, together with current actor, target, category,\ncapacity and credential authorization. Success atomically creates one\nindependent expense and immutable period identity, removes that pending\noccurrence, and returns the updated rule. It never merges amounts or\nchanges the future schedule. Failed retries retain the occurrence.\nA settled period retried with the current revision returns the rule\nwithout another expense; a stale revision still returns 412. Canceled\nrules reject historical retries with 409.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/IfMatch"
@@ -2978,6 +3016,9 @@
                 "oneOf": [
                   {
                     "$ref": "#/components/schemas/RecurringExpenseInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RecurringExpenseRetryInput"
                   },
                   {
                     "type": "object",
@@ -3726,7 +3767,7 @@
         }
       },
       "InvalidInput": {
-        "description": "Invalid or missing field. CATEGORY_REQUIRED on create or edit may include top-level assistance when eligible Pro or Max inference is unavailable or cannot confidently select an existing active category. No expense is created or updated in that case.",
+        "description": "Invalid or missing field. CATEGORY_REQUIRED on ordinary expense or recurring rule create or complete edit may include top-level assistance when eligible Pro or Max inference is unavailable or cannot confidently select an existing active category. No expense or rule is created or updated in that case.",
         "content": {
           "application/json": {
             "schema": {
@@ -6081,7 +6122,7 @@
           "timezone",
           "startOn"
         ],
-        "description": "Calendar in a validated IANA timezone. Weekly weekday is ISO Monday=1\nthrough Sunday=7. Quarterly quarterMonth is 1, 2 or 3 within each\ncalendar quarter. Days beyond a month's length use its final day;\nFebruary 29 therefore becomes February 28 in a nonleap year.\nThe occurrence becomes due at local midnight or the first valid\ninstant after a timezone gap. Start and optional end dates are\ninclusive. Each period posts once; delayed dispatch catches up under\na bounded hourly tick without charging a card or polling the client.\n",
+        "description": "Calendar in a validated IANA timezone. Weekly weekday is ISO Monday=1\nthrough Sunday=7. Quarterly quarterMonth is 1, 2 or 3 within each\ncalendar quarter. Days beyond a month's length use its final day;\nFebruary 29 therefore becomes February 28 in a nonleap year.\nThe occurrence becomes due at local midnight or the first valid\ninstant after a timezone gap. Start and optional end dates are\ninclusive. On creation, startOn on or before today in this timezone\nrecords exactly one initial expense on startOn; a future start waits for\nthe exact startOn date even when its frequency selector differs.\nIntervening historical periods are not backfilled on creation. Each\nfuture due period creates its own expense; delayed dispatch catches up\nunder a bounded hourly tick without charging a card or polling the client.\n",
         "properties": {
           "frequency": {
             "type": "string",
@@ -6100,7 +6141,8 @@
           },
           "startOn": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "On or before local today records one initial expense dated startOn; a future date waits for scheduled posting"
           },
           "endOn": {
             "type": [
@@ -6264,7 +6306,6 @@
           "target",
           "amount",
           "currency",
-          "categoryId",
           "purpose",
           "schedule"
         ],
@@ -6281,9 +6322,11 @@
             "$ref": "#/components/schemas/CurrencyCode"
           },
           "categoryId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Explicit existing active category; no automatic model selection during background execution"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required for a Free ledger or unavailable Jev. Omit on create or complete edit for gated automatic classification, like ordinary expenses. Only a confident existing active category is saved; an explicit category is never changed. CATEGORY_REQUIRED preserves the draft. Background execution uses the saved category without model calls."
           },
           "purpose": {
             "type": "string",
@@ -6325,6 +6368,78 @@
         ],
         "unevaluatedProperties": false
       },
+      "RecurringExpenseRetryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "retryPeriodKey"
+        ],
+        "properties": {
+          "retryPeriodKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Exact periodKey from a retained pendingOccurrences item",
+            "examples": [
+              "M2026-09"
+            ]
+          }
+        }
+      },
+      "RecurringExpensePendingOccurrence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "periodKey",
+          "scheduledOn",
+          "amount",
+          "currency",
+          "purpose",
+          "categoryId",
+          "blockedCode",
+          "createdAt"
+        ],
+        "description": "Frozen historical values from a capacity failure. Editing the rule affects future expenses and never changes these retained values. At most ten unresolved occurrences are retained per rule; later failures are discarded until space is available.",
+        "properties": {
+          "periodKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "scheduledOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/CurrencyCode"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "categoryId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "blockedCode": {
+            "type": "string",
+            "enum": [
+              "RECORD_LIMIT",
+              "RETENTION_CLEANUP_REQUIRED",
+              "RETENTION_TARGET_FORBIDDEN"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "RecurringExpenseRule": {
         "allOf": [
           {
@@ -6334,17 +6449,25 @@
             "type": "object",
             "required": [
               "id",
+              "categoryId",
               "status",
               "revision",
               "nextOccurrenceOn",
               "nextRunAt",
               "blockedCode",
+              "pendingOccurrences",
+              "awaitingSync",
               "createdAt",
               "updatedAt"
             ],
             "properties": {
               "id": {
                 "type": "string"
+              },
+              "categoryId": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Saved active category selected explicitly or confidently by Jev at create or complete edit"
               },
               "status": {
                 "type": "string",
@@ -6366,7 +6489,8 @@
                   "string",
                   "null"
                 ],
-                "format": "date"
+                "format": "date",
+                "description": "Future business date strictly after today in the schedule timezone, or null when none remains. Historical capacity failures are separate pendingOccurrences."
               },
               "nextRunAt": {
                 "type": [
@@ -6375,7 +6499,7 @@
                 ],
                 "minimum": 0,
                 "maximum": 9007199254740991,
-                "description": "UTC epoch seconds for the next due occurrence"
+                "description": "UTC epoch seconds for the same future occurrence as nextOccurrenceOn; both values are projected together when awaitingSync is true"
               },
               "blockedCode": {
                 "type": [
@@ -6384,6 +6508,20 @@
                 ],
                 "maxLength": 80,
                 "description": "Current authorization, target, category or plan stop reason; blocked rules do not keep executing automatically"
+              },
+              "pendingOccurrences": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "$ref": "#/components/schemas/RecurringExpensePendingOccurrence"
+                }
+              },
+              "awaitingSync": {
+                "type": "boolean",
+                "description": "An active rule's stored due pointer awaits scheduled synchronization; GET only projects future dates and never creates expenses or repairs state."
+              },
+              "assistance": {
+                "$ref": "#/components/schemas/ExpenseAssistance"
               },
               "createdAt": {
                 "type": "string",
@@ -6416,6 +6554,96 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "RecurringExpenseNotification": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "ruleId",
+          "periodKey",
+          "scheduledOn",
+          "workspaceId",
+          "workspaceName",
+          "target",
+          "amount",
+          "currency",
+          "failedCode",
+          "createdAt",
+          "purpose"
+        ],
+        "description": "Actionable retained failure for the current saved recipient; target and expense values are frozen at the failed occurrence.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Rule ID and period key joined by a colon"
+          },
+          "ruleId": {
+            "type": "string"
+          },
+          "periodKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "scheduledOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspaceName": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/CurrencyCode"
+          },
+          "failedCode": {
+            "type": "string",
+            "enum": [
+              "RECORD_LIMIT",
+              "RETENTION_CLEANUP_REQUIRED",
+              "RETENTION_TARGET_FORBIDDEN"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "RecurringExpenseNotificationPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/RecurringExpenseNotification"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
           }
         }
       },
@@ -7035,5 +7263,5 @@
       }
     }
   },
-  "x-pullwise-source-sha256": "db04bafdb9192ed7926eade57cd903ecb77a40d6a131b2ade386a012f95d8c75"
+  "x-pullwise-source-sha256": "e697771345178c72546841db6637c09d958a5a706cdc18ae2deaabace0d763c2"
 }
