@@ -812,12 +812,49 @@
   --financial-size: var(--fs-value-secondary);
   display: inline;
 }
-.ledger-overview-screen .ledger-summary-filters {
-  align-items: end;
-  grid-template-columns: minmax(0, 180px) repeat(auto-fit, minmax(0, 200px));
-}
 .ledger-overview-period {
   container: ledger-overview-period / inline-size;
+  --ledger-period-control-size: 44px;
+}
+.ledger-overview-filters {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 220px) 128px;
+  align-items: end;
+  gap: 16px;
+}
+.ledger-overview-filters[data-period="custom"] {
+  grid-template-columns: 180px minmax(0, 456px) 128px;
+}
+.ledger-overview-date-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: 16px;
+  min-width: 0;
+}
+.ledger-overview-filters[data-period="custom"] .ledger-overview-date-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ledger-overview-screen .main .ledger-overview-filters :is(input, select, .btn) {
+  width: 100%;
+  min-width: 0;
+  height: var(--ledger-period-control-size);
+  min-height: var(--ledger-period-control-size);
+  border-color: var(--border-strong);
+  font-size: var(--fs-2xl);
+  line-height: 1.25;
+}
+.ledger-overview-screen .main .ledger-overview-filters input[type="month"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+}
+.ledger-overview-screen
+  .main
+  .ledger-overview-filters
+  input[type="month"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
 }
 .ledger-overview-range {
   display: flex;
@@ -855,12 +892,11 @@
     text-align: right;
   }
 }
-@container ledger-overview-period (max-width: 580px) {
-  .ledger-overview-screen .ledger-summary-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .ledger-overview-screen .ledger-summary-filters > .btn {
-    justify-self: start;
+@container ledger-overview-period (max-width: 640px) {
+  .ledger-overview-filters,
+  .ledger-overview-filters[data-period="custom"],
+  .ledger-overview-filters[data-period="custom"] .ledger-overview-date-fields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 /* Two 300px report columns and their 48px gap share one terminal section. */
@@ -947,6 +983,9 @@
   }
 }
 @media (max-width: 760px) {
+  .ledger-overview-period {
+    --ledger-period-control-size: 48px;
+  }
   .ledger-project-identity {
     flex-basis: auto;
   }

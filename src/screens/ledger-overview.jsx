@@ -123,7 +123,7 @@ function ScopedOverview({
             </div>
           </div>
           <section className="panel ledger-overview-period" aria-label={T("Displayed period")}>
-            <div className="ledger-filters ledger-summary-filters">
+            <div className="ledger-overview-filters" data-period={period}>
               <div className="ledger-field">
                 <label htmlFor={`${id}-period`}>{T("Period")}</label>
                 <select
@@ -135,53 +135,55 @@ function ScopedOverview({
                   <option value="custom">{T("Custom dates")}</option>
                 </select>
               </div>
-              {period === "month" ? (
-                <div className="ledger-field">
-                  <label htmlFor={`${id}-month`}>{T("Month")}</label>
-                  <input
-                    id={`${id}-month`}
-                    type="month"
-                    min="0001-01"
-                    max="9999-11"
-                    required
-                    value={month}
-                    onChange={(event) => setMonth(event.target.value)}
-                  />
-                </div>
-              ) : (
-                <>
+              <div className="ledger-overview-date-fields">
+                {period === "month" ? (
                   <div className="ledger-field">
-                    <label htmlFor={`${id}-from`}>{T("From date")}</label>
+                    <label htmlFor={`${id}-month`}>{T("Month")}</label>
                     <input
-                      id={`${id}-from`}
-                      type="date"
-                      min="0001-01-01"
-                      max={custom.end || "9999-12-30"}
+                      id={`${id}-month`}
+                      type="month"
+                      min="0001-01"
+                      max="9999-11"
                       required
-                      value={custom.from}
-                      onChange={(event) =>
-                        setCustom((value) => ({ ...value, from: event.target.value }))
-                      }
+                      value={month}
+                      onChange={(event) => setMonth(event.target.value)}
                     />
                   </div>
-                  <div className="ledger-field">
-                    <label htmlFor={`${id}-end`}>{T("End date (included)")}</label>
-                    <input
-                      id={`${id}-end`}
-                      type="date"
-                      min={custom.from || "0001-01-01"}
-                      max="9999-12-30"
-                      required
-                      value={custom.end}
-                      onChange={(event) =>
-                        setCustom((value) => ({ ...value, end: event.target.value }))
-                      }
-                    />
-                  </div>
-                </>
-              )}
+                ) : (
+                  <>
+                    <div className="ledger-field">
+                      <label htmlFor={`${id}-from`}>{T("From date")}</label>
+                      <input
+                        id={`${id}-from`}
+                        type="date"
+                        min="0001-01-01"
+                        max={custom.end || "9999-12-30"}
+                        required
+                        value={custom.from}
+                        onChange={(event) =>
+                          setCustom((value) => ({ ...value, from: event.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="ledger-field">
+                      <label htmlFor={`${id}-end`}>{T("End date (included)")}</label>
+                      <input
+                        id={`${id}-end`}
+                        type="date"
+                        min={custom.from || "0001-01-01"}
+                        max="9999-12-30"
+                        required
+                        value={custom.end}
+                        onChange={(event) =>
+                          setCustom((value) => ({ ...value, end: event.target.value }))
+                        }
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
               <button
-                className="btn ghost"
+                className="btn ledger-overview-current"
                 type="button"
                 onClick={() => {
                   setMonth(localMonth());

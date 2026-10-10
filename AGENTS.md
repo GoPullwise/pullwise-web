@@ -1,5 +1,17 @@
 # Pullwise Web
 
+## Spending overview period controls (2026-10-10)
+
+The user requests rebuilding the Overview's period filter layout while retaining
+the totals/composition below it. This month is a bordered, filled secondary
+shortcut button. Align every control's border box at a shared 44px height (48px
+on phones), with consistent label gaps. Wide containers place Period, the month
+or equal-width custom dates, and the shortcut together. Containers <=640px stack
+all controls at the same width. Retain native pickers, six locales, inclusive
+dates and scoped read behavior. Verify actual border bounds, custom/month
+switching and keyboard reset through bounded local fixtures. The user explicitly
+authorizes main push and Cloudflare publication through the Web preview workflow.
+
 ## Expense currency picker (2026-10-10)
 
 The user's final follow-up replaces manual expense currency entry with a

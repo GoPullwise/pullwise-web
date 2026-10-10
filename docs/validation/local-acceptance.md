@@ -1,5 +1,27 @@
 # Current local acceptance
 
+## Spending overview period alignment (2026-10-10)
+
+The period selector, native month/custom date fields and This month shortcut
+now share visible backgrounds, borders and 44px control heights (48px on
+phones). The shortcut uses the shared secondary button. A dedicated grid keeps
+wide rows aligned; containers at or below 640px stack all controls at equal
+width. Custom dates share equal columns when wide. The existing totals and
+composition presentation, native pickers and inclusive-date behavior remain.
+
+[Local verification](overview-filter-local-2026-10-10.json) records lint,
+75 test files / 1,565 tests, production build, offline Worker config and preview
+dry-run passing. Overview passes 15 Chromium contexts / 113 settled states plus
+38 focused filter checks, including six locales, light/dark, native keyboard
+focus/reset, invalid and inclusive custom dates, actual 640/641px container
+bounds and 760/761px viewport bounds. Each context permits exactly seven summary
+reads and at most 20 API reads, all through bounded local GET-only fixtures.
+Billing's 24 contexts / 72 states and the phone/tablet suite's ten contexts /
+207 states pass. Existing native date-layout checks also pass. The 1906px dark
+desktop and 390px dark phone captures were inspected. No other browser engine
+or physical device acceptance is claimed. The main/preview publication receipt
+will record the matching source version and finite static asset verification.
+
 ## Expense currency dropdown (2026-10-10)
 
 Project and Shared Pool one-time/recurring create/edit forms now share a

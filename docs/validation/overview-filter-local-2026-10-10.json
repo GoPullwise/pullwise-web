@@ -1,0 +1,337 @@
+{
+  "date": "2026-10-10",
+  "scope": "Spending overview period filter layout",
+  "baseMainCommit": "d8364759e354c1a39be6238c877e0fe175185c55",
+  "verification": {
+    "lintPassed": true,
+    "unitTestFiles": 75,
+    "unitTestsPassed": 1565,
+    "buildPassed": true,
+    "workerConfigPassed": true,
+    "previewDryRunPassed": true,
+    "formattingPassed": true,
+    "independentImplementationReviewPassed": true
+  },
+  "browserSuites": {
+    "overview": {
+      "passed": true,
+      "contexts": 15,
+      "states": 113,
+      "engine": "chromium",
+      "profiles": [
+        {
+          "name": "desktop-1440",
+          "width": 1440,
+          "height": 1000,
+          "touch": false,
+          "lang": "en",
+          "theme": "light"
+        },
+        {
+          "name": "tablet-1024",
+          "width": 1024,
+          "height": 1000,
+          "touch": true,
+          "lang": "en",
+          "theme": "light"
+        },
+        {
+          "name": "phone-390",
+          "width": 390,
+          "height": 844,
+          "touch": true,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        {
+          "name": "phone-320-en",
+          "width": 320,
+          "height": 844,
+          "touch": true,
+          "lang": "en",
+          "theme": "light"
+        },
+        {
+          "name": "phone-320-zh",
+          "width": 320,
+          "height": 844,
+          "touch": true,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        {
+          "name": "phone-320-ja",
+          "width": 320,
+          "height": 844,
+          "touch": true,
+          "lang": "ja",
+          "theme": "light"
+        },
+        {
+          "name": "phone-320-ko",
+          "width": 320,
+          "height": 844,
+          "touch": true,
+          "lang": "ko",
+          "theme": "dark"
+        },
+        {
+          "name": "phone-320-fr",
+          "width": 320,
+          "height": 844,
+          "touch": true,
+          "lang": "fr",
+          "theme": "light"
+        },
+        {
+          "name": "phone-320-es",
+          "width": 320,
+          "height": 844,
+          "touch": true,
+          "lang": "es",
+          "theme": "dark"
+        },
+        {
+          "name": "desktop-dark-en",
+          "width": 1440,
+          "height": 1000,
+          "touch": false,
+          "lang": "en",
+          "theme": "dark"
+        },
+        {
+          "name": "desktop-dark-zh",
+          "width": 1906,
+          "height": 1000,
+          "touch": false,
+          "lang": "zh",
+          "theme": "dark"
+        },
+        {
+          "name": "desktop-dark-ja",
+          "width": 1440,
+          "height": 1000,
+          "touch": false,
+          "lang": "ja",
+          "theme": "dark"
+        },
+        {
+          "name": "desktop-dark-ko",
+          "width": 1440,
+          "height": 1000,
+          "touch": false,
+          "lang": "ko",
+          "theme": "dark"
+        },
+        {
+          "name": "desktop-dark-fr",
+          "width": 1440,
+          "height": 1000,
+          "touch": false,
+          "lang": "fr",
+          "theme": "dark"
+        },
+        {
+          "name": "desktop-dark-es",
+          "width": 1440,
+          "height": 1000,
+          "touch": false,
+          "lang": "es",
+          "theme": "dark"
+        }
+      ],
+      "additionalFilterChecks": 38,
+      "perContextSummaryReadCap": 7,
+      "perContextAPIReadCap": 20,
+      "browserVersion": "151.0.7922.173"
+    },
+    "billing": {
+      "passed": true,
+      "contexts": 24,
+      "states": 72,
+      "engine": "chromium",
+      "profiles": [
+        "desktop-1906",
+        "desktop-1906",
+        "desktop-1906",
+        "desktop-1906",
+        "intermediate-1024",
+        "intermediate-1024",
+        "intermediate-1024",
+        "intermediate-1024",
+        "phone-390",
+        "phone-390",
+        "phone-390",
+        "phone-390",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320",
+        "phone-320"
+      ]
+    },
+    "mobile": {
+      "passed": true,
+      "contexts": 10,
+      "states": 207,
+      "engine": "chromium",
+      "profiles": [
+        {
+          "name": "phone-320-en-light",
+          "width": 320,
+          "height": 720,
+          "lang": "en",
+          "theme": "light",
+          "touch": true
+        },
+        {
+          "name": "phone-320-fr-dark",
+          "width": 320,
+          "height": 720,
+          "lang": "fr",
+          "theme": "dark",
+          "touch": true
+        },
+        {
+          "name": "phone-390-zh-dark",
+          "width": 390,
+          "height": 844,
+          "lang": "zh",
+          "theme": "dark",
+          "touch": true
+        },
+        {
+          "name": "phone-390-en-light",
+          "width": 390,
+          "height": 844,
+          "lang": "en",
+          "theme": "light",
+          "touch": true
+        },
+        {
+          "name": "android-412-en-light",
+          "width": 412,
+          "height": 915,
+          "lang": "en",
+          "theme": "light",
+          "touch": true
+        },
+        {
+          "name": "android-412-fr-dark",
+          "width": 412,
+          "height": 915,
+          "lang": "fr",
+          "theme": "dark",
+          "touch": true
+        },
+        {
+          "name": "tablet-768-zh-light",
+          "width": 768,
+          "height": 1024,
+          "lang": "zh",
+          "theme": "light",
+          "touch": true
+        },
+        {
+          "name": "tablet-1024-fr-dark",
+          "width": 1024,
+          "height": 768,
+          "lang": "fr",
+          "theme": "dark",
+          "touch": true
+        },
+        {
+          "name": "desktop-1440-en-light",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "theme": "light",
+          "touch": false
+        },
+        {
+          "name": "short-landscape-640-en-light",
+          "width": 640,
+          "height": 320,
+          "lang": "en",
+          "theme": "light",
+          "touch": true
+        }
+      ]
+    },
+    "date": {
+      "passed": true,
+      "contexts": 4,
+      "states": 258,
+      "engine": "chromium",
+      "profiles": [
+        {
+          "name": "desktop-1440",
+          "width": 1440,
+          "height": 1000,
+          "lang": "en",
+          "touch": false
+        },
+        {
+          "name": "tablet-1280-zh",
+          "width": 1280,
+          "height": 900,
+          "lang": "zh",
+          "touch": true
+        },
+        {
+          "name": "phone-390-to-320",
+          "width": 390,
+          "narrow": 320,
+          "height": 844,
+          "lang": "en",
+          "touch": true
+        },
+        {
+          "name": "android-size-412-to-360",
+          "width": 412,
+          "narrow": 360,
+          "height": 844,
+          "lang": "en",
+          "touch": true
+        }
+      ]
+    }
+  },
+  "buildAssets": [
+    {
+      "path": "assets/index-BQl7kP0r.js",
+      "bytes": 104785,
+      "sha256": "c27e40a6d0fca46aed261b5f181a92e596cd76578d79765a59848f2e57a0e32c"
+    },
+    {
+      "path": "assets/ledger-overview-DJpbDrnF.js",
+      "bytes": 4719,
+      "sha256": "4ce4b76b111043d64b6e40cd3452a9c5c5486f71a30c2842c29364fa2cdf2970"
+    },
+    {
+      "path": "assets/ledger-TQTJ8qOs.css",
+      "bytes": 21878,
+      "sha256": "d38d687c225ee26d644562f897d61a06df5b38988a391a5af2903fb9bfd38229"
+    }
+  ],
+  "visualInspection": {
+    "desktop": "1906px Chinese dark theme",
+    "phone": "390px Chinese dark theme",
+    "passed": true
+  },
+  "scopeLimits": {
+    "fixtureAPIs": "bounded loopback GET-only synthetic data",
+    "remoteBusinessRequests": 0,
+    "remoteD1Operations": 0,
+    "physicalDeviceAcceptance": false,
+    "otherBrowserEnginesRun": false
+  },
+  "passed": true
+}
