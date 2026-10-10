@@ -37,6 +37,18 @@ closing. Screenshots are checked after animations settle. Reports remain in
 ignored `work/github-authorization-browser/`; these checks do not represent real
 GitHub account or repository authorization acceptance.
 
+[GitHub authorization preview publication](github-authorization-preview-release-2026-10-10.json)
+records Web runtime commit `f69a6c0` and Server runtime commit `fd97a88`, both
+100%-active preview versions. All existing binding values, secret names,
+compatibility settings and schedules match the pre-release management readback.
+The original preview database and coordinator namespace remain. Four static GETs
+return 200, retain homepage noindex and current entry/CSS paths, and verify exact
+bytes for the entry, global CSS and Settings assets. The supplemental CSP check
+is inconclusive because its initial verifier included rewritten JSON-LD; no
+extra request is made. No real OAuth callback, provider or remote business/D1
+acceptance is performed. Server main pushes use the existing production Builds;
+production D1 remains paused. Subsequent receipt commits change documentation.
+
 ## Main integration and preview alignment (2026-10-10)
 
 After reviewing the initial preview, the user authorizes committing and pushing
