@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-10",
+  "scope": "Spending overview period filter alignment and This month shortcut",
+  "origin": "https://preview.pull-wise.com",
+  "runtimeCommit": "6c5371305efe051081400bb2a89debfdb02f43b1",
+  "worker": "pullwise-web-preview",
+  "workerVersion": "78ca8f15-8f36-4372-8637-96456fb006c3",
+  "homepageRequests": 1,
+  "hashedAssetRequests": 3,
+  "requestLimit": {
+    "homepage": 1,
+    "hashedAssets": 3
+  },
+  "clientRetries": 0,
+  "javascriptExecuted": false,
+  "businessAPIRequests": 0,
+  "remoteD1Operations": 0,
+  "serverDeployed": false,
+  "productionDeployed": false,
+  "responses": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 4732,
+      "sha256": "929b8344deae88865b700076eb4c201095cd5f7f814c9945b7dd1281846db451",
+      "robots": "noindex, nofollow",
+      "referencesBuiltEntry": true,
+      "passed": true
+    },
+    {
+      "path": "/assets/index-BQl7kP0r.js",
+      "status": 200,
+      "bytes": 104785,
+      "sha256": "c27e40a6d0fca46aed261b5f181a92e596cd76578d79765a59848f2e57a0e32c",
+      "robots": null,
+      "matchesBuiltBytes": true,
+      "passed": true
+    },
+    {
+      "path": "/assets/ledger-TQTJ8qOs.css",
+      "status": 200,
+      "bytes": 21878,
+      "sha256": "d38d687c225ee26d644562f897d61a06df5b38988a391a5af2903fb9bfd38229",
+      "robots": null,
+      "matchesBuiltBytes": true,
+      "passed": true
+    },
+    {
+      "path": "/assets/ledger-overview-DJpbDrnF.js",
+      "status": 200,
+      "bytes": 4719,
+      "sha256": "4ce4b76b111043d64b6e40cd3452a9c5c5486f71a30c2842c29364fa2cdf2970",
+      "robots": null,
+      "matchesBuiltBytes": true,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "mainPushConfirmed": true,
+  "postReleaseReceipt": "Documentation only; no runtime rebuild or redeployment"
+}

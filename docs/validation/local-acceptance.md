@@ -19,8 +19,15 @@ reads and at most 20 API reads, all through bounded local GET-only fixtures.
 Billing's 24 contexts / 72 states and the phone/tablet suite's ten contexts /
 207 states pass. Existing native date-layout checks also pass. The 1906px dark
 desktop and 390px dark phone captures were inspected. No other browser engine
-or physical device acceptance is claimed. The main/preview publication receipt
-will record the matching source version and finite static asset verification.
+or physical device acceptance is claimed.
+
+[Preview publication](overview-filter-preview-release-2026-10-10.json) records
+runtime main commit `6c5371305efe051081400bb2a89debfdb02f43b1` and Web version
+`78ca8f15-8f36-4372-8637-96456fb006c3` at preview.pull-wise.com. Exactly one
+homepage GET and three entry-JavaScript/filter-CSS/Overview-JavaScript GETs
+return 200; the homepage references the built entry and retains noindex, and
+all three assets match the local build bytes. No JavaScript, redirects, retries
+or remote business/D1 calls run. The receipt commit is documentation-only.
 
 ## Expense currency dropdown (2026-10-10)
 
