@@ -1,5 +1,10 @@
 // Short ledger API and key-management labels; technical identifiers remain unchanged.
 const rows = [
+  ["Expense pagination", "支出分页", "支出のページ移動", "지출 페이지 탐색", "Pagination des dépenses", "Paginación de gastos"],
+  ["Previous", "上一页", "前へ", "이전", "Précédent", "Anterior"],
+  ["Next", "下一页", "次へ", "다음", "Suivant", "Siguiente"],
+  ["Page {page}", "第 {page} 页", "{page} ページ", "{page}페이지", "Page {page}", "Página {page}"],
+  ["Expense page unavailable. Reload to retry.", "支出分页暂不可用，请重新加载后重试。", "支出ページを読み込めません。再読み込みして再試行してください。", "지출 페이지를 불러올 수 없습니다. 새로고침 후 다시 시도하세요.", "La page des dépenses est indisponible. Rechargez pour réessayer.", "La página de gastos no está disponible. Recarga para reintentar."],
   ["Jev selected the category", "Jev 已自动选择分类", "Jev がカテゴリを選択しました", "Jev가 카테고리를 선택했습니다", "Jev a choisi la catégorie", "Jev seleccionó la categoría"],
   ["Inbox", "站内信", "受信トレイ", "받은 편지함", "Boîte de réception", "Bandeja de entrada"],
   ["Open recurring plan", "打开周期计划", "定期プランを開く", "정기 계획 열기", "Ouvrir le plan récurrent", "Abrir plan recurrente"],

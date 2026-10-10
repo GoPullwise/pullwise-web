@@ -1,5 +1,44 @@
 # Current local acceptance
 
+## Project and Shared Pool expense pagination (2026-10-10)
+
+The recurring release was committed, pushed to both main repositories and
+published before this follow-up began. Project detail and Shared Pool recorded
+expenses now request `limit=10` through the existing REST cursor contract.
+Previous/Next replaces the displayed records; it does not append more rows.
+Pagination is hidden when the complete filtered result fits one page. A short
+final page retains Previous, with a localized current-page indicator.
+
+Cursor history stores only visited cursor IDs, scoped to the ledger, current
+authorization and complete date/category/currency/target query. Filter/access
+changes and accepted writes reset the page; explicit Reload refreshes the current
+page with at most one first-page fallback if it became empty. A canceled read
+cannot issue that fallback through an obsolete account API. Rejected, oversized,
+duplicate and non-advancing pages retain the current records and require explicit
+recovery. Expense write guards remain held through required data refresh, including
+successful recurring recovery. Reports and CSV retain the entire filtered result.
+Projects/repository listing and the Server API defaults remain unchanged.
+
+The final `npm run check` passes lint, **69 files / 1,396 tests**, and the
+production build; the offline Worker configuration guard passes. The **38 new
+pagination tests** cover both targets, zero/one/ten/eleven/twenty-three records,
+previous/next replacement, partial final pages, reload/filter/identity changes,
+failed and repeated pages, concurrent reads/writes and expense/recovery refresh.
+This follow-up requires no Server source, schema, scheduler or provider change.
+Browser acceptance and preview publication are recorded separately below.
+
+[Local pagination evidence](expense-pagination-local-2026-10-10.json) passes eight
+Chromium 151 contexts: both project/shared targets, eleven/twenty-three records,
+and 1440px desktop/390px touch layouts. It verifies 10→1 and 10→10→3 replacement,
+exact previous-page restoration, bound buttons, current-page reload, filtering to
+four records with no pagination, clearing to the first ten, and complete currency
+values. Every state stays within the document width; phone controls are at least
+44px with genuine coarse media and one reported touch point. The final run uses
+no screenshots because the capture utility resets touch emulation. The finite
+fixtures use **392 local requests / 64 expense GETs**, zero writes, violations or
+external delivery. This is engine/emulated UI evidence, not live-account or
+physical-device acceptance. The final built assets also pass Worker dry-run.
+
 [Recurring preview publication](recurring-expenses-preview-release-2026-10-10.json)
 records both main source commits and deployed versions, matching final built
 homepage/three hashed assets, healthy Server schema v12, unchanged original

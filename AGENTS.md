@@ -1,5 +1,20 @@
 # Pullwise Web
 
+## Expense record pagination (2026-10-10)
+
+After publishing the recurring release to both main repositories and preview,
+the user requests at most ten recorded expenses per page in project detail and
+the Shared Pool. Use the existing REST limit/cursor contract with limit=10 and
+replace displayed records when moving between pages. Hide pagination when the
+entire filtered result fits one page; retain Previous on a short final page.
+Keep filters, reports and CSV semantics, exact amounts, drafts, current authority,
+abort/identity fences and the shared mutation guard. Reset cursor history when
+filters or account/workspace/target access change. Do not prefetch all records,
+append pages into an unlimited list, introduce polling or change REST defaults
+for external callers. Preserve the distinct recurring-plan and recovery sections.
+Complete meaningful pagination/local browser checks, main publication and the
+existing Web-only preview/static readback workflow.
+
 ## Recorded expenses and recurring recovery (2026-10-10)
 
 Project and Shared Pool entry separates Record expense / Already paid from

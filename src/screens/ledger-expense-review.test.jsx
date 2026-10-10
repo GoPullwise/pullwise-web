@@ -78,7 +78,14 @@ function fixture({
     }),
     project: vi.fn().mockResolvedValue(project),
     projects: vi.fn().mockResolvedValue({ items: [project], nextCursor: null }),
-    expenses: vi.fn().mockResolvedValue({ items: expenses, nextCursor: null }),
+    expenses: vi.fn().mockImplementation((query = {}) => {
+      const offset = query.cursor ? Number(query.cursor.replace("review_page_", "")) : 0;
+      const limit = query.limit ?? 50;
+      return Promise.resolve({
+        items: expenses.slice(offset, offset + limit),
+        nextCursor: offset + limit < expenses.length ? `review_page_${offset + limit}` : null,
+      });
+    }),
     categories: vi.fn().mockResolvedValue(categories),
     recurringRules: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
     reportCategories: vi.fn().mockResolvedValue({ groups: [] }),
@@ -129,18 +136,26 @@ async function startAndFinish(f) {
 
 describe("explicit inspection of selected saved expenses", () => {
   it.each(["project", "shared"])(
-    "opens %s inspection without a review request and enforces a maximum selection of ten",
+    "opens %s inspection without a review request and selects only the ten current-page expenses",
     async (mode) => {
       const user = userEvent.setup();
       const f = fixture({ mode, count: 12 });
       const { dialog, opener } = await open(f);
       expect(f.api.me).toHaveBeenCalledExactlyOnceWith({ signal: expect.any(AbortSignal) });
       expect(f.api.reviewExpense).not.toHaveBeenCalled();
-      expect(f.api.expenses).toHaveBeenCalledOnce();
+      expect(f.api.expenses).toHaveBeenCalledExactlyOnceWith(
+        mode === "project"
+          ? { target: "project", projectId: "prj_review", limit: 10 }
+          : { target: "shared", limit: 10 },
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
       expect(within(dialog).getByText("Selected: 10 / 10")).toBeVisible();
-      const last = within(dialog).getByRole("checkbox", { name: "Review Hosting 11" });
-      expect(last).toBeDisabled();
-      await user.click(within(dialog).getByRole("checkbox", { name: "Review Hosting 0" }));
+      expect(within(dialog).getAllByRole("checkbox")).toHaveLength(10);
+      expect(within(dialog).queryByRole("checkbox", { name: "Review Hosting 10" })).not.toBeInTheDocument();
+      expect(within(dialog).queryByRole("checkbox", { name: "Review Hosting 11" })).not.toBeInTheDocument();
+      const last = within(dialog).getByRole("checkbox", { name: "Review Hosting 9" });
+      await user.click(last);
+      expect(within(dialog).getByText("Selected: 9 / 10")).toBeVisible();
       expect(last).toBeEnabled();
       await user.click(last);
       expect(
@@ -157,6 +172,7 @@ describe("explicit inspection of selected saved expenses", () => {
       expect(document.querySelector(".ledger-screen").inert).toBe(false);
       await waitFor(() => expect(opener).toHaveFocus());
       expect(f.api.reviewExpense).not.toHaveBeenCalled();
+      expect(f.api.expenses).toHaveBeenCalledOnce();
     }
   );
 

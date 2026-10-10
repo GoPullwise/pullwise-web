@@ -1,0 +1,2202 @@
+{
+  "contexts": 8,
+  "maxVisibleRows": 10,
+  "writes": 0,
+  "reports": [
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "target": {
+        "kind": "project",
+        "projectId": "prj_date_layout"
+      },
+      "total": 11,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        }
+      ],
+      "requests": {
+        "total": 50,
+        "expenseReads": 7,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 43,
+          "api": 27,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "target": {
+        "kind": "project",
+        "projectId": "prj_date_layout"
+      },
+      "total": 23,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "last-page-3",
+          "page": 3,
+          "rows": 3,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "previous-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        }
+      ],
+      "requests": {
+        "total": 52,
+        "expenseReads": 9,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_20",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_20"
+            },
+            "ids": [
+              "exp_browser_project_21",
+              "exp_browser_project_22",
+              "exp_browser_project_23"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 43,
+          "api": 27,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "target": {
+        "kind": "shared"
+      },
+      "total": 11,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        }
+      ],
+      "requests": {
+        "total": 46,
+        "expenseReads": 7,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 39,
+          "api": 23,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "target": {
+        "kind": "shared"
+      },
+      "total": 23,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "last-page-3",
+          "page": 3,
+          "rows": 3,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "previous-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 1440,
+            "bodyWidth": 1440,
+            "viewportWidth": 1440,
+            "coarse": false,
+            "touchPoints": 0
+          }
+        }
+      ],
+      "requests": {
+        "total": 48,
+        "expenseReads": 9,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_20",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_20"
+            },
+            "ids": [
+              "exp_browser_shared_21",
+              "exp_browser_shared_22",
+              "exp_browser_shared_23"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 39,
+          "api": 23,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "target": {
+        "kind": "project",
+        "projectId": "prj_date_layout"
+      },
+      "total": 11,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        }
+      ],
+      "requests": {
+        "total": 50,
+        "expenseReads": 7,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 43,
+          "api": 27,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      "touchAfterCapture": {
+        "coarse": true,
+        "touchPoints": 1
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "target": {
+        "kind": "project",
+        "projectId": "prj_date_layout"
+      },
+      "total": 23,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "last-page-3",
+          "page": 3,
+          "rows": 3,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "previous-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        }
+      ],
+      "requests": {
+        "total": 52,
+        "expenseReads": 9,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_20",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_20"
+            },
+            "ids": [
+              "exp_browser_project_21",
+              "exp_browser_project_22",
+              "exp_browser_project_23"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_project_11",
+              "exp_browser_project_12",
+              "exp_browser_project_13",
+              "exp_browser_project_14",
+              "exp_browser_project_15",
+              "exp_browser_project_16",
+              "exp_browser_project_17",
+              "exp_browser_project_18",
+              "exp_browser_project_19",
+              "exp_browser_project_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "project",
+              "projectId": "prj_date_layout",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_project_01",
+              "exp_browser_project_02",
+              "exp_browser_project_03",
+              "exp_browser_project_04",
+              "exp_browser_project_05",
+              "exp_browser_project_06",
+              "exp_browser_project_07",
+              "exp_browser_project_08",
+              "exp_browser_project_09",
+              "exp_browser_project_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 43,
+          "api": 27,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      "touchAfterCapture": {
+        "coarse": true,
+        "touchPoints": 1
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "target": {
+        "kind": "shared"
+      },
+      "total": 11,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 1,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        }
+      ],
+      "requests": {
+        "total": 46,
+        "expenseReads": 7,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 39,
+          "api": 23,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      "touchAfterCapture": {
+        "coarse": true,
+        "touchPoints": 1
+      }
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "profile": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "target": {
+        "kind": "shared"
+      },
+      "total": 23,
+      "states": [
+        {
+          "label": "initial",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "next-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "last-page-3",
+          "page": 3,
+          "rows": 3,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "previous-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "reload-preserves-page-2",
+          "page": 2,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "previous-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "filter-resets-first",
+          "page": 1,
+          "rows": 4,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        {
+          "label": "clear-restores-first",
+          "page": 1,
+          "rows": 10,
+          "dimensions": {
+            "documentWidth": 390,
+            "bodyWidth": 390,
+            "viewportWidth": 390,
+            "coarse": true,
+            "touchPoints": 1
+          }
+        }
+      ],
+      "requests": {
+        "total": 48,
+        "expenseReads": 9,
+        "writes": 0,
+        "violations": [],
+        "pages": [
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_20",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_20"
+            },
+            "ids": [
+              "exp_browser_shared_21",
+              "exp_browser_shared_22",
+              "exp_browser_shared_23"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10&cursor=offset_10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10",
+              "cursor": "offset_10"
+            },
+            "ids": [
+              "exp_browser_shared_11",
+              "exp_browser_shared_12",
+              "exp_browser_shared_13",
+              "exp_browser_shared_14",
+              "exp_browser_shared_15",
+              "exp_browser_shared_16",
+              "exp_browser_shared_17",
+              "exp_browser_shared_18",
+              "exp_browser_shared_19",
+              "exp_browser_shared_20"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&categoryId=cat_date_long&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "categoryId": "cat_date_long",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04"
+            ]
+          },
+          {
+            "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&limit=10",
+            "method": "GET",
+            "path": "/api/v1/expenses",
+            "query": {
+              "target": "shared",
+              "limit": "10"
+            },
+            "ids": [
+              "exp_browser_shared_01",
+              "exp_browser_shared_02",
+              "exp_browser_shared_03",
+              "exp_browser_shared_04",
+              "exp_browser_shared_05",
+              "exp_browser_shared_06",
+              "exp_browser_shared_07",
+              "exp_browser_shared_08",
+              "exp_browser_shared_09",
+              "exp_browser_shared_10"
+            ]
+          }
+        ],
+        "core": {
+          "total": 39,
+          "api": 23,
+          "static": 15,
+          "blockedFonts": 1,
+          "violations": 0,
+          "externalDelivered": 0
+        }
+      },
+      "touchAfterCapture": {
+        "coarse": true,
+        "touchPoints": 1
+      }
+    }
+  ],
+  "date": "2026-10-10",
+  "passed": true,
+  "scope": "Expense pagination final built local Chromium UI; no real account/provider acceptance",
+  "fullWebTests": 1396,
+  "webTestFiles": 69,
+  "newPaginationTests": 38,
+  "lint": true,
+  "build": true,
+  "workerConfig": true,
+  "screenshotCapture": false,
+  "sourceHashes": {
+    "src/screens/ledger.jsx": "c0fb07d6a0995658f75c079bec00388b0d56360b35d64df4907f636316a4bf10",
+    "src/screens/ledger.css": "28e65984c5f18b401f02c586d66c105119c8e64ab71632703dd7b46b3b702c90",
+    "src/screens/ledger-expense-pagination.test.jsx": "1091deb5f95b19a4ec9efa307361c584a0c4bbf02e064b9a4416cf2cbe589cb9",
+    "src/locales/ledger-ui.js": "fac278316917c6957f27a008f78b122ec9827ff76e902b2adfe9493fa86590c2"
+  },
+  "browserHarnessSha256": "65ef9bd149cd12c89b5f483d3a0829d1224436770cd8c782ca1fb1a4bd1669fd",
+  "builtArtifactHashes": {
+    "ledger-ZEgsFEJ6.css": "2a633780ed3c74a2084f6e479734dad02bfc8e38dbd147a3290ab639bcda6c19",
+    "index-DmPLscTg.js": "bf9b0fdfbc86434f166b5f49973e6097e7ef0a545443bff356d3cc3cdb7bb383",
+    "ledger-DzEK0RnU.js": "7ac6e41020dc7fd49be6664ff998310c9a385fb73d1df214484919e8c15d65f5",
+    "index-BxzhodQq.css": "75f5dcf16adf64034de96e12504c8d3210c7504c173e9556b9ed9dc9c4983b21"
+  }
+}

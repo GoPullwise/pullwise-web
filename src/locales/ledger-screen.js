@@ -329,7 +329,6 @@ const rows = [
   ["Edit", "修改", "編集", "수정", "Modifier", "Editar"],
   ["Confirm removal", "确认移除", "削除を確定", "삭제 확인", "Confirmer le retrait", "Confirmar eliminación"],
   ["Remove", "移除", "削除", "삭제", "Retirer", "Eliminar"],
-  ["Load more expenses", "加载更多支出", "支出をさらに読み込む", "지출 더 불러오기", "Charger plus de dépenses", "Cargar más gastos"],
   ["Automatic", "自动分类", "自動", "자동", "Automatique", "Automática"],
   ["Jev will select a category when you save, or choose one yourself.", "保存时 Jev 会自动分类，你也可以自行选择。", "保存時に Jev がカテゴリを選びます。自分で選ぶこともできます。", "저장할 때 Jev가 카테고리를 선택합니다. 직접 선택할 수도 있습니다.", "Jev choisira une catégorie à l’enregistrement, ou vous pouvez la choisir.", "Jev elegirá una categoría al guardar, o puedes elegirla tú."],
   ["Choose a category to finish saving. Your draft is still here.", "请选择类别后保存，已填写的内容已保留。", "保存するにはカテゴリを選んでください。入力内容は保持されています。", "저장을 완료하려면 카테고리를 선택하세요. 입력한 내용은 유지됩니다.", "Choisissez une catégorie pour enregistrer. Votre brouillon est conservé.", "Elige una categoría para guardar. Tu borrador se conserva."],

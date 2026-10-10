@@ -192,7 +192,7 @@ describe("Shared expense and project view toolbar", () => {
         categoryId: "cat_hosting",
       };
       await waitFor(() =>
-        expect(api.expenses).toHaveBeenLastCalledWith(expected, expect.anything())
+        expect(api.expenses).toHaveBeenLastCalledWith({ ...expected, limit: 10 }, expect.anything())
       );
       await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
       for (const report of [api.reportTimeseries, api.reportCategories])
@@ -218,7 +218,7 @@ describe("Shared expense and project view toolbar", () => {
       expect(exportQuery().get("to")).toBe("2026-10-01");
       fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
       await waitFor(() =>
-        expect(api.expenses).toHaveBeenLastCalledWith(targetQuery(mode), expect.anything())
+        expect(api.expenses).toHaveBeenLastCalledWith({ ...targetQuery(mode), limit: 10 }, expect.anything())
       );
       expect(filterStrip()).not.toBeVisible();
       expect(from).toHaveValue("");
@@ -365,7 +365,7 @@ describe("Shared expense and project view toolbar", () => {
     expect(screen.getByLabelText("Before date")).toHaveValue("");
     expect(screen.getByLabelText("Filter category")).toHaveValue("");
     expect(current.api.expenses).toHaveBeenCalledWith(
-      targetQuery(mode, projectId),
+      { ...targetQuery(mode, projectId), limit: 10 },
       expect.anything()
     );
     expect(exportQuery().get("workspaceId")).toBe((next.workspace || initial.workspace).id);

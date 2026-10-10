@@ -226,7 +226,8 @@ describe("ledger screens", () => {
           "Delete schedule",
           "Reload",
           "Reload recurring schedules",
-          "Load more expenses",
+          "Previous",
+          "Next",
           "Clear filters",
         ]) {
           expect(screen.getByRole("button", { name })).toBeDisabled();
@@ -2143,7 +2144,7 @@ describe("ledger screens", () => {
         to: "2026-10-01",
         categoryId: "cat_1",
       };
-      expect(api.expenses).toHaveBeenLastCalledWith(expected, expect.anything());
+      expect(api.expenses).toHaveBeenLastCalledWith({ ...expected, limit: 10 }, expect.anything());
       expect(api.reportTimeseries).toHaveBeenLastCalledWith(expected, expect.anything());
       expect(api.reportCategories).toHaveBeenLastCalledWith(expected, expect.anything());
     });

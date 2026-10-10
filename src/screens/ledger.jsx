@@ -32,6 +32,22 @@ import { normalizeDecimalInput } from "../lib/decimal-input.js";
 import { Topbar, Sidebar, ViewTabs } from "../shell.jsx";
 import "./ledger.css";
 
+const EXPENSE_PAGE_SIZE = 10;
+
+function validateExpensePage(page) {
+  if (
+    !Array.isArray(page?.items) ||
+    page.items.length > EXPENSE_PAGE_SIZE ||
+    page.items.some((item) => !item?.id) ||
+    new Set(page.items.map((item) => item.id)).size !== page.items.length ||
+    (!page.items.length && page.nextCursor) ||
+    (page.nextCursor != null &&
+      (typeof page.nextCursor !== "string" || !page.nextCursor))
+  )
+    throw new Error(T("Expense page unavailable. Reload to retry."));
+  return page;
+}
+
 const emptyExpense = () => ({
   occurredOn: "",
   amount: "",
@@ -1000,6 +1016,8 @@ function ScopedLedgerScreen({
   const [parentBusy, setBusy] = useState(false);
   const [recurringBusy, setRecurringBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [expensePage, setExpensePage] = useState(0);
+  const expensePageHistory = useRef({ scope: "", index: 0, cursors: [null] });
   const [inspection, setInspection] = useState(null);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [reviewBusy, setReviewBusy] = useState(false);
@@ -1231,6 +1249,11 @@ function ScopedLedgerScreen({
         : { target: "project", projectId, ...filtered },
     [mode, projectId, filtered]
   );
+  const expensePageScope = `${workspaceScope}:${authorizationRevision}:${JSON.stringify(detailQuery)}`;
+  const resetExpensePage = () => {
+    expensePageHistory.current = { scope: expensePageScope, index: 0, cursors: [null] };
+    setExpensePage(0);
+  };
   const exportHref = useMemo(
     () =>
       `${env.VITE_API_BASE_URL || ""}/api/v1/expenses/export?${new URLSearchParams({
@@ -1291,7 +1314,34 @@ function ScopedLedgerScreen({
       restoreCategoryActionFocus.current = null;
     }
     loadedScope.current = scope;
+    if (expensePageHistory.current.scope !== expensePageScope) {
+      expensePageHistory.current = { scope: expensePageScope, index: 0, cursors: [null] };
+      setExpensePage(0);
+    }
     const options = { signal: controller.signal };
+    const readExpenses = async () => {
+      const page = expensePageHistory.current;
+      const cursor = page.cursors[page.index];
+      let expenses = validateExpensePage(await api.expenses({
+        ...detailQuery,
+        limit: EXPENSE_PAGE_SIZE,
+        ...(cursor ? { cursor } : {}),
+      }, options));
+      if (controller.signal.aborted || request !== requestId.current) return expenses;
+      // A current page can disappear after another user's removals. One bounded
+      // first-page read recovers an explicit reload without scanning the list.
+      if (!expenses.items.length && page.index > 0) {
+        expenses = validateExpensePage(await api.expenses({
+          ...detailQuery,
+          limit: EXPENSE_PAGE_SIZE,
+        }, options));
+        if (!controller.signal.aborted && request === requestId.current) {
+          expensePageHistory.current = { scope: expensePageScope, index: 0, cursors: [null] };
+          setExpensePage(0);
+        }
+      }
+      return expenses;
+    };
     const load = async () => {
       if (mode === "projects") {
         return {
@@ -1318,7 +1368,7 @@ function ScopedLedgerScreen({
         categoryReport,
       ] = await Promise.all([
         api.categories({ ...options, params: { includeRemoved: true } }),
-        api.expenses(detailQuery, options),
+        readExpenses(),
         mode === "project"
           ? api.project(projectId, options)
           : Promise.resolve(null),
@@ -1398,6 +1448,7 @@ function ScopedLedgerScreen({
     revision,
     filtered,
     detailQuery,
+    expensePageScope,
     authorizationRevision,
     workspaceScope,
     api,
@@ -1480,9 +1531,7 @@ function ScopedLedgerScreen({
       const next =
         kind === "projects"
           ? await api.projects({ cursor }, { signal: controller.signal })
-          : kind === "repositories"
-            ? await api.repositories({ cursor }, { signal: controller.signal })
-            : await api.expenses({ ...detailQuery, cursor }, { signal: controller.signal });
+          : await api.repositories({ cursor }, { signal: controller.signal });
       if (controller.signal.aborted || request !== requestId.current) return;
       if (kind === "repositories" && next.githubRefreshError) {
         setData((old) => old && {
@@ -1532,6 +1581,84 @@ function ScopedLedgerScreen({
     }
   };
 
+  const loadExpensePage = async (direction) => {
+    const current = expensePageHistory.current;
+    const index = current.index + direction;
+    const cursor = direction > 0 ? data?.expenses?.nextCursor : current.cursors[index];
+    if (
+      blocked ||
+      inFlight.current ||
+      readingGuard.current ||
+      inspectionOpenRef.current ||
+      projectRemovalRef.current ||
+      !mounted.current ||
+      current.scope !== expensePageScope ||
+      index < 0 ||
+      (direction > 0 && !cursor) ||
+      moreController.current
+    )
+      return;
+    const request = requestId.current;
+    const controller = new AbortController();
+    moreController.current = controller;
+    readingGuard.current = true;
+    setLoadingMore(true);
+    setActionError("");
+    try {
+      let next = validateExpensePage(await api.expenses({
+        ...detailQuery,
+        limit: EXPENSE_PAGE_SIZE,
+        ...(cursor ? { cursor } : {}),
+      }, { signal: controller.signal }));
+      if (controller.signal.aborted || request !== requestId.current) return;
+      if (
+        (direction > 0 && next.nextCursor === cursor) ||
+        (!next.items.length && next.nextCursor) ||
+        (direction > 0 && next.nextCursor && current.cursors.includes(next.nextCursor))
+      ) {
+        setActionError(T("Pagination did not advance. Reload to retry."));
+        return;
+      }
+      const seen = new Set(data.expenses.items.map((item) => item.id));
+      if (direction > 0 && next.items.some((item) => seen.has(item.id))) {
+        setActionError(T("Pagination repeated existing records. Reload to retry."));
+        return;
+      }
+      if (!next.items.length && direction > 0) {
+        setData((old) => old && ({ ...old, expenses: { ...old.expenses, nextCursor: null } }));
+        return;
+      }
+      let nextPage = { scope: expensePageScope, index, cursors: current.cursors.slice(0, index + 1) };
+      if (direction > 0) nextPage.cursors[index] = cursor;
+      if (!next.items.length && index > 0) {
+        next = validateExpensePage(await api.expenses({
+          ...detailQuery,
+          limit: EXPENSE_PAGE_SIZE,
+        }, { signal: controller.signal }));
+        if (controller.signal.aborted || request !== requestId.current) return;
+        nextPage = { scope: expensePageScope, index: 0, cursors: [null] };
+      }
+      expensePageHistory.current = nextPage;
+      setExpensePage(nextPage.index);
+      setConfirmId("");
+      setData((old) => old && ({ ...old, expenses: next }));
+    } catch (failure) {
+      if (!controller.signal.aborted && request === requestId.current) {
+        setActionError(errorText(failure));
+        if (isLedgerAccessFailure(failure)) {
+          setData(null);
+          onAccessChanged?.(failure);
+        }
+      }
+    } finally {
+      if (moreController.current === controller) moreController.current = null;
+      if (request === requestId.current) {
+        readingGuard.current = false;
+        setLoadingMore(false);
+      }
+    }
+  };
+
   const action = async (callback) => {
     if (
       inFlight.current ||
@@ -1547,6 +1674,7 @@ function ScopedLedgerScreen({
     try {
       await callback();
       if (request !== requestId.current) return false;
+      resetExpensePage();
       writeRefreshPending.current = true;
       setLoading(true);
       reload();
@@ -1704,12 +1832,13 @@ function ScopedLedgerScreen({
     );
     try {
       const [expenses, project, timeseries, categoryReport] = await Promise.all([
-        api.expenses(detailQuery, options),
+        api.expenses({ ...detailQuery, limit: EXPENSE_PAGE_SIZE }, options).then(validateExpensePage),
         mode === "project" ? api.project(projectId, options) : Promise.resolve(null),
         optionalReport(api.reportTimeseries(detailQuery, options)),
         optionalReport(api.reportCategories(detailQuery, options)),
       ]);
       if (signal.aborted || request !== requestId.current || !mounted.current) return;
+      resetExpensePage();
       setData((previous) => previous && ({
         ...previous,
         expenses,
@@ -3045,7 +3174,7 @@ function ScopedLedgerScreen({
                 role="tabpanel"
                 id={`${viewId}-panel-expenses`}
                 aria-labelledby={`${viewId}-tab-expenses`}
-                aria-busy={loading || writing}
+                aria-busy={loading || loadingMore || writing}
                 tabIndex={0}
                 hidden={view !== "expenses"}
               >
@@ -3187,14 +3316,29 @@ function ScopedLedgerScreen({
                         </article>
                       ))}
                     </div>
-                    {data.expenses.nextCursor && (
-                      <button
-                        className="btn"
-                        disabled={blocked}
-                        onClick={() => loadMore("expenses")}
+                    {(expensePage > 0 || data.expenses.nextCursor) && (
+                      <nav
+                        className="ledger-expense-pagination panel-actions"
+                        aria-label={T("Expense pagination")}
                       >
-                        {T("Load more expenses")}
-                      </button>
+                        <button
+                          className="btn"
+                          disabled={blocked || expensePage === 0}
+                          onClick={() => loadExpensePage(-1)}
+                        >
+                          {T("Previous")}
+                        </button>
+                        <span className="ledger-meta" aria-live="polite" aria-atomic="true">
+                          {T("Page {page}").replace("{page}", String(expensePage + 1))}
+                        </span>
+                        <button
+                          className="btn"
+                          disabled={blocked || !data.expenses.nextCursor}
+                          onClick={() => loadExpensePage(1)}
+                        >
+                          {T("Next")}
+                        </button>
+                      </nav>
                     )}
                   </section>
                   {showExpenseForm && (

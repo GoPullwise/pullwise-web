@@ -1,6 +1,9 @@
 .ledger-screen .panel {
   padding: 32px 0;
 }
+.ledger-expense-pagination {
+  margin-top: 16px;
+}
 .ledger-screen .page-h .sub {
   max-width: 580px;
   line-height: 1.7;

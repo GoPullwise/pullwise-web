@@ -124,7 +124,7 @@ describe("Expense category guidance", () => {
     expect(emptyHeading.closest(".empty")).not.toBeNull();
     expect(screen.getByRole("heading", { name: guideTitle }).closest(".notice")).not.toBeNull();
     expect(screen.getAllByRole("button", { name: "Add category" })).toHaveLength(1);
-    expect(api.expenses).toHaveBeenLastCalledWith({ target: "shared", from: "2026-10-01" }, expect.anything());
+    expect(api.expenses).toHaveBeenLastCalledWith({ target: "shared", from: "2026-10-01", limit: 10 }, expect.anything());
     fireEvent.click(screen.getByRole("button", { name: "Add category" }));
     expect(go).toHaveBeenCalledExactlyOnceWith("ledgerCategories");
   });
