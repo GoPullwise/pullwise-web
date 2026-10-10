@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-10",
+  "publicationPassed": true,
+  "homepageBodyVerified": false,
+  "verificationStatus": "Deployment and asset/HEAD readback passed; the single homepage GET returned 403",
+  "scope": "Phone app layout and common Safari/Android Chrome compatibility; Web preview publication",
+  "sourceCommit": "d2cfc714ea4b8fa30dd6b0330750f085fafa1482",
+  "githubBranch": "main",
+  "githubSourcePushVerified": true,
+  "worker": "pullwise-web-preview",
+  "wranglerVersion": "4.149.0",
+  "versionId": "c058cbe5-be18-4f41-8235-d3f92131a8a3",
+  "url": "https://preview.pull-wise.com/projects",
+  "localValidation": "mobile-compatibility-local-2026-10-10.json",
+  "checks": {
+    "testFiles": 68,
+    "tests": 1343,
+    "mobileAndDateContexts": 28,
+    "mobileAndDateStates": 890,
+    "captures": 22
+  },
+  "staticReadback": {
+    "origin": "https://preview.pull-wise.com",
+    "passed": false,
+    "homepageGets": 1,
+    "hashedAssetGets": 3,
+    "redirectsFollowed": 0,
+    "retries": 0,
+    "businessApiRequests": 0,
+    "executedPageJavaScript": false,
+    "results": [
+      {
+        "path": "/",
+        "method": "GET",
+        "status": 403,
+        "client": "Python urllib",
+        "bodyAndHeadersNotRetained": true
+      },
+      {
+        "path": "/assets/index-CUk7D7Ql.js",
+        "method": "GET",
+        "status": 200,
+        "bytes": 93458,
+        "sha256": "ff7c25ad942d71972a0f6bdcc716888691fc8a315e36d7b6207e0d5f5cba3188",
+        "matchesBuiltAsset": true
+      },
+      {
+        "path": "/assets/ledger-screen-D3Z1jFOr.js",
+        "method": "GET",
+        "status": 200,
+        "bytes": 161217,
+        "sha256": "c7a06e0408d172ef3416f0f10e838c2c8501c0c22a043dd4e56b3671333575d5",
+        "matchesBuiltAsset": true
+      },
+      {
+        "path": "/assets/index-BxzhodQq.css",
+        "method": "GET",
+        "status": 200,
+        "bytes": 92627,
+        "sha256": "75f5dcf16adf64034de96e12504c8d3210c7504c173e9556b9ed9dc9c4983b21",
+        "matchesBuiltAsset": true
+      }
+    ],
+    "homepageHeads": 1,
+    "homepageHead": {
+      "status": 200,
+      "noindex": true,
+      "client": "curl"
+    },
+    "assetReadbackPassed": true,
+    "homepageHeaderReadbackPassed": true,
+    "limitation": "The sole homepage GET returned 403; it was not repeated. One diagnostic HEAD returned 200/noindex and all three exact asset GETs matched the final build. Homepage body references were not remotely verified."
+  },
+  "serverCodeChanges": false,
+  "serverDeployment": false,
+  "databaseChanges": false,
+  "productionDeployment": false,
+  "realAccountOrProviderAcceptance": false
+}

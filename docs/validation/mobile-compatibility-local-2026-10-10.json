@@ -207,5 +207,7 @@
         }
       }
     ]
-  }
+  },
+  "verifiedSourceCommit": "d2cfc714ea4b8fa30dd6b0330750f085fafa1482",
+  "verificationStage": "Frozen source used for this mobile-layout preview publication; later parallel main changes are separate verification snapshots."
 }
