@@ -6,6 +6,7 @@ import { SkeletonLine } from "../components/skeleton.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { FinancialValue } from "../components/financial-value.jsx";
+import { CurrencyPicker } from "../components/currency-picker.jsx";
 import { RecurringExpenses, RecurringScheduleFields } from "../components/recurring-expenses.jsx";
 import {
   PROJECT_URL_MAX_BYTES,
@@ -617,6 +618,7 @@ function ExpenseForm({
 }) {
   const noteId = useId();
   const categoryFieldId = useId();
+  const currencyFieldId = useId();
   const recurringDateHelpId = useId();
   const decimalHelpId = useId();
   const validationId = useId();
@@ -840,7 +842,17 @@ function ExpenseForm({
           "aria-describedby": `${decimalHelpId}${invalidDecimal === "amount" ? ` ${validationId}` : ""}`,
           "aria-invalid": invalidDecimal === "amount" || undefined,
         })}
-        {field("currency", T("Currency"), { maxLength: 3, required: true })}
+        <div className="ledger-field">
+          <label htmlFor={currencyFieldId}>{T("Currency")}</label>
+          <CurrencyPicker
+            id={currencyFieldId}
+            label={T("Currency")}
+            value={draft.currency}
+            onChange={(currency) => update("currency", currency)}
+            disabled={busy}
+            required
+          />
+        </div>
         <div className="ledger-field">
           <label htmlFor={categoryFieldId}>{T("Category")}</label>
           <select

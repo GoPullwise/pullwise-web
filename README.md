@@ -62,6 +62,15 @@ chart patterns while retaining Pullwise's theme and existing data contracts.
 Run `npm run test:overview-layout -- --browser=chromium` after building for
 bounded multi-currency, long-value, zero/error and six-language layout checks.
 
+Project and Shared Pool expense forms, including recurring plans, use a
+currency dropdown. Its common options show a code and the currency's name in
+the current UI language; the selected field and API payload keep only the
+code. The last option accepts a custom three-letter code, such as SEK, with
+explicit confirmation. Existing Server currency validation remains in place.
+The interaction follows Radix Select/Popover and WAI combobox/listbox patterns.
+Run `npm run test:currency-layout` after building for bounded Chromium currency
+interaction and layout checks with local GET-only fixtures.
+
 Global Settings has an **automatically remove oldest expense at capacity** switch
 for every plan, default Off, without additional charges. Off blocks full-capacity
 creates; On atomically removes the oldest retained entry and adds the new one.

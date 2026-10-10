@@ -1,5 +1,21 @@
 # Pullwise Web
 
+## Expense currency picker (2026-10-10)
+
+The user's final follow-up replaces manual expense currency entry with a
+dropdown. Common options show the code and currency name in the current one
+of six UI languages; the closed trigger and saved payload contain only the
+code. The last option opens a custom three-letter code input and explicit
+confirmation inside the same popover, outside its listbox. Draft typing and
+keyboard navigation must not alter the expense draft until selection; Enter
+in the custom input must never submit the enclosing expense form. Preserve
+existing non-common currencies, busy guards, scope isolation and Server
+validation. Apply to project/shared one-time and recurring create/edit forms.
+Keep the flat theme and bounded touch-friendly placement in narrow rails and
+phone viewports. Reference Radix Select/Popover and WAI combobox/listbox
+patterns without introducing dependencies. Complete local verification, push
+main and publish Web preview through the existing workflow.
+
 ## Spending overview and Billing presentation (2026-10-10)
 
 The user requests modern, clear visual hierarchy in these two Web views and

@@ -41,6 +41,8 @@ jobs:
         run: npm run test:billing-layout -- --browser=chromium
       - name: Check spending overview composition layouts
         run: npm run test:overview-layout -- --browser=chromium
+      - name: Check currency picker interactions and layouts
+        run: npm run test:currency-layout
       - name: Audit production dependencies
         run: npm audit --omit=dev
       - name: Check Cloudflare worker syntax

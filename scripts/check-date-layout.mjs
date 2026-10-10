@@ -93,7 +93,11 @@ async function geometry(page) {
         fields: Array.from(grid.children)
           .filter(visible)
           .flatMap((field) =>
-            Array.from(field.querySelectorAll('input:not([type="checkbox"]), select'))
+            Array.from(
+              field.querySelectorAll(
+                'input:not([type="checkbox"]), select, button[role="combobox"]'
+              )
+            )
               .filter(visible)
               .map((control) => ({
                 field: rect(field),

@@ -1,0 +1,481 @@
+{
+  "status": "passed",
+  "engine": "Chromium 151.0.7922.173",
+  "preCommitBase": "c2192e881c57518376b64166102ce5f08e60e7eb",
+  "scope": "Loopback-only synthetic GET fixtures, bounded requests; no Server API delivery, business writes, polling or browser installation. Prior Overview/Billing suites were not rerun.",
+  "finalArtifact": {
+    "index.html": "194cd8a6339a5dc2d6ae9582d2ac4df0655268fbe2e99237014abf3197b2af97",
+    "assets/index-BV2vK7Oz.js": "f5f1d2ae74ff0bf4e10dedf7fe5426fa1d5a8abc4c1d47b534527b277e3340b1",
+    "assets/ledger-CDk7Vtu4.js": "7797ae332cf322016ac297b2237ad084541a7f3236c744165960e1b4da2d4d8f",
+    "assets/ledger-D0qJsRgA.css": "49c60e8a42b95d0eac3657251499287cb403aab2017a23209db11c4553d56ba7"
+  },
+  "buildBoundaries": {
+    "attempts1and2": "Frozen index-BP9bBA1b.js / ledger-D0Pi8RiL.js / ledger-D0qJsRgA.css; first harness navigation false failure, then actual FR260 popup header obstruction discovered before final component geometry fix.",
+    "attempt3andFinal": "Frozen final source/build index-BV2vK7Oz.js / ledger-CDk7Vtu4.js / ledger-D0qJsRgA.css after focus preventScroll and actual popup edge/height clamp. Attempt3 changed only outside-dismissal harness before passing attempt4 on exactly the same dist. Date4 ran after passing Currency9 on that same frozen dist."
+  },
+  "unitTests": {
+    "status": "passed",
+    "tests": 26,
+    "files": [
+      "src/components/currency-picker.test.jsx",
+      "src/screens/ledger-currency-picker.test.jsx"
+    ],
+    "note": "Initial targeted unit tests passed; design/root reran the same26 after final component focus/position fix. Root full check75files/1565tests passed before that final fix; do not describe full suite as rerun after the fix. Scoped ESLint passed for test/scripts files."
+  },
+  "suites": {
+    "currency": {
+      "status": "passed",
+      "command": "npm run test:currency-layout -- --screenshots",
+      "contexts": 9,
+      "states": 49,
+      "GETRequests": 317,
+      "APIReads": 108,
+      "requestCap": 60,
+      "APIReadCap": 20,
+      "writes": 0,
+      "externalDelivered": 0,
+      "pageErrors": 0,
+      "profiles": [
+        {
+          "profile": "desktop-1440-en-rail260",
+          "states": 5,
+          "GETRequests": 29,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "desktop-1440-fr-rail260",
+          "states": 6,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "desktop-1440-es-rail260",
+          "states": 5,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "phone-320-en",
+          "states": 6,
+          "GETRequests": 29,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "phone-320-zh",
+          "states": 6,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "phone-320-ja",
+          "states": 5,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "phone-320-ko",
+          "states": 5,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "phone-320-fr",
+          "states": 6,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        },
+        {
+          "profile": "phone-320-es",
+          "states": 5,
+          "GETRequests": 37,
+          "APIReads": 12,
+          "writes": 0,
+          "externalDelivered": 0,
+          "blockedFontRequests": 1
+        }
+      ],
+      "cases": [
+        "Closed code only; required combobox labelled in six locales; Chrome AX closed value USD in EN/FR/ES.",
+        "All15 common options use code plus localized name; real touch selection and outside dismissal on six320px locale contexts.",
+        "Explicit common/custom choice; incomplete SE stays invalid; uppercase SEK draft does not change parent until confirmation; Escape/outside discard; keyboard Enter confirms NOK without parent form submit.",
+        "Desktop260px rail EN/FR/ES menu has no horizontal overflow and remains within header/viewport bounds; option targets>=44px.",
+        "Phone controls retain16px input and>=44px targets, coarse pointer and maxTouchPoints=1, including screenshot touch restore.",
+        "320x360 reduced viewport: custom confirmation hit-test reachable above dock, scrollable popup, confirmed code; geometry simulation only."
+      ],
+      "screenshots": [
+        "/workspace/work/currency-picker-layout/desktop-1440-fr-rail260-custom.png",
+        "/workspace/work/currency-picker-layout/phone-320-zh-custom.png",
+        "/workspace/work/currency-picker-layout/phone-320-fr-custom.png"
+      ],
+      "closedAccessibility": [
+        {
+          "profile": "desktop-1440-en-rail260",
+          "role": "combobox",
+          "name": "Currency",
+          "value": "USD"
+        },
+        {
+          "profile": "desktop-1440-fr-rail260",
+          "role": "combobox",
+          "name": "Devise",
+          "value": "USD"
+        },
+        {
+          "profile": "desktop-1440-es-rail260",
+          "role": "combobox",
+          "name": "Moneda",
+          "value": "USD"
+        }
+      ],
+      "FR260FinalCustom": {
+        "stage": "custom-unconfirmed",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "scrollY": 718,
+        "coarse": false,
+        "touchPoints": 0,
+        "trigger": {
+          "rect": {
+            "left": 1177,
+            "right": 1404,
+            "top": 0.09375,
+            "bottom": 43.09375,
+            "width": 227,
+            "height": 43
+          },
+          "font": 14,
+          "text": "USD",
+          "labelled": true
+        },
+        "menu": {
+          "rect": {
+            "left": 1177,
+            "right": 1404,
+            "top": 62,
+            "bottom": 482,
+            "width": 227,
+            "height": 420
+          },
+          "overflow": "auto",
+          "scrollWidth": 225,
+          "clientWidth": 225
+        },
+        "topbarBottom": 54,
+        "navTop": 1000
+      },
+      "reducedViewport": {
+        "stage": "reduced-viewport-confirm-reachable",
+        "viewport": {
+          "width": 320,
+          "height": 360
+        },
+        "scrollY": 921,
+        "coarse": true,
+        "touchPoints": 1,
+        "trigger": {
+          "rect": {
+            "left": 20,
+            "right": 300,
+            "top": 156.375,
+            "bottom": 204.375,
+            "width": 280,
+            "height": 48
+          },
+          "font": 16,
+          "text": "EUR",
+          "labelled": true
+        },
+        "menu": {
+          "rect": {
+            "left": 20,
+            "right": 300,
+            "top": 73,
+            "bottom": 152.375,
+            "width": 280,
+            "height": 79.375
+          },
+          "overflow": "auto",
+          "scrollWidth": 278,
+          "clientWidth": 278
+        },
+        "topbarBottom": 65,
+        "navTop": 270.21875
+      }
+    },
+    "date": {
+      "status": "passed",
+      "command": "npm run test:layout -- --browser=chromium",
+      "contexts": 4,
+      "states": 258,
+      "GETRequests": 376,
+      "APIReads": 292,
+      "requestCap": 100,
+      "writes": 0,
+      "externalDelivered": 0,
+      "requestViolations": 0,
+      "profiles": [
+        {
+          "profile": "desktop-1440",
+          "states": 81,
+          "GETRequests": 92,
+          "APIReads": 73,
+          "blockedFontRequests": 1,
+          "requestViolations": 0,
+          "writes": 0,
+          "externalDelivered": 0
+        },
+        {
+          "profile": "tablet-1280-zh",
+          "states": 81,
+          "GETRequests": 100,
+          "APIReads": 73,
+          "blockedFontRequests": 1,
+          "requestViolations": 0,
+          "writes": 0,
+          "externalDelivered": 0
+        },
+        {
+          "profile": "phone-390-to-320",
+          "states": 48,
+          "GETRequests": 92,
+          "APIReads": 73,
+          "blockedFontRequests": 1,
+          "requestViolations": 0,
+          "writes": 0,
+          "externalDelivered": 0
+        },
+        {
+          "profile": "android-size-412-to-360",
+          "states": 48,
+          "GETRequests": 92,
+          "APIReads": 73,
+          "blockedFontRequests": 1,
+          "requestViolations": 0,
+          "writes": 0,
+          "externalDelivered": 0
+        }
+      ],
+      "note": "Existing durable geometry suite now includes the replacement currency button[role=combobox], alongside date/select/input controls. Desktop1440 and touch tablet1280, phone390→320 and412→360 verify form geometry and native date preservation; no unnecessary Overview/Billing rerun."
+    }
+  },
+  "failedAttempts": [
+    {
+      "attempt": 1,
+      "classification": "harness false failure",
+      "evidence": "/workspace/work/visual-redesign-validation/currency-first-harness-failure.log",
+      "failedContext": {
+        "profile": "desktop-1440-en-rail260",
+        "passedStatesBeforeFailure": 1,
+        "GETRequests": 29,
+        "APIReads": 12,
+        "writes": 0,
+        "pageErrors": [],
+        "requestViolations": [],
+        "externalDelivered": 0
+      },
+      "completedPassContexts": 0,
+      "cause": "Desktop hidden zero-height .mobile-tabbar wrongly treated as visible navigation at y54. Fixed detection only for phone viewport and visible nonzero-height navigation. Actual menu top56.09375/bottom476.09375 in1000px viewport was not obstructed.",
+      "geometryAtFailure": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "trigger": {
+          "rect": {
+            "left": 1177,
+            "right": 1404,
+            "top": 9.09375,
+            "bottom": 52.09375,
+            "width": 227,
+            "height": 43
+          },
+          "font": 14,
+          "text": "USD",
+          "labelled": true
+        },
+        "menu": {
+          "rect": {
+            "left": 1177,
+            "right": 1404,
+            "top": 56.09375,
+            "bottom": 476.09375,
+            "width": 227,
+            "height": 420
+          },
+          "overflow": "auto",
+          "scrollWidth": 225,
+          "clientWidth": 225
+        },
+        "topbarBottom": 54,
+        "navTop": 54
+      }
+    },
+    {
+      "attempt": 2,
+      "classification": "product issue, fixed",
+      "evidence": "/workspace/work/visual-redesign-validation/currency-fr260-header-failure.log",
+      "failedContext": {
+        "profile": "desktop-1440-fr-rail260",
+        "passedStatesBeforeFailure": 2,
+        "GETRequests": 37,
+        "APIReads": 12,
+        "writes": 0,
+        "pageErrors": [],
+        "requestViolations": [],
+        "externalDelivered": 0
+      },
+      "completedPrefix": {
+        "contexts": 1,
+        "states": 5,
+        "profile": "desktop-1440-en-rail260",
+        "GETRequests": null,
+        "APIReads": null,
+        "note": "Earlier harness logged only pass states for completed prefix; request totals unavailable and not inferred."
+      },
+      "cause": "FR260 custom selection browser scroll moved trigger top0.09375/bottom43.09375 and popup top47.09375, below header bottom54 by6.90625px. These are rectangle edges, not a43px displacement. Fixed component focus with preventScroll and clamped actual popup bounds to header+8/dock-8. Same case passes final strict bounds.",
+      "geometryAtFailure": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "trigger": {
+          "rect": {
+            "left": 1177,
+            "right": 1404,
+            "top": 0.09375,
+            "bottom": 43.09375,
+            "width": 227,
+            "height": 43
+          },
+          "font": 14,
+          "text": "USD",
+          "labelled": true
+        },
+        "menu": {
+          "rect": {
+            "left": 1177,
+            "right": 1404,
+            "top": 47.09375,
+            "bottom": 467.09375,
+            "width": 227,
+            "height": 420
+          },
+          "overflow": "auto",
+          "scrollWidth": 225,
+          "clientWidth": 225
+        },
+        "topbarBottom": 54,
+        "navTop": 1000
+      }
+    },
+    {
+      "attempt": 3,
+      "classification": "harness false failure",
+      "evidence": "/workspace/work/visual-redesign-validation/currency-ja-outside-harness-failure.log",
+      "failedContext": {
+        "profile": "phone-320-ja",
+        "passedStatesBeforeFailure": 4,
+        "GETRequests": 37,
+        "APIReads": 12,
+        "writes": 0,
+        "pageErrors": [],
+        "requestViolations": [],
+        "externalDelivered": 0
+      },
+      "completedPrefix": {
+        "contexts": 5,
+        "states": 28,
+        "GETRequests": 169,
+        "APIReads": 60,
+        "profiles": [
+          {
+            "profile": "desktop-1440-en-rail260",
+            "states": 5,
+            "GETRequests": 29,
+            "APIReads": 12,
+            "writes": 0,
+            "externalDelivered": 0,
+            "blockedFontRequests": 1
+          },
+          {
+            "profile": "desktop-1440-fr-rail260",
+            "states": 6,
+            "GETRequests": 37,
+            "APIReads": 12,
+            "writes": 0,
+            "externalDelivered": 0,
+            "blockedFontRequests": 1
+          },
+          {
+            "profile": "desktop-1440-es-rail260",
+            "states": 5,
+            "GETRequests": 37,
+            "APIReads": 12,
+            "writes": 0,
+            "externalDelivered": 0,
+            "blockedFontRequests": 1
+          },
+          {
+            "profile": "phone-320-en",
+            "states": 6,
+            "GETRequests": 29,
+            "APIReads": 12,
+            "writes": 0,
+            "externalDelivered": 0,
+            "blockedFontRequests": 1
+          },
+          {
+            "profile": "phone-320-zh",
+            "states": 6,
+            "GETRequests": 37,
+            "APIReads": 12,
+            "writes": 0,
+            "externalDelivered": 0,
+            "blockedFontRequests": 1
+          }
+        ]
+      },
+      "cause": "PhoneJA outside-dismissal test tapped Amount underneath the correctly positioned popup; Playwright auto-scroll retries hit popup/header/dock. Replaced target with currently visible noninteractive gutter background, elementFromPoint confirms outside picker and no interactive/label/navigation ancestor; real tap, no force or scrolling. Bounds unchanged. Attempt4 fully passes."
+    }
+  ],
+  "touchLimitations": [
+    "Installed Chromium only; WebKit/Firefox binaries unavailable and no browser installed.",
+    "Playwright touch contexts record pointer coarse and maxTouchPoints=1; phone trigger/options/outside background use real touchscreen taps. Screenshot cases restore Chromium touch events and recheck.",
+    "Reduced360px viewport simulates geometry, not physical OS keyboard or VisualViewport keyboard acceptance. No physical iOS/Android, Safari, remote business-data, Server write or OAuth acceptance is claimed."
+  ],
+  "requestAccounting": "GETRequests includes intercepted, explicitly blocked external font requests. All API reads are synthetic local fixture responses; requests were checked and no business writes or external delivery occurred. Failed attempts are separate and excluded from final passing suite totals.",
+  "totals": {
+    "contexts": 13,
+    "states": 307,
+    "GETRequests": 693,
+    "APIReads": 400,
+    "writes": 0,
+    "externalDelivered": 0
+  }
+}

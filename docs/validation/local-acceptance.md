@@ -1,5 +1,60 @@
 # Current local acceptance
 
+## Expense currency dropdown (2026-10-10)
+
+Project and Shared Pool one-time/recurring create/edit forms now share a
+currency picker. Fifteen common options show code plus the currency name in
+the current English, Chinese, Japanese, Korean, French or Spanish UI. The
+closed trigger and save payload contain only the code. The final custom
+option exposes a separately labeled three-letter code input and confirmation;
+typing, navigation and cancellation leave the parent expense draft unchanged.
+Non-common existing codes are preserved. Custom Enter confirms only the
+currency, and all non-submit buttons have explicit button types. Busy states
+close the menu and disable selection. Existing amount precision, scope fences,
+Server currency validation and API contracts remain intact.
+
+Actual HTTP-200 documentation reads cover
+[Radix Select](https://www.radix-ui.com/primitives/docs/components/select),
+[Radix Popover](https://www.radix-ui.com/primitives/docs/components/popover),
+[WAI select-only Combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/)
+and [WAI Listbox](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/).
+The picker retains Pullwise's flat theme without another dependency. The custom
+input and confirmation sit outside the listbox options, with their own labels.
+
+`npm run check` passes ESLint, 75 files / 1,565 tests and the build;
+`npm run check:workers` passes the offline configuration guard. Subsequent
+trigger ResizeObserver, focus-without-scroll and safe-edge positioning changes
+pass the 26 focused picker/integration tests and JavaScript lint, followed by
+the final preview-environment build and successful Wrangler dry-run. Their
+independent read-only review finds no blocking issue. Test fixtures cover
+six-language option names, code-only payloads, project/shared recurring and
+one-time create/edit, preserved non-common codes, pending writes, explicit
+custom confirmation, Escape/outside/focus dismissal and keyboard submission
+guards. The date-layout checker now includes the button-based combobox in its
+field geometry checks. Server and production are not changed or deployed.
+
+Final currency Chromium checks pass nine contexts / 49 settled states, with
+317 intercepted GETs / 108 synthetic API reads, no attempted business writes,
+external delivery or page errors. They cover English/French/Spanish 260px
+editor rails, six-language 320px touch layouts, a reduced 320x360 viewport,
+strict header/dock bounds, actual touch taps, code-only closed values, custom
+draft cancellation/confirmation and no extra API reads. Chromium's accessibility
+tree exposes the closed combobox value as USD. Native QA found and fixed a
+French narrow-rail header overlap; the final strict bounds pass. Two harness
+issues (a hidden desktop dock and tapping a field covered by the popover) were
+corrected without relaxing bounds or forcing clicks. Initial failed attempts
+and completed prefixes are retained in the local evidence. Final custom-menu
+captures were visually inspected in French desktop and Chinese/French phone.
+The currency checker is included in CI. These are bounded local fixtures;
+physical devices, OS keyboards, Firefox/WebKit and remote provider/data flows
+are outside this evidence.
+[Local evidence](currency-picker-local-2026-10-10.json) records the final built
+asset hashes and each failed prefix separately. Date-field regression passes
+four Chromium contexts / 258 states, including 390-to-320 and 412-to-360 phone
+widths. Together, the final currency/date suites pass 13 contexts / 307 states
+with 693 intercepted GETs / 400 synthetic API reads and zero business writes
+or external delivery.
+
 ## Spending overview and Billing redesign (2026-10-10)
 
 The Web-only redesign uses per-currency totals beside a horizontal project /
@@ -37,8 +92,14 @@ binaries are unavailable in this environment; none were installed.
 [Local evidence](overview-billing-design-local-2026-10-10.json) records 48 Chromium
 contexts / 586 settled states, including the final focused compact Shared Pool
 readback. It distinguishes the build used by each suite. Server, production and
-existing database state remain unchanged. The preview publication receipt will
-record the matching runtime source and exact static asset verification.
+existing database state remain unchanged.
+[Preview publication](overview-billing-design-preview-release-2026-10-10.json)
+records runtime commit `c2192e881c57518376b64166102ce5f08e60e7eb` and Web
+version `6f624496-e553-40a5-afd0-67064698a061`. One homepage and three exact
+hashed-asset GETs return 200; the homepage is noindex and references the built
+entry, and every asset matches the local bytes. No redirects, retries, JavaScript
+execution or remote business/provider/D1 operation occurs. GitHub CLI returns
+no workflow runs at publication time.
 
 [Final console preview publication](github-console-ui-preview-release-2026-10-10.json)
 records runtime main commit `1e395e90a311997ebdbd98719239d4405c735dcf`
